@@ -3,8 +3,8 @@ from datetime import date
 
 from flask import Blueprint, jsonify
 
-from ..constants import COMMAND_ROLES, EDITABLE, PERSONNEL_FAMILIES
-from ..people import find_person, sort_active, valid_rest
+from ..constants import COMMAND_ROLES, EDITABLE, OFFICER_SECTIONS, PERSONNEL_FAMILIES
+from ..people import HISTORY_FIELDS, find_person, record_change, sort_active, valid_rest
 from ..store import AbortRequest, with_data
 from ..utils import category_for, json_payload, parse_date
 
@@ -148,14 +148,31 @@ def edit_person(person_id):
             family = str(payload["role"]).strip().split(" ")[0]
             if family not in PERSONNEL_FAMILIES:
                 raise AbortRequest((jsonify({"error": "نوع الفرد غير صحيح."}), 400))
+        if "section" in payload and category == "officers":
+            if str(payload["section"]).strip() not in OFFICER_SECTIONS:
+                raise AbortRequest((jsonify({"error": "قسم اليومية غير صحيح."}), 400))
 
         errors = []
         valid_rest(payload, errors)
         if errors:
             raise AbortRequest((jsonify({"error": errors[0]}), 400))
 
-        for key in EDITABLE:
+        # الرتبة/المنصب/القسم/جهة التشغيل بتتسجّل بتاريخ سريان بدل ما
+        # تتكتب فوق الماضي — عشان إعادة توليد يوم قديم تطبع بياناته هو
+        historic = {}
+        for key in HISTORY_FIELDS:
             if key in payload:
+                historic[key] = (bool(payload[key]) if key == "search_attached"
+                                 else str(payload[key]).strip())
+        if historic and category == "officers":
+            effective_from = str(payload.get("effective_from", "")).strip() \
+                or date.today().isoformat()
+            if not parse_date(effective_from):
+                raise AbortRequest((jsonify({"error": "تاريخ السريان غير صحيح."}), 400))
+            record_change(person, effective_from, historic)
+
+        for key in EDITABLE:
+            if key in payload and not (historic and key in historic and category == "officers"):
                 person[key] = str(payload[key]).strip()
 
         if bucket == "archive" and "leave_date" in payload:

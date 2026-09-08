@@ -52,15 +52,25 @@ def test_explicit_status_wins_over_the_medical_default(client):
 
 
 def test_medical_post_alone_is_enough(client):
-    """من غير ما تحطه في القايمة: المنصب نفسه بيحدد الخانة، وبيتقري
-    من تاريخ الضابط فما يأثرش على الأيام اللي كان فيها منصبه غير كده."""
-    client.patch("/api/person/OFF-002", json={"post": "رئيس العيادة الطبية"})
+    """من غير ما تحطه في القايمة: المنصب نفسه بيحدد الخانة."""
+    client.patch("/api/person/OFF-002", json={"post": "رئيس العيادة الطبية",
+                                              "effective_from": "2026-05-04"})
     assert _row(client, "OFF-002", "2026-05-04")["group"] == "طبية"
 
 
 def test_seconded_from_the_medical_sector_also_counts(client):
-    client.patch("/api/person/OFF-002", json={"post": "انتداب من قطاع الخدمات الطبية"})
+    client.patch("/api/person/OFF-002", json={"post": "انتداب من قطاع الخدمات الطبية",
+                                              "effective_from": "2026-05-05"})
     assert _row(client, "OFF-002", "2026-05-05")["group"] == "طبية"
+
+
+def test_a_post_change_does_not_reach_back_into_the_archive(client):
+    """المنصب بيتغيّر مع حركة الضباط — الأيام اللي قبل تاريخ السريان
+    لازم تفضل بمنصبه القديم، وإلا كل يومية قديمة تتطبع ببيانات النهاردة."""
+    client.patch("/api/person/OFF-002", json={"post": "رئيس العيادة الطبية",
+                                              "effective_from": "2026-05-10"})
+    assert _row(client, "OFF-002", "2026-05-09")["group"] == "صافي"
+    assert _row(client, "OFF-002", "2026-05-10")["group"] == "طبية"
 
 
 def test_medical_list_rejects_unknown_or_archived_officer(client):

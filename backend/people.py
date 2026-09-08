@@ -30,6 +30,44 @@ def effective(person, day):
     return {key: latest.get(key, current[key]) for key in current}
 
 
+HISTORY_FIELDS = ("role", "post", "section", "search_attached")
+
+
+def record_change(person, effective_from, changes):
+    """يسجّل تغيير في الرتبة/المنصب/القسم/جهة التشغيل بتاريخ سريان.
+
+    الترقية أو حركة الضباط بتغيّر الرتبة والمنصب، وتخزين قيمة واحدة كان
+    معناه إن الأيام القديمة تتطبع ببيانات النهاردة — يومية 5/7 فيها
+    «مقدم / أشرف الشريف» والملف كان فيه «عقيد».
+
+    القيم الحالية على الضابط بتفضل مرآة لآخر سجل، عشان أي كود بيقرا
+    person["role"] مباشرةً يفضل شغّال.
+    """
+    history = person.setdefault("history", [])
+    if not history:
+        # أول سجل بيبدأ من تاريخ انضمامه، مش من تاريخ التعديل — القيم
+        # القديمة كانت سارية من الأول
+        history.append({"from": person.get("join_date", effective_from),
+                        **{f: person.get(f, False if f == "search_attached" else "")
+                           for f in HISTORY_FIELDS}})
+
+    latest = max(history, key=lambda h: h.get("from") or "")
+    merged = {**{f: latest.get(f) for f in HISTORY_FIELDS}, **changes}
+    if all(merged[f] == latest.get(f) for f in HISTORY_FIELDS):
+        return                                  # مفيش تغيير فعلي
+
+    same_day = next((h for h in history if h.get("from") == effective_from), None)
+    if same_day:
+        same_day.update(merged)                 # تصحيح لنفس تاريخ السريان
+    else:
+        history.append({"from": effective_from, **merged})
+    history.sort(key=lambda h: h.get("from") or "")
+
+    newest = history[-1]
+    for field in HISTORY_FIELDS:
+        person[field] = newest[field]
+
+
 def find_person(data, person_id):
     """-> (person, category, bucket) or (None, None, None)"""
     for cat in ("officers", "personnel"):

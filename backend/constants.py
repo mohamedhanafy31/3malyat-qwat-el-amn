@@ -109,3 +109,7 @@ TAQSEERA_NOTICE_DAYS = 1
 
 EDITABLE = ["name", "role", "code", "phone", "join_date", "post",
             "address", "section", "rest_system", "rest_day"]
+
+# الحقول المؤرَّخة على الضابط — بتتسجّل في history بتاريخ سريان بدل ما
+# تتكتب فوق الماضي، عشان الأيام القديمة تتطبع ببياناتها هي
+DATED_FIELDS = ["role", "post", "section", "search_attached"]
