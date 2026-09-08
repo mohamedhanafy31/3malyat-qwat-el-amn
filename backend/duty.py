@@ -21,12 +21,25 @@ def summarise(data, day):
     }
     net_names, rows = [], []
 
+    # ضابط العيادة الطبية له حالة خاصة: تشغيله "طبية" تلقائيًا (موجود أو
+    # راحة) من غير تكليف يدوي — بس في يوم **مالوش أي تكليف مسجّل خالص لحد
+    # لسه** (يوم جديد تمامًا). أول ما أي حد ياخد تكليف في اليوم ده، اليوم
+    # بقى "متابَع بإيد الموظف" فمابنحطش افتراضات فوق بيانات حد سجّلها بنفسه.
+    # ده اللي بيضمن إن الـ92 يوم المستوردة من الأرشيف ميتغيّروش خالص، حتى
+    # لو ضابط العيادة نفسه مالوش تكليف مسجّل في يوم معيّن منها.
+    medical_ids = set(data.get("medical_officers", []))
+    medical_svc = next((svc for svc in data["services"] if svc.get("kind") == "طبية"), None)
+    day_is_blank = day not in data["duties"]
+
     for o in officers:
         d = duties.get(o["id"], {})
         kinds = [(services.get(i.get("service_id"), {}), i.get("shift", "صباحية"))
                  for i in d.get("items", [])]
         lv = leave_on(data, o["id"], day)
         medical = any(sv.get("kind") == "طبية" for sv, _ in kinds)
+        if not medical and day_is_blank and o["id"] in medical_ids and medical_svc:
+            medical = True
+            kinds = [(medical_svc, "")]
 
         # الترتيب هنا هو نفس ترتيب الأولوية في اليومية الورقية
         if medical:

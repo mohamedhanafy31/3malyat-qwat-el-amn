@@ -39,6 +39,34 @@ def set_command():
     return with_data(mutate)
 
 
+@bp.patch("/api/medical-officers")
+def set_medical_officers():
+    """تحديد قايمة ضباط العيادة الطبية — تشغيلهم "طبية" بيتحسب تلقائيًا
+    كل يوم (موجود أو راحة) من غير تكليف يدوي. ابعت القايمة كاملة كل مرة."""
+    payload = json_payload()
+    ids = payload.get("officer_ids")
+    if not isinstance(ids, list):
+        return jsonify({"error": "officer_ids لازم تكون قايمة."}), 400
+
+    def mutate(data):
+        seen, clean = set(), []
+        for officer_id in ids:
+            officer_id = str(officer_id or "").strip()
+            if not officer_id or officer_id in seen:
+                continue
+            person, category, bucket = find_person(data, officer_id)
+            if not person or category != "officers":
+                raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
+            if bucket != "active":
+                raise AbortRequest((jsonify({"error": "الضابط مش على القوة."}), 400))
+            seen.add(officer_id)
+            clean.append(officer_id)
+        data["medical_officers"] = clean
+        return jsonify(data["medical_officers"])
+
+    return with_data(mutate)
+
+
 @bp.post("/api/person")
 def add_person():
     payload = json_payload()

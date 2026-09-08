@@ -204,6 +204,36 @@ function renderCommand(){
     if(!out){renderCommand(); return}   // رجّع الاختيار القديم لو الطلب اترفض
     showToast("تم تحديث القيادة"); load();
   });
+
+  renderMedicalOfficers();
+}
+
+/* ---------- ضباط العيادة الطبية ---------- */
+const MEDICAL_BADGE=()=>DATA.meta.medical_badge||"ضابط العيادة الطبية";
+function isMedicalOfficer(id){return (DATA.medical_officers||[]).includes(id)}
+
+function renderMedicalOfficers(){
+  const officers=DATA.officers.active;
+  const chosen=new Set(DATA.medical_officers||[]);
+  $("#commandBar").insertAdjacentHTML("beforeend",`
+    <div class="cmd-head" style="margin-top:16px">${esc(MEDICAL_BADGE())}
+      <span class="muted">تشغيلهم "طبية" (موجود/راحة) تلقائيًا كل يوم جديد — بدون تكليف يدوي</span>
+    </div>
+    <div class="svc-picker" id="medOfficerPicker" style="margin-bottom:0">
+      ${officers.map(o=>`<label class="svc-item ${chosen.has(o.id)?"on":""}">
+        <input type="checkbox" value="${esc(o.id)}" ${chosen.has(o.id)?"checked":""}>
+        <span class="svc-name">${esc(o.role)} / ${esc(o.name)}</span>
+      </label>`).join("")}
+    </div>`);
+  const picker=$("#medOfficerPicker");
+  picker.querySelectorAll("input").forEach(cb=>cb.onchange=async()=>{
+    cb.closest(".svc-item").classList.toggle("on",cb.checked);
+    const ids=[...picker.querySelectorAll("input:checked")].map(x=>x.value);
+    const out=await api("/api/medical-officers",{method:"PATCH",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({officer_ids:ids})});
+    if(!out){renderMedicalOfficers(); return}
+    showToast("تم تحديث ضباط العيادة"); load();
+  });
 }
 
 function filterRows(rows){
@@ -217,7 +247,9 @@ function filterRows(rows){
 /* شارة المنصب القيادي جنب اسم الضابط في الجدول */
 function cmdBadge(p){
   const role=commandOf(p.id);
-  return role?` <span class="chip cmd">${esc(role)}</span>`:"";
+  const cmd=role?` <span class="chip cmd">${esc(role)}</span>`:"";
+  const med=isMedicalOfficer(p.id)?` <span class="chip cmd">${esc(MEDICAL_BADGE())}</span>`:"";
+  return cmd+med;
 }
 
 function renderForce(){

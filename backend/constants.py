@@ -10,6 +10,12 @@ CATEGORY_ADMIN_ROLES, CATEGORY_SUBCAMP = "أدوار بالإدارة", "الم�
 ROLE_DIRECTOR, ROLE_DEPUTY = "مدير الإدارة", "وكيل الإدارة"
 COMMAND_ROLES = [ROLE_DIRECTOR, ROLE_DEPUTY]
 
+# ضباط العيادة الطبية — حالة خاصة: تشغيلهم اليومي ثابت («طبية») تلقائيًا
+# من غير تكليف يدوي، وبيفرق عن باقي الضباط إن راحتهم لسه بتتحسب تحت
+# "طبية" (موجود/راحة) مش "خوارج" — بالظبط زي المعمول بيه بالفعل في جدول
+# الإجمالي. العدد مش ثابت في الكود (دلوقتي اتنين، بس ممكن يتغيّر).
+MEDICAL_BADGE = "ضابط العيادة الطبية"
+
 DEFAULT_DATA = {
     "officers": {"active": [], "archive": []},
     "personnel": {"active": [], "archive": []},
@@ -21,6 +27,7 @@ DEFAULT_DATA = {
                           CATEGORY_ADMIN_ROLES, CATEGORY_SUBCAMP],
     "service_tags": [],
     "command": {ROLE_DIRECTOR: None, ROLE_DEPUTY: None},
+    "medical_officers": [],
 }
 
 # تصنيف الخدمة — ده اللي بيحدد الضابط يتحسب في أي خانة في جدول الإجمالي

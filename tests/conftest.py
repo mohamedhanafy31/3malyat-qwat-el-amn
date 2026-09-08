@@ -32,6 +32,7 @@ FIXTURE_DATA = {
     ],
     "services": [
         {"id": "SVC-001", "name": "دورية خارجية", "kind": "خارجية", "standing": True},
+        {"id": "SVC-002", "name": "العيادة الطبية", "kind": "طبية", "standing": False},
     ],
     "duties": {},
     "day_services": {},

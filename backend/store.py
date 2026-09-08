@@ -65,6 +65,7 @@ def _read():
     command = data.setdefault("command", {})
     for role in DEFAULT_DATA["command"]:
         command.setdefault(role, None)
+    data.setdefault("medical_officers", [])
     return data
 
 

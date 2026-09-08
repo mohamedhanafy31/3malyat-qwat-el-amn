@@ -4,8 +4,8 @@ from datetime import date
 from flask import Blueprint, jsonify, render_template
 
 from ..constants import (
-    COMMAND_ROLES, LEAVE_TYPES, REST_DURATIONS, REST_SYSTEMS, SERVICE_KINDS,
-    SHIFTS, TAQSEERA_NOTICE_DAYS, WEEKDAYS,
+    COMMAND_ROLES, LEAVE_TYPES, MEDICAL_BADGE, REST_DURATIONS, REST_SYSTEMS,
+    SERVICE_KINDS, SHIFTS, TAQSEERA_NOTICE_DAYS, WEEKDAYS,
 )
 from ..store import load_data
 
@@ -36,6 +36,7 @@ def get_data():
         "board_categories": data["board_categories"],
         "service_tags": data["service_tags"],
         "command_roles": COMMAND_ROLES,
+        "medical_badge": MEDICAL_BADGE,
         "today": date.today().isoformat(),
     }
     return jsonify(data)
