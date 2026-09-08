@@ -58,3 +58,25 @@ def test_single_write_per_mutating_request(client, monkeypatch):
 def test_unknown_day_entry_404(client):
     r = client.patch("/api/board/2026-03-01/entries/DS-9999", json={"note": "x"})
     assert r.status_code == 404
+
+
+def test_empty_day_still_returns_all_base_categories(client):
+    """يوم جديد فاضي (زي ما بيحصل مع زرار «بكرة») لازم يرجّع كل التصنيفات
+    الأساسية الخمسة برضو — الكرت الفاضي هو اللي شايل زرار «＋ إضافة»، فلو
+    اتشال مبيبقاش فيه أي طريقة تضيف خدمة لليوم ده من الواجهة أصلًا."""
+    b = client.get("/api/board/2026-05-05").get_json()
+    names = [c["name"] for c in b["categories"]]
+    assert names == ["الخدمات الأساسية", "الأهداف", "الخدمات الطارئة",
+                     "أدوار بالإدارة", "المعسكر الفرعي"]
+    assert all(c["entries"] == [] for c in b["categories"])
+
+
+def test_can_add_to_empty_day(client):
+    """التحقق إن اليوم الفاضي فعلًا قابل للإضافة عليه من غير أي تجهيز مسبق."""
+    r = client.post("/api/board/2026-05-06/entries", json={
+        "service": "خدمة في يوم جديد", "category": "الخدمات الأساسية",
+    })
+    assert r.status_code == 201
+    b = client.get("/api/board/2026-05-06").get_json()
+    basic = next(c for c in b["categories"] if c["name"] == "الخدمات الأساسية")
+    assert len(basic["entries"]) == 1

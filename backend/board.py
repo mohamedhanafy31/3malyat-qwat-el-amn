@@ -105,7 +105,10 @@ def build_board(data, day):
     by_cat = {c: [] for c in order}
     for e in untagged:
         by_cat.setdefault(e["category"], []).append(e)
-    categories = [{"name": c, "entries": by_cat[c]} for c in order if by_cat.get(c)]
+    # التصنيفات الأساسية بتظهر دايمًا حتى لو فاضية — عشان يفضل فيها زرار
+    # «＋ إضافة» وتقدر تبدأ يوم جديد من الصفر. التصنيفات الإضافية اللي
+    # اتكتبت بالإيد بتظهر بس لما يكون فيها خدمات فعلًا.
+    categories = [{"name": c, "entries": by_cat[c]} for c in order]
     categories += [{"name": c, "entries": by_cat[c]} for c in by_cat if c not in order and by_cat[c]]
 
     by_tag = {}
