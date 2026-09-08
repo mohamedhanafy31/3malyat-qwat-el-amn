@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
-"""Build personnel_system/data.json from the 2026 camp archive.
+"""Build the officer/personnel/leave/duty tables from the 2026 camp archive.
 
-Officers  : the 92 daily "D-M-2026.docx" duty sheets give presence per day;
+Officers  : the daily "D-M-2026.docx" duty sheets give presence per day;
             "ارقام الضباط.docx" supplies phone + seniority.
-Personnel : the 92 daily "داتا افراد.docx" sheets give presence per day;
+Personnel : the daily "داتا افراد.docx" sheets give presence per day;
             "ارقام الافراد.docx" supplies the full name, grade and address.
 
-NOTE — one-time importer, not part of the running app: OUT below is a
-hardcoded absolute path, and "2026" is hardcoded into filename patterns
-(e.g. f'{d}-{m}-2026.docx') and date construction throughout this file.
-Re-running for a future year's archive, or after moving/remounting this
-drive, requires manually updating OUT here and the "2026"/REST_MONTH
-literals in this file, common.py's ROOT, and rests.py's ref_year default —
-nothing here is parameterized via config or CLI args.
+IMPORTANT — this script REBUILDS its output from the Word files only. It
+does not know about anything the running app owns: the board
+(`day_services`), `command`, `medical_officers`, `board_categories`,
+`service_tags`. Writing it straight over a live data.json would wipe all
+of that. Use merge_import.py instead, which runs this to a temp file and
+merges only the archive-derived tables back in.
+
+Set BUILD_OUT to choose where to write (defaults to the live data.json,
+kept only so the original one-time import stays reproducible).
+
+NOTE — "2026" is hardcoded into filename patterns (e.g. f'{d}-{m}-2026.docx')
+and date construction throughout this file. Re-running for a future year's
+archive, or after moving/remounting this drive, requires updating the
+"2026"/REST_MONTH literals here, common.py's ROOT, and rests.py's ref_year.
 """
-import json, re, sys, collections, datetime
+import json, os, re, sys, collections, datetime
 from pathlib import Path
 from common import (ROOT, day_dirs, iso, norm_name, norm_phone, strip_ar,
                     parse_officer_day, parse_officer_ref,
@@ -24,7 +31,8 @@ from rests import parse_rest_system, parse_leave, SYS_NONE
 
 REST_MONTH = 8          # the sheets that carry the current rest entitlement
 
-OUT = Path('/media/hanafy/aa9ee400-c081-4d3b-b831-a2a8c83c9f4410/personal/'
+OUT = Path(os.environ.get("BUILD_OUT") or
+           '/media/hanafy/aa9ee400-c081-4d3b-b831-a2a8c83c9f4410/personal/'
            'سيستم المعسكر/prototype/personnel_system/data.json')
 
 RANK_MAP = {
@@ -69,7 +77,10 @@ for m, d, dd in day_dirs():
     day = iso(m, d)
     fo = dd / f'{d}-{m}-2026.docx'
     fp = dd / 'داتا افراد.docx'
-    if not fo.exists() and not fp.exists():
+    # يومية الضباط هي علامة إن اليوم اتكتب فعلًا. فولدر بيتجهّز لسه بيبقى
+    # فيه نسخ من اليوم اللي قبله (نفس الملفات بالحرف) من غير يومية باسمه —
+    # لو حسبناه يوم، هيبقى يوم بصفر ضباط وهيزحلق آخر يوم في الأرشيف.
+    if not fo.exists():
         continue
     DAYS.append(day)
     off_days[day] = parse_officer_day(fo) if fo.exists() else []

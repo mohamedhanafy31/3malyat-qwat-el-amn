@@ -11,149 +11,8 @@
         "section": "القوة",
         "rest_system": "—",
         "rest_day": "",
-        "days_present": 92,
         "status": "active",
         "id": "OFF-002"
-      },
-      {
-        "name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
-        "role": "عقيد",
-        "code": "1043/2003",
-        "phone": "01226897711",
-        "join_date": "2026-06-01",
-        "post": "وكيل الاداره",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الخميس",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-027"
-      },
-      {
-        "name": "اسماعيل محمد عبدالسلام عيسي",
-        "role": "عقيد",
-        "code": "1441/2005",
-        "phone": "01063561007",
-        "join_date": "2026-08-04",
-        "post": "قائد المعسكر الفرعي",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الاثنين",
-        "days_present": 28,
-        "status": "active",
-        "id": "OFF-038"
-      },
-      {
-        "name": "محمد مصطفي محمد احمد",
-        "role": "عقيد",
-        "code": "ض-01",
-        "phone": "",
-        "join_date": "2026-06-01",
-        "post": "احتياطي الطوارئ",
-        "section": "الخوارج",
-        "rest_system": "—",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-030"
-      },
-      {
-        "name": "محمود عبد الله محمود محمد",
-        "role": "عقيد",
-        "code": "1223/2006",
-        "phone": "01013180180",
-        "join_date": "2026-06-01",
-        "post": "رئيس العيادة الطبية",
-        "section": "القوة",
-        "rest_system": "نصف شهرية",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-033"
-      },
-      {
-        "name": "السعيد محمد احمد عبده إسماعيل",
-        "role": "مقدم",
-        "code": "99/2010",
-        "phone": "01021301382",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم الحراسات المشددة",
-        "section": "الحراسات المشددة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الأربعاء",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-009"
-      },
-      {
-        "name": "حسام فتحي رضوان خلف",
-        "role": "مقدم",
-        "code": "1356/2010",
-        "phone": "01000580086",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم الانشاءات",
-        "section": "القوة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-011"
-      },
-      {
-        "name": "طاهر سلطان عبد الحليم احمد",
-        "role": "مقدم",
-        "code": "1561/2010",
-        "phone": "01061463662",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم الشئون الإدارية + مأمور السجن العسكري",
-        "section": "القوة",
-        "rest_system": "نصف شهرية",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-015"
-      },
-      {
-        "name": "عبدالرحمن رفعت الحسيني اسماعيل",
-        "role": "مقدم",
-        "code": "2007",
-        "phone": "01090376666",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم تدريب",
-        "section": "القوة",
-        "rest_system": "نصف شهرية",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-016"
-      },
-      {
-        "name": "محمد احمد مصطفي عبدالرازق",
-        "role": "مقدم",
-        "code": "1419/2009",
-        "phone": "01002909350",
-        "join_date": "2026-08-04",
-        "post": "رئيس قسم الشئون المالية",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الأحد",
-        "days_present": 28,
-        "status": "active",
-        "id": "OFF-043"
-      },
-      {
-        "name": "محمد محمد عطية رزق",
-        "role": "مقدم",
-        "code": "159/2008",
-        "phone": "01000096573",
-        "join_date": "2026-06-01",
-        "post": "احتياطي طوارئ",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الثلاثاء",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-028"
       },
       {
         "name": "ابراهيم ابو الفرج يحي جبر",
@@ -165,9 +24,21 @@
         "section": "القوة",
         "rest_system": "شهرية",
         "rest_day": "",
-        "days_present": 28,
         "status": "active",
         "id": "OFF-036"
+      },
+      {
+        "name": "احمد فوزي احمد السيد",
+        "role": "ملازم أول",
+        "code": "2023/1657",
+        "phone": "01129632739",
+        "join_date": "2026-08-04",
+        "post": "احتياطي طوارئ قائد السرية الاولى",
+        "section": "القوة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-037"
       },
       {
         "name": "احمد محمد محمود السمان",
@@ -179,9 +50,34 @@
         "section": "الحراسات المشددة",
         "rest_system": "شهرية",
         "rest_day": "",
-        "days_present": 92,
         "status": "active",
         "id": "OFF-008"
+      },
+      {
+        "name": "اسماعيل محمد عبدالسلام عيسي",
+        "role": "عقيد",
+        "code": "1441/2005",
+        "phone": "01063561007",
+        "join_date": "2026-08-04",
+        "post": "قائد المعسكر الفرعي",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الاثنين",
+        "status": "active",
+        "id": "OFF-038"
+      },
+      {
+        "name": "السعيد محمد احمد عبده إسماعيل",
+        "role": "مقدم",
+        "code": "99/2010",
+        "phone": "01021301382",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم الحراسات المشددة",
+        "section": "الحراسات المشددة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الأربعاء",
+        "status": "active",
+        "id": "OFF-009"
       },
       {
         "name": "جمال احمد آمين محمد",
@@ -193,9 +89,21 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الاثنين",
-        "days_present": 92,
         "status": "active",
         "id": "OFF-010"
+      },
+      {
+        "name": "حسام فتحي رضوان خلف",
+        "role": "مقدم",
+        "code": "1356/2010",
+        "phone": "01000580086",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم الانشاءات",
+        "section": "القوة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-011"
       },
       {
         "name": "حمدي احمد جاد الكريم احمد",
@@ -203,11 +111,10 @@
         "code": "2060/2013",
         "phone": "01000533018",
         "join_date": "2026-06-01",
-        "post": "رئيس قسم العلاقات العامة +رئيس قسم التعيينات+مشرف المخبز",
+        "post": "رئيس قسم العلاقات العامة + رئيس قسم التعيينات+مشرف المخبز",
         "section": "القوة",
         "rest_system": "شهرية",
         "rest_day": "",
-        "days_present": 92,
         "status": "active",
         "id": "OFF-012"
       },
@@ -221,93 +128,8 @@
         "section": "القوة",
         "rest_system": "شهرية",
         "rest_day": "",
-        "days_present": 92,
         "status": "active",
         "id": "OFF-013"
-      },
-      {
-        "name": "محمد ذكي محمود ذكي",
-        "role": "رائد",
-        "code": "2012",
-        "phone": "01021577223",
-        "join_date": "2026-06-01",
-        "post": "قائد هدف سوميد",
-        "section": "الحراسات المشددة",
-        "rest_system": "أسبوعية",
-        "rest_day": "السبت",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-024"
-      },
-      {
-        "name": "محمد عبد الحميد فتحى نعامة",
-        "role": "رائد",
-        "code": "3514/2012",
-        "phone": "01093908412",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم المركبات",
-        "section": "القوة",
-        "rest_system": "—",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-025"
-      },
-      {
-        "name": "محمد عبدالغني ابو العلا محمد",
-        "role": "رائد",
-        "code": "58/2012",
-        "phone": "01097175283",
-        "join_date": "2026-08-04",
-        "post": "رئيس قسم العهدة",
-        "section": "القوة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "days_present": 28,
-        "status": "active",
-        "id": "OFF-046"
-      },
-      {
-        "name": "محمد فتحي بكري مناع",
-        "role": "رائد",
-        "code": "2061/2013",
-        "phone": "01065174165",
-        "join_date": "2026-08-04",
-        "post": "قائد هدف عيون موسي",
-        "section": "الحراسات المشددة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "days_present": 28,
-        "status": "active",
-        "id": "OFF-047"
-      },
-      {
-        "name": "محمد مجدي ابراهيم السيد بحر",
-        "role": "رائد",
-        "code": "139/2015",
-        "phone": "01112760056",
-        "join_date": "2026-08-04",
-        "post": "رئيس قسم العمليات وشئون ضباط",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الخميس",
-        "days_present": 28,
-        "status": "active",
-        "id": "OFF-048"
-      },
-      {
-        "name": "محمد ميهوب زكي ميهوب",
-        "role": "رائد",
-        "code": "2681/2010",
-        "phone": "01119133592",
-        "join_date": "2026-06-01",
-        "post": "مشرف عنابر الاعاشة",
-        "section": "القوة",
-        "rest_system": "نصف شهرية",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-031"
       },
       {
         "name": "طارق احمد فاروق حسن",
@@ -319,9 +141,34 @@
         "section": "الحراسات المشددة",
         "rest_system": "أسبوعية",
         "rest_day": "الأربعاء",
-        "days_present": 28,
         "status": "active",
         "id": "OFF-039"
+      },
+      {
+        "name": "طاهر سلطان عبد الحليم احمد",
+        "role": "مقدم",
+        "code": "1561/2010",
+        "phone": "01061463662",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم الشئون الإدارية + مأمور السجن العسكري",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-015"
+      },
+      {
+        "name": "عبدالرحمن رفعت الحسيني اسماعيل",
+        "role": "مقدم",
+        "code": "2007",
+        "phone": "01090376666",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم تدريب",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-016"
       },
       {
         "name": "عبدالرحمن طارق محمد خميس",
@@ -330,10 +177,9 @@
         "phone": "01148854027",
         "join_date": "2026-08-04",
         "post": "قائد هدف انابيب البترول",
-        "section": "الحراسات المشددة",
+        "section": "القوة",
         "rest_system": "نصف شهرية",
         "rest_day": "",
-        "days_present": 28,
         "status": "active",
         "id": "OFF-040"
       },
@@ -347,79 +193,8 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "السبت",
-        "days_present": 92,
         "status": "active",
         "id": "OFF-018"
-      },
-      {
-        "name": "كريم عمرو محمد كمال علام",
-        "role": "نقيب",
-        "code": "1211/2016",
-        "phone": "01001541786",
-        "join_date": "2026-06-01",
-        "post": "رئيس مباحث الإدارة",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-019"
-      },
-      {
-        "name": "محمد أحمد محمد عاطف",
-        "role": "نقيب",
-        "code": "1197/2022",
-        "phone": "01208882744",
-        "join_date": "2026-06-01",
-        "post": "قائد هدف مصر للبترول",
-        "section": "الحراسات المشددة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الخميس",
-        "days_present": 92,
-        "status": "active",
-        "id": "OFF-023"
-      },
-      {
-        "name": "محمد عبدالعزيز محمود حامد",
-        "role": "نقيب",
-        "code": "1270/2021",
-        "phone": "01019003570",
-        "join_date": "2026-08-04",
-        "post": "ضابط بقسم التعيينات",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الخميس",
-        "days_present": 28,
-        "status": "active",
-        "id": "OFF-045"
-      },
-      {
-        "name": "محمد وليد عبدالظاهر محمد لبيب",
-        "role": "نقيب",
-        "code": "ض-02",
-        "phone": "",
-        "join_date": "2026-06-01",
-        "post": "انتداب من قطاع الخدمات الطبية",
-        "section": "الخوارج",
-        "rest_system": "—",
-        "rest_day": "",
-        "days_present": 90,
-        "status": "active",
-        "id": "OFF-032"
-      },
-      {
-        "name": "احمد فوزي احمد السيد",
-        "role": "ملازم أول",
-        "code": "2023/1657",
-        "phone": "01129632739",
-        "join_date": "2026-08-04",
-        "post": "احتياطي طوارئ قائد السرية الاولى",
-        "section": "القوة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "days_present": 28,
-        "status": "active",
-        "id": "OFF-037"
       },
       {
         "name": "عمر خالد احمد ماهر محمد",
@@ -431,9 +206,21 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الأحد",
-        "days_present": 28,
         "status": "active",
         "id": "OFF-041"
+      },
+      {
+        "name": "كريم عمرو محمد كمال علام",
+        "role": "نقيب",
+        "code": "1211/2016",
+        "phone": "01001541786",
+        "join_date": "2026-06-01",
+        "post": "رئيس مباحث الإدارة",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-019"
       },
       {
         "name": "ماركو ماجد اقلاديوس مرقس",
@@ -445,9 +232,47 @@
         "section": "القوة",
         "rest_system": "شهرية",
         "rest_day": "",
-        "days_present": 28,
         "status": "active",
         "id": "OFF-042"
+      },
+      {
+        "name": "محمد أحمد محمد عاطف",
+        "role": "نقيب",
+        "code": "1197/2022",
+        "phone": "01208882744",
+        "join_date": "2026-06-01",
+        "post": "قائد هدف مصر للبترول",
+        "section": "الحراسات المشددة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الخميس",
+        "status": "active",
+        "id": "OFF-023"
+      },
+      {
+        "name": "محمد احمد مصطفي عبدالرازق",
+        "role": "مقدم",
+        "code": "1419/2009",
+        "phone": "01002909350",
+        "join_date": "2026-08-04",
+        "post": "رئيس قسم الشئون المالية",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الأحد",
+        "status": "active",
+        "id": "OFF-043"
+      },
+      {
+        "name": "محمد ذكي محمود ذكي",
+        "role": "رائد",
+        "code": "2012",
+        "phone": "01021577223",
+        "join_date": "2026-06-01",
+        "post": "قائد هدف سوميد",
+        "section": "الحراسات المشددة",
+        "rest_system": "أسبوعية",
+        "rest_day": "السبت",
+        "status": "active",
+        "id": "OFF-024"
       },
       {
         "name": "محمد طارق السيد محمد اللبان",
@@ -459,9 +284,151 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الأربعاء",
-        "days_present": 28,
         "status": "active",
         "id": "OFF-044"
+      },
+      {
+        "name": "محمد عبد الحميد فتحى نعامة",
+        "role": "رائد",
+        "code": "3514/2012",
+        "phone": "01093908412",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم المركبات",
+        "section": "القوة",
+        "rest_system": "—",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-025"
+      },
+      {
+        "name": "محمد عبدالعزيز محمود حامد",
+        "role": "نقيب",
+        "code": "1270/2021",
+        "phone": "01019003570",
+        "join_date": "2026-08-04",
+        "post": "ضابط بقسم التعيينات",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الخميس",
+        "status": "active",
+        "id": "OFF-045"
+      },
+      {
+        "name": "محمد عبدالغني ابو العلا محمد",
+        "role": "رائد",
+        "code": "58/2012",
+        "phone": "01097175283",
+        "join_date": "2026-08-04",
+        "post": "رئيس قسم العهدة",
+        "section": "الحراسات المشددة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-046"
+      },
+      {
+        "name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
+        "role": "عقيد",
+        "code": "1043/2003",
+        "phone": "01226897711",
+        "join_date": "2026-06-01",
+        "post": "وكيل الاداره",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الخميس",
+        "status": "active",
+        "id": "OFF-027"
+      },
+      {
+        "name": "محمد فتحي بكري مناع",
+        "role": "رائد",
+        "code": "2061/2013",
+        "phone": "01065174165",
+        "join_date": "2026-08-04",
+        "post": "قائد هدف عيون موسي",
+        "section": "الحراسات المشددة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-047"
+      },
+      {
+        "name": "محمد مجدي ابراهيم السيد بحر",
+        "role": "رائد",
+        "code": "139/2015",
+        "phone": "01112760056",
+        "join_date": "2026-08-04",
+        "post": "رئيس قسم العمليات وشئون ضباط",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الخميس",
+        "status": "active",
+        "id": "OFF-048"
+      },
+      {
+        "name": "محمد محمد عطية رزق",
+        "role": "مقدم",
+        "code": "159/2008",
+        "phone": "01000096573",
+        "join_date": "2026-06-01",
+        "post": "احتياطي طوارئ",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الثلاثاء",
+        "status": "active",
+        "id": "OFF-028"
+      },
+      {
+        "name": "محمد مصطفي محمد احمد",
+        "role": "عقيد",
+        "code": "ض-01",
+        "phone": "",
+        "join_date": "2026-06-01",
+        "post": "احتياطي الطوارئ",
+        "section": "الخوارج",
+        "rest_system": "—",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-030"
+      },
+      {
+        "name": "محمد ميهوب زكي ميهوب",
+        "role": "رائد",
+        "code": "2681/2010",
+        "phone": "01119133592",
+        "join_date": "2026-06-01",
+        "post": "مشرف عنابر الاعاشة",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-031"
+      },
+      {
+        "name": "محمد وليد عبدالظاهر محمد لبيب",
+        "role": "نقيب",
+        "code": "ض-02",
+        "phone": "",
+        "join_date": "2026-06-01",
+        "post": "انتداب من قطاع الخدمات الطبية",
+        "section": "الخوارج",
+        "rest_system": "—",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-032"
+      },
+      {
+        "name": "محمود عبد الله محمود محمد",
+        "role": "عقيد",
+        "code": "1223/2006",
+        "phone": "01013180180",
+        "join_date": "2026-06-01",
+        "post": "رئيس العيادة الطبية",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-033"
       },
       {
         "name": "منتصر بهاء الدين محمد علي",
@@ -473,7 +440,6 @@
         "section": "الحراسات المشددة",
         "rest_system": "شهرية",
         "rest_day": "",
-        "days_present": 28,
         "status": "active",
         "id": "OFF-049"
       }
@@ -489,7 +455,6 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الاثنين",
-        "days_present": 64,
         "status": "archived",
         "leave_date": "2026-08-03",
         "leave_reason": "",
@@ -505,7 +470,6 @@
         "section": "القوة",
         "rest_system": "نصف شهرية",
         "rest_day": "",
-        "days_present": 63,
         "status": "archived",
         "leave_date": "2026-08-02",
         "leave_reason": "",
@@ -521,7 +485,6 @@
         "section": "القوة",
         "rest_system": "نصف شهرية",
         "rest_day": "",
-        "days_present": 63,
         "status": "archived",
         "leave_date": "2026-08-02",
         "leave_reason": "",
@@ -537,7 +500,6 @@
         "section": "القوة",
         "rest_system": "شهرية",
         "rest_day": "",
-        "days_present": 62,
         "status": "archived",
         "leave_date": "2026-08-01",
         "leave_reason": "",
@@ -553,7 +515,6 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الجمعة",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -569,7 +530,6 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الأحد",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -585,7 +545,6 @@
         "section": "الحراسات المشددة",
         "rest_system": "نصف شهرية",
         "rest_day": "",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -601,7 +560,6 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الأحد",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -617,7 +575,6 @@
         "section": "الحراسات المشددة",
         "rest_system": "أسبوعية",
         "rest_day": "الاثنين",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -633,7 +590,6 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الاثنين",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -649,7 +605,6 @@
         "section": "الحراسات المشددة",
         "rest_system": "أسبوعية",
         "rest_day": "الخميس",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -665,7 +620,6 @@
         "section": "الحراسات المشددة",
         "rest_system": "نصف شهرية",
         "rest_day": "",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -681,7 +635,6 @@
         "section": "الحراسات المشددة",
         "rest_system": "نصف شهرية",
         "rest_day": "",
-        "days_present": 61,
         "status": "archived",
         "leave_date": "2026-07-31",
         "leave_reason": "",
@@ -697,7 +650,6 @@
         "section": "الخوارج",
         "rest_system": "—",
         "rest_day": "",
-        "days_present": 2,
         "status": "archived",
         "leave_date": "2026-07-30",
         "leave_reason": "",
@@ -713,7 +665,6 @@
         "section": "القوة",
         "rest_system": "أسبوعية",
         "rest_day": "الخميس",
-        "days_present": 49,
         "status": "archived",
         "leave_date": "2026-07-19",
         "leave_reason": "",
@@ -731,7 +682,6 @@
         "join_date": "2026-06-01",
         "post": "السجن",
         "address": "تلا - المنوفية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-128"
       },
@@ -743,7 +693,6 @@
         "join_date": "2026-06-01",
         "post": "شئون المجندين",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-100"
       },
@@ -755,7 +704,6 @@
         "join_date": "2026-07-26",
         "post": "المحاجر",
         "address": "الحساسينية – الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-064"
       },
@@ -767,7 +715,6 @@
         "join_date": "2026-07-19",
         "post": "سائق",
         "address": "الزقازيق- الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-180"
       },
@@ -779,7 +726,6 @@
         "join_date": "2026-07-26",
         "post": "انتداب الجلالة",
         "address": "فاقوس-  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-147"
       },
@@ -791,7 +737,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ههيا - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-026"
       },
@@ -803,7 +748,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "كفر صقر - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-027"
       },
@@ -815,7 +759,6 @@
         "join_date": "2026-06-01",
         "post": "التدريب",
         "address": "مشتول السوق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-121"
       },
@@ -827,7 +770,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-089"
       },
@@ -839,7 +781,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ههيا – الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-004"
       },
@@ -851,7 +792,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ههيا - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-021"
       },
@@ -863,7 +803,6 @@
         "join_date": "2026-06-01",
         "post": "المعسكر الفرعي",
         "address": "ديرب نجم -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-143"
       },
@@ -875,7 +814,6 @@
         "join_date": "2026-07-26",
         "post": "الامن",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-110"
       },
@@ -887,7 +825,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "فاقوس -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-069"
       },
@@ -899,7 +836,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "بلبيس -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-025"
       },
@@ -911,7 +847,6 @@
         "join_date": "2026-07-26",
         "post": "خدمات",
         "address": "بركة السبع- المنوفية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-186"
       },
@@ -923,7 +858,6 @@
         "join_date": "2026-06-01",
         "post": "عمليات",
         "address": "فاقوس -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-102"
       },
@@ -935,7 +869,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-036"
       },
@@ -947,7 +880,6 @@
         "join_date": "2026-06-03",
         "post": "خدمات",
         "address": "القنايات -  الشرقية",
-        "days_present": 90,
         "status": "active",
         "id": "IND-050"
       },
@@ -959,7 +891,6 @@
         "join_date": "2026-06-01",
         "post": "شئون المجندين",
         "address": "السنبلاوين - الدقهلية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-098"
       },
@@ -971,7 +902,6 @@
         "join_date": "2026-06-01",
         "post": "المعسكر الفرعي",
         "address": "القنايات -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-144"
       },
@@ -983,7 +913,6 @@
         "join_date": "2026-06-01",
         "post": "انتداب الجلالة",
         "address": "ههيا -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-148"
       },
@@ -995,7 +924,6 @@
         "join_date": "2026-06-01",
         "post": "شئون الافراد",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-095"
       },
@@ -1007,7 +935,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "هيهيا - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-079"
       },
@@ -1019,7 +946,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "طنطا - الغربية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-085"
       },
@@ -1031,7 +957,6 @@
         "join_date": "2026-07-26",
         "post": "المعسكر الفرعي",
         "address": "عزبت الريس - المطريه",
-        "days_present": 37,
         "status": "active",
         "id": "IND-139"
       },
@@ -1043,7 +968,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الابراهيمية -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-034"
       },
@@ -1055,7 +979,6 @@
         "join_date": "2026-06-01",
         "post": "عمليات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-103"
       },
@@ -1067,7 +990,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-024"
       },
@@ -1079,7 +1001,6 @@
         "join_date": "2026-06-01",
         "post": "العيادة",
         "address": "الزيتون - القاهرة",
-        "days_present": 92,
         "status": "active",
         "id": "IND-126"
       },
@@ -1091,7 +1012,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ابو كبير -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-051"
       },
@@ -1103,7 +1023,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "الزقازيق - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-076"
       },
@@ -1115,7 +1034,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "مركز الزقازيق - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-158"
       },
@@ -1127,7 +1045,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "منيا القمح- الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-183"
       },
@@ -1139,7 +1056,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ابو كبير -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-049"
       },
@@ -1151,7 +1067,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "القنايات -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-037"
       },
@@ -1163,7 +1078,6 @@
         "join_date": "2026-06-01",
         "post": "الامن",
         "address": "الابراهيمية - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-107"
       },
@@ -1175,7 +1089,6 @@
         "join_date": "2026-06-01",
         "post": "المحاجر",
         "address": "ههيا - الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01028398960"
         ],
@@ -1190,7 +1103,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "فاقوس -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-033"
       },
@@ -1202,7 +1114,6 @@
         "join_date": "2026-07-26",
         "post": "خدمات",
         "address": "",
-        "days_present": 37,
         "status": "active",
         "id": "IND-053"
       },
@@ -1214,7 +1125,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "فاقوس - الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01003987525"
         ],
@@ -1229,7 +1139,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-088"
       },
@@ -1241,7 +1150,6 @@
         "join_date": "2026-07-26",
         "post": "الفرن",
         "address": "الباجور - المنوفية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-132"
       },
@@ -1253,7 +1161,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "السلام - القاهرة",
-        "days_present": 37,
         "status": "active",
         "id": "IND-153"
       },
@@ -1265,7 +1172,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "المرج - القاهرة",
-        "days_present": 92,
         "status": "active",
         "id": "IND-008"
       },
@@ -1277,7 +1183,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "المنصورة  - الدقهلية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-075"
       },
@@ -1289,7 +1194,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "الزقازيق  - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-073"
       },
@@ -1301,7 +1205,6 @@
         "join_date": "2026-06-01",
         "post": "السلاح والذخيرة",
         "address": "المحلة الكبري - الغربية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-113"
       },
@@ -1313,7 +1216,6 @@
         "join_date": "2026-06-01",
         "post": "السلاح والذخيرة",
         "address": "السنطة - الغربية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-114"
       },
@@ -1325,7 +1227,6 @@
         "join_date": "2026-06-01",
         "post": "شئون المجندين",
         "address": "كفر صقر - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-099"
       },
@@ -1337,7 +1238,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-014"
       },
@@ -1349,7 +1249,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "تلا – المنوفية",
-        "days_present": 92,
         "other_phones": [
           "01202997785"
         ],
@@ -1364,7 +1263,6 @@
         "join_date": "2026-07-26",
         "post": "سائق الجلالة",
         "address": "بركة السبع - المنوفية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-093"
       },
@@ -1376,7 +1274,6 @@
         "join_date": "2026-06-01",
         "post": "البوسطة",
         "address": "السنطه-الغربية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-130"
       },
@@ -1388,7 +1285,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "الباجور- المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-176"
       },
@@ -1400,7 +1296,6 @@
         "join_date": "2026-07-19",
         "post": "سائق",
         "address": "ش فاروق – الزقازيق",
-        "days_present": 44,
         "status": "active",
         "id": "IND-173"
       },
@@ -1412,7 +1307,6 @@
         "join_date": "2026-07-11",
         "post": "خدمات",
         "address": "اشمون - المنوفية",
-        "days_present": 52,
         "status": "active",
         "id": "IND-018"
       },
@@ -1424,7 +1318,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "الشهداء- المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-055"
       },
@@ -1436,7 +1329,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "الشهداء – المنوفية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-154"
       },
@@ -1448,7 +1340,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "العاشر من رمضان - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-074"
       },
@@ -1460,7 +1351,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "امبابة – الجيزة",
-        "days_present": 92,
         "status": "active",
         "id": "IND-013"
       },
@@ -1472,7 +1362,6 @@
         "join_date": "2026-07-26",
         "post": "المعسكر الفرعي",
         "address": "الابراهيمية -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-140"
       },
@@ -1484,7 +1373,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "تلا - المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-058"
       },
@@ -1496,7 +1384,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "تلا - المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-056"
       },
@@ -1508,7 +1395,6 @@
         "join_date": "2026-06-01",
         "post": "المعسكر الفرعي",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01013524948"
         ],
@@ -1523,7 +1409,6 @@
         "join_date": "2026-08-07",
         "post": "خدمات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 25,
         "status": "active",
         "id": "IND-191"
       },
@@ -1535,7 +1420,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "منوف - المنوفية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-082"
       },
@@ -1547,7 +1431,6 @@
         "join_date": "2026-07-12",
         "post": "خدمات",
         "address": "ههيا -  الشرقية",
-        "days_present": 51,
         "other_phones": [
           "01033838675"
         ],
@@ -1562,7 +1445,6 @@
         "join_date": "2026-07-11",
         "post": "خدمات",
         "address": "شبين الكوم - المنوفية",
-        "days_present": 52,
         "status": "active",
         "id": "IND-054"
       },
@@ -1574,7 +1456,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الاربعين - السويس",
-        "days_present": 92,
         "other_phones": [
           "01271994144"
         ],
@@ -1589,7 +1470,6 @@
         "join_date": "2026-07-19",
         "post": "سائق",
         "address": "الزقازيق -  الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-091"
       },
@@ -1601,7 +1481,6 @@
         "join_date": "2026-08-07",
         "post": "خدمات",
         "address": "ههيا الشرقية",
-        "days_present": 25,
         "status": "active",
         "id": "IND-189"
       },
@@ -1613,7 +1492,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "ابو كبير -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-068"
       },
@@ -1625,7 +1503,6 @@
         "join_date": "2026-06-01",
         "post": "الامن",
         "address": "الابراهيمية - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-105"
       },
@@ -1637,7 +1514,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-022"
       },
@@ -1649,7 +1525,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "العاشر من رمضان - الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01007382703"
         ],
@@ -1664,7 +1539,6 @@
         "join_date": "2026-07-26",
         "post": "السجن",
         "address": "صقر - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-129"
       },
@@ -1676,7 +1550,6 @@
         "join_date": "2026-06-01",
         "post": "التدريب",
         "address": "منوف - المنوفية",
-        "days_present": 92,
         "other_phones": [
           "01281166758"
         ],
@@ -1691,7 +1564,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "السنطة - الغربية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-019"
       },
@@ -1703,7 +1575,6 @@
         "join_date": "2026-07-26",
         "post": "الانتدابات الخارجية",
         "address": "قليوب - القليوبية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-169"
       },
@@ -1715,7 +1586,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الشهداء - المنوفية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-002"
       },
@@ -1727,7 +1597,6 @@
         "join_date": "2026-07-26",
         "post": "الانتدابات الخارجية",
         "address": "ابو حماد -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-167"
       },
@@ -1739,7 +1608,6 @@
         "join_date": "2026-07-26",
         "post": "الانتدابات الخارجية",
         "address": "القنايات -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-165"
       },
@@ -1751,7 +1619,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ههيا -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-041"
       },
@@ -1763,7 +1630,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "مركز منيا القمح الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-005"
       },
@@ -1775,7 +1641,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "مركز  السنطه - الغربية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-016"
       },
@@ -1787,7 +1652,6 @@
         "join_date": "2026-06-06",
         "post": "المطبخ",
         "address": "ابو حماد - الشرقية",
-        "days_present": 38,
         "other_phones": [
           "01023585064"
         ],
@@ -1802,7 +1666,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "مركز فاقوس- الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-157"
       },
@@ -1814,7 +1677,6 @@
         "join_date": "2026-07-19",
         "post": "سائق",
         "address": "مينا القمح- الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-092"
       },
@@ -1826,7 +1688,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-006"
       },
@@ -1838,7 +1699,6 @@
         "join_date": "2026-06-01",
         "post": "ارتكاز سوميد",
         "address": "ابو كبير -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-060"
       },
@@ -1850,7 +1710,6 @@
         "join_date": "2026-06-01",
         "post": "سجلات و جزائات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-097"
       },
@@ -1862,7 +1721,6 @@
         "join_date": "2026-07-26",
         "post": "المطبخ",
         "address": "طنطا - الغربية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-134"
       },
@@ -1874,7 +1732,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "مركز الزقازيق - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-078"
       },
@@ -1886,7 +1743,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "قليوب - القليوبية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-155"
       },
@@ -1898,7 +1754,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-010"
       },
@@ -1910,7 +1765,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01001811462"
         ],
@@ -1925,7 +1779,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "بركة السبع- المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-174"
       },
@@ -1937,7 +1790,6 @@
         "join_date": "2026-06-01",
         "post": "ارتكاز سوميد",
         "address": "ابو كبير -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-061"
       },
@@ -1949,7 +1801,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الابراهيمية -  الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01025215887"
         ],
@@ -1964,7 +1815,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "القنايات -  الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01021789426"
         ],
@@ -1979,7 +1829,6 @@
         "join_date": "2026-07-26",
         "post": "الامن",
         "address": "اولاد صقر -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-108"
       },
@@ -1991,7 +1840,6 @@
         "join_date": "2026-07-26",
         "post": "سائق الجلالة",
         "address": "مركز المنيا - المنيا",
-        "days_present": 37,
         "status": "active",
         "id": "IND-094"
       },
@@ -2003,7 +1851,6 @@
         "join_date": "2026-06-01",
         "post": "عيون موسي",
         "address": "الحساسينية – الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-062"
       },
@@ -2015,7 +1862,6 @@
         "join_date": "2026-06-01",
         "post": "سائق",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-023"
       },
@@ -2027,7 +1873,6 @@
         "join_date": "2026-06-01",
         "post": "عيون موسي",
         "address": "الحساسينية – الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-063"
       },
@@ -2039,7 +1884,6 @@
         "join_date": "2026-06-28",
         "post": "سائق",
         "address": "مركز ابوكبير - الشرقية",
-        "days_present": 65,
         "status": "active",
         "id": "IND-080"
       },
@@ -2051,7 +1895,6 @@
         "join_date": "2026-06-01",
         "post": "الانتدابات الخارجية",
         "address": "الزقازيق -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-170"
       },
@@ -2063,7 +1906,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "القنايات -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-035"
       },
@@ -2075,7 +1917,6 @@
         "join_date": "2026-07-26",
         "post": "الفرن",
         "address": "الشهداء – المنوفية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-131"
       },
@@ -2087,7 +1928,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "الشهداء-المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-057"
       },
@@ -2099,7 +1939,6 @@
         "join_date": "2026-06-01",
         "post": "الموسيقي",
         "address": "بنها - القليوبية",
-        "days_present": 92,
         "other_phones": [
           "01141816638"
         ],
@@ -2114,7 +1953,6 @@
         "join_date": "2026-06-01",
         "post": "انتداب الجلالة",
         "address": "ههيا -  الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01204371105"
         ],
@@ -2129,7 +1967,6 @@
         "join_date": "2026-07-26",
         "post": "المعسكر الفرعي",
         "address": "كفر صقر - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-141"
       },
@@ -2141,7 +1978,6 @@
         "join_date": "2026-07-26",
         "post": "عمليات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-104"
       },
@@ -2153,7 +1989,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "روض الفرج - القاهرة",
-        "days_present": 92,
         "status": "active",
         "id": "IND-020"
       },
@@ -2165,7 +2000,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "كفر صقر - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-048"
       },
@@ -2177,7 +2011,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "منيا القمح -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-087"
       },
@@ -2189,7 +2022,6 @@
         "join_date": "2026-06-01",
         "post": "الاهداف",
         "address": "قرية النجيلة - البحيرة",
-        "days_present": 92,
         "status": "active",
         "id": "IND-163"
       },
@@ -2201,7 +2033,6 @@
         "join_date": "2026-07-26",
         "post": "عمليات",
         "address": "الابراهيمية - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-101"
       },
@@ -2213,7 +2044,6 @@
         "join_date": "2026-07-26",
         "post": "السلاح والذخيرة",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-112"
       },
@@ -2225,7 +2055,6 @@
         "join_date": "2026-06-01",
         "post": "الامن",
         "address": "ابو حماد - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-106"
       },
@@ -2237,7 +2066,6 @@
         "join_date": "2026-06-01",
         "post": "العهدة",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-119"
       },
@@ -2249,7 +2077,6 @@
         "join_date": "2026-07-19",
         "post": "شئون حملة",
         "address": "اشمون-المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-181"
       },
@@ -2261,7 +2088,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "فاقوس -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-030"
       },
@@ -2273,7 +2099,6 @@
         "join_date": "2026-07-26",
         "post": "الانتدابات الخارجية",
         "address": "باب شرف - الاسكندرية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-168"
       },
@@ -2285,7 +2110,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "فاقوس -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-084"
       },
@@ -2297,7 +2121,6 @@
         "join_date": "2026-08-07",
         "post": "خدمات",
         "address": "أبو كبير - الشرقية",
-        "days_present": 25,
         "status": "active",
         "id": "IND-192"
       },
@@ -2309,7 +2132,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ههيا -  الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01005391663"
         ],
@@ -2324,7 +2146,6 @@
         "join_date": "2026-07-26",
         "post": "خدمات",
         "address": "منيا القمح- الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-185"
       },
@@ -2336,7 +2157,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ههيا - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-011"
       },
@@ -2348,7 +2168,6 @@
         "join_date": "2026-07-19",
         "post": "تدريب",
         "address": "منيا القمح- الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-179"
       },
@@ -2360,7 +2179,6 @@
         "join_date": "2026-08-01",
         "post": "خدمات",
         "address": "الزقازيق-الشرقية",
-        "days_present": 31,
         "status": "active",
         "id": "IND-188"
       },
@@ -2372,7 +2190,6 @@
         "join_date": "2026-07-26",
         "post": "الامن",
         "address": "اولاد صقر -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-109"
       },
@@ -2384,7 +2201,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "كفر صقر - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-070"
       },
@@ -2396,7 +2212,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الحساسينية – الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01016973033",
           "01029693287"
@@ -2412,7 +2227,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "بنها - القليوبية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-072"
       },
@@ -2424,7 +2238,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ابو كبير -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-038"
       },
@@ -2436,7 +2249,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "مركز المحلة الكبري -  الغربية",
-        "days_present": 92,
         "other_phones": [
           "01289896278"
         ],
@@ -2451,7 +2263,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "أم الزين  - الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01005741828"
         ],
@@ -2466,7 +2277,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-039"
       },
@@ -2478,7 +2288,6 @@
         "join_date": "2026-07-26",
         "post": "الانتدابات الخارجية",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-164"
       },
@@ -2490,7 +2299,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "بنها - القليوبية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-161"
       },
@@ -2502,7 +2310,6 @@
         "join_date": "2026-07-26",
         "post": "انتداب الجلالة",
         "address": "منيا القمح -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-145"
       },
@@ -2514,7 +2321,6 @@
         "join_date": "2026-07-26",
         "post": "خدمات",
         "address": "الحساسينية – الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-052"
       },
@@ -2526,7 +2332,6 @@
         "join_date": "2026-06-01",
         "post": "المطبخ",
         "address": "منوف - المنوفية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-135"
       },
@@ -2538,7 +2343,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "اشمون - المنوفية",
-        "days_present": 92,
         "other_phones": [
           "01063143573"
         ],
@@ -2553,7 +2357,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "الزقازيق -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-090"
       },
@@ -2565,7 +2368,6 @@
         "join_date": "2026-06-01",
         "post": "الاهداف",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-159"
       },
@@ -2577,7 +2379,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "اجا - الدقهلية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-077"
       },
@@ -2589,7 +2390,6 @@
         "join_date": "2026-06-01",
         "post": "التدريب",
         "address": "طوخ - القليوبية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-122"
       },
@@ -2601,7 +2401,6 @@
         "join_date": "2026-07-26",
         "post": "خدمات",
         "address": "تلا - المنوفية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-047"
       },
@@ -2613,7 +2412,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "بنها - القليوبيه",
-        "days_present": 37,
         "status": "active",
         "id": "IND-081"
       },
@@ -2625,7 +2423,6 @@
         "join_date": "2026-07-19",
         "post": "سائق",
         "address": "الشهداء-المنوفية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-178"
       },
@@ -2637,7 +2434,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "أبو حماد-الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-184"
       },
@@ -2649,7 +2445,6 @@
         "join_date": "2026-06-01",
         "post": "العيادة",
         "address": "ايتاي البارود - البحيرة",
-        "days_present": 92,
         "status": "active",
         "id": "IND-127"
       },
@@ -2661,7 +2456,6 @@
         "join_date": "2026-07-26",
         "post": "انتداب الجلالة",
         "address": "الزقازيق -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-152"
       },
@@ -2673,7 +2467,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-044"
       },
@@ -2685,7 +2478,6 @@
         "join_date": "2026-07-26",
         "post": "انتداب الجلالة",
         "address": "منيا القمح -  الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-146"
       },
@@ -2697,7 +2489,6 @@
         "join_date": "2026-06-01",
         "post": "شئون الافراد",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01066516712"
         ],
@@ -2712,7 +2503,6 @@
         "join_date": "2026-07-19",
         "post": "سائق",
         "address": "الزقازيق  - الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-066"
       },
@@ -2724,7 +2514,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "اشمون - المنوفية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-003"
       },
@@ -2736,7 +2525,6 @@
         "join_date": "2026-06-01",
         "post": "انتداب الجلالة",
         "address": "ديرب نجم -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-150"
       },
@@ -2748,7 +2536,6 @@
         "join_date": "2026-08-07",
         "post": "خدمات",
         "address": "منيا القمح - الشرقية",
-        "days_present": 25,
         "status": "active",
         "id": "IND-190"
       },
@@ -2760,7 +2547,6 @@
         "join_date": "2026-06-01",
         "post": "الصناع والكتيبة",
         "address": "اجا - الدقهلية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-138"
       },
@@ -2772,7 +2558,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-177"
       },
@@ -2784,7 +2569,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "ديرب نجم -  الشرقية",
-        "days_present": 92,
         "other_phones": [
           "01055631071"
         ],
@@ -2799,7 +2583,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "الابراهيمية - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-156"
       },
@@ -2811,7 +2594,6 @@
         "join_date": "2026-06-01",
         "post": "السلاح والذخيرة",
         "address": "صان الحجر -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-111"
       },
@@ -2823,7 +2605,6 @@
         "join_date": "2026-06-01",
         "post": "انتداب الجلالة",
         "address": "النوبة - بلبيس",
-        "days_present": 92,
         "status": "active",
         "id": "IND-149"
       },
@@ -2835,7 +2616,6 @@
         "join_date": "2026-07-26",
         "post": "الانتدابات الخارجية",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-166"
       },
@@ -2847,7 +2627,6 @@
         "join_date": "2026-07-26",
         "post": "خدمات",
         "address": "الابراهيمية-الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-187"
       },
@@ -2859,7 +2638,6 @@
         "join_date": "2026-06-01",
         "post": "الفض",
         "address": "منيا القمح - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-115"
       },
@@ -2871,7 +2649,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "مركز بسيون - الغربية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-160"
       },
@@ -2883,7 +2660,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "فاقوس -  الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-029"
       },
@@ -2895,7 +2671,6 @@
         "join_date": "2026-06-01",
         "post": "العهدة",
         "address": "قويسنا - المنوفية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-118"
       },
@@ -2907,7 +2682,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "فاقوس - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-067"
       },
@@ -2919,7 +2693,6 @@
         "join_date": "2026-07-26",
         "post": "الاهداف",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-162"
       },
@@ -2931,7 +2704,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "منيا القمح - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-083"
       },
@@ -2943,7 +2715,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "كفر صقر-الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-175"
       },
@@ -2955,7 +2726,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "ميت غمر - الدقهلية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-086"
       },
@@ -2967,7 +2737,6 @@
         "join_date": "2026-07-26",
         "post": "سائق",
         "address": "باب الشعرية - القاهرة",
-        "days_present": 37,
         "status": "active",
         "id": "IND-071"
       },
@@ -2979,7 +2748,6 @@
         "join_date": "2026-07-19",
         "post": "خدمات",
         "address": "غزالة / زقازيق / الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-182"
       },
@@ -2991,7 +2759,6 @@
         "join_date": "2026-06-01",
         "post": "الفض",
         "address": "منوف - المنوفية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-116"
       },
@@ -3003,7 +2770,6 @@
         "join_date": "2026-07-26",
         "post": "العلاقات",
         "address": "ابوقير - الشرقية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-117"
       },
@@ -3015,7 +2781,6 @@
         "join_date": "2026-06-01",
         "post": "الصناع والكتيبة",
         "address": "صقر - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-137"
       },
@@ -3027,7 +2792,6 @@
         "join_date": "2026-06-01",
         "post": "التدريب",
         "address": "قليوب - القليوبية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-123"
       },
@@ -3039,7 +2803,6 @@
         "join_date": "2026-07-11",
         "post": "خدمات",
         "address": "شبين الكوم - المنوفية",
-        "days_present": 52,
         "status": "active",
         "id": "IND-059"
       },
@@ -3051,7 +2814,6 @@
         "join_date": "2026-06-01",
         "post": "خدمات",
         "address": "الزقازيق - الشرقية",
-        "days_present": 92,
         "status": "active",
         "id": "IND-009"
       },
@@ -3063,7 +2825,6 @@
         "join_date": "2026-07-19",
         "post": "طوارئ",
         "address": "الزقازيق - الشرقية",
-        "days_present": 44,
         "status": "active",
         "id": "IND-172"
       },
@@ -3075,7 +2836,6 @@
         "join_date": "2026-06-01",
         "post": "التدريب",
         "address": "الاربعين - السويس",
-        "days_present": 92,
         "status": "active",
         "id": "IND-124"
       },
@@ -3087,7 +2847,6 @@
         "join_date": "2026-07-26",
         "post": "التدريب",
         "address": "ميت غمر - الدقهلية",
-        "days_present": 37,
         "status": "active",
         "id": "IND-120"
       }
@@ -3101,7 +2860,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -3115,7 +2873,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -3129,7 +2886,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -3143,7 +2899,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -3157,7 +2912,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -3171,7 +2925,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -3185,7 +2938,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -3199,7 +2951,6 @@
         "join_date": "2026-06-01",
         "post": "",
         "address": "",
-        "days_present": 55,
         "status": "archived",
         "leave_date": "2026-07-25",
         "leave_reason": "",
@@ -5754,8 +5505,8 @@
       "name": "محمد وليد عبدالظاهر محمد لبيب",
       "type": "راحة",
       "start": "2026-08-26",
-      "end": "2026-08-31",
-      "return_date": "2026-09-01",
+      "end": "2026-09-01",
+      "return_date": "2026-09-02",
       "note": "",
       "source": "راحة",
       "id": "LV-232"
@@ -5930,11 +5681,275 @@
       "name": "محمد ميهوب زكي ميهوب",
       "type": "إجازة طارئة",
       "start": "2026-08-31",
-      "end": "2026-08-31",
-      "return_date": "2026-09-01",
+      "end": "2026-09-01",
+      "return_date": "2026-09-02",
       "note": "",
       "source": "اجازة طارئة (1/2)",
       "id": "LV-248"
+    },
+    {
+      "person_id": "OFF-015",
+      "name": "طاهر سلطان عبد الحليم احمد",
+      "type": "نصف شهرية",
+      "start": "2026-09-01",
+      "end": "2026-09-03",
+      "return_date": "2026-09-04",
+      "note": "",
+      "source": "راحة نصف شهرية من (1/9 عودة 4/9)",
+      "id": "LV-249"
+    },
+    {
+      "person_id": "OFF-018",
+      "name": "علي محمد فاروق محمد",
+      "type": "إجازة مصيف",
+      "start": "2026-09-01",
+      "end": "2026-09-05",
+      "return_date": "2026-09-06",
+      "note": "",
+      "source": "اجازة مصيف من 1/9 عودة 6/9",
+      "id": "LV-250"
+    },
+    {
+      "person_id": "OFF-027",
+      "name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
+      "type": "أسبوعية",
+      "start": "2026-09-01",
+      "end": "2026-09-01",
+      "return_date": "2026-09-02",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-251"
+    },
+    {
+      "person_id": "OFF-028",
+      "name": "محمد محمد عطية رزق",
+      "type": "أسبوعية",
+      "start": "2026-09-01",
+      "end": "2026-09-01",
+      "return_date": "2026-09-02",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-252"
+    },
+    {
+      "person_id": "OFF-041",
+      "name": "عمر خالد احمد ماهر محمد",
+      "type": "راحة",
+      "start": "2026-09-02",
+      "end": "2026-09-02",
+      "return_date": "2026-09-03",
+      "note": "",
+      "source": "استراحة القنصل فترة صباحية",
+      "id": "LV-253"
+    },
+    {
+      "person_id": "OFF-044",
+      "name": "محمد طارق السيد محمد اللبان",
+      "type": "أسبوعية",
+      "start": "2026-09-02",
+      "end": "2026-09-02",
+      "return_date": "2026-09-03",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-254"
+    },
+    {
+      "person_id": "OFF-025",
+      "name": "محمد عبد الحميد فتحى نعامة",
+      "type": "أسبوعية",
+      "start": "2026-09-02",
+      "end": "2026-09-02",
+      "return_date": "2026-09-03",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-255"
+    },
+    {
+      "person_id": "OFF-027",
+      "name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
+      "type": "إجازة مصيف",
+      "start": "2026-09-02",
+      "end": "2026-09-06",
+      "return_date": "2026-09-07",
+      "note": "",
+      "source": "اجازة مصيف من 2/9 عودة 7/9",
+      "id": "LV-256"
+    },
+    {
+      "person_id": "OFF-033",
+      "name": "محمود عبد الله محمود محمد",
+      "type": "راحة",
+      "start": "2026-09-02",
+      "end": "2026-09-08",
+      "return_date": "2026-09-09",
+      "note": "",
+      "source": "راحة",
+      "id": "LV-257"
+    },
+    {
+      "person_id": "OFF-042",
+      "name": "ماركو ماجد اقلاديوس مرقس",
+      "type": "راحة",
+      "start": "2026-09-03",
+      "end": "2026-09-03",
+      "return_date": "2026-09-04",
+      "note": "",
+      "source": "استراحة القنصل فترة صباحية",
+      "id": "LV-258"
+    },
+    {
+      "person_id": "OFF-023",
+      "name": "محمد أحمد محمد عاطف",
+      "type": "أسبوعية",
+      "start": "2026-09-03",
+      "end": "2026-09-03",
+      "return_date": "2026-09-04",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-259"
+    },
+    {
+      "person_id": "OFF-045",
+      "name": "محمد عبدالعزيز محمود حامد",
+      "type": "أسبوعية",
+      "start": "2026-09-03",
+      "end": "2026-09-03",
+      "return_date": "2026-09-04",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-260"
+    },
+    {
+      "person_id": "OFF-048",
+      "name": "محمد مجدي ابراهيم السيد بحر",
+      "type": "أسبوعية",
+      "start": "2026-09-03",
+      "end": "2026-09-03",
+      "return_date": "2026-09-04",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-261"
+    },
+    {
+      "person_id": "OFF-009",
+      "name": "السعيد محمد احمد عبده إسماعيل",
+      "type": "أسبوعية",
+      "start": "2026-09-05",
+      "end": "2026-09-05",
+      "return_date": "2026-09-06",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-262"
+    },
+    {
+      "person_id": "OFF-024",
+      "name": "محمد ذكي محمود ذكي",
+      "type": "أسبوعية",
+      "start": "2026-09-05",
+      "end": "2026-09-05",
+      "return_date": "2026-09-06",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-263"
+    },
+    {
+      "person_id": "OFF-041",
+      "name": "عمر خالد احمد ماهر محمد",
+      "type": "أسبوعية",
+      "start": "2026-09-06",
+      "end": "2026-09-06",
+      "return_date": "2026-09-07",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-264"
+    },
+    {
+      "person_id": "OFF-043",
+      "name": "محمد احمد مصطفي عبدالرازق",
+      "type": "أسبوعية",
+      "start": "2026-09-06",
+      "end": "2026-09-06",
+      "return_date": "2026-09-07",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-265"
+    },
+    {
+      "person_id": "OFF-038",
+      "name": "اسماعيل محمد عبدالسلام عيسي",
+      "type": "أسبوعية",
+      "start": "2026-09-07",
+      "end": "2026-09-07",
+      "return_date": "2026-09-08",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-266"
+    },
+    {
+      "person_id": "OFF-010",
+      "name": "جمال احمد آمين محمد",
+      "type": "أسبوعية",
+      "start": "2026-09-07",
+      "end": "2026-09-07",
+      "return_date": "2026-09-08",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-267"
+    },
+    {
+      "person_id": "OFF-016",
+      "name": "عبدالرحمن رفعت الحسيني اسماعيل",
+      "type": "نصف شهرية",
+      "start": "2026-09-07",
+      "end": "2026-09-09",
+      "return_date": "2026-09-10",
+      "note": "",
+      "source": "راحة نصف شهرية (من 7/9 عودة 10/9)",
+      "id": "LV-268"
+    },
+    {
+      "person_id": "OFF-036",
+      "name": "ابراهيم ابو الفرج يحي جبر",
+      "type": "شهرية",
+      "start": "2026-09-08",
+      "end": "2026-09-14",
+      "return_date": "2026-09-15",
+      "note": "",
+      "source": "راحة شهرية(من 8/9 عودة 15/9)",
+      "id": "LV-269"
+    },
+    {
+      "person_id": "OFF-008",
+      "name": "احمد محمد محمود السمان",
+      "type": "شهرية",
+      "start": "2026-09-08",
+      "end": "2026-09-14",
+      "return_date": "2026-09-15",
+      "note": "",
+      "source": "راحة شهرية(من 8/9 عودة 15/9)",
+      "id": "LV-270"
+    },
+    {
+      "person_id": "OFF-039",
+      "name": "طارق احمد فاروق حسن",
+      "type": "أسبوعية",
+      "start": "2026-09-08",
+      "end": "2026-09-08",
+      "return_date": "2026-09-09",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-271"
+    },
+    {
+      "person_id": "OFF-028",
+      "name": "محمد محمد عطية رزق",
+      "type": "أسبوعية",
+      "start": "2026-09-08",
+      "end": "2026-09-08",
+      "return_date": "2026-09-09",
+      "note": "",
+      "source": "راحة اسبوعية",
+      "id": "LV-272"
     }
   ],
   "services": [
@@ -30970,6 +30985,2262 @@
         ],
         "taqseera": false,
         "note": "راحة"
+      }
+    },
+    "2026-09-01": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-038": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية + فترة ليلية"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
+      },
+      "OFF-016": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة صباحية"
+      },
+      "OFF-043": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم + امن الادارة فترة ليلية + متابعة اعمال المالية"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة نصف شهرية من (1/9 عودة 4/9)"
+      },
+      "OFF-028": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-010": {
+        "items": [
+          {
+            "service_id": "SVC-020",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "القنصلية السعودية فترة صباحية"
+      },
+      "OFF-013": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة من (29/8 عودة 5/9)"
+      },
+      "OFF-025": {
+        "items": [],
+        "taqseera": true,
+        "note": "متابعة اعمال المركبات + تقصيرة"
+      },
+      "OFF-031": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة طارئة (2/2)"
+      },
+      "OFF-012": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "متابعة اعمال التعيينات + ضابط عظيم + امن الادارة فترة صباحية"
+      },
+      "OFF-036": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعه اعمال الاسلحة والعهده"
+      },
+      "OFF-048": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة اعمال العمليات وشئون الضباط"
+      },
+      "OFF-046": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-019": {
+        "items": [],
+        "taqseera": false,
+        "note": "نقطة ارتكاز جنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة ليلية"
+      },
+      "OFF-018": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف (1/5)"
+      },
+      "OFF-037": {
+        "items": [],
+        "taqseera": false,
+        "note": "دورة تدريبية"
+      },
+      "OFF-044": {
+        "items": [],
+        "taqseera": true,
+        "note": "تمكين الاربعين + تقصيرة"
+      },
+      "OFF-042": {
+        "items": [
+          {
+            "service_id": "SVC-037",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "الحي الحكومي فترة صباحية"
+      },
+      "OFF-041": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-009": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الاهداف"
+      },
+      "OFF-040": {
+        "items": [],
+        "taqseera": false,
+        "note": "غياب",
+        "status": "غياب"
+      },
+      "OFF-024": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-047": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسى"
+      },
+      "OFF-008": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-039": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف كهرباء عتاقة"
+      },
+      "OFF-023": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر للبترول"
+      },
+      "OFF-049": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة شهرية(30/8 عودة 6/9)"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      }
+    },
+    "2026-09-02": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 2/9 عودة 7/9"
+      },
+      "OFF-038": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية + فترة ليلية"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      },
+      "OFF-016": {
+        "items": [],
+        "taqseera": false,
+        "note": "مأمورية اعدام العاشر 8ص"
+      },
+      "OFF-043": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم + امن الادارة فترة ليلية + متابعة اعمال المالية"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة نصف شهرية من (1/9 عودة 4/9)"
+      },
+      "OFF-028": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر للبترول"
+      },
+      "OFF-010": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة صباحية"
+      },
+      "OFF-013": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة من (29/8 عودة 5/9)"
+      },
+      "OFF-025": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-031": {
+        "items": [
+          {
+            "service_id": "SVC-031",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مأمورية امداد"
+      },
+      "OFF-012": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "متابعة اعمال التعيينات + ضابط عظيم + امن الادارة فترة صباحية"
+      },
+      "OFF-036": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعه اعمال الاسلحة والعهده"
+      },
+      "OFF-048": {
+        "items": [],
+        "taqseera": true,
+        "note": "متابعة اعمال العمليات + شئون الضباط +  تأمين ارض الملعب + تقصيرة"
+      },
+      "OFF-046": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-019": {
+        "items": [
+          {
+            "service_id": "SVC-023",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نقطة تفتيش جنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": true,
+        "note": "تدخل سريع فترة ليلية + تقصيرة"
+      },
+      "OFF-018": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 1/9 عودة 6/9"
+      },
+      "OFF-037": {
+        "items": [],
+        "taqseera": false,
+        "note": "دورة تدريبية من 1/9 لمدة 3 ايام"
+      },
+      "OFF-044": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-042": {
+        "items": [
+          {
+            "service_id": "SVC-034",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تأمين المقصورة الرئيسية مباراة قرية عامر"
+      },
+      "OFF-041": {
+        "items": [],
+        "taqseera": false,
+        "note": "استراحة القنصل فترة صباحية"
+      },
+      "OFF-009": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الاهداف"
+      },
+      "OFF-040": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-024": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-047": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسى"
+      },
+      "OFF-008": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-039": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف كهرباء عتاقة"
+      },
+      "OFF-023": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "عمل بهدف مصر للبترول + تقصيرة"
+      },
+      "OFF-049": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة شهرية(30/8 عودة 6/9)"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
+      }
+    },
+    "2026-09-03": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 2/9 عودة 7/9"
+      },
+      "OFF-038": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية + فترة ليلية"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      },
+      "OFF-016": {
+        "items": [
+          {
+            "service_id": "SVC-024",
+            "shift": "صباحية"
+          },
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تبة ضرب النار 5ص + تدخل سريع فترة ليلية"
+      },
+      "OFF-043": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم + امن الادارة فترة ليلية + متابعة اعمال المالية"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة نصف شهرية من (1/9 عودة 4/9)"
+      },
+      "OFF-028": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر للبترول"
+      },
+      "OFF-010": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة صباحية"
+      },
+      "OFF-013": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة من (29/8 عودة 5/9)"
+      },
+      "OFF-025": {
+        "items": [],
+        "taqseera": false,
+        "note": "ضابط امن فترة صباحية + متابعة اعمال الامن والمركبات"
+      },
+      "OFF-031": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة عنابر الاعاشة"
+      },
+      "OFF-012": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "متابعة اعمال التعيينات + ضابط عظيم الادارة فترة صباحية"
+      },
+      "OFF-036": {
+        "items": [
+          {
+            "service_id": "SVC-024",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "متابعه اعمال الاسلحة والعهده + تبه ضرب النار"
+      },
+      "OFF-048": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-046": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-019": {
+        "items": [
+          {
+            "service_id": "SVC-023",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نقطة تفتيش جنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-018": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 1/9 عودة 6/9"
+      },
+      "OFF-037": {
+        "items": [],
+        "taqseera": false,
+        "note": "دورة تدريبية من 1/9 لمدة 3 ايام"
+      },
+      "OFF-044": {
+        "items": [
+          {
+            "service_id": "SVC-033",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "حجز عدد 2 متهم بقسم الـD بالمجمع الطبي فترة صباحية"
+      },
+      "OFF-042": {
+        "items": [],
+        "taqseera": false,
+        "note": "استراحة القنصل فترة صباحية"
+      },
+      "OFF-041": {
+        "items": [
+          {
+            "service_id": "SVC-037",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ارتكاز الحي الحكومي فترة صباحية"
+      },
+      "OFF-009": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الاهداف"
+      },
+      "OFF-040": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-024": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-047": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسى"
+      },
+      "OFF-008": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-039": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف كهرباء عتاقة"
+      },
+      "OFF-023": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-049": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة شهرية(30/8 عودة 6/9)"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
+      }
+    },
+    "2026-09-04": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 2/9 عودة 7/9"
+      },
+      "OFF-038": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      },
+      "OFF-016": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة ليلية"
+      },
+      "OFF-043": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم الادارة فترة ليلية + متابعة اعمال المالية"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة ليلية"
+      },
+      "OFF-028": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-010": {
+        "items": [
+          {
+            "service_id": "SVC-026",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ارتكاز سينما ريسانس"
+      },
+      "OFF-013": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة من (29/8 عودة 5/9)"
+      },
+      "OFF-025": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم + امن فترة صباحية + متابعة اعمال الامن والمركبات"
+      },
+      "OFF-031": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة عنابر الاعاشة"
+      },
+      "OFF-012": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة اعمال التعيينات"
+      },
+      "OFF-036": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعه اعمال الاسلحة والعهده"
+      },
+      "OFF-048": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة اعمال العمليات + شئون الضباط"
+      },
+      "OFF-046": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-019": {
+        "items": [
+          {
+            "service_id": "SVC-023",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نقطة تفتيش جنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط امن الادارة فترة ليلية"
+      },
+      "OFF-018": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 1/9 عودة 6/9"
+      },
+      "OFF-037": {
+        "items": [
+          {
+            "service_id": "SVC-027",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ارتكاز الخضر"
+      },
+      "OFF-044": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة صباحية"
+      },
+      "OFF-042": {
+        "items": [
+          {
+            "service_id": "SVC-036",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مستحدث فيصل"
+      },
+      "OFF-041": {
+        "items": [
+          {
+            "service_id": "SVC-037",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ارتكاز الحي الحكومي فترة صباحية"
+      },
+      "OFF-009": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الاهداف"
+      },
+      "OFF-040": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-024": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "عمل بهدف سوميد + تقصيرة"
+      },
+      "OFF-047": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسى"
+      },
+      "OFF-008": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-039": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف كهرباء عتاقة"
+      },
+      "OFF-023": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر للبترول"
+      },
+      "OFF-049": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة شهرية(30/8 عودة 6/9)"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
+      }
+    },
+    "2026-09-05": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 2/9 عودة 7/9"
+      },
+      "OFF-038": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية + فترة ليلية"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      },
+      "OFF-016": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة ليلية"
+      },
+      "OFF-043": {
+        "items": [],
+        "taqseera": true,
+        "note": "متابعة اعمال المالية + تقصيرة"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الأهداف"
+      },
+      "OFF-028": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-010": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة صباحية"
+      },
+      "OFF-013": {
+        "items": [
+          {
+            "service_id": "SVC-033",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "حجز متهم بالمجمع الطبي فترة ليلية"
+      },
+      "OFF-025": {
+        "items": [],
+        "taqseera": false,
+        "note": "ضابط امن فترة صباحية + متابعة اعمال الامن والمركبات"
+      },
+      "OFF-031": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة عنابر الاعاشة"
+      },
+      "OFF-012": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم الادارة فترة صباحية+ متابعة اعمال التعيينات"
+      },
+      "OFF-036": {
+        "items": [
+          {
+            "service_id": "SVC-031",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مأمورية امداد + متابعه اعمال الاسلحة والعهده"
+      },
+      "OFF-048": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم وامن الإدارة فتره ليلية + متابعة اعمال العمليات + شئون الضباط"
+      },
+      "OFF-046": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-019": {
+        "items": [
+          {
+            "service_id": "SVC-023",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نقطة تفتيش جنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسي"
+      },
+      "OFF-018": {
+        "items": [
+          {
+            "service_id": "SVC-012",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "فرقة أمن المعسكرات بمعهد تدريب ضباط الشرطة من 5/9 حتى 24/9"
+      },
+      "OFF-037": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة تأهيلية بمعهد تدريب قوات الأمن من 5/9 حتى 17/9"
+      },
+      "OFF-044": {
+        "items": [
+          {
+            "service_id": "SVC-020",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "القنصلية السعودية فترة صباحية"
+      },
+      "OFF-042": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة أعمال المواجهة والتصدي للعدائيات بالمعهد القومى لتدريب القوات الخاصه من 5/9 حتى 17/9"
+      },
+      "OFF-041": {
+        "items": [],
+        "taqseera": true,
+        "note": "تأمين باب المحكمة + تقصيرة"
+      },
+      "OFF-009": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-040": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-024": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-047": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة الحراسات المشددة بمدرسة الدفاع الشعبي والعسكري من 5/9 حتى 17/9"
+      },
+      "OFF-008": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-039": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف كهرباء عتاقة"
+      },
+      "OFF-023": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر للبترول"
+      },
+      "OFF-049": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة شهرية(30/8 عودة 6/9)"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
+      }
+    },
+    "2026-09-06": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "اجازة مصيف من 2/9 عودة 7/9"
+      },
+      "OFF-038": {
+        "items": [
+          {
+            "service_id": "SVC-014",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "عمل بالمعسكر الفرعي + تقصيرة"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      },
+      "OFF-016": {
+        "items": [],
+        "taqseera": true,
+        "note": "عمل + تقصيرة"
+      },
+      "OFF-043": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة صباحية"
+      },
+      "OFF-028": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة ليلية"
+      },
+      "OFF-010": {
+        "items": [],
+        "taqseera": true,
+        "note": "مجموعه التشريفة + تقصيرة"
+      },
+      "OFF-013": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية + فترة ليلية"
+      },
+      "OFF-025": {
+        "items": [],
+        "taqseera": false,
+        "note": "مرضي من يوم 5/9"
+      },
+      "OFF-031": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة عنابر الاعاشة"
+      },
+      "OFF-012": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم + امن الادارة فترة صباحية + متابعة اعمال التعيينات"
+      },
+      "OFF-036": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعه اعمال الاسلحة والعهده"
+      },
+      "OFF-048": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "وحدة المحكمة + ضابط عظيم وامن الإدارة فتره ليلية + متابعة اعمال العمليات + شئون الضباط"
+      },
+      "OFF-046": {
+        "items": [],
+        "taqseera": false,
+        "note": "عمل بالإدارة"
+      },
+      "OFF-019": {
+        "items": [],
+        "taqseera": false,
+        "note": "نقطة التفتيش الأمنية بجنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسي"
+      },
+      "OFF-018": {
+        "items": [
+          {
+            "service_id": "SVC-012",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "فرقة أمن المعسكرات بمعهد تدريب ضباط الشرطة من 5/9 حتى 24/9"
+      },
+      "OFF-037": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة تأهيلية بمعهد تدريب قوات الأمن من 5/9 حتى 17/9"
+      },
+      "OFF-044": {
+        "items": [],
+        "taqseera": false,
+        "note": "مجموعه التشريفة"
+      },
+      "OFF-042": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة أعمال المواجهة والتصدي للعدائيات بالمعهد القومى لتدريب القوات الخاصه من 5/9 حتى 17/9"
+      },
+      "OFF-041": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-009": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الأهداف"
+      },
+      "OFF-040": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-024": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-047": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة الحراسات المشددة بمدرسة الدفاع الشعبي والعسكري من 5/9 حتى 17/9"
+      },
+      "OFF-008": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-039": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف كهرباء عتاقة"
+      },
+      "OFF-023": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر للبترول"
+      },
+      "OFF-049": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
+      }
+    },
+    "2026-09-07": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "وكيل الإدارة"
+      },
+      "OFF-038": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      },
+      "OFF-016": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة نصف شهرية  (من 7/9 عودة 10/9)"
+      },
+      "OFF-043": {
+        "items": [
+          {
+            "service_id": "SVC-039",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مدرجات الدرجة الثالثة يمين + ضابط عظيم + امن الإدارة فتره ليلية"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [
+          {
+            "service_id": "SVC-024",
+            "shift": "صباحية"
+          },
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تبه ضرب النار + تدخل سريع فترة صباحية"
+      },
+      "OFF-028": {
+        "items": [
+          {
+            "service_id": "SVC-039",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "مدرجات الدرجة الاولي+ تقصيرة"
+      },
+      "OFF-010": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-013": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية + فترة ليلية"
+      },
+      "OFF-025": {
+        "items": [],
+        "taqseera": false,
+        "note": "مرضي من يوم 5/9"
+      },
+      "OFF-031": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة عنابر الاعاشة"
+      },
+      "OFF-012": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم + امن الادارة فترة صباحية + متابعة اعمال التعيينات"
+      },
+      "OFF-036": {
+        "items": [
+          {
+            "service_id": "SVC-039",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "المنطقة من الباب حتي مدخل المدرجات + تقصيرة"
+      },
+      "OFF-048": {
+        "items": [
+          {
+            "service_id": "SVC-039",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تبه ضر النار + متابعة اعمال العمليات+ شئون الضباط + مدرجات الدرجة الثالثة يسار"
+      },
+      "OFF-046": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-019": {
+        "items": [
+          {
+            "service_id": "SVC-023",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نقطة تفتيش جنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسى"
+      },
+      "OFF-018": {
+        "items": [
+          {
+            "service_id": "SVC-012",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "فرقة أمن المعسكرات بمعهد تدريب ضباط الشرطة من 5/9 حتى 24/9"
+      },
+      "OFF-037": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة تأهيلية بمعهد تدريب قوات الأمن من 5/9 حتى 17/9"
+      },
+      "OFF-044": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-042": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة أعمال المواجهة والتصدي للعدائيات بالمعهد القومى لتدريب القوات الخاصه من 5/9 حتى 17/9"
+      },
+      "OFF-041": {
+        "items": [],
+        "taqseera": false,
+        "note": "غياب",
+        "status": "غياب"
+      },
+      "OFF-009": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الأهداف + كهرباء عتاقة"
+      },
+      "OFF-040": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة ليلية"
+      },
+      "OFF-024": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-047": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة الحراسات المشددة بمدرسة الدفاع الشعبي والعسكري من 5/9 حتى 17/9"
+      },
+      "OFF-008": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "عمل بهدف هلة المحجر + تقصيرة"
+      },
+      "OFF-039": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          },
+          {
+            "service_id": "SVC-040",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "عمل بهدف كهرباء عتاقة + مرور علي البوابات + تقصيرة"
+      },
+      "OFF-023": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر البترول"
+      },
+      "OFF-049": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
+      }
+    },
+    "2026-09-08": {
+      "OFF-002": {
+        "items": [],
+        "taqseera": false,
+        "note": "مدير الإدارة"
+      },
+      "OFF-027": {
+        "items": [],
+        "taqseera": false,
+        "note": "وكيل الإدارة"
+      },
+      "OFF-038": {
+        "items": [
+          {
+            "service_id": "SVC-011",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "نوبتجي المعسكر الفرعي فترة صباحية + فترة ليلية"
+      },
+      "OFF-033": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "راحة"
+      },
+      "OFF-016": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة نصف شهرية  (من 7/9 عودة 10/9)"
+      },
+      "OFF-043": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "ليلية"
+          },
+          {
+            "service_id": "SVC-010",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "متابعة اعمال المالية + ضابط عظيم + امن الإدارة فتره ليلية"
+      },
+      "OFF-011": {
+        "items": [
+          {
+            "service_id": "SVC-017",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "قول مكبر فترة ليلية"
+      },
+      "OFF-015": {
+        "items": [
+          {
+            "service_id": "SVC-009",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط عظيم الإدارة فترة صباحية+متابعة اعمال الشئون"
+      },
+      "OFF-028": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-010": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة صباحية"
+      },
+      "OFF-013": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف انابيب البترول"
+      },
+      "OFF-025": {
+        "items": [],
+        "taqseera": false,
+        "note": "مرضي من يوم 5/9"
+      },
+      "OFF-031": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة عنابر الاعاشة"
+      },
+      "OFF-012": {
+        "items": [
+          {
+            "service_id": "SVC-010",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "ضابط امن الإدارة فترة صباحية+متابعة اعمال التعيينات"
+      },
+      "OFF-036": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة شهرية(من 8/9 عودة 15/9)"
+      },
+      "OFF-048": {
+        "items": [],
+        "taqseera": false,
+        "note": "متابعة اعمال العمليات+ شئون الضباط"
+      },
+      "OFF-040": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "ليلية"
+          }
+        ],
+        "taqseera": false,
+        "note": "تدخل سريع فترة ليلية"
+      },
+      "OFF-019": {
+        "items": [],
+        "taqseera": false,
+        "note": "نقطة التفتيش الأمنية بجنيفة فترة صباحية"
+      },
+      "OFF-045": {
+        "items": [
+          {
+            "service_id": "SVC-004",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف عيون موسى"
+      },
+      "OFF-018": {
+        "items": [
+          {
+            "service_id": "SVC-012",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "فرقة أمن المعسكرات بمعهد تدريب ضباط الشرطة من 5/9 حتى 24/9"
+      },
+      "OFF-037": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة تأهيلية بمعهد تدريب قوات الأمن من5/9 حتى 17/9"
+      },
+      "OFF-044": {
+        "items": [
+          {
+            "service_id": "SVC-002",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": true,
+        "note": "عمل بهدف انابيب البترول + تقصيرة"
+      },
+      "OFF-042": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة أعمال المواجهة والتصدي للعدائيات بالمعهد القومى لتدريب القوات الخاصه من 5/9 حتى 17/9"
+      },
+      "OFF-041": {
+        "items": [
+          {
+            "service_id": "SVC-006",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مأمورية علاقات 6ص + عمل بهدف كهرباء عتاقة"
+      },
+      "OFF-009": {
+        "items": [
+          {
+            "service_id": "SVC-001",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "مشرف الأهداف"
+      },
+      "OFF-046": {
+        "items": [
+          {
+            "service_id": "SVC-005",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف هلة المحجر"
+      },
+      "OFF-024": {
+        "items": [
+          {
+            "service_id": "SVC-003",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف سوميد"
+      },
+      "OFF-047": {
+        "items": [],
+        "taqseera": false,
+        "note": "فرقة الحراسات المشددة بمدرسة الدفاع الشعبي والعسكري من 5/9 حتى 17/9"
+      },
+      "OFF-008": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة شهرية(من 8/9 عودة 15/9)"
+      },
+      "OFF-039": {
+        "items": [],
+        "taqseera": false,
+        "note": "راحة اسبوعية"
+      },
+      "OFF-023": {
+        "items": [
+          {
+            "service_id": "SVC-007",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف مصر البترول"
+      },
+      "OFF-049": {
+        "items": [
+          {
+            "service_id": "SVC-008",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل بهدف السخنة"
+      },
+      "OFF-030": {
+        "items": [],
+        "taqseera": false,
+        "note": "انتداب شمال سيناء",
+        "status": "انتداب"
+      },
+      "OFF-032": {
+        "items": [
+          {
+            "service_id": "SVC-043",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": "عمل"
       }
     },
     "2026-09-09": {
