@@ -1,0 +1,18 @@
+<!-- ============ إخراج من القوة ============ -->
+<div class="modal hidden" id="removeModal">
+  <div class="modal-card small">
+    <button class="close" data-close="removeModal">×</button>
+    <h2>إخراج من القوة</h2>
+    <p id="removeName"></p>
+    <form id="removeForm">
+      <input type="hidden" id="removeId">
+      <label>تاريخ الخروج
+        <input type="date" id="leaveDate" required>
+      </label>
+      <label>سبب الخروج <span class="muted">(اختياري)</span>
+        <textarea id="reason" rows="3" placeholder="مثال: نقل، إنهاء خدمة..."></textarea>
+      </label>
+      <button class="danger full" type="submit">إخراج وحفظ في الأرشيف</button>
+    </form>
+  </div>
+</div>

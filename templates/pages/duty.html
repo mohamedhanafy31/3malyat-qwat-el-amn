@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar" id="dutyBar">
+    <button class="mini" id="dayPrev">◀ السابق</button>
+    <input type="date" id="dutyDate" class="select">
+    <button class="mini" id="dayNext">التالي ▶</button>
+    <button class="mini" id="dayToday">النهاردة</button>
+    <span id="balanceTag"></span>
+  </div>
+  <div id="dutySummary"></div>
+  <div id="dutyBoard"></div>
+</div>
+{% endblock %}
+
+{% block modals %}{% include "partials/assign_modal.html" %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/duty.js') }}"></script>
+{% endblock %}

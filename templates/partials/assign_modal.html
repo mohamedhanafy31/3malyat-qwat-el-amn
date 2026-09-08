@@ -1,0 +1,29 @@
+<!-- ============ تكليف ضابط بخدمة ============ -->
+<div class="modal hidden" id="assignModal">
+  <div class="modal-card">
+    <button class="close" data-close="assignModal">×</button>
+    <h2 id="assignTitle">تكليف بخدمة</h2>
+    <p class="hint" id="assignHint"></p>
+    <form id="assignForm">
+      <input type="hidden" id="assignPerson">
+      <label>الخدمات المسندة <span class="muted">(اختر واحدة أو أكتر)</span></label>
+      <div id="assignServices" class="svc-picker"></div>
+      <div class="grid">
+        <label>حالة خاصة
+          <select id="assignStatus">
+            <option value="">— بدون —</option>
+            <option value="انتداب">انتداب خارج الإدارة</option>
+            <option value="غياب">غياب</option>
+          </select>
+        </label>
+        <label class="checkline">
+          <input type="checkbox" id="assignTaq"> تقصيرة (خرج بدري بعد خدمته)
+        </label>
+      </div>
+      <label>ملاحظات
+        <input id="assignNote" placeholder="نص التشغيل كما هو في اليومية">
+      </label>
+      <button class="primary full" type="submit">حفظ التكليف</button>
+    </form>
+  </div>
+</div>

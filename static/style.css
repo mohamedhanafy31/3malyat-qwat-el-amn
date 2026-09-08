@@ -54,7 +54,7 @@ button,input,select,textarea{font-family:inherit}
   padding:14px 18px 6px;font-weight:bold}
 .navbtn{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;text-align:right;
   color:var(--ink-700);padding:10px 18px;font:inherit;font-size:16.5px;cursor:pointer;position:relative;
-  border-inline-end:3px solid transparent}
+  border-inline-end:3px solid transparent;text-decoration:none}
 .navbtn svg{width:16px;height:16px;flex:none;opacity:.75}
 .navbtn span{flex:1}
 .navbtn em{font-style:normal;background:var(--navy-100);color:var(--navy-800);border-radius:20px;
@@ -238,7 +238,7 @@ button,input,select,textarea{font-family:inherit}
 /* ---------- حالة التركيز بلوحة المفاتيح — لكل عنصر تفاعلي أساسي ---------- */
 .navbtn:focus-visible,.tab:focus-visible,.mini:focus-visible,.primary:focus-visible,
 .danger:focus-visible,.search:focus-visible,.select:focus-visible,.close:focus-visible,
-.quick-links button:focus-visible,.svc-item:focus-within{
+.quick-links a:focus-visible,.svc-item:focus-within{
   outline:2px solid var(--gold-600);outline-offset:1px}
 
 /* ---------- لوحة القيادة (الرئيسية) ---------- */
@@ -247,11 +247,11 @@ button,input,select,textarea{font-family:inherit}
 .dash-card h3{margin:0;padding:12px 16px;font-size:16.5px;background:var(--navy-50);border-bottom:1px solid var(--line);color:var(--navy-950)}
 .dash-card .body{padding:14px 16px}
 .quick-links{display:flex;flex-direction:column;gap:8px}
-.quick-links button{display:flex;justify-content:space-between;align-items:center;width:100%;
+.quick-links a{display:flex;justify-content:space-between;align-items:center;width:100%;
   border:1px solid var(--line);background:#fff;border-radius:var(--radius-sm);padding:11px 14px;
-  font:inherit;font-size:14.5px;cursor:pointer;color:var(--ink-900)}
-.quick-links button:hover{border-color:var(--navy-800);background:var(--navy-50)}
-.quick-links button b{color:var(--navy-900)}
+  font:inherit;font-size:14.5px;cursor:pointer;color:var(--ink-900);text-decoration:none}
+.quick-links a:hover{border-color:var(--navy-800);background:var(--navy-50)}
+.quick-links a b{color:var(--navy-900)}
 @media(max-width:900px){.dash-grid{grid-template-columns:1fr}}
 
 /* ---------- النوافذ ---------- */

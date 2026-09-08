@@ -1,0 +1,29 @@
+<!-- ============ تسجيل / تعديل راحة ============ -->
+<div class="modal hidden" id="leaveModal">
+  <div class="modal-card">
+    <button class="close" data-close="leaveModal">×</button>
+    <h2 id="leaveModalTitle">تسجيل راحة</h2>
+    <form id="leaveForm">
+      <input type="hidden" id="leaveId">
+      <div class="grid">
+        <label>الشخص
+          <select name="person_id" id="lvPerson"></select>
+        </label>
+        <label>نوع الراحة
+          <select name="type" id="lvType"></select>
+        </label>
+        <label>من تاريخ
+          <input type="date" name="start" id="lvStart" required>
+        </label>
+        <label>إلى تاريخ <span class="muted">(آخر يوم راحة)</span>
+          <input type="date" name="end" id="lvEnd" required>
+        </label>
+      </div>
+      <p class="hint" id="lvHint"></p>
+      <label>ملاحظات <span class="muted">(اختياري)</span>
+        <input name="note" id="lvNote">
+      </label>
+      <button class="primary full" type="submit">حفظ الراحة</button>
+    </form>
+  </div>
+</div>

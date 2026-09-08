@@ -1,0 +1,39 @@
+{# صفحة واحدة بتخدم الضباط والأفراد — نفس الجدول والأدوات، بيختلفوا في
+   الأعمدة وكرت القيادة، وده متحدد من data-page في <body>. #}
+{% extends "base.html" %}
+
+{% block alerts %}{% if page == 'officers' %}<div id="alerts"></div>{% endif %}{% endblock %}
+
+{% block content %}
+<div class="stats" id="forceStats"></div>
+
+{% if page == 'officers' %}<div class="command-bar" id="commandBar"></div>{% endif %}
+
+<div class="panel">
+  <div class="panel-head">
+    <div class="tabs">
+      <button class="tab active" data-bucket="active">على القوة</button>
+      <button class="tab" data-bucket="archive">الأرشيف</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input id="search" class="search" placeholder="بحث بالاسم أو الأقدمية أو الهاتف...">
+    {% if page == 'officers' %}<select id="restFilter" class="select"></select>{% endif %}
+    <button class="primary" id="addBtn">＋ إضافة</button>
+  </div>
+
+  <div id="tableWrap"></div>
+</div>
+{% endblock %}
+
+{% block modals %}
+  {% include "partials/person_modal.html" %}
+  {% include "partials/remove_modal.html" %}
+  {% if page == 'officers' %}{% include "partials/leave_modal.html" %}{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if page == 'officers' %}<script src="{{ url_for('static', filename='js/leave-form.js') }}"></script>{% endif %}
+<script src="{{ url_for('static', filename='js/force.js') }}"></script>
+{% endblock %}

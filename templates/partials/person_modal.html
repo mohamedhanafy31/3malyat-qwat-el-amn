@@ -1,0 +1,56 @@
+<!-- ============ إضافة / تعديل شخص ============ -->
+<div class="modal hidden" id="personModal">
+  <div class="modal-card">
+    <button class="close" data-close="personModal">×</button>
+    <h2 id="personModalTitle">إضافة إلى القوة</h2>
+    <form id="personForm">
+      <input type="hidden" id="personId">
+      <div class="grid">
+        <label>الفئة
+          <select name="type" id="type">
+            <option value="officer">ضابط</option>
+            <option value="personnel">فرد</option>
+          </select>
+        </label>
+        <label>الرتبة / الدرجة
+          <select name="role" id="role"></select>
+        </label>
+        <label>الاسم
+          <input name="name" id="fName" required>
+        </label>
+        <label>رقم الأقدمية (الكود)
+          <input name="code" id="fCode" required>
+        </label>
+        <label>رقم الهاتف
+          <input name="phone" id="fPhone" inputmode="tel">
+        </label>
+        <label>تاريخ الانضمام
+          <input type="date" name="join_date" id="fJoin" required>
+        </label>
+        <label id="postWrap">العمل المسند
+          <input name="post" id="fPost">
+        </label>
+        <label id="addressWrap" class="hidden">العنوان
+          <input name="address" id="fAddress">
+        </label>
+        <label id="restSysWrap">نظام الراحة
+          <select name="rest_system" id="fRestSystem"></select>
+        </label>
+        <label id="restDayWrap">يوم الراحة الأسبوعية
+          <select name="rest_day" id="fRestDay"></select>
+        </label>
+      </div>
+      <div id="archiveFields" class="hidden">
+        <div class="grid">
+          <label>تاريخ الخروج
+            <input type="date" name="leave_date" id="fLeaveDate">
+          </label>
+          <label>سبب الخروج
+            <input name="leave_reason" id="fLeaveReason">
+          </label>
+        </div>
+      </div>
+      <button class="primary full" type="submit" id="personSubmit">حفظ</button>
+    </form>
+  </div>
+</div>

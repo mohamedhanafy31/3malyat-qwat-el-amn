@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <input id="svcSearch" class="search" placeholder="بحث في الخدمات...">
+    <select id="svcKindFilter" class="select"></select>
+    <button class="primary" id="addSvcBtn">＋ خدمة جديدة</button>
+  </div>
+  <p class="hint" style="margin:14px 18px">
+    تصنيف الخدمة هنا هو اللي بيحدد الضابط يتحسب في أي خانة في جدول الإجمالي.
+    تغيير التصنيف بيعيد حساب كل الأيام على طول.
+  </p>
+  <div id="catalogWrap"></div>
+</div>
+{% endblock %}
+
+{% block modals %}{% include "partials/svc_modal.html" %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/catalog.js') }}"></script>
+{% endblock %}

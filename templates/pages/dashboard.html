@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block alerts %}<div id="alerts"></div>{% endblock %}
+
+{% block content %}
+<div id="dashStats" class="stats"></div>
+<div class="dash-grid">
+  <div class="dash-card">
+    <h3>حالة اليوم — التشغيل</h3>
+    <div class="body" id="dashToday"></div>
+  </div>
+  <div class="dash-card">
+    <h3>روابط سريعة</h3>
+    <div class="body">
+      <div class="quick-links">
+        <a href="{{ url_for('pages.officers') }}"><span>سجل الضباط</span><b id="qlOfficers">—</b></a>
+        <a href="{{ url_for('pages.personnel') }}"><span>سجل الأفراد</span><b id="qlPersonnel">—</b></a>
+        <a href="{{ url_for('pages.board') }}"><span>لوحة التشغيل المختصرة</span><b>◂</b></a>
+        <a href="{{ url_for('pages.leaves') }}"><span>الراحات والإجازات</span><b id="qlLeaves">—</b></a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
