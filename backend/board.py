@@ -14,6 +14,26 @@ def _norm_admin(text):
     return (text or "").strip().replace("ة", "ه")
 
 
+def category_for_service(name, svc):
+    """التصنيف اللي الخدمة دي المفروض تقع فيه على اللوحة — قاعدة واحدة
+    بيستخدمها الاشتقاق من الأرشيف والمزامنة مع يومية التشغيل سوا."""
+    kind = (svc or {}).get("kind")
+    if kind == "حراسات":
+        return CATEGORY_TARGETS
+    if name in SUBCAMP_SERVICES:
+        return CATEGORY_SUBCAMP
+    if name in BOARD_ROTATIONS:
+        return CATEGORY_ADMIN_ROLES
+    if kind == "خارجية" and (svc or {}).get("standing"):
+        return CATEGORY_BASIC
+    return CATEGORY_OCCASIONAL
+
+
+def board_shift(shift, svc):
+    """الأهداف (الحراسات) هدف ثابت طول اليوم فمالهاش فترة على اللوحة."""
+    return "" if (svc or {}).get("kind") == "حراسات" else (shift or "")
+
+
 def _command_entries(data, day, entries):
     """قيادة الإدارة (المدير والوكيل) تشغيلهم ثابت كل يوم — بيتحطوا تلقائيًا
     في «أدوار بالإدارة» من غير ما تكلّفهم بإيدك كل يوم.
@@ -76,16 +96,7 @@ def _derive_day_services(data, day):
     for name, shift in slots:
         r, it, taq = pick(name, shift)
         svc = services.get(it["id"], {})
-        if it["kind"] == "حراسات":
-            cat = CATEGORY_TARGETS
-        elif name in SUBCAMP_SERVICES:
-            cat = CATEGORY_SUBCAMP
-        elif name in BOARD_ROTATIONS:
-            cat = CATEGORY_ADMIN_ROLES
-        elif it["kind"] == "خارجية" and svc.get("standing"):
-            cat = CATEGORY_BASIC
-        else:
-            cat = CATEGORY_OCCASIONAL
+        cat = category_for_service(name, svc)
         tags = [SERVICE_TAGS[name]] if name in SERVICE_TAGS else []
         remember_tags(data, tags)
         entries.append({

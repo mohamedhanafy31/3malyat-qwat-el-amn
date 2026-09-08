@@ -30971,6 +30971,18 @@
         "taqseera": false,
         "note": "راحة"
       }
+    },
+    "2026-09-09": {
+      "OFF-044": {
+        "items": [
+          {
+            "service_id": "SVC-016",
+            "shift": "صباحية"
+          }
+        ],
+        "taqseera": false,
+        "note": ""
+      }
     }
   },
   "day_services": {
@@ -49043,6 +49055,41 @@
         "tags": [],
         "note": ""
       }
+    ],
+    "2026-09-09": [
+      {
+        "id": "DS-0001",
+        "category": "أدوار بالإدارة",
+        "service": "مدير الإدارة",
+        "shift": "",
+        "officer_id": "OFF-002",
+        "officer_name": "أحمد سمير محمد حمدي عباس",
+        "requirements": [],
+        "tags": [],
+        "note": ""
+      },
+      {
+        "id": "DS-0002",
+        "category": "أدوار بالإدارة",
+        "service": "وكيل الإدارة",
+        "shift": "",
+        "officer_id": "OFF-027",
+        "officer_name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
+        "requirements": [],
+        "tags": [],
+        "note": ""
+      },
+      {
+        "id": "DS-0003",
+        "category": "الخدمات الأساسية",
+        "service": "تدخل سريع",
+        "shift": "صباحية",
+        "officer_id": "OFF-044",
+        "officer_name": "محمد طارق السيد محمد اللبان",
+        "requirements": [],
+        "tags": [],
+        "note": ""
+      }
     ]
   },
   "board_categories": [
@@ -49052,5 +49099,9 @@
     "أدوار بالإدارة",
     "المعسكر الفرعي"
   ],
-  "service_tags": []
+  "service_tags": [],
+  "command": {
+    "مدير الإدارة": "OFF-002",
+    "وكيل الإدارة": "OFF-027"
+  }
 }

@@ -5,6 +5,7 @@ from ..constants import SHIFTS
 from ..duty import summarise
 from ..people import officers_on
 from ..store import AbortRequest, load_data, with_data
+from ..sync import sync_board_from_duty
 from ..utils import json_payload, parse_date
 
 bp = Blueprint("duty", __name__)
@@ -52,6 +53,8 @@ def set_duty(day, person_id):
             data["duties"][day].pop(person_id, None)     # مفيش تكليف = صافي
         if not data["duties"][day]:
             data["duties"].pop(day, None)
+        # اللوحة المختصرة تعكس التكليف على طول (ربط في الاتجاهين)
+        sync_board_from_duty(data, day, person_id)
         return jsonify(summarise(data, day))
 
     return with_data(mutate)

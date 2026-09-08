@@ -5,6 +5,7 @@ from ..board import build_board, clean_requirements, get_day_services, remember_
 from ..constants import CATEGORY_OCCASIONAL, SHIFTS
 from ..people import find_person
 from ..store import AbortRequest, load_data, next_id, with_data
+from ..sync import sync_duty_from_board
 from ..utils import json_payload, parse_date
 
 bp = Blueprint("board", __name__)
@@ -51,6 +52,7 @@ def add_board_entry(day):
         entries.append(entry)
         remember_category(data, category)
         remember_tags(data, tags)
+        sync_duty_from_board(data, day, officer_id)
         return jsonify(entry), 201
 
     return with_data(mutate)
@@ -67,6 +69,7 @@ def edit_board_entry(day, entry_id):
         entry = next((e for e in entries if e["id"] == entry_id), None)
         if not entry:
             raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
+        was_officer = entry.get("officer_id")
 
         if "service" in payload:
             service = str(payload["service"]).strip()
@@ -101,6 +104,9 @@ def edit_board_entry(day, entry_id):
         if "note" in payload:
             entry["note"] = str(payload["note"]).strip()
 
+        # لو الخانة اتنقلت من ضابط لضابط، الاتنين لازم يتحدّثوا
+        for oid in {was_officer, entry.get("officer_id")}:
+            sync_duty_from_board(data, day, oid)
         return jsonify(entry)
 
     return with_data(mutate)
@@ -113,10 +119,11 @@ def delete_board_entry(day, entry_id):
 
     def mutate(data):
         entries = get_day_services(data, day)
-        before = len(entries)
+        gone = next((e for e in entries if e["id"] == entry_id), None)
         data["day_services"][day] = [e for e in entries if e["id"] != entry_id]
-        if len(data["day_services"][day]) == before:
+        if not gone:
             raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
+        sync_duty_from_board(data, day, gone.get("officer_id"))
         return jsonify({"ok": True})
 
     return with_data(mutate)
