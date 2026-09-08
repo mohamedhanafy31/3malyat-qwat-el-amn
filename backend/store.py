@@ -62,6 +62,9 @@ def _read():
     data.setdefault("day_services", {})
     data.setdefault("board_categories", list(DEFAULT_DATA["board_categories"]))
     data.setdefault("service_tags", [])
+    command = data.setdefault("command", {})
+    for role in DEFAULT_DATA["command"]:
+        command.setdefault(role, None)
     return data
 
 

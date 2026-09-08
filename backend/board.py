@@ -1,15 +1,47 @@
 """لوحة التشغيل المختصرة — الاشتقاق الأولي من نص التشغيل، وبناء اللوحة القابلة للتعديل الحر."""
 from .constants import (
     CATEGORY_ADMIN_ROLES, CATEGORY_BASIC, CATEGORY_OCCASIONAL,
-    CATEGORY_SUBCAMP, CATEGORY_TARGETS, BOARD_ROTATIONS, PLAIN_ADMIN_DUTY,
-    SERVICE_TAGS, SUBCAMP_SERVICES,
+    CATEGORY_SUBCAMP, CATEGORY_TARGETS, BOARD_ROTATIONS, COMMAND_ROLES,
+    PLAIN_ADMIN_DUTY, SERVICE_TAGS, SUBCAMP_SERVICES,
 )
 from .duty import summarise
+from .leaves import leave_on
+from .people import officers_on
 from .store import next_id
 
 
 def _norm_admin(text):
     return (text or "").strip().replace("ة", "ه")
+
+
+def _command_entries(data, day, entries):
+    """قيادة الإدارة (المدير والوكيل) تشغيلهم ثابت كل يوم — بيتحطوا تلقائيًا
+    في «أدوار بالإدارة» من غير ما تكلّفهم بإيدك كل يوم.
+
+    بيتخطّوا في الحالات دي:
+    - الضابط في راحة/إجازة اليوم ده.
+    - مكانش على القوة يومها (انضم بعده أو خرج قبله).
+    - ظاهر بالفعل في خانة تانية في نفس اليوم (اتكلّف باستثناء)، فمابنكررهوش.
+
+    بترجّع الخانات الجديدة بس عشان اللي بيندهها يضيفها لقايمته.
+    """
+    assigned = {e.get("officer_id") for e in entries if e.get("officer_id")}
+    on_force = {o["id"]: o for o in officers_on(data, day)}
+    out = []
+    for role in COMMAND_ROLES:
+        officer_id = (data.get("command") or {}).get(role)
+        if not officer_id or officer_id in assigned:
+            continue
+        officer = on_force.get(officer_id)
+        if not officer or leave_on(data, officer_id, day):
+            continue
+        out.append({
+            "id": next_id(entries + out, "DS", width=4),
+            "category": CATEGORY_ADMIN_ROLES, "service": role, "shift": "",
+            "officer_id": officer_id, "officer_name": officer.get("name", ""),
+            "requirements": [], "tags": [], "note": "",
+        })
+    return out
 
 
 def _derive_day_services(data, day):
@@ -83,9 +115,15 @@ def get_day_services(data, day):
     """بيرجّع خدمات اليوم من الذاكرة بس — من غير أي حفظ. أول ما يوم قديم
     يتفتح بيتشتق مبدئيًا هنا في نسخة data المحمّلة، لكن التثبيت (persist)
     بيحصل بس لو الراوت اللي نادى الدالة دي فعلاً بيعدّل حاجة ويحفظ بعدها —
-    عشان القراءة المجردة (GET) تفضل من غير أي أثر جانبي على data.json."""
+    عشان القراءة المجردة (GET) تفضل من غير أي أثر جانبي على data.json.
+
+    أول تجهيز لأي يوم بيضيف قيادة الإدارة تلقائيًا (تشغيلهم ثابت يوميًا).
+    الأيام المحفوظة بالفعل مابتتلمسش — لو حذفت المدير من يوم معيّن مش
+    هيرجع تاني، ولا الأيام القديمة في الأرشيف بتتغيّر بأثر رجعي."""
     if day not in data["day_services"]:
-        data["day_services"][day] = _derive_day_services(data, day) if day in data["duties"] else []
+        entries = _derive_day_services(data, day) if day in data["duties"] else []
+        entries += _command_entries(data, day, entries)
+        data["day_services"][day] = entries
     return data["day_services"][day]
 
 

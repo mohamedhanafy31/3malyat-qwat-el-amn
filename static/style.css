@@ -95,6 +95,22 @@ button,input,select,textarea{font-family:inherit}
 .stat span{display:block;color:var(--ink-500);font-size:13.5px;margin-bottom:6px}
 .stat strong{font-size:24.5px;color:var(--navy-950)}
 
+/* ---------- قيادة الإدارة (الهيكل التنظيمي) ---------- */
+.command-bar{background:#fff;border:1px solid var(--line);border-top:3px solid var(--gold-700);
+  border-radius:var(--radius-md);padding:14px 18px 16px;margin-bottom:18px}
+.cmd-head{font-size:16.5px;font-weight:bold;color:var(--navy-950);font-family:var(--font-head);margin-bottom:12px}
+.cmd-head .muted{font-family:var(--font-body);font-size:13.5px;font-weight:normal;margin-inline-start:10px}
+.cmd-slots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cmd-slot{display:flex;flex-direction:column;gap:6px}
+.cmd-role{font-size:14px;font-weight:bold;color:var(--gold-700)}
+.cmd-slot select{border:1px solid var(--line-strong);border-radius:var(--radius-sm);
+  padding:9px 12px;font:inherit;font-size:15.5px;background:#fff}
+.cmd-slot select:focus-visible{outline:2px solid var(--gold-600);outline-offset:1px}
+.cmd-now{font-size:13.5px;color:var(--ink-500)}
+.cmd-now.empty{color:var(--bad-700)}
+.chip.cmd{color:var(--gold-700);border-inline-start-color:var(--gold-700);background:var(--gold-100)}
+@media(max-width:700px){.cmd-slots{grid-template-columns:1fr}}
+
 /* ---------- اللوحة (Panel) ---------- */
 .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
 .panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 0;flex-wrap:wrap;gap:10px}

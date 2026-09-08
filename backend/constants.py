@@ -4,6 +4,12 @@ CATEGORY_BASIC, CATEGORY_TARGETS, CATEGORY_OCCASIONAL = \
     "الخدمات الأساسية", "الأهداف", "الخدمات الطارئة"
 CATEGORY_ADMIN_ROLES, CATEGORY_SUBCAMP = "أدوار بالإدارة", "المعسكر الفرعي"
 
+# قيادة الإدارة — الهيكل التنظيمي الثابت. الضباط اللي شايلين المناصب دي
+# بيتغيّروا مع حركة الضباط (كل سنة مثلًا)، فالمنصب نفسه ثابت في السيستم
+# والضابط المرتبط بيه هو اللي بيتبدّل من صفحة الضباط.
+ROLE_DIRECTOR, ROLE_DEPUTY = "مدير الإدارة", "وكيل الإدارة"
+COMMAND_ROLES = [ROLE_DIRECTOR, ROLE_DEPUTY]
+
 DEFAULT_DATA = {
     "officers": {"active": [], "archive": []},
     "personnel": {"active": [], "archive": []},
@@ -13,7 +19,8 @@ DEFAULT_DATA = {
     "day_services": {},
     "board_categories": [CATEGORY_BASIC, CATEGORY_TARGETS, CATEGORY_OCCASIONAL,
                           CATEGORY_ADMIN_ROLES, CATEGORY_SUBCAMP],
-    "service_tags": []
+    "service_tags": [],
+    "command": {ROLE_DIRECTOR: None, ROLE_DEPUTY: None},
 }
 
 # تصنيف الخدمة — ده اللي بيحدد الضابط يتحسب في أي خانة في جدول الإجمالي

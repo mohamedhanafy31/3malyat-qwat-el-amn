@@ -174,12 +174,50 @@ function renderStats(){
   }
 }
 
+/* ---------- قيادة الإدارة (الهيكل التنظيمي) ---------- */
+const COMMAND_ROLES=()=>DATA.meta.command_roles||[];
+const commandOf=id=>COMMAND_ROLES().find(r=>(DATA.command||{})[r]===id);
+
+function renderCommand(){
+  const box=$("#commandBar"); if(!box) return;
+  box.classList.toggle("hidden",SECTION!=="officers");
+  if(SECTION!=="officers") return;
+  const officers=DATA.officers.active;
+  box.innerHTML=`
+    <div class="cmd-head">قيادة الإدارة
+      <span class="muted">تشغيلهم ثابت يوميًا (إلا أيام الراحة) — غيّرهم مع حركة الضباط</span>
+    </div>
+    <div class="cmd-slots">${COMMAND_ROLES().map(role=>{
+      const held=(DATA.command||{})[role];
+      const p=held?personById(held):null;
+      return `<label class="cmd-slot"><span class="cmd-role">${esc(role)}</span>
+        <select data-cmd-role="${esc(role)}">
+          <option value="">— غير محدد —</option>
+          ${officers.map(o=>`<option value="${esc(o.id)}" ${o.id===held?"selected":""}>${esc(o.role)} / ${esc(o.name)}</option>`).join("")}
+        </select>
+        ${p?`<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
+           :`<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
+    }).join("")}</div>`;
+  box.querySelectorAll("[data-cmd-role]").forEach(sel=>sel.onchange=async()=>{
+    const out=await api("/api/command",{method:"PATCH",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({[sel.dataset.cmdRole]:sel.value||null})});
+    if(!out){renderCommand(); return}   // رجّع الاختيار القديم لو الطلب اترفض
+    showToast("تم تحديث القيادة"); load();
+  });
+}
+
 function filterRows(rows){
   const q=$("#search").value.trim().toLowerCase();
   const rf=$("#restFilter").value;
   if(q) rows=rows.filter(p=>[p.name,p.code,p.phone,p.role,p.post,p.address].some(v=>String(v||"").toLowerCase().includes(q)));
   if(rf&&SECTION==="officers") rows=rf==="__rest_now"?rows.filter(p=>currentLeave(p.id)):rows.filter(p=>(p.rest_system||"—")===rf);
   return rows;
+}
+
+/* شارة المنصب القيادي جنب اسم الضابط في الجدول */
+function cmdBadge(p){
+  const role=commandOf(p.id);
+  return role?` <span class="chip cmd">${esc(role)}</span>`:"";
 }
 
 function renderForce(){
@@ -206,7 +244,7 @@ function renderForce(){
          <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name:p.name})}">إخراج</button>`;
     const cells=isOff
       ? (isArch?[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)||"<span class='muted'>—</span>"}</td>`,`<td class="wrap">${esc(p.post)||"-"}</td>`,`<td>${fmt(p.join_date)}</td>`,`<td>${fmt(p.leave_date)}</td>`,`<td class="wrap">${esc(p.leave_reason)||"<span class='muted'>—</span>"}</td>`]
-                :[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)||"<span class='muted'>—</span>"}</td>`,`<td class="wrap">${esc(p.post)||"-"}</td>`,`<td>${restLabel(p)}</td>`,`<td>${statusCell(p)}</td>`,`<td>${fmt(p.join_date)}</td>`])
+                :[`<td class="name">${esc(p.name)}${cmdBadge(p)}</td>`,`<td><span class="badge">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)||"<span class='muted'>—</span>"}</td>`,`<td class="wrap">${esc(p.post)||"-"}</td>`,`<td>${restLabel(p)}</td>`,`<td>${statusCell(p)}</td>`,`<td>${fmt(p.join_date)}</td>`])
       : (isArch?[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge person">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)}</td>`,`<td>${esc(p.post)||"-"}</td>`,`<td class="wrap">${esc(p.address)||"-"}</td>`,`<td>${fmt(p.join_date)}</td>`,`<td>${fmt(p.leave_date)}</td>`,`<td class="wrap">${esc(p.leave_reason)||"<span class='muted'>—</span>"}</td>`]
                 :[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge person">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)}</td>`,`<td>${esc(p.post)||"-"}</td>`,`<td class="wrap">${esc(p.address)||"-"}</td>`,`<td>${fmt(p.join_date)}</td>`]);
     return `<tr>${cells.join("")}<td><div class="actions">${acts}</div></td></tr>`;
@@ -564,6 +602,7 @@ function render(){
   $("#forceSection").classList.toggle("hidden",!(SECTION==="officers"||SECTION==="personnel"));
   $("#leavesSection").classList.toggle("hidden",SECTION!=="leaves");
   $("#dutySection").classList.toggle("hidden",SECTION!=="duty");
+  renderCommand();
   if(SECTION==="dashboard") renderDashboard();
   else if(SECTION==="leaves") renderLeaves();
   else if(SECTION==="duty") renderDuty();

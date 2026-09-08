@@ -3,12 +3,40 @@ from datetime import date
 
 from flask import Blueprint, jsonify
 
-from ..constants import EDITABLE, PERSONNEL_FAMILIES
+from ..constants import COMMAND_ROLES, EDITABLE, PERSONNEL_FAMILIES
 from ..people import find_person, sort_active, valid_rest
 from ..store import AbortRequest, with_data
 from ..utils import category_for, json_payload, parse_date
 
 bp = Blueprint("people", __name__)
+
+
+@bp.patch("/api/command")
+def set_command():
+    """تحديد ضابط لمنصب قيادي (مدير/وكيل الإدارة). المناصب ثابتة والضابط
+    اللي شايلها هو اللي بيتغيّر مع حركة الضباط. ابعت null لتفريغ المنصب."""
+    payload = json_payload()
+
+    def mutate(data):
+        for role, officer_id in payload.items():
+            if role not in COMMAND_ROLES:
+                raise AbortRequest((jsonify({"error": f"منصب غير معروف: {role}"}), 400))
+            officer_id = str(officer_id or "").strip() or None
+            if officer_id:
+                person, category, bucket = find_person(data, officer_id)
+                if not person or category != "officers":
+                    raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
+                if bucket != "active":
+                    raise AbortRequest((jsonify({"error": "الضابط مش على القوة."}), 400))
+                clash = next((r for r, oid in data["command"].items()
+                              if oid == officer_id and r != role), None)
+                if clash:
+                    raise AbortRequest((jsonify({
+                        "error": f"الضابط ده شايل «{clash}» بالفعل."}), 409))
+            data["command"][role] = officer_id
+        return jsonify(data["command"])
+
+    return with_data(mutate)
 
 
 @bp.post("/api/person")
