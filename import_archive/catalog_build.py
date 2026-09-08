@@ -33,7 +33,12 @@ PROTO_DATA = HERE.parent.parent / "data"
 OUT = HERE / "catalog_seed.json"
 
 RANKS = ("عقيد", "مقدم", "رائد", "نقيب", "م.اول", "م.أول", "ملازم", "لواء", "عميد")
-MIN_DAYS = 3        # الخدمة تدخل الكتالوج لو ظهرت في 3 أيام على الأقل
+
+# كل اسم خدمة ظهر في الأرشيف بيدخل الكتالوج، حتى لو مرة واحدة: الخدمة
+# اللي حصلت يوم واحد لسه صف حقيقي في لوحة اليوم ده، وإسقاطها معناه إن
+# اليوم ما يتولّدش مطابق للوورد. `seen_days` بتفضل مع كل خدمة عشان
+# تعرف مين المتكرر ومين اللي حصل مرة، وتقدر تدمج المتشابه من الواجهة.
+MIN_DAYS = 1
 
 # ---------------------------------------------------------------------------
 # أقسام اللوحة زي ما هي مكتوبة في الوورد بالظبط (101 يوم)
@@ -52,10 +57,13 @@ _BOARD_HEADERS = {strip_ar(k): v for k, v in {
     "الخدمات أساسية": SEC_BASIC,
     "بالخدمات أساسية": SEC_BASIC,
     "الخدمات الطارئة": SEC_OCCASIONAL,
+    # قسم ظرفي بعنوان مستقل وتحته صفوفه (لوحة 20/8) — لازم يتقري كقسم
+    # مش كنهاية، وإلا كل صفوفه بتضيع مع العنوان
+    "خدمات سجن قوات الأمن": SEC_OCCASIONAL,
 }.items()}
 _STOP_HEADERS = tuple(strip_ar(h) for h in (
     "عمل بالإدارة", "الخوارج", "التقصيرات", "الراحات", "الأهداف",
-    "ضابط عظيم", "ضابط الأمن", "خدمات سجن قوات الأمن"))
+    "ضابط عظيم", "ضابط الأمن"))
 
 # ---------------------------------------------------------------------------
 # دمج صور الاسم الواحد. الأرقام في التعليقات = عدد الأيام اللي ظهرت فيها كل صورة.
@@ -205,6 +213,11 @@ BOARD_LABEL = {
     "تدخل سريع": "تدخل سريع", "قول مكبر": "قول مكبر",
 }
 
+# أدوار إشرافية بتتكتب في خانة التشغيل لكنها مش خدمة مأهولة — الضابط
+# بيفضل في «الصافي» في جدول الإجمالي. «المرور التعقبي» مثلًا بيتكتب في
+# أمر الخدمة كـ«المتابعة الاشرافية الميدانية على جميع خدمات المدينة».
+SUPERVISORY = {"المرور التعقبي"}
+
 SECTION_OF = {name: SEC_TARGETS for name in TARGETS}
 SECTION_OF.update({
     "ضابط عظيم الإدارة": SEC_GREAT,
@@ -218,6 +231,15 @@ def canonical(raw):
     """الاسم الرسمي للخدمة من أي صورة مكتوبة في الوورد."""
     key = core_service_name(raw)
     return MERGE.get(key), key
+
+
+def pretty(raw):
+    """اسم معروض نضيف من نص اللوحة: من غير الساعة ولا الجهة بين علامتين،
+    مع الحفاظ على الإملاء الأصلي (الهمزات والتاء المربوطة) — التطبيع
+    للمطابقة بس مش للعرض."""
+    text = re.sub(r'["“”«»][^"“”«»]*["“”«»]', ' ', raw or "")
+    text = re.sub(r'\d{1,2}(?::\d{2})?\s*(?:ص|م|ظ)\b', ' ', text)
+    return re.sub(r'\s+', ' ', text).strip(" -ـ/+")
 
 
 # ---------------------------------------------------------------------------
@@ -246,8 +268,28 @@ def board_names():
                 continue
             if not section or not first or any(r in first for r in RANKS):
                 continue
+            if _looks_like_manning(first):
+                continue        # عمود مقلوب: القوام اتكتب مكان اسم الخدمة
             hits[(section, first)].add(f"2026-{m:02d}-{d:02d}")
     return hits
+
+
+# كلمات القوام والتسليح والفئة — نص مكوّن من دول بس معناه إنه قوام مش اسم
+_MANNING_WORDS = {
+    "مجند", "مج", "فرد", "وحده", "ضابط", "عدد", "سايق", "سائق",
+    "الي", "دونك", "خرطوش", "فيدرال", "كلبش", "مايك", "ميك", "فض",
+    "قتاليه", "قتالي", "حفظ", "نظام", "رياضي", "طلبه",
+}
+
+
+def _looks_like_manning(text):
+    """«2 مجند دونك» اتكتبت في خانة الاسم في بعض الأيام — دي قوام مش خدمة.
+
+    الفحص إن **كل** كلمات النص من قاموس القوام؛ «وحدة الأربعين صبح» فيها
+    اسم مكان فبتفضل خدمة.
+    """
+    words = [w for w in strip_ar(text).split() if not w.isdigit()]
+    return bool(words) and all(w in _MANNING_WORDS for w in words)
 
 
 def duty_texts():
@@ -377,7 +419,7 @@ def build():
         add(meta["name"], SEC_BASIC, set(), meta["name"])
 
     # 3) اللوحة عبر 101 يوم
-    unresolved = defaultdict(set)
+    one_off = defaultdict(set)
     for (section, raw), days in board.items():
         name, key = canonical(raw)
         if not name:
@@ -386,8 +428,13 @@ def build():
             elif key in standing:
                 name = standing[key]["name"]
             else:
-                unresolved[key] |= days
-                continue
+                # خدمة مالهاش مقابل في MERGE — بتتضاف باسمها زي ما هو
+                # مكتوب في الوورد بعد تنضيف الساعة والجهة. من غير كده
+                # كان بيضيع 373 صف حقيقي من الأرشيف.
+                name = pretty(raw)
+                one_off[name] |= days
+                if not name:
+                    continue
         add(name, section, days, raw)
 
     times, parties = observed_defaults({r for _, r in board})
@@ -448,6 +495,9 @@ def build():
             "party": extra.get("party", ""),
             "needs": meta.get("needs") or extra.get("needs") or {
                 "officer": True, "individual": False, "unit": False, "vehicle": False},
+            # خدمات المعسكر الفرعي بتظهر على اللوحة لكن مش بتتحسب في جدول
+            # إجمالي الإدارة — الضابط بيفضل في «الصافي» (مقيس على 11 يوم)
+            "counts_in_summary": section != SEC_SUBCAMP and name not in SUPERVISORY,
             "appears_in": appears,
             "aliases": aliases,
             "seen_days": days,
@@ -455,13 +505,12 @@ def build():
         out.append(record)
 
     out.sort(key=lambda s: int(s["id"].split("-")[1]))
-    dropped = sorted(((len(d), k) for k, d in unresolved.items() if len(d) >= MIN_DAYS),
-                     reverse=True)
-    return out, dropped
+    added = sorted(((len(d), k) for k, d in one_off.items()), reverse=True)
+    return out, added
 
 
 def main():
-    services, dropped = build()
+    services, auto_added = build()
     OUT.write_text(json.dumps(services, ensure_ascii=False, indent=2), encoding="utf-8")
 
     by_section = defaultdict(int)
@@ -476,11 +525,13 @@ def main():
     print("  الخانات:", dict(kinds))
     print(f"\nاتكتب {OUT}")
 
-    if dropped:
-        print(f"\n!! {len(dropped)} اسم ظهر في {MIN_DAYS}+ يوم ومالوش مقابل في MERGE:")
-        for n, key in dropped[:30]:
-            print(f"   {n:3} يوم  {key}")
-        print("   (ضيفهم في MERGE فوق أو سيبهم لو مش خدمات فعلًا)")
+    rare = [s for s in services if s["seen_days"] == 1]
+    print(f"\nاتضافت تلقائيًا باسمها من الوورد: {len(auto_added)} خدمة"
+          f"  (منها {len(rare)} ظهرت في يوم واحد بس)")
+    for n, name in auto_added[:12]:
+        print(f"   {n:3} يوم  {name}")
+    print("   (المتشابه منهم ينفع يتدمج من صفحة الكتالوج — إعادة التسمية"
+          " بتحتفظ بالاسم القديم كصورة بديلة)")
 
 
 if __name__ == "__main__":

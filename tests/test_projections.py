@@ -223,3 +223,26 @@ def test_officers_with_no_service_land_in_admin_work(client):
     client.patch("/api/command", json={"مدير الإدارة": "OFF-001"})
     rows = _section(client, "عمل بالإدارة")["rows"]
     assert {r["id"] for r in rows} == {"OFF-001", "OFF-002"}
+
+
+# ---------- قواعد اتقاست على جدول الإجمالي في الوورد ----------
+
+def test_subcamp_service_leaves_the_officer_in_net(client):
+    """قوة المعسكر الفرعي مالهاش خانة في جدول إجمالي الإدارة: الوورد كتب
+    ضابط «نوبتجي المعسكر الفرعي» في قايمة «الصافي» بالاسم في 11 يوم من 11."""
+    client.patch("/api/services/SVC-001", json={"kind": "داخلية"})
+    import json as _json
+    from backend import store
+    data = _json.loads(store.DATA_FILE.read_text(encoding="utf-8"))
+    for svc in data["services"]:
+        if svc["id"] == "SVC-001":
+            svc["counts_in_summary"] = False
+    store.DATA_FILE.write_text(_json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+    _add(client, officer_ids=["OFF-002"])
+    s = _summary(client)
+    assert s["داخلية"]["صباحية"] == 0
+    assert s["صافي"] == 2, "الخدمة بتظهر على اللوحة لكن مابتحركش الضابط"
+    assert s["balanced"] is True
+    # ولسه ظاهرة على اللوحة عادي
+    assert len(_section(client, "الخدمات أساسية")["rows"]) == 1

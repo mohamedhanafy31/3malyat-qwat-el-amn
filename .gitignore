@@ -4,3 +4,5 @@ __pycache__/
 logs/
 backups/
 .pytest_cache/
+import_archive/catalog_seed.json
+import_archive/import_diff.md

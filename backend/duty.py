@@ -115,8 +115,13 @@ def summarise(data, day):
                 continue
             items.append({"assignment_id": a["id"], "id": svc["id"], "name": svc["name"],
                           "kind": svc.get("kind", "خارجية"), "shift": a.get("shift", ""),
-                          "section": a.get("section", "")})
-        kinds = [(it["kind"], it["shift"]) for it in items]
+                          "section": a.get("section", ""),
+                          "counted": svc.get("counts_in_summary", True)})
+        # خدمات المعسكر الفرعي بتظهر على اللوحة لكن مابتحرّكش الضابط من
+        # «الصافي» في جدول الإجمالي — قوة المعسكر الفرعي مالهاش خانة في
+        # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في
+        # قايمة «الصافي» بالاسم في كل مرة.
+        kinds = [(it["kind"], it["shift"]) for it in items if it["counted"]]
         medical = (o["id"] in medical_ids
                    or is_medical_post(eff["post"])
                    or any(k == "طبية" for k, _ in kinds))

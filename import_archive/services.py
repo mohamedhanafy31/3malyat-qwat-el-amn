@@ -89,6 +89,28 @@ def match_services(duty):
     return hits
 
 
+def catalog_matcher(services):
+    """مطابق أسماء الخدمات على الكتالوج المبني من الأرشيف.
+
+    بيطابق بالـaliases بعد التطبيع بدل التطابق الحرفي — التطابق الحرفي هو
+    اللي خلّى 711 تكليف يقع في «الصافي»، و«نقطة التفتيش» ما تلاقيش
+    «نقطه تفتيش»، و«هدف هلة المحجر» ما تلاقيش نفسها من غير بادئة «عمل ب».
+    """
+    from backend.text import core_service_name, norm
+
+    index = {}
+    for svc in services:
+        for alias in set(svc.get("aliases") or []) | {norm(svc["name"])}:
+            index.setdefault(alias, svc)
+
+    def resolve(raw):
+        if not raw:
+            return None
+        return index.get(norm(raw)) or index.get(core_service_name(raw))
+
+    return resolve
+
+
 def _has_shift_word(text):
     n = strip_ar(text)
     # "ليلية"/"صباحية" الكاملة، أو المختصرة "ليل"/"صبح" ("تدخل سريع ليل")
@@ -117,6 +139,32 @@ def shift_of(part, whole=None):
 def split_duty(duty):
     """تقسيم التشغيل لأجزاء عشان كل خدمة تاخد فترتها."""
     return [p for p in re.split(r'\+', duty or "") if p.strip()]
+
+
+# حالة الضابط من نص التشغيل. الترتيب مهم: «غياب» و«مرضي» و«فرقة» بيغلبوا
+# أي كلام تاني في السطر. «مرضي» و«فرقة» كانوا ظاهرين في الأرشيف 16 و30 مرة
+# ومكانش فيه أي طريقة توصّلهم لخانتهم في جدول الإجمالي.
+STATUS_RULES = [
+    ("غياب", ("غياب",)),
+    ("مرضي", ("مرضي", "مرضى")),
+    ("فرقة", ("فرقه",)),
+    ("طارئة", ("جازه طاريه", "اجازه طاريه", "طاريه")),
+    ("انتداب", ("انتداب",)),
+]
+# المنتدب من القطاع الطبي بيتحسب في عمود الطبية مش في الخوارج
+_MEDICAL_POSTS = ("العياده الطبيه", "قطاع الخدمات الطبيه", "الخدمات الطبيه")
+
+
+def status_of(duty, post=""):
+    """-> واحدة من حالات الخوارج أو "" لو الضابط شغّال عادي."""
+    flat, post_flat = strip_ar(duty), strip_ar(post)
+    for status, keys in STATUS_RULES:
+        if not any(k in flat for k in keys):
+            continue
+        if status == "انتداب" and any(k in post_flat for k in _MEDICAL_POSTS):
+            return ""
+        return status
+    return ""
 
 
 def extract_assignment(row):

@@ -398,51 +398,101 @@ for i, lv in enumerate(leaves, 1):
     lv['id'] = f'LV-{i:03d}'
 data['leaves'] = leaves
 
-# ---- كتالوج الخدمات + التشغيل اليومي ----
-from services import CATALOG, extract_assignment           # noqa: E402
+# ---- كتالوج الخدمات + تكليفات اليوم ----
+# الكتالوج بقى مبني من الأرشيف كله في catalog_build.py — مش مكتوب هنا.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from services import catalog_matcher, extract_assignment   # noqa: E402
+from day_build import build_day, search_attached           # noqa: E402
+from common import biggest_table                           # noqa: E402
 
-svc_id = {}
-services = []
-for i, (name, kind, _keys, standing) in enumerate(CATALOG, 1):
-    sid = f'SVC-{i:03d}'
-    svc_id[name] = sid
-    services.append({'id': sid, 'name': name, 'kind': kind, 'standing': standing})
+SEED = Path(__file__).resolve().parent / 'catalog_seed.json'
+if not SEED.exists():
+    raise SystemExit('مافيش catalog_seed.json — شغّل catalog_build.py الأول.')
+services = [{k: v for k, v in s.items() if k != 'seen_days'}
+            for s in json.loads(SEED.read_text(encoding='utf-8'))]
 data['services'] = services
+resolve = catalog_matcher(services)
+by_name = {s['name']: s for s in services}
 
-duties = {}
-for day in DAYS:
-    per_day = {}
+officer_id_by_norm = {n: v[0] for n, v in id_by_norm.items()}
+personnel_id_by_norm = {}
+for bucket_name in ('personnel',):
+    for p in data[bucket_name]['active'] + data[bucket_name]['archive']:
+        personnel_id_by_norm.setdefault(norm_name(p['name']), p['id'])
+
+
+def _lookup(index):
+    def find(name):
+        key = norm_name(name)
+        if key in index:
+            return index[key]
+        for other, value in index.items():
+            if name_compatible(key, other):
+                return value
+        return None
+    return find
+
+
+find_officer_id = _lookup(officer_id_by_norm)
+find_personnel_id = _lookup(personnel_id_by_norm)
+
+# تاريخ الرتبة والمنصب والقسم وجهة التشغيل — بيتبني من كل يوم في الأرشيف
+# بدل ما ياخد آخر قيمة ويطبّقها على الماضي كله
+history = collections.defaultdict(list)
+
+day_assignments, day_officers = {}, {}
+unresolved_services = collections.Counter()
+for m, d, folder in day_dirs():
+    day = iso(m, d)
+    if day not in off_days:
+        continue
+    board_table = biggest_table(str(folder / f'{d}.docx')) if (folder / f'{d}.docx').exists() else None
+
+    officer_rows = []
     for row in off_days[day]:
-        hit = id_by_norm.get(norm_name(row['name']))
-        if hit is None:
-            for n, v in id_by_norm.items():
-                if name_compatible(norm_name(row['name']), n):
-                    hit = v
-                    break
-        if hit is None:
+        oid = find_officer_id(row['name'])
+        if not oid:
             continue
-        a = extract_assignment(row)
-        items = [{'service_id': svc_id[s['name']], 'shift': s['shift']} for s in a['services']]
-        duty_n, post_n = strip_ar(row.get('duty', '')), strip_ar(row.get('post', ''))
+        assignment = extract_assignment(row)
+        matched = []
+        for hit in assignment['services']:
+            svc = by_name.get(hit['name']) or resolve(hit['name'])
+            if svc:
+                matched.append((svc, '' if svc['kind'] == 'حراسات' else hit['shift']))
+        post = row.get('post', '')
+        if any(k in strip_ar(post) for k in ('العياده الطبيه', 'الخدمات الطبيه')):
+            matched = []          # الطبية بتتحسب من المنصب مش من تكليف
+        officer_rows.append({**row, 'services': matched})
+        history[oid].append({'from': day, 'role': clean_rank(row.get('rank', '')),
+                             'post': post.strip(), 'section': row.get('section', 'القوة'),
+                             'search_attached': search_attached(post)})
 
-        # الطبية بتتعرف من الوظيفة مش من التشغيل (تشغيلهم غالبًا "عمل")
-        if any(k in post_n for k in ('العياده الطبيه', 'الخدمات الطبيه')):
-            items = [{'service_id': svc_id['العيادة الطبية'], 'shift': 'صباحية'}]
+    assignments, states, missed = build_day(
+        board_table, officer_rows, resolve, find_officer_id, find_personnel_id)
+    unresolved_services.update(missed)
+    if assignments:
+        day_assignments[day] = assignments
+    if states:
+        day_officers[day] = states
 
-        entry = {'items': items, 'taqseera': a['taqseera'],
-                 'note': row.get('duty', '').strip()}
-        # انتداب خارج الإدارة أو غياب — خانة مستقلة في الخوارج
-        if 'انتداب' in duty_n and 'العياده' not in post_n and 'الخدمات الطبيه' not in post_n:
-            entry['status'] = 'انتداب'
-        elif 'غياب' in duty_n:
-            entry['status'] = 'غياب'
+data['day_assignments'] = day_assignments
+data['day_officers'] = day_officers
 
-        if not items and not entry['taqseera'] and not entry.get('status') and not entry['note']:
-            continue
-        per_day[hit[0]] = entry
-    if per_day:
-        duties[day] = per_day
-data['duties'] = duties
+# ضغط التاريخ: سجل جديد بس لما حاجة تتغيّر فعلًا
+FIELDS = ('role', 'post', 'section', 'search_attached')
+for officer in [o for b in ('active', 'archive') for o in data['officers'][b]]:
+    entries, out = sorted(history.get(officer['id'], []), key=lambda h: h['from']), []
+    for entry in entries:
+        if not out or any(out[-1][f] != entry[f] for f in FIELDS):
+            out.append(entry)
+    if out:
+        officer['history'] = out
+        for field in FIELDS:
+            officer[field] = out[-1][field]
+
+data['schema'] = 3
+data.pop('duties', None)
+data.pop('day_services', None)
 OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
 
 # --------------------------------------------------------------------------
@@ -469,11 +519,24 @@ if leaves:
 
 print(f'\n=== SERVICES / DUTIES ===\n  catalogue {len(services)} خدمة'
       f'  |  {dict(collections.Counter(s["kind"] for s in services))}', file=sys.stderr)
-print(f'  أيام بتشغيل: {len(duties)}  |  إجمالي تكليفات: {sum(len(v) for v in duties.values())}',
+_rows = [r for v in day_assignments.values() for r in v]
+print(f'  أيام: {len(day_assignments)}  |  إجمالي خانات: {len(_rows)}', file=sys.stderr)
+print(f'  بضابط: {sum(1 for r in _rows if r["officer_ids"])}'
+      f'  |  بفرد: {sum(1 for r in _rows if r["personnel_ids"])}'
+      f'  |  بمجندين بس (بدون ضابط): {sum(1 for r in _rows if not r["officer_ids"] and r["conscripts"])}'
+      f'  |  شاغرة: {sum(1 for r in _rows if not r["officer_ids"] and not r["personnel_ids"] and not r["conscripts"])}',
       file=sys.stderr)
-print(f'  تكليفات بخدمة محددة: {sum(1 for v in duties.values() for x in v.values() if x["items"])}'
-      f'  |  بتقصيرة: {sum(1 for v in duties.values() for x in v.values() if x["taqseera"])}',
+_states = [s for v in day_officers.values() for s in v.values()]
+print(f'  حالات ضباط: {len(_states)}  |  '
+      + str(dict(collections.Counter(s.get("status", "—") for s in _states))), file=sys.stderr)
+print(f'  ضباط لهم تاريخ رتبة/منصب: {sum(1 for b in ("active", "archive") for o in data["officers"][b] if o.get("history"))}'
+      f'  |  تغييرات مسجّلة: {sum(len(o.get("history", [])) for b in ("active", "archive") for o in data["officers"][b])}',
       file=sys.stderr)
+if unresolved_services:
+    print(f'\n  !! أسماء على اللوحة مالهاش خدمة في الكتالوج: {sum(unresolved_services.values())}'
+          f' ({len(unresolved_services)} اسم مختلف)', file=sys.stderr)
+    for name, n in unresolved_services.most_common(15):
+        print(f'     {n:4}  {name}', file=sys.stderr)
 
 print('\n=== PERSONNEL ===', file=sys.stderr)
 print(f'  active  {len(data["personnel"]["active"]):3}   archived {len(data["personnel"]["archive"]):3}'
