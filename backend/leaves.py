@@ -34,6 +34,9 @@ def build_leave(payload, data, leave_id):
         "end": end.isoformat(),
         "return_date": (end + timedelta(days=1)).isoformat(),
         "note": str(payload.get("note", "")).strip(),
+        # بيتحافظ عليه تلقائيًا عند التعديل لأن edit_leave بيمرر السجل الحالي
+        # مدموج مع التعديلات الجديدة، فلو الطلب ما لمسوش فضل زي ما هو
+        "source": str(payload.get("source", "")).strip(),
     }, None
 
 

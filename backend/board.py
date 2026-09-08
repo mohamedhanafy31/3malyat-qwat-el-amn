@@ -5,7 +5,7 @@ from .constants import (
     SERVICE_TAGS, SUBCAMP_SERVICES,
 )
 from .duty import summarise
-from .store import next_id, save_data
+from .store import next_id
 
 
 def _norm_admin(text):
@@ -78,9 +78,12 @@ def _derive_day_services(data, day):
 
 
 def get_day_services(data, day):
+    """بيرجّع خدمات اليوم من الذاكرة بس — من غير أي حفظ. أول ما يوم قديم
+    يتفتح بيتشتق مبدئيًا هنا في نسخة data المحمّلة، لكن التثبيت (persist)
+    بيحصل بس لو الراوت اللي نادى الدالة دي فعلاً بيعدّل حاجة ويحفظ بعدها —
+    عشان القراءة المجردة (GET) تفضل من غير أي أثر جانبي على data.json."""
     if day not in data["day_services"]:
         data["day_services"][day] = _derive_day_services(data, day) if day in data["duties"] else []
-        save_data(data)
     return data["day_services"][day]
 
 
