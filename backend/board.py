@@ -1,220 +1,184 @@
-"""لوحة التشغيل المختصرة — الاشتقاق الأولي من نص التشغيل، وبناء اللوحة القابلة للتعديل الحر."""
+"""اليومية التفصيلية (اللوحة) — **عرض محسوب** على نفس تكليفات اليوم.
+
+التقسيمة هنا مأخوذة من الوورد حرفيًا بعد فحص 101 لوحة: عشرة أقسام بترتيب
+ثابت، ستة منهم فيهم خدمات مخزّنة وأربعة **محسوبين** من حالة الضباط.
+
+    1. الخدمات أساسية      خدمات   — الفترة بتتكتب جوّه الاسم («تدخل سريع صبح»)
+    2. الخدمات الطارئة     خدمات   — أغلبها بدون ضابط: قوام أفراد ومجندين
+    3. عمل بالإدارة        محسوب   — الضباط بلا تكليف خدمي + نص عملهم
+    4. الأهداف             خدمات   — أسماء مختصرة، «مشرف الأهداف» أولًا، بلا فترة
+    5. الراحات             محسوب
+    6. التقصيرات           محسوب
+    7. الخوارج             محسوب
+    8. ضابط عظيم وأمن المعسكر الفرعي   كتلة ثابتة: صف صباحية + صف ليلية
+    9. ضابط عظيم الإدارة               كتلة ثابتة
+   10. ضابط الأمن بالإدارة             كتلة ثابتة
+
+الكتل الثابتة (8-10) بتظهر بصفّيها دايمًا حتى لو شاغرة — الوورد بيطبع
+الصفين في كل يوم، والخانة الفاضية معناها «محتاجة تكليف» مش «مش موجودة».
+
+الخدمات الموسومة (مباراة، خطة انتشار) بتفضل **جوّه** قسمها مع عنوان
+فرعي، زي «خطة انتشار 6م» في لوحة 15/6 — مش في جريد منفصل.
+"""
+from .assignments import label, officer_states, peek_day, services_by_id
 from .constants import (
-    CATEGORY_ADMIN_ROLES, CATEGORY_BASIC, CATEGORY_OCCASIONAL,
-    CATEGORY_SUBCAMP, CATEGORY_TARGETS, BOARD_ROTATIONS, COMMAND_ROLES,
-    PLAIN_ADMIN_DUTY, SERVICE_TAGS, SUBCAMP_SERVICES,
+    SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_SECURITY,
+    SECTION_SUBCAMP, SECTION_TARGETS, SHIFTS,
 )
 from .duty import summarise
-from .leaves import leave_on
-from .people import officers_on
-from .store import next_id
+from .people import effective
+
+SECTION_ADMIN_WORK = "عمل بالإدارة"
+SECTION_RESTS = "الراحات"
+SECTION_TAQSEERA = "التقصيرات"
+SECTION_OUTSIDERS = "الخوارج"
+
+# الترتيب زي الوورد. العمود اليمين: أساسية → طارئة → عمل بالإدارة،
+# والشمال: الأهداف → الراحات → التقصيرات → الخوارج → الكتل الثلاثة.
+BOARD_ORDER = [
+    SECTION_BASIC, SECTION_OCCASIONAL, SECTION_ADMIN_WORK, SECTION_TARGETS,
+    SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
+    SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY,
+]
+
+# الأقسام اللي فيها خدمات مخزّنة (الباقي محسوب من حالة الضباط)
+ASSIGNMENT_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS,
+                       SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
+
+# الكتل اللي ليها صفّان ثابتان (صباحية/ليلية) بيتطبعوا حتى لو فاضيين
+FIXED_SLOT_SECTIONS = [SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
+
+# «مشرف الأهداف» أول صف في قسم الأهداف في كل يوم من الـ101
+TARGETS_FIRST = "مشرف الأهداف"
 
 
-def _norm_admin(text):
-    return (text or "").strip().replace("ة", "ه")
-
-
-def category_for_service(name, svc):
-    """التصنيف اللي الخدمة دي المفروض تقع فيه على اللوحة — قاعدة واحدة
-    بيستخدمها الاشتقاق من الأرشيف والمزامنة مع يومية التشغيل سوا."""
-    kind = (svc or {}).get("kind")
-    if kind == "حراسات":
-        return CATEGORY_TARGETS
-    if name in SUBCAMP_SERVICES:
-        return CATEGORY_SUBCAMP
-    if name in BOARD_ROTATIONS:
-        return CATEGORY_ADMIN_ROLES
-    if kind == "خارجية" and (svc or {}).get("standing"):
-        return CATEGORY_BASIC
-    return CATEGORY_OCCASIONAL
-
-
-def board_shift(shift, svc):
-    """الأهداف (الحراسات) هدف ثابت طول اليوم فمالهاش فترة على اللوحة."""
-    return "" if (svc or {}).get("kind") == "حراسات" else (shift or "")
-
-
-def _command_entries(data, day, entries):
-    """قيادة الإدارة (المدير والوكيل) تشغيلهم ثابت كل يوم — بيتحطوا تلقائيًا
-    في «أدوار بالإدارة» من غير ما تكلّفهم بإيدك كل يوم.
-
-    بيتخطّوا في الحالات دي:
-    - الضابط في راحة/إجازة اليوم ده.
-    - مكانش على القوة يومها (انضم بعده أو خرج قبله).
-    - ظاهر بالفعل في خانة تانية في نفس اليوم (اتكلّف باستثناء)، فمابنكررهوش.
-
-    بترجّع الخانات الجديدة بس عشان اللي بيندهها يضيفها لقايمته.
-    """
-    assigned = {e.get("officer_id") for e in entries if e.get("officer_id")}
-    on_force = {o["id"]: o for o in officers_on(data, day)}
-    out = []
-    for role in COMMAND_ROLES:
-        officer_id = (data.get("command") or {}).get(role)
-        if not officer_id or officer_id in assigned:
-            continue
-        officer = on_force.get(officer_id)
-        if not officer or leave_on(data, officer_id, day):
-            continue
-        out.append({
-            "id": next_id(entries + out, "DS", width=4),
-            "category": CATEGORY_ADMIN_ROLES, "service": role, "shift": "",
-            "officer_id": officer_id, "officer_name": officer.get("name", ""),
-            "requirements": [], "tags": [], "note": "",
-        })
+def _people_index(data):
+    out = {}
+    for cat in ("officers", "personnel"):
+        for bucket in ("active", "archive"):
+            for p in data.get(cat, {}).get(bucket, []):
+                out[p["id"]] = p
     return out
 
 
-def _derive_day_services(data, day):
-    """أول ما يوم قديم (متسحوب من الأرشيف) يتفتح لأول مرة، بنشتق قائمة
-    الخدمات المبدئية بتاعته من نص تشغيل الضباط — وبعد كده بقى قابل للتعديل
-    الحر زي أي يوم جديد، من غير أي علاقة بالنص الأصلي تاني.
-
-    - الخدمات الطبية بتتحسب أوتوماتيك في حالة الضابط اليومية، فمالهاش خانة هنا.
-    - الأهداف (الحراسات المشددة) مالهاش صباحية/ليلية — هدف ثابت طول اليوم.
-    - نوبتجي المعسكر الفرعي له تصنيف مستقل "المعسكر الفرعي".
-    - ضابط تشغيله "عمل" أو "عمل بالإدارة" بس (بدون خدمة) بيتحط في "أدوار
-      بالإدارة" باسم وظيفته الرسمية بدل ما يفضل ظاهر بس في قايمة "الصافي".
-    """
-    services = {s["id"]: s for s in data["services"]}
-    officers = {o["id"]: o for b in ("active", "archive") for o in data["officers"][b]}
-    full = summarise(data, day)
-
-    slots = {}          # (service_name, shift) -> list[(row, item, is_taqseera)]
-    for r in full["rows"]:
-        for it in r["services"]:
-            if it["kind"] == "طبية":
-                continue
-            shift = "" if it["kind"] == "حراسات" else it["shift"]
-            slots.setdefault((it["name"], shift), []).append((r, it, bool(r["taqseera"])))
-
-    def pick(name, shift):
-        cands = slots[(name, shift)]
-        clean = [c for c in cands if not c[2]]
-        return (clean or cands)[0]
-
-    entries = []
-    for name, shift in slots:
-        r, it, taq = pick(name, shift)
-        svc = services.get(it["id"], {})
-        cat = category_for_service(name, svc)
-        tags = [SERVICE_TAGS[name]] if name in SERVICE_TAGS else []
-        remember_tags(data, tags)
-        entries.append({
-            "id": next_id(entries, "DS", width=4), "category": cat, "service": name,
-            "shift": shift, "officer_id": r["id"], "officer_name": r["name"],
-            "requirements": [], "tags": tags,
-            "note": r["note"] if taq else "",
-        })
-
-    # ضباط "صافي" (تشغيلهم عمل إداري عام بلا خدمة محددة) يتحطوا في أدوار بالإدارة
-    for r in full["rows"]:
-        if r["group"] != "صافي" or r["services"]:
-            continue
-        if _norm_admin(r["note"]) not in PLAIN_ADMIN_DUTY:
-            continue
-        officer = officers.get(r["id"], {})
-        entries.append({
-            "id": next_id(entries, "DS", width=4), "category": CATEGORY_ADMIN_ROLES,
-            "service": officer.get("post") or "عمل بالإدارة", "shift": "",
-            "officer_id": r["id"], "officer_name": r["name"],
-            "requirements": [], "tags": [], "note": "",
-        })
-    return entries
+def _person(people, person_id, day):
+    p = people.get(person_id)
+    if not p:
+        return {"id": person_id, "name": "", "role": "", "missing": True}
+    eff = effective(p, day)
+    return {"id": person_id, "name": p.get("name", ""), "role": eff["role"]}
 
 
-def get_day_services(data, day):
-    """بيرجّع خدمات اليوم من الذاكرة بس — من غير أي حفظ. أول ما يوم قديم
-    يتفتح بيتشتق مبدئيًا هنا في نسخة data المحمّلة، لكن التثبيت (persist)
-    بيحصل بس لو الراوت اللي نادى الدالة دي فعلاً بيعدّل حاجة ويحفظ بعدها —
-    عشان القراءة المجردة (GET) تفضل من غير أي أثر جانبي على data.json.
-
-    أول تجهيز لأي يوم بيضيف قيادة الإدارة تلقائيًا (تشغيلهم ثابت يوميًا).
-    الأيام المحفوظة بالفعل مابتتلمسش — لو حذفت المدير من يوم معيّن مش
-    هيرجع تاني، ولا الأيام القديمة في الأرشيف بتتغيّر بأثر رجعي."""
-    if day not in data["day_services"]:
-        entries = _derive_day_services(data, day) if day in data["duties"] else []
-        entries += _command_entries(data, day, entries)
-        data["day_services"][day] = entries
-    return data["day_services"][day]
-
-
-def build_board(data, day):
-    """لوحة التشغيل المختصرة — قايمة خدمات حرة قابلة للتعديل الكامل، بالإضافة
-    إلى الراحات/التقصيرات/الخوارج/الصافي المحسوبة من حالة الضباط زي ما هي.
-
-    أي خانة عليها وسم (تاج) — زي "مباراة" أو "خطة انتشار" — بتتشال من كرت
-    تصنيفها العادي وتتحط في مجموعة "الخدمات الخاصة" منفصلة بصريًا، لكنها
-    تفضل منطقيًا تصنيفها الأصلي (غالبًا الخدمات الطارئة) زي ما هو مخزّن.
-    """
-    entries = get_day_services(data, day)
-    tagged = [e for e in entries if e.get("tags")]
-    untagged = [e for e in entries if not e.get("tags")]
-
-    order = data["board_categories"]
-    by_cat = {c: [] for c in order}
-    for e in untagged:
-        by_cat.setdefault(e["category"], []).append(e)
-    # التصنيفات الأساسية بتظهر دايمًا حتى لو فاضية — عشان يفضل فيها زرار
-    # «＋ إضافة» وتقدر تبدأ يوم جديد من الصفر. التصنيفات الإضافية اللي
-    # اتكتبت بالإيد بتظهر بس لما يكون فيها خدمات فعلًا.
-    categories = [{"name": c, "entries": by_cat[c]} for c in order]
-    categories += [{"name": c, "entries": by_cat[c]} for c in by_cat if c not in order and by_cat[c]]
-
-    by_tag = {}
-    for e in tagged:
-        for t in e["tags"]:
-            by_tag.setdefault(t, []).append(e)
-    special = [{"tag": t, "entries": es, "of_category": es[0]["category"]}
-               for t, es in by_tag.items()]
-
-    full = summarise(data, day)
-
-    def officer(r):
-        return {"id": r["id"], "name": r["name"], "role": r["role"]}
-
-    rests, taqseeras, outsiders, net = [], [], [], []
-    for r in full["rows"]:
-        grp, bucket = r["group"], r["bucket"]
-        if grp == "خوارج":
-            label = (r["leave"] or {}).get("type", bucket)
-            if bucket == "تقصيرة":
-                taqseeras.append({**officer(r), "note": r["note"]})
-            elif bucket == "راحة":
-                lv = r["leave"] or {}
-                rests.append({**officer(r), "type": label, "start": lv.get("start"),
-                             "end": lv.get("end"), "return_date": lv.get("return_date"),
-                             "source": r["note"]})
-            else:                                    # طارئة / غياب / مرضي / فرقة / انتداب
-                outsiders.append({**officer(r), "reason": label, "note": r["note"]})
-        elif grp == "صافي":
-            net.append({**officer(r), "post": r["note"] or ""})
-
+def _row(assignment, svc, people, day):
+    """صف واحد على اللوحة. الخانة الشاغرة (بلا ضباط) صف مشروع مش نقص —
+    1,034 صف خدمات طارئة في الأرشيف قوامها أفراد ومجندين من غير ضابط."""
+    officers = [_person(people, oid, day) for oid in assignment.get("officer_ids") or []]
+    personnel = [_person(people, pid, day) for pid in assignment.get("personnel_ids") or []]
     return {
-        "date": day, "categories": categories, "special": special,
-        "rests": rests, "taqseeras": taqseeras, "outsiders": outsiders, "net": net,
+        "id": assignment["id"],
+        "service_id": assignment.get("service_id"),
+        "label": label(assignment, svc, with_shift=assignment.get("section") == SECTION_BASIC),
+        "shift": assignment.get("shift", ""),
+        "officers": officers,
+        "personnel": personnel,
+        "conscripts": assignment.get("conscripts") or [],
+        "weapon": assignment.get("weapon") or (svc or {}).get("default_weapon", ""),
+        "time": assignment.get("time") or (svc or {}).get("default_time", ""),
+        "party": assignment.get("party") or (svc or {}).get("party", ""),
+        "note": assignment.get("note", ""),
+        "tags": assignment.get("tags") or [],
+        "vacant": not officers and not personnel,
     }
 
 
-def clean_requirements(raw):
+def _target_key(row):
+    """«مشرف الأهداف» أولًا، والباقي بترتيب إدخاله."""
+    return (0 if row["label"].startswith(TARGETS_FIRST) else 1,)
+
+
+def _fixed_slots(rows):
+    """الكتلة الثابتة: صف لكل فترة، بالصف الموجود أو خانة شاغرة."""
     out = []
-    for it in (raw or []):
-        label = str(it.get("label", "")).strip()
-        if not label:
-            continue
-        try:
-            count = int(it.get("count", 0))
-        except (TypeError, ValueError):
-            count = 0
-        out.append({"label": label, "count": max(count, 0), "note": str(it.get("note", "")).strip()})
+    for shift in SHIFTS:
+        match = [r for r in rows if r["shift"] == shift]
+        if match:
+            out.extend(match)
+        else:
+            out.append({"id": None, "service_id": None, "label": "", "shift": shift,
+                        "officers": [], "personnel": [], "conscripts": [],
+                        "weapon": "", "time": "", "party": "", "note": "",
+                        "tags": [], "vacant": True, "placeholder": True})
+    # صفوف بلا فترة (لو حد حطها كده) بتتعرض بعد الصفّين الثابتين
+    out.extend(r for r in rows if r["shift"] not in SHIFTS)
     return out
 
 
-def remember_tags(data, tags):
-    for t in tags:
-        if t and t not in data["service_tags"]:
-            data["service_tags"].append(t)
+def _grouped(rows):
+    """الخدمات الموسومة بتتجمّع تحت عنوان فرعي جوّه القسم، زي «خطة انتشار
+    6م» في لوحة 15/6 — الوورد بيسيبها في مكانها مش في جريد لوحده."""
+    plain = [r for r in rows if not r["tags"]]
+    groups = {}
+    for r in rows:
+        for tag in r["tags"]:
+            groups.setdefault(tag, []).append(r)
+    return plain, [{"tag": t, "rows": rs} for t, rs in groups.items()]
 
 
-def remember_category(data, cat):
-    if cat and cat not in data["board_categories"]:
-        data["board_categories"].append(cat)
+def build_board(data, day):
+    services = services_by_id(data)
+    people = _people_index(data)
+    states = officer_states(data, day)
+
+    by_section = {name: [] for name in ASSIGNMENT_SECTIONS}
+    for a in peek_day(data, day):
+        svc = services.get(a.get("service_id"))
+        section = a.get("section") or (svc or {}).get("section") or SECTION_OCCASIONAL
+        by_section.setdefault(section, []).append(_row(a, svc, people, day))
+    by_section[SECTION_TARGETS].sort(key=_target_key)
+
+    full = summarise(data, day)
+    rests, taqseeras, outsiders, admin_work = [], [], [], []
+    for r in full["rows"]:
+        who = {"id": r["id"], "name": r["name"], "role": r["role"]}
+        if r["group"] == "خوارج":
+            if r["bucket"] == "تقصيرة":
+                taqseeras.append({**who, "note": r["note"]})
+            elif r["bucket"] == "راحة":
+                lv = r["leave"] or {}
+                rests.append({**who, "type": (r["leave"] or {}).get("type", "راحة"),
+                              "start": lv.get("start"), "end": lv.get("end"),
+                              "return_date": lv.get("return_date"), "note": r["note"]})
+            else:
+                outsiders.append({**who, "reason": (r["leave"] or {}).get("type") or r["bucket"],
+                                  "note": r["note"]})
+        elif r["group"] == "صافي":
+            admin_work.append({**who, "text": r["note"] or r["post"]})
+
+    computed = {
+        SECTION_ADMIN_WORK: admin_work,
+        SECTION_RESTS: rests,
+        SECTION_TAQSEERA: taqseeras,
+        SECTION_OUTSIDERS: outsiders,
+    }
+
+    sections = []
+    for name in BOARD_ORDER:
+        if name in computed:
+            sections.append({"name": name, "type": "officers",
+                             "rows": computed[name], "groups": []})
+            continue
+        rows = by_section.get(name, [])
+        if name in FIXED_SLOT_SECTIONS:
+            sections.append({"name": name, "type": "slots",
+                             "rows": _fixed_slots(rows), "groups": []})
+            continue
+        plain, groups = _grouped(rows)
+        sections.append({"name": name, "type": "services", "rows": plain, "groups": groups})
+
+    # أي قسم اتكتب بالإيد ومش من العشرة بيتعرض في الآخر بدل ما يختفي
+    extra = [n for n in by_section if n not in BOARD_ORDER and by_section[n]]
+    for name in extra:
+        plain, groups = _grouped(by_section[name])
+        sections.append({"name": name, "type": "services", "rows": plain, "groups": groups})
+
+    return {"date": day, "sections": sections, "states": states}

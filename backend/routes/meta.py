@@ -8,9 +8,12 @@ from datetime import date
 
 from flask import Blueprint, jsonify
 
+from ..assignments import OFFICER_STATUSES
+from ..board import BOARD_ORDER
 from ..constants import (
-    COMMAND_ROLES, LEAVE_TYPES, MEDICAL_BADGE, REST_DURATIONS, REST_SYSTEMS,
-    SERVICE_KINDS, SHIFTS, TAQSEERA_NOTICE_DAYS, WEEKDAYS,
+    COMMAND_ROLES, LEAVE_TYPES, MEDICAL_BADGE, OFFICER_SECTIONS, REST_DURATIONS,
+    REST_SYSTEMS, SERVICE_DOCUMENTS, SERVICE_KINDS, SERVICE_SECTIONS, SHIFTS,
+    TAQSEERA_NOTICE_DAYS, WEEKDAYS,
 )
 from ..rest_status import officer_status, taqseera_alerts
 from ..store import load_data
@@ -27,7 +30,11 @@ def _meta(data):
         "leave_types": LEAVE_TYPES,
         "rest_durations": REST_DURATIONS,
         "taqseera_notice_days": TAQSEERA_NOTICE_DAYS,
-        "board_categories": data["board_categories"],
+        "board_sections": BOARD_ORDER,
+        "service_sections": SERVICE_SECTIONS,
+        "service_documents": SERVICE_DOCUMENTS,
+        "officer_statuses": OFFICER_STATUSES,
+        "officer_sections": OFFICER_SECTIONS,
         "service_tags": data["service_tags"],
         "command_roles": COMMAND_ROLES,
         "command": data["command"],
@@ -95,10 +102,12 @@ def bootstrap(page):
     if page in ("duty", "board"):
         return jsonify({
             "meta": meta,
-            "officer_index": _slim(data["officers"]["active"]),
+            # كل اللي كانوا على القوة في أي وقت — الأيام القديمة محتاجة
+            # الضابط المتأرشف يبان في القايمة عشان تقدر تعدّلها
+            "officer_index": _slim(data["officers"]["active"] + data["officers"]["archive"]),
+            "personnel_index": _slim(data["personnel"]["active"]),
             "services": data["services"],
-            "duty_days": sorted(data["duties"]),
-            "board_days": sorted(data["day_services"]),
+            "days": sorted(data["day_assignments"]),
             "counts": {"officers": len(data["officers"]["active"]),
                         "personnel": len(data["personnel"]["active"]),
                         "leaves": len(data["leaves"]),
@@ -134,9 +143,7 @@ def get_data():
     """النداء الشامل القديم — متسيب للتوافق وللسكربتات، والصفحات بقت
     بتستخدم /api/bootstrap/<page> بدله."""
     data = load_data()
-    duty_days = sorted(data.pop("duties", {}))
-    board_days = sorted(data.pop("day_services", {}))
-    data["duty_days"] = duty_days
-    data["board_days"] = board_days
+    data["days"] = sorted(data.pop("day_assignments", {}))
+    data.pop("day_officers", None)
     data["meta"] = _meta(data)
     return jsonify(data)

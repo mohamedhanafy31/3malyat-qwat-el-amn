@@ -1,65 +1,62 @@
-"""قيادة الإدارة — المدير والوكيل، تشغيلهم الثابت اليومي وتغييرهم."""
+"""قيادة الإدارة — المدير والوكيل.
+
+المنصب مش خدمة في الكتالوج، فالمدير والوكيل بيظهروا في قسم «عمل بالإدارة»
+المحسوب — وده بالظبط اللي الوورد بيعمله: بيكتبهم في القسم ده كل يوم بنص
+عملهم («مدير الادارة» / «وكيل الادارة»)، مش كخدمة في الخدمات الأساسية.
+
+قبل كده كان السيستم بيزرع لهم خانات على اللوحة أول ما اليوم يتجهّز، فكانت
+النتيجة غير متسقة: 18 يوم فيهم خانة «مدير الاداره» و17 فيهم «وكيل الاداره»
+والباقي لأ — رغم إن الوورد بيكتبهم في كل يوم من الـ101.
+"""
 
 DIRECTOR, DEPUTY = "مدير الإدارة", "وكيل الإدارة"
-
-
-def _admin_card(client, day):
-    b = client.get(f"/api/board/{day}").get_json()
-    return next(c for c in b["categories"] if c["name"] == "أدوار بالإدارة")
 
 
 def _set(client, role, officer_id):
     return client.patch("/api/command", json={role: officer_id})
 
 
-def test_command_seeded_into_a_brand_new_day(client):
+def _admin_work(client, day):
+    b = client.get(f"/api/board/{day}").get_json()
+    return next(s for s in b["sections"] if s["name"] == "عمل بالإدارة")["rows"]
+
+
+def test_command_shows_in_admin_work_every_day(client):
     _set(client, DIRECTOR, "OFF-001")
     _set(client, DEPUTY, "OFF-002")
-    card = _admin_card(client, "2026-04-01")
-    assert [(e["service"], e["officer_id"]) for e in card["entries"]] == [
-        (DIRECTOR, "OFF-001"), (DEPUTY, "OFF-002")]
+    for day in ("2026-04-01", "2026-04-02", "2026-07-15"):
+        assert {r["id"] for r in _admin_work(client, day)} == {"OFF-001", "OFF-002"}, day
 
 
-def test_officer_on_rest_is_skipped(client):
+def test_officer_on_rest_moves_to_the_rest_section(client):
+    """المدير في راحة بيتنقل لقسم «الراحات» زي أي ضابط — مش بيفضل في
+    «عمل بالإدارة» ولا بيختفي."""
     _set(client, DIRECTOR, "OFF-001")
-    _set(client, DEPUTY, "OFF-002")
-    # OFF-001 عنده راحة يوم 2026-01-10 في الـfixture
-    card = _admin_card(client, "2026-01-10")
-    holders = [e["officer_id"] for e in card["entries"]]
-    assert "OFF-001" not in holders
-    assert "OFF-002" in holders
+    b = client.get("/api/board/2026-01-10").get_json()   # OFF-001 في راحة يومها
+    sections = {s["name"]: s["rows"] for s in b["sections"]}
+    assert "OFF-001" not in {r["id"] for r in sections["عمل بالإدارة"]}
+    assert "OFF-001" in {r["id"] for r in sections["الراحات"]}
 
 
-def test_unset_role_adds_nothing(client):
+def test_command_officer_with_a_service_leaves_admin_work(client):
     _set(client, DIRECTOR, "OFF-001")
-    _set(client, DEPUTY, None)
-    card = _admin_card(client, "2026-04-02")
-    assert [e["officer_id"] for e in card["entries"]] == ["OFF-001"]
+    client.post("/api/assignments/2026-04-03",
+                json={"service_id": "SVC-001", "officer_ids": ["OFF-001"]})
+    assert "OFF-001" not in {r["id"] for r in _admin_work(client, "2026-04-03")}
 
 
-def test_reassigning_does_not_rewrite_already_saved_days(client):
-    """اليوم اللي اتحفظ بالفعل بيفضل زي ما هو — تغيير القيادة بيأثر على
-    الأيام الجديدة بس، عشان الأرشيف ما يتغيّرش بأثر رجعي."""
+def test_changing_command_does_not_rewrite_the_archive(client):
+    """المنصب بيتغيّر مع حركة الضباط، والأيام القديمة بتفضل زي ما هي لأن
+    اللي بيحدد ظهور الضابط في «عمل بالإدارة» هو تكليفاته في اليوم ده
+    مش المنصب الحالي."""
     _set(client, DIRECTOR, "OFF-001")
-    day = "2026-04-03"
-    client.post(f"/api/board/{day}/entries", json={"service": "خدمة", "category": "الخدمات الطارئة"})
-    before = [e["officer_id"] for e in _admin_card(client, day)["entries"]]
-    assert before == ["OFF-001"]
+    day = "2026-04-04"
+    client.post(f"/api/assignments/{day}",
+                json={"service_id": "SVC-001", "officer_ids": ["OFF-001"]})
+    before = {r["id"] for r in _admin_work(client, day)}
 
     _set(client, DIRECTOR, "OFF-002")
-    after = [e["officer_id"] for e in _admin_card(client, day)["entries"]]
-    assert after == ["OFF-001"], "اليوم المحفوظ مالوش دعوة بالتغيير الجديد"
-
-    fresh = [e["officer_id"] for e in _admin_card(client, "2026-04-04")["entries"]]
-    assert fresh == ["OFF-002"], "اليوم الجديد بياخد القيادة الحالية"
-
-
-def test_deleting_command_entry_does_not_resurrect_it(client):
-    _set(client, DIRECTOR, "OFF-001")
-    day = "2026-04-05"
-    entry = _admin_card(client, day)["entries"][0]
-    assert client.delete(f"/api/board/{day}/entries/{entry['id']}").status_code == 200
-    assert _admin_card(client, day)["entries"] == []
+    assert {r["id"] for r in _admin_work(client, day)} == before
 
 
 def test_same_officer_cannot_hold_two_posts(client):

@@ -1,86 +1,146 @@
-"""جدول الإجمالي اليومي — تصنيف كل ضابط في خانة واحدة بناءً على تشغيله."""
-from .constants import SHIFTS, LEAVE_BUCKET
+"""يومية تشغيل الضباط + جدول الإجمالي — **عرض محسوب** على تكليفات اليوم.
+
+مفيش أي تخزين هنا: الجدول كله بيتبني من `day_assignments` و`day_officers`
+والراحات، فمستحيل يختلف عن اللوحة لأن الاتنين بيقروا من نفس المكان.
+
+جدول الإجمالي في الوورد (موجود في يوميات 17/8 وطالع، 22 يوم):
+
+    أصل القوة | خارجية (صباحية|ليلية|+N بحث) | داخلية (صباحية|ليلية)
+    | طبية (موجود|راحة) | خوارج (تقصيرة|راحة|طارئة|غياب|مرضي|فرقة|انتداب)
+    | الحراسات المشددة | الصافي (N) + الأسماء
+
+**كل ضابط في خانة واحدة بس** — مجموع الخانات لازم يساوي أصل القوة، وده
+مثبت في الوورد (34 في كل الأيام المفحوصة). عشان كده الترتيب اللي تحت
+مهم: الضابط بياخد أول خانة تنطبق عليه.
+"""
+from .assignments import assignments_of, officer_state, services_by_id
+from .constants import LEAVE_BUCKET, MEDICAL_POSTS, SHIFTS
 from .leaves import leave_on
-from .people import officers_on
+from .people import effective, officers_on
+from .text import norm
 
 
-def summarise(data, day):
-    """جدول الإجمالي أسفل يومية الضباط — كل ضابط في خانة واحدة بس."""
-    services = {s["id"]: s for s in data["services"]}
-    duties = data["duties"].get(day, {})
-    officers = officers_on(data, day)
+def is_medical_post(post):
+    """منصب ضابط عيادة/منتدب من القطاع الطبي — بيتقارن بعد التطبيع."""
+    flat = norm(post)
+    return any(key in flat for key in MEDICAL_POSTS)
 
-    s = {
-        "أصل القوة": len(officers),
+# ترتيب الأولوية — أول قاعدة تنطبق هي اللي بتاخد الضابط.
+# الترتيب ده مقيس على الـ22 يوم اللي فيهم جدول إجمالي في الوورد؛ أي تغيير
+# فيه لازم يعدّي على tools/calibrate_summary.py الأول.
+PRIORITY = ("حالة مكتوبة (خوارج)", "طبية", "راحة (خوارج)", "تقصيرة",
+            "حراسات", "داخلية/خارجية", "صافي")
+
+# لما الضابط يكون على أكتر من خدمة في نفس الخانة (صباحية وليلية مثلًا)،
+# دي الفترة اللي بتتحسب. مجموع الجدول لازم يفضل = أصل القوة، فمينفعش
+# يتحسب مرتين. الوورد نفسه مش قاطع هنا، فالقرار متجمّع في مكان واحد.
+PREFERRED_SHIFT = "صباحية"
+
+
+def _shift_of(items):
+    """الفترة المعتمدة من بين تكليفات الضابط في نفس الخانة."""
+    shifts = [sh for _, sh in items if sh in SHIFTS]
+    if not shifts:
+        return PREFERRED_SHIFT
+    return PREFERRED_SHIFT if PREFERRED_SHIFT in shifts else shifts[0]
+
+
+def _empty_summary(force):
+    return {
+        "أصل القوة": force,
         "خارجية": {"صباحية": 0, "ليلية": 0, "بحث": 0},
         "داخلية": {"صباحية": 0, "ليلية": 0},
         "طبية": {"موجود": 0, "راحة": 0},
-        "خوارج": {k: 0 for k in ("تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب")},
+        "خوارج": {k: 0 for k in ("تقصيرة", "راحة", "طارئة", "غياب",
+                                  "مرضي", "فرقة", "انتداب")},
         "حراسات": 0,
         "صافي": 0,
     }
+
+
+def _bucket(kinds, leave, state, medical, search_attached):
+    """-> (المجموعة، الخانة الفرعية) لضابط واحد. القواعد بترتيب PRIORITY."""
+    # حالة مكتوبة بالإيد لليوم ده بالذات بتغلب أي افتراض
+    status = state.get("status") or ""
+    if status:
+        # انتداب/غياب/مرضي/فرقة/طارئة — كلها خانات موجودة في جدول الوورد
+        return ("خوارج", status)
+
+    # ضابط العيادة بيفضل في عمود «الطبية» حتى وهو في راحة — الوورد بيكتب
+    # «راحة» في خانة الطبية مش في خانة الخوارج (يومية 31/8: محمود عبد الله
+    # تشغيله «عمل» → طبية/موجود، ومحمد وليد «راحة» → طبية/راحة).
+    if medical:
+        return ("طبية", "راحة" if leave else "موجود")
+
+    if leave:
+        return ("خوارج", LEAVE_BUCKET.get(leave["type"], "راحة"))
+    if state.get("taqseera"):
+        return ("خوارج", "تقصيرة")
+
+    if any(kind == "حراسات" for kind, _ in kinds):
+        return ("حراسات", None)
+
+    internal = [(k, sh) for k, sh in kinds if k == "داخلية"]
+    external = [(k, sh) for k, sh in kinds if k == "خارجية"]
+    # وسم «+N بحث» تابع لجهة تشغيل الضابط مش لنوع الخدمة: الوورد كتبه في
+    # 14 يوم كان فيهم رئيس مباحث الإدارة على خدمات خارجية عادية، ومكتبوش
+    # في اليوم الوحيد اللي كان فيه على «ضابط مباحث السجن العسكري».
+    if search_attached and external:
+        return ("خارجية", "بحث")
+    if internal:
+        return ("داخلية", _shift_of(internal))
+    if external:
+        return ("خارجية", _shift_of(external))
+    return ("صافي", None)
+
+
+def summarise(data, day):
+    """يومية الضباط كاملة: صف لكل ضابط كان على القوة + جدول الإجمالي."""
+    services = services_by_id(data)
+    officers = officers_on(data, day)
+    medical_ids = set(data.get("medical_officers") or [])
+
+    s = _empty_summary(len(officers))
     net_names, rows = [], []
 
-    # ضابط العيادة الطبية له حالة خاصة: تشغيله "طبية" تلقائيًا (موجود أو
-    # راحة) من غير تكليف يدوي — بس في يوم **مالوش أي تكليف مسجّل خالص لحد
-    # لسه** (يوم جديد تمامًا). أول ما أي حد ياخد تكليف في اليوم ده، اليوم
-    # بقى "متابَع بإيد الموظف" فمابنحطش افتراضات فوق بيانات حد سجّلها بنفسه.
-    # ده اللي بيضمن إن الـ92 يوم المستوردة من الأرشيف ميتغيّروش خالص، حتى
-    # لو ضابط العيادة نفسه مالوش تكليف مسجّل في يوم معيّن منها.
-    medical_ids = set(data.get("medical_officers", []))
-    medical_svc = next((svc for svc in data["services"] if svc.get("kind") == "طبية"), None)
-    day_is_blank = day not in data["duties"]
-
     for o in officers:
-        d = duties.get(o["id"], {})
-        kinds = [(services.get(i.get("service_id"), {}), i.get("shift", "صباحية"))
-                 for i in d.get("items", [])]
-        lv = leave_on(data, o["id"], day)
-        medical = any(sv.get("kind") == "طبية" for sv, _ in kinds)
-        if not medical and day_is_blank and o["id"] in medical_ids and medical_svc:
-            medical = True
-            kinds = [(medical_svc, "")]
+        eff = effective(o, day)
+        state = officer_state(data, day, o["id"])
+        leave = leave_on(data, o["id"], day)
 
-        # الترتيب هنا هو نفس ترتيب الأولوية في اليومية الورقية
-        if medical:
-            bucket = ("طبية", "راحة" if lv else "موجود")
-        elif lv:
-            bucket = ("خوارج", LEAVE_BUCKET.get(lv["type"], "راحة"))
-        elif d.get("status") in ("انتداب", "غياب"):
-            bucket = ("خوارج", d["status"])
-        elif d.get("taqseera"):
-            bucket = ("خوارج", "تقصيرة")
-        elif any(sv.get("kind") == "حراسات" for sv, _ in kinds):
-            bucket = ("حراسات", None)
-        elif any(sv.get("kind") == "داخلية" for sv, _ in kinds):
-            sh = next(sh for sv, sh in kinds if sv.get("kind") == "داخلية")
-            bucket = ("داخلية", sh if sh in SHIFTS else "صباحية")
-        elif any(sv.get("kind") == "بحث" for sv, _ in kinds):
-            bucket = ("خارجية", "بحث")
-        elif any(sv.get("kind") == "خارجية" for sv, _ in kinds):
-            sh = next(sh for sv, sh in kinds if sv.get("kind") == "خارجية")
-            bucket = ("خارجية", sh if sh in SHIFTS else "صباحية")
-        else:
-            bucket = ("صافي", None)
+        items = []
+        for a in assignments_of(data, day, o["id"]):
+            svc = services.get(a.get("service_id"))
+            if not svc:
+                continue
+            items.append({"assignment_id": a["id"], "id": svc["id"], "name": svc["name"],
+                          "kind": svc.get("kind", "خارجية"), "shift": a.get("shift", ""),
+                          "section": a.get("section", "")})
+        kinds = [(it["kind"], it["shift"]) for it in items]
+        medical = (o["id"] in medical_ids
+                   or is_medical_post(eff["post"])
+                   or any(k == "طبية" for k, _ in kinds))
 
-        grp, sub = bucket
+        group, sub = _bucket(kinds, leave, state, medical, eff["search_attached"])
         if sub is None:
-            s[grp] += 1
-            if grp == "صافي":
-                net_names.append(f'{o.get("role","")}/ {o.get("name","")}')
+            s[group] += 1
+            if group == "صافي":
+                net_names.append(f'{eff["role"]}/ {o.get("name", "")}')
         else:
-            s[grp][sub] += 1
+            s[group][sub] += 1
 
         rows.append({
-            "id": o["id"], "name": o.get("name", ""), "role": o.get("role", ""),
-            "group": grp, "bucket": sub,
-            "services": [{"id": sv.get("id"), "name": sv.get("name"), "kind": sv.get("kind"),
-                          "shift": sh} for sv, sh in kinds if sv],
-            "taqseera": bool(d.get("taqseera")),
-            "leave": ({"type": lv["type"], "start": lv["start"], "end": lv["end"],
-                      "return_date": lv["return_date"]} if lv else None),
-            "note": d.get("note", ""),
-            # كان بالقوة يوم كذا لكنه خرج بعد كده — للتوضيح في اليوميات القديمة
+            "id": o["id"], "name": o.get("name", ""),
+            "role": eff["role"], "post": eff["post"], "section": eff["section"],
+            "search_attached": eff["search_attached"],
+            "group": group, "bucket": sub,
+            "services": items,
+            "taqseera": bool(state.get("taqseera")),
+            "status": state.get("status", ""),
+            "leave": ({"type": leave["type"], "start": leave["start"], "end": leave["end"],
+                       "return_date": leave["return_date"]} if leave else None),
+            "note": state.get("note", ""),
+            # كان بالقوة يومها لكنه خرج بعد كده — للتوضيح في اليوميات القديمة
             "later_left": o.get("leave_date", "") or None,
         })
 
@@ -88,6 +148,6 @@ def summarise(data, day):
                + sum(s["طبية"].values()) + sum(s["خوارج"].values())
                + s["حراسات"] + s["صافي"])
     s["net_names"] = net_names
-    s["balanced"] = counted == s["أصل القوة"]
     s["counted"] = counted
+    s["balanced"] = counted == s["أصل القوة"]
     return {"date": day, "summary": s, "rows": rows}

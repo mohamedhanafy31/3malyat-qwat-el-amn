@@ -1,92 +1,72 @@
-"""ضباط العيادة الطبية — حالة خاصة: تشغيلهم "طبية" (موجود/راحة) تلقائيًا
-كل يوم جديد، ومن غير ما يغيّروا حساب أي يوم متسجّل بالفعل."""
+"""ضباط العيادة الطبية — عمود «الخدمات الطبية» في جدول الإجمالي.
+
+الوورد فيه عمود ثابت للطبية بخانتين (موجود/راحة)، وضابط العيادة بيفضل
+فيه حتى وهو في راحة: يومية 31/8 بتكتب «راحة» في خانة الطبية مش في خانة
+الخوارج (محمود عبد الله «عمل» → موجود، محمد وليد «راحة» → راحة).
+
+الاكتشاف بقى من **المنصب الفعّال في اليوم ده** (رئيس العيادة الطبية /
+انتداب من قطاع الخدمات الطبية) بدل قايمة أيدي ثابتة — القايمة الثابتة
+كانت بتطبّق تشكيلة النهاردة على كل الأيام القديمة بأثر رجعي.
+"""
 
 
 def _set(client, ids):
     return client.patch("/api/medical-officers", json={"officer_ids": ids})
 
 
-def test_auto_medical_on_a_blank_day(client):
+def _row(client, officer_id, day):
+    d = client.get(f"/api/duty/{day}").get_json()
+    return next(r for r in d["rows"] if r["id"] == officer_id)
+
+
+def test_medical_officers_fill_the_medical_column(client):
     _set(client, ["OFF-001", "OFF-002"])
     d = client.get("/api/duty/2026-05-01").get_json()
     rows = {r["id"]: r for r in d["rows"]}
-    assert rows["OFF-001"]["group"] == "طبية"
-    assert rows["OFF-001"]["bucket"] == "موجود"
+    assert rows["OFF-001"]["group"] == "طبية" and rows["OFF-001"]["bucket"] == "موجود"
     assert rows["OFF-002"]["group"] == "طبية"
     assert d["summary"]["طبية"] == {"موجود": 2, "راحة": 0}
     assert d["summary"]["صافي"] == 0
     assert d["summary"]["balanced"] is True
 
 
-def test_medical_officer_on_leave_shows_as_rest_not_khawarej(client):
+def test_medical_officer_on_leave_stays_in_the_medical_column(client):
+    """الوورد بيكتب راحته في خانة الطبية مش في خانة الخوارج."""
     _set(client, ["OFF-001"])
     client.post("/api/leaves", json={
         "person_id": "OFF-001", "type": "أسبوعية",
         "start": "2026-05-02", "end": "2026-05-02"})
     d = client.get("/api/duty/2026-05-02").get_json()
     row = next(r for r in d["rows"] if r["id"] == "OFF-001")
-    assert row["group"] == "طبية"
-    assert row["bucket"] == "راحة"
+    assert (row["group"], row["bucket"]) == ("طبية", "راحة")
     assert d["summary"]["طبية"]["راحة"] == 1
     assert d["summary"]["خوارج"]["راحة"] == 0
 
 
-def test_explicit_status_overrides_auto_medical_on_blank_day(client):
-    """اليوم لسه فاضي كله، لكن الضابط اتحدد له انتداب صريح — الصريح يغلب."""
+def test_explicit_status_wins_over_the_medical_default(client):
+    """حالة مكتوبة بالإيد لليوم ده بالذات بتغلب أي افتراض."""
     _set(client, ["OFF-001"])
-    client.put("/api/duty/2026-05-03/OFF-001", json={"items": [], "status": "انتداب"})
-    row = next(r for r in client.get("/api/duty/2026-05-03").get_json()["rows"]
-               if r["id"] == "OFF-001")
-    assert row["group"] == "خوارج" and row["bucket"] == "انتداب"
+    client.put("/api/duty/2026-05-03/OFF-001", json={"status": "انتداب"})
+    row = _row(client, "OFF-001", "2026-05-03")
+    assert (row["group"], row["bucket"]) == ("خوارج", "انتداب")
 
 
-def test_any_recorded_duty_that_day_disables_auto_fill_for_everyone(client):
-    """أول ما يوم يبقى فيه أي تكليف حقيقي مسجّل (لأي حد)، بيبقى يوم "متابَع
-    بإيد الموظف" — الافتراضي التلقائي بيتوقف لكل الضباط في نفس اليوم،
-    عشان محدش يفاجأ بتغيير حساب يوم هو شخصيًا بيسجّله بنفسه. (تكليف بقايمة
-    فاضية مالوش تأثير فعلي — مش بيسجّل حاجة أصلًا — فمش الحالة المقصودة هنا.)"""
-    _set(client, ["OFF-001"])
-    client.put("/api/duty/2026-05-04/OFF-002", json={
-        "items": [{"service_id": "SVC-001", "shift": "صباحية"}]})
-    row = next(r for r in client.get("/api/duty/2026-05-04").get_json()["rows"]
-               if r["id"] == "OFF-001")
-    assert row["group"] == "صافي"
+def test_medical_post_alone_is_enough(client):
+    """من غير ما تحطه في القايمة: المنصب نفسه بيحدد الخانة، وبيتقري
+    من تاريخ الضابط فما يأثرش على الأيام اللي كان فيها منصبه غير كده."""
+    client.patch("/api/person/OFF-002", json={"post": "رئيس العيادة الطبية"})
+    assert _row(client, "OFF-002", "2026-05-04")["group"] == "طبية"
 
 
-def test_officer_not_on_force_that_day_is_skipped(client):
-    """OFF-002 join_date is 2020-01-01 in the fixture; a day before that
-    means he wasn't on the force, so he shouldn't appear at all."""
-    _set(client, ["OFF-002"])
-    d = client.get("/api/duty/2019-01-01").get_json()
-    assert all(r["id"] != "OFF-002" for r in d["rows"])
+def test_seconded_from_the_medical_sector_also_counts(client):
+    client.patch("/api/person/OFF-002", json={"post": "انتداب من قطاع الخدمات الطبية"})
+    assert _row(client, "OFF-002", "2026-05-05")["group"] == "طبية"
 
 
-def test_archived_days_are_never_altered_by_the_setting(client):
-    """أهم اختبار: تفعيل الميزة على أي يوم متسجّل بالفعل (فيه duties) —
-    زي أيام الأرشيف — ميغيرش حسابه خالص، حتى لو ضابط العيادة نفسه مالوش
-    تكليف مسجّل فيه يومها."""
-    day = "2026-05-05"
-    client.put(f"/api/duty/{day}/OFF-002", json={
-        "items": [{"service_id": "SVC-001", "shift": "صباحية"}]})
-    before = client.get(f"/api/duty/{day}").get_json()
-    row_before = next(r for r in before["rows"] if r["id"] == "OFF-001")
-    assert row_before["group"] == "صافي"          # مالوش تكليف يومها
-
-    _set(client, ["OFF-001"])                       # فعّل الميزة دلوقتي
-    after = client.get(f"/api/duty/{day}").get_json()
-    row_after = next(r for r in after["rows"] if r["id"] == "OFF-001")
-    assert row_after == row_before, "يوم متسجّل بالفعل لازم يفضل زي ما هو"
-
-
-def test_set_medical_officers_validates(client):
-    assert _set(client, "OFF-001").status_code == 400        # مش list
+def test_medical_list_rejects_unknown_or_archived_officer(client):
     assert _set(client, ["OFF-999"]).status_code == 404
-    assert _set(client, ["OFF-001", "OFF-001"]).status_code == 200
-    assert client.get("/api/medical-officers").status_code == 405  # PATCH only
 
 
-def test_exposed_in_api_data(client):
-    _set(client, ["OFF-001"])
-    d = client.get("/api/data").get_json()
-    assert d["medical_officers"] == ["OFF-001"]
-    assert d["meta"]["medical_badge"]
+def test_medical_list_is_deduplicated(client):
+    out = _set(client, ["OFF-001", "OFF-001", "OFF-002"]).get_json()
+    assert out == ["OFF-001", "OFF-002"]

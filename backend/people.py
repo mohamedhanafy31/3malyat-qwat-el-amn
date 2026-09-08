@@ -1,6 +1,33 @@
 """إدارة القوة — البحث عن شخص، ترتيبها، وقواعد الراحة الأساسية."""
-from .constants import REST_SYSTEMS, WEEKDAYS
+from .constants import REST_SYSTEMS, SECTION_FORCE, WEEKDAYS
 from .utils import command_priority_map, rank_key
+
+
+def effective(person, day):
+    """الرتبة والمنصب والقسم وجهة التشغيل زي ما كانوا **في اليوم ده**.
+
+    الرتبة والمنصب بيتغيّروا مع الترقيات وحركة الضباط، وتخزين قيمة واحدة
+    حالية معناه إن إعادة توليد يوم قديم بتطبع بيانات غلط — يومية 5/7
+    بتقول «مقدم / أشرف الشريف» والملف الحالي فيه «عقيد».
+
+    دلوقتي بترجّع من `history` (آخر سجل تاريخ سريانه <= اليوم)، وبترجع
+    للقيم الحالية لو مفيش تاريخ مسجّل.
+    """
+    person = person or {}
+    current = {
+        "role": person.get("role", ""),
+        "post": person.get("post", ""),
+        "section": person.get("section", "") or SECTION_FORCE,
+        "search_attached": bool(person.get("search_attached")),
+    }
+    history = person.get("history") or []
+    if not history:
+        return current
+    applicable = [h for h in history if (h.get("from") or "") <= day]
+    if not applicable:
+        applicable = [min(history, key=lambda h: h.get("from") or "")]
+    latest = max(applicable, key=lambda h: h.get("from") or "")
+    return {key: latest.get(key, current[key]) for key in current}
 
 
 def find_person(data, person_id):

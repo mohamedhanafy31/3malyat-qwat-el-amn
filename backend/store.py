@@ -18,7 +18,7 @@ LOCK = threading.Lock()
 # نسخة بنية الملف. أي هجرة بتغيّر شكل البيانات بترفع الرقم ده، والتطبيق
 # بيرفض يشتغل على ملف برقم مختلف بدل ما يقرأه غلط في صمت. الملفات القديمة
 # اللي مافيهاش الحقل أصلًا بتتعامل كـ 1.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 # نسخ احتياطي دوّار: قبل كل كتابة بنحتفظ بالنسخة السابقة. ده أمان تشغيلي
 # يومي كان ناقص — الكتابة الذرية بتحمي من ملف نصّه مقطوع، مش من تعديل غلط.
@@ -98,9 +98,8 @@ def _read():
         data[cat].setdefault("archive", [])
     data.setdefault("leaves", [])
     data.setdefault("services", [])
-    data.setdefault("duties", {})
-    data.setdefault("day_services", {})
-    data.setdefault("board_categories", list(DEFAULT_DATA["board_categories"]))
+    data.setdefault("day_assignments", {})
+    data.setdefault("day_officers", {})
     data.setdefault("service_tags", [])
     command = data.setdefault("command", {})
     for role in DEFAULT_DATA["command"]:

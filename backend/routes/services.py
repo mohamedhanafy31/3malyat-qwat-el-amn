@@ -120,6 +120,10 @@ def edit_service(service_id):
             # الاسم القديم بيتحفظ كـalias عشان الاستيراد يفضل يتعرّف عليه
             svc["aliases"] = _clean_aliases(
                 list(svc.get("aliases", [])) + [svc["name"]], name)
+            # الاسم المطبوع على اللوحة بيمشي مع الاسم إلا لو اتخصّص بإيد
+            # (زي «سوميد» لـ«هدف سوميد») — ساعتها بيفضل زي ما هو
+            if not svc.get("board_label") or svc["board_label"] == svc["name"]:
+                svc["board_label"] = name
             svc["name"] = name
         for key in ("board_label", "sub", "default_strength", "default_weapon",
                     "default_time", "party"):

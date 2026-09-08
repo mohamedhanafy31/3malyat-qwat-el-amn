@@ -1,14 +1,26 @@
-"""لوحة التشغيل المختصرة — عرض وتعديل خدمات اليوم بحرية كاملة."""
+"""اليومية التفصيلية (اللوحة) وتكليفات اليوم.
+
+نقطة واحدة للتعديل: `/api/assignments/<day>` — واللوحة ويومية الضباط
+الاتنين عرضين على نفس البيانات، فمفيش مزامنة ولا احتمال اختلاف بينهم.
+"""
 from flask import Blueprint, jsonify
 
-from ..board import build_board, clean_requirements, get_day_services, remember_category, remember_tags
-from ..constants import CATEGORY_OCCASIONAL, SHIFTS
-from ..people import find_person
-from ..store import AbortRequest, load_data, next_id, with_data
-from ..sync import sync_duty_from_board
+from ..assignments import (
+    blank, clean_conscripts, clean_shift, for_day, new_id, peek_day, services_by_id,
+)
+from ..board import ASSIGNMENT_SECTIONS, build_board
+from ..constants import SECTION_OCCASIONAL
+from ..duty import summarise
+from ..people import find_person, officers_on
+from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload, parse_date
 
 bp = Blueprint("board", __name__)
+
+
+def _day_or_400(day):
+    if not parse_date(day):
+        raise AbortRequest((jsonify({"error": "تاريخ غير صحيح."}), 400))
 
 
 @bp.get("/api/board/<day>")
@@ -18,112 +30,125 @@ def get_board(day):
     return jsonify(build_board(load_data(), day))
 
 
-@bp.post("/api/board/<day>/entries")
-def add_board_entry(day):
+def _clean_people(data, day, ids, want):
+    """يتحقق إن كل شخص موجود وإنه من النوع الصح وإنه كان على القوة يومها.
+
+    الضابط المتأرشف ينفع يتكلّف في يوم كان فيه بالقوة — ده مطلوب عشان
+    تعديل الأيام القديمة يشتغل. قبل كده اللوحة كانت بتعرض النشطين بس
+    بينما يومية التشغيل بتقبل الاتنين، فالصفحتين مكانوش شايفين نفس القايمة.
+    """
+    out = []
+    on_force = {o["id"] for o in officers_on(data, day)} if want == "officers" else None
+    for pid in ids or []:
+        pid = str(pid).strip()
+        if not pid or pid in out:
+            continue
+        person, category, _ = find_person(data, pid)
+        if not person or category != want:
+            raise AbortRequest((jsonify({
+                "error": "ضابط غير موجود." if want == "officers" else "فرد غير موجود."}), 404))
+        if on_force is not None and pid not in on_force:
+            raise AbortRequest((jsonify({
+                "error": f"«{person.get('name', '')}» لم يكن على القوة في هذا اليوم."}), 400))
+        out.append(pid)
+    return out
+
+
+def _apply(data, day, row, payload, svc):
+    if "shift" in payload:
+        row["shift"] = clean_shift(payload["shift"], svc)
+    if "section" in payload:
+        section = str(payload["section"]).strip()
+        row["section"] = section or (svc or {}).get("section") or SECTION_OCCASIONAL
+    if "officer_ids" in payload:
+        row["officer_ids"] = _clean_people(data, day, payload["officer_ids"], "officers")
+    if "personnel_ids" in payload:
+        row["personnel_ids"] = _clean_people(data, day, payload["personnel_ids"], "personnel")
+    if "conscripts" in payload:
+        row["conscripts"] = clean_conscripts(payload["conscripts"])
+    if "tags" in payload:
+        row["tags"] = [str(t).strip() for t in payload["tags"] if str(t).strip()]
+        for tag in row["tags"]:
+            if tag not in data["service_tags"]:
+                data["service_tags"].append(tag)
+    for key in ("weapon", "time", "party", "label_override", "note"):
+        if key in payload:
+            row[key] = str(payload[key]).strip()
+    return row
+
+
+@bp.post("/api/assignments/<day>")
+def add_assignment(day):
     if not parse_date(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     payload = json_payload()
-    service = str(payload.get("service", "")).strip()
-    if not service:
-        return jsonify({"error": "اسم الخدمة مطلوب."}), 400
-    category = str(payload.get("category", "")).strip() or CATEGORY_OCCASIONAL
-    shift = str(payload.get("shift", "")).strip()
-    if shift and shift not in SHIFTS:
-        return jsonify({"error": "الفترة غير صحيحة."}), 400
+    service_id = str(payload.get("service_id", "")).strip()
+    if not service_id:
+        return jsonify({"error": "لازم تختار خدمة من الكتالوج."}), 400
 
     def mutate(data):
-        entries = get_day_services(data, day)
-
-        officer_id = str(payload.get("officer_id", "")).strip() or None
-        officer_name = str(payload.get("officer_name", "")).strip()
-        if officer_id:
-            p, _, _ = find_person(data, officer_id)
-            if not p:
-                raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
-            officer_name = p["name"]
-
-        tags = [str(t).strip() for t in payload.get("tags", []) if str(t).strip()]
-        entry = {
-            "id": next_id(entries, "DS", width=4), "category": category, "service": service,
-            "shift": shift, "officer_id": officer_id, "officer_name": officer_name,
-            "requirements": clean_requirements(payload.get("requirements")),
-            "tags": tags, "note": str(payload.get("note", "")).strip(),
-        }
-        entries.append(entry)
-        remember_category(data, category)
-        remember_tags(data, tags)
-        sync_duty_from_board(data, day, officer_id)
-        return jsonify(entry), 201
+        svc = services_by_id(data).get(service_id)
+        if not svc:
+            raise AbortRequest((jsonify({"error": "الخدمة غير موجودة في الكتالوج."}), 404))
+        entries = for_day(data, day)
+        row = blank(new_id(entries), svc["id"],
+                    svc.get("section") or SECTION_OCCASIONAL)
+        _apply(data, day, row, payload, svc)
+        if "shift" not in payload:
+            row["shift"] = clean_shift((svc.get("shifts") or [""])[0], svc)
+        entries.append(row)
+        return jsonify(row), 201
 
     return with_data(mutate)
 
 
-@bp.patch("/api/board/<day>/entries/<entry_id>")
-def edit_board_entry(day, entry_id):
+@bp.patch("/api/assignments/<day>/<assignment_id>")
+def edit_assignment(day, assignment_id):
     if not parse_date(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     payload = json_payload()
 
     def mutate(data):
-        entries = get_day_services(data, day)
-        entry = next((e for e in entries if e["id"] == entry_id), None)
-        if not entry:
-            raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
-        was_officer = entry.get("officer_id")
-
-        if "service" in payload:
-            service = str(payload["service"]).strip()
-            if not service:
-                raise AbortRequest((jsonify({"error": "اسم الخدمة مطلوب."}), 400))
-            entry["service"] = service
-        if "category" in payload:
-            entry["category"] = str(payload["category"]).strip() or CATEGORY_OCCASIONAL
-            remember_category(data, entry["category"])
-        if "shift" in payload:
-            shift = str(payload["shift"]).strip()
-            if shift and shift not in SHIFTS:
-                raise AbortRequest((jsonify({"error": "الفترة غير صحيحة."}), 400))
-            entry["shift"] = shift
-        if "officer_id" in payload:
-            officer_id = str(payload["officer_id"]).strip() or None
-            if officer_id:
-                p, _, _ = find_person(data, officer_id)
-                if not p:
-                    raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
-                entry["officer_id"], entry["officer_name"] = officer_id, p["name"]
-            else:
-                entry["officer_id"] = None
-                entry["officer_name"] = str(payload.get("officer_name", entry.get("officer_name", ""))).strip()
-        elif "officer_name" in payload and not entry.get("officer_id"):
-            entry["officer_name"] = str(payload["officer_name"]).strip()
-        if "requirements" in payload:
-            entry["requirements"] = clean_requirements(payload["requirements"])
-        if "tags" in payload:
-            entry["tags"] = [str(t).strip() for t in payload["tags"] if str(t).strip()]
-            remember_tags(data, entry["tags"])
-        if "note" in payload:
-            entry["note"] = str(payload["note"]).strip()
-
-        # لو الخانة اتنقلت من ضابط لضابط، الاتنين لازم يتحدّثوا
-        for oid in {was_officer, entry.get("officer_id")}:
-            sync_duty_from_board(data, day, oid)
-        return jsonify(entry)
+        entries = for_day(data, day)
+        row = next((e for e in entries if e["id"] == assignment_id), None)
+        if not row:
+            raise AbortRequest((jsonify({"error": "التكليف غير موجود."}), 404))
+        services = services_by_id(data)
+        if "service_id" in payload:
+            svc = services.get(str(payload["service_id"]).strip())
+            if not svc:
+                raise AbortRequest((jsonify({"error": "الخدمة غير موجودة في الكتالوج."}), 404))
+            row["service_id"] = svc["id"]
+            row["shift"] = clean_shift(row.get("shift"), svc)
+        svc = services.get(row["service_id"])
+        _apply(data, day, row, payload, svc)
+        return jsonify(row)
 
     return with_data(mutate)
 
 
-@bp.delete("/api/board/<day>/entries/<entry_id>")
-def delete_board_entry(day, entry_id):
+@bp.delete("/api/assignments/<day>/<assignment_id>")
+def delete_assignment(day, assignment_id):
     if not parse_date(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
 
     def mutate(data):
-        entries = get_day_services(data, day)
-        gone = next((e for e in entries if e["id"] == entry_id), None)
-        data["day_services"][day] = [e for e in entries if e["id"] != entry_id]
-        if not gone:
-            raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
-        sync_duty_from_board(data, day, gone.get("officer_id"))
+        entries = for_day(data, day)
+        if not any(e["id"] == assignment_id for e in entries):
+            raise AbortRequest((jsonify({"error": "التكليف غير موجود."}), 404))
+        data["day_assignments"][day] = [e for e in entries if e["id"] != assignment_id]
+        if not data["day_assignments"][day]:
+            data["day_assignments"].pop(day, None)
         return jsonify({"ok": True})
 
     return with_data(mutate)
+
+
+@bp.get("/api/assignments/<day>")
+def list_assignments(day):
+    if not parse_date(day):
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    data = load_data()
+    return jsonify({"date": day, "assignments": peek_day(data, day),
+                    "sections": ASSIGNMENT_SECTIONS,
+                    "summary": summarise(data, day)["summary"]})

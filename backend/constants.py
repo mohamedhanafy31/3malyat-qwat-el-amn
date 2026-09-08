@@ -1,9 +1,5 @@
 """كل الثوابت والقيم الافتراضية المستخدمة في السيستم — تصنيفات، رتب، أنواع راحة، إلخ."""
 
-CATEGORY_BASIC, CATEGORY_TARGETS, CATEGORY_OCCASIONAL = \
-    "الخدمات الأساسية", "الأهداف", "الخدمات الطارئة"
-CATEGORY_ADMIN_ROLES, CATEGORY_SUBCAMP = "أدوار بالإدارة", "المعسكر الفرعي"
-
 # قيادة الإدارة — الهيكل التنظيمي الثابت. الضباط اللي شايلين المناصب دي
 # بيتغيّروا مع حركة الضباط (كل سنة مثلًا)، فالمنصب نفسه ثابت في السيستم
 # والضابط المرتبط بيه هو اللي بيتبدّل من صفحة الضباط.
@@ -16,15 +12,18 @@ COMMAND_ROLES = [ROLE_DIRECTOR, ROLE_DEPUTY]
 # الإجمالي. العدد مش ثابت في الكود (دلوقتي اتنين، بس ممكن يتغيّر).
 MEDICAL_BADGE = "ضابط العيادة الطبية"
 
+# المناصب اللي بتخلي الضابط يتحسب في عمود «الخدمات الطبية» — بتتقري من
+# منصبه الفعّال في اليوم ده، فالتغيير في المناصب مابيغيّرش الأيام القديمة
+# بأثر رجعي زي ما كانت قايمة medical_officers الثابتة بتعمل.
+MEDICAL_POSTS = ("العياده الطبيه", "قطاع الخدمات الطبيه", "الخدمات الطبيه")
+
 DEFAULT_DATA = {
     "officers": {"active": [], "archive": []},
     "personnel": {"active": [], "archive": []},
     "leaves": [],
     "services": [],
-    "duties": {},
-    "day_services": {},
-    "board_categories": [CATEGORY_BASIC, CATEGORY_TARGETS, CATEGORY_OCCASIONAL,
-                          CATEGORY_ADMIN_ROLES, CATEGORY_SUBCAMP],
+    "day_assignments": {},
+    "day_officers": {},
     "service_tags": [],
     "command": {ROLE_DIRECTOR: None, ROLE_DEPUTY: None},
     "medical_officers": [],
@@ -57,6 +56,14 @@ SERVICE_DOCUMENTS = ["board", "afrad", "counts", "tashkeel", "hamla"]
 
 # الاختصار اللي الوورد بيكتبه جنب اسم الخدمة على اللوحة («تدخل سريع صبح»)
 SHIFT_SHORT = {"صباحية": "صبح", "ليلية": "ليل"}
+
+# أقسام جدول يومية الضباط الثلاثة زي ما هي عناوين جوّه الجدول في الوورد.
+# القسم تابع لوضع الضابط التنظيمي مش لتشغيله اليومي: ضابط في قسم «الخوارج»
+# ممكن يكون شايل خدمة داخلية عادية (علي فاروق في 5/7 مثلًا).
+SECTION_FORCE = "القوة"
+SECTION_GUARDS = "الحراسات المشددة"
+SECTION_OUTSIDE = "الخوارج"
+OFFICER_SECTIONS = [SECTION_FORCE, SECTION_GUARDS, SECTION_OUTSIDE]
 
 # الأدوار الثابتة اللي بتتحط تلقائيًا في "أدوار بالإدارة" — المعسكر الفرعي له تصنيف مستقل
 BOARD_ROTATIONS = ["ضابط عظيم الإدارة", "ضابط أمن الإدارة"]
