@@ -12,6 +12,16 @@ if str(ROOT) not in sys.path:
 from app import app as flask_app          # noqa: E402
 from backend import store                 # noqa: E402
 
+
+def _svc(svc_id, name, kind, section, standing=False, **over):
+    """خدمة بالشكل الكامل بتاع الكتالوج — الاختبارات تهتم بالمهم بس."""
+    return {"id": svc_id, "name": name, "board_label": name, "sub": "", "kind": kind,
+            "section": section, "standing": standing, "shifts": ["صباحية", "ليلية"],
+            "default_strength": "", "default_weapon": "", "default_time": "", "party": "",
+            "needs": {"officer": True, "individual": False, "unit": False, "vehicle": False},
+            "appears_in": ["board"], "aliases": [name], **over}
+
+
 FIXTURE_DATA = {
     "officers": {
         "active": [
@@ -31,14 +41,15 @@ FIXTURE_DATA = {
          "note": "", "source": "من الأرشيف"},
     ],
     "services": [
-        {"id": "SVC-001", "name": "دورية خارجية", "kind": "خارجية", "standing": True},
-        {"id": "SVC-002", "name": "العيادة الطبية", "kind": "طبية", "standing": False},
+        _svc("SVC-001", "دورية خارجية", "خارجية", "الخدمات أساسية", standing=True),
+        _svc("SVC-002", "العيادة الطبية", "طبية", "الخدمات الطارئة"),
     ],
     "duties": {},
     "day_services": {},
     "board_categories": ["الخدمات الأساسية", "الأهداف", "الخدمات الطارئة",
                           "أدوار بالإدارة", "المعسكر الفرعي"],
     "service_tags": [],
+    "schema": store.SCHEMA_VERSION,
 }
 
 

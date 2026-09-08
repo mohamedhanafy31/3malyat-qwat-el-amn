@@ -5956,260 +5956,3230 @@
     {
       "id": "SVC-001",
       "name": "مشرف الأهداف",
+      "board_label": "مشرف الأهداف",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "مشرف الاهداف"
+      ]
     },
     {
       "id": "SVC-002",
       "name": "هدف أنابيب البترول",
+      "board_label": "أنابيب البترول",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "هدف انابيب البترول"
+      ]
     },
     {
       "id": "SVC-003",
       "name": "هدف سوميد",
+      "board_label": "سوميد",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "هدف سوميد"
+      ]
     },
     {
       "id": "SVC-004",
       "name": "هدف عيون موسى",
+      "board_label": "عيون موسي",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "هدف عيون موسي"
+      ]
     },
     {
       "id": "SVC-005",
       "name": "هدف هلة المحجر",
+      "board_label": "هلة المحجر",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "هدف هله المحجر"
+      ]
     },
     {
       "id": "SVC-006",
       "name": "هدف كهرباء عتاقة",
+      "board_label": "كهرباء عتاقة",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "هدف كهرباء عتاقه"
+      ]
     },
     {
       "id": "SVC-007",
       "name": "هدف مصر للبترول",
+      "board_label": "مصر للبترول",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "هدف مصر للبترول"
+      ]
     },
     {
       "id": "SVC-008",
       "name": "هدف كهرباء السخنة",
+      "board_label": "السخنة",
+      "sub": "",
       "kind": "حراسات",
-      "standing": true
+      "section": "الأهداف",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "هدف كهرباء السخنه"
+      ]
     },
     {
       "id": "SVC-009",
       "name": "ضابط عظيم الإدارة",
+      "board_label": "ضابط عظيم الإدارة",
+      "sub": "",
       "kind": "داخلية",
-      "standing": true
+      "section": "ضابط عظيم الإدارة",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ضابط عظيم الاداره"
+      ]
     },
     {
       "id": "SVC-010",
       "name": "ضابط أمن الإدارة",
+      "board_label": "ضابط أمن الإدارة",
+      "sub": "",
       "kind": "داخلية",
-      "standing": true
+      "section": "ضابط الأمن بالإدارة",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ضابط امن الاداره"
+      ]
     },
     {
       "id": "SVC-011",
       "name": "نوبتجي المعسكر الفرعي",
+      "board_label": "نوبتجي المعسكر الفرعي",
+      "sub": "",
       "kind": "داخلية",
-      "standing": true
+      "section": "ضابط عظيم وأمن المعسكر الفرعي",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "نوبتجي المعسكر الفرعي"
+      ]
     },
     {
       "id": "SVC-012",
       "name": "ضابط أمن المعسكر",
+      "board_label": "ضابط أمن المعسكر",
+      "sub": "",
       "kind": "داخلية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ضابط امن المعسكر"
+      ]
     },
     {
       "id": "SVC-013",
       "name": "تأمين السجن العسكري",
+      "board_label": "تأمين السجن العسكري",
+      "sub": "",
       "kind": "داخلية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تامين السجن العسكري"
+      ]
     },
     {
       "id": "SVC-014",
       "name": "العمل بالمعسكر الفرعي",
+      "board_label": "العمل بالمعسكر الفرعي",
+      "sub": "",
       "kind": "داخلية",
-      "standing": false
+      "section": "ضابط عظيم وأمن المعسكر الفرعي",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "العمل بالمعسكر الفرعي"
+      ]
     },
     {
       "id": "SVC-015",
       "name": "ضابط مباحث السجن العسكري",
-      "kind": "بحث",
-      "standing": false
+      "board_label": "ضابط مباحث السجن العسكري",
+      "sub": "",
+      "kind": "داخلية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ضابط مباحث السجن العسكري"
+      ]
     },
     {
       "id": "SVC-016",
       "name": "تدخل سريع",
+      "board_label": "تدخل سريع",
+      "sub": "",
       "kind": "خارجية",
-      "standing": true
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج فض (2 مجند ) صبح + 1 سائق / 1 مج فض (2 مجند ) ليل + 1 سائق",
+      "default_weapon": "الي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla",
+        "board"
+      ],
+      "aliases": [
+        "تدخل سريع"
+      ]
     },
     {
       "id": "SVC-017",
       "name": "قول مكبر",
+      "board_label": "قول مكبر",
+      "sub": "",
       "kind": "خارجية",
-      "standing": true
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج ( 2 مجند ) صبح + 1سائق / 1 مج ( 1 مجند ) ليل + 1 سائق",
+      "default_weapon": "الي+ فيدرال",
+      "default_time": "9 ص / 9 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla",
+        "board"
+      ],
+      "aliases": [
+        "قول مكبر"
+      ]
     },
     {
       "id": "SVC-018",
       "name": "كنترول الأزهر",
+      "board_label": "كنترول الأزهر",
+      "sub": "",
       "kind": "خارجية",
-      "standing": true
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "كنترول الازهر"
+      ]
     },
     {
       "id": "SVC-019",
       "name": "كنترول الثانوية العامة",
+      "board_label": "كنترول الثانوية العامة",
+      "sub": "",
       "kind": "خارجية",
-      "standing": true
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "ليل",
+      "party": "الكنترول",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "كنترول الثانويه العامه"
+      ]
     },
     {
       "id": "SVC-020",
       "name": "القنصلية السعودية",
+      "board_label": "القنصلية السعودية",
+      "sub": "",
       "kind": "خارجية",
-      "standing": true
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي (3 مجند ) صبح / 1 مج قتالي (3 مجند ) ليل",
+      "default_weapon": "الى",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "board"
+      ],
+      "aliases": [
+        "القنصليه السعوديه",
+        "قنصليه"
+      ]
     },
     {
       "id": "SVC-021",
       "name": "تسفير الأزهر",
+      "board_label": "تسفير الأزهر",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تسفير الازهر"
+      ]
     },
     {
       "id": "SVC-022",
       "name": "توزيع وتجميع أوراق الثانوية",
+      "board_label": "توزيع وتجميع أوراق الثانوية",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "توزيع وتجميع اوراق الثانويه",
+        "توزيع وتجميع وتسفير الثانويه العامه",
+        "توزيع وتجميع وتسفير اوراق الثانويه العامه",
+        "توزيع وتجميع وتسفير ثانويه عامه"
+      ]
     },
     {
       "id": "SVC-023",
       "name": "نقطة تفتيش جنيفة",
+      "board_label": "نقطة تفتيش جنيفة",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "نقطه تفتيش جنيفه"
+      ]
     },
     {
       "id": "SVC-024",
       "name": "تبة ضرب النار",
+      "board_label": "تبة ضرب النار",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تبه ضرب النار"
+      ]
     },
     {
       "id": "SVC-025",
       "name": "حملة الأمن الوطني",
+      "board_label": "حملة الأمن الوطني",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "حمله الامن الوطني",
+        "حمله امن وطني"
+      ]
     },
     {
       "id": "SVC-026",
       "name": "ارتكاز سينما ريسنس",
+      "board_label": "ارتكاز سينما ريسنس",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ارتكاز سينما ريسانس",
+        "ارتكاز سينما ريسنس"
+      ]
     },
     {
       "id": "SVC-027",
       "name": "ارتكاز الخضر",
+      "board_label": "ارتكاز الخضر",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "11ص",
+      "party": "الخضر",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ارتكاز الخضر"
+      ]
     },
     {
       "id": "SVC-028",
       "name": "مرافقة الجماهير",
+      "board_label": "مرافقة الجماهير",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "مرافقه الجماهير"
+      ]
     },
     {
       "id": "SVC-029",
       "name": "المرور التعقبي",
+      "board_label": "المرور التعقبي",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "المرور التعقبي"
+      ]
     },
     {
       "id": "SVC-030",
       "name": "اختبارات كلية الشرطة",
+      "board_label": "اختبارات كلية الشرطة",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "اختبارات كليه الشرطه"
+      ]
     },
     {
       "id": "SVC-031",
       "name": "مأمورية إمداد",
+      "board_label": "مأمورية إمداد",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ماموريه امداد"
+      ]
     },
     {
       "id": "SVC-032",
       "name": "مأمورية شئون المجندين",
+      "board_label": "مأمورية شئون المجندين",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ماموريه شيون المجندين",
+        "ماموريه شيون مجندين"
+      ]
     },
     {
       "id": "SVC-033",
       "name": "حجز المجمع الطبي",
+      "board_label": "حجز المجمع الطبي",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات أساسية",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "حجز المجمع الطبي",
+        "حجز متهم بالمجمع الطبي"
+      ]
     },
     {
       "id": "SVC-034",
       "name": "تأمين مباراة",
+      "board_label": "تأمين مباراة",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تامين مباراه"
+      ]
     },
     {
       "id": "SVC-035",
       "name": "وحدة استاد السويس",
+      "board_label": "وحدة استاد السويس",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "وحده استاد السويس"
+      ]
     },
     {
       "id": "SVC-036",
       "name": "قول مستحدث",
+      "board_label": "قول مستحدث",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "قول مستحدث",
+        "قول مستحدث فيصل"
+      ]
     },
     {
       "id": "SVC-037",
       "name": "ارتكاز الحي الحكومي",
+      "board_label": "ارتكاز الحي الحكومي",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات أساسية",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ارتكاز الحي الحكومي"
+      ]
     },
     {
       "id": "SVC-038",
       "name": "مرور المدينة",
+      "board_label": "مرور المدينة",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "مرور المدينه"
+      ]
     },
     {
       "id": "SVC-039",
       "name": "تأمين مدرجات الاستاد",
+      "board_label": "تأمين مدرجات الاستاد",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "المنطقه من الباب حتي مدخل المدرجات",
+        "تامين مدرجات الاستاد",
+        "خلف مدرجات الدرجه الثانيه",
+        "مدرجات الدرجه الاولي",
+        "مدرجات الدرجه الثانيه"
+      ]
     },
     {
       "id": "SVC-040",
       "name": "تأمين بوابات الاستاد",
+      "board_label": "تأمين بوابات الاستاد",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تامين بوابات الاستاد"
+      ]
     },
     {
       "id": "SVC-041",
       "name": "قرعة الحج",
+      "board_label": "قرعة الحج",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "11ص",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "قرعه الحج"
+      ]
     },
     {
       "id": "SVC-042",
       "name": "ترحيلة",
+      "board_label": "ترحيلة",
+      "sub": "",
       "kind": "خارجية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله"
+      ]
     },
     {
       "id": "SVC-043",
       "name": "العيادة الطبية",
+      "board_label": "العيادة الطبية",
+      "sub": "",
       "kind": "طبية",
-      "standing": false
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "العياده الطبيه"
+      ]
+    },
+    {
+      "id": "SVC-044",
+      "name": "ترحيلة نيابة عسكرية",
+      "board_label": "ترحيلة نيابة عسكرية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "8ص",
+      "party": "الجناين",
+      "needs": {
+        "officer": true,
+        "individual": true,
+        "unit": false,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله عسكريه",
+        "ترحيله نيابه عسكريه",
+        "نيابه عسكريه"
+      ]
+    },
+    {
+      "id": "SVC-045",
+      "name": "ترحيلة مستشفى",
+      "board_label": "ترحيلة مستشفى",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله مستشفي",
+        "ترحيله مسشتفي",
+        "مستشفي"
+      ]
+    },
+    {
+      "id": "SVC-046",
+      "name": "إزالة الجناين",
+      "board_label": "إزالة الجناين",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "9ص",
+      "party": "الجناين",
+      "needs": {
+        "officer": true,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ازاله الجناين"
+      ]
+    },
+    {
+      "id": "SVC-047",
+      "name": "ترحيلة حدث وحريم",
+      "board_label": "ترحيلة حدث وحريم",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "8ص",
+      "party": "عتاقة",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله حدث وحريم",
+        "حدث وحريم"
+      ]
+    },
+    {
+      "id": "SVC-048",
+      "name": "إزالة الأربعين",
+      "board_label": "إزالة الأربعين",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "9ص",
+      "party": "الأربعين",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ازاله الاربعين"
+      ]
+    },
+    {
+      "id": "SVC-049",
+      "name": "تأمين كنترول الثانوية",
+      "board_label": "تأمين كنترول الثانوية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تامين كنترول الثانويه"
+      ]
+    },
+    {
+      "id": "SVC-050",
+      "name": "ترحيلة العاشر",
+      "board_label": "ترحيلة العاشر",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "احضار العاشر",
+        "ترحيله العاشر"
+      ]
+    },
+    {
+      "id": "SVC-051",
+      "name": "خدمات ميدان الأربعين",
+      "board_label": "خدمات ميدان الأربعين",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "خدمات ميدان الاربعين",
+        "ميدان الاربعين"
+      ]
+    },
+    {
+      "id": "SVC-052",
+      "name": "ترحيلة طب شرعي",
+      "board_label": "ترحيلة طب شرعي",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله طب شرعي",
+        "طب شرعي"
+      ]
+    },
+    {
+      "id": "SVC-053",
+      "name": "ترحيلة بدر",
+      "board_label": "ترحيلة بدر",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "8ص",
+      "party": "عتاقة",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله بدر",
+        "تمكين بدر"
+      ]
+    },
+    {
+      "id": "SVC-054",
+      "name": "مأمورية العيادة",
+      "board_label": "مأمورية العيادة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ماموريه العياده",
+        "ماموريه عياده"
+      ]
+    },
+    {
+      "id": "SVC-055",
+      "name": "ترحيلة مستشفى جنائي",
+      "board_label": "ترحيلة مستشفى جنائي",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله مستشفي جنايي",
+        "مستشفي جنايي"
+      ]
+    },
+    {
+      "id": "SVC-056",
+      "name": "خطة الانتشار",
+      "board_label": "خطة الانتشار",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "خطه الانتشار",
+        "خطه انتشار"
+      ]
+    },
+    {
+      "id": "SVC-057",
+      "name": "ترحيلة جنائي خاصة",
+      "board_label": "ترحيلة جنائي خاصة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله جنايي خاص",
+        "ترحيله جنايي خاصه",
+        "جنايي خاصه"
+      ]
+    },
+    {
+      "id": "SVC-058",
+      "name": "ترحيلة نيابة عامة",
+      "board_label": "ترحيلة نيابة عامة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله نيابه عامه",
+        "نيابه عامه"
+      ]
+    },
+    {
+      "id": "SVC-059",
+      "name": "إزالة فيصل",
+      "board_label": "إزالة فيصل",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "9ص",
+      "party": "فيصل",
+      "needs": {
+        "officer": true,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ازاله فيصل"
+      ]
+    },
+    {
+      "id": "SVC-060",
+      "name": "ترحيلة مطار القاهرة",
+      "board_label": "ترحيلة مطار القاهرة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله المطار",
+        "ترحيله مطار القاهره",
+        "مطار القاهره"
+      ]
+    },
+    {
+      "id": "SVC-061",
+      "name": "كنيسة العذراء",
+      "board_label": "كنيسة العذراء",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "كنيسه العذراء"
+      ]
+    },
+    {
+      "id": "SVC-062",
+      "name": "ارتكاز المسجد الكبير",
+      "board_label": "ارتكاز المسجد الكبير",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "5م",
+      "party": "المسجد الكبير",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ارتكاز الجامع الكبير",
+        "ارتكاز المسجد الكبير",
+        "المسجد الكبير"
+      ]
+    },
+    {
+      "id": "SVC-063",
+      "name": "ترحيلة الإسماعيلية",
+      "board_label": "ترحيلة الإسماعيلية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "8ص",
+      "party": "عتاقة",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله الاسماعيليه"
+      ]
+    },
+    {
+      "id": "SVC-064",
+      "name": "ترحيلة القاهرة",
+      "board_label": "ترحيلة القاهرة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله القاهره"
+      ]
+    },
+    {
+      "id": "SVC-065",
+      "name": "امتحانات الدبلومات الفنية",
+      "board_label": "امتحانات الدبلومات الفنية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "امتحانات الدبلومات الفنيه",
+        "امتحانات الدبلومات الفنيه 5"
+      ]
+    },
+    {
+      "id": "SVC-066",
+      "name": "ارتكاز الحماية المدنية",
+      "board_label": "ارتكاز الحماية المدنية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ارتكاز الحمايه المدنيه",
+        "الحمايه المدنيه"
+      ]
+    },
+    {
+      "id": "SVC-067",
+      "name": "منزل القنصل السعودي",
+      "board_label": "منزل القنصل السعودي",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "منزل القنصل",
+        "منزل القنصل السعودي"
+      ]
+    },
+    {
+      "id": "SVC-068",
+      "name": "ملاحظة الحالة بمصنع إيماك",
+      "board_label": "ملاحظة الحالة بمصنع إيماك",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ملاحظه الحاله بمصنع ايماك",
+        "ملاحظه الحاله في مصنع ايماك للورقيات"
+      ]
+    },
+    {
+      "id": "SVC-069",
+      "name": "خدمات مقرات امتحانات الثانوية",
+      "board_label": "خدمات مقرات امتحانات الثانوية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "7ص",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "خدمات مقرات امتحانات الثانويه"
+      ]
+    },
+    {
+      "id": "SVC-070",
+      "name": "ترحيلة العباسية",
+      "board_label": "ترحيلة العباسية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "8ص",
+      "party": "الجناين",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله العباسيه"
+      ]
+    },
+    {
+      "id": "SVC-071",
+      "name": "طلبة المديرية",
+      "board_label": "طلبة المديرية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "طلبه المديريه",
+        "طلبه مديريه"
+      ]
+    },
+    {
+      "id": "SVC-072",
+      "name": "ترحيلة مستشفى سياسي",
+      "board_label": "ترحيلة مستشفى سياسي",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله مستشفي سياسي"
+      ]
+    },
+    {
+      "id": "SVC-073",
+      "name": "ترحيلة المحكمة",
+      "board_label": "ترحيلة المحكمة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "8ص",
+      "party": "عتاقة",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله المحكمه"
+      ]
+    },
+    {
+      "id": "SVC-074",
+      "name": "تسفير الدبلومات الفنية",
+      "board_label": "تسفير الدبلومات الفنية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تسفير الدبلومات الفنيه",
+        "تسفير دبلومات"
+      ]
+    },
+    {
+      "id": "SVC-075",
+      "name": "ترحيلة الإسكندرية",
+      "board_label": "ترحيلة الإسكندرية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله الاسكندريه"
+      ]
+    },
+    {
+      "id": "SVC-076",
+      "name": "ترحيلة الجيزة",
+      "board_label": "ترحيلة الجيزة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "7ص",
+      "party": "الجناين",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله الجيزه"
+      ]
+    },
+    {
+      "id": "SVC-077",
+      "name": "كنيسة الملاك ميخائيل",
+      "board_label": "كنيسة الملاك ميخائيل",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "الملاك ميخاييل",
+        "كنيسه الملاك ميخاييل"
+      ]
+    },
+    {
+      "id": "SVC-078",
+      "name": "وحدة المحكمة",
+      "board_label": "وحدة المحكمة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "وحده المحكمه"
+      ]
+    },
+    {
+      "id": "SVC-079",
+      "name": "ترحيلة وادي النطرون",
+      "board_label": "ترحيلة وادي النطرون",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله وادي النطرون"
+      ]
+    },
+    {
+      "id": "SVC-080",
+      "name": "إحضار أسئلة الثانوية العامة",
+      "board_label": "إحضار أسئلة الثانوية العامة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "احضار اسيله الثانويه العامه"
+      ]
+    },
+    {
+      "id": "SVC-081",
+      "name": "ارتكاز عرب معمل السخنة",
+      "board_label": "ارتكاز عرب معمل السخنة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ارتكاز عرب معمل السخنه",
+        "عرب معمل السخنه"
+      ]
+    },
+    {
+      "id": "SVC-082",
+      "name": "خدمة باب المحكمة",
+      "board_label": "خدمة باب المحكمة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "خدمه باب المحكمه"
+      ]
+    },
+    {
+      "id": "SVC-083",
+      "name": "تنفيذ قرار تمكين",
+      "board_label": "تنفيذ قرار تمكين",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "تمكين امتحان",
+        "تنفيذ قرار تمكين"
+      ]
+    },
+    {
+      "id": "SVC-084",
+      "name": "مدرسة تعاونيات الصناعية بنات",
+      "board_label": "مدرسة تعاونيات الصناعية بنات",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "مدرسه تعاونيات الصناعيه بنات"
+      ]
+    },
+    {
+      "id": "SVC-085",
+      "name": "قول الكفور",
+      "board_label": "قول الكفور",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "قول الكفور"
+      ]
+    },
+    {
+      "id": "SVC-086",
+      "name": "وحدة احتياطي بقوات الأمن",
+      "board_label": "وحدة احتياطي بقوات الأمن",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "عدد 2وحده احتياطي بقوات الامن",
+        "وحده احتياطي بقوات الامن"
+      ]
+    },
+    {
+      "id": "SVC-087",
+      "name": "امتحانات الثانوية العامة",
+      "board_label": "امتحانات الثانوية العامة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "7ص",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": false,
+        "unit": false,
+        "vehicle": true
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "امتحانات الثانويه العامه"
+      ]
+    },
+    {
+      "id": "SVC-088",
+      "name": "ترحيلة 15 مايو",
+      "board_label": "ترحيلة 15 مايو",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "آلي",
+      "default_time": "8ص",
+      "party": "عتاقة",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "ترحيله 15 مايو"
+      ]
+    },
+    {
+      "id": "SVC-089",
+      "name": "طلبة علاقات المديرية",
+      "board_label": "طلبة علاقات المديرية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات الطارئة",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "طلبه علاقات المديريه"
+      ]
+    },
+    {
+      "id": "SVC-090",
+      "name": "حجز متهم بقسم فيصل",
+      "board_label": "حجز متهم بقسم فيصل",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": false,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": true,
+        "individual": false,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "board"
+      ],
+      "aliases": [
+        "حجز متهم بقسم فيصل",
+        "حجز متهم تابع لقسم فيصل"
+      ]
+    },
+    {
+      "id": "SVC-091",
+      "name": "مدرعة المديرية",
+      "board_label": "مدرعة المديرية",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "(1مجند) صبح + 1 سائق / (1مجند) ليل +1 سائق",
+      "default_weapon": "خرطوش + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": false,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "مدرعه المديريه"
+      ]
+    },
+    {
+      "id": "SVC-092",
+      "name": "خط الغاز",
+      "board_label": "خط الغاز",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "2 مج قتالية ( 1مجند )+ 1سائق صبح / 2 مج قتالية ( 1 مجند ) + 1 سائق ليل",
+      "default_weapon": "الي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "خط الغاز"
+      ]
+    },
+    {
+      "id": "SVC-093",
+      "name": "ميكروباص الأمن الوطني",
+      "board_label": "ميكروباص الأمن الوطني",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي (3 مجند) صبح + 1 سائق / 1 مج قتالي (3مجند ) ليل + 1 سائق",
+      "default_weapon": "آلي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "ميكروباص الامن الوطني"
+      ]
+    },
+    {
+      "id": "SVC-094",
+      "name": "ارتكاز الأمن الوطني",
+      "board_label": "ارتكاز الأمن الوطني",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي (1 مجند ) صبح + 1 سائق / 1 مج قتالي (1 مجند ) ليل + 1 سائق",
+      "default_weapon": "آلي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "ارتكاز الامن الوطني"
+      ]
+    },
+    {
+      "id": "SVC-095",
+      "name": "تأمين فرع الأمن الوطني بالسخنة",
+      "board_label": "تأمين فرع الأمن الوطني بالسخنة",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "(4 مجند) صبح قسم عتاقة / (4 مجند) ليل قسم عتاقة",
+      "default_weapon": "ألي",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "تامين فرع الامن الوطني بالسخنه"
+      ]
+    },
+    {
+      "id": "SVC-096",
+      "name": "كمين 109",
+      "board_label": "كمين 109",
+      "sub": "مدرعة",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي (4 مجند ) صبح + 1 سائق / 1 مج قتالي (4 مجند ) ليل + 1 سائق",
+      "default_weapon": "آلي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "كمين 109"
+      ]
+    },
+    {
+      "id": "SVC-097",
+      "name": "اعلي كمين 109",
+      "board_label": "اعلي كمين 109",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1مج قتالي (1 مجند) صبح+سائق / 1م b ج قتالي (1 مجند) ليل+سائق",
+      "default_weapon": "آلي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": false,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "اعلي كمين 109"
+      ]
+    },
+    {
+      "id": "SVC-098",
+      "name": "كنيسة ماري جرجس الصباح",
+      "board_label": "كنيسة ماري جرجس الصباح",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1مج قتالي (5 مجند) صبح +1 سائق / 1 مج قتالي (5 مجند) ليل + 1سائق",
+      "default_weapon": "آلي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "كنيسه ماري جرجس الصباح"
+      ]
+    },
+    {
+      "id": "SVC-099",
+      "name": "استراحة القنصل السعودي",
+      "board_label": "استراحة القنصل السعودي",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي(3 مجند) صبح +1سائق / 1 مج قتالي (3 مجند) ليل + 1 سائق",
+      "default_weapon": "آلي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "استراحه القنصل السعودي"
+      ]
+    },
+    {
+      "id": "SVC-100",
+      "name": "المحاجر \"قول 42 لاسلكى \"",
+      "board_label": "المحاجر \"قول 42 لاسلكى \"",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "(2 مجند ) صبح \" ادارة الطرق\" / (2 مجند ) ليل\" ادارة الطرق\"",
+      "default_weapon": "الى",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "المحاجر"
+      ]
+    },
+    {
+      "id": "SVC-101",
+      "name": "محور 1\" قول 16 لاسلكي\"",
+      "board_label": "محور 1\" قول 16 لاسلكي\"",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية"
+      ],
+      "default_strength": "1 مج قتالي ( 1 مجند ) صبح",
+      "default_weapon": "الى",
+      "default_time": "8 ص فترة صباحة",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "محور 1"
+      ]
+    },
+    {
+      "id": "SVC-102",
+      "name": "محور2 \"قول18لاسلكى\"",
+      "board_label": "محور2 \"قول18لاسلكى\"",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية"
+      ],
+      "default_strength": "1 مج قتالي ( 1 مجند ) صبح",
+      "default_weapon": "الى",
+      "default_time": "8 ص فترة صباحة",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "محور2"
+      ]
+    },
+    {
+      "id": "SVC-103",
+      "name": "قول 48 لاسلكى",
+      "board_label": "قول 48 لاسلكى",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية"
+      ],
+      "default_strength": "1 مج قتالي (2 مجند ) صبح",
+      "default_weapon": "الى",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "قول 48 لاسلكي"
+      ]
+    },
+    {
+      "id": "SVC-104",
+      "name": "قول 50لاسلكى",
+      "board_label": "قول 50لاسلكى",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي (2 مجند ) صبح / 1 مج قتالي (2 مجند ) ليل",
+      "default_weapon": "الى",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "قول 50لاسلكي"
+      ]
+    },
+    {
+      "id": "SVC-105",
+      "name": "الإسعاف",
+      "board_label": "الإسعاف",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية"
+      ],
+      "default_strength": "ميك فض (3 مجند)",
+      "default_weapon": "مايك فض",
+      "default_time": "11 ص حتى الانتهاء",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "الاسعاف"
+      ]
+    },
+    {
+      "id": "SVC-106",
+      "name": "ارتكاز سوميد",
+      "board_label": "ارتكاز سوميد",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "",
+      "default_weapon": "",
+      "default_time": "",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": false,
+        "vehicle": false
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel"
+      ],
+      "aliases": [
+        "ارتكاز سوميد"
+      ]
+    },
+    {
+      "id": "SVC-107",
+      "name": "ارتكاز قسم فيصل الجديد",
+      "board_label": "ارتكاز قسم فيصل الجديد",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي (2مجند) صبح + 1سائق / 1 مج قتالي (2 مجند) ليل + 1 سائق",
+      "default_weapon": "الي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "ارتكاز قسم فيصل الجديد"
+      ]
+    },
+    {
+      "id": "SVC-108",
+      "name": "كمين شرق النفق المستحدث",
+      "board_label": "كمين شرق النفق المستحدث",
+      "sub": "",
+      "kind": "خارجية",
+      "section": "الخدمات أساسية",
+      "standing": true,
+      "shifts": [
+        "صباحية",
+        "ليلية"
+      ],
+      "default_strength": "1 مج قتالي(2 مجند) صبح +1 سائق / 1 مج قتالي (2 مجند) ليل + 1 سائق",
+      "default_weapon": "الي + كلبش",
+      "default_time": "8 ص / 8 م",
+      "party": "",
+      "needs": {
+        "officer": false,
+        "individual": true,
+        "unit": true,
+        "vehicle": true
+      },
+      "appears_in": [
+        "afrad",
+        "counts",
+        "tashkeel",
+        "hamla"
+      ],
+      "aliases": [
+        "كمين شرق النفق المستحدث"
+      ]
     }
   ],
   "duties": {
@@ -51378,5 +54348,6 @@
   "medical_officers": [
     "OFF-033",
     "OFF-032"
-  ]
+  ],
+  "schema": 2
 }
