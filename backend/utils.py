@@ -3,7 +3,7 @@ from datetime import date
 
 from flask import request
 
-from .constants import RANK_ORDER
+from .constants import COMMAND_ROLES, RANK_ORDER
 
 
 def json_payload():
@@ -24,7 +24,22 @@ def category_for(person_type):
     return "officers" if person_type == "officer" else "personnel"
 
 
-def rank_key(person):
+def command_priority_map(data):
+    """{officer_id: ترتيبه بين مناصب القيادة} — مدير الإدارة أولًا ثم وكيله."""
+    priority = {}
+    command = (data or {}).get("command") or {}
+    for i, role in enumerate(COMMAND_ROLES):
+        officer_id = command.get(role)
+        if officer_id:
+            priority[officer_id] = i
+    return priority
+
+
+def rank_key(person, command_priority=None):
+    """مدير/وكيل الإدارة دايمًا أعلى اتنين في أي قايمة ضباط، بغض النظر عن
+    الرتبة العسكرية — هم الأعلى تنظيميًا في الإدارة. باقي الضباط بعدهم
+    بالرتبة العسكرية العادية زي ما كان."""
+    top = (command_priority or {}).get(person.get("id"), len(COMMAND_ROLES))
     r = (person.get("role") or "").strip()
     idx = RANK_ORDER.index(r) if r in RANK_ORDER else len(RANK_ORDER)
-    return (idx, person.get("name", ""), person.get("code", ""))
+    return (top, idx, person.get("name", ""), person.get("code", ""))

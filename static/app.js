@@ -42,6 +42,12 @@ function nextWeekday(name,from){
 const OFFICER_ROLES=["ملازم","ملازم أول","نقيب","رائد","مقدم","عقيد","عميد","لواء","أخرى"];
 const RANK_ORDER=["لواء","عميد","عقيد","مقدم","رائد","نقيب","ملازم أول","ملازم"];
 const rankIndex=role=>{const i=RANK_ORDER.indexOf(role); return i<0?RANK_ORDER.length:i};
+// مدير/وكيل الإدارة دايمًا أعلى اتنين في أي قايمة ضباط — بغض النظر عن الرتبة
+const commandPriority=id=>{
+  const roles=DATA.meta.command_roles||[];
+  const role=roles.find(r=>(DATA.command||{})[r]===id);
+  const i=roles.indexOf(role); return i<0?roles.length:i;
+};
 // أسبوعية/نصف شهرية/شهرية أولاً بالترتيب ده، والباقي بعدهم بأي ترتيب ثابت
 // (مش مهم أيّهم قبل التاني، المهم إن كل نوع يتجمّع لوحده مش يتوزّع بين الرتب)
 const leaveTypeIndex=t=>{
@@ -301,6 +307,8 @@ function renderLeaves(){
     const ta=leaveTypeIndex(a.type), tb=leaveTypeIndex(b.type);
     if(ta!==tb) return ta-tb;
     const pa=personById(a.person_id), pb=personById(b.person_id);
+    const ca=commandPriority(a.person_id), cb=commandPriority(b.person_id);
+    if(ca!==cb) return ca-cb;
     const ra=rankIndex(pa?.role), rb=rankIndex(pb?.role);
     if(ra!==rb) return ra-rb;
     return (pa?.name||a.name).localeCompare(pb?.name||b.name,'ar');

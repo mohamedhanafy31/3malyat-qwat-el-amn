@@ -34,6 +34,7 @@ def set_command():
                     raise AbortRequest((jsonify({
                         "error": f"الضابط ده شايل «{clash}» بالفعل."}), 409))
             data["command"][role] = officer_id
+        sort_active(data, "officers")   # قيادة الإدارة أعلى اتنين في الترتيب
         return jsonify(data["command"])
 
     return with_data(mutate)
@@ -172,6 +173,8 @@ def edit_person(person_id):
             if lv.get("person_id") == person_id:
                 lv["name"] = person.get("name", lv.get("name", ""))
 
+        if bucket == "active":
+            sort_active(data, category)   # الرتبة أو الاسم ممكن يتغيّر
         return jsonify(person)
 
     return with_data(mutate)
@@ -198,6 +201,14 @@ def remove_person(person_id):
         data[category]["active"] = [p for p in data[category]["active"] if p.get("id") != person_id]
         data[category]["archive"].append(found)
         data[category]["archive"].sort(key=lambda p: (p.get("leave_date", ""), p.get("name", "")), reverse=True)
+
+        # لو الضابط شايل منصب قيادي أو من ضباط العيادة، الإخراج من القوة
+        # يفضّي المنصب — ميفضلش متعيّن لحد مش على القوة أصلًا
+        for role, oid in data.get("command", {}).items():
+            if oid == person_id:
+                data["command"][role] = None
+        data["medical_officers"] = [oid for oid in data.get("medical_officers", [])
+                                     if oid != person_id]
         return jsonify(found)
 
     return with_data(mutate)

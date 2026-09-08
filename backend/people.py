@@ -1,6 +1,6 @@
 """إدارة القوة — البحث عن شخص، ترتيبها، وقواعد الراحة الأساسية."""
 from .constants import REST_SYSTEMS, WEEKDAYS
-from .utils import rank_key
+from .utils import command_priority_map, rank_key
 
 
 def find_person(data, person_id):
@@ -14,9 +14,13 @@ def find_person(data, person_id):
 
 
 def sort_active(data, category):
-    """قوائم الضباط دايمًا بالرتبة؛ الأفراد بالاسم زي ما هو معمول من الأول."""
-    key = rank_key if category == "officers" else (lambda p: (p.get("name", ""), p.get("code", "")))
-    data[category]["active"].sort(key=key)
+    """قوائم الضباط دايمًا بالرتبة (وقيادة الإدارة أولًا)؛ الأفراد بالاسم
+    زي ما هو معمول من الأول."""
+    if category == "officers":
+        priority = command_priority_map(data)
+        data[category]["active"].sort(key=lambda p: rank_key(p, priority))
+    else:
+        data[category]["active"].sort(key=lambda p: (p.get("name", ""), p.get("code", "")))
 
 
 def valid_rest(payload, errors):
@@ -46,5 +50,6 @@ def officers_on(data, day):
             if left and day > left:
                 continue
             out.append(o)
-    out.sort(key=rank_key)
+    priority = command_priority_map(data)
+    out.sort(key=lambda o: rank_key(o, priority))
     return out
