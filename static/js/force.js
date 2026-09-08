@@ -82,28 +82,45 @@ function renderCommand() {
         </select>
         ${p ? `<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
             : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
-    }).join("")}</div>
-    <div class="cmd-head" style="margin-top:16px">${esc(MEDICAL_BADGE())}
-      <span class="muted">تشغيلهم "طبية" (موجود/راحة) تلقائيًا كل يوم جديد — بدون تكليف يدوي</span>
-    </div>
-    <div class="svc-picker" id="medOfficerPicker" style="margin-bottom:0">
-      ${officers.map(o => `<label class="svc-item ${isMedical(o.id) ? "on" : ""}">
-        <input type="checkbox" value="${esc(o.id)}" ${isMedical(o.id) ? "checked" : ""}>
-        <span class="svc-name">${esc(o.role)} / ${esc(o.name)}</span>
-      </label>`).join("")}
-    </div>`;
+    }).join("")}</div>`;
 
   box.querySelectorAll("[data-cmd-role]").forEach(sel => sel.onchange = async () => {
     const out = await api("/api/command", jsonReq("PATCH", {[sel.dataset.cmdRole]: sel.value || null}));
     if (!out) { renderCommand(); return }   // رجّع الاختيار القديم لو الطلب اترفض
     showToast("تم تحديث القيادة"); load();
   });
+}
+
+/* ضباط العيادة — إعداد بيتظبط مرة كل فترة طويلة، فمطوي في آخر الصفحة
+   وبيوضح المحددين حاليًا في سطر واحد من غير ما ياخد مساحة. */
+function renderMedical() {
+  const box = $("#medicalBar"); if (!box) return;
+  const chosen = LIST.active.filter(o => isMedical(o.id));
+  box.innerHTML = `
+    <details class="settings-fold">
+      <summary>
+        <span class="fold-title">${esc(MEDICAL_BADGE())}</span>
+        <span class="fold-now">${chosen.length
+          ? chosen.map(o => esc(o.role) + " / " + esc(o.name)).join(" • ")
+          : "<span class='muted'>مش محدد</span>"}</span>
+        <span class="fold-hint">تعديل</span>
+      </summary>
+      <p class="hint" style="margin:12px 0">تشغيلهم "طبية" (موجود/راحة) بيتحسب
+        تلقائيًا في أي يوم جديد من غير تكليف يدوي.</p>
+      <div class="svc-picker" id="medOfficerPicker" style="margin-bottom:0">
+        ${LIST.active.map(o => `<label class="svc-item ${isMedical(o.id) ? "on" : ""}">
+          <input type="checkbox" value="${esc(o.id)}" ${isMedical(o.id) ? "checked" : ""}>
+          <span class="svc-name">${esc(o.role)} / ${esc(o.name)}</span>
+        </label>`).join("")}
+      </div>
+    </details>`;
+
   const picker = $("#medOfficerPicker");
   picker.querySelectorAll("input").forEach(cb => cb.onchange = async () => {
     cb.closest(".svc-item").classList.toggle("on", cb.checked);
     const ids = [...picker.querySelectorAll("input:checked")].map(x => x.value);
     const out = await api("/api/medical-officers", jsonReq("PATCH", {officer_ids: ids}));
-    if (!out) { renderCommand(); return }
+    if (!out) { renderMedical(); return }
     showToast("تم تحديث ضباط العيادة"); load();
   });
 }
@@ -219,6 +236,7 @@ async function load() {
       ...REST_SYSTEMS().map(x => [x, x])], true);
     renderAlerts(d.alerts);
     renderCommand();
+    renderMedical();
     if (typeof setLeavePeople === "function") setLeavePeople(LIST.active);
   }
   render();

@@ -111,6 +111,24 @@ button,input,select,textarea{font-family:inherit}
 .chip.cmd{color:var(--gold-700);border-inline-start-color:var(--gold-700);background:var(--gold-100)}
 @media(max-width:700px){.cmd-slots{grid-template-columns:1fr}}
 
+/* ---------- إعداد ثانوي مطوي (زي ضباط العيادة) ---------- */
+.settings-fold{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);
+  margin-top:18px;font-size:14.5px}
+.settings-fold summary{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:11px 16px;cursor:pointer;list-style:none;color:var(--ink-700)}
+.settings-fold summary::-webkit-details-marker{display:none}
+.settings-fold summary:hover{background:var(--navy-50)}
+.settings-fold summary:focus-visible{outline:2px solid var(--gold-600);outline-offset:-2px}
+.fold-title{font-weight:bold;color:var(--ink-900)}
+.fold-now{color:var(--ink-500);flex:1;min-width:0}
+.fold-hint{color:var(--navy-800);font-size:13.5px;border:1px solid var(--line-strong);
+  border-radius:var(--radius-sm);padding:3px 10px;white-space:nowrap}
+.settings-fold[open] summary{border-bottom:1px solid var(--line)}
+.settings-fold[open] .fold-hint::after{content:" ▲"}
+.settings-fold:not([open]) .fold-hint::after{content:" ▼"}
+.settings-fold > :not(summary){margin-inline:16px}
+.settings-fold > .svc-picker{margin-bottom:16px !important}
+
 /* ---------- اللوحة (Panel) ---------- */
 .panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
 .panel-head{display:flex;justify-content:space-between;align-items:center;padding:14px 18px 0;flex-wrap:wrap;gap:10px}
