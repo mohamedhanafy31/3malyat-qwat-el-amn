@@ -50,7 +50,23 @@ def overlapping(data, leave, ignore_id=None):
 
 
 def leave_on(data, person_id, day):
-    for lv in data["leaves"]:
-        if lv.get("person_id") == person_id and lv["start"] <= day <= lv["end"]:
+    for lv in leaves_of(data, person_id):
+        if lv["start"] <= day <= lv["end"]:
             return lv
     return None
+
+
+def leaves_of(data, person_id):
+    """سجلات راحة شخص واحد — مفهرسة على البيانات المحمّلة.
+
+    من غير الفهرس ده، بناء يومية واحدة كان بيلف على كل سجلات الراحة لكل
+    ضابط (34 × 272 = 9,248 مقارنة للوحة الواحدة). الفهرس بيتبني مرة على
+    نسخة البيانات وبيتخزن جواها، فبيتبني مرة واحدة لكل طلب.
+    """
+    index = data.get("_leaves_by_person")
+    if index is None or index.get("_size") != len(data["leaves"]):
+        index = {"_size": len(data["leaves"])}
+        for lv in data["leaves"]:
+            index.setdefault(lv.get("person_id"), []).append(lv)
+        data["_leaves_by_person"] = index
+    return index.get(person_id, ())

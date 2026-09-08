@@ -126,8 +126,11 @@ def _snapshot():
 def _write(data):
     _snapshot()
     data["schema"] = SCHEMA_VERSION
+    # المفاتيح اللي بادئة بـ"_" فهارس مؤقتة بتتبني أثناء الطلب (زي فهرس
+    # الراحات) — مالهاش لزمة تتخزن ولا تكبّر الملف
+    payload = {k: v for k, v in data.items() if not k.startswith("_")}
     tmp = DATA_FILE.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(DATA_FILE)
 
 

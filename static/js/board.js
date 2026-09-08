@@ -79,6 +79,20 @@ function sectionCard(sec) {
     ${body}</div>`;
 }
 
+/* تنبيهات مش موانع: الأرشيف فيه ضباط على خدمتين في نفس الفترة فعلًا،
+   فالفحص بيلفت النظر ومابيمنعش الحفظ. */
+const WARN_ICON = {"راحة": "☾", "حالة": "⚑", "ازدحام": "⇄", "شاغرة": "○"};
+function warningsCard(list) {
+  if (!list?.length) return "";
+  const items = list.map(w =>
+    `<li><span class="w-ico">${WARN_ICON[w.kind] || "⚠"}</span>
+      <span class="chip taq">${esc(w.kind)}</span> ${esc(w.text)}</li>`).join("");
+  return `<div class="alert-card">
+    <div class="alert-head"><span class="alert-ico">⚠</span><strong>مراجعة اليوم</strong>
+      <span class="muted">${list.length} ملاحظة — للفت النظر مش للمنع</span></div>
+    <ul class="alert-list warn-list">${items}</ul></div>`;
+}
+
 function render() {
   const wrap = $("#matchBoard");
   if (!BOARD) { wrap.innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
@@ -86,6 +100,7 @@ function render() {
     <div class="match-head">
       <span class="muted">اليومية التفصيلية — ${dayName(BOARD.date)} ${fmt(BOARD.date)}</span>
     </div>
+    ${warningsCard(BOARD.warnings)}
     <div class="match-grid">${BOARD.sections.map(sectionCard).join("")}</div>`;
 }
 

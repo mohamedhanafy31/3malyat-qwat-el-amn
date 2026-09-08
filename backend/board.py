@@ -21,6 +21,7 @@
 فرعي، زي «خطة انتشار 6م» في لوحة 15/6 — مش في جريد منفصل.
 """
 from .assignments import label, officer_states, peek_day, services_by_id
+from .checks import day_warnings
 from .constants import (
     SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_SECURITY,
     SECTION_SUBCAMP, SECTION_TARGETS, SHIFTS,
@@ -181,4 +182,5 @@ def build_board(data, day):
         plain, groups = _grouped(by_section[name])
         sections.append({"name": name, "type": "services", "rows": plain, "groups": groups})
 
-    return {"date": day, "sections": sections, "states": states}
+    return {"date": day, "sections": sections, "states": states,
+            "warnings": day_warnings(data, day, full["rows"])}

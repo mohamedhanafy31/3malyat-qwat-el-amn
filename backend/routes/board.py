@@ -9,6 +9,7 @@ from ..assignments import (
     blank, clean_conscripts, clean_shift, for_day, new_id, peek_day, services_by_id,
 )
 from ..board import ASSIGNMENT_SECTIONS, build_board
+from ..checks import duplicate_of
 from ..constants import SECTION_OCCASIONAL
 from ..duty import summarise
 from ..people import find_person, officers_on
@@ -54,6 +55,20 @@ def _clean_people(data, day, ids, want):
     return out
 
 
+def _guard_duplicate(data, day, row, ignore_id):
+    """التكرار الحرفي بس هو الممنوع: نفس الشخص على نفس الخدمة ونفس الفترة
+    مرتين. باقي «التعارضات» بتتعرض كتنبيهات — الأرشيف فيه ضباط على
+    خدمتين في نفس الفترة فعلًا (20/8: تبة ضرب النار + كنترول الازهر ليل)."""
+    people = (row.get("officer_ids") or []) + (row.get("personnel_ids") or [])
+    if not people:
+        return
+    clash = duplicate_of(data, day, row["service_id"], row.get("shift"),
+                         people, ignore_id=ignore_id)
+    if clash:
+        raise AbortRequest((jsonify({
+            "error": "الشخص ده متكلّف بنفس الخدمة ونفس الفترة في خانة تانية."}), 409))
+
+
 def _apply(data, day, row, payload, svc):
     if "shift" in payload:
         row["shift"] = clean_shift(payload["shift"], svc)
@@ -96,6 +111,7 @@ def add_assignment(day):
         _apply(data, day, row, payload, svc)
         if "shift" not in payload:
             row["shift"] = clean_shift((svc.get("shifts") or [""])[0], svc)
+        _guard_duplicate(data, day, row, ignore_id=None)
         entries.append(row)
         return jsonify(row), 201
 
@@ -122,6 +138,7 @@ def edit_assignment(day, assignment_id):
             row["shift"] = clean_shift(row.get("shift"), svc)
         svc = services.get(row["service_id"])
         _apply(data, day, row, payload, svc)
+        _guard_duplicate(data, day, row, ignore_id=row["id"])
         return jsonify(row)
 
     return with_data(mutate)

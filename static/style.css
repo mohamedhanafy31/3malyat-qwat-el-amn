@@ -243,6 +243,9 @@ tr.vacant{background:repeating-linear-gradient(135deg,transparent,transparent 7p
 tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
   font-family:var(--font-head);letter-spacing:.5px}
 
+.warn-list li{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+.warn-list .w-ico{color:var(--gold-700);font-size:15px}
+
 /* ---------- محرر الاحتياجات والوسوم ---------- */
 .req-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
 .req-row{display:grid;grid-template-columns:1.3fr 0.7fr 1.3fr auto;gap:8px}
