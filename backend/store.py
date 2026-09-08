@@ -1,6 +1,7 @@
 """تخزين البيانات — ملف JSON واحد، بقفل خيط وكتابة ذرية (tmp file replace)."""
 import json
 import logging
+import shutil
 import threading
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
@@ -13,6 +14,26 @@ from .constants import DEFAULT_DATA
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data.json"
 LOCK = threading.Lock()
+
+# نسخة بنية الملف. أي هجرة بتغيّر شكل البيانات بترفع الرقم ده، والتطبيق
+# بيرفض يشتغل على ملف برقم مختلف بدل ما يقرأه غلط في صمت. الملفات القديمة
+# اللي مافيهاش الحقل أصلًا بتتعامل كـ 1.
+SCHEMA_VERSION = 1
+
+# نسخ احتياطي دوّار: قبل كل كتابة بنحتفظ بالنسخة السابقة. ده أمان تشغيلي
+# يومي كان ناقص — الكتابة الذرية بتحمي من ملف نصّه مقطوع، مش من تعديل غلط.
+BACKUP_DIR_NAME = "backups"
+BACKUP_KEEP = 20
+
+
+def backup_dir():
+    """جنب ملف البيانات الحالي — بيتحسب وقت النداء عشان الاختبارات اللي
+    بتحوّل DATA_FILE لملف مؤقت ما تكتبش نسخها في مجلد المشروع الحقيقي."""
+    return DATA_FILE.parent / BACKUP_DIR_NAME
+
+
+class SchemaMismatch(RuntimeError):
+    """ملف بيانات ببنية مختلفة عن اللي الكود ده بيفهمها."""
 
 # سجل تدقيق بسيط — مين عدّل ايه وامتى، بدون نظام حسابات أو تسجيل دخول. الاسم
 # اختياري (حقل "اسمك" في الشريط العلوي)؛ لو فاضي بيتسجل null. الملف بيدور
@@ -44,14 +65,33 @@ def _log_audit():
         pass  # نداء بره سياق طلب HTTP (سكربت مستقبلي مثلًا) — تجاهل بهدوء
 
 
+def _check_schema(data):
+    """يتأكد إن الملف بنفس بنية الكود. الفرق بيتقفل بصوت عالي مش بالسكوت —
+    قراءة ملف ببنية قديمة بالكود الجديد بتطلع أرقام غلط في اليوميات."""
+    found = data.get("schema", 1)
+    if found == SCHEMA_VERSION:
+        return
+    if found < SCHEMA_VERSION:
+        raise SchemaMismatch(
+            f"ملف البيانات ببنية {found} والكود بيتوقع {SCHEMA_VERSION}. "
+            f"شغّل سكربتات الهجرة في migrations/ الأول (كل واحد بيعمل نسخة "
+            f"احتياطية في {BACKUP_DIR_NAME}/ قبل ما يكتب)."
+        )
+    raise SchemaMismatch(
+        f"ملف البيانات ببنية {found} أحدث من الكود ({SCHEMA_VERSION}). "
+        f"حدّث الكود أو ارجع لنسخة من {BACKUP_DIR_NAME}/."
+    )
+
+
 def _read():
     """قراءة الملف وتطبيع بنيته — من غير قفل، لاستخدامها جوه أي بلوك ماسك الـ LOCK بالفعل."""
     if not DATA_FILE.exists():
-        _write(DEFAULT_DATA)
+        _write(json.loads(json.dumps(DEFAULT_DATA)))   # نسخة — _write بيختم الحقل schema
     try:
         data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError):
         return json.loads(json.dumps(DEFAULT_DATA))
+    _check_schema(data)
     for cat in ("officers", "personnel"):
         data.setdefault(cat, {"active": [], "archive": []})
         data[cat].setdefault("active", [])
@@ -69,7 +109,24 @@ def _read():
     return data
 
 
+def _snapshot():
+    """نسخة من الملف الحالي قبل ما يتكتب فوقه، مع تنضيف الأقدم."""
+    if not DATA_FILE.exists():
+        return
+    try:
+        target = backup_dir()
+        target.mkdir(exist_ok=True)
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        shutil.copy2(DATA_FILE, target / f"data-{stamp}.json")
+        for f in sorted(target.glob("data-*.json"))[:-BACKUP_KEEP]:
+            f.unlink(missing_ok=True)
+    except OSError:
+        pass          # النسخ الاحتياطي أمان إضافي — فشله ما يمنعش الحفظ
+
+
 def _write(data):
+    _snapshot()
+    data["schema"] = SCHEMA_VERSION
     tmp = DATA_FILE.with_suffix(".tmp")
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(DATA_FILE)

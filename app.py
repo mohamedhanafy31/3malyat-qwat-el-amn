@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, jsonify
 
 from backend.routes import register_routes
+from backend.store import SchemaMismatch
 
 app = Flask(__name__)
 
@@ -9,6 +10,12 @@ app = Flask(__name__)
 app.json.ensure_ascii = False
 
 register_routes(app)
+
+
+@app.errorhandler(SchemaMismatch)
+def _schema_mismatch(exc):
+    """ملف بيانات ببنية مختلفة — رسالة واضحة بدل 500 صامت."""
+    return jsonify({"error": str(exc)}), 503
 
 
 if __name__ == "__main__":
