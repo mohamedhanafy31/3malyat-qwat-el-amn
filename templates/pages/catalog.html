@@ -3,13 +3,16 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar">
-    <input id="svcSearch" class="search" placeholder="بحث في الخدمات...">
+    <input id="svcSearch" class="search" placeholder="بحث بالاسم أو بصورة بديلة...">
     <select id="svcKindFilter" class="select"></select>
+    <select id="svcSectionFilter" class="select"></select>
     <button class="primary" id="addSvcBtn">＋ خدمة جديدة</button>
   </div>
   <p class="hint" style="margin:14px 18px">
-    تصنيف الخدمة هنا هو اللي بيحدد الضابط يتحسب في أي خانة في جدول الإجمالي.
-    تغيير التصنيف بيعيد حساب كل الأيام على طول.
+    الكتالوج هو المرجع الوحيد لأسماء الخدمات — التكليفات بتشاور عليه برقمه،
+    فإعادة تسمية خدمة بتغيّر شكلها في كل مكان من غير ما تفصل أي تكليف.
+    والتصنيف هو اللي بيحدد الضابط يتحسب في أي خانة في جدول الإجمالي،
+    وتغييره بيعيد حساب كل الأيام على طول.
   </p>
   <div id="catalogWrap"></div>
 </div>

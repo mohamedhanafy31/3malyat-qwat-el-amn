@@ -232,6 +232,17 @@ button,input,select,textarea{font-family:inherit}
 .of-cat{font-size:13.5px;color:var(--ink-500);background:#fff;border:1px solid var(--line);
   border-radius:20px;padding:2px 9px;font-weight:normal}
 
+/* عنوان فرعي لخدمات حدث معيّن جوّه قسمه — زي «خطة انتشار 6م» في الوورد،
+   بيفضل مكانه في القسم مش في جريد منفصل */
+.sub-head{padding:9px 16px 5px;font-size:14.5px;font-weight:600;color:var(--gold-700);
+  background:var(--gold-100);border-top:1px solid var(--line)}
+/* خانة مطلوبة ولسه مالهاش قائم — الوورد بيطبعها فاضية عشان تبان إنها ناقصة */
+tr.vacant .name{color:var(--ink-500)}
+tr.vacant{background:repeating-linear-gradient(135deg,transparent,transparent 7px,var(--navy-50) 7px,var(--navy-50) 14px)}
+/* عناوين أقسام جدول يومية الضباط (الحراسات المشددة / الخوارج) */
+tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
+  font-family:var(--font-head);letter-spacing:.5px}
+
 /* ---------- محرر الاحتياجات والوسوم ---------- */
 .req-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
 .req-row{display:grid;grid-template-columns:1.3fr 0.7fr 1.3fr auto;gap:8px}

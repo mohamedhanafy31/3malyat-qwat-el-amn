@@ -1,5 +1,7 @@
-/* يومية التشغيل — جدول الإجمالي وتكليف الضباط */
-let DUTY = null, SERVICES = [];
+/* يومية تشغيل الضباط — جدول الإجمالي وحالة الضابط.
+   التكليف بخدمة بقى في اليومية التفصيلية (نفس السجل)، والصفحة دي بتعدّل
+   حالة الضابط بس: تقصيرة / انتداب / غياب / مرضي / فرقة / طارئة / ملاحظة. */
+let DUTY = null;
 
 function renderSummary(s) {
   const cell = v => `<td>${v}</td>`;
@@ -27,64 +29,74 @@ function renderSummary(s) {
    </tr></tbody></table></div>`;
 }
 
-function renderBoard(rows) {
-  const body = rows.map(r => {
-    const svc = r.services.length
-      ? r.services.map(s => `<span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.name)}<i>${esc(s.shift)}</i></span>`).join(" ")
-      : `<span class="muted">—</span>`;
-    const grp = r.leave ? `<span class="chip rest">${esc(r.leave.type)}</span><div class="sub">حتى ${fmt(r.leave.end)}</div>`
-      : r.group === "صافي" ? `<span class="chip on">صافي</span>`
-      : `<span class="chip ${KIND_CLS[r.group] || "done"}">${esc(r.group)}${r.bucket ? " · " + esc(r.bucket) : ""}</span>`;
-    const gone = r.later_left ? `<span class="chip done" title="خرج من القوة يوم ${fmt(r.later_left)}">خرج ${fmt(r.later_left)}</span>` : "";
-    return `<tr class="${r.later_left ? "was" : ""}">
-      <td class="name">${esc(r.name)}<div class="sub">${esc(r.role)} ${gone}</div></td>
-      <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
-      <td>${grp}</td>
-      <td class="wrap">${esc(r.note) || "<span class='muted'>—</span>"}</td>
-      <td><button class="mini" ${r.leave ? "disabled title='الضابط في راحة'" : ""} data-action="openAssign" data-id="${esc(r.id)}">تكليف</button></td>
-    </tr>`;
-  });
-  const gone = rows.filter(r => r.later_left).length;
-  $("#dutyBoard").innerHTML = tableBlock(
-    ["الضابط", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"], body,
-    `قوة اليوم: ${rows.length} ضابط${gone ? ` — منهم ${gone} خرجوا من القوة بعد كده` : ""}`);
+/* أقسام جدول الوورد الثلاثة — القسم تابع لوضع الضابط التنظيمي مش لتشغيله */
+function sectionRows(rows) {
+  const order = META.officer_sections || ["القوة", "الحراسات المشددة", "الخوارج"];
+  const out = [];
+  for (const section of order) {
+    const mine = rows.filter(r => (r.section || order[0]) === section);
+    if (!mine.length) continue;
+    if (section !== order[0]) {
+      out.push(`<tr class="section-row"><td colspan="6">${esc(section)}</td></tr>`);
+    }
+    out.push(...mine.map(officerRow));
+  }
+  // أي قسم مش في القايمة يتعرض في الآخر بدل ما يختفي
+  out.push(...rows.filter(r => !order.includes(r.section || order[0])).map(officerRow));
+  return out;
+}
+
+function officerRow(r) {
+  const svc = r.services.length
+    ? r.services.map(s => `<span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.name)}<i>${esc(s.shift)}</i></span>`).join(" ")
+    : `<span class="muted">—</span>`;
+  const grp = r.leave ? `<span class="chip rest">${esc(r.leave.type)}</span><div class="sub">حتى ${fmt(r.leave.end)}</div>`
+    : r.group === "صافي" ? `<span class="chip on">صافي</span>`
+    : `<span class="chip ${KIND_CLS[r.group] || "done"}">${esc(r.group)}${r.bucket ? " · " + esc(r.bucket) : ""}</span>`;
+  const gone = r.later_left ? `<span class="chip done" title="خرج من القوة يوم ${fmt(r.later_left)}">خرج ${fmt(r.later_left)}</span>` : "";
+  const search = r.search_attached ? ` <span class="chip soon" title="تشغيل من إدارة البحث">بحث</span>` : "";
+  return `<tr class="${r.later_left ? "was" : ""}">
+    <td class="name">${esc(r.name)}<div class="sub">${esc(r.role)}${search} ${gone}</div></td>
+    <td class="wrap">${esc(r.post) || "<span class='muted'>—</span>"}</td>
+    <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
+    <td>${grp}</td>
+    <td class="wrap">${esc(r.note) || "<span class='muted'>—</span>"}</td>
+    <td><button class="mini" data-action="openAssign" data-id="${esc(r.id)}">الحالة</button></td>
+  </tr>`;
 }
 
 function render() {
   if (!DUTY) { $("#dutyBoard").innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
-  renderSummary(DUTY.summary); renderBoard(DUTY.rows);
+  renderSummary(DUTY.summary);
+  const gone = DUTY.rows.filter(r => r.later_left).length;
+  $("#dutyBoard").innerHTML = tableBlock(
+    ["الضابط", "العمل المسند إليه", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"],
+    sectionRows(DUTY.rows),
+    `قوة اليوم: ${DUTY.rows.length} ضابط${gone ? ` — منهم ${gone} خرجوا من القوة بعد كده` : ""}`);
 }
 
 ACTIONS.openAssign = id => {
   const row = DUTY.rows.find(r => r.id === id); if (!row) return;
   $("#assignPerson").value = id;
-  $("#assignTitle").textContent = `تكليف: ${row.name}`;
-  $("#assignHint").textContent = `يوم ${dayName(DUTY.date)} ${fmt(DUTY.date)} — الضابط بدون خدمة بيتحسب في الصافي.`;
-  const chosen = new Map(row.services.map(s => [s.id, s.shift]));
-  $("#assignServices").innerHTML = SERVICES.map(s => `
-    <label class="svc-item ${chosen.has(s.id) ? "on" : ""}">
-      <input type="checkbox" value="${esc(s.id)}" ${chosen.has(s.id) ? "checked" : ""}>
-      <span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.kind)}</span>
-      <span class="svc-name">${esc(s.name)}</span>
-      <select class="svc-shift">${SHIFTS().map(x => `<option ${chosen.get(s.id) === x ? "selected" : ""}>${x}</option>`).join("")}</select>
-    </label>`).join("");
-  $$("#assignServices input").forEach(cb =>
-    cb.onchange = () => cb.closest(".svc-item").classList.toggle("on", cb.checked));
+  $("#assignTitle").textContent = `حالة: ${row.name}`;
+  $("#assignHint").textContent =
+    `يوم ${dayName(DUTY.date)} ${fmt(DUTY.date)} — التكليف بالخدمات من اليومية التفصيلية.`
+    + (row.leave ? ` تنبيه: الضابط في ${row.leave.type} لحد ${fmt(row.leave.end)}.` : "");
+  fillSelect($("#assignStatus"),
+    [["", "— بدون —"], ...(META.officer_statuses || []).map(x => [x, x])]);
+  $("#assignStatus").value = row.group === "خوارج" && !row.leave ? (row.bucket || "") : "";
   $("#assignTaq").checked = !!row.taqseera;
-  $("#assignStatus").value = row.group === "خوارج" && ["انتداب", "غياب"].includes(row.bucket) ? row.bucket : "";
   $("#assignNote").value = row.note || "";
   openModal("assignModal");
 };
 
 $("#assignForm").onsubmit = async e => {
   e.preventDefault();
-  const items = $$("#assignServices .svc-item").filter(l => l.querySelector("input").checked)
-    .map(l => ({service_id: l.querySelector("input").value, shift: l.querySelector(".svc-shift").value}));
   const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent($("#assignPerson").value)}`,
-    jsonReq("PUT", {items, taqseera: $("#assignTaq").checked,
+    jsonReq("PUT", {taqseera: $("#assignTaq").checked,
       status: $("#assignStatus").value, note: $("#assignNote").value}));
   if (!out) return;
-  DUTY = out; closeModal("assignModal"); showToast("تم حفظ التكليف"); render();
+  DUTY = out; closeModal("assignModal"); showToast("تم حفظ الحالة"); render();
 };
 
 async function loadDay(day) {
@@ -100,8 +112,7 @@ $("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
 async function load() {
   const d = await bootstrap();
   if (!d) return;
-  SERVICES = d.services || [];
-  const days = d.duty_days || [];
+  const days = d.days || [];
   $("#dutyDate").value = days.includes(curDate()) ? curDate() : (days[days.length - 1] || curDate());
   loadDay($("#dutyDate").value);
 }

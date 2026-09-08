@@ -1,16 +1,55 @@
 <!-- ============ خدمة في الكتالوج ============ -->
 <div class="modal hidden" id="svcModal">
-  <div class="modal-card small">
+  <div class="modal-card">
     <button class="close" data-close="svcModal">×</button>
     <h2 id="svcTitle">خدمة جديدة</h2>
     <form id="svcForm">
       <input type="hidden" id="svcId">
-      <label>اسم الخدمة
-        <input id="svcName" required>
+
+      <div class="field-section">
+        <div class="field-legend">التعريف</div>
+        <div class="grid">
+          <label>اسم الخدمة
+            <input id="svcName" required>
+          </label>
+          <label>الاسم على اللوحة <small>الوورد بيكتب «سوميد» مش «هدف سوميد»</small>
+            <input id="svcLabel">
+          </label>
+          <label>التصنيف <small>خانتها في جدول الإجمالي</small>
+            <select id="svcKind"></select>
+          </label>
+          <label>القسم الافتراضي على اللوحة
+            <select id="svcSection"></select>
+          </label>
+        </div>
+        <label class="checkline"><input type="checkbox" id="svcStanding"> خدمة دائمة (بتتكرر كل يوم)</label>
+      </div>
+
+      <div class="field-section">
+        <div class="field-legend">الفترات المسموحة
+          <small>محور 1 و2 وقول 48 والإسعاف صباحية بس في الوورد</small></div>
+        <div id="svcShifts" class="tag-chips"></div>
+      </div>
+
+      <div class="field-section">
+        <div class="field-legend">القيم الافتراضية</div>
+        <div class="grid">
+          <label>القوام <input id="svcStrength"></label>
+          <label>التسليح <input id="svcWeapon"></label>
+          <label>الانتظام <input id="svcTime"></label>
+          <label>الجهة <input id="svcParty"></label>
+        </div>
+      </div>
+
+      <div class="field-section">
+        <div class="field-legend">تظهر في المستندات</div>
+        <div id="svcDocs" class="tag-chips"></div>
+      </div>
+
+      <label>صور الاسم البديلة <small>مفصولة بفاصلة — بتُستخدم في مطابقة الاستيراد من الوورد</small>
+        <input id="svcAliases">
       </label>
-      <label>التصنيف
-        <select id="svcKind"></select>
-      </label>
+
       <button class="primary full" type="submit">حفظ</button>
     </form>
   </div>

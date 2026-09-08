@@ -37,7 +37,7 @@ const REST_SYSTEMS=()=>META.rest_systems||["أسبوعية","نصف شهرية",
 const WEEKDAYS=()=>META.weekdays||[];
 const LEAVE_TYPES=()=>META.leave_types||[];
 const DURATIONS=()=>META.rest_durations||{"شهرية":7,"نصف شهرية":3,"أسبوعية":1};
-const KINDS=()=>META.service_kinds||["خارجية","داخلية","حراسات","طبية","بحث"];
+const KINDS=()=>META.service_kinds||["خارجية","داخلية","حراسات","طبية"];
 const SHIFTS=()=>META.shifts||["صباحية","ليلية"];
 const COMMAND_ROLES=()=>META.command_roles||[];
 const MEDICAL_BADGE=()=>META.medical_badge||"ضابط العيادة الطبية";

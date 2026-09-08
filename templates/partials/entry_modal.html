@@ -1,4 +1,4 @@
-<!-- ============ خانة في لوحة التشغيل المختصرة ============ -->
+<!-- ============ خانة في اليومية التفصيلية ============ -->
 <div class="modal hidden" id="entryModal">
   <div class="modal-card">
     <button class="close" data-close="entryModal">×</button>
@@ -7,33 +7,56 @@
       <input type="hidden" id="enId">
 
       <div class="field-section">
-        <div class="field-legend">بيانات الخدمة</div>
+        <div class="field-legend">الخدمة</div>
         <div class="grid">
-          <label>التصنيف <small>اختر أو اكتب تصنيف جديد</small>
-            <input id="enCategory" list="categoryList" required>
-            <datalist id="categoryList"></datalist>
+          <label>الخدمة <small>من الكتالوج — الاسم الحر مش مسموح عشان الربط ما ينكسرش</small>
+            <select id="enService" required></select>
           </label>
-          <label>اسم الخدمة
-            <input id="enService" required>
+          <label>القسم على اللوحة
+            <select id="enSection"></select>
           </label>
           <label id="enShiftWrap">الفترة
-            <select id="enShift"><option value="">— بدون —</option></select>
-          </label>
-          <label>الضابط <small>اختياري</small>
-            <input id="enOfficer" list="officerList" placeholder="اختر من القوة أو اكتب اسم">
-            <datalist id="officerList"></datalist>
+            <select id="enShift"></select>
           </label>
         </div>
       </div>
 
       <div class="field-section">
-        <div class="field-legend">الاحتياجات <small>ضابط / فرد / مج / وحدة / أي حاجة تانية بمزاجك</small></div>
-        <div id="reqRows" class="req-rows"></div>
-        <button type="button" class="mini" id="addReqRow">＋ إضافة احتياج</button>
+        <div class="field-legend">القوام
+          <small>الخانة تنفع تفضل من غير ضابط — خدمة بقوام أفراد ومجندين بس</small></div>
+        <div class="grid">
+          <label>الضباط <small>واحد أو أكتر</small>
+            <select id="enOfficers" multiple size="4"></select>
+          </label>
+          <label>الأفراد <small>واحد أو أكتر</small>
+            <select id="enPersonnel" multiple size="4"></select>
+          </label>
+        </div>
+        <div class="field-legend" style="margin-top:10px">المجندين</div>
+        <div id="conRows" class="req-rows"></div>
+        <button type="button" class="mini" id="addConRow">＋ إضافة فئة</button>
       </div>
 
       <div class="field-section">
-        <div class="field-legend">الوسوم <small>مباراة، خطة انتشار... اكتب واحد جديد لو مش موجود</small></div>
+        <div class="field-legend">تفاصيل الخدمة</div>
+        <div class="grid">
+          <label>التسليح <small>آلي / دونك / خرطوش / فض / فيدرال / كلبش</small>
+            <input id="enWeapon">
+          </label>
+          <label>الانتظام <small>8ص / 8م / 11ص حتى الانتهاء</small>
+            <input id="enTime">
+          </label>
+          <label>الجهة <small>عتاقة / الجناين / فيصل / الاربعين</small>
+            <input id="enParty">
+          </label>
+          <label>الاسم على اللوحة <small>اختياري — لو مختلف عن اسم الخدمة</small>
+            <input id="enLabel">
+          </label>
+        </div>
+      </div>
+
+      <div class="field-section">
+        <div class="field-legend">الوسوم <small>مباراة، خطة انتشار... بتفضل جوّه القسم بعنوان فرعي</small></div>
         <input id="enTags" list="tagList" placeholder="اكتب وسم واضغط Enter">
         <datalist id="tagList"></datalist>
         <div id="tagChips" class="tag-chips"></div>
