@@ -1,11 +1,11 @@
 """يومية تشغيل الضباط — الجدول الكامل وتكليف ضابط بخدمة معيّنة."""
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from ..constants import SHIFTS
 from ..duty import summarise
 from ..people import officers_on
 from ..store import AbortRequest, load_data, with_data
-from ..utils import parse_date
+from ..utils import json_payload, parse_date
 
 bp = Blueprint("duty", __name__)
 
@@ -22,7 +22,7 @@ def set_duty(day, person_id):
     """تكليف ضابط بخدمة (أو أكتر) في يوم معيّن."""
     if not parse_date(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
 
     def mutate(data):
         # التكليف بيتقاس على قوة اليوم نفسه، فالضابط المؤرشف ينفع يتكلّف في يوم كان فيه بالقوة

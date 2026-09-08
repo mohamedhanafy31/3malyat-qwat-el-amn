@@ -1,1 +1,7 @@
 Flask>=2.3,<4
+
+# اختياري — بس لو هتشغّل السيستم بـ serve.py (waitress) بدل python app.py
+# waitress>=2.1,<4
+
+# اختياري — بس لو هتشغّل tests/ (pytest tests/)
+# pytest>=8

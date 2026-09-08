@@ -1,11 +1,11 @@
 """لوحة التشغيل المختصرة — عرض وتعديل خدمات اليوم بحرية كاملة."""
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from ..board import build_board, clean_requirements, get_day_services, remember_category, remember_tags
 from ..constants import CATEGORY_OCCASIONAL, SHIFTS
 from ..people import find_person
 from ..store import AbortRequest, load_data, next_id, with_data
-from ..utils import parse_date
+from ..utils import json_payload, parse_date
 
 bp = Blueprint("board", __name__)
 
@@ -21,7 +21,7 @@ def get_board(day):
 def add_board_entry(day):
     if not parse_date(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
     service = str(payload.get("service", "")).strip()
     if not service:
         return jsonify({"error": "اسم الخدمة مطلوب."}), 400
@@ -60,7 +60,7 @@ def add_board_entry(day):
 def edit_board_entry(day, entry_id):
     if not parse_date(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
 
     def mutate(data):
         entries = get_day_services(data, day)

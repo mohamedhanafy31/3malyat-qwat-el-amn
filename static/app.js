@@ -6,6 +6,11 @@ let LEAVE_TAB="all";         // all | current | upcoming
 const $=s=>document.querySelector(s);
 const $$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+// بيانات حرة (اسم/ملاحظة/وسم) بتتحط جوه data-* attribute بدل onclick="fn('...')" —
+// المتصفح بيفك تشفير HTML بتاع الـ attribute قبل ما يجمّع أي onclick كـ JS، وده كان بيلغي
+// تأثير esc() ويسمح بحقن سكريبت من أي حقل حر (اسم خدمة فيه علامة اقتباس كان كفاية يكسر الصفحة).
+// dataAttr() بتتقرأ في الدالة المستمعة بس كـ JSON.parse — مفيش تنفيذ كود خالص.
+const dataAttr=obj=>esc(JSON.stringify(obj));
 const fmt=d=>d?new Date(d+"T00:00:00").toLocaleDateString("ar-EG",{day:"numeric",month:"short",year:"numeric"}):"-";
 const curDate=()=>DATA.meta.today||new Date().toISOString().slice(0,10);
 const days=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5)+1;
@@ -56,7 +61,15 @@ function showToast(msg,bad){
   setTimeout(()=>t.classList.remove("show"),2800);
 }
 async function api(url,opts){
-  const r=await fetch(url,opts);
+  opts=opts||{};
+  const editedBy=($("#editedBy")?.value||"").trim();
+  if(editedBy && opts.method && opts.method!=="GET"){
+    // ترويسة HTTP لازم تبقى ISO-8859-1 بس — تشفير عشان الاسم غالبًا عربي
+    opts.headers={...(opts.headers||{}),"X-Edited-By":encodeURIComponent(editedBy)};
+  }
+  let r;
+  try{ r=await fetch(url,opts) }
+  catch(e){ showToast("تعذر الاتصال بالخادم",true); return null }
   let out={}; try{out=await r.json()}catch(e){}
   if(!r.ok){showToast(out.error||"حدث خطأ",true); return null}
   return out;
@@ -67,7 +80,6 @@ const personById=id=>["officers","personnel"].flatMap(c=>[...DATA[c].active,...D
 /* ---------- الراحة الحالية ---------- */
 function leavesFor(id){return DATA.leaves.filter(l=>l.person_id===id)}
 function currentLeave(id){const t=curDate(); return leavesFor(id).find(l=>l.start<=t&&t<=l.end)}
-function nextLeave(id){const t=curDate(); return leavesFor(id).filter(l=>l.start>t).sort((a,b)=>a.start<b.start?-1:1)[0]}
 
 /* أقرب راحة قادمة: من السجلات أو من يوم الراحة الأسبوعية الثابت */
 function nextRestStart(p){
@@ -129,6 +141,12 @@ function renderAlerts(){
     </li>`).join("")}</ul></div>`;
 }
 
+/* ---------- عرض جدول عام: نفس الغلاف (تمرير أفقي + سطر العدد) لكل قوائم السجلات ---------- */
+function tableBlock(head,rows,countText,emptyText){
+  if(!rows.length&&emptyText) return `<div class="empty">${emptyText}</div>`;
+  return `<div class="table-scroll">${mtable(head,rows)}</div><div class="count">${countText}</div>`;
+}
+
 /* ---------- عرض القوة ---------- */
 function renderStats(){
   const o=DATA.officers, p=DATA.personnel, t=curDate();
@@ -171,8 +189,6 @@ function renderForce(){
   $("#restFilter").classList.toggle("hidden",SECTION!=="officers");
 
   const rows=filterRows(listOf(SECTION,BUCKET));
-  if(!rows.length){$("#tableWrap").innerHTML=`<div class="empty">لا توجد بيانات لعرضها.</div>`;return}
-
   const isOff=SECTION==="officers", isArch=BUCKET==="archive";
   const head=isOff
     ? (isArch?["الاسم","الرتبة","الأقدمية","الهاتف","العمل المسند","من","إلى","السبب","الإجراء"]
@@ -180,25 +196,23 @@ function renderForce(){
     : (isArch?["الاسم","الدرجة","الكود","الهاتف","العمل","العنوان","من","إلى","السبب","الإجراء"]
              :["الاسم","الدرجة","الكود","الهاتف","العمل","العنوان","من","الإجراء"]);
 
-  const body=rows.map(p=>{
+  const bodyRows=rows.map(p=>{
     const acts=isArch
-      ? `<button class="mini" onclick="openPerson('${p.id}')">تعديل</button>
-         <button class="mini ok" onclick="restorePerson('${p.id}')">استرجاع</button>
-         <button class="mini bad" onclick="deleteRecord('${p.id}','${esc(p.name)}')">حذف</button>`
-      : `<button class="mini" onclick="openPerson('${p.id}')">تعديل</button>
-         ${isOff?`<button class="mini ok" onclick="openLeave(null,'${p.id}')">راحة</button>`:""}
-         <button class="mini bad" onclick="openRemove('${p.id}','${esc(p.name)}')">إخراج</button>`;
+      ? `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
+         <button class="mini ok" data-action="restorePerson" data-id="${esc(p.id)}">استرجاع</button>
+         <button class="mini bad" data-action="deleteRecord" data-id="${esc(p.id)}" data-extra="${dataAttr({name:p.name})}">حذف</button>`
+      : `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
+         ${isOff?`<button class="mini ok" data-action="openLeaveFor" data-id="${esc(p.id)}">راحة</button>`:""}
+         <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name:p.name})}">إخراج</button>`;
     const cells=isOff
       ? (isArch?[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)||"<span class='muted'>—</span>"}</td>`,`<td class="wrap">${esc(p.post)||"-"}</td>`,`<td>${fmt(p.join_date)}</td>`,`<td>${fmt(p.leave_date)}</td>`,`<td class="wrap">${esc(p.leave_reason)||"<span class='muted'>—</span>"}</td>`]
                 :[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)||"<span class='muted'>—</span>"}</td>`,`<td class="wrap">${esc(p.post)||"-"}</td>`,`<td>${restLabel(p)}</td>`,`<td>${statusCell(p)}</td>`,`<td>${fmt(p.join_date)}</td>`])
       : (isArch?[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge person">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)}</td>`,`<td>${esc(p.post)||"-"}</td>`,`<td class="wrap">${esc(p.address)||"-"}</td>`,`<td>${fmt(p.join_date)}</td>`,`<td>${fmt(p.leave_date)}</td>`,`<td class="wrap">${esc(p.leave_reason)||"<span class='muted'>—</span>"}</td>`]
                 :[`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge person">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)}</td>`,`<td>${esc(p.post)||"-"}</td>`,`<td class="wrap">${esc(p.address)||"-"}</td>`,`<td>${fmt(p.join_date)}</td>`]);
     return `<tr>${cells.join("")}<td><div class="actions">${acts}</div></td></tr>`;
-  }).join("");
+  });
 
-  $("#tableWrap").innerHTML=`<div class="table-scroll"><table class="table">
-    <thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>
-    <div class="count">عدد النتائج: ${rows.length}</div>`;
+  $("#tableWrap").innerHTML=tableBlock(head,bodyRows,`عدد النتائج: ${rows.length}`,"لا توجد بيانات لعرضها.");
 }
 
 /* ---------- عرض الراحات ---------- */
@@ -222,18 +236,16 @@ function renderLeaves(){
     return (pa?.name||a.name).localeCompare(pb?.name||b.name,'ar');
   });
 
-  if(!rows.length){$("#leaveWrap").innerHTML=`<div class="empty">لا توجد راحات مسجلة.</div>`;return}
-
   let lastType=null;
-  const body=rows.map(l=>{
+  const bodyRows=rows.map(l=>{
     const divider=l.type!==lastType
       ?`<tr class="grouprow"><td colspan="9">${esc(l.type)}</td></tr>`:"";
     lastType=l.type;
     return divider+leaveRow(l,t);
-  }).join("");
-  $("#leaveWrap").innerHTML=`<div class="table-scroll"><table class="table">
-    <thead><tr>${["الاسم","النوع","من","إلى","العودة","الأيام","الحالة","ملاحظات","الإجراء"].map(h=>`<th>${h}</th>`).join("")}</tr></thead>
-    <tbody>${body}</tbody></table></div><div class="count">عدد النتائج: ${rows.length}</div>`;
+  });
+  $("#leaveWrap").innerHTML=tableBlock(
+    ["الاسم","النوع","من","إلى","العودة","الأيام","الحالة","ملاحظات","الإجراء"],
+    bodyRows,`عدد النتائج: ${rows.length}`,"لا توجد راحات مسجلة.");
 }
 function leaveRow(l,t){
     const live=l.start<=t&&t<=l.end, up=l.start>t;
@@ -250,8 +262,8 @@ function leaveRow(l,t){
       <td>${state}</td>
       <td class="wrap">${esc(l.note)||"<span class='muted'>—</span>"}</td>
       <td><div class="actions">
-        <button class="mini" onclick="openLeave('${l.id}')">تعديل</button>
-        <button class="mini bad" onclick="deleteLeave('${l.id}','${esc(l.name)}')">حذف</button>
+        <button class="mini" data-action="openLeaveEdit" data-id="${esc(l.id)}">تعديل</button>
+        <button class="mini bad" data-action="deleteLeave" data-id="${esc(l.id)}" data-extra="${dataAttr({name:l.name})}">حذف</button>
       </div></td></tr>`;
 }
 
@@ -296,7 +308,7 @@ function renderSummary(s){
    </tr></tbody></table></div>`;
 }
 function renderBoard(rows){
-  const body=rows.map(r=>{
+  const bodyRows=rows.map(r=>{
     const svc=r.services.length
       ? r.services.map(s=>`<span class="chip ${KIND_CLS[s.kind]||"w"}">${esc(s.name)}<i>${esc(s.shift)}</i></span>`).join(" ")
       : `<span class="muted">—</span>`;
@@ -309,30 +321,27 @@ function renderBoard(rows){
       <td>${svc}${r.taqseera?' <span class="chip taq">تقصيرة</span>':""}</td>
       <td>${grp}</td>
       <td class="wrap">${esc(r.note)||"<span class='muted'>—</span>"}</td>
-      <td><button class="mini" ${r.leave?"disabled title='الضابط في راحة'":""} onclick="openAssign('${r.id}')">تكليف</button></td>
-    </tr>`;}).join("");
+      <td><button class="mini" ${r.leave?"disabled title='الضابط في راحة'":""} data-action="openAssign" data-id="${esc(r.id)}">تكليف</button></td>
+    </tr>`;});
   const gone=rows.filter(r=>r.later_left).length;
-  $("#dutyBoard").innerHTML=`<div class="table-scroll"><table class="table">
-    <thead><tr><th>الضابط</th><th>الخدمات</th><th>الخانة في الإجمالي</th><th>نص التشغيل</th><th>الإجراء</th></tr></thead>
-    <tbody>${body}</tbody></table></div>
-    <div class="count">قوة اليوم: ${rows.length} ضابط${gone?` — منهم ${gone} خرجوا من القوة بعد كده`:""}</div>`;
+  const countText=`قوة اليوم: ${rows.length} ضابط${gone?` — منهم ${gone} خرجوا من القوة بعد كده`:""}`;
+  $("#dutyBoard").innerHTML=tableBlock(
+    ["الضابط","الخدمات","الخانة في الإجمالي","نص التشغيل","الإجراء"],bodyRows,countText);
 }
 function renderCatalog(){
   const q=$("#svcSearch").value.trim().toLowerCase(), k=$("#svcKindFilter").value;
   let rows=DATA.services||[];
   if(q) rows=rows.filter(s=>s.name.toLowerCase().includes(q));
   if(k) rows=rows.filter(s=>s.kind===k);
-  if(!rows.length){$("#catalogWrap").innerHTML=`<div class="empty">لا توجد خدمات.</div>`;return}
-  $("#catalogWrap").innerHTML=`<div class="table-scroll"><table class="table">
-    <thead><tr><th>الخدمة</th><th>التصنيف</th><th>الإجراء</th></tr></thead>
-    <tbody>${rows.map(s=>`<tr>
+  const bodyRows=rows.map(s=>`<tr>
       <td class="name">${esc(s.name)}</td>
       <td><span class="chip ${KIND_CLS[s.kind]||"w"}">${esc(s.kind)}</span></td>
       <td><div class="actions">
-        <button class="mini" onclick="openSvc('${s.id}')">تعديل</button>
-        <button class="mini bad" onclick="deleteSvc('${s.id}','${esc(s.name)}')">حذف</button>
-      </div></td></tr>`).join("")}</tbody></table></div>
-    <div class="count">عدد الخدمات: ${rows.length}</div>`;
+        <button class="mini" data-action="openSvc" data-id="${esc(s.id)}">تعديل</button>
+        <button class="mini bad" data-action="deleteSvc" data-id="${esc(s.id)}" data-extra="${dataAttr({name:s.name})}">حذف</button>
+      </div></td></tr>`);
+  $("#catalogWrap").innerHTML=tableBlock(
+    ["الخدمة","التصنيف","الإجراء"],bodyRows,`عدد الخدمات: ${rows.length}`,"لا توجد خدمات.");
 }
 /* ---------- لوحة التشغيل المختصرة (صفحة المطابقة، قابلة للتعديل الحر) ---------- */
 let MATCH=null, MATCH_DAY=null;
@@ -361,8 +370,8 @@ function entryRow(cat,e,extraTags){
     <td class="wrap">${reqCell}</td>
     <td class="wrap">${esc(e.note)||"<span class='muted'>—</span>"}</td>
     <td><div class="actions">
-      <button class="mini" onclick="openEntry('${esc(cat)}','${e.id}')">تعديل</button>
-      <button class="mini bad" onclick="deleteEntry('${e.id}','${esc(e.service)}')">حذف</button>
+      <button class="mini" data-action="openEntry" data-id="${esc(e.id)}" data-extra="${dataAttr({category:cat})}">تعديل</button>
+      <button class="mini bad" data-action="deleteEntry" data-id="${esc(e.id)}" data-extra="${dataAttr({name:e.service})}">حذف</button>
     </div></td></tr>`;
 }
 function entryCard(cat){
@@ -372,7 +381,7 @@ function entryCard(cat){
     : `<div class="mempty">لا توجد خدمات — اضغط «إضافة» فوق</div>`;
   return `<div class="mcard">
     <h3>${esc(cat.name)}<span class="mcount">${cat.entries.length}</span>
-      <button class="mini ok" onclick="openEntry('${esc(cat.name)}')">＋ إضافة</button></h3>
+      <button class="mini ok" data-action="openEntry" data-extra="${dataAttr({category:cat.name})}">＋ إضافة</button></h3>
     ${table}</div>`;
 }
 function specialCard(group){
@@ -381,7 +390,7 @@ function specialCard(group){
   return `<div class="mcard special">
     <h3>#${esc(group.tag)}<span class="mcount">${group.entries.length}</span>
       <span class="of-cat">ضمن «${esc(group.of_category)}»</span>
-      <button class="mini ok" onclick="openSpecialEntry('${esc(group.tag)}','${esc(group.of_category)}')">＋ إضافة</button></h3>
+      <button class="mini ok" data-action="openSpecialEntry" data-extra="${dataAttr({tag:group.tag,category:group.of_category})}">＋ إضافة</button></h3>
     ${table}</div>`;
 }
 function renderMatch(){
@@ -415,7 +424,7 @@ function renderMatch(){
       <div><h3>الخدمات الخاصة</h3>
       <p class="hint" style="margin:0">خدمات مرتبطة بحدث معيّن (مباراة، خطة انتشار...) — منفصلة هنا للمتابعة،
         لكنها تفضل منطقيًا ضمن تصنيفها الأصلي (غالبًا الخدمات الطارئة).</p></div>
-      <button class="mini ok" onclick="openSpecialEntry('','${CATEGORY_OCCASIONAL}')">＋ حدث خاص جديد</button>
+      <button class="mini ok" data-action="openSpecialEntry" data-extra="${dataAttr({tag:"",category:CATEGORY_OCCASIONAL})}">＋ حدث خاص جديد</button>
     </div>
     ${b.special.length?`<div class="match-grid special-grid">${b.special.map(specialCard).join("")}</div>`
       :`<div class="mempty" style="margin:0 18px 20px">لا توجد خدمات خاصة اليوم.</div>`}`;
@@ -432,13 +441,12 @@ function renderMatch(){
 }
 
 /* ---------- إضافة/تعديل خانة في اللوحة ---------- */
-let REQ_ROWS=[];
 function reqRow(r){
   return `<div class="req-row">
     <input class="req-label" placeholder="النوع (ضابط/فرد/مج/وحدة...)" value="${esc(r.label||"")}">
     <input class="req-count" type="number" min="0" placeholder="العدد" value="${r.count||""}">
     <input class="req-note" placeholder="ملاحظة (قتالية/فض/رياضي...)" value="${esc(r.note||"")}">
-    <button type="button" class="mini bad" onclick="this.closest('.req-row').remove()">حذف</button>
+    <button type="button" class="mini bad" data-action="removeReqRow">حذف</button>
   </div>`;
 }
 $("#addReqRow").onclick=()=>$("#reqRows").insertAdjacentHTML("beforeend",reqRow({}));
@@ -447,9 +455,8 @@ $("#enCategory").addEventListener("input",toggleEnShift);
 let ENTRY_TAGS=[];
 function renderTagChips(){
   $("#tagChips").innerHTML=ENTRY_TAGS.map((t,i)=>
-    `<span class="chip soon">#${esc(t)} <a onclick="removeTag(${i})">×</a></span>`).join(" ");
+    `<span class="chip soon">#${esc(t)} <a data-action="removeTag" data-id="${i}">×</a></span>`).join(" ");
 }
-window.removeTag=i=>{ENTRY_TAGS.splice(i,1); renderTagChips()};
 $("#enTags").addEventListener("keydown",e=>{
   if(e.key!=="Enter") return;
   e.preventDefault();
@@ -463,7 +470,7 @@ function findEntry(entryId){
   for(const g of MATCH.special){const e=g.entries.find(x=>x.id===entryId); if(e) return e}
   return null;
 }
-window.openEntry=(category,entryId,presetTags)=>{
+function openEntry(category,entryId,presetTags){
   const e=entryId?findEntry(entryId):null;
   $("#enId").value=entryId||"";
   $("#entryTitle").textContent=e?"تعديل خانة":`إضافة إلى «${category}»`;
@@ -482,8 +489,8 @@ window.openEntry=(category,entryId,presetTags)=>{
   $("#reqRows").innerHTML=(e&&e.requirements||[]).map(reqRow).join("");
   ENTRY_TAGS=[...(e?e.tags:presetTags)||[]]; renderTagChips();
   openModal("entryModal");
-};
-window.openSpecialEntry=(tag,ofCategory)=>openEntry(ofCategory,null,tag?[tag]:[]);
+}
+function openSpecialEntry(tag,ofCategory){openEntry(ofCategory,null,tag?[tag]:[])}
 $("#enOfficer").addEventListener("input",()=>{
   const o=DATA.officers.active.find(o=>o.name===$("#enOfficer").value);
   $("#enOfficer").dataset.officerId=o?o.id:"";
@@ -509,11 +516,11 @@ $("#entryForm").onsubmit=async e=>{
   closeModal("entryModal"); showToast(id?"تم حفظ التعديلات":"تمت الإضافة");
   await load(); await loadMatch(MATCH_DAY,true);
 };
-window.deleteEntry=async(id,name)=>{
+async function deleteEntry(id,name){
   if(!confirm(`حذف «${name}» من اليومية؟`)) return;
   const out=await api(`/api/board/${MATCH_DAY}/entries/${encodeURIComponent(id)}`,{method:"DELETE"});
   if(out){showToast("تم الحذف"); loadMatch(MATCH_DAY,true)}
-};
+}
 
 function renderDuty(){
   const dateView=DUTY_TAB==="board"||DUTY_TAB==="match";
@@ -597,7 +604,7 @@ function toggleRestDay(){
 function openModal(id){$("#"+id).classList.remove("hidden")}
 function closeModal(id){$("#"+id).classList.add("hidden")}
 
-window.openPerson=id=>{
+function openPerson(id){
   const p=id?personById(id):null;
   $("#personId").value=id||"";
   $("#personModalTitle").textContent=p?"تعديل البيانات":"إضافة إلى القوة";
@@ -625,7 +632,7 @@ window.openPerson=id=>{
   $("#archiveFields").classList.toggle("hidden",!archived);
   if(archived){$("#fLeaveDate").value=p.leave_date||"";$("#fLeaveReason").value=p.leave_reason||""}
   openModal("personModal");
-};
+}
 
 $("#personForm").onsubmit=async e=>{
   e.preventDefault();
@@ -645,10 +652,10 @@ $("#personForm").onsubmit=async e=>{
   closeModal("personModal"); showToast(id?"تم حفظ التعديلات":"تمت الإضافة إلى القوة"); load();
 };
 
-window.openRemove=(id,name)=>{
+function openRemove(id,name){
   $("#removeId").value=id; $("#removeName").textContent=`سيتم إخراج: ${name}`;
   $("#leaveDate").value=curDate(); $("#reason").value=""; openModal("removeModal");
-};
+}
 $("#removeForm").onsubmit=async e=>{
   e.preventDefault();
   const out=await api(`/api/person/${encodeURIComponent($("#removeId").value)}/remove`,
@@ -657,19 +664,19 @@ $("#removeForm").onsubmit=async e=>{
   if(!out) return;
   closeModal("removeModal"); showToast("تم الإخراج وحفظ السجل في الأرشيف"); load();
 };
-window.restorePerson=async id=>{
+async function restorePerson(id){
   if(!confirm("استرجاع هذا السجل إلى القوة؟")) return;
   const out=await api(`/api/person/${encodeURIComponent(id)}/restore`,{method:"POST"});
   if(out){showToast("تم الاسترجاع إلى القوة"); load()}
-};
-window.deleteRecord=async(id,name)=>{
+}
+async function deleteRecord(id,name){
   if(!confirm(`حذف سجل «${name}» نهائيًا من الأرشيف؟ لا يمكن التراجع.`)) return;
   const out=await api(`/api/person/${encodeURIComponent(id)}`,{method:"DELETE"});
   if(out){showToast("تم حذف السجل"); load()}
-};
+}
 
 /* ---------- نموذج الراحة ---------- */
-window.openLeave=(leaveId,personId)=>{
+function openLeave(leaveId,personId){
   const lv=leaveId?DATA.leaves.find(x=>x.id===leaveId):null;
   $("#leaveId").value=leaveId||"";
   $("#leaveModalTitle").textContent=lv?"تعديل الراحة":"تسجيل راحة";
@@ -691,7 +698,9 @@ window.openLeave=(leaveId,personId)=>{
     applyDuration();
   }
   updateHint(); openModal("leaveModal");
-};
+}
+function openLeaveFor(personId){openLeave(null,personId)}
+function openLeaveEdit(leaveId){openLeave(leaveId)}
 /* المدة القياسية: شهرية 7 أيام، نصف شهرية 3، أسبوعية يوم واحد */
 function applyDuration(){
   const n=DURATIONS()[$("#lvType").value], s=$("#lvStart").value;
@@ -737,14 +746,14 @@ $("#leaveForm").onsubmit=async e=>{
   if(!out) return;
   closeModal("leaveModal"); showToast(id?"تم تعديل الراحة":"تم تسجيل الراحة"); load();
 };
-window.deleteLeave=async(id,name)=>{
+async function deleteLeave(id,name){
   if(!confirm(`حذف سجل راحة «${name}»؟`)) return;
   const out=await api(`/api/leaves/${encodeURIComponent(id)}`,{method:"DELETE"});
   if(out){showToast("تم حذف الراحة"); load()}
-};
+}
 
 /* ---------- تكليف ضابط ---------- */
-window.openAssign=id=>{
+function openAssign(id){
   const row=DUTY.rows.find(r=>r.id===id); if(!row) return;
   $("#assignPerson").value=id;
   $("#assignTitle").textContent=`تكليف: ${row.name}`;
@@ -762,7 +771,7 @@ window.openAssign=id=>{
   $("#assignStatus").value=row.group==="خوارج"&&["انتداب","غياب"].includes(row.bucket)?row.bucket:"";
   $("#assignNote").value=row.note||"";
   openModal("assignModal");
-};
+}
 $("#assignForm").onsubmit=async e=>{
   e.preventDefault();
   const items=$$("#assignServices .svc-item").filter(l=>l.querySelector("input").checked)
@@ -776,7 +785,7 @@ $("#assignForm").onsubmit=async e=>{
 };
 
 /* ---------- كتالوج الخدمات ---------- */
-window.openSvc=id=>{
+function openSvc(id){
   const s=id?(DATA.services||[]).find(x=>x.id===id):null;
   $("#svcId").value=id||"";
   $("#svcTitle").textContent=s?"تعديل خدمة":"خدمة جديدة";
@@ -784,7 +793,7 @@ window.openSvc=id=>{
   fillSelect($("#svcKind"),KINDS().map(x=>[x,x]));
   if(s) $("#svcKind").value=s.kind;
   openModal("svcModal");
-};
+}
 $("#svcForm").onsubmit=async e=>{
   e.preventDefault();
   const id=$("#svcId").value, body={name:$("#svcName").value,kind:$("#svcKind").value};
@@ -795,11 +804,43 @@ $("#svcForm").onsubmit=async e=>{
   closeModal("svcModal"); showToast(id?"تم تعديل الخدمة":"تمت إضافة الخدمة");
   await load(); if(DUTY) await loadDuty(DUTY.date);
 };
-window.deleteSvc=async(id,name)=>{
+async function deleteSvc(id,name){
   if(!confirm(`حذف خدمة «${name}» من الكتالوج؟`)) return;
   const out=await api(`/api/services/${encodeURIComponent(id)}`,{method:"DELETE"});
   if(out){showToast("تم حذف الخدمة"); load()}
+}
+
+/* ---------- توزيع النقرات على الأزرار المُنشأة ديناميكيًا (بديل onclick المضمّن) ----------
+   كل زرار متولّد من قالب نص بيحمل data-action (+ data-id/data-extra عند اللزوم) بدل ما
+   يحمل onclick="fn('${قيمة حرة}')" مباشر. النقر بيتلقط هنا مرة واحدة على مستوى الصفحة،
+   والقيم بتتقرأ من الـ dataset (نص عادي، لا يتجمّع كـ JS أبدًا) — فمفيش أي طريقة لقيمة
+   حرة (اسم/خدمة/وسم) إنها تكسر الصفحة أو تنفّذ كود مهما كان محتواها. */
+const ACTIONS={
+  openPerson:id=>openPerson(id),
+  restorePerson:id=>restorePerson(id),
+  deleteRecord:(id,extra)=>deleteRecord(id,extra.name),
+  openLeaveFor:id=>openLeaveFor(id),
+  openRemove:(id,extra)=>openRemove(id,extra.name),
+  openLeaveEdit:id=>openLeaveEdit(id),
+  deleteLeave:(id,extra)=>deleteLeave(id,extra.name),
+  openAssign:id=>openAssign(id),
+  openSvc:id=>openSvc(id),
+  deleteSvc:(id,extra)=>deleteSvc(id,extra.name),
+  openEntry:(id,extra)=>openEntry(extra.category,id||null),
+  deleteEntry:(id,extra)=>deleteEntry(id,extra.name),
+  openSpecialEntry:(id,extra)=>openSpecialEntry(extra.tag,extra.category),
+  removeTag:id=>{ENTRY_TAGS.splice(Number(id),1); renderTagChips()},
+  removeReqRow:(id,extra,el)=>el.closest(".req-row").remove(),
 };
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-action]");
+  if(!el) return;
+  const action=ACTIONS[el.dataset.action];
+  if(!action) return;
+  let extra={};
+  if(el.dataset.extra){ try{extra=JSON.parse(el.dataset.extra)}catch(err){} }
+  action(el.dataset.id,extra,el);
+});
 
 /* ---------- ربط الأحداث ---------- */
 const shiftDay=n=>{const d=addDays($("#dutyDate").value||curDate(),n);$("#dutyDate").value=d;loadDuty(d)};
@@ -889,5 +930,14 @@ $("#addBtn").onclick=()=>openPerson(null);
 $("#addLeaveBtn").onclick=()=>openLeave(null);
 $("#type").onchange=updateRoles;
 $("#fRestSystem").onchange=toggleRestDay;
+
+/* اسم من قام بالتعديل — حقل اختياري بيتحفظ محليًا وبيتبعت مع أي طلب تعديل
+   (POST/PUT/PATCH/DELETE) كـ header، عشان يتسجل في سجل التدقيق (logs/audit.log)
+   من غير أي نظام حسابات أو تسجيل دخول. */
+const editedByEl=$("#editedBy");
+if(editedByEl){
+  editedByEl.value=localStorage.getItem("editedBy")||"";
+  editedByEl.addEventListener("input",()=>localStorage.setItem("editedBy",editedByEl.value.trim()));
+}
 
 load();

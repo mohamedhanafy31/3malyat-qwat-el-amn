@@ -1,12 +1,47 @@
 """تخزين البيانات — ملف JSON واحد، بقفل خيط وكتابة ذرية (tmp file replace)."""
 import json
+import logging
 import threading
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from urllib.parse import unquote
+
+from flask import request
 
 from .constants import DEFAULT_DATA
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data.json"
 LOCK = threading.Lock()
+
+# سجل تدقيق بسيط — مين عدّل ايه وامتى، بدون نظام حسابات أو تسجيل دخول. الاسم
+# اختياري (حقل "اسمك" في الشريط العلوي)؛ لو فاضي بيتسجل null. الملف بيدور
+# تلقائيًا (5 ميجا × 5 نسخ) عشان ما يكبرش من غير حد.
+_LOG_DIR = Path(__file__).resolve().parent.parent / "logs"
+_LOG_DIR.mkdir(exist_ok=True)
+_audit_logger = logging.getLogger("personnel_system.audit")
+_audit_logger.setLevel(logging.INFO)
+if not _audit_logger.handlers:
+    _audit_handler = RotatingFileHandler(_LOG_DIR / "audit.log", maxBytes=5 * 1024 * 1024,
+                                          backupCount=5, encoding="utf-8")
+    _audit_handler.setFormatter(logging.Formatter("%(message)s"))
+    _audit_logger.addHandler(_audit_handler)
+    _audit_logger.propagate = False
+
+
+def _log_audit():
+    try:
+        # الفرونت إند بيبعت الاسم مشفّر (encodeURIComponent) لأن ترويسة HTTP
+        # لازم تبقى ISO-8859-1 بس، والاسم هنا غالبًا عربي.
+        edited_by = unquote(request.headers.get("X-Edited-By", "")).strip()
+        _audit_logger.info(json.dumps({
+            "ts": datetime.now().isoformat(timespec="seconds"),
+            "method": request.method,
+            "path": request.path,
+            "edited_by": edited_by or None,
+        }, ensure_ascii=False))
+    except RuntimeError:
+        pass  # نداء بره سياق طلب HTTP (سكربت مستقبلي مثلًا) — تجاهل بهدوء
 
 
 def _read():
@@ -68,6 +103,7 @@ def with_data(fn):
         except AbortRequest as exc:
             return exc.response
         _write(data)
+        _log_audit()
         return result
 
 

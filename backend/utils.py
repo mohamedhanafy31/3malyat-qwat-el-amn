@@ -1,7 +1,16 @@
 """أدوات عامة صغيرة مستخدمة في أكتر من مكان."""
 from datetime import date
 
+from flask import request
+
 from .constants import RANK_ORDER
+
+
+def json_payload():
+    """جسم الطلب كـ dict دايمًا — لو العميل بعت array أو نص أو JSON غير صحيح
+    برضو بترجع {} بدل ما ترمي 500 من أول payload.get(...) بعدها."""
+    payload = request.get_json(silent=True)
+    return payload if isinstance(payload, dict) else {}
 
 
 def parse_date(value):

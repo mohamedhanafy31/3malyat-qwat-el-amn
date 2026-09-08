@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
-"""Shared parsing helpers for the 2026 camp archive."""
+"""Shared parsing helpers for the 2026 camp archive.
+
+NOTE — one-time importer, not part of the running app: ROOT below is a
+hardcoded absolute path, and the "2026" year is baked into filename/date
+patterns across this module, build.py, and rests.py. Re-running this
+pipeline for a future year, or after moving/remounting this drive, WILL
+break silently until you update ROOT here and the year constants in
+build.py/rests.py by hand.
+"""
 import re
 from pathlib import Path
 from docx_read import read_docx

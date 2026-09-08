@@ -1,19 +1,19 @@
 """القوة — إضافة/تعديل/إخراج/استعادة/حذف الضباط والأفراد."""
 from datetime import date
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from ..constants import EDITABLE, PERSONNEL_FAMILIES
 from ..people import find_person, sort_active, valid_rest
 from ..store import AbortRequest, with_data
-from ..utils import category_for, parse_date
+from ..utils import category_for, json_payload, parse_date
 
 bp = Blueprint("people", __name__)
 
 
 @bp.post("/api/person")
 def add_person():
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
     required = ["name", "code", "phone", "join_date", "type"]
     if any(not str(payload.get(k, "")).strip() for k in required):
         return jsonify({"error": "برجاء إدخال كل البيانات المطلوبة."}), 400
@@ -68,7 +68,7 @@ def add_person():
 
 @bp.patch("/api/person/<person_id>")
 def edit_person(person_id):
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
 
     def mutate(data):
         person, category, bucket = find_person(data, person_id)
@@ -123,7 +123,7 @@ def edit_person(person_id):
 
 @bp.post("/api/person/<person_id>/remove")
 def remove_person(person_id):
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
     leave_date = str(payload.get("leave_date", "")).strip() or date.today().isoformat()
     reason = str(payload.get("reason", "")).strip()
 

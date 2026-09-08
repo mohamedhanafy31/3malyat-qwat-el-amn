@@ -1,15 +1,16 @@
 """كتالوج الخدمات — إضافة/تعديل/حذف."""
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from ..constants import SERVICE_KINDS
 from ..store import AbortRequest, next_id, with_data
+from ..utils import json_payload
 
 bp = Blueprint("services", __name__)
 
 
 @bp.post("/api/services")
 def add_service():
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
     name = str(payload.get("name", "")).strip()
     kind = str(payload.get("kind", "")).strip()
     if not name:
@@ -31,7 +32,7 @@ def add_service():
 @bp.patch("/api/services/<service_id>")
 def edit_service(service_id):
     """تعديل تصنيف خدمة — بيغيّر كل الإجماليات التاريخية على طول."""
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
 
     def mutate(data):
         svc = next((s for s in data["services"] if s.get("id") == service_id), None)

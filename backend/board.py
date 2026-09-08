@@ -54,10 +54,12 @@ def _derive_day_services(data, day):
             cat = CATEGORY_BASIC
         else:
             cat = CATEGORY_OCCASIONAL
+        tags = [SERVICE_TAGS[name]] if name in SERVICE_TAGS else []
+        remember_tags(data, tags)
         entries.append({
             "id": next_id(entries, "DS", width=4), "category": cat, "service": name,
             "shift": shift, "officer_id": r["id"], "officer_name": r["name"],
-            "requirements": [], "tags": [SERVICE_TAGS[name]] if name in SERVICE_TAGS else [],
+            "requirements": [], "tags": tags,
             "note": r["note"] if taq else "",
         })
 

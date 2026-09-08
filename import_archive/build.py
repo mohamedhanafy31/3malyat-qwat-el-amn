@@ -5,6 +5,14 @@ Officers  : the 92 daily "D-M-2026.docx" duty sheets give presence per day;
             "ارقام الضباط.docx" supplies phone + seniority.
 Personnel : the 92 daily "داتا افراد.docx" sheets give presence per day;
             "ارقام الافراد.docx" supplies the full name, grade and address.
+
+NOTE — one-time importer, not part of the running app: OUT below is a
+hardcoded absolute path, and "2026" is hardcoded into filename patterns
+(e.g. f'{d}-{m}-2026.docx') and date construction throughout this file.
+Re-running for a future year's archive, or after moving/remounting this
+drive, requires manually updating OUT here and the "2026"/REST_MONTH
+literals in this file, common.py's ROOT, and rests.py's ref_year default —
+nothing here is parameterized via config or CLI args.
 """
 import json, re, sys, collections, datetime
 from pathlib import Path
@@ -180,7 +188,6 @@ for p in officers:
         'section': last_row.get('section') or ref.get('section', 'القوة'),
         'rest_system': rest_sys,
         'rest_day': rest_day,
-        'days_present': len(p.days),
     }
     # still on the force if the closing roster lists them, or they were on the
     # last duty sheet; otherwise they left after their final appearance.
@@ -279,7 +286,6 @@ for g in groups:
         'join_date': join,
         'post': (ref or {}).get('work', ''),
         'address': (ref or {}).get('address', ''),
-        'days_present': len(g['days']),
     }
     if len(g['phones']) > 1:
         rec['other_phones'] = [x for x in g['phones'] if x != phone]

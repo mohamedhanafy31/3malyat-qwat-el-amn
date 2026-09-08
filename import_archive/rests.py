@@ -4,6 +4,11 @@
 The "الراحات" column records the standing entitlement (weekly / semi-monthly /
 monthly, and for weekly the fixed day). The "التشغيل اليومي" column records the
 actual absence, e.g. "راحة شهرية من(16/8 عودة 23/8)".
+
+NOTE — one-time importer: _mk()'s ref_year default (2026) is hardcoded to
+match this archive. Reusing this module for a different year's sheets means
+updating that default here too, alongside common.py's ROOT and build.py's
+OUT/"2026" literals.
 """
 import re
 from datetime import date, timedelta

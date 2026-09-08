@@ -1,15 +1,16 @@
 """نقاط الراحات والإجازات."""
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from ..leaves import build_leave, overlapping
 from ..store import AbortRequest, next_id, with_data
+from ..utils import json_payload
 
 bp = Blueprint("leaves", __name__)
 
 
 @bp.post("/api/leaves")
 def add_leave():
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
 
     def mutate(data):
         leave_id = next_id(data["leaves"], "LV")
@@ -29,7 +30,7 @@ def add_leave():
 
 @bp.patch("/api/leaves/<leave_id>")
 def edit_leave(leave_id):
-    payload = request.get_json(silent=True) or {}
+    payload = json_payload()
 
     def mutate(data):
         current = next((l for l in data["leaves"] if l.get("id") == leave_id), None)
