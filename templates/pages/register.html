@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar" id="regBar">
+    <button class="mini" id="monthPrev">◀ الشهر السابق</button>
+    <input type="month" id="regMonth" class="select">
+    <button class="mini" id="monthNext">التالي ▶</button>
+    <input id="regSearch" class="search" placeholder="بحث باسم الضابط...">
+    <span id="regCount" class="muted"></span>
+  </div>
+  <div id="registerWrap"></div>
+  <div id="registerLegend"></div>
+</div>
+{% endblock %}
+
+{% block modals %}{% include "partials/cell_modal.html" %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/register-shared.js') }}"></script>
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+{% endblock %}

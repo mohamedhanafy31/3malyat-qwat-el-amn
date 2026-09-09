@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <a class="mini" href="{{ url_for('pages.register') }}">◀ رجوع لدفتر 43</a>
+    <span id="offHead" class="muted"></span>
+  </div>
+  <div id="officerWrap"></div>
+  <div id="registerLegend"></div>
+</div>
+<script>const OFFICER_ID = {{ officer_id | tojson }};</script>
+{% endblock %}
+
+{% block modals %}{% include "partials/cell_modal.html" %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/register-shared.js') }}"></script>
+<script src="{{ url_for('static', filename='js/officer-register.js') }}"></script>
+{% endblock %}

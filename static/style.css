@@ -243,6 +243,49 @@ tr.vacant{background:repeating-linear-gradient(135deg,transparent,transparent 7p
 tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
   font-family:var(--font-head);letter-spacing:.5px}
 
+/* ---------- دفتر 43 ---------- */
+.reg-scroll{max-height:calc(100vh - 260px)}
+.reg43{border-collapse:separate;border-spacing:0;font-size:13.5px}
+.reg43 th,.reg43 td{padding:3px 4px;text-align:center;white-space:nowrap}
+/* اسم الضابط ثابت مع التمرير الأفقي، وصف العناوين ثابت مع الرأسي */
+.reg43 thead th{position:sticky;top:0;z-index:3;background:var(--navy-100)}
+.reg43 .who-col{position:sticky;inset-inline-start:0;z-index:2;background:#fff;
+  text-align:start;min-width:190px;padding-inline:10px;box-shadow:1px 0 0 var(--line)}
+.reg43 thead .who-col{z-index:4;background:var(--navy-100)}
+.reg43 tbody tr:nth-child(even) .who-col{background:var(--navy-50)}
+.reg43 tbody tr:nth-child(even) td{background:var(--navy-50)}
+.reg43 .d-col{min-width:30px;color:var(--ink-500);font-weight:600}
+.reg43 .t-col{min-width:38px;background:var(--navy-50)}
+.who-link{color:var(--ink-900);font-weight:600;text-decoration:none}
+.who-link:hover{text-decoration:underline}
+.reg43 tfoot td{position:sticky;bottom:0;background:var(--navy-100);font-weight:600;
+  border-top:2px solid var(--line-strong)}
+.reg43 tfoot .tot-force td{background:var(--navy-100)}
+
+/* خانة اليوم — الرمز نفسه هو الزرار */
+.cell43{display:inline-flex;align-items:center;justify-content:center;
+  min-width:26px;height:24px;padding:0 5px;border-radius:var(--radius-sm);
+  border:1px solid transparent;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
+.fam-work{background:#e7f2ea;color:#1d6b3a;border-color:#bcdcc6}
+.fam-rest{background:#fdf3dd;color:#8a6d1f;border-color:#ecd9a4}
+.fam-away{background:#fbe6e6;color:#9b2b2b;border-color:#eec2c2}
+.fam-none{background:transparent;color:var(--ink-500);border-color:var(--line);cursor:default}
+/* اليوم مالوش يومية أصلًا — مش «صافي» ولا «غياب»، مفيش سجل */
+.fam-blank{background:transparent;color:#c9cdd4;border-color:transparent;cursor:default}
+.reg43 th.no-rec{color:#c9cdd4}
+
+.legend-box{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;
+  padding:14px 18px;border-top:1px solid var(--line);margin-top:4px}
+.lg-title{font-weight:700;color:var(--ink-700)}
+.lg-item{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ink-700)}
+.lg-item .cell43{cursor:default}
+.tally-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:16px;padding:18px}
+.fam-row{display:inline-flex;gap:6px;flex-wrap:wrap;margin-inline-start:auto}
+.cell-state{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:16px}
+.cell-state .cell43{cursor:default;min-width:34px;height:30px}
+
 .warn-list li{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
 .warn-list .w-ico{color:var(--gold-700);font-size:15px}
 
