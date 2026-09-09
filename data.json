@@ -6874,6 +6874,94 @@
       "note": "",
       "source": "راحة اسبوعية",
       "id": "LV-272"
+    },
+    {
+      "id": "LV-273",
+      "person_id": "OFF-037",
+      "name": "احمد فوزي احمد السيد",
+      "type": "شهرية",
+      "start": "2026-09-08",
+      "end": "2026-09-14",
+      "return_date": "2026-09-15",
+      "note": "تقصيرة 7/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
+    },
+    {
+      "id": "LV-274",
+      "person_id": "OFF-011",
+      "name": "حسام فتحي رضوان خلف",
+      "type": "شهرية",
+      "start": "2026-09-16",
+      "end": "2026-09-22",
+      "return_date": "2026-09-23",
+      "note": "تقصيرة 15/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
+    },
+    {
+      "id": "LV-275",
+      "person_id": "OFF-047",
+      "name": "محمد فتحي بكري مناع",
+      "type": "شهرية",
+      "start": "2026-09-16",
+      "end": "2026-09-22",
+      "return_date": "2026-09-23",
+      "note": "تقصيرة 15/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
+    },
+    {
+      "id": "LV-276",
+      "person_id": "OFF-012",
+      "name": "حمدي احمد جاد الكريم احمد",
+      "type": "شهرية",
+      "start": "2026-09-16",
+      "end": "2026-09-22",
+      "return_date": "2026-09-23",
+      "note": "تقصيرة 15/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
+    },
+    {
+      "id": "LV-277",
+      "person_id": "OFF-031",
+      "name": "محمد ميهوب زكي ميهوب",
+      "type": "شهرية",
+      "start": "2026-09-23",
+      "end": "2026-09-29",
+      "return_date": "2026-09-30",
+      "note": "تقصيرة 22/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
+    },
+    {
+      "id": "LV-278",
+      "person_id": "OFF-042",
+      "name": "ماركو ماجد اقلاديوس مرقس",
+      "type": "شهرية",
+      "start": "2026-09-23",
+      "end": "2026-09-29",
+      "return_date": "2026-09-30",
+      "note": "تقصيرة 22/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
+    },
+    {
+      "id": "LV-279",
+      "person_id": "OFF-013",
+      "name": "خالد خلف الله خليفة إبراهيم",
+      "type": "شهرية",
+      "start": "2026-09-30",
+      "end": "2026-10-06",
+      "return_date": "2026-10-07",
+      "note": "تقصيرة 29/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
+    },
+    {
+      "id": "LV-280",
+      "person_id": "OFF-049",
+      "name": "منتصر بهاء الدين محمد علي",
+      "type": "شهرية",
+      "start": "2026-09-30",
+      "end": "2026-10-06",
+      "return_date": "2026-10-07",
+      "note": "تقصيرة 29/9",
+      "source": "الراحات الشهرية والنصف شهرية 2026"
     }
   ],
   "services": [
@@ -86436,6 +86524,300 @@
       "place": "",
       "kind": "تخصصية",
       "note": ""
+    },
+    {
+      "id": "CRS-010",
+      "name": "مواجهة أعمال قتالية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-011",
+      "name": "أعمال مواجهة واقتحام",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-012",
+      "name": "قناصة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-013",
+      "name": "البحث الجنائي",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-014",
+      "name": "مباحث التهرب الضريبي",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-015",
+      "name": "مباحث المصنفات الفنية وحقوق الملكية الفكرية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-016",
+      "name": "حقوق الإنسان",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-017",
+      "name": "الإدارة العامة للمرور الأساسية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-018",
+      "name": "الأسلحة والذخائر",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-019",
+      "name": "النجدة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-020",
+      "name": "عمليات الشرطة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-021",
+      "name": "قادة عمليات الشرطة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-022",
+      "name": "المهارة الميدانية في الأعمال القتالية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-023",
+      "name": "التأهيلية للأمن المركزي",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-024",
+      "name": "الاستطلاع",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-025",
+      "name": "المرور الأساسية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-026",
+      "name": "الأحوال المدنية الأساسية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-027",
+      "name": "القيادات الوسطى",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-028",
+      "name": "الأسلحة الصغيرة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-029",
+      "name": "التأهيلية للكشف والتفتيش والتعامل مع المفرقعات",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-030",
+      "name": "التأهيلية لفحص أثار النزيف والتزوير لقطاع المنافذ والوثائق",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-031",
+      "name": "إعداد قيادات إدارات قوات الأمن",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-032",
+      "name": "الأساسية النزيف والتزوير",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-033",
+      "name": "المتقدمة النزيف والتزوير",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-034",
+      "name": "الشئون الإدارية (أ ت)",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-035",
+      "name": "تأمين وحراسة المنشآت",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-036",
+      "name": "أطقم الميكروباص المدرع",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-037",
+      "name": "جرائم عنف ضد المرأة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-038",
+      "name": "المواجهات الأمنية في الأماكن المفتوحة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-039",
+      "name": "أقسام ومراكز شرطة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-040",
+      "name": "الدوريات الأمنة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-041",
+      "name": "الكشف والتعامل مع المواد المتفجرة",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-042",
+      "name": "الإطفاء الأساسية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-043",
+      "name": "المفرقعات والكشف عن الأجسام الأساسية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-044",
+      "name": "جرائم البترول",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-045",
+      "name": "جرائم الطائرات والسفن",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-046",
+      "name": "الأساسية لعلوم ونظم الاتصالات",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-047",
+      "name": "تلقى وفحص البلاغات الإلكترونية",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-048",
+      "name": "المسعف القتالي",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-049",
+      "name": "الرماية الدقيقة بالبندقية بعيدة المدى",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-050",
+      "name": "الترسيخ والأخلاقيات للملازمين",
+      "place": "",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-051",
+      "name": "ترسيخ وأخلاقيات العمل الشرطي",
+      "place": "",
+      "kind": "",
+      "note": ""
     }
   ],
   "course_terms": [
@@ -86528,6 +86910,573 @@
       "end": "",
       "note": "",
       "source": ""
+    },
+    {
+      "id": "CT-0011",
+      "course_id": "CRS-010",
+      "officer_id": "OFF-002",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0012",
+      "course_id": "CRS-008",
+      "officer_id": "OFF-002",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0013",
+      "course_id": "CRS-002",
+      "officer_id": "OFF-002",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0014",
+      "course_id": "CRS-011",
+      "officer_id": "OFF-002",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0015",
+      "course_id": "CRS-012",
+      "officer_id": "OFF-002",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0016",
+      "course_id": "CRS-013",
+      "officer_id": "OFF-027",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0017",
+      "course_id": "CRS-014",
+      "officer_id": "OFF-027",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0018",
+      "course_id": "CRS-015",
+      "officer_id": "OFF-027",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0019",
+      "course_id": "CRS-016",
+      "officer_id": "OFF-027",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0020",
+      "course_id": "CRS-017",
+      "officer_id": "OFF-038",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0021",
+      "course_id": "CRS-018",
+      "officer_id": "OFF-038",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0022",
+      "course_id": "CRS-019",
+      "officer_id": "OFF-038",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0023",
+      "course_id": "CRS-020",
+      "officer_id": "OFF-016",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0024",
+      "course_id": "CRS-021",
+      "officer_id": "OFF-016",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0025",
+      "course_id": "CRS-022",
+      "officer_id": "OFF-016",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0026",
+      "course_id": "CRS-023",
+      "officer_id": "OFF-016",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0027",
+      "course_id": "CRS-024",
+      "officer_id": "OFF-016",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0028",
+      "course_id": "CRS-025",
+      "officer_id": "OFF-043",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0029",
+      "course_id": "CRS-026",
+      "officer_id": "OFF-043",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0030",
+      "course_id": "CRS-027",
+      "officer_id": "OFF-043",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0031",
+      "course_id": "CRS-023",
+      "officer_id": "OFF-028",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0032",
+      "course_id": "CRS-028",
+      "officer_id": "OFF-028",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0033",
+      "course_id": "CRS-029",
+      "officer_id": "OFF-028",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0034",
+      "course_id": "CRS-030",
+      "officer_id": "OFF-028",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0035",
+      "course_id": "CRS-031",
+      "officer_id": "OFF-028",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0036",
+      "course_id": "CRS-027",
+      "officer_id": "OFF-028",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0037",
+      "course_id": "CRS-032",
+      "officer_id": "OFF-015",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0038",
+      "course_id": "CRS-033",
+      "officer_id": "OFF-015",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0039",
+      "course_id": "CRS-034",
+      "officer_id": "OFF-010",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0040",
+      "course_id": "CRS-027",
+      "officer_id": "OFF-010",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0041",
+      "course_id": "CRS-023",
+      "officer_id": "OFF-013",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0042",
+      "course_id": "CRS-035",
+      "officer_id": "OFF-013",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0043",
+      "course_id": "CRS-036",
+      "officer_id": "OFF-013",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0044",
+      "course_id": "CRS-009",
+      "officer_id": "OFF-013",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0045",
+      "course_id": "CRS-004",
+      "officer_id": "OFF-025",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0046",
+      "course_id": "CRS-027",
+      "officer_id": "OFF-025",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0047",
+      "course_id": "CRS-016",
+      "officer_id": "OFF-031",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0048",
+      "course_id": "CRS-037",
+      "officer_id": "OFF-031",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0049",
+      "course_id": "CRS-034",
+      "officer_id": "OFF-012",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0050",
+      "course_id": "CRS-027",
+      "officer_id": "OFF-012",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0051",
+      "course_id": "CRS-038",
+      "officer_id": "OFF-048",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0052",
+      "course_id": "CRS-023",
+      "officer_id": "OFF-048",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0053",
+      "course_id": "CRS-023",
+      "officer_id": "OFF-024",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0054",
+      "course_id": "CRS-039",
+      "officer_id": "OFF-024",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0055",
+      "course_id": "CRS-040",
+      "officer_id": "OFF-024",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0056",
+      "course_id": "CRS-023",
+      "officer_id": "OFF-008",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0057",
+      "course_id": "CRS-035",
+      "officer_id": "OFF-008",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0058",
+      "course_id": "CRS-036",
+      "officer_id": "OFF-008",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0059",
+      "course_id": "CRS-009",
+      "officer_id": "OFF-008",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0060",
+      "course_id": "CRS-041",
+      "officer_id": "OFF-047",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0061",
+      "course_id": "CRS-042",
+      "officer_id": "OFF-019",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0062",
+      "course_id": "CRS-043",
+      "officer_id": "OFF-019",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0063",
+      "course_id": "CRS-044",
+      "officer_id": "OFF-019",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0064",
+      "course_id": "CRS-045",
+      "officer_id": "OFF-019",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0065",
+      "course_id": "CRS-046",
+      "officer_id": "OFF-018",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0066",
+      "course_id": "CRS-007",
+      "officer_id": "OFF-018",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0067",
+      "course_id": "CRS-047",
+      "officer_id": "OFF-018",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0068",
+      "course_id": "CRS-007",
+      "officer_id": "OFF-039",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0069",
+      "course_id": "CRS-007",
+      "officer_id": "OFF-023",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0070",
+      "course_id": "CRS-048",
+      "officer_id": "OFF-023",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0071",
+      "course_id": "CRS-049",
+      "officer_id": "OFF-023",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0072",
+      "course_id": "CRS-050",
+      "officer_id": "OFF-049",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
+    },
+    {
+      "id": "CT-0073",
+      "course_id": "CRS-051",
+      "officer_id": "OFF-044",
+      "start": "",
+      "end": "",
+      "note": "",
+      "source": "فرق الضباط 2026"
     }
   ]
 }
