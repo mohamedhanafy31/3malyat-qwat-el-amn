@@ -7,6 +7,17 @@ const DOCS = () => META.service_documents || [];
 const DOC_LABEL = {board: "اليومية التفصيلية", afrad: "يومية الأفراد",
                    counts: "اعداد الخدمات", tashkeel: "خط التشكيل", hamla: "يومية الحملة"};
 
+const KIND_ORDER = ["خارجية","داخلية","حراسات","طبية","بحث"];
+const kindIndex  = k => { const i = KIND_ORDER.indexOf(k); return i < 0 ? KIND_ORDER.length : i };
+
+const CATALOG_COLS = {
+  name:    { label: "الخدمة",    fn: s => s.name,               type: "text" },
+  kind:    { label: "التصنيف",   fn: s => kindIndex(s.kind),    type: "num"  },
+  section: { label: "القسم",     fn: s => s.section || "",      type: "text" },
+  weapon:  { label: "التسليح",   fn: s => s.default_weapon || "",type: "text"},
+  timing:  { label: "الانتظام",  fn: s => s.default_time || "", type: "text" },
+};
+
 function renderCatalog() {
   const q = $("#svcSearch").value.trim().toLowerCase();
   const k = $("#svcKindFilter").value, sec = $("#svcSectionFilter").value;
@@ -14,22 +25,27 @@ function renderCatalog() {
   if (q) rows = rows.filter(s => (s.name + " " + (s.aliases || []).join(" ")).toLowerCase().includes(q));
   if (k) rows = rows.filter(s => s.kind === k);
   if (sec) rows = rows.filter(s => s.section === sec);
-  const body = rows.map(s => `<tr>
+
+  const rowHtml = s => `<tr>
       <td class="name">${esc(s.name)}${s.sub ? `<div class="sub">${esc(s.sub)}</div>` : ""}</td>
       <td><span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.kind)}</span></td>
       <td class="wrap">${esc(s.section)}</td>
-      <td>${(s.shifts || []).map(x => `<span class="chip w">${esc(x)}</span>`).join(" ")}</td>
-      <td class="wrap">${(s.appears_in || []).map(d => esc(DOC_LABEL[d] || d)).join("، ")}</td>
       <td class="wrap">${esc(s.default_weapon) || "<span class='muted'>—</span>"}</td>
       <td class="wrap">${esc(s.default_time) || "<span class='muted'>—</span>"}</td>
+      <td>${(s.shifts || []).map(x => `<span class="chip w">${esc(x)}</span>`).join(" ")}</td>
+      <td class="wrap">${(s.appears_in || []).map(d => esc(DOC_LABEL[d] || d)).join("، ")}</td>
       <td><div class="actions">
         <button class="mini" data-action="openSvc" data-id="${esc(s.id)}">تعديل</button>
         <button class="mini bad" data-action="deleteSvc" data-id="${esc(s.id)}" data-extra="${dataAttr({name: s.name})}">حذف</button>
-      </div></td></tr>`);
-  $("#catalogWrap").innerHTML = tableBlock(
-    ["الخدمة", "التصنيف", "القسم", "الفترات", "تظهر في", "التسليح", "الانتظام", "الإجراء"],
-    body, `عدد الخدمات: ${rows.length} من ${SERVICES.length}`, "لا توجد خدمات.");
+      </div></td></tr>`;
+
+  $("#catalogWrap").innerHTML = sortableTableBlock(
+    "catalogWrap", CATALOG_COLS, rows, rowHtml,
+    ["الفترات", "تظهر في", "الإجراء"],
+    `عدد الخدمات: ${rows.length} من ${SERVICES.length}`,
+    "لا توجد خدمات.", renderCatalog);
 }
+
 
 const checkboxes = (name, options, chosen, labels) => options.map(o =>
   `<label class="checkline"><input type="checkbox" name="${name}" value="${esc(o)}"

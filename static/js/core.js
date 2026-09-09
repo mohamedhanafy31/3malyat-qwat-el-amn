@@ -103,6 +103,93 @@ function tableBlock(head,rows,countText,emptyText){
   if(!rows.length&&emptyText) return `<div class="empty">${emptyText}</div>`;
   return `<div class="table-scroll">${mtable(head,rows)}</div><div class="count">${countText}</div>`;
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Sortable Table — يُستخدم في الصفحات التي تحتاج ترتيب الأعمدة.
+   الاستخدام:
+     const COLS = { key: { label:"العمود", fn: row=>row.field, type:"text"|"num"|"date"|"rank" } }
+     sortableTableBlock(containerId, COLS, rows, rowHtml, countText, emptyText, defaultKey)
+   ═══════════════════════════════════════════════════════════════════ */
+const _sortStates = {};   // { containerId: { col, dir } }
+
+function _sortState(cid) {
+  return _sortStates[cid] || (_sortStates[cid] = { col: null, dir: 0 });
+}
+
+/**
+ * يرتّب مصفوفة rows بناءً على accessor fn وaتجاه dir (+1 تصاعدي, -1 تنازلي).
+ * type: 'text' | 'num' | 'date' | 'rank'
+ */
+function applySort(rows, fn, dir, type) {
+  if (!dir) return rows;
+  return [...rows].sort((a, b) => {
+    let va = fn(a), vb = fn(b);
+    if (type === "num" || type === "date") {
+      va = Number(String(va || "0").replace(/-/g,"")) || 0;
+      vb = Number(String(vb || "0").replace(/-/g,"")) || 0;
+      return dir * (va - vb);
+    }
+    // text / rank — default to string compare
+    return dir * String(va ?? "").localeCompare(String(vb ?? ""), "ar");
+  });
+}
+
+/**
+ * يبني `<th>` قابل للضغط يحوّل بين ▲ ▼ وبلا ترتيب.
+ * onSort(col, dir) يُستدعى بعد كل تغيير.
+ */
+function _sortTh(label, key, cid, onSort) {
+  const st = _sortState(cid);
+  const isCur = st.col === key;
+  const dir = isCur ? st.dir : 0;
+  const cls = isCur && dir === 1 ? " asc" : isCur && dir === -1 ? " desc" : "";
+  return `<th class="th-sort${cls}" data-action="_thSort"
+    data-extra="${dataAttr({cid, key})}">${esc(label)}</th>`;
+}
+
+// يلتقط الضغط على أي th-sort ويحدّث الـ state ويعيد الرسم
+ACTIONS._thSort = (_id, extra) => {
+  const { cid, key } = extra;
+  const st = _sortState(cid);
+  if (st.col !== key) { st.col = key; st.dir = 1; }
+  else if (st.dir === 1) { st.dir = -1; }
+  else { st.col = null; st.dir = 0; }
+  // استدعاء render المخزن للصفحة الحالية
+  if (typeof _sortRenders[cid] === "function") _sortRenders[cid]();
+};
+const _sortRenders = {};   // { cid: renderFn }
+
+/**
+ * الدالة الرئيسية — تحلّ محلّ tableBlock في الصفحات التي تريد sorting.
+ *
+ * @param {string}   cid         id العنصر الحاوي (يُستخدم كمفتاح للـstate)
+ * @param {object}   cols        { key: { label, fn, type } } — الأعمدة القابلة للترتيب
+ * @param {Array}    rows        البيانات الخام (objects)
+ * @param {function} rowHtml     fn(row) → HTML string للصف
+ * @param {string[]} extraHeads  أعمدة ثابتة (لا تُرتّب) تُلحق بعد الأعمدة القابلة
+ * @param {string}   countText
+ * @param {string}   emptyText
+ * @param {function} [renderFn]  دالة إعادة الرسم لهذه الصفحة
+ */
+function sortableTableBlock(cid, cols, rows, rowHtml, extraHeads, countText, emptyText, renderFn) {
+  if (renderFn) _sortRenders[cid] = renderFn;
+  const st = _sortState(cid);
+  // ترتيب
+  let sorted = rows;
+  if (st.col && cols[st.col]) {
+    const { fn, type } = cols[st.col];
+    sorted = applySort(rows, fn, st.dir, type);
+  }
+  if (!sorted.length && emptyText) return `<div class="empty">${emptyText}</div>`;
+  const heads = [
+    ...Object.entries(cols).map(([k, c]) => _sortTh(c.label, k, cid, null)),
+    ...(extraHeads || []).map(h => `<th>${esc(h)}</th>`)
+  ];
+  const tableHtml = `<table class="table mtable"><thead><tr>${heads.join("")}</tr></thead>
+    <tbody>${sorted.map(rowHtml).join("")}</tbody></table>`;
+  return `<div class="table-scroll">${tableHtml}</div><div class="count">${countText}</div>`;
+}
+
 function openModal(id){$("#"+id)?.classList.remove("hidden")}
 function closeModal(id){$("#"+id)?.classList.add("hidden")}
 

@@ -37,34 +37,138 @@ function filterRows(rows) {
 
 function renderTable() {
   const isArch = BUCKET === "archive";
-  const rows = filterRows(LIST[BUCKET]);
-  const head = IS_OFF
-    ? (isArch ? ["الاسم","الرتبة","الأقدمية","الهاتف","العمل المسند","من","إلى","السبب","الإجراء"]
-              : ["الاسم","الرتبة","الأقدمية","الهاتف","العمل المسند","نظام الراحة","حالة اليوم","من","الإجراء"])
-    : (isArch ? ["الاسم","الدرجة","الكود","الهاتف","العمل","العنوان","من","إلى","السبب","الإجراء"]
-              : ["الاسم","الدرجة","الكود","الهاتف","العمل","العنوان","من","الإجراء"]);
+  const rows   = filterRows(LIST[BUCKET]);
+  const cid    = "tableWrap";
+  const dash   = "<span class='muted'>—</span>";
 
-  const body = rows.map(p => {
-    const acts = isArch
-      ? `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
-         <button class="mini ok" data-action="restorePerson" data-id="${esc(p.id)}">استرجاع</button>
-         <button class="mini bad" data-action="deleteRecord" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">حذف</button>`
-      : `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
-         ${IS_OFF ? `<button class="mini ok" data-action="openLeaveFor" data-id="${esc(p.id)}">راحة</button>` : ""}
-         <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">إخراج</button>`;
-    const dash = "<span class='muted'>—</span>";
-    const cells = IS_OFF
-      ? (isArch ? [`<td class="name">${esc(p.name)}<div class="sub">${esc(p.role)}</div></td>`,`<td><span class="badge">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone) || dash}</td>`,`<td class="wrap">${esc(p.post) || "-"}</td>`,`<td>${fmt(p.join_date)}</td>`,`<td>${fmt(p.leave_date)}</td>`,`<td class="wrap">${esc(p.leave_reason) || dash}</td>`]
-                : [`<td class="name">${esc(p.name)}${badges(p)}<div class="sub">${esc(p.role)}</div></td>`,`<td><span class="badge">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone) || dash}</td>`,`<td class="wrap">${esc(p.post) || "-"}</td>`,`<td>${restLabel(p)}</td>`,`<td>${statusCell(p)}</td>`,`<td>${fmt(p.join_date)}</td>`])
+  // ── تعريف الأعمدة القابلة للترتيب حسب السياق ──
+  let cols, extraHeads, rowHtml;
 
-      : (isArch ? [`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge person">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)}</td>`,`<td>${esc(p.post) || "-"}</td>`,`<td class="wrap">${esc(p.address) || "-"}</td>`,`<td>${fmt(p.join_date)}</td>`,`<td>${fmt(p.leave_date)}</td>`,`<td class="wrap">${esc(p.leave_reason) || dash}</td>`]
-                : [`<td class="name">${esc(p.name)}</td>`,`<td><span class="badge person">${esc(p.role)}</span></td>`,`<td>${esc(p.code)}</td>`,`<td class="num">${esc(p.phone)}</td>`,`<td>${esc(p.post) || "-"}</td>`,`<td class="wrap">${esc(p.address) || "-"}</td>`,`<td>${fmt(p.join_date)}</td>`]);
-    return `<tr>${cells.join("")}<td><div class="actions">${acts}</div></td></tr>`;
-  });
-  $("#tableWrap").innerHTML = tableBlock(head, body, `عدد النتائج: ${rows.length}`, "لا توجد بيانات لعرضها.");
+  if (IS_OFF && !isArch) {
+    // ── ضباط نشطون ──
+    cols = {
+      name:      { label: "الاسم",       fn: p => p.name,                           type: "text" },
+      role:      { label: "الرتبة",      fn: p => rankIndex(p.role),                type: "num"  },
+      code:      { label: "الأقدمية",    fn: p => p.code,                           type: "text" },
+      post:      { label: "العمل المسند",fn: p => p.post || "",                     type: "text" },
+      rest:      { label: "نظام الراحة", fn: p => p.rest_system || "—",             type: "text" },
+      status:    { label: "حالة اليوم",  fn: p => {
+        const s = p.status_today?.state;
+        return s === "resting" ? 0 : s === "taqseera" ? 1 : s === "upcoming" ? 2 : 3;
+      }, type: "num" },
+      join_date: { label: "من",          fn: p => p.join_date,                      type: "date" },
+    };
+    extraHeads = ["الهاتف", "الإجراء"];
+    rowHtml = p => {
+      const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
+        <button class="mini ok" data-action="openLeaveFor" data-id="${esc(p.id)}">راحة</button>
+        <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">إخراج</button>`;
+      return `<tr>
+        <td class="name">${esc(p.name)}${badges(p)}<div class="sub">${esc(p.role)}</div></td>
+        <td><span class="badge">${esc(p.role)}</span></td>
+        <td>${esc(p.code)}</td>
+        <td>${esc(p.post) || "-"}</td>
+        <td>${restLabel(p)}</td>
+        <td>${statusCell(p)}</td>
+        <td>${fmt(p.join_date)}</td>
+        <td class="num">${esc(p.phone) || dash}</td>
+        <td><div class="actions">${acts}</div></td></tr>`;
+    };
+
+  } else if (IS_OFF && isArch) {
+    // ── ضباط أرشيف ──
+    cols = {
+      name:       { label: "الاسم",       fn: p => p.name,             type: "text" },
+      role:       { label: "الرتبة",      fn: p => rankIndex(p.role),  type: "num"  },
+      code:       { label: "الأقدمية",    fn: p => p.code,             type: "text" },
+      post:       { label: "العمل المسند",fn: p => p.post || "",       type: "text" },
+      join_date:  { label: "من",          fn: p => p.join_date,        type: "date" },
+      leave_date: { label: "إلى",         fn: p => p.leave_date || "", type: "date" },
+    };
+    extraHeads = ["الهاتف", "السبب", "الإجراء"];
+    rowHtml = p => {
+      const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
+        <button class="mini ok" data-action="restorePerson" data-id="${esc(p.id)}">استرجاع</button>
+        <button class="mini bad" data-action="deleteRecord" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">حذف</button>`;
+      return `<tr>
+        <td class="name">${esc(p.name)}<div class="sub">${esc(p.role)}</div></td>
+        <td><span class="badge">${esc(p.role)}</span></td>
+        <td>${esc(p.code)}</td>
+        <td class="wrap">${esc(p.post) || "-"}</td>
+        <td>${fmt(p.join_date)}</td>
+        <td>${fmt(p.leave_date)}</td>
+        <td class="num">${esc(p.phone) || dash}</td>
+        <td class="wrap">${esc(p.leave_reason) || dash}</td>
+        <td><div class="actions">${acts}</div></td></tr>`;
+    };
+
+  } else if (!IS_OFF && !isArch) {
+    // ── أفراد نشطون ──
+    cols = {
+      name:      { label: "الاسم",  fn: p => p.name,        type: "text" },
+      role:      { label: "الدرجة", fn: p => p.role || "",  type: "text" },
+      code:      { label: "الكود",  fn: p => p.code,        type: "text" },
+      post:      { label: "العمل",  fn: p => p.post || "",  type: "text" },
+      join_date: { label: "من",     fn: p => p.join_date,   type: "date" },
+    };
+    extraHeads = ["الهاتف", "العنوان", "الإجراء"];
+    rowHtml = p => {
+      const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
+        <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">إخراج</button>`;
+      return `<tr>
+        <td class="name">${esc(p.name)}</td>
+        <td><span class="badge person">${esc(p.role)}</span></td>
+        <td>${esc(p.code)}</td>
+        <td class="wrap">${esc(p.post) || "-"}</td>
+        <td>${fmt(p.join_date)}</td>
+        <td class="num">${esc(p.phone)}</td>
+        <td class="wrap">${esc(p.address) || "-"}</td>
+        <td><div class="actions">${acts}</div></td></tr>`;
+    };
+
+  } else {
+    // ── أفراد أرشيف ──
+    cols = {
+      name:       { label: "الاسم",  fn: p => p.name,             type: "text" },
+      role:       { label: "الدرجة", fn: p => p.role || "",       type: "text" },
+      code:       { label: "الكود",  fn: p => p.code,             type: "text" },
+      post:       { label: "العمل",  fn: p => p.post || "",       type: "text" },
+      join_date:  { label: "من",     fn: p => p.join_date,        type: "date" },
+      leave_date: { label: "إلى",    fn: p => p.leave_date || "", type: "date" },
+    };
+    extraHeads = ["الهاتف", "العنوان", "السبب", "الإجراء"];
+    rowHtml = p => {
+      const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
+        <button class="mini ok" data-action="restorePerson" data-id="${esc(p.id)}">استرجاع</button>
+        <button class="mini bad" data-action="deleteRecord" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">حذف</button>`;
+      return `<tr>
+        <td class="name">${esc(p.name)}</td>
+        <td><span class="badge person">${esc(p.role)}</span></td>
+        <td>${esc(p.code)}</td>
+        <td class="wrap">${esc(p.post) || "-"}</td>
+        <td>${fmt(p.join_date)}</td>
+        <td>${fmt(p.leave_date)}</td>
+        <td class="num">${esc(p.phone)}</td>
+        <td class="wrap">${esc(p.address) || "-"}</td>
+        <td class="wrap">${esc(p.leave_reason) || dash}</td>
+        <td><div class="actions">${acts}</div></td></tr>`;
+    };
+  }
+
+  // إعادة ضبط الـ sort state عند تغيير السياق (active↔archive أو officers↔personnel)
+  const ctxKey = `${IS_OFF ? "off" : "prs"}_${isArch ? "arch" : "act"}`;
+  if (_sortState(cid)._ctx !== ctxKey) {
+    _sortStates[cid] = { col: null, dir: 0, _ctx: ctxKey };
+  }
+
+  $("#tableWrap").innerHTML = sortableTableBlock(
+    cid, cols, rows, rowHtml, extraHeads,
+    `عدد النتائج: ${rows.length}`, "لا توجد بيانات لعرضها.", renderTable
+  );
 }
 
 function render() { renderStats(); renderTable(); }
+
 
 /* ---------- قيادة الإدارة + ضباط العيادة (صفحة الضباط بس) ---------- */
 function renderCommand() {

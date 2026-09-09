@@ -24,25 +24,9 @@ function termRow(t) {
     </div></td></tr>`;
 }
 
-function courseCard(c) {
-  const body = c.terms.length
-    ? mtable(["الضابط", "من", "إلى", "المدة", "ملاحظات", "الإجراء"], c.terms.map(termRow))
-    : `<div class="mempty">مفيش التحاقات مسجّلة</div>`;
-  const meta = [c.kind, c.place].filter(Boolean)
-    .map(x => `<span class="chip w">${esc(x)}</span>`).join(" ");
-  return `<div class="mcard">
-    <h3>${esc(c.name)}<span class="mcount">${c.officers} ضابط</span>
-      ${meta}
-      <button class="mini" data-action="openCourse" data-id="${esc(c.id)}">تعديل</button>
-      <button class="mini bad" data-action="deleteCourse" data-id="${esc(c.id)}"
-        data-extra="${dataAttr({name: c.name})}">حذف</button>
-      <button class="mini ok" data-action="openTerm"
-        data-extra="${dataAttr({course_id: c.id})}">＋ التحاق</button></h3>
-    ${c.note ? `<p class="hint" style="margin:10px 16px 0">${esc(c.note)}</p>` : ""}
-    ${body}</div>`;
-}
 
 /* ---------- حسب الضابط ---------- */
+
 function officerRow(o) {
   const chips = o.courses.length
     ? o.courses.map(termChip).join(" ")
@@ -60,6 +44,44 @@ function officerRow(o) {
 }
 
 /* ---------- العرض ---------- */
+const OFFICER_COURSE_COLS = {
+  name:  { label: "الضابط",            fn: o => o.name,                type: "text" },
+  role:  { label: "الرتبة",            fn: o => rankIndex(o.role),     type: "num"  },
+  post:  { label: "العمل المسند إليه", fn: o => o.post || "",          type: "text" },
+  count: { label: "عدد الفرق",         fn: o => o.count,               type: "num"  },
+  days:  { label: "إجمالي الأيام",     fn: o => o.days || 0,           type: "num"  },
+};
+
+const TERM_COLS = cid => ({
+  officer_name: { label: "الضابط", fn: t => t.officer_name, type: "text" },
+  start:        { label: "من",     fn: t => t.start || "",  type: "date" },
+  end:          { label: "إلى",    fn: t => t.end   || "",  type: "date" },
+  days:         { label: "المدة",  fn: t => t.days  || 0,  type: "num"  },
+});
+
+function courseCard(c) {
+  const cid = `terms_${c.id}`;
+  const body = c.terms.length
+    ? sortableTableBlock(cid, TERM_COLS(cid), c.terms,
+        t => termRow(t),
+        ["ملاحظات", "الإجراء"],
+        `${c.terms.length} التحاق`, null,
+        () => { const el = document.getElementById("coursesWrap"); if (el) render(); })
+    : `<div class="mempty">مفيش التحاقات مسجّلة</div>`;
+  const meta = [c.kind, c.place].filter(Boolean)
+    .map(x => `<span class="chip w">${esc(x)}</span>`).join(" ");
+  return `<div class="mcard">
+    <h3>${esc(c.name)}<span class="mcount">${c.officers} ضابط</span>
+      ${meta}
+      <button class="mini" data-action="openCourse" data-id="${esc(c.id)}">تعديل</button>
+      <button class="mini bad" data-action="deleteCourse" data-id="${esc(c.id)}"
+        data-extra="${dataAttr({name: c.name})}">حذف</button>
+      <button class="mini ok" data-action="openTerm"
+        data-extra="${dataAttr({course_id: c.id})}">＋ التحاق</button></h3>
+    ${c.note ? `<p class="hint" style="margin:10px 16px 0">${esc(c.note)}</p>` : ""}
+    ${body}</div>`;
+}
+
 function render() {
   const q = $("#crsSearch").value.trim();
   if (VIEW === "course") {
@@ -80,11 +102,13 @@ function render() {
     : BY_OFFICER;
   const withCourses = list.filter(o => o.count).length;
   $("#crsCount").textContent = `${list.length} ضابط · ${withCourses} خدوا فرق`;
-  $("#coursesWrap").innerHTML = tableBlock(
-    ["الضابط", "العمل المسند إليه", "عدد الفرق", "إجمالي الأيام", "الفرق اللي خدها", "الإجراء"],
-    list.map(officerRow),
-    `${withCourses} من ${list.length} ضابط خدوا فرق`, "مفيش ضباط.");
+  $("#coursesWrap").innerHTML = sortableTableBlock(
+    "coursesWrap", OFFICER_COURSE_COLS, list, officerRow,
+    ["الفرق اللي خدها", "الإجراء"],
+    `${withCourses} من ${list.length} ضابط خدوا فرق`,
+    "مفيش ضباط.", render);
 }
+
 
 $$("#viewTabs .vtab").forEach(btn => btn.onclick = () => {
   VIEW = btn.dataset.view;

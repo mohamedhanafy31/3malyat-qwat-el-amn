@@ -118,11 +118,28 @@ function leaveRow(l, today) {
     </div></td></tr>`;
 }
 
+// ── Sortable column definitions ────────────────────────────────────────────
+const LEAVE_COLS = {
+  name:        { label: "الاسم",      fn: l => l.name,                       type: "text" },
+  type:        { label: "النوع",      fn: l => leaveTypeIndex(l.type),       type: "num"  },
+  start:       { label: "من",         fn: l => l.start,                      type: "date" },
+  end:         { label: "إلى",        fn: l => l.end,                        type: "date" },
+  return_date: { label: "العودة",     fn: l => l.return_date,                type: "date" },
+  duration:    { label: "الأيام",     fn: l => days(l.start, l.end),        type: "num"  },
+  state:       { label: "الحالة",     fn: l => {
+    const t = curDate();
+    if (l.start <= t && t <= l.end) return 0;   // جارية أولاً
+    if (l.start > t) return 1;                   // قادمة
+    return 2;                                    // منتهية
+  }, type: "num" },
+};
+
 // ── Main Render ────────────────────────────────────────────────────────────
 function render() {
   renderStats();
   const today = curDate();
   const thisMonth = today.slice(0, 7);
+  const st = _sortState("leaveWrap");
 
   let rows = [...LEAVES];
 
@@ -144,31 +161,45 @@ function render() {
   const mf = $("#leaveMonthFilter").value;
   if (mf) rows = rows.filter(l => l.start.slice(0, 7) === mf || l.end.slice(0, 7) === mf);
 
-  // ── ترتيب: النوع → القيادة → الرتبة → الاسم ──
-  rows.sort((a, b) => {
-    const ta = leaveTypeIndex(a.type), tb = leaveTypeIndex(b.type);
-    if (ta !== tb) return ta - tb;
-    const ca = commandPriority(a.person_id), cb = commandPriority(b.person_id);
-    if (ca !== cb) return ca - cb;
-    const pa = personById(a.person_id), pb = personById(b.person_id);
-    const ra = rankIndex(pa?.role), rb = rankIndex(pb?.role);
-    if (ra !== rb) return ra - rb;
-    return (pa?.name || a.name).localeCompare(pb?.name || b.name, "ar");
-  });
+  // ── الترتيب الافتراضي: النوع → القيادة → الرتبة (يُطبّق فقط لو مفيش column sort نشط) ──
+  if (!st.col) {
+    rows.sort((a, b) => {
+      const ta = leaveTypeIndex(a.type), tb = leaveTypeIndex(b.type);
+      if (ta !== tb) return ta - tb;
+      const ca = commandPriority(a.person_id), cb = commandPriority(b.person_id);
+      if (ca !== cb) return ca - cb;
+      const pa = personById(a.person_id), pb = personById(b.person_id);
+      const ra = rankIndex(pa?.role), rb = rankIndex(pb?.role);
+      if (ra !== rb) return ra - rb;
+      return (pa?.name || a.name).localeCompare(pb?.name || b.name, "ar");
+    });
+  }
 
-  // ── بناء الجدول مع فواصل النوع ──
-  let lastType = null;
-  const body = rows.map(l => {
-    const divider = l.type !== lastType
-      ? `<tr class="grouprow"><td colspan="9">${esc(l.type)}</td></tr>` : "";
-    lastType = l.type;
-    return divider + leaveRow(l, today);
-  });
+  // ── بناء الجدول: فواصل النوع فقط عند الترتيب الافتراضي ──
+  const rowHtml = st.col
+    ? l => leaveRow(l, today)   // بدون grouprows عند column sort
+    : (() => {
+        let lastType = null;
+        return l => {
+          const divider = l.type !== lastType
+            ? `<tr class="grouprow"><td colspan="9">${esc(l.type)}</td></tr>` : "";
+          lastType = l.type;
+          return divider + leaveRow(l, today);
+        };
+      })();
 
-  $("#leaveWrap").innerHTML = tableBlock(
-    ["الاسم", "النوع", "من", "إلى", "العودة", "الأيام", "الحالة", "ملاحظات", "الإجراء"],
-    body, `عدد النتائج: ${rows.length}`, "لا توجد راحات مسجلة.");
+  $("#leaveWrap").innerHTML = sortableTableBlock(
+    "leaveWrap",
+    LEAVE_COLS,
+    rows,
+    rowHtml,
+    ["ملاحظات", "الإجراء"],
+    `عدد النتائج: ${rows.length}`,
+    "لا توجد راحات مسجلة.",
+    render
+  );
 }
+
 
 // ── Actions ────────────────────────────────────────────────────────────────
 ACTIONS.openLeaveEdit = id => openLeave(id);
