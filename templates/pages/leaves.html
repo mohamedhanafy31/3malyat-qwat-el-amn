@@ -9,16 +9,19 @@
       <button class="tab active" data-lv="all">الكل</button>
       <button class="tab" data-lv="current">جارية الآن</button>
       <button class="tab" data-lv="upcoming">قادمة</button>
+      <button class="tab" data-lv="month">هذا الشهر</button>
     </div>
   </div>
   <div class="toolbar">
     <input id="leaveSearch" class="search" placeholder="بحث باسم الضابط...">
     <select id="leaveTypeFilter" class="select"></select>
+    <select id="leaveMonthFilter" class="select"></select>
     <button class="primary" id="addLeaveBtn">＋ تسجيل راحة</button>
   </div>
   <div id="leaveWrap"></div>
 </div>
 {% endblock %}
+
 
 {% block modals %}{% include "partials/leave_modal.html" %}{% endblock %}
 

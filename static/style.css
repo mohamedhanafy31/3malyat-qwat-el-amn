@@ -89,11 +89,25 @@ button,input,select,textarea{font-family:inherit}
 @media(max-width:700px){.a-name{min-width:auto}.a-rest{margin-inline-start:0}}
 
 /* ---------- بطاقات الإحصائيات ---------- */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
 .stat{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);padding:14px 16px;
   border-top:3px solid var(--navy-800)}
-.stat span{display:block;color:var(--ink-500);font-size:14px;margin-bottom:6px}
+.stat span{display:block;color:var(--ink-500);font-size:14px;margin-bottom:4px}
 .stat strong{font-size:25px;color:var(--navy-950)}
+.stat-sub{font-size:12px;color:var(--ink-400);margin-top:5px;line-height:1.4}
+/* ألوان البادج العلوي للراحات */
+.stat.stat-accent-red   {border-top-color:var(--bad-700)}
+.stat.stat-accent-orange{border-top-color:#d97706}
+.stat.stat-accent-blue  {border-top-color:var(--info-700)}
+.stat.stat-accent-purple{border-top-color:#5b3a94}
+/* تمييز صفوف العائدين قريباً */
+.table tbody tr.returning-soon{background:#fff8ec}
+.table tbody tr.returning-soon:hover{background:#fef3c7}
+/* شارات حالة العودة */
+.chip-return-today{display:inline-block;font-size:11px;font-weight:bold;color:#fff;
+  background:var(--bad-700);border-radius:4px;padding:1px 6px}
+.chip-return-soon{display:inline-block;font-size:11px;font-weight:bold;color:#7c3400;
+  background:#fde68a;border-radius:4px;padding:1px 6px}
 
 /* ---------- قيادة الإدارة (الهيكل التنظيمي) ---------- */
 .command-bar{background:#fff;border:1px solid var(--line);border-top:3px solid var(--gold-700);
@@ -163,6 +177,7 @@ button,input,select,textarea{font-family:inherit}
 .table tbody tr:hover{background:var(--navy-100)}
 .table tr.grouprow td{background:var(--navy-800);color:#fff;font-weight:bold;font-size:13px;
   padding:7px 14px;border-color:var(--navy-800)}
+.table tr.returning-soon td{border-inline-start:3px solid #d97706}
 .name{font-weight:bold;white-space:nowrap;color:var(--ink-900)}
 .num{direction:ltr;text-align:right;font-family:Consolas,monospace;font-size:14px}
 .wrap{max-width:260px;white-space:normal;line-height:1.5;font-size:14px;color:var(--ink-700)}
