@@ -45,3 +45,18 @@ def set_state(day, person_id):
         return jsonify(summarise(data, day))
 
     return with_data(mutate)
+
+
+@bp.delete("/api/duty/<day>/<person_id>")
+def clear_state(day, person_id):
+    if not parse_date(day):
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+
+    def mutate(data):
+        if not any(o.get("id") == person_id for o in officers_on(data, day)):
+            raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
+        set_officer_state(data, day, person_id, taqseera=False, status="", note="")
+        return jsonify({"ok": True})
+
+    return with_data(mutate)
+

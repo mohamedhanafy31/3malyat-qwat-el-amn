@@ -255,6 +255,13 @@ def restore_person(person_id):
         restored.pop("leave_reason", None)
         data[category]["active"].append(restored)
         sort_active(data, category)
+
+        old_id = found.get("id")
+        for lv in data.get("leaves", []):
+            if lv.get("person_id") == old_id:
+                lv["person_id"] = restored["id"]
+                lv["name"] = restored.get("name", lv.get("name", ""))
+
         return jsonify(restored), 201
 
     return with_data(mutate)
@@ -269,7 +276,12 @@ def delete_archive_record(person_id):
             data[cat]["archive"] = [p for p in data[cat]["archive"] if p.get("id") != person_id]
             if len(data[cat]["archive"]) != before:
                 data["leaves"] = [l for l in data["leaves"] if l.get("person_id") != person_id]
+                for day in list(data.get("day_officers", {})):
+                    data["day_officers"][day].pop(person_id, None)
+                    if not data["day_officers"][day]:
+                        data["day_officers"].pop(day)
                 return jsonify({"ok": True})
         raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
 
     return with_data(mutate)
+

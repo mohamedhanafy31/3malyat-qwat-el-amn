@@ -47,5 +47,32 @@ def test_non_dict_json_payload_returns_400_not_500(client):
 
 
 def test_delete_nonexistent_leave_404(client):
-    r = client.delete("/api/leaves/LV-999")
-    assert r.status_code == 404
+    assert client.delete("/api/leaves/LV-999").status_code == 404
+
+
+def test_restore_person_transfers_leaves(client):
+    # Add a leave for OFF-002
+    r_lv = client.post("/api/leaves", json={
+        "person_id": "OFF-002", "type": "أسبوعية",
+        "start": "2026-05-01", "end": "2026-05-02"
+    })
+    assert r_lv.status_code == 201
+    lv_id = r_lv.get_json()["id"]
+
+    # Archive OFF-002 via /remove endpoint
+    r_arch = client.post("/api/person/OFF-002/remove", json={"reason": "إنهاء خدمة", "leave_date": "2026-05-03"})
+    assert r_arch.status_code == 200
+
+
+    # Restore OFF-002
+    r_rest = client.post("/api/person/OFF-002/restore")
+    assert r_rest.status_code == 201
+    restored_id = r_rest.get_json()["id"]
+
+    # Check that leave's person_id is updated to restored_id
+    from backend.store import load_data
+    leaves = load_data()["leaves"]
+    lv_entry = next(l for l in leaves if l["id"] == lv_id)
+    assert lv_entry["person_id"] == restored_id
+
+

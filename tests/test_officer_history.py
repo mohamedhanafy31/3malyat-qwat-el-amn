@@ -88,3 +88,26 @@ def test_search_attached_officer_counts_in_the_search_cell(client):
 
 def test_bad_effective_date_is_refused(client):
     assert _patch(client, role="مقدم", effective_from="مش-تاريخ").status_code == 400
+
+
+def test_delete_archive_record_cleans_day_officers(client):
+    # Set day officer state
+    client.put("/api/duty/2026-03-01/OFF-002", json={"status": "انتداب"})
+    assert _row(client, "OFF-002", "2026-03-01")["status"] == "انتداب"
+
+    # Archive OFF-002 via /remove endpoint
+    r_arch = client.post("/api/person/OFF-002/remove", json={"reason": "إنهاء خدمة", "leave_date": "2026-03-05"})
+    assert r_arch.status_code == 200
+
+
+    # Permanently delete from archive
+    r_del = client.delete("/api/person/OFF-002")
+    assert r_del.status_code == 200
+
+    # Ensure OFF-002 state is gone
+    duty_data = client.get("/api/duty/2026-03-01").get_json()
+    off_row = next((r for r in duty_data["rows"] if r["id"] == "OFF-002"), None)
+    # OFF-002 shouldn't be on force or have any state
+    if off_row:
+        assert off_row["status"] == ""
+

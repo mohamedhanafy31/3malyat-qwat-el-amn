@@ -3,7 +3,7 @@
 نقطة واحدة للتعديل: `/api/assignments/<day>` — واللوحة ويومية الضباط
 الاتنين عرضين على نفس البيانات، فمفيش مزامنة ولا احتمال اختلاف بينهم.
 """
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from ..assignments import (
     blank, clean_conscripts, clean_shift, for_day, new_id, peek_day, services_by_id,
@@ -169,3 +169,21 @@ def list_assignments(day):
     return jsonify({"date": day, "assignments": peek_day(data, day),
                     "sections": ASSIGNMENT_SECTIONS,
                     "summary": summarise(data, day)["summary"]})
+
+
+@bp.delete("/api/assignments/<day>")
+def clear_day(day):
+    if not parse_date(day):
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    clear_states = request.args.get("clear_states") == "1"
+
+    def mutate(data):
+        count = len(data.get("day_assignments", {}).get(day, []))
+        if day in data.get("day_assignments", {}):
+            data["day_assignments"].pop(day, None)
+        if clear_states and day in data.get("day_officers", {}):
+            data["day_officers"].pop(day, None)
+        return jsonify({"ok": True, "deleted": count, "states_cleared": clear_states})
+
+    return with_data(mutate)
+

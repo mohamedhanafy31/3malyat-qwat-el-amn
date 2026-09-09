@@ -41,6 +41,34 @@ def test_bad_date_is_refused(client):
     assert client.get("/api/duty/مش-تاريخ").status_code == 400
 
 
+def test_clear_officer_state_delete_endpoint(client):
+    # Set state
+    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "انتداب", "note": "تست"})
+    assert _row(client, "OFF-001")["status"] == "انتداب"
+
+    # Delete state
+    res = client.delete("/api/duty/2026-03-01/OFF-001")
+    assert res.status_code == 200
+    assert res.get_json()["ok"] is True
+    assert _row(client, "OFF-001")["status"] == ""
+
+
+def test_clear_assignments_day_delete_endpoint(client):
+    # Create assignment and state
+    client.post("/api/assignments/2026-03-01", json={"service_id": "SVC-001", "shift": "صباحية", "officer_ids": ["OFF-001"]})
+    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "انتداب"})
+
+    # Bulk clear day with clear_states=1
+    res = client.delete("/api/assignments/2026-03-01?clear_states=1")
+    assert res.status_code == 200
+    body = res.get_json()
+    assert body["ok"] is True
+    assert body["states_cleared"] is True
+    assert len(client.get("/api/assignments/2026-03-01").get_json()["assignments"]) == 0
+    assert _row(client, "OFF-001")["status"] == ""
+
+
 def _row(client, officer_id, day="2026-03-01"):
     d = client.get(f"/api/duty/{day}").get_json()
     return next(r for r in d["rows"] if r["id"] == officer_id)
+
