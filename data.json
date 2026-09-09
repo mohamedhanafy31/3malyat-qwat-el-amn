@@ -39,111 +39,23 @@
         "search_attached": false
       },
       {
-        "name": "ابراهيم ابو الفرج يحي جبر",
-        "role": "رائد",
-        "code": "2644/2013",
-        "phone": "01019014792",
-        "join_date": "2026-08-04",
-        "post": "رئيس قسم السلاح و االعهدة",
-        "section": "القوة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-036",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "رائد",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "رائد",
-            "post": "رئيس قسم السلاح",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-29",
-            "role": "رائد",
-            "post": "رئيس قسم السلاح و االعهدة",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "احمد فوزي احمد السيد",
-        "role": "ملازم أول",
-        "code": "2023/1657",
-        "phone": "01129632739",
-        "join_date": "2026-08-04",
-        "post": "ضابط قسم التدريب",
-        "section": "القوة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-037",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "ملازم أول",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "ملازم أول",
-            "post": "احتياطي طوارئ قائد السرية الاولى",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-09",
-            "role": "ملازم أول",
-            "post": "قائد السرية الاولى",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-29",
-            "role": "ملازم أول",
-            "post": "ضابط قسم التدريب",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "احمد محمد محمود السمان",
-        "role": "رائد",
-        "code": "2014",
-        "phone": "01147949149",
+        "name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
+        "role": "عقيد",
+        "code": "1043/2003",
+        "phone": "01226897711",
         "join_date": "2026-06-01",
-        "post": "قائد هدف هلة المحجر",
-        "section": "الحراسات المشددة",
-        "rest_system": "شهرية",
-        "rest_day": "",
+        "post": "وكيل الاداره",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الخميس",
         "status": "active",
-        "id": "OFF-008",
+        "id": "OFF-027",
         "history": [
           {
             "from": "2026-06-01",
-            "role": "رائد",
-            "post": "قائد هدف أنابيب البترول",
-            "section": "الحراسات المشددة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "رائد",
-            "post": "قائد هدف هلة المحجر",
-            "section": "الحراسات المشددة",
+            "role": "عقيد",
+            "post": "وكيل الاداره",
+            "section": "القوة",
             "search_attached": false
           }
         ],
@@ -166,6 +78,66 @@
             "from": "2026-08-04",
             "role": "عقيد",
             "post": "قائد المعسكر الفرعي",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد مصطفي محمد احمد",
+        "role": "عقيد",
+        "code": "ض-01",
+        "phone": "",
+        "join_date": "2026-06-01",
+        "post": "احتياطي الطوارئ",
+        "section": "الخوارج",
+        "rest_system": "—",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-030",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "عقيد",
+            "post": "احتياطي الطوارئ",
+            "section": "الخوارج",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمود عبد الله محمود محمد",
+        "role": "عقيد",
+        "code": "1223/2006",
+        "phone": "01013180180",
+        "join_date": "2026-06-01",
+        "post": "رئيس العيادة الطبية",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-033",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "مقدم صيدلى",
+            "post": "رئيس العيادة الطبية",
+            "section": "الخوارج",
+            "search_attached": false
+          },
+          {
+            "from": "2026-07-29",
+            "role": "عقيد صيدلى",
+            "post": "رئيس العيادة الطبية",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-05",
+            "role": "عقيد",
+            "post": "رئيس العيادة الطبية",
             "section": "القوة",
             "search_attached": false
           }
@@ -203,43 +175,6 @@
         "search_attached": false
       },
       {
-        "name": "جمال احمد آمين محمد",
-        "role": "رائد",
-        "code": "1635/2012",
-        "phone": "01017203535",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم الانشاءات",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الاثنين",
-        "status": "active",
-        "id": "OFF-010",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "رائد",
-            "post": "رئيس قسم الإنشاءات",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "رائد",
-            "post": "رئيس قسم شئون الافراد",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-29",
-            "role": "رائد",
-            "post": "رئيس قسم الانشاءات",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
         "name": "حسام فتحي رضوان خلف",
         "role": "مقدم",
         "code": "1356/2010",
@@ -270,6 +205,237 @@
             "from": "2026-08-29",
             "role": "مقدم",
             "post": "احتياطي طوارئ",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "طاهر سلطان عبد الحليم احمد",
+        "role": "مقدم",
+        "code": "1561/2010",
+        "phone": "01061463662",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم الشئون الإدارية + مأمور السجن العسكري",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-015",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "مقدم",
+            "post": "رئيس قسم الشئون الإدارية + مأمور السجن العسكري",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "عبدالرحمن رفعت الحسيني اسماعيل",
+        "role": "مقدم",
+        "code": "2007",
+        "phone": "01090376666",
+        "join_date": "2026-06-01",
+        "post": "ضابط بالمعسكر الفرعي",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-016",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "مقدم",
+            "post": "رئيس قسم الشئون المالية",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "مقدم",
+            "post": "رئيس قسم تدريب",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-29",
+            "role": "مقدم",
+            "post": "ضابط بالمعسكر الفرعي",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد احمد مصطفي عبدالرازق",
+        "role": "مقدم",
+        "code": "1419/2009",
+        "phone": "01002909350",
+        "join_date": "2026-08-04",
+        "post": "رئيس قسم الشئون المالية",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الأحد",
+        "status": "active",
+        "id": "OFF-043",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "مقدم",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "مقدم",
+            "post": "رئيس قسم الشئون المالية",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد محمد عطية رزق",
+        "role": "مقدم",
+        "code": "159/2008",
+        "phone": "01000096573",
+        "join_date": "2026-06-01",
+        "post": "احتياطي طوارئ",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الثلاثاء",
+        "status": "active",
+        "id": "OFF-028",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "مقدم",
+            "post": "احتياطي طوارئ",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-05",
+            "role": "مقدم",
+            "post": "احتياطي طوارئ",
+            "section": "الحراسات المشددة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "مقدم",
+            "post": "احتياطي طوارئ",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "ابراهيم ابو الفرج يحي جبر",
+        "role": "رائد",
+        "code": "2644/2013",
+        "phone": "01019014792",
+        "join_date": "2026-08-04",
+        "post": "رئيس قسم السلاح و االعهدة",
+        "section": "القوة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-036",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "رائد",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "رائد",
+            "post": "رئيس قسم السلاح",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-29",
+            "role": "رائد",
+            "post": "رئيس قسم السلاح و االعهدة",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "احمد محمد محمود السمان",
+        "role": "رائد",
+        "code": "2014",
+        "phone": "01147949149",
+        "join_date": "2026-06-01",
+        "post": "قائد هدف هلة المحجر",
+        "section": "الحراسات المشددة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-008",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "رائد",
+            "post": "قائد هدف أنابيب البترول",
+            "section": "الحراسات المشددة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "رائد",
+            "post": "قائد هدف هلة المحجر",
+            "section": "الحراسات المشددة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "جمال احمد آمين محمد",
+        "role": "رائد",
+        "code": "1635/2012",
+        "phone": "01017203535",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم الانشاءات",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الاثنين",
+        "status": "active",
+        "id": "OFF-010",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "رائد",
+            "post": "رئيس قسم الإنشاءات",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "رائد",
+            "post": "رئيس قسم شئون الافراد",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-29",
+            "role": "رائد",
+            "post": "رئيس قسم الانشاءات",
             "section": "القوة",
             "search_attached": false
           }
@@ -337,6 +503,272 @@
         "search_attached": false
       },
       {
+        "name": "كريم عمرو محمد كمال علام",
+        "role": "رائد",
+        "code": "1211/2016",
+        "phone": "01001541786",
+        "join_date": "2026-06-01",
+        "post": "رئيس مباحث الإدارة (تشغيل من ادارة البحث)",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-019",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "نقيب",
+            "post": "رئيس مباحث الإدارة",
+            "section": "الخوارج",
+            "search_attached": true
+          },
+          {
+            "from": "2026-07-29",
+            "role": "نقيب",
+            "post": "رئيس مباحث الإدارة",
+            "section": "القوة",
+            "search_attached": true
+          },
+          {
+            "from": "2026-08-06",
+            "role": "رائد",
+            "post": "رئيس مباحث الإدارة",
+            "section": "القوة",
+            "search_attached": true
+          },
+          {
+            "from": "2026-08-07",
+            "role": "نقيب",
+            "post": "رئيس مباحث الإدارة",
+            "section": "القوة",
+            "search_attached": true
+          },
+          {
+            "from": "2026-08-12",
+            "role": "رائد",
+            "post": "رئيس مباحث الإدارة",
+            "section": "القوة",
+            "search_attached": true
+          },
+          {
+            "from": "2026-08-29",
+            "role": "رائد",
+            "post": "رئيس مباحث الإدارة (تشغيل من ادارة البحث)",
+            "section": "القوة",
+            "search_attached": true
+          }
+        ],
+        "search_attached": true
+      },
+      {
+        "name": "محمد ذكي محمود ذكي",
+        "role": "رائد",
+        "code": "2012",
+        "phone": "01021577223",
+        "join_date": "2026-06-01",
+        "post": "قائد هدف سوميد",
+        "section": "الحراسات المشددة",
+        "rest_system": "أسبوعية",
+        "rest_day": "السبت",
+        "status": "active",
+        "id": "OFF-024",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "رائد",
+            "post": "قائد هدف سوميد",
+            "section": "الحراسات المشددة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد عبد الحميد فتحى نعامة",
+        "role": "رائد",
+        "code": "3514/2012",
+        "phone": "01093908412",
+        "join_date": "2026-06-01",
+        "post": "رئيس قسم الأمن والتحريات + رئيس قسم الحملة",
+        "section": "القوة",
+        "rest_system": "—",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-025",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "رائد",
+            "post": "رئيس قسم الأمن والتحريات + رئيس قسم المركبات",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "رائد",
+            "post": "رئيس قسم المركبات",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-29",
+            "role": "رائد",
+            "post": "رئيس قسم الأمن والتحريات + رئيس قسم الحملة",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد عبدالغني ابو العلا محمد",
+        "role": "رائد",
+        "code": "58/2012",
+        "phone": "01097175283",
+        "join_date": "2026-08-04",
+        "post": "قائد هدف انابيب البترول",
+        "section": "الحراسات المشددة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-046",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "رائد",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-05",
+            "role": "رائد",
+            "post": "قائد هدف كهرباء السخنة",
+            "section": "الحراسات المشددة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "رائد",
+            "post": "رئيس قسم العهدة",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-29",
+            "role": "رائد",
+            "post": "احتباطي طوارئ",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-09-08",
+            "role": "رائد",
+            "post": "قائد هدف انابيب البترول",
+            "section": "الحراسات المشددة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد فتحي بكري مناع",
+        "role": "رائد",
+        "code": "2061/2013",
+        "phone": "01065174165",
+        "join_date": "2026-08-04",
+        "post": "قائد هدف عيون موسي",
+        "section": "الحراسات المشددة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-047",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "رائد",
+            "post": "قائد هدف عيون موسي",
+            "section": "الحراسات المشددة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد مجدي ابراهيم السيد بحر",
+        "role": "رائد",
+        "code": "139/2015",
+        "phone": "01112760056",
+        "join_date": "2026-08-04",
+        "post": "رئيس قسم العمليات وشئون ضباط + رئيس قسم التدريب",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الخميس",
+        "status": "active",
+        "id": "OFF-048",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "رائد",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "رائد",
+            "post": "رئيس قسم العمليات وشئون ضباط",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-29",
+            "role": "رائد",
+            "post": "رئيس قسم العمليات وشئون ضباط + رئيس قسم التدريب",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد ميهوب زكي ميهوب",
+        "role": "رائد",
+        "code": "2681/2010",
+        "phone": "01119133592",
+        "join_date": "2026-06-01",
+        "post": "مشرف عنابر الاعاشة",
+        "section": "القوة",
+        "rest_system": "نصف شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-031",
+        "history": [
+          {
+            "from": "2026-06-01",
+            "role": "رائد",
+            "post": "رئيس قسم العهده + قائد السرية الثانية",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-05",
+            "role": "رائد",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "رائد",
+            "post": "مشرف عنابر الاعاشة",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
         "name": "طارق احمد فاروق حسن",
         "role": "نقيب",
         "code": "1270/2021",
@@ -361,66 +793,6 @@
             "role": "نقيب",
             "post": "قائد هدف كهرباء عتاقة",
             "section": "الحراسات المشددة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "طاهر سلطان عبد الحليم احمد",
-        "role": "مقدم",
-        "code": "1561/2010",
-        "phone": "01061463662",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم الشئون الإدارية + مأمور السجن العسكري",
-        "section": "القوة",
-        "rest_system": "نصف شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-015",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "مقدم",
-            "post": "رئيس قسم الشئون الإدارية + مأمور السجن العسكري",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "عبدالرحمن رفعت الحسيني اسماعيل",
-        "role": "مقدم",
-        "code": "2007",
-        "phone": "01090376666",
-        "join_date": "2026-06-01",
-        "post": "ضابط بالمعسكر الفرعي",
-        "section": "القوة",
-        "rest_system": "نصف شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-016",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "مقدم",
-            "post": "رئيس قسم الشئون المالية",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "مقدم",
-            "post": "رئيس قسم تدريب",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-29",
-            "role": "مقدم",
-            "post": "ضابط بالمعسكر الفرعي",
-            "section": "القوة",
             "search_attached": false
           }
         ],
@@ -522,131 +894,6 @@
         "search_attached": false
       },
       {
-        "name": "عمر خالد احمد ماهر محمد",
-        "role": "ملازم أول",
-        "code": "2023/1719",
-        "phone": "01124965945",
-        "join_date": "2026-08-04",
-        "post": "قائد السرية القتالية",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الأحد",
-        "status": "active",
-        "id": "OFF-041",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "ملازم أول",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "ملازم أول",
-            "post": "احتياطي طوارئ قائد السرية القتالية",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-09",
-            "role": "ملازم أول",
-            "post": "قائد السرية القتالية",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "كريم عمرو محمد كمال علام",
-        "role": "رائد",
-        "code": "1211/2016",
-        "phone": "01001541786",
-        "join_date": "2026-06-01",
-        "post": "رئيس مباحث الإدارة (تشغيل من ادارة البحث)",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-019",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "نقيب",
-            "post": "رئيس مباحث الإدارة",
-            "section": "الخوارج",
-            "search_attached": true
-          },
-          {
-            "from": "2026-07-29",
-            "role": "نقيب",
-            "post": "رئيس مباحث الإدارة",
-            "section": "القوة",
-            "search_attached": true
-          },
-          {
-            "from": "2026-08-06",
-            "role": "رائد",
-            "post": "رئيس مباحث الإدارة",
-            "section": "القوة",
-            "search_attached": true
-          },
-          {
-            "from": "2026-08-07",
-            "role": "نقيب",
-            "post": "رئيس مباحث الإدارة",
-            "section": "القوة",
-            "search_attached": true
-          },
-          {
-            "from": "2026-08-12",
-            "role": "رائد",
-            "post": "رئيس مباحث الإدارة",
-            "section": "القوة",
-            "search_attached": true
-          },
-          {
-            "from": "2026-08-29",
-            "role": "رائد",
-            "post": "رئيس مباحث الإدارة (تشغيل من ادارة البحث)",
-            "section": "القوة",
-            "search_attached": true
-          }
-        ],
-        "search_attached": true
-      },
-      {
-        "name": "ماركو ماجد اقلاديوس مرقس",
-        "role": "ملازم أول",
-        "code": "2023/1697",
-        "phone": "01276508229",
-        "join_date": "2026-08-04",
-        "post": "ضابط بقسم العمليات",
-        "section": "القوة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-042",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "ملازم أول",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "ملازم أول",
-            "post": "ضابط بقسم العمليات",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
         "name": "محمد أحمد محمد عاطف",
         "role": "نقيب",
         "code": "1197/2022",
@@ -684,133 +931,6 @@
         "search_attached": false
       },
       {
-        "name": "محمد احمد مصطفي عبدالرازق",
-        "role": "مقدم",
-        "code": "1419/2009",
-        "phone": "01002909350",
-        "join_date": "2026-08-04",
-        "post": "رئيس قسم الشئون المالية",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الأحد",
-        "status": "active",
-        "id": "OFF-043",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "مقدم",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "مقدم",
-            "post": "رئيس قسم الشئون المالية",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد ذكي محمود ذكي",
-        "role": "رائد",
-        "code": "2012",
-        "phone": "01021577223",
-        "join_date": "2026-06-01",
-        "post": "قائد هدف سوميد",
-        "section": "الحراسات المشددة",
-        "rest_system": "أسبوعية",
-        "rest_day": "السبت",
-        "status": "active",
-        "id": "OFF-024",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "رائد",
-            "post": "قائد هدف سوميد",
-            "section": "الحراسات المشددة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد طارق السيد محمد اللبان",
-        "role": "ملازم أول",
-        "code": "2023/1689",
-        "phone": "01061244782",
-        "join_date": "2026-08-04",
-        "post": "قائد السرية الثانية",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الأربعاء",
-        "status": "active",
-        "id": "OFF-044",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "ملازم أول",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "ملازم أول",
-            "post": "احتياطي طوارئ قائد السرية الثانية",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-09",
-            "role": "ملازم أول",
-            "post": "قائد السرية الثانية",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد عبد الحميد فتحى نعامة",
-        "role": "رائد",
-        "code": "3514/2012",
-        "phone": "01093908412",
-        "join_date": "2026-06-01",
-        "post": "رئيس قسم الأمن والتحريات + رئيس قسم الحملة",
-        "section": "القوة",
-        "rest_system": "—",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-025",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "رائد",
-            "post": "رئيس قسم الأمن والتحريات + رئيس قسم المركبات",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "رائد",
-            "post": "رئيس قسم المركبات",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-29",
-            "role": "رائد",
-            "post": "رئيس قسم الأمن والتحريات + رئيس قسم الحملة",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
         "name": "محمد عبدالعزيز محمود حامد",
         "role": "نقيب",
         "code": "1270/2021",
@@ -834,237 +954,6 @@
             "from": "2026-08-07",
             "role": "نقيب",
             "post": "ضابط بقسم التعيينات",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد عبدالغني ابو العلا محمد",
-        "role": "رائد",
-        "code": "58/2012",
-        "phone": "01097175283",
-        "join_date": "2026-08-04",
-        "post": "قائد هدف انابيب البترول",
-        "section": "الحراسات المشددة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-046",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "رائد",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-05",
-            "role": "رائد",
-            "post": "قائد هدف كهرباء السخنة",
-            "section": "الحراسات المشددة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "رائد",
-            "post": "رئيس قسم العهدة",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-29",
-            "role": "رائد",
-            "post": "احتباطي طوارئ",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-09-08",
-            "role": "رائد",
-            "post": "قائد هدف انابيب البترول",
-            "section": "الحراسات المشددة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
-        "role": "عقيد",
-        "code": "1043/2003",
-        "phone": "01226897711",
-        "join_date": "2026-06-01",
-        "post": "وكيل الاداره",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الخميس",
-        "status": "active",
-        "id": "OFF-027",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "عقيد",
-            "post": "وكيل الاداره",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد فتحي بكري مناع",
-        "role": "رائد",
-        "code": "2061/2013",
-        "phone": "01065174165",
-        "join_date": "2026-08-04",
-        "post": "قائد هدف عيون موسي",
-        "section": "الحراسات المشددة",
-        "rest_system": "شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-047",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "رائد",
-            "post": "قائد هدف عيون موسي",
-            "section": "الحراسات المشددة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد مجدي ابراهيم السيد بحر",
-        "role": "رائد",
-        "code": "139/2015",
-        "phone": "01112760056",
-        "join_date": "2026-08-04",
-        "post": "رئيس قسم العمليات وشئون ضباط + رئيس قسم التدريب",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الخميس",
-        "status": "active",
-        "id": "OFF-048",
-        "history": [
-          {
-            "from": "2026-08-04",
-            "role": "رائد",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "رائد",
-            "post": "رئيس قسم العمليات وشئون ضباط",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-29",
-            "role": "رائد",
-            "post": "رئيس قسم العمليات وشئون ضباط + رئيس قسم التدريب",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد محمد عطية رزق",
-        "role": "مقدم",
-        "code": "159/2008",
-        "phone": "01000096573",
-        "join_date": "2026-06-01",
-        "post": "احتياطي طوارئ",
-        "section": "القوة",
-        "rest_system": "أسبوعية",
-        "rest_day": "الثلاثاء",
-        "status": "active",
-        "id": "OFF-028",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "مقدم",
-            "post": "احتياطي طوارئ",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-05",
-            "role": "مقدم",
-            "post": "احتياطي طوارئ",
-            "section": "الحراسات المشددة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "مقدم",
-            "post": "احتياطي طوارئ",
-            "section": "القوة",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد مصطفي محمد احمد",
-        "role": "عقيد",
-        "code": "ض-01",
-        "phone": "",
-        "join_date": "2026-06-01",
-        "post": "احتياطي الطوارئ",
-        "section": "الخوارج",
-        "rest_system": "—",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-030",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "عقيد",
-            "post": "احتياطي الطوارئ",
-            "section": "الخوارج",
-            "search_attached": false
-          }
-        ],
-        "search_attached": false
-      },
-      {
-        "name": "محمد ميهوب زكي ميهوب",
-        "role": "رائد",
-        "code": "2681/2010",
-        "phone": "01119133592",
-        "join_date": "2026-06-01",
-        "post": "مشرف عنابر الاعاشة",
-        "section": "القوة",
-        "rest_system": "نصف شهرية",
-        "rest_day": "",
-        "status": "active",
-        "id": "OFF-031",
-        "history": [
-          {
-            "from": "2026-06-01",
-            "role": "رائد",
-            "post": "رئيس قسم العهده + قائد السرية الثانية",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-05",
-            "role": "رائد",
-            "post": "",
-            "section": "القوة",
-            "search_attached": false
-          },
-          {
-            "from": "2026-08-07",
-            "role": "رائد",
-            "post": "مشرف عنابر الاعاشة",
             "section": "القوة",
             "search_attached": false
           }
@@ -1109,36 +998,147 @@
         "search_attached": false
       },
       {
-        "name": "محمود عبد الله محمود محمد",
-        "role": "عقيد",
-        "code": "1223/2006",
-        "phone": "01013180180",
-        "join_date": "2026-06-01",
-        "post": "رئيس العيادة الطبية",
+        "name": "احمد فوزي احمد السيد",
+        "role": "ملازم أول",
+        "code": "2023/1657",
+        "phone": "01129632739",
+        "join_date": "2026-08-04",
+        "post": "ضابط قسم التدريب",
         "section": "القوة",
-        "rest_system": "نصف شهرية",
+        "rest_system": "شهرية",
         "rest_day": "",
         "status": "active",
-        "id": "OFF-033",
+        "id": "OFF-037",
         "history": [
           {
-            "from": "2026-06-01",
-            "role": "مقدم صيدلى",
-            "post": "رئيس العيادة الطبية",
-            "section": "الخوارج",
-            "search_attached": false
-          },
-          {
-            "from": "2026-07-29",
-            "role": "عقيد صيدلى",
-            "post": "رئيس العيادة الطبية",
+            "from": "2026-08-04",
+            "role": "ملازم أول",
+            "post": "",
             "section": "القوة",
             "search_attached": false
           },
           {
-            "from": "2026-08-05",
-            "role": "عقيد",
-            "post": "رئيس العيادة الطبية",
+            "from": "2026-08-07",
+            "role": "ملازم أول",
+            "post": "احتياطي طوارئ قائد السرية الاولى",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-09",
+            "role": "ملازم أول",
+            "post": "قائد السرية الاولى",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-29",
+            "role": "ملازم أول",
+            "post": "ضابط قسم التدريب",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "عمر خالد احمد ماهر محمد",
+        "role": "ملازم أول",
+        "code": "2023/1719",
+        "phone": "01124965945",
+        "join_date": "2026-08-04",
+        "post": "قائد السرية القتالية",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الأحد",
+        "status": "active",
+        "id": "OFF-041",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "ملازم أول",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "ملازم أول",
+            "post": "احتياطي طوارئ قائد السرية القتالية",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-09",
+            "role": "ملازم أول",
+            "post": "قائد السرية القتالية",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "ماركو ماجد اقلاديوس مرقس",
+        "role": "ملازم أول",
+        "code": "2023/1697",
+        "phone": "01276508229",
+        "join_date": "2026-08-04",
+        "post": "ضابط بقسم العمليات",
+        "section": "القوة",
+        "rest_system": "شهرية",
+        "rest_day": "",
+        "status": "active",
+        "id": "OFF-042",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "ملازم أول",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "ملازم أول",
+            "post": "ضابط بقسم العمليات",
+            "section": "القوة",
+            "search_attached": false
+          }
+        ],
+        "search_attached": false
+      },
+      {
+        "name": "محمد طارق السيد محمد اللبان",
+        "role": "ملازم أول",
+        "code": "2023/1689",
+        "phone": "01061244782",
+        "join_date": "2026-08-04",
+        "post": "قائد السرية الثانية",
+        "section": "القوة",
+        "rest_system": "أسبوعية",
+        "rest_day": "الأربعاء",
+        "status": "active",
+        "id": "OFF-044",
+        "history": [
+          {
+            "from": "2026-08-04",
+            "role": "ملازم أول",
+            "post": "",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-07",
+            "role": "ملازم أول",
+            "post": "احتياطي طوارئ قائد السرية الثانية",
+            "section": "القوة",
+            "search_attached": false
+          },
+          {
+            "from": "2026-08-09",
+            "role": "ملازم أول",
+            "post": "قائد السرية الثانية",
             "section": "القوة",
             "search_attached": false
           }
@@ -86428,6 +86428,13 @@
       "name": "فرقة الحراسات المشددة",
       "place": "مدرسة الدفاع الشعبي والعسكري",
       "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-009",
+      "name": "تخطيط وإدارة مسرح العمليات",
+      "place": "",
+      "kind": "تخصصية",
       "note": ""
     }
   ],
