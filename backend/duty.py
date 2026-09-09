@@ -25,24 +25,47 @@ def is_medical_post(post):
     flat = norm(post)
     return any(key in flat for key in MEDICAL_POSTS)
 
-# ترتيب الأولوية — أول قاعدة تنطبق هي اللي بتاخد الضابط.
-# الترتيب ده مقيس على الـ22 يوم اللي فيهم جدول إجمالي في الوورد؛ أي تغيير
-# فيه لازم يعدّي على tools/calibrate_summary.py الأول.
-PRIORITY = ("حالة مكتوبة (خوارج)", "طبية", "راحة (خوارج)", "تقصيرة",
-            "حراسات", "داخلية/خارجية", "صافي")
+# سلّم أولويات خانة الإجمالي — أول قاعدة تنطبق هي اللي بتاخد الضابط.
+# كل ضابط في خانة واحدة بس، ومجموع الخانات لازم يساوي أصل القوة (ثابت في
+# كل جداول الوورد المفحوصة). أي تعديل هنا لازم يعدّي على
+# tools/calibrate_summary.py الأول.
+#
+#   1. حالة مكتوبة لليوم ده   انتداب/غياب/مرضي/فرقة/طارئة
+#   2. ضابط العيادة           بيفضل في عمود الطبية حتى وهو في راحة
+#   3. راحة مسجّلة
+#   4. تقصيرة                 بتغلب الخدمة **والحراسة** — الضابط اشتغل وخرج بدري
+#   5. حراسات                 قائد الهدف حراسة مهما كان ترتيب خدماته
+#   6. أول خدمة اتحط عليها    الخانة اللي اتحط فيها الأول هي اللي تتحسب
+#   7. صافي
+PRIORITY = ("حالة مكتوبة", "طبية", "راحة", "تقصيرة",
+            "حراسات", "أول خدمة اتحط عليها", "صافي")
 
-# لما الضابط يكون على أكتر من خدمة في نفس الخانة (صباحية وليلية مثلًا)،
-# دي الفترة اللي بتتحسب. مجموع الجدول لازم يفضل = أصل القوة، فمينفعش
-# يتحسب مرتين. الوورد نفسه مش قاطع هنا، فالقرار متجمّع في مكان واحد.
-PREFERRED_SHIFT = "صباحية"
+# لما التكليف نفسه مالوش فترة مسجّلة
+DEFAULT_SHIFT = "صباحية"
 
 
-def _shift_of(items):
-    """الفترة المعتمدة من بين تكليفات الضابط في نفس الخانة."""
-    shifts = [sh for _, sh in items if sh in SHIFTS]
-    if not shifts:
-        return PREFERRED_SHIFT
-    return PREFERRED_SHIFT if PREFERRED_SHIFT in shifts else shifts[0]
+def _first_cell(kinds, search_attached):
+    """-> (المجموعة، الخانة) لضابط عليه خدمة أو أكتر.
+
+    الحراسات بتغلب أي ترتيب: قائد الهدف بيتحسب حراسات حتى لو الهدف مش أول
+    خدمة مكتوبة في سطره (يومية 31/8: «مدرجات الدرجة الاولي + عمل بهدف
+    كهرباء عتاقة» — الوورد حسبه حراسات). قياس على 14 يوم: 93% بالقاعدة
+    دي مقابل 71% من غيرها.
+
+    وبعد كده الترتيب هو الحكم: الخانة اللي اتحط فيها الأول هي اللي تتحسب.
+    """
+    if any(kind == "حراسات" for kind, _ in kinds):
+        return ("حراسات", None)
+
+    kind, shift = next(((k, sh) for k, sh in kinds if k in ("خارجية", "داخلية")),
+                       (None, None))
+    if kind is None:
+        return ("صافي", None)
+    # وسم «+N بحث» تابع لجهة تشغيل الضابط، وبيظهر بس لما يكون على خدمة
+    # خارجية — في 20/8 كان على خدمة داخلية والورد حسبه داخلية بلا وسم
+    if kind == "خارجية" and search_attached:
+        return ("خارجية", "بحث")
+    return (kind, shift if shift in SHIFTS else DEFAULT_SHIFT)
 
 
 def _empty_summary(force):
@@ -77,21 +100,9 @@ def _bucket(kinds, leave, state, medical, search_attached):
     if state.get("taqseera"):
         return ("خوارج", "تقصيرة")
 
-    if any(kind == "حراسات" for kind, _ in kinds):
-        return ("حراسات", None)
-
-    internal = [(k, sh) for k, sh in kinds if k == "داخلية"]
-    external = [(k, sh) for k, sh in kinds if k == "خارجية"]
-    # وسم «+N بحث» تابع لجهة تشغيل الضابط مش لنوع الخدمة: الوورد كتبه في
-    # 14 يوم كان فيهم رئيس مباحث الإدارة على خدمات خارجية عادية، ومكتبوش
-    # في اليوم الوحيد اللي كان فيه على «ضابط مباحث السجن العسكري».
-    if search_attached and external:
-        return ("خارجية", "بحث")
-    if internal:
-        return ("داخلية", _shift_of(internal))
-    if external:
-        return ("خارجية", _shift_of(external))
-    return ("صافي", None)
+    if not kinds:
+        return ("صافي", None)
+    return _first_cell(kinds, search_attached)
 
 
 def summarise(data, day):

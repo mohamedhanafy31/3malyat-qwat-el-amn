@@ -36,12 +36,28 @@ SHIFT_ROW = {"فتره صباحيه": "صباحية", "فتره ليليه": "ل
 RANKS = ("عقيد", "مقدم", "رائد", "نقيب", "م.اول", "م.أول", "ملازم", "لواء", "عميد")
 
 _SHIFT_IN_NAME = [(r'\bصبح\b|\bصباحيه\b', "صباحية"), (r'\bليل\b|\bليليه\b', "ليلية")]
+# ساعة الانتظام هي اللي بتحدد الفترة لما الاسم مايقولهاش — وده حال أغلب
+# الخدمات الطارئة («ترحيلة بدر 7ص»، «ارتكاز المسجد الكبير 5م»). من غير
+# القراءة دي كان 47% من التكليفات بيقعوا على «صباحية» افتراضيًا.
+_TIME_SHIFT = re.compile(r'(\d{1,2})(?::\d{2})?\s*(ص|م|ظ)\b')
 
 
-def shift_in_name(text):
+def shift_from_time(text):
+    """«7ص» و«12ظ» صباحية، و«5م» و«8م» ليلية."""
+    m = _TIME_SHIFT.search(text or "")
+    if not m:
+        return ""
+    return "ليلية" if m.group(2) == "م" else "صباحية"
+
+
+def shift_in_name(text, *fallback):
     flat = strip_ar(text or "")
     for pattern, shift in _SHIFT_IN_NAME:
         if re.search(pattern, flat):
+            return shift
+    for source in (text, *fallback):
+        shift = shift_from_time(source)
+        if shift:
             return shift
     return ""
 
@@ -80,7 +96,7 @@ def read_board(table):
         if any(r in first for r in RANKS) and "/" in first:
             name, manning = second, first
         rows.append({"section": section, "raw_name": name, "manning": manning,
-                     "shift": shift_in_name(name)})
+                     "shift": shift_in_name(name, manning)})
     return rows
 
 

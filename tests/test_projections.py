@@ -246,3 +246,63 @@ def test_subcamp_service_leaves_the_officer_in_net(client):
     assert s["balanced"] is True
     # ولسه ظاهرة على اللوحة عادي
     assert len(_section(client, "الخدمات أساسية")["rows"]) == 1
+
+
+# ---------- سلّم أولويات خانة الإجمالي ----------
+# تقصيرة > حراسات > الخدمة (وفي الخدمات: اللي اتحط فيها الأول)
+
+def _guard(client, name="هدف سوميد"):
+    svc = client.post("/api/services", json={
+        "name": name, "kind": "حراسات", "section": "الأهداف"}).get_json()
+    return svc["id"]
+
+
+def test_taqseera_beats_everything_including_targets(client):
+    """ضابط على حراسة ومعاه تقصيرة → يتحسب تقصيرة."""
+    _add(client, service_id=_guard(client), officer_ids=["OFF-002"])
+    client.put(f"/api/duty/{DAY}/OFF-002", json={"taqseera": True})
+    s = _summary(client)
+    assert s["خوارج"]["تقصيرة"] == 1
+    assert s["حراسات"] == 0
+    assert _row(client, "OFF-002")["bucket"] == "تقصيرة"
+
+
+def test_taqseera_beats_an_ordinary_service_too(client):
+    _add(client, officer_ids=["OFF-002"])
+    client.put(f"/api/duty/{DAY}/OFF-002", json={"taqseera": True})
+    s = _summary(client)
+    assert s["خوارج"]["تقصيرة"] == 1
+    assert s["خارجية"]["صباحية"] == 0
+
+
+def test_target_beats_an_ordinary_service_whatever_the_order(client):
+    """قائد الهدف بيتحسب حراسات حتى لو الهدف مش أول خدمة في سطره —
+    يومية 31/8: «مدرجات الدرجة الاولي + عمل بهدف كهرباء عتاقة»."""
+    _add(client, officer_ids=["OFF-002"])                       # خارجية الأول
+    _add(client, service_id=_guard(client), officer_ids=["OFF-002"])   # حراسة بعدها
+    s = _summary(client)
+    assert s["حراسات"] == 1
+    assert sum(s["خارجية"].values()) == 0
+
+
+def test_among_ordinary_services_the_first_one_wins(client):
+    """الخانة اللي اتحط فيها الأول هي اللي تتحسب."""
+    night = client.post("/api/services", json={
+        "name": "خدمة ليلية", "kind": "خارجية",
+        "section": "الخدمات الطارئة"}).get_json()["id"]
+    _add(client, service_id=night, officer_ids=["OFF-002"], shift="ليلية")
+    _add(client, officer_ids=["OFF-002"], shift="صباحية")       # اتحط تاني
+    s = _summary(client)
+    assert s["خارجية"] == {"صباحية": 0, "ليلية": 1, "بحث": 0}
+    assert s["balanced"] is True
+
+
+def test_first_wins_across_internal_and_external_too(client):
+    inside = client.post("/api/services", json={
+        "name": "خدمة داخلية", "kind": "داخلية",
+        "section": "الخدمات الطارئة"}).get_json()["id"]
+    _add(client, officer_ids=["OFF-002"], shift="صباحية")       # خارجية الأول
+    _add(client, service_id=inside, officer_ids=["OFF-002"], shift="ليلية")
+    s = _summary(client)
+    assert s["خارجية"]["صباحية"] == 1
+    assert sum(s["داخلية"].values()) == 0
