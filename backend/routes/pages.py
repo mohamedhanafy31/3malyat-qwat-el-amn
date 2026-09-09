@@ -17,6 +17,8 @@ PAGES = {
     "duty": ("duty.html", "يومية الضباط", "تشغيل الضباط اليومي وجدول الإجمالي"),
     "board": ("board.html", "اليومية التفصيلية", "خدمات اليوم بأقسامها — الضباط والأفراد والمجندين"),
     "catalog": ("catalog.html", "كتالوج الخدمات", "تصنيف الخدمات المستخدمة في جدول الإجمالي"),
+    "courses": ("courses.html", "فرق الضباط",
+                 "الدورات اللي الضباط بياخدوها ومدة كل التحاق"),
     "register": ("register.html", "دفتر 43",
                   "موقف كل ضابط يوم بيوم — صف لكل ضابط وعمود لكل يوم"),
     "officer_register": ("officer_register.html", "دفتر الضابط",
@@ -65,6 +67,11 @@ def catalog():
 @bp.get("/leaves")
 def leaves():
     return _render("leaves")
+
+
+@bp.get("/courses")
+def courses():
+    return _render("courses")
 
 
 @bp.get("/register")

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <input id="crsSearch" class="search" placeholder="بحث باسم الفرقة أو الضابط...">
+    <button class="primary" id="addCrsBtn">＋ فرقة جديدة</button>
+    <button class="mini ok" id="addTermBtn">＋ التحاق ضابط</button>
+    <span id="crsCount" class="muted"></span>
+  </div>
+  <p class="hint" style="margin:14px 18px">
+    الالتحاق بفرقة سجل بمدى تواريخ — زي الراحة بالظبط — فالضابط بيظهر في خانة
+    «فرقة» في الخوارج طول مدتها من غير ما تتكتب في تشغيله كل يوم، وبتغطي كمان
+    الأيام اللي لسه ماتعملّهاش يومية.
+  </p>
+  <div id="coursesWrap"></div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% include "partials/course_modal.html" %}
+{% include "partials/term_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/courses.js') }}"></script>
+{% endblock %}

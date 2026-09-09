@@ -101,6 +101,8 @@ def _read():
     data.setdefault("day_assignments", {})
     data.setdefault("day_officers", {})
     data.setdefault("service_tags", [])
+    data.setdefault("courses", [])
+    data.setdefault("course_terms", [])
     command = data.setdefault("command", {})
     for role in DEFAULT_DATA["command"]:
         command.setdefault(role, None)

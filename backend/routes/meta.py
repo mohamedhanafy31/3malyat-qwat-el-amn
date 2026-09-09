@@ -99,7 +99,7 @@ def bootstrap(page):
                                     "leaves": len(data["leaves"]),
                                     "services": len(data["services"])}})
 
-    if page in ("duty", "board", "register"):
+    if page in ("duty", "board", "register", "courses"):
         return jsonify({
             "meta": meta,
             # كل اللي كانوا على القوة في أي وقت — الأيام القديمة محتاجة

@@ -25,6 +25,8 @@ DEFAULT_DATA = {
     "day_assignments": {},
     "day_officers": {},
     "service_tags": [],
+    "courses": [],
+    "course_terms": [],
     "command": {ROLE_DIRECTOR: None, ROLE_DEPUTY: None},
     "medical_officers": [],
 }

@@ -99,8 +99,12 @@ def test_officer_who_left_mid_month_is_marked_apart(client):
 
     reg = _month(client)
     assert _cell(reg, "OFF-002", DAY)["code"] == "ص"         # كان بالقوة
-    assert _cell(reg, "OFF-002", "2026-04-15")["code"] == "—"   # خرج قبلها
-    assert _cell(reg, "OFF-002", "2026-04-20")["code"] == "·"   # ومفيش يومية أصلًا
+    # بعد خروجه بيفضل «—» حتى في الأيام اللي مالهاش يومية: خروجه من القوة
+    # معلومة مؤكدة من تاريخ خروجه، مش نقص في السجل
+    assert _cell(reg, "OFF-002", "2026-04-15")["code"] == "—"
+    assert _cell(reg, "OFF-002", "2026-04-20")["code"] == "—"
+    # والضابط اللي لسه بالقوة بيفضل «·» في اليوم اللي مالوش يومية
+    assert _cell(reg, "OFF-001", "2026-04-20")["code"] == "·"
 
 
 def test_an_officer_never_on_force_gets_no_row(client):

@@ -1,0 +1,25 @@
+<!-- ============ فرقة ============ -->
+<div class="modal hidden" id="courseModal">
+  <div class="modal-card small">
+    <button class="close" data-close="courseModal">×</button>
+    <h2 id="courseTitle">فرقة جديدة</h2>
+    <form id="courseForm">
+      <input type="hidden" id="crsId">
+      <label>اسم الفرقة
+        <input id="crsName" required placeholder="فرقة الحراسات المشددة">
+      </label>
+      <div class="grid">
+        <label>النوع
+          <select id="crsKind"></select>
+        </label>
+        <label>المكان <small>الجهة اللي بتتعقد فيها</small>
+          <input id="crsPlace" placeholder="مدرسة الدفاع الشعبي والعسكري">
+        </label>
+      </div>
+      <label>ملاحظات
+        <input id="crsNote">
+      </label>
+      <button class="primary full" type="submit">حفظ</button>
+    </form>
+  </div>
+</div>

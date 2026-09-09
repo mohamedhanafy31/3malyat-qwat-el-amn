@@ -14,6 +14,7 @@
 مهم: الضابط بياخد أول خانة تنطبق عليه.
 """
 from .assignments import assignments_of, officer_state, services_by_id
+from .courses import by_id as courses_by_id, term_on
 from .constants import LEAVE_BUCKET, MEDICAL_POSTS, SHIFTS
 from .leaves import leave_on
 from .people import effective, officers_on
@@ -36,9 +37,10 @@ def is_medical_post(post):
 #   4. تقصيرة                 بتغلب الخدمة **والحراسة** — الضابط اشتغل وخرج بدري
 #   5. حراسات                 قائد الهدف حراسة مهما كان ترتيب خدماته
 #   6. أول خدمة اتحط عليها    الخانة اللي اتحط فيها الأول هي اللي تتحسب
-#   7. صافي
+#   7. فرقة                   مدى الالتحاق بيملا الأيام الفاضية بس
+#   8. صافي
 PRIORITY = ("حالة مكتوبة", "طبية", "راحة", "تقصيرة",
-            "حراسات", "أول خدمة اتحط عليها", "صافي")
+            "حراسات", "أول خدمة اتحط عليها", "فرقة", "صافي")
 
 # لما التكليف نفسه مالوش فترة مسجّلة
 DEFAULT_SHIFT = "صباحية"
@@ -81,7 +83,7 @@ def _empty_summary(force):
     }
 
 
-def _bucket(kinds, leave, state, medical, search_attached):
+def _bucket(kinds, leave, state, medical, search_attached, course=None):
     """-> (المجموعة، الخانة الفرعية) لضابط واحد. القواعد بترتيب PRIORITY."""
     # حالة مكتوبة بالإيد لليوم ده بالذات بتغلب أي افتراض
     status = state.get("status") or ""
@@ -100,9 +102,17 @@ def _bucket(kinds, leave, state, medical, search_attached):
     if state.get("taqseera"):
         return ("خوارج", "تقصيرة")
 
-    if not kinds:
-        return ("صافي", None)
-    return _first_cell(kinds, search_attached)
+    if kinds:
+        return _first_cell(kinds, search_attached)
+
+    # الالتحاق بفرقة بيغطي أيامه لوحده — زي الراحة — بدل ما الكلمة تتكتب
+    # في تشغيل كل يوم. لكنه **مابيلغيش تكليف مسجّل**: المدة بتيجي من نص
+    # مكتوب مرة واحدة («من 22/8 حتى 3/9») وساعات الضابط بيرجع بدري أو
+    # الفرقة بتتأجل، والدليل على كده إنه ظاهر على خدمة في اليوم ده.
+    # المكتوب لليوم بعينه أقوى من المدى المستنتج.
+    if course:
+        return ("خوارج", "فرقة")
+    return ("صافي", None)
 
 
 def summarise(data, day):
@@ -110,6 +120,7 @@ def summarise(data, day):
     services = services_by_id(data)
     officers = officers_on(data, day)
     medical_ids = set(data.get("medical_officers") or [])
+    course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
 
     s = _empty_summary(len(officers))
     net_names, rows = [], []
@@ -118,6 +129,7 @@ def summarise(data, day):
         eff = effective(o, day)
         state = officer_state(data, day, o["id"])
         leave = leave_on(data, o["id"], day)
+        term = term_on(data, o["id"], day)
 
         items = []
         for a in assignments_of(data, day, o["id"]):
@@ -137,7 +149,8 @@ def summarise(data, day):
                    or is_medical_post(eff["post"])
                    or any(k == "طبية" for k, _ in kinds))
 
-        group, sub = _bucket(kinds, leave, state, medical, eff["search_attached"])
+        group, sub = _bucket(kinds, leave, state, medical,
+                             eff["search_attached"], term)
         if sub is None:
             s[group] += 1
             if group == "صافي":
@@ -156,6 +169,10 @@ def summarise(data, day):
             "leave": ({"type": leave["type"], "start": leave["start"], "end": leave["end"],
                        "return_date": leave["return_date"]} if leave else None),
             "note": state.get("note", ""),
+            "course": ({"id": term["id"], "course_id": term["course_id"],
+                        "name": course_names.get(term["course_id"], ""),
+                        "start": term["start"], "end": term["end"]}
+                       if term else None),
             # كان بالقوة يومها لكنه خرج بعد كده — للتوضيح في اليوميات القديمة
             "later_left": o.get("leave_date", "") or None,
         })

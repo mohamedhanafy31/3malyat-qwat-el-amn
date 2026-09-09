@@ -25,6 +25,10 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+class AlreadyDone(Exception):
+    """هجرة بيانات اتعملت قبل كده — تُرفع من migrate() للخروج بهدوء."""
+
+
 HERE = Path(__file__).resolve().parent
 DATA_FILE = HERE.parent / "data.json"
 BACKUP_DIR = HERE.parent / "backups"
@@ -60,7 +64,10 @@ def run(from_schema, to_schema, migrate, title):
     data = load()
     found = data.get("schema", 1)
 
-    if found == to_schema:
+    # هجرة بيانات (مش بنية): الشكل مابيتغيّرش، فـmigrate هي اللي بتحدد
+    # إذا كانت اتعملت قبل كده ولا لأ عن طريق AlreadyDone.
+    same_shape = from_schema == to_schema
+    if found == to_schema and not same_shape:
         print(f"الملف متهاجر بالفعل (schema {found}) — مفيش حاجة تتعمل.")
         return
     if found != from_schema:
@@ -69,7 +76,11 @@ def run(from_schema, to_schema, migrate, title):
             f"اتوقف من غير ما يتغيّر أي حاجة."
         )
 
-    report = migrate(data) or []
+    try:
+        report = migrate(data) or []
+    except AlreadyDone as done:
+        print(str(done) or "اتعملت قبل كده — مفيش حاجة تتغيّر.")
+        return
     data["schema"] = to_schema
 
     print("\n=== الفرق ===")

@@ -1,0 +1,29 @@
+<!-- ============ التحاق ضابط بفرقة ============ -->
+<div class="modal hidden" id="termModal">
+  <div class="modal-card small">
+    <button class="close" data-close="termModal">×</button>
+    <h2 id="termTitle">التحاق بفرقة</h2>
+    <p class="hint">المدة دي بتخلي الضابط في خانة «فرقة» بالخوارج في كل يوم بينها.</p>
+    <form id="termForm">
+      <input type="hidden" id="trmId">
+      <label>الضابط
+        <select id="trmOfficer" required></select>
+      </label>
+      <label>الفرقة
+        <select id="trmCourse" required></select>
+      </label>
+      <div class="grid">
+        <label>من يوم
+          <input type="date" id="trmStart" required>
+        </label>
+        <label>إلى يوم
+          <input type="date" id="trmEnd" required>
+        </label>
+      </div>
+      <label>ملاحظات
+        <input id="trmNote">
+      </label>
+      <button class="primary full" type="submit">حفظ</button>
+    </form>
+  </div>
+</div>

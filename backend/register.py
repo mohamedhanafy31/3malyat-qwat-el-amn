@@ -128,11 +128,14 @@ def month_register(data, year, month):
     """دفتر الشهر: صف لكل ضابط، عمود لكل يوم."""
     days = month_days(year, month)
     recorded = recorded_days(data, days)
-    per_day = _day_rows(data, [d for d in days if d in recorded])
+    # الأيام اللي مالهاش يومية بتتحسب برضو: الراحة والفرقة سجلات بمدى
+    # تواريخ، فبنعرف موقف الضابط فيها حتى من غير يومية. اللي مانعرفش عنه
+    # حاجة (صافي) هو اللي بيفضل «مفيش سجل».
+    per_day = _day_rows(data, days)
 
-    # الضباط اللي كانوا على القوة في أي يوم مسجّل من الشهر، بترتيب الرتبة
+    # الضباط اللي كانوا على القوة في أي يوم من الشهر، بترتيب الرتبة
     seen, officers = set(), []
-    for day in sorted(recorded):
+    for day in days:
         for officer in officers_on(data, day):
             if officer["id"] in seen:
                 continue
@@ -148,11 +151,17 @@ def month_register(data, year, month):
     for officer in officers:
         cells = []
         for day in days:
-            if day not in recorded:
+            row = per_day[day].get(officer["id"])
+            if not row:
+                cells.append(_flat(OFF_FORCE, day))
+                continue
+            # في يوم من غير يومية، «صافي» معناها إننا مانعرفش حاجة عنه —
+            # مش إنه كان بالإدارة. أما الراحة والفرقة فسجلات بمدى تواريخ
+            # وبتفضل صحيحة سواء اتعملت يومية أو لأ.
+            if day not in recorded and row["group"] == "صافي":
                 cells.append(_flat(NO_RECORD, day))
                 continue
-            row = per_day[day].get(officer["id"])
-            cells.append(_cell(row, day) if row else _flat(OFF_FORCE, day))
+            cells.append(_cell(row, day))
         counted = [c for c in cells if c["family"] in FAMILIES]
         last = per_day.get(last_recorded, {}).get(officer["id"]) or {}
         rows.append({
