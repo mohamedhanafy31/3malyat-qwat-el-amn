@@ -48,17 +48,23 @@ def term_on(data, officer_id, day):
     for term in terms(data):
         if term.get("officer_id") != officer_id:
             continue
-        if term.get("start", "") <= day <= term.get("end", ""):
+        start = term.get("start", "")
+        end = term.get("end", "")
+        if start and end and start <= day <= end:
             return term
     return None
 
 
 def overlapping(data, term, ignore_id=None):
     """التحاق تاني لنفس الضابط بيتقاطع مع المدى ده."""
+    s1, e1 = term.get("start", ""), term.get("end", "")
+    if not s1 or not e1:
+        return None
     for other in terms(data):
         if other.get("id") == ignore_id or other.get("officer_id") != term["officer_id"]:
             continue
-        if other["start"] <= term["end"] and term["start"] <= other["end"]:
+        s2, e2 = other.get("start", ""), other.get("end", "")
+        if s2 and e2 and s2 <= e1 and s1 <= e2:
             return other
     return None
 
@@ -85,24 +91,32 @@ def build_term(payload, data, term_id):
     if course_id not in by_id(data):
         return None, "الفرقة غير موجودة."
 
-    start, end = parse_date(payload.get("start")), parse_date(payload.get("end"))
-    if not start or not end:
-        return None, "برجاء إدخال تاريخ بداية ونهاية صحيحين."
-    if end < start:
+    raw_start = str(payload.get("start", "") or "").strip()
+    raw_end = str(payload.get("end", "") or "").strip()
+
+    start = parse_date(raw_start) if raw_start else None
+    end = parse_date(raw_end) if raw_end else None
+
+    if raw_start and not start:
+        return None, "تاريخ البداية غير صحيح."
+    if raw_end and not end:
+        return None, "تاريخ النهاية غير صحيح."
+    if start and end and end < start:
         return None, "تاريخ النهاية لا يمكن أن يسبق تاريخ البداية."
-    if (end - start).days > 400:
+    if start and end and (end - start).days > 400:
         return None, "مدة الفرقة كبيرة بشكل غير منطقي."
 
     return {
         "id": term_id,
         "course_id": course_id,
         "officer_id": officer_id,
-        "start": start.isoformat(),
-        "end": end.isoformat(),
-        "note": str(payload.get("note", "")).strip(),
+        "start": start.isoformat() if start else "",
+        "end": end.isoformat() if end else "",
+        "note": str(payload.get("note", "") or "").strip(),
         # النص الأصلي من الأرشيف لو الالتحاق اتستخرج منه
-        "source": str(payload.get("source", "")).strip(),
+        "source": str(payload.get("source", "") or "").strip(),
     }, None
+
 
 
 def new_course_id(data):

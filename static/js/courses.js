@@ -164,8 +164,8 @@ function openTerm(id, extra) {
   fillSelect($("#trmCourse"), COURSES.map(c => [c.id, c.name]));
   $("#trmOfficer").value = t?.officer_id || extra?.officer_id || OFFICERS[0]?.id || "";
   $("#trmCourse").value = t?.course_id || extra?.course_id || COURSES[0]?.id || "";
-  $("#trmStart").value = t?.start || curDate();
-  $("#trmEnd").value = t?.end || curDate();
+  $("#trmStart").value = t?.start || "";
+  $("#trmEnd").value = t?.end || "";
   $("#trmNote").value = t?.note || "";
   openModal("termModal");
 }

@@ -104,6 +104,16 @@ def test_bad_dates_and_unknown_refs_are_refused(client):
                  start="2026-04-20", end="2026-04-10").status_code == 400
 
 
+def test_term_with_empty_dates_is_allowed(client):
+    """الالتحاق بفرقة ينفع بدون تحديد تواريخ بداية ونهاية."""
+    course = _course(client).get_json()
+    r = _term(client, course_id=course["id"], start="", end="")
+    assert r.status_code == 201
+    data = r.get_json()
+    assert data["start"] == "" and data["end"] == ""
+
+
+
 def test_duplicate_course_name_is_refused(client):
     _course(client)
     assert _course(client).status_code == 409
