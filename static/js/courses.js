@@ -15,7 +15,7 @@ function termRow(t) {
     <td class="name"><button class="linkish" data-action="openDetail" data-id="${esc(t.id)}"
       >${esc(t.officer_name)}</button><div class="sub">${esc(t.officer_role)}</div></td>
     <td>${fmt(t.start)}</td><td>${fmt(t.end)}</td>
-    <td><span class="chip w">${t.days} يوم</span></td>
+    <td>${t.days ? `<span class="chip w">${t.days} يوم</span>` : "<span class='muted'>—</span>"}</td>
     <td class="wrap">${esc(t.note || t.source) || "<span class='muted'>—</span>"}</td>
     <td><div class="actions">
       <button class="mini" data-action="openTerm" data-id="${esc(t.id)}">تعديل</button>

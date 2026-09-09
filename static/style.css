@@ -104,7 +104,10 @@ button,input,select,textarea{font-family:inherit}
 .cmd-slot{display:flex;flex-direction:column;gap:6px}
 .cmd-role{font-size:14px;font-weight:bold;color:var(--gold-700)}
 .cmd-slot select{border:1px solid var(--line-strong);border-radius:var(--radius-sm);
-  padding:9px 12px;font:inherit;font-size:16px;background:#fff}
+  padding:9px 12px;font:inherit;font-size:16px;background:#fff;height:40px;line-height:20px;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%233a4553'%3E%3Cpath d='M5.5 7.5l4.5 5 4.5-5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:left 10px center;padding-inline-start:32px}
 .cmd-slot select:focus-visible{outline:2px solid var(--gold-600);outline-offset:1px}
 .cmd-now{font-size:14px;color:var(--ink-500)}
 .cmd-now.empty{color:var(--bad-700)}
@@ -204,6 +207,8 @@ button,input,select,textarea{font-family:inherit}
 .checkline{flex-direction:row !important;align-items:center;gap:9px !important}
 .checkline input{width:16px;height:16px}
 .table tr.was td:first-child{box-shadow:inset 3px 0 0 var(--ink-300)}
+/* أزرار التنقّل بجانب حقل تاريخ/شهر لازم تبقى بنفس ارتفاعه، مش ارتفاع .mini الافتراضي الأصغر */
+#dutyBar .mini,#regBar .mini{height:40px}
 
 /* ---------- لوحة التشغيل المختصرة ---------- */
 .match-head{display:flex;align-items:center;gap:12px;padding:14px 18px 4px;flex-wrap:wrap}
@@ -361,9 +366,12 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 18px}
 .modal label{display:flex;flex-direction:column;gap:7px;font-size:15px;font-weight:bold;color:var(--ink-900);margin-bottom:16px}
 .modal label small,.modal label .muted{font-size:13px;font-weight:normal;color:var(--ink-500);margin-inline-start:2px}
+/* لو زوج حقول جنب بعض في .grid واحد بس فيه سطر تلميح، الحقل تحته لازم يفضل محاذي لجاره
+   مهما اختلف طول النص فوقه — يدفع الحقل نفسه لتحت الخانة اللي مدّها الجريد بدل ما ياخد أقصى ارتفاعه */
+.modal label>input:not([type=checkbox]),.modal label>select,.modal label>textarea{margin-top:auto}
 .modal input,.modal select,.modal textarea{font:inherit;font-weight:normal;border:1px solid var(--line-strong);border-radius:var(--radius-sm);
   padding:10px 12px;direction:rtl;background:#fff;font-size:17px}
-.modal input,.modal select{height:42px;line-height:20px}
+.modal input:not([type=checkbox]),.modal select{height:42px;line-height:20px}
 .modal input:disabled,.modal select:disabled{background:var(--navy-50);color:var(--ink-500)}
 .modal input:focus,.modal select:focus,.modal textarea:focus{outline:2px solid var(--navy-700);outline-offset:1px}
 .modal select{appearance:none;-webkit-appearance:none;
