@@ -132,3 +132,64 @@ def test_course_shows_as_faraqa_symbol_in_the_register(client):
     row = next(r for r in reg["rows"] if r["id"] == "OFF-002")
     cell = next(c for c in row["cells"] if c["day"] == DAY)
     assert cell["code"] == "ف"
+
+
+# ---------- العرضين: حسب الفرقة وحسب الضابط ----------
+
+def test_api_returns_both_groupings(client):
+    course = _course(client).get_json()
+    _term(client, course_id=course["id"])
+    out = client.get("/api/courses").get_json()
+    assert set(out) == {"courses", "officers"}
+
+
+def test_officer_view_lists_every_officer_even_without_courses(client):
+    """«مين لسه ماخدش فرقة» سؤال تشغيلي زي «مين خد إيه»."""
+    course = _course(client).get_json()
+    _term(client, course_id=course["id"])
+    rows = client.get("/api/courses").get_json()["officers"]
+    assert {r["id"] for r in rows} == {"OFF-001", "OFF-002"}
+    taken = next(r for r in rows if r["id"] == "OFF-002")
+    none_yet = next(r for r in rows if r["id"] == "OFF-001")
+    assert taken["count"] == 1 and taken["days"] == 11
+    assert none_yet["count"] == 0 and none_yet["courses"] == []
+
+
+def test_officer_view_carries_the_full_detail_of_each_course(client):
+    course = _course(client).get_json()
+    _term(client, course_id=course["id"], note="بترشيح من الإدارة")
+    row = next(r for r in client.get("/api/courses").get_json()["officers"]
+               if r["id"] == "OFF-002")
+    detail = row["courses"][0]
+    assert detail["course_name"] == "فرقة الحراسات المشددة"
+    assert detail["course_place"] == "مدرسة الدفاع الشعبي"
+    assert detail["course_kind"] == "تخصصية"
+    assert (detail["start"], detail["end"], detail["days"]) == (
+        "2026-04-05", "2026-04-15", 11)
+    assert detail["note"] == "بترشيح من الإدارة"
+
+
+def test_detail_shows_the_rank_he_held_when_he_took_it(client):
+    """الرتبة وقت الفرقة مش رتبته النهاردة — الضابط بيترقّى."""
+    client.patch("/api/person/OFF-002", json={"role": "نقيب",
+                                              "effective_from": "2026-01-01"})
+    client.patch("/api/person/OFF-002", json={"role": "رائد",
+                                              "effective_from": "2026-08-01"})
+    course = _course(client).get_json()
+    _term(client, course_id=course["id"])          # أبريل — قبل الترقية
+
+    row = next(r for r in client.get("/api/courses").get_json()["officers"]
+               if r["id"] == "OFF-002")
+    assert row["role"] == "رائد", "رتبته الحالية في صف الضابط"
+    assert row["courses"][0]["officer_role"] == "نقيب", "ورتبته وقتها في التفاصيل"
+
+
+def test_both_views_agree_on_the_same_terms(client):
+    course = _course(client).get_json()
+    _term(client, course_id=course["id"])
+    _term(client, course_id=course["id"], officer_id="OFF-001")
+    out = client.get("/api/courses").get_json()
+
+    by_course = {t["id"] for c in out["courses"] for t in c["terms"]}
+    by_officer = {t["id"] for o in out["officers"] for t in o["courses"]}
+    assert by_course == by_officer

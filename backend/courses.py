@@ -113,6 +113,68 @@ def new_term_id(data):
     return next_id(terms(data), "CT", width=4)
 
 
+def _span_days(term):
+    start, end = parse_date(term.get("start")), parse_date(term.get("end"))
+    return (end - start).days + 1 if start and end else 0
+
+
+def _detail(term, course, person, day=None):
+    """كل حاجة عن الالتحاق: الفرقة نفسها + المدة + رتبة الضابط ومنصبه
+    **وقت ما خدها** (مش النهاردة)."""
+    from .people import effective
+    eff = effective(person or {}, day or term.get("start", ""))
+    return {
+        **term,
+        "days": _span_days(term),
+        "course_name": (course or {}).get("name", ""),
+        "course_place": (course or {}).get("place", ""),
+        "course_kind": (course or {}).get("kind", ""),
+        "course_note": (course or {}).get("note", ""),
+        "officer_name": (person or {}).get("name", ""),
+        "officer_role": eff["role"],
+        "officer_post": eff["post"],
+    }
+
+
+def by_officer(data):
+    """صف لكل ضابط، وقدامه الفرق اللي خدها — التجميع التاني للصفحة.
+
+    الضباط اللي مخدوش أي فرقة بيظهروا برضو: «مين لسه ماخدش فرقة» سؤال
+    تشغيلي زي «مين خد إيه» بالظبط.
+    """
+    from .people import officers_on
+    from .utils import command_priority_map, rank_key
+
+    catalog = by_id(data)
+    people = {p["id"]: p for b in ("active", "archive") for p in data["officers"][b]}
+    grouped = {}
+    for term in terms(data):
+        grouped.setdefault(term["officer_id"], []).append(term)
+
+    # النشطين كلهم + أي متأرشف ليه التحاق مسجّل
+    shown = list(data["officers"]["active"])
+    known = {p["id"] for p in shown}
+    shown += [p for p in data["officers"]["archive"]
+              if p["id"] in grouped and p["id"] not in known]
+    priority = command_priority_map(data)
+    shown.sort(key=lambda p: rank_key(p, priority))
+
+    out = []
+    for person in shown:
+        rows = sorted(grouped.get(person["id"], []), key=lambda t: t.get("start", ""))
+        details = [_detail(t, catalog.get(t["course_id"]), person) for t in rows]
+        out.append({
+            "id": person["id"],
+            "name": person.get("name", ""),
+            "role": person.get("role", ""),
+            "post": person.get("post", ""),
+            "courses": details,
+            "count": len(details),
+            "days": sum(d["days"] for d in details),
+        })
+    return out
+
+
 def summary(data, officer_ids=None):
     """كل فرقة ومعاها التحاقاتها — للعرض في الصفحة."""
     people = {p["id"]: p for cat in ("officers",)
@@ -124,13 +186,11 @@ def summary(data, officer_ids=None):
     out = []
     for course in courses(data):
         rows = sorted(grouped.get(course["id"], []), key=lambda t: t.get("start", ""))
+        details = [_detail(t, course, people.get(t["officer_id"])) for t in rows]
         out.append({
             **course,
-            "terms": [{**t,
-                       "officer_name": people.get(t["officer_id"], {}).get("name", ""),
-                       "officer_role": people.get(t["officer_id"], {}).get("role", "")}
-                      for t in rows],
+            "terms": details,
             "officers": len({t["officer_id"] for t in rows}),
-            "days": sum(1 for t in rows for _ in [0]),
+            "days": sum(d["days"] for d in details),
         })
     return out

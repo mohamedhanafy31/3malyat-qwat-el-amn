@@ -2,8 +2,8 @@
 from flask import Blueprint, jsonify
 
 from ..courses import (
-    build_course, build_term, by_id, courses, new_course_id, new_term_id,
-    overlapping, summary, terms,
+    build_course, build_term, by_id, by_officer, courses, new_course_id,
+    new_term_id, overlapping, summary, terms,
 )
 from ..people import find_person
 from ..store import AbortRequest, load_data, with_data
@@ -14,7 +14,10 @@ bp = Blueprint("courses", __name__)
 
 @bp.get("/api/courses")
 def list_courses():
-    return jsonify({"courses": summary(load_data())})
+    """العرضين مع بعض: تجميع بالفرقة وتجميع بالضابط — نفس البيانات
+    بمدخلين مختلفين، فنداء واحد يكفي والتبديل بينهم من غير تحميل."""
+    data = load_data()
+    return jsonify({"courses": summary(data), "officers": by_officer(data)})
 
 
 @bp.post("/api/courses")

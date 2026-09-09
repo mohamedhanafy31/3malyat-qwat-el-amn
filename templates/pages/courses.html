@@ -3,6 +3,10 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar">
+    <div class="viewtabs" id="viewTabs">
+      <button class="vtab active" data-view="course">حسب الفرقة</button>
+      <button class="vtab" data-view="officer">حسب الضابط</button>
+    </div>
     <input id="crsSearch" class="search" placeholder="بحث باسم الفرقة أو الضابط...">
     <button class="primary" id="addCrsBtn">＋ فرقة جديدة</button>
     <button class="mini ok" id="addTermBtn">＋ التحاق ضابط</button>
@@ -20,6 +24,7 @@
 {% block modals %}
 {% include "partials/course_modal.html" %}
 {% include "partials/term_modal.html" %}
+{% include "partials/term_detail_modal.html" %}
 {% endblock %}
 
 {% block scripts %}

@@ -243,6 +243,27 @@ tr.vacant{background:repeating-linear-gradient(135deg,transparent,transparent 7p
 tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
   font-family:var(--font-head);letter-spacing:.5px}
 
+/* ---------- تبويب العرض (نفس البيانات بمدخلين) ---------- */
+.viewtabs{display:inline-flex;border:1px solid var(--line-strong);border-radius:var(--radius-sm);overflow:hidden}
+.vtab{border:0;background:#fff;color:var(--ink-700);padding:8px 14px;font:inherit;
+  font-size:14.5px;cursor:pointer}
+.vtab + .vtab{border-inline-start:1px solid var(--line)}
+.vtab:hover{background:var(--navy-50)}
+.vtab.active{background:var(--navy-800);color:#fff;font-weight:bold}
+.vtab:focus-visible{outline:2px solid var(--gold-600);outline-offset:-2px}
+
+/* فرقة كشارة قابلة للضغط جوّه صف الضابط */
+.chip-cell{max-width:520px}
+.chip-btn{display:inline-flex;align-items:baseline;gap:6px;margin:2px 0;
+  border:1px solid var(--line-strong);background:var(--navy-50);color:var(--navy-900);
+  border-radius:20px;padding:3px 10px;font:inherit;font-size:13.5px;cursor:pointer}
+.chip-btn i{font-style:normal;color:var(--ink-500);font-size:12.5px}
+.chip-btn:hover{background:var(--navy-100)}
+.linkish{border:0;background:none;padding:0;font:inherit;font-weight:600;
+  color:var(--ink-900);cursor:pointer;text-align:start}
+.linkish:hover{text-decoration:underline}
+tr.dim td{color:var(--ink-500)}
+
 /* ---------- دفتر 43 ---------- */
 .reg-scroll{max-height:calc(100vh - 260px)}
 .reg43{border-collapse:separate;border-spacing:0;font-size:13.5px}
