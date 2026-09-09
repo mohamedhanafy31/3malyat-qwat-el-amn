@@ -59,13 +59,14 @@
     <!-- ③ التشغيل اليومي — يومية + تفصيلية + كتالوج -->
     <div class="side-group">
       <div class="side-title">التشغيل اليومي</div>
-      <a class="navbtn {{ 'active' if page == 'duty' }}" href="{{ url_for('pages.duty') }}">
-        <svg viewBox="0 0 24 24"><path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm1 4h8V6H8v1Zm0 4h8v-1H8v1Zm0 4h5v-1H8v1Z"/></svg>
-        <span>يومية الضباط</span>
-      </a>
-      <a class="navbtn sub {{ 'active' if page == 'board' }}" href="{{ url_for('pages.board') }}">
+
+      <a class="navbtn  {{ 'active' if page == 'board' }}" href="{{ url_for('pages.board') }}">
         <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4V4Zm0 5h10v2H4V9Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Z"/></svg>
         <span>اليومية التفصيلية</span>
+      </a>
+      <a class="navbtn sub {{ 'active' if page == 'duty' }}" href="{{ url_for('pages.duty') }}">
+        <svg viewBox="0 0 24 24"><path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm1 4h8V6H8v1Zm0 4h8v-1H8v1Zm0 4h5v-1H8v1Z"/></svg>
+        <span>يومية الضباط</span>
       </a>
       <a class="navbtn sub {{ 'active' if page == 'catalog' }}" href="{{ url_for('pages.catalog') }}">
         <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6l8 8-8 8-8-8V5Zm4 2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>

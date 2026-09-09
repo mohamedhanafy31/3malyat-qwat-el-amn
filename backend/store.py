@@ -11,6 +11,7 @@ from urllib.parse import unquote
 from flask import request
 
 from .constants import DEFAULT_DATA
+from .utils import sort_active
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data.json"
 LOCK = threading.Lock()
@@ -96,6 +97,7 @@ def _read():
         data.setdefault(cat, {"active": [], "archive": []})
         data[cat].setdefault("active", [])
         data[cat].setdefault("archive", [])
+        sort_active(data, cat)
     data.setdefault("leaves", [])
     data.setdefault("services", [])
     data.setdefault("day_assignments", {})

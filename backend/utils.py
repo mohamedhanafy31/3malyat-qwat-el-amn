@@ -43,3 +43,14 @@ def rank_key(person, command_priority=None):
     r = (person.get("role") or "").strip()
     idx = RANK_ORDER.index(r) if r in RANK_ORDER else len(RANK_ORDER)
     return (top, idx, person.get("name", ""), person.get("code", ""))
+
+
+def sort_active(data, category):
+    """قوائم الضباط دايمًا بالرتبة (وقيادة الإدارة أولًا)؛ الأفراد بالاسم
+    زي ما هو معمول من الأول."""
+    if category == "officers":
+        priority = command_priority_map(data)
+        data[category]["active"].sort(key=lambda p: rank_key(p, priority))
+    else:
+        data[category]["active"].sort(key=lambda p: (p.get("name", ""), p.get("code", "")))
+

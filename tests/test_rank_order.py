@@ -32,3 +32,15 @@ def test_archiving_medical_officer_removes_him_from_the_list(client):
     client.patch("/api/medical-officers", json={"officer_ids": ["OFF-001"]})
     client.post("/api/person/OFF-001/remove", json={"leave_date": "2026-06-01"})
     assert client.get("/api/data").get_json()["medical_officers"] == []
+
+
+def test_officers_page_order_matches_duty_page_rank_order(client):
+    """صفحة بيانات الضباط لازم تعرض الضباط بنفس الترتيب القيادي والرتبة المستخدم في يومية الضباط."""
+    bootstrap = client.get("/api/bootstrap/officers").get_json()
+    officers_page_ids = [o["id"] for o in bootstrap["officers"]["active"]]
+
+    duty = client.get("/api/duty/2026-06-01").get_json()
+    duty_page_ids = [o["id"] for o in duty["rows"]]
+
+    assert officers_page_ids == duty_page_ids
+
