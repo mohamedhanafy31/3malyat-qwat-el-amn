@@ -25,6 +25,8 @@
 
 <div class="shell">
   <nav class="sidebar" id="sidebar">
+
+    <!-- ① الرئيسية — وحدها -->
     <div class="side-group">
       <a class="navbtn {{ 'active' if page == 'dashboard' }}" href="{{ url_for('pages.dashboard') }}">
         <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3Zm10 0h8v5h-8V3ZM3 13h8v8H3v-8Zm10 3h8v5h-8v-5Z"/></svg>
@@ -32,19 +34,29 @@
       </a>
     </div>
 
+    <!-- ② الضباط — بيانات + فرق + دفتر 43 + راحات -->
     <div class="side-group">
-      <div class="side-title">القوة</div>
+      <div class="side-title">الضباط</div>
       <a class="navbtn {{ 'active' if page == 'officers' }}" href="{{ url_for('pages.officers') }}">
         <svg viewBox="0 0 24 24"><path d="M12 2 4 5.5v5.6c0 5.2 3.4 9.9 8 11.4 4.6-1.5 8-6.2 8-11.4V5.5L12 2Zm0 5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 12.4c-2.4-.8-4.4-2.7-5.4-5.1 1.4-1 3.4-1.6 5.4-1.6s4 .6 5.4 1.6c-1 2.4-3 4.3-5.4 5.1Z"/></svg>
-        <span>الضباط</span><em id="navOfficers">—</em>
+        <span>بيانات الضباط</span><em id="navOfficers">—</em>
         <span class="nav-dot hidden" id="navAlerts" title="تنبيهات تقصيرة"><span class="sr-only">تنبيه تقصيرة نشط</span></span>
       </a>
-      <a class="navbtn {{ 'active' if page == 'personnel' }}" href="{{ url_for('pages.personnel') }}">
-        <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 2c-2.7 0-8 1.3-8 4v3h9.5v-2.8c0-1.4.7-2.6 1.8-3.6C10.4 13.3 9 13 8 13Zm8 0c-.4 0-.9 0-1.4.1 1.5 1.1 2.4 2.6 2.4 4.3V20h7v-3c0-2.7-5.3-4-8-4Z"/></svg>
-        <span>الأفراد</span><em id="navPersonnel">—</em>
+      <a class="navbtn sub {{ 'active' if page == 'courses' }}" href="{{ url_for('pages.courses') }}">
+        <svg viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 8-4v6h2V8L12 3ZM6 12.5V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5l-6 3-6-3Z"/></svg>
+        <span>الفِرق والدورات</span><em id="navCourses">—</em>
+      </a>
+      <a class="navbtn sub {{ 'active' if page == 'register' }}" href="{{ url_for('pages.register') }}">
+        <svg viewBox="0 0 24 24"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4v2h4V7H7Zm6 0v2h4V7h-4ZM7 11v2h4v-2H7Zm6 0v2h4v-2h-4ZM7 15v2h4v-2H7Zm6 0v2h4v-2h-4Z"/></svg>
+        <span>دفتر 43</span>
+      </a>
+      <a class="navbtn sub {{ 'active' if page == 'leaves' }}" href="{{ url_for('pages.leaves') }}">
+        <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v10H5V10Z"/></svg>
+        <span>الراحات والإجازات</span><em id="navLeaves">—</em>
       </a>
     </div>
 
+    <!-- ③ التشغيل اليومي — يومية + تفصيلية + كتالوج -->
     <div class="side-group">
       <div class="side-title">التشغيل اليومي</div>
       <a class="navbtn {{ 'active' if page == 'duty' }}" href="{{ url_for('pages.duty') }}">
@@ -59,22 +71,17 @@
         <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6l8 8-8 8-8-8V5Zm4 2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>
         <span>كتالوج الخدمات</span><em id="navDuty">—</em>
       </a>
-      <a class="navbtn sub {{ 'active' if page == 'register' }}" href="{{ url_for('pages.register') }}">
-        <svg viewBox="0 0 24 24"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4v2h4V7H7Zm6 0v2h4V7h-4ZM7 11v2h4v-2H7Zm6 0v2h4v-2h-4ZM7 15v2h4v-2H7Zm6 0v2h4v-2h-4Z"/></svg>
-        <span>دفتر 43</span>
-      </a>
-      <a class="navbtn sub {{ 'active' if page == 'courses' }}" href="{{ url_for('pages.courses') }}">
-        <svg viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 8-4v6h2V8L12 3ZM6 12.5V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5l-6 3-6-3Z"/></svg>
-        <span>فرق الضباط</span><em id="navCourses">—</em>
+    </div>
+
+    <!-- ④ الأفراد — وحدهم -->
+    <div class="side-group">
+      <div class="side-title">الأفراد</div>
+      <a class="navbtn {{ 'active' if page == 'personnel' }}" href="{{ url_for('pages.personnel') }}">
+        <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 2c-2.7 0-8 1.3-8 4v3h9.5v-2.8c0-1.4.7-2.6 1.8-3.6C10.4 13.3 9 13 8 13Zm8 0c-.4 0-.9 0-1.4.1 1.5 1.1 2.4 2.6 2.4 4.3V20h7v-3c0-2.7-5.3-4-8-4Z"/></svg>
+        <span>الأفراد</span><em id="navPersonnel">—</em>
       </a>
     </div>
 
-    <div class="side-group">
-      <a class="navbtn {{ 'active' if page == 'leaves' }}" href="{{ url_for('pages.leaves') }}">
-        <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v10H5V10Z"/></svg>
-        <span>الراحات والإجازات</span><em id="navLeaves">—</em>
-      </a>
-    </div>
   </nav>
 
   <main class="content">
