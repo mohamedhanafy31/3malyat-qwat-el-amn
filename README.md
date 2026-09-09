@@ -3,19 +3,70 @@
 نظام محلي خفيف لإدارة الضباط والأفراد والراحات، مع أرشيف للفترات السابقة،
 ويخزن كل البيانات في `data.json`.
 
-## التشغيل
+## التشغيل (Getting Started & Running)
 
-1. ثبت Python 3 على الجهاز.
-2. افتح Terminal / CMD داخل مجلد المشروع.
-3. نفّذ: `pip install -r requirements.txt`
-4. شغّل: `python app.py`
-5. افتح المتصفح على: `http://127.0.0.1:5000`
+### 🪟 1. على نظام ويندوز (Windows — 1-Click Zero Setup)
 
-لتشغيله على بورت تاني: `PORT=5050 python app.py`
+أسهل طريقة للتشغيل بدون أي إعدادات يدوية:
+1. حمّل المشروع أو قم بعمل `git pull`.
+2. اضغط مرتين (**Double Click**) على ملف: **`START_SYSTEM.bat`** (أو `run_windows.bat`).
 
-للتشغيل الأطول استقرارًا (سيرفر WSGI حقيقي بدل سيرفر تطوير Flask، بيعيد نفسه
-لو وقع)، ثبّت `waitress` (`pip install waitress`) وشغّل `python serve.py` بدل
-`app.py`. مش ضروري للاستخدام العادي.
+> **ماذا يفعل الملف تلقائياً؟**
+> - يفحص وجود Python ويقوم بتثبيته تلقائياً لو غير موجود عبر `winget`.
+> - ينشئ البيئة الافتراضية `venv` ويفعلها.
+> - يثبت كل المكتبات والاعتماديات المطلوبة (`requirements.txt`).
+> - يشغل السيرفر ويفتح المتصفح تلقائياً على **`http://127.0.0.1:5000`**.
+
+---
+
+### 💻 2. التشغيل اليدوي عبر Terminal / CMD
+
+#### على ويندوز (Windows CMD / PowerShell):
+```cmd
+# 1. إنشاء البيئة الافتراضية
+python -m venv venv
+
+# 2. تفعيل البيئة (في CMD)
+venv\Scripts\activate.bat
+# أو في PowerShell: .\venv\Scripts\Activate.ps1
+
+# 3. تثبيت المكتبات
+pip install -r requirements.txt
+
+# 4. تشغيل النظام
+python app.py
+```
+
+#### على لينكس / ماك (Linux / macOS):
+```bash
+# 1. إنشاء البيئة الافتراضية وتفعيلها
+python3 -m venv venv
+source venv/bin/activate
+
+# 2. تثبيت المكتبات
+pip install -r requirements.txt
+
+# 3. تشغيل النظام
+python3 app.py
+```
+
+ثم افتح المتصفح على الرابط: **`http://127.0.0.1:5000`**
+
+---
+
+### ⚙️ خيارات تشغيل إضافية
+
+- **تغيير منفذ التشغيل (Port):**
+  - في CMD: `set PORT=5050 && python app.py`
+  - في PowerShell: `$env:PORT="5050"; python app.py`
+  - في Linux/macOS: `PORT=5050 python app.py`
+
+- **التشغيل الأطول استقراراً (سيرفر WSGI بـ Waitress):**
+  - ثبّت `waitress` (`pip install waitress`) وشغّل: `python serve.py`
+
+- **تشغيل الاختبارات الآلية (Testing):**
+  - نفّذ الأمر: `pytest`
+
 
 ## الأقسام
 
