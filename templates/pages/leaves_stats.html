@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ── شريط الأرقام السريع ── -->
+<div class="stats" id="summaryStats"></div>
+
+<!-- ── رابط رجوع للسجل ── -->
+<div class="ls-nav">
+  <a href="{{ url_for('pages.leaves') }}" class="ls-back">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    العودة لسجل الراحات
+  </a>
+  <span class="ls-refresh" id="refreshBtn" title="تحديث البيانات">
+    <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    تحديث
+  </span>
+</div>
+
+<!-- ── الصف الأول: دونات + شريط أفقي ── -->
+<div class="ls-grid ls-grid-2">
+  <div class="ls-card">
+    <h3 class="ls-card-title">توزيع الراحات حسب النوع</h3>
+    <div class="ls-chart-wrap ls-donut-wrap">
+      <canvas id="typeChart"></canvas>
+      <div id="typeLegend" class="ls-legend"></div>
+    </div>
+  </div>
+  <div class="ls-card">
+    <h3 class="ls-card-title">الحالة الراهنة للراحات</h3>
+    <div class="ls-chart-wrap ls-status-wrap">
+      <canvas id="statusChart"></canvas>
+      <div id="statusLegend" class="ls-legend"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── الصف الثاني: شريط شهري ── -->
+<div class="ls-grid ls-grid-1">
+  <div class="ls-card">
+    <h3 class="ls-card-title">الراحات المسجلة شهرياً</h3>
+    <div class="ls-chart-wrap ls-bar-wrap">
+      <canvas id="monthChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── الصف الثالث: أعلى ضباط + توزيع المدد ── -->
+<div class="ls-grid ls-grid-2">
+  <div class="ls-card">
+    <h3 class="ls-card-title">أكثر الضباط راحات (Top 10)</h3>
+    <div class="ls-chart-wrap ls-horiz-wrap">
+      <canvas id="officerChart"></canvas>
+    </div>
+  </div>
+  <div class="ls-card">
+    <h3 class="ls-card-title">توزيع مدة الراحة</h3>
+    <div class="ls-chart-wrap ls-bar-wrap">
+      <canvas id="durationChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── الصف الرابع: أيام الأسبوع + منحنى تراكمي ── -->
+<div class="ls-grid ls-grid-2">
+  <div class="ls-card">
+    <h3 class="ls-card-title">توزيع بداية الراحات حسب اليوم</h3>
+    <div class="ls-chart-wrap ls-bar-wrap">
+      <canvas id="weekdayChart"></canvas>
+    </div>
+  </div>
+  <div class="ls-card">
+    <h3 class="ls-card-title">منحنى الراحات التراكمي</h3>
+    <div class="ls-chart-wrap ls-bar-wrap">
+      <canvas id="cumulativeChart"></canvas>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/leaves-stats.js') }}"></script>
+{% endblock %}

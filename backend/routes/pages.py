@@ -25,6 +25,8 @@ PAGES = {
                           "موقفه في كل يوم وحصر خدماته"),
     "leaves": ("leaves.html", "الراحات والإجازات",
                 "سجل راحات الضباط — الأسبوعية والنصف شهرية والشهرية والاستثنائية"),
+    "leaves_stats": ("leaves_stats.html", "إحصائيات الراحات",
+                     "رسوم بيانية وإحصائيات تفصيلية لراحات وإجازات الضباط"),
 }
 
 
@@ -67,6 +69,11 @@ def catalog():
 @bp.get("/leaves")
 def leaves():
     return _render("leaves")
+
+
+@bp.get("/leaves/stats")
+def leaves_stats():
+    return _render("leaves_stats")
 
 
 @bp.get("/courses")

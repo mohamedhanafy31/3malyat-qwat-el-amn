@@ -62,6 +62,29 @@ def _officers_with_status(data, today):
             for o in data["officers"]["active"]]
 
 
+def _slim_services(services):
+    """أقل حاجة لازمة لعرض/فلترة خدمة في اللوحة (اختيار من قايمة، تحديد
+    الفترة والقسم) — مش كل حقول الكتالوج، اللي بتوصل كاملة لصفحة catalog
+    بس لأنها الوحيدة اللي فعلًا بتعدّل الخدمة بكل حقولها."""
+    return [{"id": s["id"], "name": s.get("name", ""), "sub": s.get("sub", ""),
+             "kind": s.get("kind", ""), "section": s.get("section", ""),
+             "shifts": s.get("shifts", []), "appears_in": s.get("appears_in", [])}
+            for s in services]
+
+
+def _counts(data):
+    return {"officers": len(data["officers"]["active"]),
+            "personnel": len(data["personnel"]["active"]),
+            "leaves": len(data["leaves"]),
+            "services": len(data["services"])}
+
+
+def _days_payload(data, meta):
+    """أساس مشترك لصفحات التشغيل اليومي: الأيام المتاحة + الأعداد بس —
+    بلا مؤشر ضباط/أفراد ولا كتالوج خدمات لو الصفحة مش فعلًا محتاجاهم."""
+    return {"meta": meta, "days": sorted(data["day_assignments"]), "counts": _counts(data)}
+
+
 @bp.get("/api/bootstrap/<page>")
 def bootstrap(page):
     """بيرجّع بالظبط اللي الصفحة دي محتاجاه، ولا حاجة زيادة."""
@@ -99,27 +122,28 @@ def bootstrap(page):
                                     "leaves": len(data["leaves"]),
                                     "services": len(data["services"])}})
 
-    if page in ("duty", "board", "register", "courses"):
-        return jsonify({
-            "meta": meta,
-            # كل اللي كانوا على القوة في أي وقت — الأيام القديمة محتاجة
-            # الضابط المتأرشف يبان في القايمة عشان تقدر تعدّلها
-            "officer_index": _slim(data["officers"]["active"] + data["officers"]["archive"]),
-            "personnel_index": _slim(data["personnel"]["active"]),
-            "services": data["services"],
-            "days": sorted(data["day_assignments"]),
-            "counts": {"officers": len(data["officers"]["active"]),
-                        "personnel": len(data["personnel"]["active"]),
-                        "leaves": len(data["leaves"]),
-                        "services": len(data["services"])},
-        })
+    if page in ("duty", "register"):
+        # الاتنين محتاجين قايمة الأيام بس (لتحديد آخر يوم افتراضي) — لا
+        # كتالوج خدمات ولا مؤشر ضباط/أفراد، بيوصلهم كل حاجة جاهزة من
+        # /api/duty و/api/register نفسهم.
+        return jsonify(_days_payload(data, meta))
+
+    if page == "courses":
+        payload = _days_payload(data, meta)
+        # كل اللي كانوا على القوة في أي وقت — عشان الضابط المتأرشف يبان
+        # في قايمة الالتحاق لو ليه فرقة مسجّلة قبل كده
+        payload["officer_index"] = _slim(data["officers"]["active"] + data["officers"]["archive"])
+        return jsonify(payload)
+
+    if page == "board":
+        payload = _days_payload(data, meta)
+        payload["officer_index"] = _slim(data["officers"]["active"] + data["officers"]["archive"])
+        payload["personnel_index"] = _slim(data["personnel"]["active"])
+        payload["services"] = _slim_services(data["services"])
+        return jsonify(payload)
 
     if page == "catalog":
-        return jsonify({"meta": meta, "services": data["services"],
-                        "counts": {"officers": len(data["officers"]["active"]),
-                                    "personnel": len(data["personnel"]["active"]),
-                                    "leaves": len(data["leaves"]),
-                                    "services": len(data["services"])}})
+        return jsonify({"meta": meta, "services": data["services"], "counts": _counts(data)})
 
     if page == "leaves":
         people = _slim(data["officers"]["active"] + data["personnel"]["active"], rest=True)
@@ -130,12 +154,14 @@ def bootstrap(page):
                          and any(l["person_id"] == p["id"] for l in data["leaves"])])
         return jsonify({"meta": meta, "leaves": data["leaves"], "people": people,
                         "officer_ids": [o["id"] for o in data["officers"]["active"]],
-                        "counts": {"officers": len(data["officers"]["active"]),
-                                    "personnel": len(data["personnel"]["active"]),
-                                    "leaves": len(data["leaves"]),
-                                    "services": len(data["services"])}})
+                        "counts": _counts(data)})
+
+    if page == "leaves_stats":
+        # صفحة الإحصائيات محتاجة meta + counts فقط — الداتا بتيجي من /api/leaves/stats
+        return jsonify({"meta": meta, "counts": _counts(data)})
 
     return jsonify({"error": "صفحة غير معروفة."}), 404
+
 
 
 @bp.get("/api/data")

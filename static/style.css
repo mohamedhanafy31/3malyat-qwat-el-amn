@@ -439,3 +439,56 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
   .panel-head{align-items:flex-start;flex-direction:column}
   .page-head{align-items:flex-start}
 }
+
+/* ═══════════════════════════════════════════════
+   صفحة إحصائيات الراحات  (leaves_stats)
+   ═══════════════════════════════════════════════ */
+/* شريط التنقل العلوي */
+.ls-nav{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ls-back{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;
+  color:var(--navy-800);background:var(--navy-50);border:1px solid var(--line);
+  border-radius:var(--radius-md);padding:7px 14px;text-decoration:none;transition:background .15s}
+.ls-back:hover{background:var(--navy-100)}
+.ls-back svg{width:18px;height:18px;fill:currentColor;flex-shrink:0}
+.ls-refresh{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-500);
+  cursor:pointer;padding:7px 12px;border-radius:var(--radius-md);border:1px solid var(--line);
+  background:#fff;transition:background .15s;margin-inline-start:auto}
+.ls-refresh:hover{background:var(--navy-50);color:var(--navy-800)}
+.ls-refresh svg{width:16px;height:16px;fill:currentColor}
+
+/* الشبكة */
+.ls-grid{display:grid;gap:16px;margin-bottom:16px}
+.ls-grid-1{grid-template-columns:1fr}
+.ls-grid-2{grid-template-columns:1fr 1fr}
+
+/* بطاقة المخطط */
+.ls-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-md);
+  padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.ls-card-title{font-size:15px;font-weight:bold;color:var(--navy-900);margin:0 0 16px;
+  padding-bottom:10px;border-bottom:2px solid var(--navy-50)}
+
+/* أحجام مناطق المخططات */
+.ls-chart-wrap{position:relative}
+.ls-donut-wrap{display:flex;align-items:center;gap:20px;min-height:220px}
+.ls-donut-wrap canvas{max-width:220px;max-height:220px;flex-shrink:0}
+.ls-status-wrap{display:flex;align-items:center;gap:20px;min-height:220px}
+.ls-status-wrap canvas{max-width:220px;max-height:220px;flex-shrink:0}
+.ls-bar-wrap{height:240px}
+.ls-horiz-wrap{height:280px}
+
+/* Legend */
+.ls-legend{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
+.ls-legend-item{display:flex;align-items:center;gap:8px;font-size:13px}
+.ls-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ls-legend-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-700)}
+.ls-legend-val{font-weight:bold;color:var(--navy-900);font-size:14px;min-width:28px;text-align:start}
+
+/* Responsive */
+@media(max-width:900px){.ls-grid-2{grid-template-columns:1fr}}
+@media(max-width:600px){
+  .ls-donut-wrap,.ls-status-wrap{flex-direction:column;align-items:flex-start}
+  .ls-donut-wrap canvas,.ls-status-wrap canvas{max-width:100%;max-height:200px}
+  .ls-bar-wrap{height:200px}
+  .ls-horiz-wrap{height:320px}
+}
+
