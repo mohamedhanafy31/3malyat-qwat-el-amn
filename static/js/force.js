@@ -52,11 +52,6 @@ function renderTable() {
       code:      { label: "الأقدمية",    fn: p => p.code,                           type: "text" },
       post:      { label: "العمل المسند",fn: p => p.post || "",                     type: "text" },
       rest:      { label: "نظام الراحة", fn: p => p.rest_system || "—",             type: "text" },
-      status:    { label: "حالة اليوم",  fn: p => {
-        const s = p.status_today?.state;
-        return s === "resting" ? 0 : s === "taqseera" ? 1 : s === "upcoming" ? 2 : 3;
-      }, type: "num" },
-      join_date: { label: "من",          fn: p => p.join_date,                      type: "date" },
     };
     extraHeads = ["الهاتف", "الإجراء"];
     rowHtml = p => {
@@ -69,8 +64,6 @@ function renderTable() {
         <td>${esc(p.code)}</td>
         <td>${esc(p.post) || "-"}</td>
         <td>${restLabel(p)}</td>
-        <td>${statusCell(p)}</td>
-        <td>${fmt(p.join_date)}</td>
         <td class="num">${esc(p.phone) || dash}</td>
         <td><div class="actions">${acts}</div></td></tr>`;
     };
