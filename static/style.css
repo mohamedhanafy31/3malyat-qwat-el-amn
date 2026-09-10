@@ -160,6 +160,30 @@ button,input,select,textarea{font-family:inherit}
 .search{flex:1;min-width:220px;border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:9px 12px;font:inherit;font-size:17px;background:#fff;height:40px;line-height:20px}
 .select{border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:9px 12px;font:inherit;font-size:17px;background:#fff;min-width:160px;height:40px;line-height:20px;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%233a4553'%3E%3Cpath d='M5.5 7.5l4.5 5 4.5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 10px center;padding-inline-start:32px}
 
+/* ---------- منتقي التاريخ العربي ----------
+   حقول type=date الأصلية كانت بتترندر بلغة/فورمات المتصفح (mm/dd/yyyy)،
+   فاتحوّلت لـtext + بانل تقويم عربي (upgradeDateInputs في core.js). */
+.date-input-display{cursor:pointer;background-repeat:no-repeat;background-position:left 10px center;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233a4553'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM5 8V6h14v2H5z'/%3E%3C/svg%3E");
+  padding-inline-start:32px;caret-color:transparent}
+.date-popover{position:fixed;background:#fff;border:1px solid var(--line-strong);border-radius:var(--radius-md);
+  box-shadow:0 8px 24px rgba(10,18,32,.18);padding:12px;z-index:35;width:240px;font-size:15px}
+.dp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-weight:bold;color:var(--navy-950)}
+.dp-nav{border:0;background:none;font-size:18px;line-height:1;color:var(--ink-700);cursor:pointer;
+  padding:2px 8px;border-radius:var(--radius-sm)}
+.dp-nav:hover{background:var(--navy-50)}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.dp-grid-month{grid-template-columns:repeat(3,1fr);gap:6px}
+.dp-wd{font-size:12px;color:var(--ink-500);padding:4px 0}
+.dp-grid button{border:0;background:none;padding:7px 0;border-radius:var(--radius-sm);cursor:pointer;
+  font:inherit;font-size:14px;color:var(--ink-900)}
+.dp-grid-month button{padding:9px 4px}
+.dp-grid button:hover{background:var(--navy-50)}
+.dp-grid button.today{border:1px solid var(--gold-600)}
+.dp-grid button.sel{background:var(--navy-800);color:#fff}
+.dp-clear{display:block;width:100%;margin-top:8px;border:0;border-top:1px solid var(--line);
+  background:none;padding:8px 0 0;color:var(--bad-700);cursor:pointer;font:inherit;font-size:14px}
+
 .primary,.danger{border:1px solid transparent;border-radius:var(--radius-sm);padding:9px 16px;
   cursor:pointer;font:inherit;font-weight:bold;font-size:17px;height:40px;line-height:20px;display:inline-flex;align-items:center;justify-content:center}
 .primary{background:var(--navy-900);color:#fff}
@@ -464,7 +488,21 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .ls-filter-title{display:flex;align-items:center;gap:6px;font-weight:bold;font-size:14px;
   color:var(--navy-900);margin-inline-end:4px}
 .ls-filter-group{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-700)}
-.ls-filter-group select{min-width:110px}
+/* 110px كانت بتقصّ نص زي «جميع الشهور» وتخليه يتداخل مع أيقونة السهم */
+.ls-filter-group select{min-width:128px}
+
+/* .select-sm و.btn/.btn-xs/.btn-outline كانوا مستخدمين في leaves_stats.html
+   من غير تعريف في CSS خالص — فكانوا بيترندروا بمظهر المتصفح الافتراضي. */
+.select-sm{height:32px;font-size:14px;padding:6px 10px;min-width:128px;
+  padding-inline-start:26px;background-position:left 8px center;background-size:14px 14px}
+.btn{border:1px solid var(--line-strong);background:#fff;color:var(--ink-700);
+  border-radius:var(--radius-sm);padding:7px 14px;font:inherit;font-size:14px;cursor:pointer;
+  white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;
+  height:32px;box-sizing:border-box}
+.btn:hover{background:var(--navy-50)}
+.btn-xs{padding:4px 10px;height:26px;font-size:13px}
+.btn-outline{background:transparent;border-color:var(--navy-700);color:var(--navy-800)}
+.btn-outline:hover{background:var(--navy-50)}
 .ls-filter-quick{display:flex;align-items:center;gap:4px;margin-inline-start:auto}
 
 /* الشبكة */

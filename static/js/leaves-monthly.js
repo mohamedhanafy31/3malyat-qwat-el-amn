@@ -48,6 +48,10 @@ function render() {
     ROSTER.map(rosterRow),
     `عدد الضباط: ${ROSTER.length}`,
     "لا يوجد ضباط بنظام راحة شهري أو نصف شهري.");
+  // الصفوف دي بتتولّد من جديد كل render() — لازم ترقية يدوية كل مرة،
+  // بعكس حقول التاريخ الثابتة في الـmodals اللي بترقّى مرة واحدة بس
+  // في core.js وقت تحميل الصفحة.
+  upgradeDateInputs(wrap);
   // data-action مقصورة على الضغط (زي core.js's click listener) — تغيير
   // تاريخ مش ضغطة، فلازم oninput مباشر زي lvStart في leave-form.js
   $$(".roster-date").forEach(input => {

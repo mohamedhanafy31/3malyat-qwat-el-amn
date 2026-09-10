@@ -246,12 +246,150 @@ function renderAlerts(alerts){
     </li>`).join("")}</ul></div>`;
 }
 
+/* ---------- منتقي التاريخ العربي ----------
+   الحقول الأصلية (type=date/month) كانت بتترندر بالفورمات واللغة اللي
+   المتصفح نفسه مظبوط عليها (mm/dd/yyyy إنجليزي غالبًا) — مش حاجة CSS
+   بسيطة تغيّرها لأنها تحكّم متصفح مش صفحة. الحل: نحوّل الحقل لـtext
+   للعرض بس، ونعيد تعريف value بـObject.defineProperty عشان كل كود
+   قديم (leave-form.js, force.js, duty.js...) يفضل يقرا/يكتب ISO زي ما
+   هو من غير أي تعديل فيه — الفرق الوحيد اللي المستخدم شايفه هو النص. */
+const AR_MONTHS=Array.from({length:12},(_,i)=>
+  new Date(2000,i,1).toLocaleDateString("ar-EG",{month:"long"}));
+const WD_SHORT=["س","ح","ن","ث","ر","خ","ج"];   // بادئة بالسبت زي WEEKDAYS
+const _dateValueDesc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");
+
+const datePopover=document.createElement("div");
+datePopover.className="date-popover hidden";
+document.body.appendChild(datePopover);
+let _dpInput=null, _dpView=null;
+
+function _dpClose(){ datePopover.classList.add("hidden"); _dpInput=null }
+function _dpFireChange(input){
+  input.dispatchEvent(new Event("input",{bubbles:true}));
+  input.dispatchEvent(new Event("change",{bubbles:true}));
+}
+function _dpPick(iso){
+  const input=_dpInput; _dpClose();
+  input.value=iso; _dpFireChange(input); input.focus();
+}
+function _dpClear(){
+  const input=_dpInput; _dpClose();
+  input.value=""; _dpFireChange(input); input.focus();
+}
+function _dpMonthLabel(iso){
+  const [y,m]=iso.split("-").map(Number);
+  return new Date(y,m-1,1).toLocaleDateString("ar-EG",{month:"long",year:"numeric"});
+}
+function _dpDayGrid(y,m){
+  const first=new Date(y,m,1);
+  const startIdx=(first.getDay()+1)%7;            // الأحد=0 في JS، والأسبوع هنا بادئ بالسبت
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const todayIso=curDate(), selIso=_dpInput.value||"";
+  const cells=[];
+  for(let i=0;i<startIdx;i++) cells.push("<span></span>");
+  for(let d=1;d<=daysInMonth;d++){
+    const iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const cls=[iso===todayIso?"today":"",iso===selIso?"sel":""].filter(Boolean).join(" ");
+    cells.push(`<button type="button" class="${cls}" data-action="_dpPickDay" data-id="${iso}">${d}</button>`);
+  }
+  const heads=WD_SHORT.map(h=>`<span class="dp-wd">${h}</span>`).join("");
+  return `<div class="dp-head">
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1">‹</button>
+      <b>${new Date(y,m,1).toLocaleDateString("ar-EG",{month:"long",year:"numeric"})}</b>
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="1">›</button>
+    </div>
+    <div class="dp-grid dp-grid-day">${heads}${cells.join("")}</div>`;
+}
+function _dpMonthGrid(y){
+  const v=_dpInput.value||"";
+  const [selY,selM]=v?v.split("-").map(Number):[null,null];
+  const btns=AR_MONTHS.map((name,i)=>{
+    const iso=`${y}-${String(i+1).padStart(2,"0")}`;
+    const cls=(y===selY&&i+1===selM)?"sel":"";
+    return `<button type="button" class="${cls}" data-action="_dpPickMonth" data-id="${iso}">${name}</button>`;
+  }).join("");
+  return `<div class="dp-head">
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1">‹</button>
+      <b>${y.toLocaleString("ar-EG",{useGrouping:false})}</b>
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="1">›</button>
+    </div>
+    <div class="dp-grid dp-grid-month">${btns}</div>`;
+}
+function _dpRender(){
+  const isMonth=_dpInput.dataset.picker==="month";
+  const body=isMonth?_dpMonthGrid(_dpView.y):_dpDayGrid(_dpView.y,_dpView.m);
+  const clearBtn=_dpInput.required?"":`<button type="button" class="dp-clear" data-action="_dpClearBtn">مسح</button>`;
+  datePopover.innerHTML=body+clearBtn;
+}
+function _dpPosition(input){
+  const r=input.getBoundingClientRect();
+  const top=Math.min(r.bottom+6,window.innerHeight-320);
+  const left=Math.min(Math.max(8,r.left),window.innerWidth-260);
+  datePopover.style.top=`${top}px`;
+  datePopover.style.left=`${left}px`;
+}
+function _dpOpen(input){
+  _dpInput=input;
+  const isMonth=input.dataset.picker==="month";
+  const fallback=isMonth?curDate().slice(0,7):curDate();
+  const [y,m]=(input.value||fallback).split("-").map(Number);
+  _dpView={y, m:m-1};
+  _dpRender();
+  _dpPosition(input);
+  datePopover.classList.remove("hidden");
+}
+ACTIONS._dpPickDay=id=>_dpPick(id);
+ACTIONS._dpPickMonth=id=>_dpPick(id);
+ACTIONS._dpClearBtn=()=>_dpClear();
+ACTIONS._dpNav=id=>{
+  const dir=Number(id);
+  if(_dpInput.dataset.picker==="month"){ _dpView.y+=dir }
+  else{
+    _dpView.m+=dir;
+    if(_dpView.m<0){ _dpView.m=11; _dpView.y-- }
+    else if(_dpView.m>11){ _dpView.m=0; _dpView.y++ }
+  }
+  _dpRender();
+};
+document.addEventListener("click",e=>{
+  if(_dpInput && !datePopover.contains(e.target) && e.target!==_dpInput) _dpClose();
+});
+
+/** بتحوّل أي input[type=date]/input[type=month] لسه ما اترقّاش. بتتنادى
+ * مرة تلقائي على كل الصفحة، وبرضو من أي صفحة بتولّد حقول تاريخ ديناميكيًا
+ * بعد التحميل الأول (زي جدول كشف الراحات الشهرية). */
+function upgradeDateInputs(root){
+  (root||document).querySelectorAll('input[type="date"],input[type="month"]').forEach(input=>{
+    if(input.dataset.picker) return;
+    const mode=input.type, initial=input.value;
+    input.dataset.picker=mode;
+    input.type="text";
+    input.readOnly=true;
+    input.classList.add("date-input-display");
+    let iso=initial||"";
+    Object.defineProperty(input,"value",{
+      configurable:true,
+      get(){ return iso },
+      set(v){
+        iso=v||"";
+        _dateValueDesc.set.call(input, iso?(mode==="month"?_dpMonthLabel(iso+"-01"):fmt(iso)):"");
+      },
+    });
+    if(initial) _dateValueDesc.set.call(input, mode==="month"?_dpMonthLabel(initial+"-01"):fmt(initial));
+    input.addEventListener("click",()=>_dpOpen(input));
+    input.addEventListener("keydown",e=>{
+      if(e.key==="Enter"||e.key===" "){ e.preventDefault(); _dpOpen(input) }
+    });
+  });
+}
+upgradeDateInputs();
+
 /* ---------- ربط عام ---------- */
 $("#burgerBtn").onclick=()=>$("#sidebar").classList.toggle("open");
 $$("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 $$(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.add("hidden")});
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape")$$(".modal").forEach(m=>m.classList.add("hidden"));
+  if(e.key==="Escape"){ $$(".modal").forEach(m=>m.classList.add("hidden")); _dpClose() }
 });
 
 /* اسم من قام بالتعديل — بيتحفظ محليًا وبيتبعت مع أي طلب تعديل كـheader،
