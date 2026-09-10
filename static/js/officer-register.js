@@ -29,6 +29,7 @@ function monthStrip(block) {
       <span class="fam-row">
         <span class="chip on">عمل ${t["عمل"]}</span>
         <span class="chip w">راحة ${t["راحة"]}</span>
+        <span class="chip w">إجازة ${t["إجازة"]}</span>
         <span class="chip taq">خارج ${t["خارج"]}</span></span></h3>
     <div class="table-scroll"><table class="table reg43">
       <thead><tr>${heads.join("")}</tr></thead>

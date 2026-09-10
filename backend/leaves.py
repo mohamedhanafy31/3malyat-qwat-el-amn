@@ -2,8 +2,8 @@
 from datetime import timedelta
 
 from .constants import LEAVE_TYPES
+from .date_range import overlapping_of, parse_range
 from .people import find_person
-from .utils import parse_date
 
 
 def build_leave(payload, data, leave_id):
@@ -16,14 +16,9 @@ def build_leave(payload, data, leave_id):
     if kind not in LEAVE_TYPES:
         return None, "نوع الراحة غير صحيح."
 
-    start = parse_date(payload.get("start"))
-    end = parse_date(payload.get("end"))
-    if not start or not end:
-        return None, "برجاء إدخال تاريخ بداية ونهاية صحيحين."
-    if end < start:
-        return None, "تاريخ النهاية لا يمكن أن يسبق تاريخ البداية."
-    if (end - start).days > 120:
-        return None, "مدة الراحة كبيرة بشكل غير منطقي."
+    start, end, error = parse_range(payload, 120, "مدة الراحة كبيرة بشكل غير منطقي.", required=True)
+    if error:
+        return None, error
 
     return {
         "id": leave_id,
@@ -41,12 +36,8 @@ def build_leave(payload, data, leave_id):
 
 
 def overlapping(data, leave, ignore_id=None):
-    for lv in data["leaves"]:
-        if lv.get("id") == ignore_id or lv.get("person_id") != leave["person_id"]:
-            continue
-        if lv["start"] <= leave["end"] and leave["start"] <= lv["end"]:
-            return lv
-    return None
+    return overlapping_of(data["leaves"], leave["start"], leave["end"],
+                           "person_id", leave["person_id"], ignore_id)
 
 
 def leave_on(data, person_id, day):

@@ -14,8 +14,10 @@
 الالتحاق سجل بمدى تواريخ — زي الراحة بالظبط — فبيغطي كل أيامه لوحده،
 وبيعرف كمان الأيام اللي لسه ماتعملّهاش يومية.
 """
+from .date_range import overlapping_of, parse_range
+from .people import effective
 from .store import next_id
-from .utils import parse_date
+from .utils import command_priority_map, parse_date, rank_key
 
 # نوع الفرقة زي ما بتتكتب في التشغيل
 COURSE_KINDS = ["تأهيلية", "تخصصية", "قادة", "تدريبية", "أخرى"]
@@ -57,16 +59,8 @@ def term_on(data, officer_id, day):
 
 def overlapping(data, term, ignore_id=None):
     """التحاق تاني لنفس الضابط بيتقاطع مع المدى ده."""
-    s1, e1 = term.get("start", ""), term.get("end", "")
-    if not s1 or not e1:
-        return None
-    for other in terms(data):
-        if other.get("id") == ignore_id or other.get("officer_id") != term["officer_id"]:
-            continue
-        s2, e2 = other.get("start", ""), other.get("end", "")
-        if s2 and e2 and s2 <= e1 and s1 <= e2:
-            return other
-    return None
+    return overlapping_of(terms(data), term.get("start", ""), term.get("end", ""),
+                           "officer_id", term["officer_id"], ignore_id)
 
 
 def build_course(payload, course_id):
@@ -91,20 +85,9 @@ def build_term(payload, data, term_id):
     if course_id not in by_id(data):
         return None, "الفرقة غير موجودة."
 
-    raw_start = str(payload.get("start", "") or "").strip()
-    raw_end = str(payload.get("end", "") or "").strip()
-
-    start = parse_date(raw_start) if raw_start else None
-    end = parse_date(raw_end) if raw_end else None
-
-    if raw_start and not start:
-        return None, "تاريخ البداية غير صحيح."
-    if raw_end and not end:
-        return None, "تاريخ النهاية غير صحيح."
-    if start and end and end < start:
-        return None, "تاريخ النهاية لا يمكن أن يسبق تاريخ البداية."
-    if start and end and (end - start).days > 400:
-        return None, "مدة الفرقة كبيرة بشكل غير منطقي."
+    start, end, error = parse_range(payload, 400, "مدة الفرقة كبيرة بشكل غير منطقي.")
+    if error:
+        return None, error
 
     return {
         "id": term_id,
@@ -135,7 +118,6 @@ def _span_days(term):
 def _detail(term, course, person, day=None):
     """كل حاجة عن الالتحاق: الفرقة نفسها + المدة + رتبة الضابط ومنصبه
     **وقت ما خدها** (مش النهاردة)."""
-    from .people import effective
     eff = effective(person or {}, day or term.get("start", ""))
     return {
         **term,
@@ -156,9 +138,6 @@ def by_officer(data):
     الضباط اللي مخدوش أي فرقة بيظهروا برضو: «مين لسه ماخدش فرقة» سؤال
     تشغيلي زي «مين خد إيه» بالظبط.
     """
-    from .people import officers_on
-    from .utils import command_priority_map, rank_key
-
     catalog = by_id(data)
     people = {p["id"]: p for b in ("active", "archive") for p in data["officers"][b]}
     grouped = {}

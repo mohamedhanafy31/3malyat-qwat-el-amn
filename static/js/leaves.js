@@ -161,6 +161,23 @@ function render() {
   const mf = $("#leaveMonthFilter").value;
   if (mf) rows = rows.filter(l => l.start.slice(0, 7) === mf || l.end.slice(0, 7) === mf);
 
+  // ── فلتر الفئة (ضباط vs أفراد) ──
+  const cf = $("#leaveCategoryFilter")?.value;
+  if (cf === "officers") rows = rows.filter(l => OFFICER_IDS.has(l.person_id) || (l.person_id || "").startsWith("OFF_"));
+  if (cf === "personnel") rows = rows.filter(l => !OFFICER_IDS.has(l.person_id) && !(l.person_id || "").startsWith("OFF_"));
+
+  // ── فلتر المدة ──
+  const df = $("#leaveDurationFilter")?.value;
+  if (df) {
+    rows = rows.filter(l => {
+      const n = days(l.start, l.end);
+      if (df === "short") return n <= 3;
+      if (df === "medium") return n >= 4 && n <= 7;
+      if (df === "long") return n > 7;
+      return true;
+    });
+  }
+
   // ── الترتيب الافتراضي: النوع → القيادة → الرتبة (يُطبّق فقط لو مفيش column sort نشط) ──
   if (!st.col) {
     rows.sort((a, b) => {
@@ -218,6 +235,8 @@ $$("[data-lv]").forEach(b => b.onclick = () => {
 $("#leaveSearch").oninput      = render;
 $("#leaveTypeFilter").onchange = render;
 $("#leaveMonthFilter").onchange = render;
+if ($("#leaveCategoryFilter")) $("#leaveCategoryFilter").onchange = render;
+if ($("#leaveDurationFilter")) $("#leaveDurationFilter").onchange = render;
 $("#addLeaveBtn").onclick = () => openLeave(null);
 
 // ── Bootstrap ──────────────────────────────────────────────────────────────

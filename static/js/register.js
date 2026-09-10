@@ -11,7 +11,7 @@ function headRow() {
     `<th class="d-col ${recorded.has(d) ? "" : "no-rec"}"
       title="${dayName(d)} ${fmt(d)}${recorded.has(d) ? "" : " — مفيش يومية"}">${dayNum(d)}</th>`).join("");
   return `<tr><th class="who-col">الضابط</th>${cols}<th class="t-col">عمل</th>
-    <th class="t-col">راحة</th><th class="t-col">خارج</th></tr>`;
+    <th class="t-col">راحة</th><th class="t-col">إجازة</th><th class="t-col">خارج</th></tr>`;
 }
 
 function officerRow(r) {
@@ -26,6 +26,7 @@ function officerRow(r) {
     ${cells}
     <td class="t-col"><b>${t["عمل"]}</b></td>
     <td class="t-col">${t["راحة"]}</td>
+    <td class="t-col">${t["إجازة"]}</td>
     <td class="t-col">${t["خارج"]}</td></tr>`;
 }
 
@@ -33,9 +34,9 @@ function totalsRows() {
   const line = (label, key, cls) =>
     `<tr class="tot-row ${cls || ""}"><td class="who-col">${label}</td>` +
     REG.totals.map(t => `<td class="d-col">${t.recorded ? t[key] : "·"}</td>`).join("") +
-    `<td colspan="3"></td></tr>`;
+    `<td colspan="4"></td></tr>`;
   return line("القوة", "force", "tot-force") + line("الموجود", "working") +
-         line("راحة", "resting") + line("خارج", "away");
+         line("راحة", "resting") + line("إجازة", "on_leave") + line("خارج", "away");
 }
 
 function render() {

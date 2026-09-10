@@ -19,7 +19,25 @@
 
   <div class="toolbar">
     <input id="search" class="search" placeholder="بحث بالاسم أو الأقدمية أو الهاتف...">
-    {% if page == 'officers' %}<select id="restFilter" class="select"></select>{% endif %}
+    {% if page == 'officers' %}
+      <select id="restFilter" class="select"></select>
+      <select id="rankFilter" class="select">
+        <option value="">جميع الرتب</option>
+        <option value="leaders">ضباط قادة (عميد/عقيد/مقدم)</option>
+        <option value="officers">ضباط أعوان (رائد/نقيب/ملازم)</option>
+      </select>
+    {% else %}
+      <select id="rankFilter" class="select">
+        <option value="">جميع الفئات</option>
+        <option value="nco">صف ضباط (مساعد/رقيب/عريف)</option>
+        <option value="soldiers">جنود</option>
+      </select>
+    {% endif %}
+    <select id="statusFilter" class="select">
+      <option value="">جميع الحالات اليوم</option>
+      <option value="resting">في راحة اليوم</option>
+      <option value="working">متواجد بالمعسكر</option>
+    </select>
     <button class="primary" id="addBtn">＋ إضافة</button>
   </div>
 

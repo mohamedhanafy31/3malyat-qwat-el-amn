@@ -1,8 +1,8 @@
 /* مشترك بين دفتر 43 وصفحة الضابط — الرموز والمفتاح ونافذة الخانة. */
 
 /* لون الخانة بيتبع عائلة الحالة: شغل / راحة / خارج القوة */
-const FAMILY_CLS = {"عمل": "fam-work", "راحة": "fam-rest", "خارج": "fam-away",
-                    "خارج القوة": "fam-none", "بدون سجل": "fam-blank"};
+const FAMILY_CLS = {"عمل": "fam-work", "راحة": "fam-rest", "إجازة": "fam-leave",
+                    "خارج": "fam-away", "خارج القوة": "fam-none", "بدون سجل": "fam-blank"};
 
 const cellClass = c => `cell43 ${FAMILY_CLS[c.family] || ""}`;
 
@@ -47,7 +47,8 @@ function tallyBox(tally, legend) {
     `<tr><td><b class="cell43 ${FAMILY_CLS[l.family] || ""}">${esc(l.code)}</b></td>
      <td class="name">${esc(l.label)}</td><td><b>${tally.by_code[l.code]}</b></td></tr>`);
   const fams = Object.entries(tally.by_family)
-    .map(([k, v]) => `<span class="chip ${k === "عمل" ? "on" : k === "راحة" ? "w" : "taq"}">${esc(k)} ${v}</span>`)
+    .map(([k, v]) => `<span class="chip ${
+      k === "عمل" ? "on" : k === "راحة" || k === "إجازة" ? "w" : "taq"}">${esc(k)} ${v}</span>`)
     .join(" ");
   const svcs = (tally.services || []).map(s =>
     `<tr><td class="name">${esc(s.name)}</td><td><b>${s.count}</b></td></tr>`);

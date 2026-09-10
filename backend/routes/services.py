@@ -150,10 +150,8 @@ def delete_service(service_id):
     على اللوحة. قبل كده كان الفحص على يومية التشغيل بس، فكان ينفع تمسح
     خدمة لسه على اللوحة وتسيب خانتها بلا مرجع."""
     def mutate(data):
-        used = sum(1 for day in data.get("duties", {}).values() for e in day.values()
-                   for i in e.get("items", []) if i.get("service_id") == service_id)
-        used += sum(1 for day in data.get("day_assignments", {}).values() for a in day
-                    if a.get("service_id") == service_id)
+        used = sum(1 for day in data.get("day_assignments", {}).values() for a in day
+                   if a.get("service_id") == service_id)
         if used:
             raise AbortRequest((jsonify({
                 "error": f"الخدمة مستخدمة في {used} تكليف. غيّر تصنيفها أو اسمها بدل حذفها."}), 409))

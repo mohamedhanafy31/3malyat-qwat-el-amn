@@ -104,6 +104,23 @@ function tableBlock(head,rows,countText,emptyText){
   return `<div class="table-scroll">${mtable(head,rows)}</div><div class="count">${countText}</div>`;
 }
 
+/* ---------- توزيع النقرات (بديل onclick المضمّن) ----------
+   كل زرار متولّد بيحمل data-action (+ data-id/data-extra). النقر بيتلقط مرة
+   واحدة هنا، والقيم بتتقرأ من الـdataset كنص عادي — مش بيتجمّع كـJS أبدًا،
+   فأي قيمة حرة مهما كان محتواها ما تقدرش تكسر الصفحة أو تنفّذ كود.
+   لازم تتعرّف هنا قبل قسم Sortable Table تحت، لأنه بيسجّل ACTIONS._thSort
+   فورًا وقت التحميل — مش جوه دالة بتتأجل استدعاءها. */
+const ACTIONS={};
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-action]");
+  if(!el) return;
+  const fn=ACTIONS[el.dataset.action];
+  if(!fn) return;
+  let extra={};
+  if(el.dataset.extra){ try{extra=JSON.parse(el.dataset.extra)}catch(err){} }
+  fn(el.dataset.id,extra,el);
+});
+
 /* ═══════════════════════════════════════════════════════════════════
    Sortable Table — يُستخدم في الصفحات التي تحتاج ترتيب الأعمدة.
    الاستخدام:
@@ -225,21 +242,6 @@ function renderAlerts(alerts){
       <span class="a-rest">الراحة ${esc(a.type)} تبدأ ${dayName(a.rest_start)} ${fmt(a.rest_start)}</span>
     </li>`).join("")}</ul></div>`;
 }
-
-/* ---------- توزيع النقرات (بديل onclick المضمّن) ----------
-   كل زرار متولّد بيحمل data-action (+ data-id/data-extra). النقر بيتلقط مرة
-   واحدة هنا، والقيم بتتقرأ من الـdataset كنص عادي — مش بيتجمّع كـJS أبدًا،
-   فأي قيمة حرة مهما كان محتواها ما تقدرش تكسر الصفحة أو تنفّذ كود. */
-const ACTIONS={};
-document.addEventListener("click",e=>{
-  const el=e.target.closest("[data-action]");
-  if(!el) return;
-  const fn=ACTIONS[el.dataset.action];
-  if(!fn) return;
-  let extra={};
-  if(el.dataset.extra){ try{extra=JSON.parse(el.dataset.extra)}catch(err){} }
-  fn(el.dataset.id,extra,el);
-});
 
 /* ---------- ربط عام ---------- */
 $("#burgerBtn").onclick=()=>$("#sidebar").classList.toggle("open");

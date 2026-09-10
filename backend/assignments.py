@@ -24,7 +24,7 @@
   - واحد   = الحالة العادية.
   - أكتر   = صف مشترك، زي «رائد/جمال امين م.اول/ماركو ماجد» في لوحة 20/8.
 """
-from .constants import SHIFTS
+from .constants import SECTION_OCCASIONAL, SHIFTS
 from .store import next_id
 
 # حالات الضابط اللي مش تكليف بخدمة. «مرضي» و«فرقة» و«طارئة» كانوا ناقصين،
@@ -168,3 +168,79 @@ def label(assignment, svc, with_shift=True):
     if with_shift and short:
         text = f"{text} {short}"
     return text
+
+
+def clean_people(data, day, ids, want):
+    """يتحقق إن كل شخص موجود وإنه من النوع الصح وإنه كان على القوة يومها.
+    بترجع (القايمة, error, status) — error=None لو تمام.
+
+    الضابط المتأرشف ينفع يتكلّف في يوم كان فيه بالقوة — ده مطلوب عشان
+    تعديل الأيام القديمة يشتغل. قبل كده اللوحة كانت بتعرض النشطين بس
+    بينما يومية التشغيل بتقبل الاتنين، فالصفحتين مكانوش شايفين نفس القايمة.
+    """
+    from .people import find_person, officers_on
+
+    out = []
+    on_force = {o["id"] for o in officers_on(data, day)} if want == "officers" else None
+    for pid in ids or []:
+        pid = str(pid).strip()
+        if not pid or pid in out:
+            continue
+        person, category, _ = find_person(data, pid)
+        if not person or category != want:
+            return None, ("ضابط غير موجود." if want == "officers" else "فرد غير موجود."), 404
+        if on_force is not None and pid not in on_force:
+            return None, f"«{person.get('name', '')}» لم يكن على القوة في هذا اليوم.", 400
+        out.append(pid)
+    return out, None, None
+
+
+def guard_duplicate(data, day, row, ignore_id):
+    """التكرار الحرفي بس هو الممنوع: نفس الشخص على نفس الخدمة ونفس الفترة
+    مرتين. باقي «التعارضات» بتتعرض كتنبيهات — الأرشيف فيه ضباط على
+    خدمتين في نفس الفترة فعلًا (20/8: تبة ضرب النار + كنترول الازهر ليل).
+
+    بترجع رسالة خطأ أو None — الاستيراد جوه الدالة لتفادي دورة استيراد
+    (`checks.py` بيستورد من الملف ده أصلًا).
+    """
+    from .checks import duplicate_of
+
+    people = (row.get("officer_ids") or []) + (row.get("personnel_ids") or [])
+    if not people:
+        return None
+    clash = duplicate_of(data, day, row["service_id"], row.get("shift"),
+                         people, ignore_id=ignore_id)
+    if clash:
+        return "الشخص ده متكلّف بنفس الخدمة ونفس الفترة في خانة تانية."
+    return None
+
+
+def apply_assignment(data, day, row, payload, svc):
+    """بيطبّق حقول الطلب على صف التكليف. بترجع (row, error, status) —
+    لو error مش None يبقى row=None."""
+    if "shift" in payload:
+        row["shift"] = clean_shift(payload["shift"], svc)
+    if "section" in payload:
+        section = str(payload["section"]).strip()
+        row["section"] = section or (svc or {}).get("section") or SECTION_OCCASIONAL
+    if "officer_ids" in payload:
+        ids, err, status = clean_people(data, day, payload["officer_ids"], "officers")
+        if err:
+            return None, err, status
+        row["officer_ids"] = ids
+    if "personnel_ids" in payload:
+        ids, err, status = clean_people(data, day, payload["personnel_ids"], "personnel")
+        if err:
+            return None, err, status
+        row["personnel_ids"] = ids
+    if "conscripts" in payload:
+        row["conscripts"] = clean_conscripts(payload["conscripts"])
+    if "tags" in payload:
+        row["tags"] = [str(t).strip() for t in payload["tags"] if str(t).strip()]
+        for tag in row["tags"]:
+            if tag not in data["service_tags"]:
+                data["service_tags"].append(tag)
+    for key in ("weapon", "time", "party", "label_override", "note"):
+        if key in payload:
+            row[key] = str(payload[key]).strip()
+    return row, None, None

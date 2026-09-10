@@ -76,3 +76,15 @@ def test_restore_person_transfers_leaves(client):
     assert lv_entry["person_id"] == restored_id
 
 
+def test_leaves_stats_filtering(client):
+    r = client.get("/api/leaves/stats?type=أسبوعية")
+    assert r.status_code == 200
+    res = r.get_json()
+    assert "summary" in res
+    assert "meta_options" in res
+    assert res["by_type"].get("أسبوعية", 0) > 0
+    # All counted leaves must be of type "أسبوعية"
+    assert res["summary"]["total"] == res["by_type"].get("أسبوعية", 0)
+
+
+

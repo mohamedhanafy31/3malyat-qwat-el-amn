@@ -66,28 +66,72 @@ def delete_leave(leave_id):
 
 @bp.get("/api/leaves/stats")
 def leaves_stats():
-    """إحصائيات شاملة للراحات — كل البيانات محسوبة على الخادم جاهزة للرسم."""
+    """إحصائيات شاملة للراحات — قابلة للتصفية بحسب الفلاتر (الشهور، نوع الراحة، الحالة، الفئة)."""
     from datetime import date as _date, timedelta
-    from ..store import load_data
     from collections import defaultdict
+    from flask import request
+    from ..store import load_data
 
     data = load_data()
-    leaves = data.get("leaves", [])
+    all_leaves = data.get("leaves", [])
     today = _date.today()
+    today_str = today.isoformat()
+
+    # مجموعات الهويات للفئات (ضباط vs أفراد)
+    officer_ids = {p["id"] if isinstance(p, dict) else str(p) for p in data.get("officers", []) if p}
+    personnel_ids = {p["id"] if isinstance(p, dict) else str(p) for p in data.get("personnel", []) if p}
+
+    # قراءة الفلاتر من ترويسة الطلب (Query Parameters)
+    month_from = request.args.get("month_from", "").strip()
+    month_to = request.args.get("month_to", "").strip()
+    leave_type = request.args.get("type", "").strip()
+    status_filter = request.args.get("status", "").strip()
+    category_filter = request.args.get("category", "").strip()
+
+    # تصفية الراحات
+    leaves = []
+    for lv in all_leaves:
+        m = (lv.get("start") or "")[:7]
+        # فلتر الفترة الزمنية (من شهر / إلى شهر)
+        if month_from and m and m < month_from:
+            continue
+        if month_to and m and m > month_to:
+            continue
+
+        # فلتر نوع الراحة
+        if leave_type and leave_type != "الكل" and lv.get("type") != leave_type:
+            continue
+
+        # فلتر الفئة (ضباط vs أفراد)
+        pid = lv.get("person_id", "")
+        if category_filter in ("officers", "ضباط"):
+            if pid not in officer_ids and not pid.startswith("OFF_"):
+                continue
+        elif category_filter in ("personnel", "أفراد"):
+            if pid not in personnel_ids and not (pid.startswith("SOL_") or pid.startswith("PER_")):
+                continue
+
+        # فلتر الحالة (جارية / قادمة / منتهية)
+        s, e = lv.get("start", ""), lv.get("end", "")
+        st = "جارية" if s <= today_str <= e else ("قادمة" if s > today_str else "منتهية")
+        if status_filter and status_filter != "الكل" and st != status_filter:
+            continue
+
+        leaves.append(lv)
 
     # ── 1. توزيع الأنواع ──
     by_type: dict[str, int] = defaultdict(int)
     for lv in leaves:
         by_type[lv.get("type", "غير محدد")] += 1
 
-    # ── 2. توزيع شهري (عدد الراحات التي بدأت في كل شهر) ──
+    # ── 2. توزيع شهري ──
     by_month: dict[str, int] = defaultdict(int)
     for lv in leaves:
         m = (lv.get("start") or "")[:7]
         if m:
             by_month[m] += 1
 
-    # ── 3. مدة الراحة (توزيع عدد الأيام) ──
+    # ── 3. مدة الراحة ──
     duration_buckets = {"1 يوم": 0, "2-3 أيام": 0, "4-7 أيام": 0, "أكثر من 7": 0}
     total_days = 0
     for lv in leaves:
@@ -107,22 +151,17 @@ def leaves_stats():
         elif n > 7:
             duration_buckets["أكثر من 7"] += 1
 
-    # ── 4. توزيع الأيام (من الأسبوع الذي تبدأ فيه الراحة) ──
+    # ── 4. توزيع الأيام من الأسبوع ──
     day_names = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]
     by_weekday: dict[str, int] = defaultdict(int)
     for lv in leaves:
         try:
             s = _date.fromisoformat(lv["start"])
-            by_weekday[day_names[s.weekday() % 7]] += 1  # Python: Mon=0, Sun=6
+            by_weekday[day_names[s.weekday() % 7]] += 1
         except Exception:
             pass
-    # Python isoweekday: Mon=1 .. Sun=7, we want Arabic Sun-first
-    # recalc using weekday(): Mon=0..Sun=6
-    # Sunday in Python = weekday 6 → index 0 in our day_names list above:
-    # Mon(0)→الاثنين, Tue(1)→الثلاثاء ... Sun(6)→الأحد
-    # already correct above
 
-    # ── 5. أكثر الضباط راحات (Top 10) ──
+    # ── 5. أكثر الأشخاص راحات (Top 10) ──
     by_officer: dict[str, dict] = {}
     for lv in leaves:
         pid = lv.get("person_id", "")
@@ -139,7 +178,6 @@ def leaves_stats():
     top_officers = sorted(by_officer.values(), key=lambda x: x["count"], reverse=True)[:10]
 
     # ── 6. الحالة الراهنة (جارية / قادمة / منتهية) ──
-    today_str = today.isoformat()
     status_counts = {"جارية": 0, "قادمة": 0, "منتهية": 0}
     for lv in leaves:
         s, e = lv.get("start", ""), lv.get("end", "")
@@ -150,7 +188,7 @@ def leaves_stats():
         else:
             status_counts["منتهية"] += 1
 
-    # ── 7. الراحات المتراكمة تراكمياً بالشهر (cumulative) ──
+    # ── 7. الراحات المتراكمة ──
     sorted_months = sorted(by_month.keys())
     cumulative, running = [], 0
     for m in sorted_months:
@@ -158,6 +196,10 @@ def leaves_stats():
         cumulative.append({"month": m, "total": running})
 
     avg_duration = round(total_days / len(leaves), 1) if leaves else 0
+
+    # القائمة الكاملة للشهور المتاحة في النظام ككل لاستخدامها في خيارات المجموعات
+    all_months = sorted(list({(lv.get("start") or "")[:7] for lv in all_leaves if (lv.get("start") or "")[:7]}))
+    all_types = sorted(list({lv.get("type", "") for lv in all_leaves if lv.get("type")}))
 
     return jsonify({
         "summary": {
@@ -174,5 +216,9 @@ def leaves_stats():
         "top_officers": top_officers,
         "status_counts": status_counts,
         "cumulative": cumulative,
+        "meta_options": {
+            "months": all_months,
+            "types": all_types,
+        }
     })
 

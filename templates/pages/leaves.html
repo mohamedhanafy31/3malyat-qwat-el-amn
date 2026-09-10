@@ -13,9 +13,20 @@
     </div>
   </div>
   <div class="toolbar">
-    <input id="leaveSearch" class="search" placeholder="بحث باسم الضابط...">
+    <input id="leaveSearch" class="search" placeholder="بحث باسم الشخص أو الملاحظات...">
     <select id="leaveTypeFilter" class="select"></select>
     <select id="leaveMonthFilter" class="select"></select>
+    <select id="leaveCategoryFilter" class="select">
+      <option value="">جميع الفئات</option>
+      <option value="officers">ضباط</option>
+      <option value="personnel">صف ضباط / أفراد</option>
+    </select>
+    <select id="leaveDurationFilter" class="select">
+      <option value="">جميع المدد</option>
+      <option value="short">قصيرة (1-3 أيام)</option>
+      <option value="medium">متوسطة (4-7 أيام)</option>
+      <option value="long">طويلة (أكثر من 7 أيام)</option>
+    </select>
     <button class="primary" id="addLeaveBtn">＋ تسجيل راحة</button>
   </div>
   <div id="leaveWrap"></div>

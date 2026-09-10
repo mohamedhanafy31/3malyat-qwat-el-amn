@@ -456,6 +456,16 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .ls-refresh:hover{background:var(--navy-50);color:var(--navy-800)}
 .ls-refresh svg{width:16px;height:16px;fill:currentColor}
 
+/* شريط الفلاتر للمخططات */
+.ls-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:#fff;
+  border:1px solid var(--line);border-radius:var(--radius-md);padding:12px 16px;
+  margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+.ls-filter-title{display:flex;align-items:center;gap:6px;font-weight:bold;font-size:14px;
+  color:var(--navy-900);margin-inline-end:4px}
+.ls-filter-group{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-700)}
+.ls-filter-group select{min-width:110px}
+.ls-filter-quick{display:flex;align-items:center;gap:4px;margin-inline-start:auto}
+
 /* الشبكة */
 .ls-grid{display:grid;gap:16px;margin-bottom:16px}
 .ls-grid-1{grid-template-columns:1fr}

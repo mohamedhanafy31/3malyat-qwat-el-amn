@@ -104,7 +104,7 @@ function drawStatusChart(data) {
 function drawMonthChart(data) {
   const labels = Object.keys(data.by_month).map(monthLabel);
   const values = Object.values(data.by_month);
-  const maxVal = Math.max(...values);
+  const maxVal = values.length ? Math.max(...values) : 0;
 
   new Chart(document.getElementById("monthChart"), {
     type: "bar",
@@ -213,7 +213,7 @@ function drawWeekdayChart(data) {
   const ORDER = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
   const labels = ORDER;
   const values = ORDER.map(d => data.by_weekday[d] || 0);
-  const maxVal = Math.max(...values);
+  const maxVal = values.length ? Math.max(...values) : 0;
 
   new Chart(document.getElementById("weekdayChart"), {
     type: "bar",
@@ -295,20 +295,68 @@ function renderSummary(s) {
     </div>`;
 }
 
-// ── تحميل البيانات ────────────────────────────────────────────
-let _charts = [];
+// ── الفلاتر والتحميل ────────────────────────────────────────────
+let optionsPopulated = false;
+
+function populateFilterOptions(metaOptions) {
+  if (optionsPopulated || !metaOptions) return;
+
+  const mFromEl = document.getElementById("lsFilterMonthFrom");
+  const mToEl   = document.getElementById("lsFilterMonthTo");
+  const typeEl = document.getElementById("lsFilterType");
+
+  if (mFromEl && metaOptions.months) {
+    metaOptions.months.forEach(m => {
+      const lbl = monthLabel(m);
+      mFromEl.add(new Option(lbl, m));
+      mToEl.add(new Option(lbl, m));
+    });
+  }
+
+  if (typeEl && metaOptions.types) {
+    metaOptions.types.forEach(t => {
+      typeEl.add(new Option(t, t));
+    });
+  }
+
+  optionsPopulated = true;
+}
+
+function getFilterParams() {
+  const mFrom = document.getElementById("lsFilterMonthFrom")?.value || "";
+  const mTo = document.getElementById("lsFilterMonthTo")?.value || "";
+  const type = document.getElementById("lsFilterType")?.value || "";
+  const status = document.getElementById("lsFilterStatus")?.value || "";
+  const category = document.getElementById("lsFilterCategory")?.value || "";
+
+  const params = new URLSearchParams();
+  if (mFrom) params.set("month_from", mFrom);
+  if (mTo) params.set("month_to", mTo);
+  if (type) params.set("type", type);
+  if (status) params.set("status", status);
+  if (category) params.set("category", category);
+
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
 async function load() {
-  // تحميل Bootstrap للـ meta (تاريخ اليوم + عداد الـ nav)
+  // تدمير المخططات الحالية قبل إعادة الرسم
+  Chart.helpers.each(Chart.instances, c => c.destroy());
+
+  // تحميل Bootstrap للـ meta (تاريخ اليوم)
   const bd = await api("/api/bootstrap/leaves");
   if (bd) {
-    // تحديث عداد nav
     const el = document.getElementById("today");
     if (el) el.textContent = new Date(bd.meta?.today + "T00:00:00")
       .toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
   }
 
-  const d = await api("/api/leaves/stats");
+  const query = getFilterParams();
+  const d = await api(`/api/leaves/stats${query}`);
   if (!d) return;
+
+  populateFilterOptions(d.meta_options);
 
   renderSummary(d.summary);
   drawTypeChart(d);
@@ -320,9 +368,51 @@ async function load() {
   drawCumulativeChart(d);
 }
 
+// ── ربط الأحداث للفلاتر ───────────────────────────────────────
+["lsFilterMonthFrom", "lsFilterMonthTo", "lsFilterType", "lsFilterStatus", "lsFilterCategory"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.onchange = () => load();
+});
+
+function resetFilters() {
+  ["lsFilterMonthFrom", "lsFilterMonthTo", "lsFilterType", "lsFilterStatus", "lsFilterCategory"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  load();
+}
+
+document.getElementById("lsResetFilters").onclick = resetFilters;
+
+document.getElementById("lsPresetAll").onclick = resetFilters;
+
+document.getElementById("lsPresetThisMonth").onclick = () => {
+  resetFilters();
+  const today = new Date();
+  const ym = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const mFrom = document.getElementById("lsFilterMonthFrom");
+  const mTo = document.getElementById("lsFilterMonthTo");
+  if (mFrom) mFrom.value = ym;
+  if (mTo) mTo.value = ym;
+  load();
+};
+
+document.getElementById("lsPresetLast3Months").onclick = () => {
+  resetFilters();
+  const today = new Date();
+  const mToYm = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
+  const d3 = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+  const mFromYm = `${d3.getFullYear()}-${String(d3.getMonth() + 1).padStart(2, '0')}`;
+
+  const mFrom = document.getElementById("lsFilterMonthFrom");
+  const mTo = document.getElementById("lsFilterMonthTo");
+  if (mFrom) mFrom.value = mFromYm;
+  if (mTo) mTo.value = mToYm;
+  load();
+};
+
 document.getElementById("refreshBtn").onclick = () => {
-  // تدمير كل المخططات وإعادة رسمها
-  Chart.helpers.each(Chart.instances, c => c.destroy());
   load();
 };
 

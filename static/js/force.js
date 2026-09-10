@@ -27,11 +27,39 @@ function renderStats() {
 function filterRows(rows) {
   const q = $("#search").value.trim().toLowerCase();
   const rf = $("#restFilter")?.value;
+  const rankF = $("#rankFilter")?.value;
+  const statusF = $("#statusFilter")?.value;
+
   if (q) rows = rows.filter(p => [p.name, p.code, p.phone, p.role, p.post, p.address]
     .some(v => String(v || "").toLowerCase().includes(q)));
   if (rf && IS_OFF) rows = rf === "__rest_now"
     ? rows.filter(p => p.status_today?.state === "resting")
     : rows.filter(p => (p.rest_system || "—") === rf);
+
+  if (rankF) {
+    if (IS_OFF) {
+      if (rankF === "leaders") {
+        rows = rows.filter(p => ["عميد", "عقيد", "مقدم"].some(r => (p.role || "").includes(r)));
+      } else if (rankF === "officers") {
+        rows = rows.filter(p => ["رائد", "نقيب", "ملازم"].some(r => (p.role || "").includes(r)));
+      }
+    } else {
+      if (rankF === "nco") {
+        rows = rows.filter(p => ["مساعد", "رقيب", "عريف"].some(r => (p.role || "").includes(r)));
+      } else if (rankF === "soldiers") {
+        rows = rows.filter(p => (p.role || "").includes("جندي"));
+      }
+    }
+  }
+
+  if (statusF) {
+    if (statusF === "resting") {
+      rows = rows.filter(p => p.status_today?.state === "resting");
+    } else if (statusF === "working") {
+      rows = rows.filter(p => p.status_today?.state !== "resting");
+    }
+  }
+
   return rows;
 }
 
@@ -319,6 +347,8 @@ $$("[data-bucket]").forEach(b => b.onclick = () => {
 });
 $("#search").oninput = render;
 if ($("#restFilter")) $("#restFilter").onchange = render;
+if ($("#rankFilter")) $("#rankFilter").onchange = render;
+if ($("#statusFilter")) $("#statusFilter").onchange = render;
 $("#addBtn").onclick = () => openPerson(null);
 $("#type").onchange = updateRoles;
 $("#fRestSystem").onchange = toggleRestDay;
