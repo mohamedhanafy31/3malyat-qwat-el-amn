@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <p class="hint" style="margin:0;flex:1">
+      كل صف ضابط نظامه شهري أو نصف شهري — دخّل تاريخ بداية راحته الجاية من
+      كشف المديرية بس، والمدة والنوع بيتحسبوا تلقائيًا.
+    </p>
+    <button class="primary" id="saveRosterBtn">حفظ الكشف</button>
+  </div>
+  <div id="rosterWrap"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/leaves-monthly.js') }}"></script>
+{% endblock %}

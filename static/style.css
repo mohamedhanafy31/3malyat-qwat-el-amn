@@ -202,6 +202,7 @@ button,input,select,textarea{font-family:inherit}
 .chip.h{color:var(--warn-700);border-inline-start-color:var(--warn-700);background:var(--warn-100)}
 .chip.m{color:#5b3a94;border-inline-start-color:#5b3a94;background:#eee8fa}
 .chip.rest{color:var(--bad-700);border-inline-start-color:var(--bad-700);background:var(--bad-100)}
+.chip.err{color:var(--bad-700);border-inline-start-color:var(--bad-700);background:var(--bad-100)}
 .chip.soon{color:var(--warn-700);border-inline-start-color:var(--warn-700);background:var(--warn-100)}
 .chip.on{color:var(--ok-700);border-inline-start-color:var(--ok-700);background:var(--ok-100)}
 .chip.done{color:var(--ink-500);border-inline-start-color:var(--ink-300);background:var(--navy-50)}

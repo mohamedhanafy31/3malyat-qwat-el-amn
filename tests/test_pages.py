@@ -18,6 +18,7 @@ def test_bootstrap_returns_meta_for_every_page(client, page):
     d = client.get(f"/api/bootstrap/{page}").get_json()
     assert d["meta"]["today"]
     assert d["meta"]["command_roles"]
+    assert set(["officers", "personnel", "leaves", "services", "courses"]).issubset(d["counts"].keys())
 
 
 def test_unknown_bootstrap_page_404s(client):

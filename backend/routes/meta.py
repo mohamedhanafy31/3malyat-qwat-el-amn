@@ -15,6 +15,7 @@ from ..constants import (
     REST_SYSTEMS, SERVICE_DOCUMENTS, SERVICE_KINDS, SERVICE_SECTIONS, SHIFTS,
     TAQSEERA_NOTICE_DAYS, WEEKDAYS,
 )
+from ..leaves import monthly_roster
 from ..rest_status import officer_status, taqseera_alerts
 from ..store import load_data
 
@@ -73,10 +74,13 @@ def _slim_services(services):
 
 
 def _counts(data):
-    return {"officers": len(data["officers"]["active"]),
-            "personnel": len(data["personnel"]["active"]),
-            "leaves": len(data["leaves"]),
-            "services": len(data["services"])}
+    return {
+        "officers": len(data["officers"]["active"]),
+        "personnel": len(data["personnel"]["active"]),
+        "leaves": len(data["leaves"]),
+        "services": len(data["services"]),
+        "courses": len(data.get("courses", [])),
+    }
 
 
 def _days_payload(data, meta):
@@ -98,9 +102,9 @@ def bootstrap(page):
                       if officer_status(data, o, today)["state"] == "resting")
         alerts = taqseera_alerts(data, today)
         return jsonify({"meta": meta, "alerts": alerts, "counts": {
-            "officers": len(officers), "personnel": len(personnel),
-            "on_rest": on_rest, "taqseera": len(alerts),
-            "leaves": len(data["leaves"]), "services": len(data["services"]),
+            **_counts(data),
+            "on_rest": on_rest,
+            "taqseera": len(alerts),
         }})
 
     if page == "officers":
@@ -111,16 +115,12 @@ def bootstrap(page):
             "command": data["command"],
             "medical_officers": data["medical_officers"],
             "alerts": taqseera_alerts(data, today),
-            "counts": {"personnel": len(data["personnel"]["active"]),
-                        "leaves": len(data["leaves"]),
-                        "services": len(data["services"])},
+            "counts": _counts(data),
         })
 
     if page == "personnel":
         return jsonify({"meta": meta, "personnel": data["personnel"],
-                        "counts": {"officers": len(data["officers"]["active"]),
-                                    "leaves": len(data["leaves"]),
-                                    "services": len(data["services"])}})
+                        "counts": _counts(data)})
 
     if page in ("duty", "register"):
         # الاتنين محتاجين قايمة الأيام بس (لتحديد آخر يوم افتراضي) — لا
@@ -159,6 +159,13 @@ def bootstrap(page):
     if page == "leaves_stats":
         # صفحة الإحصائيات محتاجة meta + counts فقط — الداتا بتيجي من /api/leaves/stats
         return jsonify({"meta": meta, "counts": _counts(data)})
+
+    if page == "leaves_monthly":
+        # الاسم "roster" مقصود مش "officers" — core.js's paintNavCounts()
+        # بتفترض إن أي مفتاح "officers" شكله {active, archive} زي صفحة
+        # الضباط، ومش قايمة مسطّحة زي الكشف ده.
+        return jsonify({"meta": meta, "roster": monthly_roster(data, today),
+                        "counts": _counts(data)})
 
     return jsonify({"error": "صفحة غير معروفة."}), 404
 

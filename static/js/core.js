@@ -75,17 +75,20 @@ async function bootstrap(){
   return d;
 }
 function paintNavCounts(d){
-  const n={
-    navOfficers: d.officers?d.officers.active.length:COUNTS.officers,
-    navPersonnel: d.personnel?d.personnel.active.length:COUNTS.personnel,
-    navLeaves: d.leaves?d.leaves.length:COUNTS.leaves,
-    navDuty: d.services?d.services.length:COUNTS.services,
+  const c = d.counts || COUNTS || {};
+  const n = {
+    navOfficers: (d.officers && d.officers.active) ? d.officers.active.length : c.officers,
+    navPersonnel: (d.personnel && d.personnel.active) ? d.personnel.active.length : (Array.isArray(d.personnel) ? d.personnel.length : c.personnel),
+    navLeaves: d.leaves ? d.leaves.length : c.leaves,
+    navDuty: d.services ? d.services.length : c.services,
+    navCourses: c.courses,
   };
-  for(const [id,v] of Object.entries(n)){
-    const el=$("#"+id); if(el && v!=null) el.textContent=v;
+  for (const [id, v] of Object.entries(n)){
+    const el = $("#" + id);
+    if (el && v != null && v !== undefined) el.textContent = v;
   }
-  const alerts=(d.alerts||[]).length;
-  $("#navAlerts")?.classList.toggle("hidden",!alerts);
+  const alerts = (d.alerts || []).length;
+  $("#navAlerts")?.classList.toggle("hidden", !alerts);
 }
 
 /* ---------- عناصر عامة ---------- */

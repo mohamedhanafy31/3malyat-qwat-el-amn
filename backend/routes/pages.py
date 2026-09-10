@@ -27,6 +27,8 @@ PAGES = {
                 "سجل راحات الضباط — الأسبوعية والنصف شهرية والشهرية والاستثنائية"),
     "leaves_stats": ("leaves_stats.html", "إحصائيات الراحات",
                      "رسوم بيانية وإحصائيات تفصيلية لراحات وإجازات الضباط"),
+    "leaves_monthly": ("leaves_monthly.html", "تحديث كشف الراحات الشهرية",
+                        "تاريخ راحة واحد لكل ضابط شهري أو نصف شهري — يوصل من المديرية شهريًا"),
 }
 
 
@@ -74,6 +76,11 @@ def leaves():
 @bp.get("/leaves/stats")
 def leaves_stats():
     return _render("leaves_stats")
+
+
+@bp.get("/leaves/monthly")
+def leaves_monthly():
+    return _render("leaves_monthly")
 
 
 @bp.get("/courses")

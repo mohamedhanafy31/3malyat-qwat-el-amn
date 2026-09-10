@@ -344,13 +344,8 @@ async function load() {
   // تدمير المخططات الحالية قبل إعادة الرسم
   Chart.helpers.each(Chart.instances, c => c.destroy());
 
-  // تحميل Bootstrap للـ meta (تاريخ اليوم)
-  const bd = await api("/api/bootstrap/leaves");
-  if (bd) {
-    const el = document.getElementById("today");
-    if (el) el.textContent = new Date(bd.meta?.today + "T00:00:00")
-      .toLocaleDateString("ar-EG", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-  }
+  // تحميل Bootstrap للـ meta والأعداد والتاريخ
+  const bd = await bootstrap();
 
   const query = getFilterParams();
   const d = await api(`/api/leaves/stats${query}`);

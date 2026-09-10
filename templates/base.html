@@ -58,6 +58,10 @@
         <svg viewBox="0 0 24 24"><path d="M3 3v18h18v-2H5V3H3zm4 12l3-4 3 3 4-5 2 2V18H7v-3z"/></svg>
         <span>إحصائيات الراحات</span>
       </a>
+      <a class="navbtn sub {{ 'active' if page == 'leaves_monthly' }}" href="{{ url_for('pages.leaves_monthly') }}">
+        <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v2H5v-2Zm0 4h9v2H5v-2Z"/></svg>
+        <span>تحديث الكشف الشهري</span>
+      </a>
 
     </div>
 
