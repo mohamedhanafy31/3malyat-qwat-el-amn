@@ -7,7 +7,7 @@ from ..constants import REST_DURATIONS
 from ..leaves import MONTHLY_REST_SYSTEMS, build_leave, overlapping
 from ..leaves import stats as leaves_stats_data
 from ..people import find_person
-from ..store import AbortRequest, load_data, next_id, with_data
+from ..store import AbortRequest, load_data, reserve_id, with_data
 from ..utils import json_payload, parse_date
 
 bp = Blueprint("leaves", __name__)
@@ -18,7 +18,7 @@ def add_leave():
     payload = json_payload()
 
     def mutate(data):
-        leave_id = next_id(data["leaves"], "LV")
+        leave_id = reserve_id(data, "LV", data["leaves"])
         leave, err = build_leave(payload, data, leave_id)
         if err:
             raise AbortRequest((jsonify({"error": err}), 400))
@@ -103,7 +103,7 @@ def add_monthly_roster():
                 continue
             end = (start_date + timedelta(days=REST_DURATIONS[system] - 1)).isoformat()
 
-            leave_id = next_id(data["leaves"], "LV")
+            leave_id = reserve_id(data, "LV", data["leaves"])
             leave, err = build_leave({"person_id": officer_id, "type": system,
                                        "start": start, "end": end}, data, leave_id)
             if err:
@@ -132,7 +132,6 @@ def leaves_stats():
         "month_to": request.args.get("month_to", "").strip(),
         "type": request.args.get("type", "").strip(),
         "status": request.args.get("status", "").strip(),
-        "category": request.args.get("category", "").strip(),
     }
     return jsonify(leaves_stats_data(data, filters))
 

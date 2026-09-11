@@ -149,9 +149,9 @@ function render() {
   if (LEAVE_TAB === "month")    rows = rows.filter(l =>
     l.start.slice(0, 7) === thisMonth || l.end.slice(0, 7) === thisMonth);
 
-  // ── فلتر الاسم ──
-  const q = $("#leaveSearch").value.trim().toLowerCase();
-  if (q) rows = rows.filter(l => String(l.name || "").toLowerCase().includes(q));
+  // ── فلتر الاسم (بتطبيع عربي — «احمد» تلاقي «أحمد») ──
+  const q = $("#leaveSearch").value.trim();
+  if (q) rows = rows.filter(l => arIncludes(l.name, q));
 
   // ── فلتر النوع ──
   const tf = $("#leaveTypeFilter").value;
@@ -162,9 +162,12 @@ function render() {
   if (mf) rows = rows.filter(l => l.start.slice(0, 7) === mf || l.end.slice(0, 7) === mf);
 
   // ── فلتر الفئة (ضباط vs أفراد) ──
+  // OFFICER_IDS بقت شاملة المتأرشفين كمان، فمالهاش داعي أي بادئة احتياطية.
+  // البادئة اللي كانت هنا مكتوبة "OFF_" بشرطة سفلية والمعرّفات كلها "OFF-"
+  // بشرطة عادية، فكانت دايمًا false وكل راحة لضابط متأرشف بتتحسب "فرد".
   const cf = $("#leaveCategoryFilter")?.value;
-  if (cf === "officers") rows = rows.filter(l => OFFICER_IDS.has(l.person_id) || (l.person_id || "").startsWith("OFF_"));
-  if (cf === "personnel") rows = rows.filter(l => !OFFICER_IDS.has(l.person_id) && !(l.person_id || "").startsWith("OFF_"));
+  if (cf === "officers")  rows = rows.filter(l => OFFICER_IDS.has(l.person_id));
+  if (cf === "personnel") rows = rows.filter(l => !OFFICER_IDS.has(l.person_id));
 
   // ── فلتر المدة ──
   const df = $("#leaveDurationFilter")?.value;
@@ -232,7 +235,7 @@ $$("[data-lv]").forEach(b => b.onclick = () => {
   $$("[data-lv]").forEach(x => x.classList.remove("active"));
   b.classList.add("active"); LEAVE_TAB = b.dataset.lv; render();
 });
-$("#leaveSearch").oninput      = render;
+$("#leaveSearch").oninput      = debounce(render);   // إعادة الرسم بعد ما الكتابة تهدى
 $("#leaveTypeFilter").onchange = render;
 $("#leaveMonthFilter").onchange = render;
 if ($("#leaveCategoryFilter")) $("#leaveCategoryFilter").onchange = render;

@@ -55,14 +55,6 @@
     </select>
   </div>
 
-  <div class="ls-filter-group">
-    <label for="lsFilterCategory">الفئة:</label>
-    <select id="lsFilterCategory" class="select select-sm">
-      <option value="">الكل</option>
-      <option value="officers">ضباط</option>
-      <option value="personnel">صف ضباط / أفراد</option>
-    </select>
-  </div>
 
   <div class="ls-filter-quick">
     <button type="button" class="btn btn-xs" id="lsPresetAll">الكل</button>
@@ -91,23 +83,6 @@
   </div>
 </div>
 
-<!-- ── صف جديد: ضباط/أفراد + الالتزام بيوم الراحة الأسبوعي ── -->
-<div class="ls-grid ls-grid-2">
-  <div class="ls-card">
-    <h3 class="ls-card-title">الراحات: ضباط مقابل أفراد</h3>
-    <div class="ls-chart-wrap ls-bar-wrap">
-      <canvas id="categoryChart"></canvas>
-    </div>
-    <div id="categoryNote" class="ls-note"></div>
-  </div>
-  <div class="ls-card">
-    <h3 class="ls-card-title">الالتزام بيوم الراحة الأسبوعي المحدد</h3>
-    <div class="ls-chart-wrap ls-status-wrap">
-      <canvas id="weeklyComplianceChart"></canvas>
-      <div id="weeklyComplianceLegend" class="ls-legend"></div>
-    </div>
-  </div>
-</div>
 
 <!-- ── الصف الثاني: شريط شهري ── -->
 <div class="ls-grid ls-grid-1">
@@ -151,19 +126,6 @@
   </div>
 </div>
 
-<!-- ── الصف الخامس: تزامن الراحات + متأخرين الكشف الشهري ── -->
-<div class="ls-grid ls-grid-2">
-  <div class="ls-card">
-    <h3 class="ls-card-title">أعلى أيام تزامن الراحات (خطر التغطية)</h3>
-    <div class="ls-chart-wrap ls-horiz-wrap">
-      <canvas id="concurrentChart"></canvas>
-    </div>
-  </div>
-  <div class="ls-card">
-    <h3 class="ls-card-title">متأخرين على الكشف الشهري / نصف الشهري</h3>
-    <div id="dueOfficersList" class="ls-due-list"></div>
-  </div>
-</div>
 
 {% endblock %}
 

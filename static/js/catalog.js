@@ -19,10 +19,11 @@ const CATALOG_COLS = {
 };
 
 function renderCatalog() {
-  const q = $("#svcSearch").value.trim().toLowerCase();
+  const q = $("#svcSearch").value.trim();
   const k = $("#svcKindFilter").value, sec = $("#svcSectionFilter").value;
   let rows = SERVICES;
-  if (q) rows = rows.filter(s => (s.name + " " + (s.aliases || []).join(" ")).toLowerCase().includes(q));
+  // نفس تطبيع الباك إند — «نقطه تفتيش» تلاقي «نقطة التفتيش»
+  if (q) rows = rows.filter(s => arIncludes(s.name + " " + (s.aliases || []).join(" "), q));
   if (k) rows = rows.filter(s => s.kind === k);
   if (sec) rows = rows.filter(s => s.section === sec);
 
@@ -98,7 +99,7 @@ $("#svcForm").onsubmit = async e => {
   if (!out) return;
   closeModal("svcModal"); showToast(id ? "تم تعديل الخدمة" : "تمت إضافة الخدمة"); load();
 };
-$("#svcSearch").oninput = renderCatalog;
+$("#svcSearch").oninput = debounce(renderCatalog);   // إعادة الرسم بعد ما الكتابة تهدى
 $("#svcKindFilter").onchange = renderCatalog;
 $("#svcSectionFilter").onchange = renderCatalog;
 $("#addSvcBtn").onclick = () => openSvc(null);

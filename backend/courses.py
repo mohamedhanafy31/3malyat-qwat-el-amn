@@ -16,7 +16,7 @@
 """
 from .date_range import overlapping_of, parse_range
 from .people import effective
-from .store import next_id
+from .store import reserve_id
 from .utils import command_priority_map, parse_date, rank_key
 
 # نوع الفرقة زي ما بتتكتب في التشغيل
@@ -80,7 +80,17 @@ def build_course(payload, course_id):
 
 
 def build_term(payload, data, term_id):
+    """يبني سجل التحاق متحقق منه. التحقق من الضابط **هنا** مش في المسار،
+    عشان الإضافة والتعديل الاتنين يعدّوا عليه — `edit_term` كان بيستدعي
+    الدالة دي على طول من غير الفحص اللي في `add_term`، فكان ينفع تعدّل
+    التحاق وتحطّ فيه ضابط مش موجود أصلًا ويتخزّن كسجل يتيم بلا اسم."""
+    from .people import find_person
+
     officer_id = str(payload.get("officer_id", "")).strip()
+    person, category, _ = find_person(data, officer_id)
+    if not person or category != "officers":
+        return None, "برجاء اختيار الضابط."
+
     course_id = str(payload.get("course_id", "")).strip()
     if course_id not in by_id(data):
         return None, "الفرقة غير موجودة."
@@ -103,11 +113,11 @@ def build_term(payload, data, term_id):
 
 
 def new_course_id(data):
-    return next_id(courses(data), "CRS")
+    return reserve_id(data, "CRS", courses(data))
 
 
 def new_term_id(data):
-    return next_id(terms(data), "CT", width=4)
+    return reserve_id(data, "CT", terms(data), width=4)
 
 
 def _span_days(term):

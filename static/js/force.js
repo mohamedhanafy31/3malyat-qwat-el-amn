@@ -25,13 +25,14 @@ function renderStats() {
 }
 
 function filterRows(rows) {
-  const q = $("#search").value.trim().toLowerCase();
+  const q = $("#search").value.trim();
   const rf = $("#restFilter")?.value;
   const rankF = $("#rankFilter")?.value;
   const statusF = $("#statusFilter")?.value;
 
+  // تطبيع عربي — «احمد» تلاقي «أحمد»، و«فاطمه» تلاقي «فاطمة»
   if (q) rows = rows.filter(p => [p.name, p.code, p.phone, p.role, p.post, p.address]
-    .some(v => String(v || "").toLowerCase().includes(q)));
+    .some(v => arIncludes(v, q)));
   if (rf && IS_OFF) rows = rf === "__rest_now"
     ? rows.filter(p => p.status_today?.state === "resting")
     : rows.filter(p => (p.rest_system || "—") === rf);
@@ -345,7 +346,7 @@ $$("[data-bucket]").forEach(b => b.onclick = () => {
   b.classList.add("active");
   BUCKET = b.dataset.bucket; $("#search").value = ""; render();
 });
-$("#search").oninput = render;
+$("#search").oninput = debounce(render);   // إعادة الرسم بعد ما الكتابة تهدى
 if ($("#restFilter")) $("#restFilter").onchange = render;
 if ($("#rankFilter")) $("#rankFilter").onchange = render;
 if ($("#statusFilter")) $("#statusFilter").onchange = render;

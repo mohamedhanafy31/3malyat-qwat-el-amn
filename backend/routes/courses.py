@@ -5,7 +5,6 @@ from ..courses import (
     build_course, build_term, by_id, by_officer, courses, new_course_id,
     new_term_id, overlapping, summary, terms,
 )
-from ..people import find_person
 from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload
 
@@ -80,11 +79,7 @@ def add_term():
     payload = json_payload()
 
     def mutate(data):
-        officer_id = str(payload.get("officer_id", "")).strip()
-        person, category, _ = find_person(data, officer_id)
-        if not person or category != "officers":
-            raise AbortRequest((jsonify({"error": "برجاء اختيار الضابط."}), 400))
-
+        # التحقق من الضابط جوّه build_term عشان التعديل يعدّي عليه هو كمان
         term, error = build_term(payload, data, new_term_id(data))
         if error:
             raise AbortRequest((jsonify({"error": error}), 400))

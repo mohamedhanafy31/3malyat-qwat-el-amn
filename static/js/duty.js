@@ -84,7 +84,11 @@ ACTIONS.openAssign = id => {
     + (row.leave ? ` تنبيه: الضابط في ${row.leave.type} لحد ${fmt(row.leave.end)}.` : "");
   fillSelect($("#assignStatus"),
     [["", "— بدون —"], ...(META.officer_statuses || []).map(x => [x, x])]);
-  $("#assignStatus").value = row.group === "خوارج" && !row.leave ? (row.bucket || "") : "";
+  // الحالة المسجّلة بس — مش الخانة المحسوبة. الضابط بيقع في «خوارج/فرقة»
+  // لأن مدى التحاقه بفرقة بيغطي اليوم، من غير ما يكون فيه حالة متكتبة.
+  // ملء الحقل من row.bucket كان بيخلي أي حفظ (حتى لو المستخدم داخل يكتب
+  // ملاحظة بس) يثبّت «فرقة» كحالة يدوية تفضل بعد ما الفرقة نفسها تتمسح.
+  $("#assignStatus").value = row.status || "";
   $("#assignTaq").checked = !!row.taqseera;
   $("#assignNote").value = row.note || "";
   openModal("assignModal");

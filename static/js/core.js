@@ -11,12 +11,56 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 // بيلغي تأثير esc() ويسمح بحقن سكريبت من أي حقل حر. القيم هنا بتتقرأ JSON.parse بس.
 const dataAttr=obj=>esc(JSON.stringify(obj));
 
-/* ---------- التواريخ ---------- */
-const fmt=d=>d?new Date(d+"T00:00:00").toLocaleDateString("ar-EG",{day:"numeric",month:"short",year:"numeric"}):"-";
+/* ---------- تطبيع النص العربي ----------
+   نسخة مطابقة لـ backend/text.py norm() — الحرف الواحد بيتكتب بأكتر من صورة
+   (أحمد/احمد، عيسى/عيسي، فاطمة/فاطمه)، والبحث بالمطابقة الحرفية كان بيدّي
+   نتايج مختلفة تمامًا حسب اللي المستخدم كتبه: «أحمد» كانت بتجيب 43 نتيجة
+   و«احمد» بتجيب 86، و«عيسى» ما بتجيبش حاجة. للمطابقة بس مش للعرض. */
+const _AR_DIACRITICS = /[ؐ-ًؚ-ٰٟۖ-ۭـ]/g;
+const _AR_FOLD = [[/[أإآٱ]/g, "ا"], [/ى/g, "ي"], [/ة/g, "ه"], [/ؤ/g, "و"], [/ئ/g, "ي"]];
+function normAr(s) {
+  let t = String(s ?? "").replace(_AR_DIACRITICS, "");
+  for (const [re, to] of _AR_FOLD) t = t.replace(re, to);
+  return t.replace(/\s+/g, " ").trim().toLowerCase();
+}
+/** هل النص ده بيحتوي على البحث ده، بغض النظر عن صورة الحروف؟ */
+const arIncludes = (haystack, needle) => normAr(haystack).includes(normAr(needle));
+
+/* ---------- التواريخ ----------
+   `toLocaleDateString` بيبني كائن Intl.DateTimeFormat جديد في **كل نداء**،
+   وده أغلى بكتير من التنسيق نفسه. جدول الراحات بينادي fmt/dayName حوالي 6
+   مرات للصف الواحد، فـ280 صف = ~1700 نداء وكل واحد بيعمل كائن جديد: 85
+   مللي من أصل 99 مللي بتاعة رسم الجدول كانت بناء منسّقات مش عرض بيانات.
+
+   المنسّق بيتبني مرة واحدة، والنتيجة بتتخزّن على نص التاريخ نفسه (التواريخ
+   بتتكرر كتير — 90 تاريخ مختلف بس في 280 راحة). النتيجة حرفيًا نفسها.
+
+   Intl جزء من المتصفح نفسه (ECMA-402) — مفيش أي طلب شبكة ولا مكتبة خارجية،
+   ونفس اللي `toLocaleDateString` كان بيستخدمه أصلًا. */
+const _FMT_DATE=new Intl.DateTimeFormat("ar-EG",{day:"numeric",month:"short",year:"numeric"});
+const _FMT_WEEKDAY=new Intl.DateTimeFormat("ar-EG",{weekday:"long"});
+const _fmtCache=new Map(), _wdCache=new Map();
+const fmt=d=>{
+  if(!d) return "-";
+  let v=_fmtCache.get(d);
+  if(v===undefined){ v=_FMT_DATE.format(new Date(d+"T00:00:00")); _fmtCache.set(d,v) }
+  return v;
+};
 const iso=d=>{const t=new Date(d);t.setHours(12);return t.toISOString().slice(0,10)};
 const addDays=(s,n)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)};
-const dayName=s=>new Date(s+"T12:00:00").toLocaleDateString("ar-EG",{weekday:"long"});
+const dayName=s=>{
+  let v=_wdCache.get(s);
+  if(v===undefined){ v=_FMT_WEEKDAY.format(new Date(s+"T12:00:00")); _wdCache.set(s,v) }
+  return v;
+};
 const days=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5)+1;
+
+/** يؤجّل نداء متكرر لحد ما المستخدم يهدى — للكتابة في خانات البحث.
+    كل ضغطة زرار كانت بتعيد رسم الجدول كامل. */
+function debounce(fn,ms=120){
+  let t;
+  return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args),ms) };
+}
 
 /* ---------- الرتب ---------- */
 const OFFICER_ROLES=["ملازم","ملازم أول","نقيب","رائد","مقدم","عقيد","عميد","لواء","أخرى"];
@@ -143,13 +187,19 @@ function _sortState(cid) {
 function applySort(rows, fn, dir, type) {
   if (!dir) return rows;
   return [...rows].sort((a, b) => {
-    let va = fn(a), vb = fn(b);
-    if (type === "num" || type === "date") {
-      va = Number(String(va || "0").replace(/-/g,"")) || 0;
-      vb = Number(String(vb || "0").replace(/-/g,"")) || 0;
-      return dir * (va - vb);
+    const va = fn(a), vb = fn(b);
+    // الرتبة ترتيبها عسكري مش أبجدي — «عقيد» فوق «نقيب» مهما كان ترتيب
+    // الحروف. النوع ده كان موصوف في التوثيق بس من غير تنفيذ، فكان بيقع
+    // على المقارنة النصية تحت ويطلع ترتيب أبجدي غلط.
+    if (type === "rank") return dir * (rankIndex(va) - rankIndex(vb));
+    if (type === "date") {
+      // التواريخ ISO بتترتب صح كنص، فمفيش داعي لتحويلها لأرقام
+      return dir * String(va ?? "").localeCompare(String(vb ?? ""), "en");
     }
-    // text / rank — default to string compare
+    if (type === "num") {
+      // Number() على طول — الاستبدال القديم للشرطة كان بيقلب الأرقام السالبة
+      return dir * ((Number(va) || 0) - (Number(vb) || 0));
+    }
     return dir * String(va ?? "").localeCompare(String(vb ?? ""), "ar");
   });
 }

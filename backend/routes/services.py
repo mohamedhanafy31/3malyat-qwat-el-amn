@@ -10,7 +10,7 @@ from flask import Blueprint, jsonify
 from ..constants import (
     SERVICE_DOCUMENTS, SERVICE_KINDS, SERVICE_SECTIONS, SHIFTS,
 )
-from ..store import AbortRequest, next_id, with_data
+from ..store import AbortRequest, reserve_id, with_data
 from ..text import norm
 from ..utils import json_payload
 
@@ -68,7 +68,7 @@ def add_service():
         if any(norm(s["name"]) == norm(name) for s in data["services"]):
             raise AbortRequest((jsonify({"error": "الخدمة موجودة بالفعل."}), 409))
         svc = {
-            "id": next_id(data["services"], "SVC"),
+            "id": reserve_id(data, "SVC", data["services"]),
             "name": name,
             "board_label": str(payload.get("board_label", "")).strip() or name,
             "sub": str(payload.get("sub", "")).strip(),
@@ -146,9 +146,12 @@ def edit_service(service_id):
 
 @bp.delete("/api/services/<service_id>")
 def delete_service(service_id):
-    """الحذف ممنوع طول ما الخدمة مستخدمة في أي يوم — في يومية التشغيل أو
-    على اللوحة. قبل كده كان الفحص على يومية التشغيل بس، فكان ينفع تمسح
-    خدمة لسه على اللوحة وتسيب خانتها بلا مرجع."""
+    """الحذف ممنوع طول ما الخدمة مستخدمة في أي تكليف في أي يوم.
+
+    `day_assignments` هي المصدر الوحيد للتكليفات، واللوحة ويومية الضباط
+    عرضين محسوبين عليها — ففحصها بيغطي الاتنين. (التوثيق القديم هنا كان
+    بيتكلم عن فحصين منفصلين، وده مابقاش موجود من ساعة ما اتوحّد السجل.)
+    """
     def mutate(data):
         used = sum(1 for day in data.get("day_assignments", {}).values() for a in day
                    if a.get("service_id") == service_id)

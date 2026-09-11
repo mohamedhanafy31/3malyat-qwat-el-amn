@@ -13,26 +13,23 @@ from ..board import ASSIGNMENT_SECTIONS, build_board
 from ..constants import SECTION_OCCASIONAL
 from ..duty import summarise
 from ..store import AbortRequest, load_data, with_data
-from ..utils import json_payload, parse_date
+from ..utils import canonical_day, json_payload
 
 bp = Blueprint("board", __name__)
 
 
-def _day_or_400(day):
-    if not parse_date(day):
-        raise AbortRequest((jsonify({"error": "تاريخ غير صحيح."}), 400))
-
-
 @bp.get("/api/board/<day>")
 def get_board(day):
-    if not parse_date(day):
+    day = canonical_day(day)
+    if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     return jsonify(build_board(load_data(), day))
 
 
 @bp.post("/api/assignments/<day>")
 def add_assignment(day):
-    if not parse_date(day):
+    day = canonical_day(day)
+    if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     payload = json_payload()
     service_id = str(payload.get("service_id", "")).strip()
@@ -62,7 +59,8 @@ def add_assignment(day):
 
 @bp.patch("/api/assignments/<day>/<assignment_id>")
 def edit_assignment(day, assignment_id):
-    if not parse_date(day):
+    day = canonical_day(day)
+    if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     payload = json_payload()
 
@@ -92,7 +90,8 @@ def edit_assignment(day, assignment_id):
 
 @bp.delete("/api/assignments/<day>/<assignment_id>")
 def delete_assignment(day, assignment_id):
-    if not parse_date(day):
+    day = canonical_day(day)
+    if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
 
     def mutate(data):
@@ -109,7 +108,8 @@ def delete_assignment(day, assignment_id):
 
 @bp.get("/api/assignments/<day>")
 def list_assignments(day):
-    if not parse_date(day):
+    day = canonical_day(day)
+    if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     data = load_data()
     return jsonify({"date": day, "assignments": peek_day(data, day),
@@ -119,7 +119,8 @@ def list_assignments(day):
 
 @bp.delete("/api/assignments/<day>")
 def clear_day(day):
-    if not parse_date(day):
+    day = canonical_day(day)
+    if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     clear_states = request.args.get("clear_states") == "1"
 

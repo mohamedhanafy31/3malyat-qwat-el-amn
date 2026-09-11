@@ -236,6 +236,8 @@ $("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
 $("#dayTomorrow").onclick = async () => {
   const today = curDate(), tmr = addDays(today, 1);
   await loadDay(tmr);
+  // الكارت القديم بيتشال الأول — الضغط مرتين كان بيكدّس نسخ متطابقة فوق بعض
+  $$("#matchBoard .handover-card").forEach(el => el.remove());
   const boot = await api("/api/bootstrap/dashboard");
   const leaving = (boot?.alerts || []).filter(a => a.taqseera_date === today);
   if (!leaving.length) return;
@@ -251,7 +253,7 @@ $("#dayTomorrow").onclick = async () => {
       <span class="a-mid">في راحة (${esc(a.type)}) بداية من بكرة</span>
       <span class="a-rest">كان بيشتغل: ${esc(service)}</span></li>`;
   });
-  $("#matchBoard").insertAdjacentHTML("afterbegin", `<div class="alert-card">
+  $("#matchBoard").insertAdjacentHTML("afterbegin", `<div class="alert-card handover-card">
     <div class="alert-head"><span class="alert-ico">↷</span><strong>تسليم واستلام بكرة</strong>
       <span class="muted">${leaving.length} ضابط هيبدأ راحته بكرة — محتاجين تكليف بديل على خدمتهم</span></div>
     <ul class="alert-list">${rows.join("")}</ul></div>`);

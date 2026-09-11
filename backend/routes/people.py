@@ -3,10 +3,16 @@ from datetime import date
 
 from flask import Blueprint, jsonify
 
-from ..constants import COMMAND_ROLES, EDITABLE, OFFICER_SECTIONS, PERSONNEL_FAMILIES
-from ..people import HISTORY_FIELDS, find_person, record_change, sort_active, valid_rest
+from ..constants import (
+    COMMAND_ROLES, EDITABLE, OFFICER_ROLES, OFFICER_SECTIONS, PERSONNEL_FAMILIES,
+)
+from ..people import (
+    HISTORY_FIELDS, find_person, new_person_id, record_change, sort_active, valid_rest,
+)
 from ..store import AbortRequest, with_data
-from ..utils import category_for, json_payload, parse_date
+from ..utils import (
+    MAX_LEN, canonical_day, category_for, check_lengths, json_payload, valid_phone,
+)
 
 bp = Blueprint("people", __name__)
 
@@ -83,9 +89,18 @@ def add_person():
             return jsonify({"error": "نوع الفرد غير صحيح."}), 400
     if person_type == "officer":
         payload["role"] = str(payload.get("role", "")).strip() or "ضابط"
+        if payload["role"] not in OFFICER_ROLES:
+            return jsonify({"error": "رتبة الضابط غير صحيحة."}), 400
 
-    if not parse_date(payload["join_date"]):
+    join_date = canonical_day(payload["join_date"])
+    if not join_date:
         return jsonify({"error": "تاريخ الانضمام غير صحيح."}), 400
+
+    bad_length = check_lengths(payload, ("name", "code", "phone", "post", "address"))
+    if bad_length:
+        return jsonify({"error": bad_length}), 400
+    if not valid_phone(payload["phone"]):
+        return jsonify({"error": "رقم التليفون غير صحيح."}), 400
 
     errors = []
     valid_rest(payload, errors)
@@ -101,12 +116,15 @@ def add_person():
             raise AbortRequest((jsonify({"error": "رقم الأقدمية مستخدم بالفعل على القوة."}), 409))
 
         person = {
-            "id": f"{date.today().isoformat()}-{code}",
+            "id": new_person_id(data, category),
             "name": str(payload["name"]).strip(),
             "role": str(payload.get("role", "")).strip(),
             "code": code,
             "phone": str(payload["phone"]).strip(),
-            "join_date": str(payload["join_date"]).strip(),
+            # التاريخ بيتخزّن في صورته المعيارية دايمًا — كل المقارنات في
+            # السيستم (officers_on مثلًا) نصية، فصورة تانية زي «20260101»
+            # كانت بتخلي المقارنة تطلع بالعكس والضابط يختفي من اليوميات
+            "join_date": join_date,
             "post": str(payload.get("post", "")).strip(),
             "status": "active"
         }
@@ -142,18 +160,31 @@ def edit_person(person_id):
                         for p in data[category]["active"])
             if bucket == "active" and clash:
                 raise AbortRequest((jsonify({"error": "رقم الأقدمية مستخدم بالفعل على القوة."}), 409))
-        if "join_date" in payload and not parse_date(payload["join_date"]):
-            raise AbortRequest((jsonify({"error": "تاريخ الانضمام غير صحيح."}), 400))
+        if "join_date" in payload:
+            join_date = canonical_day(payload["join_date"])
+            if not join_date:
+                raise AbortRequest((jsonify({"error": "تاريخ الانضمام غير صحيح."}), 400))
+            payload["join_date"] = join_date      # يتخزّن معياري دايمًا
         if "role" in payload and category == "personnel":
             family = str(payload["role"]).strip().split(" ")[0]
             if family not in PERSONNEL_FAMILIES:
                 raise AbortRequest((jsonify({"error": "نوع الفرد غير صحيح."}), 400))
+        if "role" in payload and category == "officers":
+            if str(payload["role"]).strip() not in OFFICER_ROLES:
+                raise AbortRequest((jsonify({"error": "رتبة الضابط غير صحيحة."}), 400))
         if "section" in payload and category == "officers":
             if str(payload["section"]).strip() not in OFFICER_SECTIONS:
                 raise AbortRequest((jsonify({"error": "قسم اليومية غير صحيح."}), 400))
 
+        bad_length = check_lengths(payload, ("name", "code", "phone", "post",
+                                             "address", "leave_reason"))
+        if bad_length:
+            raise AbortRequest((jsonify({"error": bad_length}), 400))
+        if "phone" in payload and not valid_phone(payload["phone"]):
+            raise AbortRequest((jsonify({"error": "رقم التليفون غير صحيح."}), 400))
+
         errors = []
-        valid_rest(payload, errors)
+        valid_rest(payload, errors, current=person)
         if errors:
             raise AbortRequest((jsonify({"error": errors[0]}), 400))
 
@@ -165,9 +196,9 @@ def edit_person(person_id):
                 historic[key] = (bool(payload[key]) if key == "search_attached"
                                  else str(payload[key]).strip())
         if historic and category == "officers":
-            effective_from = str(payload.get("effective_from", "")).strip() \
-                or date.today().isoformat()
-            if not parse_date(effective_from):
+            effective_from = canonical_day(
+                str(payload.get("effective_from", "")).strip() or date.today().isoformat())
+            if not effective_from:
                 raise AbortRequest((jsonify({"error": "تاريخ السريان غير صحيح."}), 400))
             record_change(person, effective_from, historic)
 
@@ -176,12 +207,12 @@ def edit_person(person_id):
                 person[key] = str(payload[key]).strip()
 
         if bucket == "archive" and "leave_date" in payload:
-            leave = parse_date(payload["leave_date"])
-            if not leave:
+            leave_date = canonical_day(payload["leave_date"])
+            if not leave_date:
                 raise AbortRequest((jsonify({"error": "تاريخ الخروج غير صحيح."}), 400))
-            if payload["leave_date"] < person.get("join_date", ""):
+            if leave_date < person.get("join_date", ""):
                 raise AbortRequest((jsonify({"error": "تاريخ الخروج لا يمكن أن يسبق تاريخ الانضمام."}), 400))
-            person["leave_date"] = str(payload["leave_date"]).strip()
+            person["leave_date"] = leave_date
         if bucket == "archive" and "leave_reason" in payload:
             person["leave_reason"] = str(payload["leave_reason"]).strip()
 
@@ -200,8 +231,13 @@ def edit_person(person_id):
 @bp.post("/api/person/<person_id>/remove")
 def remove_person(person_id):
     payload = json_payload()
-    leave_date = str(payload.get("leave_date", "")).strip() or date.today().isoformat()
+    leave_date = canonical_day(
+        str(payload.get("leave_date", "")).strip() or date.today().isoformat())
     reason = str(payload.get("reason", "")).strip()
+    if not leave_date:
+        return jsonify({"error": "تاريخ الخروج غير صحيح."}), 400
+    if len(reason) > MAX_LEN["reason"]:
+        return jsonify({"error": f"سبب الخروج أطول من الحد المسموح ({MAX_LEN['reason']} حرف)."}), 400
 
     def mutate(data):
         found, category, bucket = find_person(data, person_id)
@@ -245,9 +281,9 @@ def restore_person(person_id):
         # Keep the historical record intact and create a new active period.
         restored = dict(found)
         restored.update({
-            "id": f"{date.today().isoformat()}-{code}-restored-{len(data[category]['active'])}",
+            "id": new_person_id(data, category),
             "code": code,
-            "join_date": str(date.today().isoformat()),
+            "join_date": date.today().isoformat(),
             "status": "active",
             "previous_archive_id": found.get("id"),
         })
@@ -256,12 +292,11 @@ def restore_person(person_id):
         data[category]["active"].append(restored)
         sort_active(data, category)
 
-        old_id = found.get("id")
-        for lv in data.get("leaves", []):
-            if lv.get("person_id") == old_id:
-                lv["person_id"] = restored["id"]
-                lv["name"] = restored.get("name", lv.get("name", ""))
-
+        # الراحات القديمة **بتفضل على سجل الأرشيف** — هي جزء من فترة الخدمة
+        # اللي خلصت. نقلها للسجل الجديد (اللي تاريخ انضمامه النهاردة) كان
+        # بيخلّف راحات تاريخها قبل الانضمام، وبيفضّي تاريخ سجل الأرشيف
+        # بالكامل. الصفحة أصلًا بتعرض أسماء المتأرشفين اللي ليهم راحات،
+        # فالسجل القديم بيفضل ظاهر وكامل.
         return jsonify(restored), 201
 
     return with_data(mutate)
@@ -280,6 +315,19 @@ def delete_archive_record(person_id):
                     data["day_officers"][day].pop(person_id, None)
                     if not data["day_officers"][day]:
                         data["day_officers"].pop(day)
+                # التكليفات المسجّلة كانت بتفضل شايلة الـid بعد الحذف،
+                # فاللوحة تعرض صف بلا اسم (missing: true). المرجع بيتشال
+                # من مكانه بدل ما يتساب معلّق.
+                key = "officer_ids" if cat == "officers" else "personnel_ids"
+                for rows in data.get("day_assignments", {}).values():
+                    for row in rows:
+                        if person_id in (row.get(key) or []):
+                            row[key] = [i for i in row[key] if i != person_id]
+                data["medical_officers"] = [oid for oid in data.get("medical_officers", [])
+                                             if oid != person_id]
+                for role, oid in data.get("command", {}).items():
+                    if oid == person_id:
+                        data["command"][role] = None
                 return jsonify({"ok": True})
         raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
 

@@ -1,8 +1,11 @@
 """تخزين البيانات — ملف JSON واحد، بقفل خيط وكتابة ذرية (tmp file replace)."""
+import gzip
 import json
 import logging
+import os
 import shutil
 import threading
+import zlib
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -35,6 +38,13 @@ def backup_dir():
 
 class SchemaMismatch(RuntimeError):
     """ملف بيانات ببنية مختلفة عن اللي الكود ده بيفهمها."""
+
+
+class DataUnreadable(SchemaMismatch):
+    """الملف موجود بس مش متقري — JSON مقطوع أو تالف أو صلاحيات ناقصة.
+
+    بيرث من SchemaMismatch عشان يتمسك بنفس معالج الخطأ في app.py ويرجّع 503.
+    """
 
 # سجل تدقيق بسيط — مين عدّل ايه وامتى، بدون نظام حسابات أو تسجيل دخول. الاسم
 # اختياري (حقل "اسمك" في الشريط العلوي)؛ لو فاضي بيتسجل null. الملف بيدور
@@ -88,10 +98,30 @@ def _read():
     """قراءة الملف وتطبيع بنيته — من غير قفل، لاستخدامها جوه أي بلوك ماسك الـ LOCK بالفعل."""
     if not DATA_FILE.exists():
         _write(json.loads(json.dumps(DEFAULT_DATA)))   # نسخة — _write بيختم الحقل schema
+    # ملف تالف **مايرجّعش** DEFAULT_DATA. الرجوع بقاعدة فاضية كان بيخلي
+    # الأعطال دي تعدّي في صمت (الصفحات بتعرض صفر ضباط وكأن القوة اتفضّت)،
+    # وأول عملية حفظ بعدها بتكتب الفاضي ده فوق الملف الحقيقي = ضياع كامل
+    # للبيانات. ملف مقطوع من قطع كهربا لازم يوقف الدنيا بصوت عالي زي
+    # اختلاف الـschema بالظبط، والنسخ في backups/ هي طريق الرجوع.
     try:
-        data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return json.loads(json.dumps(DEFAULT_DATA))
+        raw = DATA_FILE.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise DataUnreadable(
+            f"تعذّرت قراءة ملف البيانات ({exc}). اتأكد من الصلاحيات، "
+            f"أو ارجع لنسخة من {BACKUP_DIR_NAME}/."
+        ) from exc
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise DataUnreadable(
+            f"ملف البيانات تالف وما اتقراش (سطر {exc.lineno}، عمود {exc.colno}). "
+            f"ما اتكتبش عليه أي حاجة — ارجع لأحدث نسخة سليمة من {BACKUP_DIR_NAME}/."
+        ) from exc
+    if not isinstance(data, dict):
+        raise DataUnreadable(
+            f"ملف البيانات مش بالشكل المتوقع (لقى {type(data).__name__} بدل كائن). "
+            f"ارجع لنسخة من {BACKUP_DIR_NAME}/."
+        )
     _check_schema(data)
     for cat in ("officers", "personnel"):
         data.setdefault(cat, {"active": [], "archive": []})
@@ -109,22 +139,117 @@ def _read():
     for role in DEFAULT_DATA["command"]:
         command.setdefault(role, None)
     data.setdefault("medical_officers", [])
+    data.setdefault("id_seq", {})      # عدّادات الأرقام — شوف reserve_id()
     return data
 
 
+def _backup_files():
+    """كل النسخ الاحتياطية مرتبة من الأقدم للأحدث.
+
+    بترجّع الشكلين: `.json.gz` (الجديد) و`.json` (النسخ القديمة، ونسخ
+    ما-قبل-الهجرة اللي migrations/ لسه بتكتبها بدون ضغط). ترتيب الاسم =
+    ترتيب زمني لأن الطابع الزمني بعرض ثابت وفي أول الاسم.
+    """
+    target = backup_dir()
+    if not target.exists():
+        return []
+    return sorted(
+        [p for p in target.glob("data-*.json*") if p.suffix in (".json", ".gz")],
+        key=lambda p: p.name)
+
+
 def _snapshot():
-    """نسخة من الملف الحالي قبل ما يتكتب فوقه، مع تنضيف الأقدم."""
+    """نسخة مضغوطة من الملف الحالي قبل ما يتكتب فوقه، مع تنضيف الأقدم.
+
+    الضغط بيوفّر ~97% من مساحة النسخ (2 ميجا -> ~70 كيلو للنسخة)، وده
+    الفرق بين مجلد نسخ بيوصل مئات الميجات بعد سنتين وبين واحد بيفضل
+    صغير. gzip من مكتبة بايثون القياسية — مفيش أي تثبيت ولا إنترنت.
+
+    الملف الحيّ `data.json` **مابيتغيّرش شكله** — الضغط على النسخ بس.
+
+    الكتابة بتتم على ملف `.part` وبعدين rename ذرّي، فلو الجهاز اتقفل في
+    النص مايتسابش ملف نص-مضغوط شكله سليم في المجلد.
+    """
     if not DATA_FILE.exists():
         return
     try:
         target = backup_dir()
         target.mkdir(exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        shutil.copy2(DATA_FILE, target / f"data-{stamp}.json")
-        for f in sorted(target.glob("data-*.json"))[:-BACKUP_KEEP]:
+        final = target / f"data-{stamp}.json.gz"
+        part = final.with_suffix(".part")
+        with open(DATA_FILE, "rb") as src, gzip.open(part, "wb", compresslevel=6) as dst:
+            shutil.copyfileobj(src, dst)
+        os.replace(part, final)                     # ذرّي على ويندوز و لينكس
+        for f in _backup_files()[:-BACKUP_KEEP]:
             f.unlink(missing_ok=True)
     except OSError:
         pass          # النسخ الاحتياطي أمان إضافي — فشله ما يمنعش الحفظ
+
+
+def read_backup(path):
+    """محتوى نسخة احتياطية كـdict — بيفهم المضغوط والعادي.
+
+    بيرمي DataUnreadable لو الملف ناقص أو متقطع أو مش JSON، عشان
+    الاستعادة ما تكتبش نسخة تالفة فوق البيانات الشغالة.
+    """
+    path = Path(path)
+    try:
+        if path.suffix == ".gz":
+            with gzip.open(path, "rt", encoding="utf-8") as fh:
+                raw = fh.read()
+        else:
+            raw = path.read_text(encoding="utf-8")
+    except (OSError, EOFError, gzip.BadGzipFile, zlib.error) as exc:
+        raise DataUnreadable(f"النسخة «{path.name}» تالفة أو غير مكتملة ({exc}).") from exc
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise DataUnreadable(
+            f"النسخة «{path.name}» مش JSON سليم (سطر {exc.lineno}).") from exc
+    if not isinstance(data, dict):
+        raise DataUnreadable(f"النسخة «{path.name}» مش بالشكل المتوقع.")
+    return data
+
+
+def backup_info(path):
+    """سطر وصف لنسخة: الحجم، وهل هي سليمة، وكام سجل فيها."""
+    path = Path(path)
+    row = {"name": path.name, "size": path.stat().st_size,
+           "compressed": path.suffix == ".gz", "ok": False, "error": None,
+           "schema": None, "officers": None, "leaves": None}
+    try:
+        data = read_backup(path)
+        row.update(ok=True, schema=data.get("schema"),
+                   officers=len(data.get("officers", {}).get("active", [])),
+                   leaves=len(data.get("leaves", [])))
+    except DataUnreadable as exc:
+        row["error"] = str(exc)
+    return row
+
+
+def list_backups():
+    """كل النسخ من الأحدث للأقدم، مع حالة كل واحدة."""
+    return [backup_info(p) for p in reversed(_backup_files())]
+
+
+def restore_backup(name):
+    """يرجّع نسخة احتياطية فوق data.json.
+
+    بيتحقق إن النسخة تتقري وتتفهم **قبل** ما يلمس البيانات الشغالة، وبياخد
+    لقطة من الوضع الحالي الأول عشان الاستعادة نفسها تبقى قابلة للتراجع.
+    """
+    path = backup_dir() / name
+    if not path.exists():
+        raise DataUnreadable(f"مافيش نسخة بالاسم «{name}».")
+    data = read_backup(path)              # بيرمي قبل أي كتابة لو تالفة
+    _check_schema(data)                   # ومش بنرجّع بنية الكود مايفهمهاش
+    with LOCK:
+        _snapshot()                       # لقطة للوضع الحالي قبل الاستبدال
+        tmp = DATA_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        os.replace(tmp, DATA_FILE)
+    return data
 
 
 def _write(data):
@@ -175,6 +300,32 @@ def with_data(fn):
 
 
 def next_id(items, prefix, width=3):
+    """أعلى رقم موجود + 1 — للأرقام المحلية اللي نطاقها قايمة واحدة.
+
+    مناسبة لتكليفات اليوم (AS-xxxx) لأن العدّ بيبدأ من أول كل يوم، فإعادة
+    استخدام رقم اتمسح في نفس اليوم مالهاش أثر برّه اليوم ده. أي كيان
+    عمره أطول من كده لازم يستخدم reserve_id().
+    """
+    return f"{prefix}-{_max_num(items, prefix) + 1:0{width}d}"
+
+
+def _max_num(items, prefix):
     nums = [int(x["id"].split("-")[-1]) for x in items
             if str(x.get("id", "")).startswith(prefix + "-") and x["id"].split("-")[-1].isdigit()]
-    return f"{prefix}-{(max(nums) + 1) if nums else 1:0{width}d}"
+    return max(nums) if nums else 0
+
+
+def reserve_id(data, prefix, existing, width=3):
+    """رقم جديد مايتكررش أبدًا، حتى بعد مسح اللي قبله.
+
+    `next_id` بتحسب max+1 من الموجود، فمسح آخر سجل بيخلي اللي بعده ياخد
+    نفس الرقم بالظبط — والرقم ده ممكن يكون متسجّل في audit.log أو مكتوب
+    في ورق أو متبعت لحد. العدّاد هنا بيتخزّن في الملف وبيزيد بس.
+
+    بياخد `max` بين العدّاد والموجود فعلًا، فبيصلّح نفسه لوحده على أي ملف
+    قديم مافيهوش `id_seq` — مفيش هجرة مطلوبة.
+    """
+    seq = data.setdefault("id_seq", {})
+    nxt = max(int(seq.get(prefix, 0)), _max_num(existing, prefix)) + 1
+    seq[prefix] = nxt
+    return f"{prefix}-{nxt:0{width}d}"

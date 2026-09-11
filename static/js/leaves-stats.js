@@ -327,14 +327,12 @@ function getFilterParams() {
   const mTo = document.getElementById("lsFilterMonthTo")?.value || "";
   const type = document.getElementById("lsFilterType")?.value || "";
   const status = document.getElementById("lsFilterStatus")?.value || "";
-  const category = document.getElementById("lsFilterCategory")?.value || "";
 
   const params = new URLSearchParams();
   if (mFrom) params.set("month_from", mFrom);
   if (mTo) params.set("month_to", mTo);
   if (type) params.set("type", type);
   if (status) params.set("status", status);
-  if (category) params.set("category", category);
 
   const qs = params.toString();
   return qs ? `?${qs}` : "";
@@ -364,13 +362,13 @@ async function load() {
 }
 
 // ── ربط الأحداث للفلاتر ───────────────────────────────────────
-["lsFilterMonthFrom", "lsFilterMonthTo", "lsFilterType", "lsFilterStatus", "lsFilterCategory"].forEach(id => {
+["lsFilterMonthFrom", "lsFilterMonthTo", "lsFilterType", "lsFilterStatus"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.onchange = () => load();
 });
 
 function resetFilters() {
-  ["lsFilterMonthFrom", "lsFilterMonthTo", "lsFilterType", "lsFilterStatus", "lsFilterCategory"].forEach(id => {
+  ["lsFilterMonthFrom", "lsFilterMonthTo", "lsFilterType", "lsFilterStatus"].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = "";
   });

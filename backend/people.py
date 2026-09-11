@@ -79,8 +79,27 @@ def find_person(data, person_id):
 
 
 
-def valid_rest(payload, errors):
-    """Validate and normalise the rest fields in place."""
+def new_person_id(data, category):
+    """معرّف جديد للشخص — فريد على مستوى الفئة كلها (القوة + الأرشيف).
+
+    المعرّف كان `تاريخ-اليوم + رقم الأقدمية`، وفحص التكرار كان على القوة
+    بس. يعني: ضابط بيتشال للأرشيف، وبديله بيتسجّل بنفس رقم الأقدمية في
+    نفس اليوم ⇒ **السجلين بنفس الـid بالظبط**، وأي عملية بتدوّر بالـid
+    (حذف سجل أرشيف مثلًا) بتمسك الاتنين. reserve_id بتضمن رقم ما اتكررش
+    ولا هيتكرر، وبنفس شكل أرقام الاستيراد (OFF-050 / IND-201).
+    """
+    from .store import reserve_id
+    prefix = "OFF" if category == "officers" else "IND"
+    pool = data[category]["active"] + data[category]["archive"]
+    return reserve_id(data, prefix, pool)
+
+
+def valid_rest(payload, errors, current=None):
+    """Validate and normalise the rest fields in place.
+
+    `current` هو سجل الشخص وقت التعديل — لازم عشان طلب بيغيّر
+    `rest_system` لوحده من غير `rest_day` يتقاس على اليوم المسجّل فعلًا.
+    """
     system = str(payload.get("rest_system", "")).strip()
     if system and system not in REST_SYSTEMS:
         errors.append("نظام الراحة غير صحيح.")
@@ -89,6 +108,13 @@ def valid_rest(payload, errors):
         errors.append("يوم الراحة غير صحيح.")
     if system and system != "أسبوعية":
         payload["rest_day"] = ""       # only weekly rest is tied to a weekday
+    elif system == "أسبوعية":
+        # راحة أسبوعية من غير يوم محدد بتعطّل حساب الراحة الجاية بالكامل:
+        # next_rest_start مابتلاقيش يوم تبني عليه، فالضابط عمره ما بيطلع
+        # في تنبيه التقصيرة ولا بيتحسب في الالتزام — وكل ده في صمت.
+        effective_day = day or str((current or {}).get("rest_day", "")).strip()
+        if not effective_day:
+            errors.append("الراحة الأسبوعية لازم يتحدد ليها يوم في الأسبوع.")
 
 
 def officers_on(data, day):

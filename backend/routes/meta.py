@@ -152,8 +152,12 @@ def bootstrap(page):
         people += _slim([p for b in ("officers", "personnel") for p in data[b]["archive"]
                          if p["id"] not in known
                          and any(l["person_id"] == p["id"] for l in data["leaves"])])
+        # الضباط المتأرشفين لازم يكونوا في القايمة دي: 73 من الـ280 راحة
+        # بتاعة ضباط خرجوا من القوة، وفلتر «ضباط/أفراد» في الصفحة بيتقاس
+        # عليها — من غيرهم كانوا بيتحسبوا أفراد وهم ضباط.
+        officer_ids = [o["id"] for b in ("active", "archive") for o in data["officers"][b]]
         return jsonify({"meta": meta, "leaves": data["leaves"], "people": people,
-                        "officer_ids": [o["id"] for o in data["officers"]["active"]],
+                        "officer_ids": officer_ids,
                         "counts": _counts(data)})
 
     if page == "leaves_stats":
