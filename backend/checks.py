@@ -8,15 +8,23 @@
 الوحيدة اللي بتتمنع فعلًا هي التكرار الحرفي (نفس الضابط على نفس الخدمة
 ونفس الفترة مرتين) لأنها مالهاش أي معنى تشغيلي وبتغلط العدّ.
 """
-from .assignments import peek_day, services_by_id
-from .constants import SHIFTS
+from .assignments import peek_day
+from .constants import SHIFTS, WARNING_LEVELS
 from .leaves import leave_on
+from .text import norm
 
 
-def duplicate_of(data, day, service_id, shift, person_ids, ignore_id=None):
-    """-> id الخانة المكررة لو نفس الشخص على نفس الخدمة والفترة بالفعل."""
+def _tag(warning):
+    warning["level"] = WARNING_LEVELS.get(warning["kind"], "info")
+    return warning
+
+
+def duplicate_of(data, day, name, shift, person_ids, ignore_id=None):
+    """-> id الخانة المكررة لو نفس الشخص على نفس اسم الخدمة (بعد التطبيع)
+    ونفس الفترة بالفعل."""
+    key = norm(name)
     for row in peek_day(data, day):
-        if row["id"] == ignore_id or row.get("service_id") != service_id:
+        if row["id"] == ignore_id or norm(row.get("name", "")) != key:
             continue
         if (row.get("shift") or "") != (shift or ""):
             continue
@@ -31,7 +39,6 @@ def day_warnings(data, day, rows):
 
     `rows` هي مخرجات summarise — فيها التكليفات والراحة والحالة لكل ضابط.
     """
-    services = services_by_id(data)
     out = []
 
     for row in rows:
@@ -39,44 +46,45 @@ def day_warnings(data, day, rows):
 
         # مكلّف وهو في راحة — بيحصل غلط، والوورد مابيعملهوش
         if row["leave"] and row["services"]:
-            out.append({
+            out.append(_tag({
                 "kind": "راحة",
                 "officer_id": row["id"],
                 "text": f'{name} مكلّف بخدمة وهو في {row["leave"]["type"]}'
                         f' لحد {row["leave"]["end"]}',
-            })
+            }))
 
         # حالة خوارج (انتداب/غياب/مرضي/فرقة) مع تكليف
         if row["status"] and row["services"]:
-            out.append({
+            out.append(_tag({
                 "kind": "حالة",
                 "officer_id": row["id"],
                 "text": f'{name} مسجّل «{row["status"]}» ومكلّف بخدمة في نفس اليوم',
-            })
+            }))
 
         # أكتر من خدمة في نفس الفترة — وارد جدًا في الوورد، بس يستاهل نظرة
         for shift in SHIFTS:
             same = [it["name"] for it in row["services"] if it["shift"] == shift]
             if len(same) > 1:
-                out.append({
+                out.append(_tag({
                     "kind": "ازدحام",
                     "officer_id": row["id"],
                     "text": f'{name} على {len(same)} خدمات في الفترة ال{shift}:'
                             f' {"، ".join(same)}',
-                })
+                }))
 
-    # خدمة محتاجة ضابط ومحطوطش
+    # خانة شاغرة تمامًا — من غير ضابط ولا فرد ولا حتى عدد مجندين مسجّل.
+    # مفيش كتالوج يقول «الخدمة دي محتاجة ضابط» زي الأول، فالفحص بقى أبسط:
+    # صف من غير أي قوام مسجّل عليه محتاج مراجعة.
     for assignment in peek_day(data, day):
-        svc = services.get(assignment.get("service_id"))
-        if not svc or not (svc.get("needs") or {}).get("officer"):
+        if (assignment.get("officer_ids") or assignment.get("personnel_ids")
+                or assignment.get("conscript_count")):
             continue
-        if assignment.get("officer_ids"):
-            continue
-        out.append({
+        display = assignment.get("name") or "(بدون اسم)"
+        out.append(_tag({
             "kind": "شاغرة",
             "assignment_id": assignment["id"],
-            "text": f'«{svc["name"]}» محتاجة ضابط ولسه فاضية',
-        })
+            "text": f'«{display}» شاغرة تمامًا — من غير ضابط ولا فرد ولا عدد مجندين',
+        }))
 
     return out
 

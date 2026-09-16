@@ -1,0 +1,32 @@
+<!-- ============ صف في اعداد الخدمات (قالب أو يوم) ============ -->
+<div class="modal hidden" id="countModal">
+  <div class="modal-card">
+    <button class="close" data-close="countModal">×</button>
+    <h2 id="countTitle">إضافة خدمة</h2>
+    <form id="countForm">
+      <input type="hidden" id="cnId">
+      <input type="hidden" id="cnSource">
+      <div class="grid">
+        <label>القسم
+          <select id="cnBlock">
+            <option value="صباحية">أساسية — صباحية</option>
+            <option value="ليلية">أساسية — ليلية</option>
+            <option value="طوارئ">طوارئ متكررة</option>
+          </select>
+        </label>
+        <label>الاسم
+          <input id="cnName" required>
+        </label>
+        <label>الجهة <small>الطرق / فيصل / السويس... اختياري</small>
+          <input id="cnParty">
+        </label>
+        <label>عدد المجندين
+          <input id="cnCount" type="number" min="0" value="0">
+        </label>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button class="primary full" type="submit">حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>

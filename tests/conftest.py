@@ -10,39 +10,36 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app import app as flask_app          # noqa: E402
+from backend import day_status            # noqa: E402
 from backend import store                 # noqa: E402
 
-
-def _svc(svc_id, name, kind, section, standing=False, **over):
-    """خدمة بالشكل الكامل بتاع الكتالوج — الاختبارات تهتم بالمهم بس."""
-    return {"id": svc_id, "name": name, "board_label": name, "sub": "", "kind": kind,
-            "section": section, "standing": standing, "shifts": ["صباحية", "ليلية"],
-            "default_strength": "", "default_weapon": "", "default_time": "", "party": "",
-            "needs": {"officer": True, "individual": False, "unit": False, "vehicle": False},
-            "appears_in": ["board"], "aliases": [name], **over}
+# أيام الاختبارات كلها في 2026، والأيام اللي فاتت بتتقفل تلقائيًا
+# (backend/day_status.py). من غير تثبيت «النهاردة» كل اختبار بيكتب في يوم
+# ثابت كان هيرجع 409 بمجرد ما التاريخ الحقيقي يعدّيه — يعني اختبارات
+# بتنجح النهاردة وتقع بكرة. القفل التلقائي نفسه له اختباراته اللي
+# بتحرّك اليوم ده صراحة في tests/test_day_close.py.
+# القيمة أقدم من أي تاريخ بتلمسه الاختبارات، فكل الأيام «جاية» ومفتوحة.
+FROZEN_TODAY = "2019-01-01"
 
 
 FIXTURE_DATA = {
-    "officers": {
-        "active": [
-            {"id": "OFF-001", "name": "أحمد محمد", "role": "عقيد", "code": "1",
-             "phone": "0100", "join_date": "2020-01-01", "post": "", "status": "active",
-             "rest_system": "أسبوعية", "rest_day": "السبت"},
-            {"id": "OFF-002", "name": "محمود علي", "role": "نقيب", "code": "2",
-             "phone": "0101", "join_date": "2020-01-01", "post": "", "status": "active",
-             "rest_system": "—", "rest_day": ""},
-        ],
-        "archive": [],
-    },
-    "personnel": {"active": [], "archive": []},
+    # قايمة واحدة لكل فئة و`status` بيفرّق القوة عن الأرشيف (هجرة 008).
+    # `store._read()` بيطبّع الشكل القديم برضه، بس الـfixture بيمثّل الشكل
+    # الحالي عشان الاختبارات تفشل لو التطبيع اتكسر بدل ما تخبّيه.
+    "officers": [
+        {"id": "OFF-001", "name": "أحمد محمد", "role": "عقيد", "code": "1",
+         "phone": "0100", "join_date": "2020-01-01", "post": "", "status": "active",
+         "rest_system": "أسبوعية", "rest_day": "السبت"},
+        {"id": "OFF-002", "name": "محمود علي", "role": "نقيب", "code": "2",
+         "phone": "0101", "join_date": "2020-01-01", "post": "", "status": "active",
+         "rest_system": "—", "rest_day": ""},
+    ],
+    "personnel": [],
     "leaves": [
-        {"id": "LV-001", "person_id": "OFF-001", "name": "أحمد محمد", "type": "أسبوعية",
+        # مفيش `name` — الاسم بيتحلّ من `person_id` (هجرة 007)
+        {"id": "LV-001", "person_id": "OFF-001", "type": "أسبوعية",
          "start": "2026-01-10", "end": "2026-01-10", "return_date": "2026-01-11",
          "note": "", "source": "من الأرشيف"},
-    ],
-    "services": [
-        _svc("SVC-001", "دورية خارجية", "خارجية", "الخدمات أساسية", standing=True),
-        _svc("SVC-002", "العيادة الطبية", "طبية", "الخدمات الطارئة"),
     ],
     "duties": {},
     "day_services": {},
@@ -72,6 +69,16 @@ def _isolate_audit_log(tmp_path):
     yield
     store._audit_logger.handlers = old_handlers
     handler.close()
+
+
+@pytest.fixture(autouse=True)
+def frozen_today(monkeypatch):
+    """يثبّت «النهاردة» لحد القفل التلقائي. بترجّع دالة التغيير عشان
+    الاختبار اللي بيختبر القفل نفسه يحرّك اليوم زي ما يحب."""
+    def set_today(value):
+        monkeypatch.setattr(day_status, "today_iso", lambda: value)
+    set_today(FROZEN_TODAY)
+    return set_today
 
 
 @pytest.fixture

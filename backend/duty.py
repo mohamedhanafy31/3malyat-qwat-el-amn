@@ -13,7 +13,7 @@
 مثبت في الوورد (34 في كل الأيام المفحوصة). عشان كده الترتيب اللي تحت
 مهم: الضابط بياخد أول خانة تنطبق عليه.
 """
-from .assignments import assignments_of, officer_state, services_by_id
+from .assignments import assignments_of, officer_state
 from .courses import by_id as courses_by_id, term_on
 from .constants import LEAVE_BUCKET, MEDICAL_POSTS, SHIFTS
 from .leaves import leave_on
@@ -117,7 +117,6 @@ def _bucket(kinds, leave, state, medical, search_attached, course=None):
 
 def summarise(data, day):
     """يومية الضباط كاملة: صف لكل ضابط كان على القوة + جدول الإجمالي."""
-    services = services_by_id(data)
     officers = officers_on(data, day)
     medical_ids = set(data.get("medical_officers") or [])
     course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
@@ -133,13 +132,10 @@ def summarise(data, day):
 
         items = []
         for a in assignments_of(data, day, o["id"]):
-            svc = services.get(a.get("service_id"))
-            if not svc:
-                continue
-            items.append({"assignment_id": a["id"], "id": svc["id"], "name": svc["name"],
-                          "kind": svc.get("kind", "خارجية"), "shift": a.get("shift", ""),
+            items.append({"assignment_id": a["id"], "name": a.get("name", ""),
+                          "kind": a.get("kind") or "خارجية", "shift": a.get("shift", ""),
                           "section": a.get("section", ""),
-                          "counted": svc.get("counts_in_summary", True)})
+                          "counted": a.get("counts_in_summary", True)})
         # خدمات المعسكر الفرعي بتظهر على اللوحة لكن مابتحرّكش الضابط من
         # «الصافي» في جدول الإجمالي — قوة المعسكر الفرعي مالهاش خانة في
         # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في

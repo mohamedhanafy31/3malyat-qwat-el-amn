@@ -18,8 +18,9 @@ MEDICAL_BADGE = "ضابط العيادة الطبية"
 MEDICAL_POSTS = ("العياده الطبيه", "قطاع الخدمات الطبيه", "الخدمات الطبيه")
 
 DEFAULT_DATA = {
-    "officers": {"active": [], "archive": []},
-    "personnel": {"active": [], "archive": []},
+    # قايمة واحدة لكل فئة — `status` بيفرّق القوة عن الأرشيف (هجرة 008)
+    "officers": [],
+    "personnel": [],
     "leaves": [],
     "services": [],
     "day_assignments": {},
@@ -122,3 +123,19 @@ EDITABLE = ["name", "role", "code", "phone", "join_date", "post",
 # الحقول المؤرَّخة على الضابط — بتتسجّل في history بتاريخ سريان بدل ما
 # تتكتب فوق الماضي، عشان الأيام القديمة تتطبع ببياناتها هي
 DATED_FIELDS = ["role", "post", "section", "search_attached"]
+
+# مستويات تنبيهات اليوم (checks.day_warnings) — مش كلهم بنفس الخطورة.
+# «ازدحام» ثبت إنه شغل عادي في الأرشيف (20/8: خدمتين في نفس الفترة مقصودين)
+# فمستواه معلومة بس؛ «راحة»/«حالة» تعارض حقيقي محتاج قرار فوري؛ «شاغرة»
+# تذكير تشغيلي عادي. المنع الوحيد (التكرار الحرفي) برّه القايمة دي أصلًا —
+# ده 409 مش تنبيه.
+WARNING_LEVELS = {
+    "راحة": "critical",
+    "حالة": "critical",
+    "شاغرة": "warning",
+    "ازدحام": "info",
+}
+WARNING_LEVEL_ORDER = ["critical", "warning", "info"]
+WARNING_LEVEL_LABELS = {
+    "critical": "تحذير حرج", "warning": "تحذير", "info": "معلومة",
+}

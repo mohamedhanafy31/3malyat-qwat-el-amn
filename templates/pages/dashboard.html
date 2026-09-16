@@ -4,22 +4,42 @@
 
 {% block content %}
 <div id="dashStats" class="stats"></div>
+
+{# الكرت الكبير كان بيحمل جملة واحدة ساكنة بتقول «افتح كذا من القائمة» —
+   مساحة الثلثين بتشرح التنقّل بدل ما تعمله. بقى مدخل مباشر ليوم الشغل. #}
 <div class="dash-grid">
   <div class="dash-card">
-    <h3>حالة اليوم — التشغيل</h3>
-    <div class="body" id="dashToday"></div>
+    <h3>تشغيل النهاردة</h3>
+    <div class="body">
+      <p class="day-line" id="dashToday"></p>
+      <div class="day-links">
+        <a href="{{ url_for('pages.board') }}">
+          <b>اليومية التفصيلية</b><small>خدمات اليوم بأقسامها</small></a>
+        <a href="{{ url_for('pages.duty') }}">
+          <b>يومية الضباط</b><small>التشغيل وجدول الإجمالي</small></a>
+        <a href="{{ url_for('pages.counts') }}">
+          <b>اعداد الخدمات</b><small>الصباحية والمسائية والطوارئ</small></a>
+      </div>
+    </div>
   </div>
+
   <div class="dash-card">
-    <h3>روابط سريعة</h3>
+    <h3>السجلات</h3>
     <div class="body">
       <div class="quick-links">
         <a href="{{ url_for('pages.officers') }}"><span>سجل الضباط</span><b id="qlOfficers">—</b></a>
         <a href="{{ url_for('pages.personnel') }}"><span>سجل الأفراد</span><b id="qlPersonnel">—</b></a>
-        <a href="{{ url_for('pages.board') }}"><span>لوحة التشغيل المختصرة</span><b>◂</b></a>
         <a href="{{ url_for('pages.leaves') }}"><span>الراحات والإجازات</span><b id="qlLeaves">—</b></a>
+        <a href="{{ url_for('pages.register') }}"><span>دفتر 43</span><b>◂</b></a>
       </div>
     </div>
   </div>
+</div>
+
+{# «القادم والمعلّق» ثلاث قوائم مستقلة — كانت متكدّسة في عمود ضيّق. #}
+<div class="dash-card dash-wide">
+  <h3>القادم والمعلّق</h3>
+  <div class="body"><div class="dash-cols" id="dashUpcoming"></div></div>
 </div>
 {% endblock %}
 

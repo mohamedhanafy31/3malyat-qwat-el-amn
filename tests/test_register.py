@@ -8,7 +8,7 @@ DAY = "2026-04-10"
 
 
 def _add(client, day=DAY, **over):
-    body = {"service_id": "SVC-001", "shift": "صباحية"}
+    body = {"name": "دورية خارجية", "kind": "خارجية", "shift": "صباحية"}
     body.update(over)
     return client.post(f"/api/assignments/{day}", json=body)
 
@@ -80,7 +80,7 @@ def test_any_working_shift_or_duty_gets_the_same_present_symbol(client):
     assert _cell(_month(client), "OFF-002", DAY)["code"] == "أ"
 
     client.post("/api/assignments/2026-04-12",
-                json={"service_id": "SVC-001", "shift": "ليلية",
+                json={"name": "دورية خارجية", "kind": "خارجية", "shift": "ليلية",
                       "officer_ids": ["OFF-001"]})
     assert _cell(_month(client), "OFF-001", "2026-04-12")["code"] == "أ"
 
@@ -148,7 +148,7 @@ def test_officer_who_left_mid_month_is_marked_apart(client):
     مميزة عن بعضها في سجل بيثبت التواجد."""
     _add(client, officer_ids=["OFF-002"])                    # 10 أبريل: بالقوة
     client.post("/api/assignments/2026-04-15",
-                json={"service_id": "SVC-001", "officer_ids": ["OFF-001"]})
+                json={"name": "دورية خارجية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
     client.post("/api/person/OFF-002/remove", json={"leave_date": "2026-04-12"})
 
     reg = _month(client)
@@ -165,14 +165,14 @@ def test_an_officer_never_on_force_gets_no_row(client):
     """الدفتر بيعرض اللي كانوا على القوة في الشهر ده بس."""
     client.post("/api/person/OFF-002/remove", json={"leave_date": "2026-03-01"})
     client.post("/api/assignments/2026-04-15",
-                json={"service_id": "SVC-001", "officer_ids": ["OFF-001"]})
+                json={"name": "دورية خارجية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
     assert {r["id"] for r in _month(client)["rows"]} == {"OFF-001"}
 
 
 def test_officer_page_covers_every_recorded_day(client):
     _add(client, officer_ids=["OFF-002"])
     client.post("/api/assignments/2026-05-02",
-                json={"service_id": "SVC-001", "officer_ids": ["OFF-002"]})
+                json={"name": "دورية خارجية", "kind": "خارجية", "officer_ids": ["OFF-002"]})
     out = client.get("/api/register/officer/OFF-002").get_json()
     assert out["tally"]["days"] == 2
     assert [m["month"] for m in out["months"]] == ["2026-04", "2026-05"]
@@ -181,11 +181,9 @@ def test_officer_page_covers_every_recorded_day(client):
 
 def test_officer_page_counts_services_by_name(client):
     """«حصر لعدد الخدمات وأنواعها» — الخدمة بالاسم مش بالخانة بس."""
-    client.post("/api/services", json={"name": "هدف سوميد", "kind": "حراسات",
-                                        "section": "الأهداف"})
-    guard = client.get("/api/bootstrap/catalog").get_json()["services"][-1]["id"]
     _add(client, officer_ids=["OFF-002"])
-    _add(client, day="2026-04-11", service_id=guard, officer_ids=["OFF-002"])
+    _add(client, day="2026-04-11", name="هدف سوميد", kind="حراسات", section="الأهداف",
+         officer_ids=["OFF-002"])
     out = client.get("/api/register/officer/OFF-002").get_json()
     assert {s["name"]: s["count"] for s in out["tally"]["services"]} == {
         "دورية خارجية": 1, "هدف سوميد": 1}

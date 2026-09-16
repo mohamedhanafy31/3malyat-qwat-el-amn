@@ -2,17 +2,22 @@
 
 قبل كده كان فيه سجلّين لنفس الحقيقة: `duties[day][officer]` بالـid و
 `day_services[day]` باسم الخدمة كنص، مربوطين بجسر هش `{اسم: خدمة}` في
-`sync.py`. النتيجة كانت عائلة أخطاء كاملة: إعادة تسمية خدمة تمسح التكليف
-بالسكوت، إزالة تكليف تسيب اسم الضابط على اللوحة، وضابطين على نفس الخدمة
-والفترة واحد فيهم يختفي.
+`sync.py`. النتيجة كانت عائلة أخطاء كاملة: إزالة تكليف تسيب اسم الضابط
+على اللوحة، وضابطين على نفس الخدمة والفترة واحد فيهم يختفي.
 
 دلوقتي فيه سجل واحد:
 
-    day_assignments[day] = [ {id, section, service_id, shift, officer_ids,
+    day_assignments[day] = [ {id, section, name, kind, shift, officer_ids,
                               personnel_ids, conscripts, ...}, ... ]
 
 ويومية الضباط واللوحة **عرضان محسوبان** عليه (`duty.py` و`board.py`) —
 مفيش حاجة تتزامن لأن مفيش نسختين.
+
+الخدمة **اسم حر بيكتبه المشغّل على الخانة نفسها** — مفيش كتالوج منفصل
+تتربط بيه بـid. القرار ده مقصود: كان فيه كتالوج بـ17 حقل تعريف لكل
+خدمة، وطلع في الاستخدام الفعلي معقّد أكتر من اللازم لمرحلة النظام دي.
+الخدمات الأساسية المتكررة بقت بتتسكّن في صفحة «اعداد الخدمات»
+(`backend/counts.py`) بدل الكتالوج، والخدمات الطارئة بتتكتب مباشرة هنا.
 
 وجنبه سجل تاني **مش تكرار** — دي حقيقة مختلفة، حالة الضابط نفسه:
 
@@ -24,33 +29,13 @@
   - واحد   = الحالة العادية.
   - أكتر   = صف مشترك، زي «رائد/جمال امين م.اول/ماركو ماجد» في لوحة 20/8.
 """
-from .constants import SECTION_OCCASIONAL, SHIFTS
+from .constants import SECTION_OCCASIONAL, SERVICE_KINDS, SHIFTS
 from .store import next_id
 
 # حالات الضابط اللي مش تكليف بخدمة. «مرضي» و«فرقة» و«طارئة» كانوا ناقصين،
 # فكانت خاناتهم في جدول الإجمالي مستحيل يوصلها رقم صح رغم إنهم في الوورد
 # 16 و30 مرة على التوالي.
 OFFICER_STATUSES = ["انتداب", "غياب", "مرضي", "فرقة", "طارئة"]
-
-
-def services_by_id(data):
-    return {s["id"]: s for s in data.get("services", [])}
-
-
-def resolve_service(data, raw_name):
-    """خدمة من أي صورة مكتوبة للاسم — بالتطبيع وبالـaliases.
-
-    الاستيراد والهجرة بيستخدموها عشان «نقطة التفتيش» تلاقي «نقطه تفتيش»،
-    و«التدخل السريع» تلاقي «تدخل سريع». التطابق الحرفي اللي كان مستخدم
-    قبل كده هو اللي خلّى 711 تكليف يقع في «الصافي».
-    """
-    from .text import core_service_name, norm
-    key, core = norm(raw_name), core_service_name(raw_name)
-    for svc in data.get("services", []):
-        aliases = set(svc.get("aliases") or []) | {norm(svc["name"])}
-        if key in aliases or core in aliases:
-            return svc
-    return None
 
 
 def for_day(data, day):
@@ -101,16 +86,18 @@ def new_id(entries):
     return next_id(entries, "AS", width=4)
 
 
-def clean_shift(shift, svc):
-    """الفترة المسموحة للخدمة دي. الحراسات هدف ثابت طول اليوم فمالهاش فترة،
-    و«محور 1» وأخواتها صباحية بس زي ما الوورد بيكتب («ــــ» في العمود الليلي)."""
-    if (svc or {}).get("kind") == "حراسات":
+def clean_shift(shift, kind):
+    """الفترة المسموحة للخدمة دي. الحراسات هدف ثابت طول اليوم فمالهاش فترة —
+    الباقي أي من الفترتين أو من غير فترة، المشغّل هو اللي بيحدد."""
+    if kind == "حراسات":
         return ""
     shift = (shift or "").strip()
-    if shift not in SHIFTS:
-        return ""
-    allowed = (svc or {}).get("shifts") or SHIFTS
-    return shift if shift in allowed else (allowed[0] if allowed else "")
+    return shift if shift in SHIFTS else ""
+
+
+def clean_kind(kind):
+    kind = str(kind or "").strip()
+    return kind if kind in SERVICE_KINDS else ""
 
 
 def clean_conscripts(raw):
@@ -130,21 +117,24 @@ def clean_conscripts(raw):
     return out
 
 
-def blank(assignment_id, service_id, section, **over):
+def blank(assignment_id, name, section, **over):
     """تكليف بالشكل الكامل — مكان واحد بيعرّف الحقول عشان ما تختلفش
     بين الاستيراد والـAPI والهجرة."""
     row = {
         "id": assignment_id,
         "section": section,
-        "service_id": service_id,
+        "name": name,
+        "kind": "",
         "shift": "",
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
+        "conscript_count": 0,
         "weapon": "",
         "time": "",
         "party": "",
         "label_override": "",
+        "counts_in_summary": True,
         "tags": [],
         "note": "",
     }
@@ -152,18 +142,14 @@ def blank(assignment_id, service_id, section, **over):
     return row
 
 
-def label(assignment, svc, with_shift=True):
+def label(assignment, with_shift=True):
     """النص اللي بيتطبع على اللوحة. الوورد بيكتب الفترة **جوّه** اسم
-    الخدمة في القسم الأساسي («تدخل سريع صبح»)، والأهداف بأسماء مختصرة
-    («سوميد» مش «هدف سوميد») — عشان كده فيه board_label في الكتالوج."""
+    الخدمة في القسم الأساسي («تدخل سريع صبح»)."""
     from .constants import SHIFT_SHORT
     text = (assignment.get("label_override") or "").strip()
     if text:
         return text
-    text = (svc or {}).get("board_label") or (svc or {}).get("name") or ""
-    sub = (svc or {}).get("sub") or ""
-    if sub:
-        text = f"{text} | {sub}"
+    text = (assignment.get("name") or "").strip()
     short = SHIFT_SHORT.get(assignment.get("shift") or "")
     if with_shift and short:
         text = f"{text} {short}"
@@ -196,9 +182,10 @@ def clean_people(data, day, ids, want):
 
 
 def guard_duplicate(data, day, row, ignore_id):
-    """التكرار الحرفي بس هو الممنوع: نفس الشخص على نفس الخدمة ونفس الفترة
-    مرتين. باقي «التعارضات» بتتعرض كتنبيهات — الأرشيف فيه ضباط على
-    خدمتين في نفس الفترة فعلًا (20/8: تبة ضرب النار + كنترول الازهر ليل).
+    """التكرار الحرفي بس هو الممنوع: نفس الشخص على نفس اسم الخدمة (بعد
+    التطبيع) ونفس الفترة مرتين. باقي «التعارضات» بتتعرض كتنبيهات — الأرشيف
+    فيه ضباط على خدمتين في نفس الفترة فعلًا (20/8: تبة ضرب النار + كنترول
+    الازهر ليل).
 
     بترجع رسالة خطأ أو None — الاستيراد جوه الدالة لتفادي دورة استيراد
     (`checks.py` بيستورد من الملف ده أصلًا).
@@ -208,21 +195,30 @@ def guard_duplicate(data, day, row, ignore_id):
     people = (row.get("officer_ids") or []) + (row.get("personnel_ids") or [])
     if not people:
         return None
-    clash = duplicate_of(data, day, row["service_id"], row.get("shift"),
+    clash = duplicate_of(data, day, row.get("name", ""), row.get("shift"),
                          people, ignore_id=ignore_id)
     if clash:
         return "الشخص ده متكلّف بنفس الخدمة ونفس الفترة في خانة تانية."
     return None
 
 
-def apply_assignment(data, day, row, payload, svc):
+def apply_assignment(data, day, row, payload):
     """بيطبّق حقول الطلب على صف التكليف. بترجع (row, error, status) —
     لو error مش None يبقى row=None."""
+    if "name" in payload:
+        name = str(payload["name"]).strip()
+        if not name:
+            return None, "اسم الخدمة مطلوب.", 400
+        row["name"] = name
+    if "kind" in payload:
+        row["kind"] = clean_kind(payload["kind"])
     if "shift" in payload:
-        row["shift"] = clean_shift(payload["shift"], svc)
+        row["shift"] = clean_shift(payload["shift"], row.get("kind", ""))
     if "section" in payload:
         section = str(payload["section"]).strip()
-        row["section"] = section or (svc or {}).get("section") or SECTION_OCCASIONAL
+        row["section"] = section or SECTION_OCCASIONAL
+    if "counts_in_summary" in payload:
+        row["counts_in_summary"] = bool(payload["counts_in_summary"])
     if "officer_ids" in payload:
         ids, err, status = clean_people(data, day, payload["officer_ids"], "officers")
         if err:
@@ -235,6 +231,11 @@ def apply_assignment(data, day, row, payload, svc):
         row["personnel_ids"] = ids
     if "conscripts" in payload:
         row["conscripts"] = clean_conscripts(payload["conscripts"])
+    if "conscript_count" in payload:
+        try:
+            row["conscript_count"] = max(0, int(payload["conscript_count"]))
+        except (TypeError, ValueError):
+            row["conscript_count"] = 0
     if "tags" in payload:
         row["tags"] = [str(t).strip() for t in payload["tags"] if str(t).strip()]
         for tag in row["tags"]:

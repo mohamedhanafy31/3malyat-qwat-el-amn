@@ -6,7 +6,9 @@
 """
 from flask import Blueprint, jsonify
 
-from ..assignments import OFFICER_STATUSES, set_officer_state
+from .. import changes
+from .. import day_status
+from ..assignments import OFFICER_STATUSES, officer_state, set_officer_state
 from ..duty import summarise
 from ..people import officers_on
 from ..store import AbortRequest, load_data, with_data
@@ -39,6 +41,9 @@ def set_state(day, person_id):
         return jsonify({"error": f"الملاحظة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
 
     def mutate(data):
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
         # الحالة بتتقاس على قوة اليوم نفسه، فالضابط المتأرشف ينفع يتعدّل
         # في يوم كان فيه بالقوة
         if not any(o.get("id") == person_id for o in officers_on(data, day)):
@@ -47,11 +52,15 @@ def set_state(day, person_id):
         # التلاتة بتتكتب دايمًا، فطلب فيه `taqseera` بس كان بيمسح الحالة
         # والملاحظة المسجّلين — الواجهة بتبعت التلاتة فما بانش، لكن أي
         # سكربت أو نداء خارجي كان بيفقد بيانات من غير ما يعرف.
-        set_officer_state(
+        before = dict(officer_state(data, day, person_id))
+        after = set_officer_state(
             data, day, person_id,
             taqseera=bool(payload["taqseera"]) if "taqseera" in payload else None,
             status=status if "status" in payload else None,
             note=note if "note" in payload else None)
+        if before != dict(after):
+            changes.record(data, "officer_state", person_id, "update",
+                           before=before, after=dict(after), reason=f"يوم {day}")
         return jsonify(summarise(data, day))
 
     return with_data(mutate)
@@ -64,9 +73,16 @@ def clear_state(day, person_id):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
 
     def mutate(data):
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
         if not any(o.get("id") == person_id for o in officers_on(data, day)):
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
+        before = dict(officer_state(data, day, person_id))
         set_officer_state(data, day, person_id, taqseera=False, status="", note="")
+        if before:
+            changes.record(data, "officer_state", person_id, "delete",
+                           before=before, reason=f"يوم {day}")
         return jsonify({"ok": True})
 
     return with_data(mutate)

@@ -1,6 +1,5 @@
 """إدارة القوة — البحث عن شخص، ترتيبها، وقواعد الراحة الأساسية."""
 from .constants import REST_SYSTEMS, SECTION_FORCE, WEEKDAYS
-from .utils import command_priority_map, rank_key, sort_active
 
 
 def effective(person, day):
@@ -69,13 +68,14 @@ def record_change(person, effective_from, changes):
 
 
 def find_person(data, person_id):
-    """-> (person, category, bucket) or (None, None, None)"""
-    for cat in ("officers", "personnel"):
-        for bucket in ("active", "archive"):
-            for p in data[cat][bucket]:
-                if p.get("id") == person_id:
-                    return p, cat, bucket
-    return None, None, None
+    """-> (person, category, bucket) or (None, None, None)
+
+    واجهة قديمة متسيبة للتوافق — التنفيذ الحقيقي في `PeopleRepo.locate`،
+    اللي بيستخدم فهرس بدل المسح الخطي على أربع قوايم. الدالة دي كانت
+    بتتنده جوّه حلقات (مرة لكل شخص في كل صف لوحة).
+    """
+    from .repo import PeopleRepo
+    return PeopleRepo(data).locate(person_id)
 
 
 
@@ -88,10 +88,8 @@ def new_person_id(data, category):
     (حذف سجل أرشيف مثلًا) بتمسك الاتنين. reserve_id بتضمن رقم ما اتكررش
     ولا هيتكرر، وبنفس شكل أرقام الاستيراد (OFF-050 / IND-201).
     """
-    from .store import reserve_id
-    prefix = "OFF" if category == "officers" else "IND"
-    pool = data[category]["active"] + data[category]["archive"]
-    return reserve_id(data, prefix, pool)
+    from .repo import PeopleRepo
+    return PeopleRepo(data).new_id(category)
 
 
 def valid_rest(payload, errors, current=None):
@@ -122,16 +120,5 @@ def officers_on(data, day):
 
     الضابط محسوب لو انضم في اليوم ده أو قبله، ولسه ما خرجش (أو خرج بعده).
     """
-    out = []
-    for bucket in ("active", "archive"):
-        for o in data["officers"][bucket]:
-            join = o.get("join_date", "")
-            if join and join > day:
-                continue
-            left = o.get("leave_date", "")
-            if left and day > left:
-                continue
-            out.append(o)
-    priority = command_priority_map(data)
-    out.sort(key=lambda o: rank_key(o, priority))
-    return out
+    from .repo import PeopleRepo
+    return PeopleRepo(data).raw_on_force(day, "officers")

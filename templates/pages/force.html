@@ -7,8 +7,6 @@
 {% block content %}
 <div class="stats" id="forceStats"></div>
 
-{% if page == 'officers' %}<div class="command-bar" id="commandBar"></div>{% endif %}
-
 <div class="panel">
   <div class="panel-head">
     <div class="tabs">
@@ -44,7 +42,16 @@
   <div id="tableWrap"></div>
 </div>
 
-{% if page == 'officers' %}<div id="medicalBar"></div>{% endif %}
+{# إعدادات بتتظبط مرة كل حركة ضباط — مطوية تحت الجدول بدل ما تاخد
+   ١٦٠ بكسل فوق سجل الضباط في كل زيارة. اللي شايل كل منصب باين في سطر
+   الملخص من غير ما تفتحها، وبشارة جنب اسمه في الجدول نفسه. #}
+{% if page == 'officers' %}
+<div class="settings-area">
+  <h3 class="settings-area-head">إعدادات القوة</h3>
+  <div id="commandBar"></div>
+  <div id="medicalBar"></div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block modals %}

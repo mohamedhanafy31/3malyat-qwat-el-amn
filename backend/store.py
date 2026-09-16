@@ -14,6 +14,7 @@ from urllib.parse import unquote
 from flask import request
 
 from .constants import DEFAULT_DATA
+from .repo.people import as_roster
 from .utils import sort_active
 
 DATA_FILE = Path(__file__).resolve().parent.parent / "data.json"
@@ -22,7 +23,7 @@ LOCK = threading.Lock()
 # نسخة بنية الملف. أي هجرة بتغيّر شكل البيانات بترفع الرقم ده، والتطبيق
 # بيرفض يشتغل على ملف برقم مختلف بدل ما يقرأه غلط في صمت. الملفات القديمة
 # اللي مافيهاش الحقل أصلًا بتتعامل كـ 1.
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 5
 
 # نسخ احتياطي دوّار: قبل كل كتابة بنحتفظ بالنسخة السابقة. ده أمان تشغيلي
 # يومي كان ناقص — الكتابة الذرية بتحمي من ملف نصّه مقطوع، مش من تعديل غلط.
@@ -124,9 +125,7 @@ def _read():
         )
     _check_schema(data)
     for cat in ("officers", "personnel"):
-        data.setdefault(cat, {"active": [], "archive": []})
-        data[cat].setdefault("active", [])
-        data[cat].setdefault("archive", [])
+        data[cat] = as_roster(data.get(cat))
         sort_active(data, cat)
     data.setdefault("leaves", [])
     data.setdefault("services", [])
@@ -220,8 +219,13 @@ def backup_info(path):
            "schema": None, "officers": None, "leaves": None}
     try:
         data = read_backup(path)
+        # `as_roster` بيفهم شكل القوة القديم والجديد — النسخ الاحتياطية
+        # القديمة لسه بالشكل المتداخل، والوصف ده لازم يشتغل عليها كمان
+        # عشان المشغّل يقدر يقارن نسخة قبل ما يستعيدها.
+        officers = [p for p in as_roster(data.get("officers"))
+                    if (p.get("status") or "active") == "active"]
         row.update(ok=True, schema=data.get("schema"),
-                   officers=len(data.get("officers", {}).get("active", [])),
+                   officers=len(officers),
                    leaves=len(data.get("leaves", [])))
     except DataUnreadable as exc:
         row["error"] = str(exc)

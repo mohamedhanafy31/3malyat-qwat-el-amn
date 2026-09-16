@@ -2,16 +2,24 @@
 
 نقطة واحدة للتعديل: `/api/assignments/<day>` — واللوحة ويومية الضباط
 الاتنين عرضين على نفس البيانات، فمفيش مزامنة ولا احتمال اختلاف بينهم.
+
+اسم الخدمة حر بيكتبه المشغّل على الخانة نفسها — مفيش كتالوج منفصل
+يتحقق منه الاسم أو يفرض تصنيفها.
+
+الحفظ هنا **مابيسجّلش** في سجل التغييرات — التسجيل بيحصل وقت تأكيد
+اليومية بس (`backend/confirm.py`)، عشان السجل يبقى فيه القرارات
+المعتمدة مش المسوّدات.
 """
 from flask import Blueprint, jsonify, request
 
-from ..assignments import (
-    apply_assignment, blank, clean_shift, for_day, guard_duplicate, new_id, peek_day,
-    services_by_id,
-)
+from .. import changes
+from .. import confirm as confirm_lib
+from .. import day_status
+from ..assignments import apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day
 from ..board import ASSIGNMENT_SECTIONS, build_board
-from ..constants import SECTION_OCCASIONAL
+from ..constants import SECTION_OCCASIONAL, SERVICE_KINDS
 from ..duty import summarise
+from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import canonical_day, json_payload
 
@@ -32,22 +40,23 @@ def add_assignment(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     payload = json_payload()
-    service_id = str(payload.get("service_id", "")).strip()
-    if not service_id:
-        return jsonify({"error": "لازم تختار خدمة من الكتالوج."}), 400
+    name = str(payload.get("name", "")).strip()
+    if not name:
+        return jsonify({"error": "اسم الخدمة مطلوب."}), 400
+    kind = str(payload.get("kind", "")).strip()
+    if kind not in SERVICE_KINDS:
+        return jsonify({"error": "تصنيف الخدمة غير صحيح."}), 400
 
     def mutate(data):
-        svc = services_by_id(data).get(service_id)
-        if not svc:
-            raise AbortRequest((jsonify({"error": "الخدمة غير موجودة في الكتالوج."}), 404))
+        ok, err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": err}), 409))
         entries = for_day(data, day)
-        row = blank(new_id(entries), svc["id"],
-                    svc.get("section") or SECTION_OCCASIONAL)
-        row, err, status = apply_assignment(data, day, row, payload, svc)
+        section = str(payload.get("section", "")).strip() or SECTION_OCCASIONAL
+        row = blank(new_id(entries), name, section, kind=kind)
+        row, err, status = apply_assignment(data, day, row, payload)
         if err:
             raise AbortRequest((jsonify({"error": err}), status))
-        if "shift" not in payload:
-            row["shift"] = clean_shift((svc.get("shifts") or [""])[0], svc)
         clash = guard_duplicate(data, day, row, ignore_id=None)
         if clash:
             raise AbortRequest((jsonify({"error": clash}), 409))
@@ -65,19 +74,14 @@ def edit_assignment(day, assignment_id):
     payload = json_payload()
 
     def mutate(data):
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
         entries = for_day(data, day)
         row = next((e for e in entries if e["id"] == assignment_id), None)
         if not row:
             raise AbortRequest((jsonify({"error": "التكليف غير موجود."}), 404))
-        services = services_by_id(data)
-        if "service_id" in payload:
-            svc = services.get(str(payload["service_id"]).strip())
-            if not svc:
-                raise AbortRequest((jsonify({"error": "الخدمة غير موجودة في الكتالوج."}), 404))
-            row["service_id"] = svc["id"]
-            row["shift"] = clean_shift(row.get("shift"), svc)
-        svc = services.get(row["service_id"])
-        row, err, status = apply_assignment(data, day, row, payload, svc)
+        row, err, status = apply_assignment(data, day, row, payload)
         if err:
             raise AbortRequest((jsonify({"error": err}), status))
         clash = guard_duplicate(data, day, row, ignore_id=row["id"])
@@ -95,12 +99,11 @@ def delete_assignment(day, assignment_id):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
 
     def mutate(data):
-        entries = for_day(data, day)
-        if not any(e["id"] == assignment_id for e in entries):
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
+        if not Repos(data).days.remove_assignment(day, assignment_id):
             raise AbortRequest((jsonify({"error": "التكليف غير موجود."}), 404))
-        data["day_assignments"][day] = [e for e in entries if e["id"] != assignment_id]
-        if not data["day_assignments"][day]:
-            data["day_assignments"].pop(day, None)
         return jsonify({"ok": True})
 
     return with_data(mutate)
@@ -117,6 +120,49 @@ def list_assignments(day):
                     "summary": summarise(data, day)["summary"]})
 
 
+@bp.get("/api/board/<day>/confirm")
+def get_confirm(day):
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    return jsonify(confirm_lib.state_of(load_data(), day))
+
+
+@bp.post("/api/board/<day>/confirm")
+def confirm_day(day):
+    """تأكيد اليومية — بيعتمد الحالي وبيسجّل الفرق عن آخر تأكيد.
+
+    مسموح يتعمل أكتر من مرة في اليوم؛ التأكيد اللي مالوش فرق بيتسجّل
+    كـ«إعادة تأكيد» عشان يفضل واضح إن حد راجع اليومية الساعة دي.
+    """
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    payload = json_payload()
+    by = str(payload.get("confirmed_by", "")).strip()
+
+    def mutate(data):
+        ok, err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": err}), 409))
+        summary, events = confirm_lib.confirm_day(data, day, by)
+        for ev in events:
+            changes.record(data, ev["entity"], ev["entity_id"], ev["action"],
+                           before=ev["before"], after=ev["after"], text=ev["text"],
+                           day=day, ts=summary["at"])
+        if summary["first"]:
+            note = f"تأكيد أول ليومية {day} — {summary['count']} خدمة"
+        elif not summary["changes"]:
+            note = f"إعادة تأكيد ليومية {day} — من غير أي تغيير"
+        else:
+            note = f"تأكيد يومية {day} — {summary['changes']} تغيير"
+        changes.record(data, "day_confirm", day, "confirm", after=dict(summary),
+                       text=note, day=day, ts=summary["at"])
+        return jsonify(summary), 201
+
+    return with_data(mutate)
+
+
 @bp.delete("/api/assignments/<day>")
 def clear_day(day):
     day = canonical_day(day)
@@ -125,12 +171,16 @@ def clear_day(day):
     clear_states = request.args.get("clear_states") == "1"
 
     def mutate(data):
-        count = len(data.get("day_assignments", {}).get(day, []))
-        if day in data.get("day_assignments", {}):
-            data["day_assignments"].pop(day, None)
-        if clear_states and day in data.get("day_officers", {}):
-            data["day_officers"].pop(day, None)
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
+        days = Repos(data).days
+        loaded = days.get(day)
+        count = len(loaded.assignments)
+        loaded.assignments = []
+        if clear_states:
+            loaded.officer_states = {}
+        days.save(loaded)
         return jsonify({"ok": True, "deleted": count, "states_cleared": clear_states})
 
     return with_data(mutate)
-

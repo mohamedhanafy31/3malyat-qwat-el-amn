@@ -1,9 +1,9 @@
 """الصفحات المنفصلة و bootstrap المخصوص لكل صفحة."""
 import pytest
 
-PAGES = ["dashboard", "officers", "personnel", "duty", "board", "catalog", "leaves"]
+PAGES = ["dashboard", "officers", "personnel", "duty", "board", "counts", "leaves"]
 URLS = {"dashboard": "/", "officers": "/officers", "personnel": "/personnel",
-        "duty": "/duty", "board": "/board", "catalog": "/catalog", "leaves": "/leaves"}
+        "duty": "/duty", "board": "/board", "counts": "/counts", "leaves": "/leaves"}
 
 
 @pytest.mark.parametrize("page", PAGES)
@@ -18,7 +18,7 @@ def test_bootstrap_returns_meta_for_every_page(client, page):
     d = client.get(f"/api/bootstrap/{page}").get_json()
     assert d["meta"]["today"]
     assert d["meta"]["command_roles"]
-    assert set(["officers", "personnel", "leaves", "services", "courses"]).issubset(d["counts"].keys())
+    assert set(["officers", "personnel", "leaves", "courses"]).issubset(d["counts"].keys())
 
 
 def test_unknown_bootstrap_page_404s(client):
@@ -35,8 +35,8 @@ def test_pages_only_get_the_slice_they_need(client):
     assert "personnel" not in officers          # صفحة الضباط مالهاش دعوة بالأفراد
     assert "leaves" not in officers             # الحالة جاية محسوبة بدل السجلات
 
-    catalog = client.get("/api/bootstrap/catalog").get_json()
-    assert set(catalog) <= {"meta", "services", "counts"}
+    counts_page = client.get("/api/bootstrap/counts").get_json()
+    assert set(counts_page) <= {"meta", "days", "counts"}
 
 
 def test_officer_status_is_computed_server_side(client):

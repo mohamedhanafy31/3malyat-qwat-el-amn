@@ -10,6 +10,7 @@ from datetime import date, timedelta
 
 from .constants import TAQSEERA_NOTICE_DAYS, WEEKDAYS
 from .leaves import leave_on
+from .repo import PeopleRepo
 
 # WEEKDAYS بيبدأ بالسبت؛ date.weekday() بيبدأ بالاثنين (0=اثنين .. 6=أحد)
 _WEEKDAY_INDEX = {name: i for i, name in enumerate(WEEKDAYS)}
@@ -82,7 +83,7 @@ def with_status(data, officers, today):
 def taqseera_alerts(data, today):
     """الضباط المستحقين تنبيه تقصيرة النهاردة، مرتبين بتاريخ التقصيرة."""
     out = []
-    for o in data["officers"]["active"]:
+    for o in PeopleRepo(data).bucket("officers", "active"):
         st = officer_status(data, o, today)
         if st["state"] == "taqseera":
             out.append({"id": o["id"], "name": o.get("name", ""), "role": o.get("role", ""),

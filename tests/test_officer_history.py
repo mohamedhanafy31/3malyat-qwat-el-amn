@@ -78,7 +78,7 @@ def test_search_attachment_is_dated(client):
 def test_search_attached_officer_counts_in_the_search_cell(client):
     _patch(client, search_attached=True, effective_from="2026-06-01")
     client.post("/api/assignments/2026-07-01",
-                json={"service_id": "SVC-001", "shift": "صباحية",
+                json={"name": "دورية خارجية", "kind": "خارجية", "shift": "صباحية",
                       "officer_ids": ["OFF-002"]})
     s = client.get("/api/duty/2026-07-01").get_json()["summary"]
     assert s["خارجية"]["بحث"] == 1

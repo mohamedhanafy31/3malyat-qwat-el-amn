@@ -41,7 +41,7 @@ def test_officer_on_rest_moves_to_the_rest_section(client):
 def test_command_officer_with_a_service_leaves_admin_work(client):
     _set(client, DIRECTOR, "OFF-001")
     client.post("/api/assignments/2026-04-03",
-                json={"service_id": "SVC-001", "officer_ids": ["OFF-001"]})
+                json={"name": "دورية خارجية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
     assert "OFF-001" not in {r["id"] for r in _admin_work(client, "2026-04-03")}
 
 
@@ -52,7 +52,7 @@ def test_changing_command_does_not_rewrite_the_archive(client):
     _set(client, DIRECTOR, "OFF-001")
     day = "2026-04-04"
     client.post(f"/api/assignments/{day}",
-                json={"service_id": "SVC-001", "officer_ids": ["OFF-001"]})
+                json={"name": "دورية خارجية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
     before = {r["id"] for r in _admin_work(client, day)}
 
     _set(client, DIRECTOR, "OFF-002")

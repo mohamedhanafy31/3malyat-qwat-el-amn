@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <select id="chgEntityFilter" class="select" aria-label="تصفية حسب الكيان">
+      <option value="">كل الأنواع</option>
+      <option value="duty_move">حركة الضباط والأفراد (كان ← بقى)</option>
+      <option value="assignment">الخدمات (إضافة/تعديل/حذف)</option>
+      <option value="day_confirm">تأكيد اليوميات</option>
+      <option value="day_lock">قفل وفتح الأيام</option>
+      <option value="officer_state">حالة الضباط (تقصيرة/انتداب/غياب...)</option>
+      <option value="leave">الراحات والإجازات</option>
+      <option value="mission">المأموريات</option>
+    </select>
+    <input type="date" id="chgDayFilter" class="select" aria-label="تصفية حسب يومية معيّنة">
+    <button class="mini" id="chgClearDay">كل الأيام</button>
+  </div>
+  <p class="muted" style="margin:0 0 10px">
+    تغييرات اليومية التفصيلية بتتسجّل وقت <b>تأكيد اليومية</b> مش وقت الحفظ —
+    فالوقت اللي في العمود الأول هو لحظة التأكيد.
+  </p>
+  <div id="changesWrap"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/changes.js') }}"></script>
+{% endblock %}

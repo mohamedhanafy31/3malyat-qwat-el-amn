@@ -193,24 +193,39 @@ function render() { renderStats(); renderTable(); }
 
 
 /* ---------- قيادة الإدارة + ضباط العيادة (صفحة الضباط بس) ---------- */
+/* الاتنين إعدادات بتتغيّر مرة كل حركة ضباط، فالاتنين بقوا مطويين تحت الجدول
+   بنفس الشكل. سطر الملخص بيقول مين شايل كل منصب من غير ما تفتح الكرت. */
 function renderCommand() {
   const box = $("#commandBar"); if (!box) return;
   const officers = LIST.active;
-  box.innerHTML = `
-    <div class="cmd-head">قيادة الإدارة
-      <span class="muted">تشغيلهم ثابت يوميًا (إلا أيام الراحة) — غيّرهم مع حركة الضباط</span>
-    </div>
-    <div class="cmd-slots">${COMMAND_ROLES().map(role => {
-      const held = COMMAND[role], p = held ? personById(held) : null;
-      return `<label class="cmd-slot"><span class="cmd-role">${esc(role)}</span>
-        <select data-cmd-role="${esc(role)}">
-          <option value="">— غير محدد —</option>
-          ${officers.map(o => `<option value="${esc(o.id)}" ${o.id === held ? "selected" : ""}>${esc(o.role)} / ${esc(o.name)}</option>`).join("")}
-        </select>
-        ${p ? `<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
-            : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
-    }).join("")}</div>`;
+  const held = COMMAND_ROLES().map(role => {
+    const p = COMMAND[role] ? personById(COMMAND[role]) : null;
+    return p ? `${role}: ${esc(p.role)} / ${esc(p.name)}` : null;
+  }).filter(Boolean);
 
+  box.innerHTML = `
+    <details class="settings-fold">
+      <summary>
+        <span class="fold-title">قيادة الإدارة</span>
+        <span class="fold-now">${held.length ? held.join(" • ")
+          : "<span class='muted'>مفيش مناصب محددة</span>"}</span>
+        <span class="fold-hint">تعديل</span>
+      </summary>
+      <p class="hint" style="margin:12px 0">تشغيلهم ثابت يوميًا (إلا أيام الراحة)
+        — غيّرهم مع حركة الضباط.</p>
+      <div class="cmd-slots">${COMMAND_ROLES().map(role => {
+        const cur = COMMAND[role], p = cur ? personById(cur) : null;
+        return `<label class="cmd-slot"><span class="cmd-role">${esc(role)}</span>
+          <select data-cmd-role="${esc(role)}">
+            <option value="">— غير محدد —</option>
+            ${officers.map(o => `<option value="${esc(o.id)}" ${o.id === cur ? "selected" : ""}>${esc(o.role)} / ${esc(o.name)}</option>`).join("")}
+          </select>
+          ${p ? `<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
+              : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
+      }).join("")}</div>
+    </details>`;
+
+  upgradeSelects(box);   // القوايم دي متولّدة بعد التحميل الأول
   box.querySelectorAll("[data-cmd-role]").forEach(sel => sel.onchange = async () => {
     const out = await api("/api/command", jsonReq("PATCH", {[sel.dataset.cmdRole]: sel.value || null}));
     if (!out) { renderCommand(); return }   // رجّع الاختيار القديم لو الطلب اترفض

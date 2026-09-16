@@ -9,8 +9,11 @@
       <div class="field-section">
         <div class="field-legend">الخدمة</div>
         <div class="grid">
-          <label>الخدمة <small>من الكتالوج — الاسم الحر مش مسموح عشان الربط ما ينكسرش</small>
-            <select id="enService" required></select>
+          <label>اسم الخدمة
+            <input id="enName" required placeholder="اكتب اسم الخدمة">
+          </label>
+          <label>التصنيف <small>خانتها في جدول الإجمالي</small>
+            <select id="enKind" required></select>
           </label>
           <label>القسم على اللوحة
             <select id="enSection"></select>
@@ -35,6 +38,10 @@
         <div class="field-legend" style="margin-top:10px">المجندين</div>
         <div id="conRows" class="req-rows"></div>
         <button type="button" class="mini" id="addConRow">＋ إضافة فئة</button>
+        <label style="margin-top:10px">عدد المجندين
+          <small>للخدمات الطارئة بس — بيظهر في صفحة اعداد الخدمات تلقائيًا</small>
+          <input id="enConCount" type="number" min="0">
+        </label>
       </div>
 
       <div class="field-section">
@@ -68,6 +75,10 @@
       <div class="actions" style="margin-top:10px">
         <button class="primary full" type="submit">حفظ</button>
       </div>
+      <p class="muted" style="margin:8px 0 0">
+        الحفظ بيكتب في اليومية على طول — عشان يتسجّل في سجل التغييرات
+        اضغط «✔ تأكيد اليومية» فوق بعد ما تخلّص كل التعديلات.
+      </p>
     </form>
   </div>
 </div>

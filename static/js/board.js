@@ -1,9 +1,8 @@
 /* اليومية التفصيلية — أقسام الوورد العشرة على سجل تكليف واحد.
-   الخدمة بتتختار من الكتالوج بالـid: الاسم الحر كان بيكسر الربط في صمت
-   ويسيب الضابط في «الصافي» من غير أي تنبيه. */
-let BOARD = null, DAY = null, SERVICES = [], OFFICERS = [], PERSONNEL = [], ENTRY_TAGS = [];
+   اسم الخدمة حر بيكتبه المشغّل على الخانة نفسها، والتصنيف (خارجية/داخلية/
+   حراسات/طبية) بيتحدد معاه — مفيش كتالوج منفصل يتربط بيه. */
+let BOARD = null, DAY = null, OFFICERS = [], PERSONNEL = [], ENTRY_TAGS = [];
 
-const svcById = id => SERVICES.find(s => s.id === id);
 const nameOf = list => p => `${p.role ? p.role + "/ " : ""}${p.name}`;
 
 /* ---------- العرض ---------- */
@@ -28,7 +27,8 @@ function serviceRow(row) {
     <td class="name">${esc(row.label)}${row.tags.length ? " " + tagChips(row.tags) : ""}
       ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}</td>
     <td class="wrap">${who}</td>
-    <td>${conChips(row.conscripts) || "<span class='muted'>—</span>"}</td>
+    <td>${conChips(row.conscripts)}${row.conscript_count ? ` <span class="chip w">×${row.conscript_count}</span>` : ""}
+      ${!row.conscripts.length && !row.conscript_count ? "<span class='muted'>—</span>" : ""}</td>
     <td>${esc(row.weapon) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.time) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.party) || "<span class='muted'>—</span>"}</td>
@@ -82,15 +82,26 @@ function sectionCard(sec) {
 /* تنبيهات مش موانع: الأرشيف فيه ضباط على خدمتين في نفس الفترة فعلًا،
    فالفحص بيلفت النظر ومابيمنعش الحفظ. */
 const WARN_ICON = {"راحة": "☾", "حالة": "⚑", "ازدحام": "⇄", "شاغرة": "○"};
+const LEVEL_ORDER = ["critical", "warning", "info"];
+const LEVEL_LABEL = {critical: "تحذير حرج", warning: "تحذير", info: "معلومة"};
+const LEVEL_CLS = {critical: "err", warning: "taq", info: "w"};
+
 function warningsCard(list) {
   if (!list?.length) return "";
-  const items = list.map(w =>
-    `<li><span class="w-ico">${WARN_ICON[w.kind] || "⚠"}</span>
-      <span class="chip taq">${esc(w.kind)}</span> ${esc(w.text)}</li>`).join("");
+  const groups = LEVEL_ORDER.map(lv => ({lv, items: list.filter(w => (w.level || "info") === lv)}))
+    .filter(g => g.items.length);
+  const body = groups.map(g => `
+    <div class="warn-group">
+      <div class="warn-group-head"><span class="chip ${LEVEL_CLS[g.lv]}">${LEVEL_LABEL[g.lv]}</span>
+        <span class="muted">${g.items.length}</span></div>
+      <ul class="alert-list warn-list">${g.items.map(w => `
+        <li><span class="w-ico">${WARN_ICON[w.kind] || "⚠"}</span>
+          <span class="chip taq">${esc(w.kind)}</span> ${esc(w.text)}</li>`).join("")}</ul>
+    </div>`).join("");
   return `<div class="alert-card">
     <div class="alert-head"><span class="alert-ico">⚠</span><strong>مراجعة اليوم</strong>
       <span class="muted">${list.length} ملاحظة — للفت النظر مش للمنع</span></div>
-    <ul class="alert-list warn-list">${items}</ul></div>`;
+    ${body}</div>`;
 }
 
 function render() {
@@ -133,12 +144,10 @@ function fillMulti(el, people, chosen) {
 const readMulti = el => [...el.selectedOptions].map(o => o.value);
 
 function syncShiftOptions() {
-  const svc = svcById($("#enService").value);
-  const allowed = svc?.shifts?.length ? svc.shifts : SHIFTS();
-  const isTarget = svc?.kind === "حراسات";
+  const isTarget = $("#enKind").value === "حراسات";
   // الأهداف هدف ثابت طول اليوم فمالهاش فترة
   $("#enShiftWrap").classList.toggle("hidden", isTarget);
-  fillSelect($("#enShift"), isTarget ? [["", "— بدون —"]] : allowed.map(x => [x, x]), true);
+  fillSelect($("#enShift"), isTarget ? [["", "— بدون —"]] : SHIFTS().map(x => [x, x]), true);
 }
 
 function openEntry(rowId, preset) {
@@ -147,17 +156,17 @@ function openEntry(rowId, preset) {
   $("#entryTitle").textContent = row ? "تعديل خانة" : "إضافة خانة";
   $("#tagList").innerHTML = (META.service_tags || []).map(x => `<option value="${esc(x)}">`).join("");
 
-  fillSelect($("#enService"), SERVICES.map(s => [s.id, `${s.name}${s.sub ? " — " + s.sub : ""}`]));
+  $("#enName").value = row?.name || "";
+  fillSelect($("#enKind"), KINDS().map(x => [x, x]));
+  $("#enKind").value = row?.kind || KINDS()[0] || "";
   fillSelect($("#enSection"), (META.service_sections || []).map(x => [x, x]));
-  $("#enService").value = row?.service_id || SERVICES[0]?.id || "";
+  $("#enSection").value = row?.section || preset?.section || (META.service_sections || [])[1] || "";
   syncShiftOptions();
-
-  const svc = svcById($("#enService").value);
-  $("#enSection").value = preset?.section || svc?.section || (META.service_sections || [])[1] || "";
   $("#enShift").value = row?.shift ?? preset?.shift ?? "";
   fillMulti($("#enOfficers"), OFFICERS, row?.officers?.map(o => o.id) || []);
   fillMulti($("#enPersonnel"), PERSONNEL, row?.personnel?.map(p => p.id) || []);
   $("#conRows").innerHTML = (row?.conscripts || []).map(conRow).join("");
+  $("#enConCount").value = row?.conscript_count || "";
   $("#enWeapon").value = row?.weapon || "";
   $("#enTime").value = row?.time || "";
   $("#enParty").value = row?.party || "";
@@ -178,11 +187,7 @@ ACTIONS.removeTag = i => { ENTRY_TAGS.splice(Number(i), 1); renderTagChips() };
 ACTIONS.removeConRow = (id, extra, el) => el.closest(".req-row").remove();
 
 $("#addConRow").onclick = () => $("#conRows").insertAdjacentHTML("beforeend", conRow({}));
-$("#enService").addEventListener("change", () => {
-  syncShiftOptions();
-  const svc = svcById($("#enService").value);
-  if (svc?.section) $("#enSection").value = svc.section;
-});
+$("#enKind").addEventListener("change", syncShiftOptions);
 $("#enTags").addEventListener("keydown", e => {
   if (e.key !== "Enter") return;
   e.preventDefault();
@@ -198,12 +203,14 @@ $("#entryForm").onsubmit = async e => {
     count: parseInt(r.querySelector(".con-count").value) || 0,
   })).filter(c => c.class || c.count);
   const body = {
-    service_id: $("#enService").value,
+    name: $("#enName").value.trim(),
+    kind: $("#enKind").value,
     section: $("#enSection").value,
     shift: $("#enShift").value,
     officer_ids: readMulti($("#enOfficers")),
     personnel_ids: readMulti($("#enPersonnel")),
     conscripts,
+    conscript_count: parseInt($("#enConCount").value) || 0,
     weapon: $("#enWeapon").value.trim(),
     time: $("#enTime").value.trim(),
     party: $("#enParty").value.trim(),
@@ -220,16 +227,91 @@ $("#entryForm").onsubmit = async e => {
   loadDay(DAY);
 };
 
+/* ---------- حفظ ↔ تأكيد ----------
+   الحفظ بيكتب في اليومية على طول وبيظهر في كل العروض (يومية الضباط، دفتر
+   ٤٣، اعداد الخدمات) — بس مابيسجّلش حاجة. التأكيد هو اللي بيعتمد الوضع
+   الحالي ويسجّل الفرق عن آخر تأكيد في سجل التغييرات بلحظة الضغط. */
+function renderConfirmBadge() {
+  const c = BOARD?.confirm;
+  const badge = $("#confirmBadge");
+  if (!badge) return;
+  if (!c) { badge.innerHTML = ""; return }
+  if (!c.confirmed) {
+    badge.innerHTML = `<span class="chip taq" title="اليومية دي لسه ما اتأكدتش ولا مرة">لسه ما اتأكدتش</span>`;
+  } else if (c.pending) {
+    badge.innerHTML = `<span class="chip err" title="آخر تأكيد ${esc(c.at || "")}">فيه تعديلات غير مؤكدة</span>`;
+  } else {
+    const time = (c.at || "").split("T")[1]?.slice(0, 5) || "";
+    badge.innerHTML = `<span class="chip on">مؤكدة${time ? " " + time : ""}${c.by ? " — " + esc(c.by) : ""}</span>`;
+  }
+}
+
+$("#btnConfirmDay").onclick = async () => {
+  const c = BOARD?.confirm;
+  const extra = c?.confirmed && !c.pending
+    ? "\n\nملاحظة: مفيش أي تعديل من آخر تأكيد — ده هيتسجّل كإعادة تأكيد."
+    : "";
+  if (!confirm(`انت متأكد إنك عايز تأكد الخدمات الحالية ليوم ${DAY}؟`
+               + `\nاللي اتغيّر من آخر تأكيد هيتسجّل في سجل التغييرات بوقت دلوقتي.${extra}`)) return;
+  const by = ($("#editedBy")?.value || "").trim();
+  const out = await api(`/api/board/${DAY}/confirm`, jsonReq("POST", {confirmed_by: by}));
+  if (!out) return;
+  showToast(out.first ? "اتأكدت اليومية لأول مرة"
+            : out.changes ? `اتأكدت اليومية — ${out.changes} تغيير اتسجّل`
+            : "اتأكدت اليومية — من غير تغييرات");
+  loadDay(DAY);
+};
+
 /* ---------- تنقّل الأيام ---------- */
 async function loadDay(day) {
   const b = await api(`/api/board/${day}`); if (!b) return;
   BOARD = b; DAY = day; $("#dutyDate").value = day; render();
+  renderConfirmBadge();
+  loadDayStatus();
 }
 const shiftDay = n => loadDay(addDays($("#dutyDate").value || curDate(), n));
 $("#dayPrev").onclick = () => shiftDay(-1);
 $("#dayNext").onclick = () => shiftDay(1);
 $("#dayToday").onclick = () => loadDay(curDate());
 $("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
+
+/* إغلاق اليوم: أي يوم فات بيتقفل لوحده الساعة ١٢ بالليل، والقفل بالإيد
+   لليوم الحالي بس (قفل بدري). يوم مقفول بيرفض أي تعديل من الباك إند
+   (409) — الزراير هنا واجهة، الحارس الحقيقي في السيرفر.
+   الفتح الاستثنائي صالح النهاردة بس وبعدين اليوم بيرجع يتقفل تلقائي. */
+async function loadDayStatus() {
+  const s = await api(`/api/day-status/${DAY}`);
+  if (!s) return;
+  const badge = $("#dayLockBadge");
+  if (s.closed) {
+    const why = s.auto ? "اتقفل تلقائيًا الساعة ١٢ بالليل"
+                       : `اتقفل بالإيد${s.closed_by ? " — " + s.closed_by : ""}`;
+    badge.innerHTML = `<span class="chip err" title="${esc(why)}">🔒 مقفول</span>
+      <button class="mini" id="btnReopenDay">فتح استثنائي</button>`;
+    $("#btnReopenDay").onclick = reopenDay;
+  } else if (s.reopened) {
+    badge.innerHTML = `<span class="chip taq"
+        title="الفتح الاستثنائي صالح النهاردة بس — اليوم هيرجع يتقفل تلقائي الساعة ١٢">
+        🔓 مفتوح استثنائيًا النهاردة</span>`;
+  } else {
+    badge.innerHTML = `<button class="mini" id="btnCloseDay"
+      title="اليوم بيتقفل لوحده الساعة ١٢ بالليل — الزرار ده للقفل بدري">قفل اليوم بدري</button>`;
+    $("#btnCloseDay").onclick = closeDay;
+  }
+}
+async function closeDay() {
+  if (!confirm(`قفل يوم ${DAY}؟ أي تعديل بعد كده هيحتاج فتح استثنائي.`)) return;
+  const name = ($("#editedBy")?.value || "").trim();
+  if (!(await api(`/api/day-status/${DAY}/close`, jsonReq("POST", {closed_by: name})))) return;
+  showToast("اتقفل اليوم"); loadDayStatus();
+}
+async function reopenDay() {
+  const reason = prompt("سبب فتح اليوم المقفول؟ (الفتح صالح النهاردة بس)");
+  if (!reason) return;
+  const by = ($("#editedBy")?.value || "").trim();
+  if (!(await api(`/api/day-status/${DAY}/reopen`, jsonReq("POST", {reason, reopened_by: by})))) return;
+  showToast("اتفتح اليوم — لغاية آخر النهاردة"); loadDayStatus();
+}
 
 /* تنبيه تسليم واستلام: مين هيبدأ راحته بكرة (تقصيرته النهاردة) وكان
    بيشتغل إيه، عشان يتكلّف بديل — من غير ما ننسخ التكليفات تلقائي. */
@@ -262,7 +344,6 @@ $("#dayTomorrow").onclick = async () => {
 async function load() {
   const d = await bootstrap();
   if (!d) return;
-  SERVICES = (d.services || []).filter(s => (s.appears_in || []).includes("board"));
   OFFICERS = d.officer_index || [];
   PERSONNEL = d.personnel_index || [];
   const days = d.days || [];

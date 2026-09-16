@@ -1,7 +1,7 @@
 """دفتر 43 — الشبكة الشهرية وصفحة الضابط."""
 from flask import Blueprint, jsonify
 
-from ..people import find_person
+from ..repo import Repos
 from ..register import month_register, officer_register
 from ..store import load_data
 
@@ -20,7 +20,7 @@ def get_month(year, month):
 @bp.get("/api/register/officer/<officer_id>")
 def get_officer(officer_id):
     data = load_data()
-    person, category, _ = find_person(data, officer_id)
+    person, category, _ = Repos(data).people.locate(officer_id)
     if not person or category != "officers":
         return jsonify({"error": "الضابط غير موجود."}), 404
     out = officer_register(data, officer_id)

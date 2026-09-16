@@ -20,8 +20,9 @@
 الخدمات الموسومة (مباراة، خطة انتشار) بتفضل **جوّه** قسمها مع عنوان
 فرعي، زي «خطة انتشار 6م» في لوحة 15/6 — مش في جريد منفصل.
 """
-from .assignments import label, officer_states, peek_day, services_by_id
+from .assignments import label, officer_states, peek_day
 from .checks import day_warnings
+from .confirm import state_of as confirm_state
 from .constants import (
     SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_SECURITY,
     SECTION_SUBCAMP, SECTION_TARGETS, SHIFTS,
@@ -54,12 +55,11 @@ TARGETS_FIRST = "مشرف الأهداف"
 
 
 def _people_index(data):
-    out = {}
-    for cat in ("officers", "personnel"):
-        for bucket in ("active", "archive"):
-            for p in data.get(cat, {}).get(bucket, []):
-                out[p["id"]] = p
-    return out
+    from .repo import PeopleRepo
+
+    people = PeopleRepo(data)
+    return {p["id"]: p for cat in ("officers", "personnel")
+            for p in people.raw_all(cat)}
 
 
 def _person(people, person_id, day):
@@ -70,22 +70,25 @@ def _person(people, person_id, day):
     return {"id": person_id, "name": p.get("name", ""), "role": eff["role"]}
 
 
-def _row(assignment, svc, people, day):
+def _row(assignment, people, day):
     """صف واحد على اللوحة. الخانة الشاغرة (بلا ضباط) صف مشروع مش نقص —
     1,034 صف خدمات طارئة في الأرشيف قوامها أفراد ومجندين من غير ضابط."""
     officers = [_person(people, oid, day) for oid in assignment.get("officer_ids") or []]
     personnel = [_person(people, pid, day) for pid in assignment.get("personnel_ids") or []]
     return {
         "id": assignment["id"],
-        "service_id": assignment.get("service_id"),
-        "label": label(assignment, svc, with_shift=assignment.get("section") == SECTION_BASIC),
+        "name": assignment.get("name", ""),
+        "kind": assignment.get("kind", ""),
+        "section": assignment.get("section", ""),
+        "label": label(assignment, with_shift=assignment.get("section") == SECTION_BASIC),
         "shift": assignment.get("shift", ""),
         "officers": officers,
         "personnel": personnel,
         "conscripts": assignment.get("conscripts") or [],
-        "weapon": assignment.get("weapon") or (svc or {}).get("default_weapon", ""),
-        "time": assignment.get("time") or (svc or {}).get("default_time", ""),
-        "party": assignment.get("party") or (svc or {}).get("party", ""),
+        "conscript_count": int(assignment.get("conscript_count") or 0),
+        "weapon": assignment.get("weapon", ""),
+        "time": assignment.get("time", ""),
+        "party": assignment.get("party", ""),
         "note": assignment.get("note", ""),
         "tags": assignment.get("tags") or [],
         "vacant": not officers and not personnel,
@@ -105,8 +108,8 @@ def _fixed_slots(rows):
         if match:
             out.extend(match)
         else:
-            out.append({"id": None, "service_id": None, "label": "", "shift": shift,
-                        "officers": [], "personnel": [], "conscripts": [],
+            out.append({"id": None, "name": "", "kind": "", "label": "", "shift": shift,
+                        "officers": [], "personnel": [], "conscripts": [], "conscript_count": 0,
                         "weapon": "", "time": "", "party": "", "note": "",
                         "tags": [], "vacant": True, "placeholder": True})
     # صفوف بلا فترة (لو حد حطها كده) بتتعرض بعد الصفّين الثابتين
@@ -126,15 +129,13 @@ def _grouped(rows):
 
 
 def build_board(data, day):
-    services = services_by_id(data)
     people = _people_index(data)
     states = officer_states(data, day)
 
     by_section = {name: [] for name in ASSIGNMENT_SECTIONS}
     for a in peek_day(data, day):
-        svc = services.get(a.get("service_id"))
-        section = a.get("section") or (svc or {}).get("section") or SECTION_OCCASIONAL
-        by_section.setdefault(section, []).append(_row(a, svc, people, day))
+        section = a.get("section") or SECTION_OCCASIONAL
+        by_section.setdefault(section, []).append(_row(a, people, day))
     by_section[SECTION_TARGETS].sort(key=_target_key)
 
     full = summarise(data, day)
@@ -183,4 +184,5 @@ def build_board(data, day):
         sections.append({"name": name, "type": "services", "rows": plain, "groups": groups})
 
     return {"date": day, "sections": sections, "states": states,
+            "confirm": confirm_state(data, day),
             "warnings": day_warnings(data, day, full["rows"])}

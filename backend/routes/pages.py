@@ -16,7 +16,12 @@ PAGES = {
     "personnel": ("force.html", "الأفراد", "سجل الأفراد والأرشيف"),
     "duty": ("duty.html", "يومية الضباط", "تشغيل الضباط اليومي وجدول الإجمالي"),
     "board": ("board.html", "اليومية التفصيلية", "خدمات اليوم بأقسامها — الضباط والأفراد والمجندين"),
-    "catalog": ("catalog.html", "كتالوج الخدمات", "تصنيف الخدمات المستخدمة في جدول الإجمالي"),
+    "counts": ("counts.html", "اعداد الخدمات",
+                "الخدمات الأساسية الصباحية والمسائية + إجمالي الطوارئ من اليومية التفصيلية"),
+    "changes": ("changes.html", "سجل التغييرات",
+                 "مين عدّل إيه وإمتى — بيتسجّل وقت تأكيد اليومية مش وقت الحفظ"),
+    "missions": ("missions.html", "المأموريات",
+                  "مأموريات لها دورة حياة (مخططة/بدأت/عادت/أغلقت) — مش خدمة متكررة"),
     "courses": ("courses.html", "الفِرق والدورات",
                  "الدورات اللي الضباط بياخدوها ومدة كل التحاق"),
     "register": ("register.html", "دفتر 43",
@@ -63,9 +68,19 @@ def board():
     return _render("board")
 
 
-@bp.get("/catalog")
-def catalog():
-    return _render("catalog")
+@bp.get("/counts")
+def counts():
+    return _render("counts")
+
+
+@bp.get("/changes")
+def changes():
+    return _render("changes")
+
+
+@bp.get("/missions")
+def missions():
+    return _render("missions")
 
 
 @bp.get("/leaves")

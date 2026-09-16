@@ -104,9 +104,6 @@ def rank_key(person, command_priority=None):
 def sort_active(data, category):
     """قوائم الضباط دايمًا بالرتبة (وقيادة الإدارة أولًا)؛ الأفراد بالاسم
     زي ما هو معمول من الأول."""
-    if category == "officers":
-        priority = command_priority_map(data)
-        data[category]["active"].sort(key=lambda p: rank_key(p, priority))
-    else:
-        data[category]["active"].sort(key=lambda p: (p.get("name", ""), p.get("code", "")))
+    from .repo import PeopleRepo
+    PeopleRepo(data).sort(category)
 

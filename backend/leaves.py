@@ -38,10 +38,12 @@ def build_leave(payload, data, leave_id):
     if len(note) > MAX_NOTE:
         return None, f"الملاحظة أطول من الحد المسموح ({MAX_NOTE} حرف)."
 
+    # `name` **مابيتخزّنش** — بيتحلّ من `person_id` وقت القراءة
+    # (`LeaveRepo.named`). تخزينه كان بيخلي أي تعديل اسم يسيب الراحات
+    # القديمة بالاسم القديم لحد ما كود مزامنة يلحقها.
     return {
         "id": leave_id,
         "person_id": person_id,
-        "name": person.get("name", ""),
         "type": kind,
         "start": start.isoformat(),
         "end": end.isoformat(),
@@ -96,7 +98,9 @@ def monthly_roster(data, today):
     """
     today_iso = today.isoformat()
     out = []
-    for o in data["officers"]["active"]:
+    from .repo import PeopleRepo
+
+    for o in PeopleRepo(data).bucket("officers", "active"):
         system = o.get("rest_system", "")
         if system not in MONTHLY_REST_SYSTEMS:
             continue
@@ -121,8 +125,11 @@ def stats(data, filters):
     بيتحسب في كل طلب وماحدش بيقراه — نص زمن الدالة كان رايح في حلقة
     يوم-بيوم على كل الراحات عشان رسم مش موجود في الواجهة أصلًا.
     """
+    from .repo import LeaveRepo
+
     all_leaves = data.get("leaves", [])
     today_str = date.today().isoformat()
+    names = LeaveRepo(data).names()      # الاسم من سجل القوة مش من سجل الراحة
 
     month_from = filters.get("month_from", "")
     month_to = filters.get("month_to", "")
@@ -191,7 +198,7 @@ def stats(data, filters):
             pass
 
         pid = lv.get("person_id", "")
-        entry = by_officer.setdefault(pid, {"name": lv.get("name", pid), "count": 0, "days": 0})
+        entry = by_officer.setdefault(pid, {"name": names.get(pid, pid), "count": 0, "days": 0})
         entry["count"] += 1
         entry["days"] += n
 

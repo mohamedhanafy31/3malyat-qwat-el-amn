@@ -18,6 +18,7 @@ from .date_range import overlapping_of, parse_range
 from .people import effective
 from .store import reserve_id
 from .utils import command_priority_map, parse_date, rank_key
+from .repo import PeopleRepo
 
 # نوع الفرقة زي ما بتتكتب في التشغيل
 COURSE_KINDS = ["تأهيلية", "تخصصية", "قادة", "تدريبية", "أخرى"]
@@ -149,15 +150,14 @@ def by_officer(data):
     تشغيلي زي «مين خد إيه» بالظبط.
     """
     catalog = by_id(data)
-    people = {p["id"]: p for b in ("active", "archive") for p in data["officers"][b]}
     grouped = {}
     for term in terms(data):
         grouped.setdefault(term["officer_id"], []).append(term)
 
     # النشطين كلهم + أي متأرشف ليه التحاق مسجّل
-    shown = list(data["officers"]["active"])
+    shown = list(PeopleRepo(data).bucket("officers", "active"))
     known = {p["id"] for p in shown}
-    shown += [p for p in data["officers"]["archive"]
+    shown += [p for p in PeopleRepo(data).bucket("officers", "archive")
               if p["id"] in grouped and p["id"] not in known]
     priority = command_priority_map(data)
     shown.sort(key=lambda p: rank_key(p, priority))
@@ -181,7 +181,7 @@ def by_officer(data):
 def summary(data, officer_ids=None):
     """كل فرقة ومعاها التحاقاتها — للعرض في الصفحة."""
     people = {p["id"]: p for cat in ("officers",)
-              for b in ("active", "archive") for p in data[cat][b]}
+              for p in PeopleRepo(data).raw_all(cat)}
     grouped = {}
     for term in terms(data):
         grouped.setdefault(term["course_id"], []).append(term)

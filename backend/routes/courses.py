@@ -5,6 +5,7 @@ from ..courses import (
     build_course, build_term, by_id, by_officer, courses, new_course_id,
     new_term_id, overlapping, summary, terms,
 )
+from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload
 
@@ -59,13 +60,12 @@ def edit_course(course_id):
 @bp.delete("/api/courses/<course_id>")
 def delete_course(course_id):
     def mutate(data):
-        used = sum(1 for t in terms(data) if t.get("course_id") == course_id)
+        repos = Repos(data)
+        used = len(repos.terms.of_course(course_id))
         if used:
             raise AbortRequest((jsonify({
                 "error": f"الفرقة ليها {used} التحاق مسجّل. امسح الالتحاقات الأول."}), 409))
-        before = len(courses(data))
-        data["courses"] = [c for c in courses(data) if c["id"] != course_id]
-        if len(data["courses"]) == before:
+        if not repos.courses.remove(course_id):
             raise AbortRequest((jsonify({"error": "الفرقة غير موجودة."}), 404))
         return jsonify({"ok": True})
 
@@ -117,9 +117,7 @@ def edit_term(term_id):
 @bp.delete("/api/course-terms/<term_id>")
 def delete_term(term_id):
     def mutate(data):
-        before = len(terms(data))
-        data["course_terms"] = [t for t in terms(data) if t["id"] != term_id]
-        if len(data["course_terms"]) == before:
+        if not Repos(data).terms.remove(term_id):
             raise AbortRequest((jsonify({"error": "الالتحاق غير موجود."}), 404))
         return jsonify({"ok": True})
 

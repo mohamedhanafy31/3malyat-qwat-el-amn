@@ -124,7 +124,6 @@ function paintNavCounts(d){
     navOfficers: (d.officers && d.officers.active) ? d.officers.active.length : c.officers,
     navPersonnel: (d.personnel && d.personnel.active) ? d.personnel.active.length : (Array.isArray(d.personnel) ? d.personnel.length : c.personnel),
     navLeaves: d.leaves ? d.leaves.length : c.leaves,
-    navDuty: d.services ? d.services.length : c.services,
     navCourses: c.courses,
   };
   for (const [id, v] of Object.entries(n)){
@@ -282,18 +281,46 @@ function statusCell(p){
     return `<span class="chip soon">راحة قادمة</span><div class="sub">${fmt(st.rest_start)}</div>`;
   return `<span class="chip on">بالعمل</span>`;
 }
+/* التنبيه كان بيترسم قائمة عمودية صف كامل لكل ضابط فوق عنوان الصفحة — عشر
+   ضباط يعني ~30 سطر بيدفعوا كل محتوى الصفحة تحت حافة الشاشة. بقى شبكة
+   مضغوطة قابلة للطي، وضباط النهاردة متقدمين على اللي بعدهم لأنهم الأعجل. */
 function renderAlerts(alerts){
   const box=$("#alerts"); if(!box) return;
   if(!alerts||!alerts.length){box.innerHTML="";return}
-  box.innerHTML=`<div class="alert-card">
-    <div class="alert-head"><span class="alert-ico">⚠</span>
-      <strong>تنبيه تقصيرة</strong>
-      <span class="muted">اليوم السابق للراحة — ${alerts.length} ضابط</span></div>
-    <ul class="alert-list">${alerts.map(a=>`<li>
-      <span class="a-name">${esc(a.role)} / ${esc(a.name)}</span>
-      <span class="a-mid">تقصيرة يوم <b>${dayName(a.taqseera_date)} ${fmt(a.taqseera_date)}</b>${a.taqseera_date===curDate()?' <span class="chip taq">النهاردة</span>':""}</span>
-      <span class="a-rest">الراحة ${esc(a.type)} تبدأ ${dayName(a.rest_start)} ${fmt(a.rest_start)}</span>
-    </li>`).join("")}</ul></div>`;
+  const today=curDate();
+  const sorted=[...alerts].sort((a,b)=>String(a.taqseera_date).localeCompare(String(b.taqseera_date)));
+  const todayCount=sorted.filter(a=>a.taqseera_date===today).length;
+  const lede=todayCount
+    ? `${todayCount} تقصيرة النهاردة · ${sorted.length - todayCount} خلال الأيام الجاية`
+    : `${sorted.length} ضابط خلال الأيام الجاية`;
+  /* على الرئيسية التنبيه هو الخبر نفسه فبيفضل مفتوح. على صفحة الضباط الجدول
+     هو المقصود، والمعلومة نفسها موجودة في عمود «حالة اليوم» — فبيبدأ مطوي
+     وسطر الملخص لسه بيقول العدد. واللي المستخدم يختاره بيتحفظ له. */
+  const saved=localStorage.getItem("alertsOpen");
+  const open=saved===null?PAGE==="dashboard":saved==="1";
+  box.innerHTML=`<div class="alert-card"><details class="alert-fold" ${open?"open":""}>
+    <summary>
+      <span class="alert-head"><span class="alert-ico">⚠</span>
+        <strong>تنبيه تقصيرة</strong>
+        <span class="muted">${esc(lede)}</span></span>
+      <span class="alert-toggle">التفاصيل</span>
+    </summary>
+    <ul class="alert-list">${sorted.map(a=>{
+      const isToday=a.taqseera_date===today;
+      const when=isToday?"<b>النهاردة</b>":`${dayName(a.taqseera_date)} ${fmt(a.taqseera_date)}`;
+      return `<li class="${isToday?"is-today":""}">
+        <span class="a-name">${esc(a.role)} / ${esc(a.name)}</span>
+        <span class="a-meta"><span class="a-mid">تقصيرة ${when}</span>
+          <span class="a-rest">راحة ${esc(a.type)} ${fmt(a.rest_start)}</span></span>
+      </li>`;
+    }).join("")}</ul>
+  </details></div>`;
+  /* الحفظ لازم يكون على نقرة المستخدم بس. حدث `toggle` بيتطلق كمان لما
+     المتصفح يركّب <details open> لأول مرة، فالرئيسية (اللي بتفتحه
+     افتراضيًا) كانت بتكتب "1" وتخلّيه مفتوح في كل الصفحات التانية. */
+  const fold=box.querySelector(".alert-fold");
+  fold.querySelector("summary").addEventListener("click",()=>
+    setTimeout(()=>localStorage.setItem("alertsOpen",fold.open?"1":"0"),0));
 }
 
 /* ---------- منتقي التاريخ العربي ----------
@@ -414,6 +441,9 @@ function upgradeDateInputs(root){
     const mode=input.type, initial=input.value;
     input.dataset.picker=mode;
     input.type="text";
+    // حقل النص عرضه الطبيعي ~٢٠ حرف، والتاريخ العربي «١٥ سبتمبر ٢٠٢٦» أقصر
+    // من كده بكتير — من غير الضبط ده الحقل بيطلع ضعف اللي محتاجه في الأشرطة.
+    input.size=14;
     input.readOnly=true;
     input.classList.add("date-input-display");
     let iso=initial||"";
@@ -434,12 +464,360 @@ function upgradeDateInputs(root){
 }
 upgradeDateInputs();
 
+/* ═══════════════════════════════════════════════════════════════════
+   قائمة منسدلة قابلة للبحث (Combobox)
+   ───────────────────────────────────────────────────────────────────
+   القوايم هنا فيها أحيانًا مئات الخيارات (قايمة الأشخاص في نموذج الراحة
+   فيها ~500 اسم، والضباط 34)، والـ<select> الأصلي مالوش بحث — يعني تدوّر
+   بعينك أو تعتمد على كتابة أول حرفين اللي المتصفح بيعملها بالمطابقة
+   الحرفية بس.
+
+   الحل: حقل كتابة + قايمة مفلترة فوقه، بس **الـ<select> الأصلي بيفضل في
+   الصفحة زي ما هو** وهو مصدر الحقيقة. ده مقصود: في ١٩ نداء لـfillSelect
+   وعشرات القراءات `$("#x").value` في كل الصفحات — كلها بتفضل شغالة من
+   غير ما تتلمس. الحقل الجديد مجرد واجهة بتكتب في الـselect وبتقرا منه.
+
+   البحث بيستخدم normAr نفسها اللي فوق، فـ«احمد» بتلاقي «أحمد» و«فاطمه»
+   بتلاقي «فاطمة» — نفس سلوك البحث في باقي النظام.
+   ═══════════════════════════════════════════════════════════════════ */
+const _selValueDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
+
+const comboPop = document.createElement("div");
+comboPop.className = "combo-pop hidden";
+document.body.appendChild(comboPop);
+
+/* الضغط على خيار لازم ما يسحبش التركيز من حقل البحث.
+   من غير الـpreventDefault دي: mousedown على الخيار بيعمل blur للحقل →
+   معالج الـblur بيقفل القايمة في setTimeout(0) → الـtimer ده بيشتغل **قبل**
+   حدث click → لما _cbPick يتنادى تكون _cbOpts اتفضّت و_cbSel بقى null،
+   فالاختيار ما بيحصلش خالص. الأحداث الصناعية في الاختبار كانت بتتبعت كلها
+   في نفس المهمة فالـtimer ماكانش بيلحق يشتغل، وده اللي خفى العيب. */
+comboPop.addEventListener("mousedown", e => e.preventDefault());
+
+let _cbSel = null, _cbInput = null, _cbOpts = [], _cbIdx = -1, _cbMulti = false;
+
+const _cbLabel = sel => sel.options[sel.selectedIndex]?.textContent ?? "";
+
+/* ---------- الاختيار المتعدد ----------
+   `<select multiple size=4>` كان صندوق تمرير بأربع أسطر جوه 49 اسم، والاختيار
+   المتعدد فيه لازم Ctrl+نقر — أي نقرة عادية بتمسح كل اللي قبلها. بقى صندوق
+   وسوم: المختارين ظاهرين كلهم كشارات تتشال بنقرة، والبحث جنبهم.
+   الـ<select> نفسه بيفضل مصدر الحقيقة — readMulti() بتقرا selectedOptions
+   زي ما هي، و fillMulti() بتكتب innerHTML والمراقب بيعيد رسم الشارات. */
+function _msSync(sel) {
+  const box = sel._comboBox, inp = sel._comboInput;
+  if (!box) return;
+  box.querySelectorAll(".multi-chip").forEach(n => n.remove());
+  const chosen = [...sel.options].filter(o => o.selected);
+  for (const o of chosen) {
+    const chip = document.createElement("span");
+    chip.className = "multi-chip";
+    chip.innerHTML = `${esc(o.textContent)}<button type="button" class="multi-x"
+      data-action="_msRemove" data-extra="${dataAttr({v: o.value})}"
+      aria-label="شيل ${esc(o.textContent)}">×</button>`;
+    box.insertBefore(chip, inp);
+  }
+  inp.placeholder = chosen.length ? "زوّد كمان…" : "دوّر واختار…";
+  box.classList.toggle("has-items", chosen.length > 0);
+}
+
+ACTIONS._msRemove = (_id, extra, el) => {
+  const sel = el.closest(".multi")?._sel;
+  if (!sel) return;
+  const o = [...sel.options].find(x => x.value === extra.v);
+  if (!o) return;
+  o.selected = false;
+  _msSync(sel);
+  if (_cbSel === sel) _cbRender(_cbInput.value);
+  sel.dispatchEvent(new Event("change", {bubbles: true}));
+};
+
+/** يرجّع نص الحقل للقيمة المختارة فعلًا في الـselect. */
+function _cbSync(sel) {
+  const inp = sel._comboInput;
+  if (!inp) return;
+  inp.value = _cbLabel(sel);
+  inp.disabled = sel.disabled;
+}
+
+function _cbRender(q) {
+  if (!_cbSel) return;
+  const opts = [..._cbSel.options];
+  const all = opts.map((o, i) => ({i, text: o.textContent, value: o.value}));
+  _cbOpts = q ? all.filter(o => arIncludes(o.text, q)) : all;
+  if (!_cbOpts.length) {
+    comboPop.innerHTML = `<div class="combo-empty">مفيش خيار مطابق لـ«${esc(q)}»</div>`;
+    return;
+  }
+  if (_cbIdx >= _cbOpts.length) _cbIdx = _cbOpts.length - 1;
+  const cur = _cbSel.value;
+  const chosen = o => _cbMulti ? opts[o.i].selected : o.value === cur;
+  comboPop.innerHTML = `<ul class="combo-list" role="listbox"
+    ${_cbMulti ? 'aria-multiselectable="true"' : ""}>${_cbOpts.map((o, n) => {
+    const on = chosen(o);
+    return `<li role="option" aria-selected="${on}" data-action="_cbPick" data-id="${n}"
+      class="combo-opt${on ? " sel" : ""}${n === _cbIdx ? " active" : ""}"
+      >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? "✔" : ""}</span>` : ""}${esc(o.text)}</li>`;
+  }).join("")}</ul>`;
+}
+
+function _cbScrollActive() {
+  comboPop.querySelector(".combo-opt.active")?.scrollIntoView({block: "nearest"});
+}
+
+function _cbPosition() {
+  const r = _cbInput.getBoundingClientRect();
+  comboPop.style.width = `${r.width}px`;
+  comboPop.style.left = `${r.left}px`;
+  // لو مفيش مكان تحت الحقل، القايمة بتطلع فوقه بدل ما تتقص
+  const below = window.innerHeight - r.bottom;
+  comboPop.style.maxHeight = `${Math.max(150, Math.min(280, below - 12))}px`;
+  if (below < 170 && r.top > below) {
+    comboPop.style.top = "auto";
+    comboPop.style.bottom = `${window.innerHeight - r.top + 4}px`;
+    comboPop.style.maxHeight = `${Math.min(280, r.top - 12)}px`;
+  } else {
+    comboPop.style.bottom = "auto";
+    comboPop.style.top = `${r.bottom + 4}px`;
+  }
+}
+
+function _cbOpen(sel) {
+  if (sel.disabled) return;
+  _cbSel = sel; _cbInput = sel._comboInput; _cbMulti = !!sel.multiple;
+  _cbIdx = _cbMulti ? 0 : Math.max(0, sel.selectedIndex);
+  if (!_cbMulti) {
+    // الحقل بيتفضّى عشان الكتابة تبدأ بحث جديد، والمختار حاليًا باين كـplaceholder
+    _cbInput.placeholder = _cbLabel(sel) || "اختار...";
+    _cbInput.value = "";
+  }
+  _cbRender("");
+  comboPop.classList.remove("hidden");
+  comboPop.classList.toggle("is-multi", _cbMulti);
+  _cbPosition();
+  _cbInput.setAttribute("aria-expanded", "true");
+  _cbScrollActive();
+}
+
+function _cbClose() {
+  if (_cbInput) {
+    _cbInput.setAttribute("aria-expanded", "false");
+    if (_cbMulti) { _cbInput.value = ""; _msSync(_cbSel) }
+    else { _cbInput.placeholder = ""; _cbSync(_cbSel) }
+  }
+  comboPop.classList.add("hidden");
+  _cbSel = null; _cbInput = null; _cbOpts = []; _cbIdx = -1; _cbMulti = false;
+}
+
+function _cbPick(n) {
+  const o = _cbOpts[n];
+  if (!o) return;
+  const sel = _cbSel, inp = _cbInput;
+
+  if (_cbMulti) {
+    // الاختيار المتعدد: القايمة بتفضل مفتوحة عشان تكمّل اختيار من غير ما تعيد فتحها
+    const opt = sel.options[o.i];
+    opt.selected = !opt.selected;
+    _msSync(sel);
+    _cbIdx = n;
+    _cbRender(inp.value);
+    _cbPosition();
+    sel.dispatchEvent(new Event("change", {bubbles: true}));
+    inp.focus();
+    return;
+  }
+
+  _cbClose();
+  sel.value = o.value;                       // بيعدي على الـsetter المعدّل فيسيّنك الحقل
+  sel.dispatchEvent(new Event("input", {bubbles: true}));
+  sel.dispatchEvent(new Event("change", {bubbles: true}));
+  inp?.focus();
+}
+ACTIONS._cbPick = id => _cbPick(Number(id));
+
+function _cbMove(step) {
+  if (!_cbOpts.length) return;
+  _cbIdx = (_cbIdx + step + _cbOpts.length) % _cbOpts.length;
+  comboPop.querySelectorAll(".combo-opt").forEach((el, i) =>
+    el.classList.toggle("active", i === _cbIdx));
+  _cbScrollActive();
+}
+
+/** صندوق الوسوم للاختيار المتعدد — شارة لكل مختار + حقل بحث جنبهم. */
+function _upgradeMulti(sel) {
+  const box = document.createElement("div");
+  box.className = "multi";
+  const inp = document.createElement("input");
+  inp.type = "text"; inp.size = 1; inp.autocomplete = "off";
+  inp.className = "multi-input";
+  inp.setAttribute("role", "combobox");
+  inp.setAttribute("aria-expanded", "false");
+  inp.setAttribute("aria-autocomplete", "list");
+  const lab = sel.closest("label");
+  if (lab) inp.setAttribute("aria-label", lab.textContent.replace(/\s+/g, " ").trim());
+  box.appendChild(inp);
+
+  box._sel = sel; sel._comboBox = box; sel._comboInput = inp;
+  sel.parentNode.insertBefore(box, sel);
+  sel.classList.add("combo-native");
+  sel.setAttribute("tabindex", "-1");
+  sel.setAttribute("aria-hidden", "true");
+  _msSync(sel);
+
+  box.addEventListener("mousedown", e => {
+    if (e.target.closest(".multi-x")) return;      // زرار شيل الشارة له تصرفه
+    e.preventDefault();
+    inp.focus();
+    if (_cbSel !== sel) _cbOpen(sel);
+  });
+  inp.addEventListener("input", () => {
+    if (_cbSel !== sel) _cbOpen(sel);
+    _cbIdx = 0; _cbRender(inp.value); _cbPosition();
+  });
+  inp.addEventListener("keydown", e => {
+    const open = _cbSel === sel;
+    if (e.key === "ArrowDown") { e.preventDefault(); open ? _cbMove(1) : _cbOpen(sel) }
+    else if (e.key === "ArrowUp") { e.preventDefault(); open ? _cbMove(-1) : _cbOpen(sel) }
+    else if (e.key === "Enter" && open) { e.preventDefault(); _cbPick(_cbIdx) }
+    else if (e.key === "Escape" && open) { e.stopPropagation(); _cbClose() }
+    else if (e.key === "Tab" && open) { _cbClose() }
+    // Backspace على حقل فاضي بيشيل آخر شارة — اختصار متوقع في صناديق الوسوم
+    else if (e.key === "Backspace" && !inp.value) {
+      const last = [...sel.options].filter(o => o.selected).pop();
+      if (last) {
+        last.selected = false; _msSync(sel);
+        if (open) _cbRender(inp.value);
+        sel.dispatchEvent(new Event("change", {bubbles: true}));
+      }
+    }
+  });
+  /* النقر على خيار بيعمل blur للحقل ثم بنرجّع الفوكس له — فلازم نستثني
+     الحالة دي، وإلا القايمة بتتقفل بعد كل اختيار والمفروض تفضل مفتوحة. */
+  inp.addEventListener("blur", () => setTimeout(() => {
+    if (_cbSel === sel && document.activeElement !== inp
+        && !comboPop.contains(document.activeElement)) _cbClose();
+  }, 0));
+
+  // fillMulti() بتستبدل الـinnerHTML بالكامل ومعاه الـselected
+  new MutationObserver(() => {
+    _msSync(sel);
+    if (_cbSel === sel) _cbRender(_cbInput.value);
+  }).observe(sel, {childList: true, attributes: true, attributeFilter: ["disabled"]});
+}
+
+/** بتحوّل أي <select> مفرد لحقل بحث. بتتنادى مرة على الصفحة كلها، وكمان
+ *  من أي كود بيولّد <select> بعد التحميل (زي كروت قيادة الإدارة). */
+function upgradeSelects(root) {
+  (root || document).querySelectorAll("select:not([data-combo])").forEach(sel => {
+    sel.dataset.combo = "1";
+    if (sel.multiple) { _upgradeMulti(sel); return }
+
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.autocomplete = "off";
+    // <input> عرضه الطبيعي ~٢٠ حرف، والـ<select> عرضه بقد أطول خيار. من غير
+    // ده الحقول بتطلع أعرض من القوايم اللي حلّت محلها وبتزحلق أزرار الشريط لسطر تاني.
+    inp.size = 1;
+    inp.className = `${sel.className} combo-input`.trim();
+    inp.setAttribute("role", "combobox");
+    inp.setAttribute("aria-expanded", "false");
+    inp.setAttribute("aria-autocomplete", "list");
+    // الاسم المقروء: من aria-label أو من الـ<label> المرتبط (صريح أو محيط)
+    const lab = sel.closest("label")
+      || (sel.id && document.querySelector(`label[for="${CSS.escape(sel.id)}"]`));
+    const name = sel.getAttribute("aria-label")
+      || (lab ? lab.textContent.replace(/\s+/g, " ").trim() : "");
+    if (name) inp.setAttribute("aria-label", name);
+
+    /* التحقق المطلوب (required) بينتقل للحقل الظاهر: المتصفح مايقدرش يوقف
+       عند عنصر مخفي، وكان هيرمي "not focusable" ويمنع الحفظ. القوايم
+       الثلاثة اللي عليها required مفيهاش خيار فاضي — بتتملّي بقيم حقيقية
+       وبتختار أول واحدة — فالمعنى واحد، بس الرسالة بقت على حقل مرئي. */
+    if (sel.required) { inp.required = true; sel.removeAttribute("required") }
+
+    sel._comboInput = inp;
+    sel.classList.add("combo-native");
+    sel.setAttribute("tabindex", "-1");
+    sel.setAttribute("aria-hidden", "true");
+    sel.parentNode.insertBefore(inp, sel);
+    _cbSync(sel);
+
+    inp.addEventListener("mousedown", e => {
+      e.preventDefault();                       // من غير كده الفوكس بيسبق الفتح
+      _cbSel === sel ? _cbClose() : _cbOpen(sel);
+      inp.focus();
+    });
+    inp.addEventListener("input", () => {
+      if (_cbSel !== sel) _cbOpen(sel);
+      _cbIdx = 0;
+      _cbRender(inp.value);
+      _cbPosition();
+    });
+    inp.addEventListener("keydown", e => {
+      const open = _cbSel === sel;
+      if (e.key === "ArrowDown") { e.preventDefault(); open ? _cbMove(1) : _cbOpen(sel) }
+      else if (e.key === "ArrowUp") { e.preventDefault(); open ? _cbMove(-1) : _cbOpen(sel) }
+      else if (e.key === "Home" && open) { e.preventDefault(); _cbIdx = 0; _cbMove(0) }
+      else if (e.key === "End" && open) { e.preventDefault(); _cbIdx = _cbOpts.length - 1; _cbMove(0) }
+      else if (e.key === "Enter") {
+        if (open) { e.preventDefault(); _cbPick(_cbIdx) }
+      }
+      else if (e.key === "Escape") { if (open) { e.stopPropagation(); _cbClose() } }
+      else if (e.key === "Tab") { if (open) _cbClose() }
+    });
+    inp.addEventListener("blur", () => { if (_cbSel === sel) setTimeout(() => {
+      if (_cbSel === sel && !comboPop.contains(document.activeElement)) _cbClose();
+    }, 0) });
+
+    /* الكود القديم بيكتب `sel.value = x` مباشرة في مليون مكان، وde مش
+       بيولّد أي حدث — فبنلفّ الخاصية نفسها عشان الحقل يفضل متطابق.
+       نفس الأسلوب المستخدم فوق مع حقول التاريخ. */
+    Object.defineProperty(sel, "value", {
+      configurable: true,
+      get() { return _selValueDesc.get.call(sel) },
+      set(v) { _selValueDesc.set.call(sel, v); _cbSync(sel) },
+    });
+
+    // fillSelect() بيستبدل الـinnerHTML كله — الحقل لازم يتحدّث بعدها
+    new MutationObserver(() => {
+      _cbSync(sel);
+      if (_cbSel === sel) _cbRender(_cbInput.value);
+    }).observe(sel, {childList: true, attributes: true, attributeFilter: ["disabled"]});
+  });
+}
+upgradeSelects();
+
+/* لازم mousedown مش click: اختيار عنصر من قايمة متعددة بيعيد رسم الـinnerHTML
+   جوه معالج الـclick، فالعنصر اللي اتضغط بيبقى مفصول عن الـDOM وقت ما الحدث
+   يوصل هنا — و`contains()` بترجع false فالقايمة كانت بتتقفل بعد كل اختيار. */
+document.addEventListener("mousedown", e => {
+  if (_cbSel && !comboPop.contains(e.target) && e.target !== _cbInput
+      && !e.target.closest(".multi")) _cbClose();
+});
+window.addEventListener("resize", () => { if (_cbSel) _cbPosition() });
+
 /* ---------- ربط عام ---------- */
-$("#burgerBtn").onclick=()=>$("#sidebar").classList.toggle("open");
+/* القائمة الجانبية على الشاشة الصغيرة: كانت بتتفتح وخلاص — من غير حجاب ولا
+   طريقة تقفلها غير إنك تضغط الزرار تاني بالظبط. دلوقتي الضغط برّه أو Esc
+   أو اختيار قسم بيقفلها، والزرار بيقول حالته لقارئ الشاشة. */
+const sidebarEl=$("#sidebar"), scrimEl=$("#scrim"), burgerEl=$("#burgerBtn");
+function setSidebar(open){
+  sidebarEl.classList.toggle("open",open);
+  scrimEl.classList.toggle("open",open);
+  burgerEl.setAttribute("aria-expanded",String(open));
+  burgerEl.setAttribute("aria-label",open?"إغلاق القائمة":"فتح القائمة");
+}
+burgerEl.onclick=()=>setSidebar(!sidebarEl.classList.contains("open"));
+scrimEl.onclick=()=>setSidebar(false);
+sidebarEl.addEventListener("click",e=>{ if(e.target.closest(".navbtn")) setSidebar(false) });
+
 $$("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 $$(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.add("hidden")});
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ $$(".modal").forEach(m=>m.classList.add("hidden")); _dpClose() }
+  if(e.key!=="Escape") return;
+  // Esc وقت القايمة مفتوحة بيقفل القايمة بس — مش النافذة اللي هي جواها
+  if(_cbSel){ _cbClose(); return }
+  $$(".modal").forEach(m=>m.classList.add("hidden")); _dpClose(); setSidebar(false);
 });
 
 /* اسم من قام بالتعديل — بيتحفظ محليًا وبيتبعت مع أي طلب تعديل كـheader،

@@ -64,7 +64,7 @@ def test_a_recorded_assignment_beats_the_inferred_span(client):
     course = _course(client).get_json()
     _term(client, course_id=course["id"])
     client.post(f"/api/assignments/{DAY}",
-                json={"service_id": "SVC-001", "shift": "صباحية",
+                json={"name": "دورية خارجية", "kind": "خارجية", "shift": "صباحية",
                       "officer_ids": ["OFF-002"]})
 
     row = _row(client, "OFF-002", DAY)

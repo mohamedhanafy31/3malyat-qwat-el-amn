@@ -3,92 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ page_title }} — سِجِلّ</title>
+  <title>{{ page_title }} — مكتب العمليات وشئون الضباط</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body data-page="{{ page }}">
 <header class="topbar">
-  <button class="burger" id="burgerBtn" aria-label="القائمة">☰</button>
+  <button class="burger" id="burgerBtn" aria-label="فتح القائمة" aria-expanded="false"
+          aria-controls="sidebar">☰</button>
   <div class="crest">
-    <svg viewBox="0 0 24 24"><path d="M12 2 3 6v6c0 5.2 3.6 9.9 9 11 5.4-1.1 9-5.8 9-11V6l-9-4Zm0 2.2 7 3.1v4.7c0 4.1-2.7 7.9-7 8.9-4.3-1-7-4.8-7-8.9V7.3l7-3.1Zm-1 5.8v6l5-3-5-3Z"/></svg>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5.2 3.6 9.9 9 11 5.4-1.1 9-5.8 9-11V6l-9-4Zm0 2.2 7 3.1v4.7c0 4.1-2.7 7.9-7 8.9-4.3-1-7-4.8-7-8.9V7.3l7-3.1Zm-1 5.8v6l5-3-5-3Z"/></svg>
   </div>
   <div class="titles">
-    <h1>سِجِلّ — نظام إدارة القوة والتشغيل</h1>
+    <h1>مكتب العمليات وشئون الضباط</h1>
     <p class="sub">إدارة قـوات أمن السويس</p>
   </div>
   <div class="editor-tag">
     <label for="editedBy" class="sr-only">اسمك — يُسجَّل مع أي تعديل تعمله، اختياري</label>
-    <input id="editedBy" class="editor-input" placeholder="اسمك (اختياري)" title="بيتسجل مع أي تعديل تعمله في سجل التدقيق — اختياري">
+    <input id="editedBy" class="editor-input" placeholder="اسمك (اختياري)"
+           title="بيتسجل مع أي تعديل تعمله في سجل التدقيق — اختياري">
   </div>
   <div class="today" id="today"></div>
 </header>
 
 <div class="shell">
-  <nav class="sidebar" id="sidebar">
+  <button class="scrim" id="scrim" tabindex="-1" aria-hidden="true"></button>
 
-    <!-- ① الرئيسية — وحدها -->
+  {#  ترتيب القائمة بيتبع يوم الشغل نفسه: التشغيل اليومي أولًا (ده اللي بيتفتح
+      كل يوم)، بعده سجلات القوة، وأخيرًا الراحات كقسم قائم بذاته — كانت مدفونة
+      كأربع صفحات فرعية تحت «الضباط»، و«الأفراد» كانت مجموعة من بند واحد.  #}
+  <nav class="sidebar" id="sidebar" aria-label="أقسام النظام">
+
     <div class="side-group">
-      <a class="navbtn {{ 'active' if page == 'dashboard' }}" href="{{ url_for('pages.dashboard') }}">
-        <svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3Zm10 0h8v5h-8V3ZM3 13h8v8H3v-8Zm10 3h8v5h-8v-5Z"/></svg>
+      <a class="navbtn {{ 'active' if page == 'dashboard' }}" href="{{ url_for('pages.dashboard') }}"
+         {{ 'aria-current=page' if page == 'dashboard' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3V3Zm10 0h8v5h-8V3ZM3 13h8v8H3v-8Zm10 3h8v5h-8v-5Z"/></svg>
         <span>الرئيسية</span>
       </a>
     </div>
 
-    <!-- ② الضباط — بيانات + فرق + دفتر 43 + راحات -->
+    <!-- ① التشغيل اليومي — الشغل اللي بيتعمل كل يوم -->
     <div class="side-group">
-      <div class="side-title">الضباط</div>
-      <a class="navbtn {{ 'active' if page == 'officers' }}" href="{{ url_for('pages.officers') }}">
-        <svg viewBox="0 0 24 24"><path d="M12 2 4 5.5v5.6c0 5.2 3.4 9.9 8 11.4 4.6-1.5 8-6.2 8-11.4V5.5L12 2Zm0 5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 12.4c-2.4-.8-4.4-2.7-5.4-5.1 1.4-1 3.4-1.6 5.4-1.6s4 .6 5.4 1.6c-1 2.4-3 4.3-5.4 5.1Z"/></svg>
+      <div class="side-title">التشغيل اليومي</div>
+      <a class="navbtn {{ 'active' if page == 'board' }}" href="{{ url_for('pages.board') }}"
+         {{ 'aria-current=page' if page == 'board' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v2H4V4Zm0 5h10v2H4V9Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Z"/></svg>
+        <span>اليومية التفصيلية</span>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'duty' }}" href="{{ url_for('pages.duty') }}"
+         {{ 'aria-current=page' if page == 'duty' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm1 4h8V6H8v1Zm0 4h8v-1H8v1Zm0 4h5v-1H8v1Z"/></svg>
+        <span>يومية الضباط</span>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'counts' }}" href="{{ url_for('pages.counts') }}"
+         {{ 'aria-current=page' if page == 'counts' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z"/></svg>
+        <span>اعداد الخدمات</span>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'changes' }}" href="{{ url_for('pages.changes') }}"
+         {{ 'aria-current=page' if page == 'changes' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 8.94 10h-2.02A7 7 0 1 1 13 5v4l5-4.5L13 0v3Z"/></svg>
+        <span>سجل التغييرات</span>
+      </a>
+    </div>
+
+    <!-- ② القوة — مين عندنا -->
+    <div class="side-group">
+      <div class="side-title">القوة</div>
+      <a class="navbtn {{ 'active' if page == 'officers' }}" href="{{ url_for('pages.officers') }}"
+         {{ 'aria-current=page' if page == 'officers' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5.5v5.6c0 5.2 3.4 9.9 8 11.4 4.6-1.5 8-6.2 8-11.4V5.5L12 2Zm0 5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 12.4c-2.4-.8-4.4-2.7-5.4-5.1 1.4-1 3.4-1.6 5.4-1.6s4 .6 5.4 1.6c-1 2.4-3 4.3-5.4 5.1Z"/></svg>
         <span>بيانات الضباط</span><em id="navOfficers">—</em>
         <span class="nav-dot hidden" id="navAlerts" title="تنبيهات تقصيرة"><span class="sr-only">تنبيه تقصيرة نشط</span></span>
       </a>
-      <a class="navbtn sub {{ 'active' if page == 'courses' }}" href="{{ url_for('pages.courses') }}">
-        <svg viewBox="0 0 24 24"><path d="M12 3 2 8l10 5 8-4v6h2V8L12 3ZM6 12.5V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5l-6 3-6-3Z"/></svg>
+      <a class="navbtn {{ 'active' if page == 'personnel' }}" href="{{ url_for('pages.personnel') }}"
+         {{ 'aria-current=page' if page == 'personnel' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 2c-2.7 0-8 1.3-8 4v3h9.5v-2.8c0-1.4.7-2.6 1.8-3.6C10.4 13.3 9 13 8 13Zm8 0c-.4 0-.9 0-1.4.1 1.5 1.1 2.4 2.6 2.4 4.3V20h7v-3c0-2.7-5.3-4-8-4Z"/></svg>
+        <span>الأفراد</span><em id="navPersonnel">—</em>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'courses' }}" href="{{ url_for('pages.courses') }}"
+         {{ 'aria-current=page' if page == 'courses' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2 8l10 5 8-4v6h2V8L12 3ZM6 12.5V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-4.5l-6 3-6-3Z"/></svg>
         <span>الفِرق والدورات</span><em id="navCourses">—</em>
       </a>
-      <a class="navbtn sub {{ 'active' if page == 'register' }}" href="{{ url_for('pages.register') }}">
-        <svg viewBox="0 0 24 24"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4v2h4V7H7Zm6 0v2h4V7h-4ZM7 11v2h4v-2H7Zm6 0v2h4v-2h-4ZM7 15v2h4v-2H7Zm6 0v2h4v-2h-4Z"/></svg>
+      <a class="navbtn {{ 'active' if page == 'missions' }}" href="{{ url_for('pages.missions') }}"
+         {{ 'aria-current=page' if page == 'missions' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5.2 3.6 9.9 9 11 5.4-1.1 9-5.8 9-11V6l-9-4Zm-1 15-4-4 1.4-1.4L11 14.2l4.6-4.6L17 11l-6 6Z"/></svg>
+        <span>المأموريات</span>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'register' }}" href="{{ url_for('pages.register') }}"
+         {{ 'aria-current=page' if page == 'register' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4v2h4V7H7Zm6 0v2h4V7h-4ZM7 11v2h4v-2H7Zm6 0v2h4v-2h-4ZM7 15v2h4v-2H7Zm6 0v2h4v-2h-4Z"/></svg>
         <span>دفتر 43</span>
       </a>
-      <a class="navbtn sub {{ 'active' if page == 'leaves' }}" href="{{ url_for('pages.leaves') }}">
-        <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v10H5V10Z"/></svg>
-        <span>الراحات والإجازات</span><em id="navLeaves">—</em>
-      </a>
-      <a class="navbtn sub {{ 'active' if page == 'leaves_stats' }}" href="{{ url_for('pages.leaves_stats') }}">
-        <svg viewBox="0 0 24 24"><path d="M3 3v18h18v-2H5V3H3zm4 12l3-4 3 3 4-5 2 2V18H7v-3z"/></svg>
-        <span>إحصائيات الراحات</span>
-      </a>
-      <a class="navbtn sub {{ 'active' if page == 'leaves_monthly' }}" href="{{ url_for('pages.leaves_monthly') }}">
-        <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v2H5v-2Zm0 4h9v2H5v-2Z"/></svg>
-        <span>تحديث الكشف الشهري</span>
-      </a>
-
     </div>
 
-    <!-- ③ التشغيل اليومي — يومية + تفصيلية + كتالوج -->
+    <!-- ③ الراحات — قسم قائم بذاته، مش صفحات فرعية تحت الضباط -->
     <div class="side-group">
-      <div class="side-title">التشغيل اليومي</div>
-
-      <a class="navbtn  {{ 'active' if page == 'board' }}" href="{{ url_for('pages.board') }}">
-        <svg viewBox="0 0 24 24"><path d="M4 4h16v2H4V4Zm0 5h10v2H4V9Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Z"/></svg>
-        <span>اليومية التفصيلية</span>
+      <div class="side-title">الراحات والإجازات</div>
+      <a class="navbtn {{ 'active' if page == 'leaves' }}" href="{{ url_for('pages.leaves') }}"
+         {{ 'aria-current=page' if page == 'leaves' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v10H5V10Z"/></svg>
+        <span>سجل الراحات</span><em id="navLeaves">—</em>
       </a>
-      <a class="navbtn sub {{ 'active' if page == 'duty' }}" href="{{ url_for('pages.duty') }}">
-        <svg viewBox="0 0 24 24"><path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm1 4h8V6H8v1Zm0 4h8v-1H8v1Zm0 4h5v-1H8v1Z"/></svg>
-        <span>يومية الضباط</span>
+      <a class="navbtn {{ 'active' if page == 'leaves_monthly' }}" href="{{ url_for('pages.leaves_monthly') }}"
+         {{ 'aria-current=page' if page == 'leaves_monthly' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v2H5v-2Zm0 4h9v2H5v-2Z"/></svg>
+        <span>الكشف الشهري</span>
       </a>
-      <a class="navbtn sub {{ 'active' if page == 'catalog' }}" href="{{ url_for('pages.catalog') }}">
-        <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6l8 8-8 8-8-8V5Zm4 2a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>
-        <span>كتالوج الخدمات</span><em id="navDuty">—</em>
-      </a>
-    </div>
-
-    <!-- ④ الأفراد — وحدهم -->
-    <div class="side-group">
-      <div class="side-title">الأفراد</div>
-      <a class="navbtn {{ 'active' if page == 'personnel' }}" href="{{ url_for('pages.personnel') }}">
-        <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4Zm-8 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 2c-2.7 0-8 1.3-8 4v3h9.5v-2.8c0-1.4.7-2.6 1.8-3.6C10.4 13.3 9 13 8 13Zm8 0c-.4 0-.9 0-1.4.1 1.5 1.1 2.4 2.6 2.4 4.3V20h7v-3c0-2.7-5.3-4-8-4Z"/></svg>
-        <span>الأفراد</span><em id="navPersonnel">—</em>
+      <a class="navbtn {{ 'active' if page == 'leaves_stats' }}" href="{{ url_for('pages.leaves_stats') }}"
+         {{ 'aria-current=page' if page == 'leaves_stats' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18v-2H5V3H3zm4 12l3-4 3 3 4-5 2 2V18H7v-3z"/></svg>
+        <span>الإحصائيات</span>
       </a>
     </div>
 
@@ -96,10 +121,13 @@
 
   <main class="content">
     <div class="container">
-      {% block alerts %}{% endblock %}
+      {# ترويسة الصفحة أولًا، بعدها التنبيهات — العكس كان بيدفن عنوان الصفحة
+         تحت عشر صفوف تنبيه قبل ما المستخدم يعرف هو فين أصلًا. #}
       <div class="page-head">
         <div class="titles"><h2>{{ page_title }}</h2><p>{{ page_subtitle }}</p></div>
+        <div class="page-actions">{% block page_actions %}{% endblock %}</div>
       </div>
+      {% block alerts %}{% endblock %}
       {% block content %}{% endblock %}
     </div>
   </main>
@@ -107,7 +135,7 @@
 
 {% block modals %}{% endblock %}
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="{{ url_for('static', filename='js/core.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>

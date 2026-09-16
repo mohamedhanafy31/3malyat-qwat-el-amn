@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar" id="cntBar">
+    <button class="mini" id="dayPrev">◀ السابق</button>
+    <input type="date" id="dutyDate" class="select">
+    <button class="mini" id="dayNext">التالي ▶</button>
+    <button class="mini" id="dayToday">النهاردة</button>
+    <button class="mini" id="btnModeToggle">✎ تعديل القالب الدائم</button>
+    <button class="mini" id="btnReset" style="display:none">↺ استرجاع القالب الافتراضي لليوم ده</button>
+    <button class="mini ok" id="btnPrint">طباعة</button>
+  </div>
+  <div id="cntSeedBanner" class="alert-card" style="display:none">
+    <div class="alert-head"><span class="alert-ico">ℹ</span><strong>القالب فاضي لسه</strong>
+      <span class="muted">تقدر تبدأ بقالب مبدئي من يومية حقيقية وتعدّله زي ما تحب بعدين</span></div>
+    <button class="mini ok" id="btnSeed">تحميل قالب مبدئي</button>
+  </div>
+  <div id="cntTotals"></div>
+  <div class="match-grid" id="cntBlocks"></div>
+  {# الإجمالي الكلي آخر حاجة في الصفحة — زي آخر سطر في ورقة الإكسل #}
+  <div id="cntGrand" class="grand-total"></div>
+</div>
+{% endblock %}
+
+{% block modals %}{% include "partials/count_modal.html" %}{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/counts.js') }}"></script>
+{% endblock %}

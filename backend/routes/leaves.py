@@ -3,11 +3,13 @@ from datetime import timedelta
 
 from flask import Blueprint, jsonify, request
 
+from .. import changes
 from ..constants import REST_DURATIONS
 from ..leaves import MONTHLY_REST_SYSTEMS, build_leave, overlapping
 from ..leaves import stats as leaves_stats_data
-from ..people import find_person
-from ..store import AbortRequest, load_data, reserve_id, with_data
+from ..models import Leave
+from ..repo import Repos
+from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload, parse_date
 
 bp = Blueprint("leaves", __name__)
@@ -18,17 +20,17 @@ def add_leave():
     payload = json_payload()
 
     def mutate(data):
-        leave_id = reserve_id(data, "LV", data["leaves"])
-        leave, err = build_leave(payload, data, leave_id)
+        leaves = Repos(data).leaves
+        leave, err = build_leave(payload, data, leaves.new_id())
         if err:
             raise AbortRequest((jsonify({"error": err}), 400))
         clash = overlapping(data, leave)
         if clash:
             raise AbortRequest((jsonify({"error": f"يوجد راحة متداخلة لنفس الشخص ({clash['start']} → {clash['end']})."}), 409))
 
-        data["leaves"].append(leave)
-        data["leaves"].sort(key=lambda l: (l["start"], l.get("name", "")))
-        return jsonify(leave), 201
+        added = leaves.add(Leave.from_dict(leave))
+        changes.record(data, "leave", leave["id"], "create", after=dict(leave))
+        return jsonify(leaves.named(added)), 201
 
     return with_data(mutate)
 
@@ -38,21 +40,23 @@ def edit_leave(leave_id):
     payload = json_payload()
 
     def mutate(data):
-        current = next((l for l in data["leaves"] if l.get("id") == leave_id), None)
-        if not current:
+        leaves = Repos(data).leaves
+        found = leaves.find(leave_id)
+        if not found:
             raise AbortRequest((jsonify({"error": "سجل الراحة غير موجود."}), 404))
 
-        merged = {**current, **payload}
-        leave, err = build_leave(merged, data, leave_id)
+        current = found.as_dict()
+        leave, err = build_leave({**current, **payload}, data, leave_id)
         if err:
             raise AbortRequest((jsonify({"error": err}), 400))
         clash = overlapping(data, leave, ignore_id=leave_id)
         if clash:
             raise AbortRequest((jsonify({"error": f"يوجد راحة متداخلة لنفس الشخص ({clash['start']} → {clash['end']})."}), 409))
 
-        data["leaves"] = [leave if l.get("id") == leave_id else l for l in data["leaves"]]
-        data["leaves"].sort(key=lambda l: (l["start"], l.get("name", "")))
-        return jsonify(leave)
+        updated = Leave.from_dict(leave)
+        leaves.replace(updated)
+        changes.record(data, "leave", leave_id, "update", before=current, after=dict(leave))
+        return jsonify(leaves.named(updated))
 
     return with_data(mutate)
 
@@ -60,10 +64,12 @@ def edit_leave(leave_id):
 @bp.delete("/api/leaves/<leave_id>")
 def delete_leave(leave_id):
     def mutate(data):
-        before = len(data["leaves"])
-        data["leaves"] = [l for l in data["leaves"] if l.get("id") != leave_id]
-        if len(data["leaves"]) == before:
+        leaves = Repos(data).leaves
+        removed = leaves.find(leave_id)
+        if not removed:
             raise AbortRequest((jsonify({"error": "سجل الراحة غير موجود."}), 404))
+        leaves.remove(leave_id)
+        changes.record(data, "leave", leave_id, "delete", before=removed.as_dict())
         return jsonify({"ok": True})
 
     return with_data(mutate)
@@ -81,6 +87,7 @@ def add_monthly_roster():
         return jsonify({"error": "entries لازم تكون قايمة."}), 400
 
     def mutate(data):
+        repos = Repos(data)
         created, errors = [], []
         for entry in entries:
             if not isinstance(entry, dict):
@@ -88,11 +95,11 @@ def add_monthly_roster():
             officer_id = str(entry.get("officer_id", "")).strip()
             start = str(entry.get("start", "")).strip()
 
-            person, category, _ = find_person(data, officer_id)
-            if not person or category != "officers":
+            person = repos.people.find_in(officer_id, "officers")
+            if not person:
                 errors.append({"officer_id": officer_id, "error": "ضابط غير موجود."})
                 continue
-            system = person.get("rest_system", "")
+            system = person.rest_system
             if system not in MONTHLY_REST_SYSTEMS:
                 errors.append({"officer_id": officer_id,
                                "error": "نظام راحة الضابط مش شهري ولا نصف شهري."})
@@ -103,9 +110,9 @@ def add_monthly_roster():
                 continue
             end = (start_date + timedelta(days=REST_DURATIONS[system] - 1)).isoformat()
 
-            leave_id = reserve_id(data, "LV", data["leaves"])
             leave, err = build_leave({"person_id": officer_id, "type": system,
-                                       "start": start, "end": end}, data, leave_id)
+                                       "start": start, "end": end},
+                                      data, repos.leaves.new_id())
             if err:
                 errors.append({"officer_id": officer_id, "error": err})
                 continue
@@ -114,11 +121,8 @@ def add_monthly_roster():
                 errors.append({"officer_id": officer_id, "error":
                                f"يوجد راحة متداخلة لنفس الضابط ({clash['start']} → {clash['end']})."})
                 continue
-            data["leaves"].append(leave)
-            created.append(leave)
+            created.append(repos.leaves.named(repos.leaves.add(Leave.from_dict(leave))))
 
-        if created:
-            data["leaves"].sort(key=lambda l: (l["start"], l.get("name", "")))
         return jsonify({"created": created, "errors": errors})
 
     return with_data(mutate)

@@ -1,0 +1,30 @@
+<!-- ============ مأمورية ============ -->
+<div class="modal hidden" id="missionModal">
+  <div class="modal-card">
+    <button class="close" data-close="missionModal">×</button>
+    <h2 id="missionTitle">مأمورية جديدة</h2>
+    <form id="missionForm">
+      <input type="hidden" id="msnId">
+      <div class="grid">
+        <label>اسم المأمورية
+          <input id="msnName" required>
+        </label>
+        <label>الحالة
+          <select id="msnStatus"></select>
+        </label>
+        <label>تاريخ البداية المتوقع <small>اختياري</small>
+          <input type="date" id="msnStart">
+        </label>
+      </div>
+      <label>الضباط المشاركين <small>واحد أو أكتر</small>
+        <select id="msnMembers" multiple size="5"></select>
+      </label>
+      <label>ملاحظات
+        <input id="msnNote">
+      </label>
+      <div class="actions" style="margin-top:10px">
+        <button class="primary full" type="submit">حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>

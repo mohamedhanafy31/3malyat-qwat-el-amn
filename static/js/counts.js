@@ -1,0 +1,223 @@
+/* اعداد الخدمات — القالب الثابت (أساسية صباحية/ليلية + طوارئ متكررة) يتفرّد
+   نسخة لكل يوم بمجرد أول تعديل.
+
+   بلوك الطوارئ اليومي مالوش سجل هنا: بيتقرا مباشرة من قسم «الخدمات الطارئة»
+   في اليومية التفصيلية، فأي خدمة طارئة بتتكتب هناك بتظهر هنا على طول. خانة
+   العدد اللي جنب كل خدمة بتكتب على صف التكليف نفسه — نفس الحقل اللي خانة
+   الخدمة على اللوحة بتكتبه، فالرقم واحد مهما اتعدّل من فين. */
+let DAY = null, MODE = "day", VIEW = null;
+
+/* ---------- العرض ---------- */
+
+/* سطر الإجمالي تحت كل بلوك — زي «المجموع» في آخر كل عمود في ورقة الإكسل.
+   رقمين مختلفين: عدد الخدمات (صفوف) وعدد المجندين (مجموع الأرقام). */
+function blockTotal(services, conscripts) {
+  return `<div class="blk-total">
+    <span>الإجمالي</span>
+    <span class="blk-total-bits">
+      <span><b>${services}</b> خدمة</span>
+      <span><b>${conscripts}</b> مجند</span>
+    </span></div>`;
+}
+
+function editableCard(label, block, rows) {
+  const body = rows.length
+    ? mtable(["الخدمة", "الجهة", "عدد المجندين", "الإجراء"], rows.map(e => `
+      <tr>
+        <td class="name">${esc(e.name) || "<span class='muted'>—</span>"}</td>
+        <td>${esc(e.party) || "<span class='muted'>—</span>"}</td>
+        <td><strong>${e.count}</strong></td>
+        <td><div class="actions">
+          <button class="mini" data-action="openCount" data-id="${esc(e.id)}"
+            data-extra="${dataAttr({block})}">تعديل</button>
+          <button class="mini bad" data-action="deleteCount" data-id="${esc(e.id)}"
+            data-extra="${dataAttr({name: e.name})}">حذف</button>
+        </div></td>
+      </tr>`))
+    : `<div class="mempty">لا توجد خدمات — اضغط «＋ إضافة»</div>`;
+  const total = rows.reduce((n, e) => n + (e.count || 0), 0);
+  return `<div class="mcard">
+    <h3>${esc(label)}<span class="mcount">${rows.length}</span>
+      <button class="mini ok" data-action="openCount" data-extra="${dataAttr({block})}">＋ إضافة</button>
+    </h3>${body}${blockTotal(rows.length, total)}</div>`;
+}
+
+function emergencyCard(label, rows) {
+  const locked = VIEW?.locked;
+  const body = rows.length
+    ? mtable(["الخدمة", "الفترة", "الجهة", "القوام على اللوحة", "عدد المجندين"], rows.map(r => `
+      <tr class="${r.needs_count ? "vacant" : ""}">
+        <td class="name">${esc(r.name) || "<span class='muted'>بدون اسم</span>"}</td>
+        <td>${esc(r.shift) || "-"}</td>
+        <td>${esc(r.party) || "<span class='muted'>—</span>"}</td>
+        <td class="wrap">${esc(r.strength) || "<span class='muted'>—</span>"}</td>
+        <td><input class="emg-count" type="number" min="0" value="${r.count}"
+             data-id="${esc(r.assignment_id)}" ${locked ? "disabled" : ""}
+             aria-label="عدد مجندين ${esc(r.name)}"></td>
+      </tr>`))
+    : `<div class="mempty">مفيش خدمات طارئة في اليومية التفصيلية لليوم ده —
+         أي خدمة تتضاف هناك في قسم «الخدمات الطارئة» هتظهر هنا على طول</div>`;
+  const missing = VIEW?.emergency_missing || 0;
+  const note = locked
+    ? "اليوم ده مقفول — افتحه فتح استثنائي من اليومية التفصيلية عشان تعدّل الأعداد"
+    : missing
+      ? `${missing} خدمة لسه من غير عدد مجندين — اكتب الرقم في الخانة والصف هيتظبط`
+      : "الأعداد بتتخزّن على صف الخدمة في اليومية التفصيلية — نفس الرقم في المكانين";
+  const total = rows.reduce((n, r) => n + (r.count || 0), 0);
+  return `<div class="mcard special">
+    <h3>${esc(label)}<span class="mcount">${rows.length}</span></h3>
+    <div class="sub-head">${esc(note)}</div>
+    ${body}${blockTotal(rows.length, total)}</div>`;
+}
+
+function render() {
+  const isTemplate = MODE === "template";
+  $("#btnModeToggle").textContent = isTemplate ? "↩ رجوع لعرض اليوم" : "✎ تعديل القالب الدائم";
+  ["dayPrev", "dayNext", "dayToday", "dutyDate", "btnPrint", "btnReset"].forEach(id => {
+    $("#" + id).style.display = isTemplate ? "none" : "";
+  });
+  if (!VIEW) { $("#cntBlocks").innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+
+  if (isTemplate) {
+    $("#cntSeedBanner").style.display = VIEW.seeded ? "none" : "";
+    $("#cntTotals").innerHTML = "";
+    const am = VIEW.entries.filter(e => e.block === "صباحية");
+    const pm = VIEW.entries.filter(e => e.block === "ليلية");
+    const rec = VIEW.entries.filter(e => e.block === "طوارئ");
+    $("#cntBlocks").innerHTML = [
+      editableCard("القالب الدائم — أساسية صباحية", "صباحية", am),
+      editableCard("القالب الدائم — أساسية ليلية", "ليلية", pm),
+      editableCard("القالب الدائم — طوارئ متكررة", "طوارئ", rec),
+    ].join("");
+    grandTotal(VIEW.entries.length, VIEW.entries.reduce((n, e) => n + (e.count || 0), 0),
+               "إجمالي القالب الدائم");
+    return;
+  }
+
+  const totalEntries = VIEW.basic_am.length + VIEW.basic_pm.length + VIEW.recurring.length;
+  $("#cntSeedBanner").style.display = (VIEW.from_template && !totalEntries) ? "" : "none";
+  $("#btnReset").style.display = VIEW.from_template ? "none" : "";
+  const t = VIEW.totals;
+  $("#cntTotals").innerHTML = `<div class="stats">
+    <div class="stat"><span>أساسية صباحية</span><strong>${t.basic_am}</strong></div>
+    <div class="stat"><span>أساسية ليلية</span><strong>${t.basic_pm}</strong></div>
+    <div class="stat stat-accent-orange"><span>الطوارئ</span><strong>${t.emergency}</strong></div>
+    <div class="stat stat-accent-blue"><span>الإجمالي الكلي</span><strong>${t.grand_total}</strong></div>
+  </div>`;
+  $("#cntBlocks").innerHTML = [
+    editableCard("الخدمات الأساسية — صباحية", "صباحية", VIEW.basic_am),
+    editableCard("الخدمات الأساسية — ليلية", "ليلية", VIEW.basic_pm),
+    editableCard("طوارئ متكررة", "طوارئ", VIEW.recurring),
+    emergencyCard("طوارئ اليوم — من اليومية التفصيلية", VIEW.emergency),
+  ].join("");
+  grandTotal(VIEW.services.total, t.grand_total, `إجمالي خدمات يوم ${dayName(DAY)} ${fmt(DAY)}`);
+}
+
+/* الإجمالي الكلي تحت خالص — آخر حاجة في الصفحة زي «إجمالي اعداد الخدمات»
+   في آخر سطر في ورقة الإكسل. موجود فوق كمان في شريط الإحصائيات، وده
+   مقصود: اللي بيملا الورقة شايفه وهو بيكتب، واللي بيطبعها شايفه في آخرها. */
+function grandTotal(services, conscripts, label) {
+  $("#cntGrand").innerHTML = `
+    <div class="grand-label">${esc(label)}</div>
+    <div class="grand-bits">
+      <span><b>${services}</b> خدمة</span>
+      <span class="grand-main"><b>${conscripts}</b> مجند</span>
+    </div>`;
+}
+
+/* خانة العدد جوّه بلوك الطوارئ. المستمع على الحاوية نفسها (مش على كل خانة)
+   عشان render() بيستبدل كل المحتوى — الربط مرة واحدة وخلاص. */
+$("#cntBlocks").addEventListener("change", async e => {
+  const box = e.target.closest(".emg-count");
+  if (!box) return;
+  const count = Math.max(0, parseInt(box.value) || 0);
+  const v = await api(`/api/counts/${DAY}/emergency/${encodeURIComponent(box.dataset.id)}`,
+                      jsonReq("PATCH", {count}));
+  if (!v) return;
+  VIEW = v; showToast("تم حفظ العدد"); render();
+});
+
+/* ---------- تحميل ---------- */
+async function loadDay(day) {
+  const v = await api(`/api/counts/${day}`);
+  if (!v) return;
+  VIEW = v; DAY = day; MODE = "day"; $("#dutyDate").value = day; render();
+}
+async function loadTemplateView() {
+  const v = await api(`/api/counts/template`);
+  if (!v) return;
+  VIEW = v; MODE = "template"; render();
+}
+
+const shiftDay = n => loadDay(addDays($("#dutyDate").value || curDate(), n));
+$("#dayPrev").onclick = () => shiftDay(-1);
+$("#dayNext").onclick = () => shiftDay(1);
+$("#dayToday").onclick = () => loadDay(curDate());
+$("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
+$("#btnPrint").onclick = () => window.print();
+$("#btnModeToggle").onclick = () => (MODE === "day" ? loadTemplateView() : loadDay(DAY || curDate()));
+
+$("#btnReset").onclick = async () => {
+  if (!confirm("استرجاع القالب الافتراضي لليوم ده؟ أي تعديل خاص باليوم ده هيتمسح.")) return;
+  const v = await api(`/api/counts/${DAY}/reset`, {method: "POST"});
+  if (!v) return;
+  VIEW = v; showToast("تم الاسترجاع"); render();
+};
+$("#btnSeed").onclick = async () => {
+  if (!(await api("/api/counts/template/seed", {method: "POST"}))) return;
+  showToast("تم تحميل القالب المبدئي");
+  MODE === "template" ? loadTemplateView() : loadDay(DAY);
+};
+
+/* ---------- نموذج الصف ---------- */
+function currentPool() {
+  if (MODE === "template") return VIEW.entries;
+  return [...VIEW.basic_am, ...VIEW.basic_pm, ...VIEW.recurring];
+}
+
+function openCount(id, extra) {
+  const row = id ? currentPool().find(e => e.id === id) : null;
+  $("#cnId").value = id || "";
+  $("#cnSource").value = MODE;
+  $("#countTitle").textContent = row ? "تعديل خدمة" : "إضافة خدمة";
+  $("#cnBlock").value = row?.block || extra?.block || "صباحية";
+  $("#cnName").value = row?.name || "";
+  $("#cnParty").value = row?.party || "";
+  $("#cnCount").value = row?.count ?? 0;
+  openModal("countModal");
+}
+ACTIONS.openCount = (id, extra) => openCount(id || null, extra);
+ACTIONS.deleteCount = async (id, extra) => {
+  if (!confirm(`حذف «${extra.name}»؟`)) return;
+  const base = MODE === "template" ? "/api/counts/template/entries" : `/api/counts/${DAY}/entries`;
+  if (await api(`${base}/${encodeURIComponent(id)}`, {method: "DELETE"})) {
+    showToast("تم الحذف");
+    MODE === "template" ? loadTemplateView() : loadDay(DAY);
+  }
+};
+
+$("#countForm").onsubmit = async e => {
+  e.preventDefault();
+  const body = {
+    block: $("#cnBlock").value,
+    name: $("#cnName").value.trim(),
+    party: $("#cnParty").value.trim(),
+    count: parseInt($("#cnCount").value) || 0,
+  };
+  const id = $("#cnId").value;
+  const source = $("#cnSource").value;
+  const base = source === "template" ? "/api/counts/template/entries" : `/api/counts/${DAY}/entries`;
+  const out = id
+    ? await api(`${base}/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
+    : await api(base, jsonReq("POST", body));
+  if (!out) return;
+  closeModal("countModal"); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");
+  source === "template" ? loadTemplateView() : loadDay(DAY);
+};
+
+async function load() {
+  const d = await bootstrap();
+  if (!d) return;
+  loadDay(curDate());
+}
+load();

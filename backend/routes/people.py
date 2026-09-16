@@ -6,15 +6,29 @@ from flask import Blueprint, jsonify
 from ..constants import (
     COMMAND_ROLES, EDITABLE, OFFICER_ROLES, OFFICER_SECTIONS, PERSONNEL_FAMILIES,
 )
-from ..people import (
-    HISTORY_FIELDS, find_person, new_person_id, record_change, sort_active, valid_rest,
-)
+from ..references import cascade_delete
+from ..repo import Repos
+from ..people import HISTORY_FIELDS, record_change, valid_rest
 from ..store import AbortRequest, with_data
 from ..utils import (
     MAX_LEN, canonical_day, category_for, check_lengths, json_payload, valid_phone,
 )
 
 bp = Blueprint("people", __name__)
+
+
+def _require_active_officer(repos, officer_id):
+    """ضابط موجود وعلى القوة — بيرمي 404/400 من غير ما يكمّل.
+
+    المنصب القيادي وضباط العيادة الاتنين محتاجين نفس الشرطين بنفس
+    الرسايل، وكانوا مكرّرين حرفيًا في الدالتين.
+    """
+    raw, category, bucket = repos.people.locate(officer_id)
+    if raw is None or category != "officers":
+        raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
+    if bucket != "active":
+        raise AbortRequest((jsonify({"error": "الضابط مش على القوة."}), 400))
+    return raw
 
 
 @bp.patch("/api/command")
@@ -24,24 +38,20 @@ def set_command():
     payload = json_payload()
 
     def mutate(data):
+        repos = Repos(data)
         for role, officer_id in payload.items():
             if role not in COMMAND_ROLES:
                 raise AbortRequest((jsonify({"error": f"منصب غير معروف: {role}"}), 400))
             officer_id = str(officer_id or "").strip() or None
             if officer_id:
-                person, category, bucket = find_person(data, officer_id)
-                if not person or category != "officers":
-                    raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
-                if bucket != "active":
-                    raise AbortRequest((jsonify({"error": "الضابط مش على القوة."}), 400))
-                clash = next((r for r, oid in data["command"].items()
-                              if oid == officer_id and r != role), None)
-                if clash:
+                _require_active_officer(repos, officer_id)
+                clash = repos.config.role_of(officer_id)
+                if clash and clash != role:
                     raise AbortRequest((jsonify({
                         "error": f"الضابط ده شايل «{clash}» بالفعل."}), 409))
-            data["command"][role] = officer_id
-        sort_active(data, "officers")   # قيادة الإدارة أعلى اتنين في الترتيب
-        return jsonify(data["command"])
+            repos.config.assign_command(role, officer_id)
+        repos.people.sort("officers")   # قيادة الإدارة أعلى اتنين في الترتيب
+        return jsonify(repos.config.command())
 
     return with_data(mutate)
 
@@ -56,20 +66,17 @@ def set_medical_officers():
         return jsonify({"error": "officer_ids لازم تكون قايمة."}), 400
 
     def mutate(data):
+        repos = Repos(data)
         seen, clean = set(), []
         for officer_id in ids:
             officer_id = str(officer_id or "").strip()
             if not officer_id or officer_id in seen:
                 continue
-            person, category, bucket = find_person(data, officer_id)
-            if not person or category != "officers":
-                raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
-            if bucket != "active":
-                raise AbortRequest((jsonify({"error": "الضابط مش على القوة."}), 400))
+            _require_active_officer(repos, officer_id)
             seen.add(officer_id)
             clean.append(officer_id)
-        data["medical_officers"] = clean
-        return jsonify(data["medical_officers"])
+        repos.config.set_medical(clean)
+        return jsonify(repos.config.medical())
 
     return with_data(mutate)
 
@@ -112,11 +119,12 @@ def add_person():
 
     def mutate(data):
         # Code must be unique among active members.
-        if any(str(p.get("code")) == code for p in data[category]["active"]):
+        repos = Repos(data)
+        if repos.people.code_taken(category, code):
             raise AbortRequest((jsonify({"error": "رقم الأقدمية مستخدم بالفعل على القوة."}), 409))
 
         person = {
-            "id": new_person_id(data, category),
+            "id": repos.people.new_id(category),
             "name": str(payload["name"]).strip(),
             "role": str(payload.get("role", "")).strip(),
             "code": code,
@@ -134,8 +142,7 @@ def add_person():
         else:
             person["address"] = str(payload.get("address", "")).strip()
 
-        data[category]["active"].append(person)
-        sort_active(data, category)
+        repos.people.add_raw(category, person)
         return jsonify(person), 201
 
     return with_data(mutate)
@@ -146,7 +153,7 @@ def edit_person(person_id):
     payload = json_payload()
 
     def mutate(data):
-        person, category, bucket = find_person(data, person_id)
+        person, category, bucket = Repos(data).people.locate(person_id)
         if not person:
             raise AbortRequest((jsonify({"error": "الشخص غير موجود."}), 404))
 
@@ -156,8 +163,7 @@ def edit_person(person_id):
             code = str(payload["code"]).strip()
             if not code:
                 raise AbortRequest((jsonify({"error": "رقم الأقدمية مطلوب."}), 400))
-            clash = any(str(p.get("code")) == code and p.get("id") != person_id
-                        for p in data[category]["active"])
+            clash = Repos(data).people.code_taken(category, code, ignore_id=person_id)
             if bucket == "active" and clash:
                 raise AbortRequest((jsonify({"error": "رقم الأقدمية مستخدم بالفعل على القوة."}), 409))
         if "join_date" in payload:
@@ -216,13 +222,12 @@ def edit_person(person_id):
         if bucket == "archive" and "leave_reason" in payload:
             person["leave_reason"] = str(payload["leave_reason"]).strip()
 
-        # keep any recorded rest periods showing the current name
-        for lv in data["leaves"]:
-            if lv.get("person_id") == person_id:
-                lv["name"] = person.get("name", lv.get("name", ""))
-
+        # مافيش مزامنة لأسماء الراحات هنا خلاص: الاسم مابقاش متخزّن على سجل
+        # الراحة، بيتحلّ من `person_id` وقت القراءة (`LeaveRepo.named`).
+        # الكتلة اللي كانت بتمشي على كل راحات الشخص بعد كل تعديل اتشالت مع
+        # الحقل المكرّر نفسه.
         if bucket == "active":
-            sort_active(data, category)   # الرتبة أو الاسم ممكن يتغيّر
+            Repos(data).people.sort(category)   # الرتبة أو الاسم ممكن يتغيّر
         return jsonify(person)
 
     return with_data(mutate)
@@ -240,7 +245,7 @@ def remove_person(person_id):
         return jsonify({"error": f"سبب الخروج أطول من الحد المسموح ({MAX_LEN['reason']} حرف)."}), 400
 
     def mutate(data):
-        found, category, bucket = find_person(data, person_id)
+        found, category, bucket = Repos(data).people.locate(person_id)
         if not found or bucket != "active":
             raise AbortRequest((jsonify({"error": "الشخص غير موجود على القوة."}), 404))
 
@@ -251,17 +256,13 @@ def remove_person(person_id):
         found["leave_reason"] = reason
         found["status"] = "archived"
 
-        data[category]["active"] = [p for p in data[category]["active"] if p.get("id") != person_id]
-        data[category]["archive"].append(found)
-        data[category]["archive"].sort(key=lambda p: (p.get("leave_date", ""), p.get("name", "")), reverse=True)
+        Repos(data).people.move(person_id, "archive")
 
         # لو الضابط شايل منصب قيادي أو من ضباط العيادة، الإخراج من القوة
         # يفضّي المنصب — ميفضلش متعيّن لحد مش على القوة أصلًا
-        for role, oid in data.get("command", {}).items():
-            if oid == person_id:
-                data["command"][role] = None
-        data["medical_officers"] = [oid for oid in data.get("medical_officers", [])
-                                     if oid != person_id]
+        config = Repos(data).config
+        config.clear_command(person_id)
+        config.drop_medical(person_id)
         return jsonify(found)
 
     return with_data(mutate)
@@ -270,18 +271,19 @@ def remove_person(person_id):
 @bp.post("/api/person/<person_id>/restore")
 def restore_person(person_id):
     def mutate(data):
-        found, category, bucket = find_person(data, person_id)
+        found, category, bucket = Repos(data).people.locate(person_id)
         if not found or bucket != "archive":
             raise AbortRequest((jsonify({"error": "السجل غير موجود في الأرشيف."}), 404))
 
+        repos = Repos(data)
         code = str(found.get("code", ""))
-        if any(str(p.get("code")) == code for p in data[category]["active"]):
+        if repos.people.code_taken(category, code):
             raise AbortRequest((jsonify({"error": "يوجد شخص على القوة بنفس رقم الأقدمية."}), 409))
 
         # Keep the historical record intact and create a new active period.
         restored = dict(found)
         restored.update({
-            "id": new_person_id(data, category),
+            "id": repos.people.new_id(category),
             "code": code,
             "join_date": date.today().isoformat(),
             "status": "active",
@@ -289,8 +291,7 @@ def restore_person(person_id):
         })
         restored.pop("leave_date", None)
         restored.pop("leave_reason", None)
-        data[category]["active"].append(restored)
-        sort_active(data, category)
+        repos.people.add_raw(category, restored)
 
         # الراحات القديمة **بتفضل على سجل الأرشيف** — هي جزء من فترة الخدمة
         # اللي خلصت. نقلها للسجل الجديد (اللي تاريخ انضمامه النهاردة) كان
@@ -306,30 +307,14 @@ def restore_person(person_id):
 def delete_archive_record(person_id):
     # Permanent delete is intentionally limited to archive records.
     def mutate(data):
-        for cat in ["officers", "personnel"]:
-            before = len(data[cat]["archive"])
-            data[cat]["archive"] = [p for p in data[cat]["archive"] if p.get("id") != person_id]
-            if len(data[cat]["archive"]) != before:
-                data["leaves"] = [l for l in data["leaves"] if l.get("person_id") != person_id]
-                for day in list(data.get("day_officers", {})):
-                    data["day_officers"][day].pop(person_id, None)
-                    if not data["day_officers"][day]:
-                        data["day_officers"].pop(day)
-                # التكليفات المسجّلة كانت بتفضل شايلة الـid بعد الحذف،
-                # فاللوحة تعرض صف بلا اسم (missing: true). المرجع بيتشال
-                # من مكانه بدل ما يتساب معلّق.
-                key = "officer_ids" if cat == "officers" else "personnel_ids"
-                for rows in data.get("day_assignments", {}).values():
-                    for row in rows:
-                        if person_id in (row.get(key) or []):
-                            row[key] = [i for i in row[key] if i != person_id]
-                data["medical_officers"] = [oid for oid in data.get("medical_officers", [])
-                                             if oid != person_id]
-                for role, oid in data.get("command", {}).items():
-                    if oid == person_id:
-                        data["command"][role] = None
-                return jsonify({"ok": True})
-        raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
+        repos = Repos(data)
+        raw, category, bucket = repos.people.locate(person_id)
+        if raw is None or bucket != "archive":
+            raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
+
+        repos.people.remove(person_id)
+        cascade_delete(repos, person_id, category)
+        return jsonify({"ok": True})
 
     return with_data(mutate)
 

@@ -17,7 +17,9 @@ from ..constants import (
 )
 from ..leaves import monthly_roster
 from ..rest_status import officer_status, taqseera_alerts
+from ..repo import Repos
 from ..store import load_data
+from ..upcoming import build as build_upcoming
 
 bp = Blueprint("meta", __name__)
 
@@ -36,9 +38,9 @@ def _meta(data):
         "service_documents": SERVICE_DOCUMENTS,
         "officer_statuses": OFFICER_STATUSES,
         "officer_sections": OFFICER_SECTIONS,
-        "service_tags": data["service_tags"],
+        "service_tags": Repos(data).config.tags(),
         "command_roles": COMMAND_ROLES,
-        "command": data["command"],
+        "command": Repos(data).config.command(),
         "medical_badge": MEDICAL_BADGE,
         "today": date.today().isoformat(),
     }
@@ -50,43 +52,34 @@ def _slim(people, rest=False):
     والمدة القياسية تلقائيًا."""
     out = []
     for p in people:
-        slim = {"id": p["id"], "name": p.get("name", ""), "role": p.get("role", "")}
+        slim = {"id": p.id, "name": p.name, "role": p.role}
         if rest:
-            slim["rest_system"] = p.get("rest_system", "")
-            slim["rest_day"] = p.get("rest_day", "")
+            slim["rest_system"] = getattr(p, "rest_system", "")
+            slim["rest_day"] = getattr(p, "rest_day", "")
         out.append(slim)
     return out
 
 
 def _officers_with_status(data, today):
-    return [{**o, "status_today": officer_status(data, o, today)}
-            for o in data["officers"]["active"]]
-
-
-def _slim_services(services):
-    """أقل حاجة لازمة لعرض/فلترة خدمة في اللوحة (اختيار من قايمة، تحديد
-    الفترة والقسم) — مش كل حقول الكتالوج، اللي بتوصل كاملة لصفحة catalog
-    بس لأنها الوحيدة اللي فعلًا بتعدّل الخدمة بكل حقولها."""
-    return [{"id": s["id"], "name": s.get("name", ""), "sub": s.get("sub", ""),
-             "kind": s.get("kind", ""), "section": s.get("section", ""),
-             "shifts": s.get("shifts", []), "appears_in": s.get("appears_in", [])}
-            for s in services]
+    return [{**o.as_dict(), "status_today": officer_status(data, o.as_dict(), today)}
+            for o in Repos(data).people.active("officers")]
 
 
 def _counts(data):
+    repos = Repos(data)
     return {
-        "officers": len(data["officers"]["active"]),
-        "personnel": len(data["personnel"]["active"]),
-        "leaves": len(data["leaves"]),
-        "services": len(data["services"]),
-        "courses": len(data.get("courses", [])),
+        "officers": len(repos.people.bucket("officers", "active")),
+        "personnel": len(repos.people.bucket("personnel", "active")),
+        "leaves": repos.leaves.count(),
+        "courses": repos.courses.count(),
     }
 
 
 def _days_payload(data, meta):
     """أساس مشترك لصفحات التشغيل اليومي: الأيام المتاحة + الأعداد بس —
     بلا مؤشر ضباط/أفراد ولا كتالوج خدمات لو الصفحة مش فعلًا محتاجاهم."""
-    return {"meta": meta, "days": sorted(data["day_assignments"]), "counts": _counts(data)}
+    return {"meta": meta, "days": Repos(data).days.assignment_dates(),
+            "counts": _counts(data)}
 
 
 @bp.get("/api/bootstrap/<page>")
@@ -97,29 +90,34 @@ def bootstrap(page):
     meta = _meta(data)
 
     if page == "dashboard":
-        officers, personnel = data["officers"]["active"], data["personnel"]["active"]
+        officers = Repos(data).people.active("officers")
         on_rest = sum(1 for o in officers
-                      if officer_status(data, o, today)["state"] == "resting")
+                      if officer_status(data, o.as_dict(), today)["state"] == "resting")
         alerts = taqseera_alerts(data, today)
-        return jsonify({"meta": meta, "alerts": alerts, "counts": {
-            **_counts(data),
-            "on_rest": on_rest,
-            "taqseera": len(alerts),
-        }})
+        return jsonify({"meta": meta, "alerts": alerts, "upcoming": build_upcoming(data, today),
+                        "counts": {
+                            **_counts(data),
+                            "on_rest": on_rest,
+                            "taqseera": len(alerts),
+                        }})
 
     if page == "officers":
         return jsonify({
             "meta": meta,
             "officers": {"active": _officers_with_status(data, today),
-                          "archive": data["officers"]["archive"]},
-            "command": data["command"],
-            "medical_officers": data["medical_officers"],
+                          "archive": Repos(data).people.bucket("officers", "archive")},
+            "command": Repos(data).config.command(),
+            "medical_officers": Repos(data).config.medical(),
             "alerts": taqseera_alerts(data, today),
             "counts": _counts(data),
         })
 
     if page == "personnel":
-        return jsonify({"meta": meta, "personnel": data["personnel"],
+        repos = Repos(data)
+        return jsonify({"meta": meta,
+                        "personnel": {
+                            "active": repos.people.bucket("personnel", "active"),
+                            "archive": repos.people.bucket("personnel", "archive")},
                         "counts": _counts(data)})
 
     if page in ("duty", "register"):
@@ -132,31 +130,40 @@ def bootstrap(page):
         payload = _days_payload(data, meta)
         # كل اللي كانوا على القوة في أي وقت — عشان الضابط المتأرشف يبان
         # في قايمة الالتحاق لو ليه فرقة مسجّلة قبل كده
-        payload["officer_index"] = _slim(data["officers"]["active"] + data["officers"]["archive"])
+        payload["officer_index"] = _slim(Repos(data).people.all("officers"))
         return jsonify(payload)
 
     if page == "board":
         payload = _days_payload(data, meta)
-        payload["officer_index"] = _slim(data["officers"]["active"] + data["officers"]["archive"])
-        payload["personnel_index"] = _slim(data["personnel"]["active"])
-        payload["services"] = _slim_services(data["services"])
+        payload["officer_index"] = _slim(Repos(data).people.all("officers"))
+        payload["personnel_index"] = _slim(Repos(data).people.active("personnel"))
         return jsonify(payload)
 
-    if page == "catalog":
-        return jsonify({"meta": meta, "services": data["services"], "counts": _counts(data)})
+    if page == "counts":
+        return jsonify(_days_payload(data, meta))
+
+    if page == "changes":
+        return jsonify({"meta": meta, "counts": _counts(data)})
+
+    if page == "missions":
+        payload = {"meta": meta, "counts": _counts(data)}
+        payload["officer_index"] = _slim(Repos(data).people.all("officers"))
+        return jsonify(payload)
 
     if page == "leaves":
-        people = _slim(data["officers"]["active"] + data["personnel"]["active"], rest=True)
+        repos = Repos(data)
+        people = _slim(repos.people.active("officers")
+                       + repos.people.active("personnel"), rest=True)
         known = {p["id"] for p in people}
         # أي شخص متأرشف لسه ليه سجل راحة لازم اسمه يبان في القايمة
-        people += _slim([p for b in ("officers", "personnel") for p in data[b]["archive"]
-                         if p["id"] not in known
-                         and any(l["person_id"] == p["id"] for l in data["leaves"])])
+        people += _slim([p for cat in ("officers", "personnel")
+                         for p in repos.people.archived(cat)
+                         if p.id not in known and repos.leaves.of_person(p.id)])
         # الضباط المتأرشفين لازم يكونوا في القايمة دي: 73 من الـ280 راحة
         # بتاعة ضباط خرجوا من القوة، وفلتر «ضباط/أفراد» في الصفحة بيتقاس
         # عليها — من غيرهم كانوا بيتحسبوا أفراد وهم ضباط.
-        officer_ids = [o["id"] for b in ("active", "archive") for o in data["officers"][b]]
-        return jsonify({"meta": meta, "leaves": data["leaves"], "people": people,
+        officer_ids = [o.id for o in repos.people.all("officers")]
+        return jsonify({"meta": meta, "leaves": repos.leaves.rows_with_names(), "people": people,
                         "officer_ids": officer_ids,
                         "counts": _counts(data)})
 
@@ -180,7 +187,16 @@ def get_data():
     """النداء الشامل القديم — متسيب للتوافق وللسكربتات، والصفحات بقت
     بتستخدم /api/bootstrap/<page> بدله."""
     data = load_data()
-    data["days"] = sorted(data.pop("day_assignments", {}))
-    data.pop("day_officers", None)
-    data["meta"] = _meta(data)
-    return jsonify(data)
+    repos = Repos(data)
+    # نسخة جديدة بدل ما يعدّل اللقطة المحمّلة في مكانها. اليوميات بتتشال
+    # وبيتحط مكانها قايمة التواريخ بس — ده كان الغرض من النداء ده أصلًا.
+    payload = repos.snapshot(exclude=("day_assignments", "day_officers"))
+    payload["days"] = repos.days.assignment_dates()
+    # القوة بترجع بالشكل المتداخل القديم (`{active, archive}`) رغم إنها
+    # بقت متخزّنة قايمة واحدة. ده **مش** تناقض: النداء ده متسيب صراحةً
+    # للتوافق مع السكربتات، وعقد الواجهة مالوش علاقة بشكل التخزين.
+    for cat in ("officers", "personnel"):
+        payload[cat] = {"active": repos.people.bucket(cat, "active"),
+                        "archive": repos.people.bucket(cat, "archive")}
+    payload["meta"] = _meta(data)
+    return jsonify(payload)

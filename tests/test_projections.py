@@ -7,7 +7,8 @@ DAY = "2026-04-10"
 
 
 def _add(client, day=DAY, **over):
-    body = {"service_id": "SVC-001", "shift": "صباحية"}
+    body = {"name": "دورية خارجية", "kind": "خارجية", "section": "الخدمات أساسية",
+            "shift": "صباحية"}
     body.update(over)
     return client.post(f"/api/assignments/{day}", json=body)
 
@@ -73,22 +74,6 @@ def test_moving_an_assignment_updates_both_officers(client):
 
 # ---------- الأخطاء المقيسة في الأرشيف ----------
 
-def test_renaming_a_service_does_not_erase_the_assignment(client):
-    """كان أخطر خطأ: التكليف مخزّن بالـid لكن اللوحة كانت مخزّنة اسم
-    الخدمة كنص، فإعادة التسمية كانت تمسح التكليف من يومية التشغيل في
-    صمت وتسيبه ظاهر على اللوحة بالاسم القديم."""
-    _add(client, officer_ids=["OFF-002"])
-    before = _summary(client)
-
-    r = client.patch("/api/services/SVC-001", json={"name": "دورية خارجية معدّلة"})
-    assert r.status_code == 200
-
-    assert _summary(client) == before, "التصنيف والأرقام مالهمش دعوة بالاسم"
-    assert _row(client, "OFF-002")["group"] == "خارجية"
-    # القسم الأساسي بيكتب الفترة جوّه الاسم، فالمتوقع الاسم الجديد + «صبح»
-    assert _section(client, "الخدمات أساسية")["rows"][0]["label"] == "دورية خارجية معدّلة صبح"
-
-
 def test_two_officers_on_the_same_service_and_shift_both_survive(client):
     """الاشتقاق القديم كان بياخد ضابط واحد لكل (خدمة، فترة) — النتيجة
     128 ضابط اختفوا من اللوحة في 65 يوم من الأرشيف."""
@@ -134,12 +119,11 @@ def test_the_same_officer_can_work_both_shifts(client):
     assert s["balanced"] is True, "الضابط لازم يتحسب مرة واحدة بس في الإجمالي"
 
 
-def test_morning_only_service_never_gets_a_night_shift(client):
-    """محور 1 و2 وقول 48 والإسعاف صباحية بس — الوورد بيكتب «ــــ» في
-    العمود الليلي."""
-    client.patch("/api/services/SVC-001", json={"shifts": ["صباحية"]})
-    entry = _add(client, shift="ليلية").get_json()
-    assert entry["shift"] == "صباحية"
+def test_guard_kind_never_gets_a_shift(client):
+    """الحراسات هدف ثابت طول اليوم — مالهاش فترة، حتى لو المشغّل بعتها."""
+    entry = _add(client, name="هدف سوميد", kind="حراسات", section="الأهداف",
+                 shift="ليلية").get_json()
+    assert entry["shift"] == ""
 
 
 # ---------- حالة الضابط ----------
@@ -173,11 +157,12 @@ def test_officer_not_on_force_that_day_is_refused(client):
     assert client.put("/api/duty/2019-01-01/OFF-002", json={}).status_code == 404
 
 
-def test_assignment_needs_a_catalog_service(client):
-    """مفيش أسماء خدمات حرة — كتابة «تدخل سريع صبح» بالإيد كانت بتكسر
-    الربط في صمت وتسيب الضابط في الصافي."""
-    assert client.post(f"/api/assignments/{DAY}", json={"service_id": ""}).status_code == 400
-    assert _add(client, service_id="SVC-999").status_code == 404
+def test_assignment_needs_a_name_and_kind(client):
+    """الاسم حر بيكتبه المشغّل — لكن لازم يبقى فيه اسم وتصنيف، وإلا
+    الخانة تفضل بلا معنى في جدول الإجمالي."""
+    assert client.post(f"/api/assignments/{DAY}", json={"name": ""}).status_code == 400
+    assert client.post(f"/api/assignments/{DAY}",
+                       json={"name": "خدمة", "kind": "تصنيف غير موجود"}).status_code == 400
 
 
 # ---------- تقسيمة اللوحة ----------
@@ -230,16 +215,7 @@ def test_officers_with_no_service_land_in_admin_work(client):
 def test_subcamp_service_leaves_the_officer_in_net(client):
     """قوة المعسكر الفرعي مالهاش خانة في جدول إجمالي الإدارة: الوورد كتب
     ضابط «نوبتجي المعسكر الفرعي» في قايمة «الصافي» بالاسم في 11 يوم من 11."""
-    client.patch("/api/services/SVC-001", json={"kind": "داخلية"})
-    import json as _json
-    from backend import store
-    data = _json.loads(store.DATA_FILE.read_text(encoding="utf-8"))
-    for svc in data["services"]:
-        if svc["id"] == "SVC-001":
-            svc["counts_in_summary"] = False
-    store.DATA_FILE.write_text(_json.dumps(data, ensure_ascii=False), encoding="utf-8")
-
-    _add(client, officer_ids=["OFF-002"])
+    _add(client, officer_ids=["OFF-002"], kind="داخلية", counts_in_summary=False)
     s = _summary(client)
     assert s["داخلية"]["صباحية"] == 0
     assert s["صافي"] == 2, "الخدمة بتظهر على اللوحة لكن مابتحركش الضابط"
@@ -251,15 +227,9 @@ def test_subcamp_service_leaves_the_officer_in_net(client):
 # ---------- سلّم أولويات خانة الإجمالي ----------
 # تقصيرة > حراسات > الخدمة (وفي الخدمات: اللي اتحط فيها الأول)
 
-def _guard(client, name="هدف سوميد"):
-    svc = client.post("/api/services", json={
-        "name": name, "kind": "حراسات", "section": "الأهداف"}).get_json()
-    return svc["id"]
-
-
 def test_taqseera_beats_everything_including_targets(client):
     """ضابط على حراسة ومعاه تقصيرة → يتحسب تقصيرة."""
-    _add(client, service_id=_guard(client), officer_ids=["OFF-002"])
+    _add(client, name="هدف سوميد", kind="حراسات", section="الأهداف", officer_ids=["OFF-002"])
     client.put(f"/api/duty/{DAY}/OFF-002", json={"taqseera": True})
     s = _summary(client)
     assert s["خوارج"]["تقصيرة"] == 1
@@ -279,7 +249,8 @@ def test_target_beats_an_ordinary_service_whatever_the_order(client):
     """قائد الهدف بيتحسب حراسات حتى لو الهدف مش أول خدمة في سطره —
     يومية 31/8: «مدرجات الدرجة الاولي + عمل بهدف كهرباء عتاقة»."""
     _add(client, officer_ids=["OFF-002"])                       # خارجية الأول
-    _add(client, service_id=_guard(client), officer_ids=["OFF-002"])   # حراسة بعدها
+    _add(client, name="هدف سوميد", kind="حراسات", section="الأهداف",
+         officer_ids=["OFF-002"])                                # حراسة بعدها
     s = _summary(client)
     assert s["حراسات"] == 1
     assert sum(s["خارجية"].values()) == 0
@@ -287,10 +258,8 @@ def test_target_beats_an_ordinary_service_whatever_the_order(client):
 
 def test_among_ordinary_services_the_first_one_wins(client):
     """الخانة اللي اتحط فيها الأول هي اللي تتحسب."""
-    night = client.post("/api/services", json={
-        "name": "خدمة ليلية", "kind": "خارجية",
-        "section": "الخدمات الطارئة"}).get_json()["id"]
-    _add(client, service_id=night, officer_ids=["OFF-002"], shift="ليلية")
+    _add(client, name="خدمة ليلية", section="الخدمات الطارئة",
+         officer_ids=["OFF-002"], shift="ليلية")
     _add(client, officer_ids=["OFF-002"], shift="صباحية")       # اتحط تاني
     s = _summary(client)
     assert s["خارجية"] == {"صباحية": 0, "ليلية": 1, "بحث": 0}
@@ -298,11 +267,9 @@ def test_among_ordinary_services_the_first_one_wins(client):
 
 
 def test_first_wins_across_internal_and_external_too(client):
-    inside = client.post("/api/services", json={
-        "name": "خدمة داخلية", "kind": "داخلية",
-        "section": "الخدمات الطارئة"}).get_json()["id"]
     _add(client, officer_ids=["OFF-002"], shift="صباحية")       # خارجية الأول
-    _add(client, service_id=inside, officer_ids=["OFF-002"], shift="ليلية")
+    _add(client, name="خدمة داخلية", kind="داخلية", section="الخدمات الطارئة",
+         officer_ids=["OFF-002"], shift="ليلية")
     s = _summary(client)
     assert s["خارجية"]["صباحية"] == 1
     assert sum(s["داخلية"].values()) == 0
