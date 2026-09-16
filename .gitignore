@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 *.tmp
+data.json.pre-split
 logs/
 backups/
 .pytest_cache/

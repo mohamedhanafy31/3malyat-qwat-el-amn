@@ -34,13 +34,37 @@ DATA_FILE = HERE.parent / "data.json"
 BACKUP_DIR = HERE.parent / "backups"
 
 
+def _store():
+    """`backend.store` — بيتستورد كسول عشان الهجرات اللي بتشتغل على ملف
+    واحد قديم ما تحتاجش الحزمة كلها."""
+    import sys
+    if str(HERE.parent) not in sys.path:
+        sys.path.insert(0, str(HERE.parent))
+    from backend import store
+    return store
+
+
+def split_mode():
+    """البيانات متفكوكة لمجلد ولا لسه ملف واحد؟
+
+    هجرة 010 هي الفاصل. اللي قبلها اشتغلت على `data.json`، واللي بعدها
+    بتشتغل على `data/` — والفرق ده بيتحدد من اللي موجود فعلًا مش من رقم
+    الهجرة، عشان إعادة تشغيل هجرة قديمة على ملف قديم تفضل شغّالة.
+    """
+    return _store().core_file().exists()
+
+
 def load():
+    if split_mode():
+        return _store().assemble()
     return json.loads(DATA_FILE.read_text(encoding="utf-8"))
 
 
 def snapshot():
-    """نسخة مؤرّخة من الملف الحالي — بترجّع مسارها."""
+    """نسخة مؤرّخة من البيانات الحالية — بترجّع مسارها."""
     BACKUP_DIR.mkdir(exist_ok=True)
+    if split_mode():
+        return _store().snapshot_now()
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     path = BACKUP_DIR / f"data-{stamp}-pre-migration.json"
     shutil.copy2(DATA_FILE, path)
@@ -48,6 +72,9 @@ def snapshot():
 
 
 def write(data):
+    if split_mode():
+        _store().explode(data)
+        return
     tmp = DATA_FILE.with_suffix(".tmp")
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(DATA_FILE)
@@ -58,8 +85,8 @@ def run(from_schema, to_schema, migrate, title):
     write_mode = "--write" in sys.argv
 
     print(f"=== هجرة {from_schema} → {to_schema}: {title} ===")
-    if not DATA_FILE.exists():
-        raise SystemExit(f"مافيش ملف بيانات في {DATA_FILE}")
+    if not split_mode() and not DATA_FILE.exists():
+        raise SystemExit(f"مافيش بيانات — لا {DATA_FILE} ولا مجلد data/.")
 
     data = load()
     found = data.get("schema", 1)

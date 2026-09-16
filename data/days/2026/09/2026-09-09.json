@@ -1,0 +1,24 @@
+{
+  "assignments": [
+    {
+      "id": "AS-0001",
+      "section": "الخدمات أساسية",
+      "shift": "صباحية",
+      "officer_ids": [
+        "OFF-044"
+      ],
+      "personnel_ids": [],
+      "conscripts": [],
+      "weapon": "الي + كلبش",
+      "time": "8 ص / 8 م",
+      "party": "",
+      "label_override": "",
+      "tags": [],
+      "note": "",
+      "name": "تدخل سريع",
+      "kind": "خارجية",
+      "counts_in_summary": true,
+      "conscript_count": 0
+    }
+  ]
+}

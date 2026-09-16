@@ -22,7 +22,6 @@ DEFAULT_DATA = {
     "officers": [],
     "personnel": [],
     "leaves": [],
-    "services": [],
     "day_assignments": {},
     "day_officers": {},
     "service_tags": [],

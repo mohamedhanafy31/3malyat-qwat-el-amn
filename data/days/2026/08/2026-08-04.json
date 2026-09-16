@@ -1,0 +1,60 @@
+{
+  "assignments": [
+    {
+      "section": "الخدمات أساسية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [],
+      "weapon": "الي + كلبش",
+      "time": "8 ص / 8 م",
+      "party": "",
+      "label_override": "",
+      "tags": [],
+      "note": "",
+      "id": "AS-0001",
+      "name": "تدخل سريع",
+      "kind": "خارجية",
+      "counts_in_summary": true,
+      "conscript_count": 0
+    },
+    {
+      "section": "الخدمات أساسية",
+      "shift": "ليلية",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [],
+      "weapon": "الي + كلبش",
+      "time": "8 ص / 8 م",
+      "party": "",
+      "label_override": "",
+      "tags": [],
+      "note": "",
+      "id": "AS-0002",
+      "name": "تدخل سريع",
+      "kind": "خارجية",
+      "counts_in_summary": true,
+      "conscript_count": 0
+    },
+    {
+      "section": "الخدمات أساسية",
+      "shift": "ليلية",
+      "officer_ids": [
+        "OFF-011"
+      ],
+      "personnel_ids": [],
+      "conscripts": [],
+      "weapon": "الي+ فيدرال",
+      "time": "9 ص / 9 م",
+      "party": "",
+      "label_override": "",
+      "tags": [],
+      "note": "",
+      "id": "AS-0003",
+      "name": "قول مكبر",
+      "kind": "خارجية",
+      "counts_in_summary": true,
+      "conscript_count": 0
+    }
+  ]
+}

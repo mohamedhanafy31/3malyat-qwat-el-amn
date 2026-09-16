@@ -18,14 +18,12 @@ from .mission import OPEN_STATUSES, STATUSES, Mission
 from .person import (
     ACTIVE, ARCHIVED, Individual, Officer, OfficerHistory, Person, of_category,
 )
-from .service import Service, normalise
 
 __all__ = [
     "Model",
     "Officer", "Individual", "Person", "OfficerHistory", "of_category",
     "ACTIVE", "ARCHIVED",
     "Leave",
-    "Service", "normalise",
     "Course", "CourseTerm", "COURSE_KINDS",
     "Day", "Assignment", "ConscriptSlot", "OfficerDayState", "DayStatus", "CountEntry",
     "Mission", "STATUSES", "OPEN_STATUSES",

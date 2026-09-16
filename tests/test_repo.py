@@ -1,21 +1,30 @@
 """المستودعات — الاستعلامات، الكتابة، وعدم تغيير شكل الملف.
 
 `test_real_day_round_trips_byte_for_byte` هو نظير `test_models` على مستوى
-المستودع: بيقرا كل يوم في `data.json` الحقيقي كتجميعة `Day` ويكتبها تاني
+المستودع: بيقرا كل يوم في البيانات الحقيقية في `data/` كتجميعة `Day` ويكتبها تاني
 من غير أي تعديل، ولازم الملف يطلع **مطابق تمامًا**. لو `DayRepo` بيضيف
 حقل أو بيشيل مفتاح فاضي غلط، ده بيبان هنا مش في الإنتاج.
 """
 import copy
 import json
-from pathlib import Path
 
 import pytest
 
 from backend.models import Assignment, Leave, Mission, OfficerDayState
 from backend.repo import Repos
 
-REAL_DATA = Path(__file__).resolve().parent.parent / "data.json"
+def real_data():
+    """البيانات الحقيقية مجمّعة من مجلد `data/` — أو None لو مش موجودة.
 
+    الاختبارات دي أهم شبكة أمان في الريفاكتور: بتتأكد إن النماذج
+    والمستودعات بتقرا **البيانات الحقيقية** وترجّعها زي ما هي بالحرف.
+    من غير الدالة دي كانت بتتخطّى في صمت بعد ما البيانات بقت مجلد.
+    """
+    from backend import store
+    return store.assemble() if store.core_file().exists() else None
+
+
+HAS_REAL = real_data() is not None
 
 @pytest.fixture
 def repos(data_file):
@@ -24,10 +33,10 @@ def repos(data_file):
 
 # ---------- عدم تغيير الشكل ----------
 
-@pytest.mark.skipif(not REAL_DATA.exists(), reason="مافيش ملف بيانات حقيقي")
+@pytest.mark.skipif(not HAS_REAL, reason="مافيش بيانات حقيقية")
 def test_real_day_round_trips_byte_for_byte():
     """كل يوم بيتقرا كتجميعة ويترجع زي ما هو بالحرف."""
-    data = json.loads(REAL_DATA.read_text(encoding="utf-8"))
+    data = real_data()
     before = copy.deepcopy({k: data[k] for k in
                             ("day_assignments", "day_officers", "day_status")})
     days = Repos(data).days
@@ -38,11 +47,11 @@ def test_real_day_round_trips_byte_for_byte():
         assert data[key] == original, f"شكل «{key}» اتغيّر بعد قراءة وكتابة"
 
 
-@pytest.mark.skipif(not REAL_DATA.exists(), reason="مافيش ملف بيانات حقيقي")
+@pytest.mark.skipif(not HAS_REAL, reason="مافيش بيانات حقيقية")
 def test_indexes_never_reach_the_stored_file():
     """فهارس المستودعات بتتخزّن على `data` بمفاتيح بتبدأ بـ`_`، و
     `store._write()` بيشيلها — عشان ما تكبّرش الملف."""
-    data = json.loads(REAL_DATA.read_text(encoding="utf-8"))
+    data = real_data()
     r = Repos(data)
     r.people.find("OFF-002")
     r.leaves.of_person("OFF-002")

@@ -1,23 +1,31 @@
 """النماذج — العقد، والتحقق، وأهم من الاتنين: عدم تغيير الشكل.
 
 `test_real_data_round_trips` هو الاختبار اللي بيحمي المرحلة ١ كلها: كل
-سجل في `data.json` الحقيقي بيتحوّل لنموذج ويرجع dict، ولازم يطلع **مطابق
+سجل في البيانات الحقيقية في `data/` بيتحوّل لنموذج ويرجع dict، ولازم يطلع **مطابق
 بالحرف** للي دخل. لو النموذج ضاف حقل ناقص أو شال حقل مش عارفه، الاختبار
 ده بيقع — وده بالظبط اللي بيمنع النماذج إنها تغيّر ملف البيانات في صمت.
 """
 import json
-from pathlib import Path
 
 import pytest
 
 from backend.models import (
     Assignment, ChangeEntry, ConscriptSlot, Course, CourseTerm, CountEntry,
-    Individual, Leave, Mission, Officer, OfficerDayState, OfficerHistory, Service,
-    normalise,
+    Individual, Leave, Mission, Officer, OfficerDayState, OfficerHistory,
 )
 
-REAL_DATA = Path(__file__).resolve().parent.parent / "data.json"
+def real_data():
+    """البيانات الحقيقية مجمّعة من مجلد `data/` — أو None لو مش موجودة.
 
+    الاختبارات دي أهم شبكة أمان في الريفاكتور: بتتأكد إن النماذج
+    والمستودعات بتقرا **البيانات الحقيقية** وترجّعها زي ما هي بالحرف.
+    من غير الدالة دي كانت بتتخطّى في صمت بعد ما البيانات بقت مجلد.
+    """
+    from backend import store
+    return store.assemble() if store.core_file().exists() else None
+
+
+HAS_REAL = real_data() is not None
 
 # ---------- عدم تغيير الشكل ----------
 
@@ -68,10 +76,10 @@ def test_reserved_word_fields_map_back():
     assert _round_trip(ConscriptSlot, slot) == slot
 
 
-@pytest.mark.skipif(not REAL_DATA.exists(), reason="مافيش ملف بيانات حقيقي")
+@pytest.mark.skipif(not HAS_REAL, reason="مافيش بيانات حقيقية")
 def test_real_data_round_trips():
     """كل سجل في الملف الحقيقي بيرجع زي ما هو بالحرف."""
-    data = json.loads(REAL_DATA.read_text(encoding="utf-8"))
+    data = real_data()
     checked = 0
 
     def check(model, raw, where):
@@ -89,8 +97,6 @@ def test_real_data_round_trips():
 
     for lv in data["leaves"]:
         check(Leave, lv, f"leaves[{lv.get('id')}]")
-    for s in data.get("services") or []:
-        check(Service, s, f"services[{s.get('id')}]")
     for c in data["courses"]:
         check(Course, c, f"courses[{c.get('id')}]")
     for t in data["course_terms"]:
@@ -193,16 +199,3 @@ def test_empty_officer_state_is_detected():
     assert OfficerDayState.from_dict({}).empty
     assert not OfficerDayState.from_dict({"note": "راحة"}).empty
 
-
-def test_service_matches_by_alias_and_spelling():
-    svc = Service.from_dict({"id": "SVC-1", "name": "مشرف الأهداف",
-                             "aliases": ["مشرف الاهداف"]})
-    assert svc.matches("مشرف الأهداف")
-    assert svc.matches("مشرف الاهداف")
-    assert not svc.matches("تدخل سريع")
-
-
-def test_normalise_collapses_arabic_spelling_variants():
-    assert normalise("الأهداف") == normalise("الاهداف")
-    assert normalise("نيابة") == normalise("نيابه")
-    assert normalise("  مسافات   زيادة ") == "مسافات زياده"   # التاء المربوطة بتتحوّل هاء

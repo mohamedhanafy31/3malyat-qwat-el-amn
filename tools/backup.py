@@ -23,7 +23,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from backend.store import (            # noqa: E402
-    DATA_FILE, DataUnreadable, backup_dir, list_backups, restore_backup,
+    DATA_DIR, DataUnreadable, backup_dir, list_backups, restore_backup,
 )
 
 
@@ -89,7 +89,7 @@ def cmd_restore(args):
         print(f"النسخة دي تالفة ومش هتترجع:\n  {row['error']}")
         return 1
 
-    print(f"\nهيتم استبدال:  {DATA_FILE}")
+    print(f"\nهيتم استبدال:  {DATA_DIR}/  (كل الملفات جوّاه)")
     print(f"بالنسخة    :  {name}")
     print(f"محتواها    :  {row['officers']} ضابط، {row['leaves']} راحة، "
           f"بنية {row['schema']}")
@@ -112,7 +112,7 @@ def cmd_restore(args):
               "لو السيستم شغّال، اقفله الأول وجرّب تاني.")
         return 1
 
-    print(f"\nتمت الاستعادة. data.json فيه دلوقتي "
+    print(f"\nتمت الاستعادة. {DATA_DIR.name}/ فيه دلوقتي "
           f"{len(data['officers']['active'])} ضابط و{len(data['leaves'])} راحة.")
     print("اتاخدت لقطة للوضع القديم قبل الاستبدال، فينفع ترجع فيها.")
     print("شغّل السيستم تاني عشان يقرا البيانات الجديدة.")

@@ -3,7 +3,7 @@
 الراحات والفرق والالتحاقات والمأموريات — كلها قوايم في المستوى الأعلى
 بنفس الشكل، فبتاخد نفس الأساس (`Repo`) وبتضيف استعلاماتها بس.
 """
-from ..models import Course, CourseTerm, Leave, Mission, Service
+from ..models import Course, CourseTerm, Leave, Mission
 from .base import Repo
 
 
@@ -102,23 +102,6 @@ class LeaveRepo(Repo):
             return False
         self.sort()
         return True
-
-
-class ServiceRepo(Repo):
-    """كتالوج الخدمات — **مش مستخدم دلوقتي**، شوف `models/service.py`."""
-    KEY = "services"
-    MODEL = Service
-
-    def resolve(self, name):
-        """الخدمة اللي الاسم ده بيشاور عليها — أو None لو خدمة طارئة.
-
-        دي نقطة الدخول للمرحلة ٣: `Assignment.service_id` بيتملا منها
-        وقت الحفظ. دلوقتي بترجّع None دايمًا لأن الكتالوج فاضي من أي
-        استخدام، والسلوك ده مقصود مش خطأ.
-        """
-        if not name:
-            return None
-        return next((s for s in self.all() if s.matches(name)), None)
 
 
 class CourseRepo(Repo):

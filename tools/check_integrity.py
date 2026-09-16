@@ -21,7 +21,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_FILE = ROOT / "data.json"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 
 # ---------- بناء مجموعات المفاتيح الموجودة ----------
@@ -50,7 +51,6 @@ def targets(data):
         "individual": _people_ids(data, "personnel"),
         "person": _people_ids(data, "officers") | _people_ids(data, "personnel"),
         "course": {c.get("id") for c in data.get("courses") or []},
-        "service": {s.get("id") for s in data.get("services") or []},
     }
 
 
@@ -82,14 +82,26 @@ def counts(data):
 
 
 def main():
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else DATA_FILE
-    if not path.exists():
-        raise SystemExit(f"مافيش ملف في {path}")
-    data = json.loads(path.read_text(encoding="utf-8"))
+    """من غير وسيط بيفحص البيانات الشغّالة؛ وبمسار ملف بيفحص نسخة
+    احتياطية قبل ما تترجع — وده الاستخدام الأهم."""
+    from backend import store                      # noqa: E402
+
+    if len(sys.argv) > 1:
+        path = Path(sys.argv[1])
+        if not path.exists():
+            raise SystemExit(f"مافيش ملف في {path}")
+        label = path.name
+        data = (store.read_backup(path) if path.suffix in (".gz", ".json")
+                else json.loads(path.read_text(encoding="utf-8")))
+    else:
+        label = f"{store.DATA_DIR.name}/"
+        if not store.core_file().exists():
+            raise SystemExit(f"مافيش بيانات في {store.DATA_DIR}")
+        data = store.assemble()
 
     tally = counts(data)
     total = sum(tally.values())
-    print(f"=== فحص التكامل المرجعي — {path.name} ===")
+    print(f"=== فحص التكامل المرجعي — {label} ===")
     print(f"اتفحص {total} مرجع: " + "، ".join(f"{k}={v}" for k, v in sorted(tally.items())))
 
     broken = check(data)

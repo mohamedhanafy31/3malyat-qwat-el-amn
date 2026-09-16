@@ -41,7 +41,8 @@ TARGETS = {"حراسات": 95, "خارجية/صباحية": 90, "داخلية/ص
 
 def main():
     show_all = "--all" in sys.argv
-    data = json.loads((ROOT / "data.json").read_text(encoding="utf-8"))
+    from backend import store                      # noqa: E402
+    data = store.assemble()
     word = word_summaries()
     if not word:
         raise SystemExit("مش لاقي أي جدول إجمالي في الأرشيف.")

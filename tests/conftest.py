@@ -52,11 +52,45 @@ FIXTURE_DATA = {
 
 @pytest.fixture
 def data_file(tmp_path, monkeypatch):
-    """يحوّل تخزين البيانات لملف مؤقت معزول عن data.json الحقيقي طول مدة الاختبار."""
-    f = tmp_path / "data.json"
-    f.write_text(json.dumps(FIXTURE_DATA, ensure_ascii=False), encoding="utf-8")
-    monkeypatch.setattr(store, "DATA_FILE", f)
-    return f
+    """يحوّل تخزين البيانات لمجلد مؤقت معزول عن `data/` الحقيقي.
+
+    بيرجّع كائن فيه `.read_text()` عشان الاختبارات اللي بتقرا الملف على
+    القرص مباشرة تفضل تقرا **كل** البيانات مجمّعة زي ما كانت لما كان
+    ملف واحد — التقسيم تفصيلة تخزين، والاختبار بيتكلم عن البيانات.
+    """
+    monkeypatch.setattr(store, "DATA_DIR", tmp_path / "data")
+    store._cache.clear()
+    store.explode(json.loads(json.dumps(FIXTURE_DATA)))
+    return _Assembled()
+
+
+class _Assembled:
+    """واجهة `Path`-شبه على البيانات المجمّعة من المجلد.
+
+    الاختبارات القديمة كانت بتقرا وتكتب الملف مباشرة. بدل ما نعيد كتابتها
+    كلها عشان تفصيلة تخزين، الكائن ده بيدّيها نفس الواجهة: القراءة بتجمّع
+    كل الملفات، والكتابة بتفكّها تاني.
+    """
+
+    def read_text(self, encoding="utf-8"):
+        return json.dumps(store.assemble(), ensure_ascii=False)
+
+    def read_bytes(self):
+        return self.read_text().encode("utf-8")
+
+    def write_text(self, text, encoding="utf-8"):
+        store.explode(json.loads(text))
+
+    def exists(self):
+        return store.core_file().exists()
+
+    def size(self):
+        """مجموع حجم كل ملفات المجلد على القرص."""
+        return sum(p.stat().st_size for p in store.DATA_DIR.rglob("*.json"))
+
+    @property
+    def parent(self):
+        return store.DATA_DIR.parent
 
 
 @pytest.fixture(autouse=True)
