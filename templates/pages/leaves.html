@@ -7,23 +7,24 @@
 
 <div class="panel">
   <div class="panel-head">
-    <div class="tabs">
-      <button class="tab active" data-lv="all">الكل</button>
-      <button class="tab" data-lv="current">جارية الآن</button>
-      <button class="tab" data-lv="upcoming">قادمة</button>
-      <button class="tab" data-lv="month">هذا الشهر</button>
+    <div class="tabs" role="tablist" aria-label="عرض سجلات الراحات">
+      <button type="button" class="tab active" id="leaveTabAll" role="tab" aria-selected="true" aria-controls="leaveWrap" tabindex="0" data-lv="all">الكل</button>
+      <button type="button" class="tab" id="leaveTabCurrent" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="current">جارية الآن</button>
+      <button type="button" class="tab" id="leaveTabUpcoming" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="upcoming">قادمة</button>
+      <button type="button" class="tab" id="leaveTabMonth" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="month">هذا الشهر</button>
     </div>
   </div>
   <div class="toolbar">
-    <input id="leaveSearch" class="search" placeholder="بحث باسم الشخص أو الملاحظات...">
-    <select id="leaveTypeFilter" class="select"></select>
-    <select id="leaveMonthFilter" class="select"></select>
-    <select id="leaveCategoryFilter" class="select">
+    <input id="leaveSearch" class="search" aria-label="البحث في سجل الراحات"
+           placeholder="بحث باسم الشخص أو الملاحظات…">
+    <select id="leaveTypeFilter" class="select" aria-label="تصفية حسب نوع الراحة"></select>
+    <select id="leaveMonthFilter" class="select" aria-label="تصفية حسب الشهر"></select>
+    <select id="leaveCategoryFilter" class="select" aria-label="تصفية حسب الفئة">
       <option value="">جميع الفئات</option>
       <option value="officers">ضباط</option>
       <option value="personnel">صف ضباط / أفراد</option>
     </select>
-    <select id="leaveDurationFilter" class="select">
+    <select id="leaveDurationFilter" class="select" aria-label="تصفية حسب مدة الراحة">
       <option value="">جميع المدد</option>
       <option value="short">قصيرة (1-3 أيام)</option>
       <option value="medium">متوسطة (4-7 أيام)</option>
@@ -31,7 +32,7 @@
     </select>
     <button class="primary" id="addLeaveBtn">{{ icon('plus') }} تسجيل راحة</button>
   </div>
-  <div id="leaveWrap"></div>
+  <div id="leaveWrap" role="tabpanel" aria-labelledby="leaveTabAll"></div>
 </div>
 {% endblock %}
 

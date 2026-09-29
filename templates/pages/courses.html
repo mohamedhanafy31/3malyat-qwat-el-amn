@@ -5,11 +5,14 @@
 
 <div class="panel">
   <div class="toolbar">
-    <div class="viewtabs" id="viewTabs">
-      <button class="vtab active" data-view="course">حسب الفرقة</button>
-      <button class="vtab" data-view="officer">حسب الضابط</button>
+    <div class="viewtabs" id="viewTabs" role="tablist" aria-label="طريقة عرض الفرق">
+      <button type="button" class="vtab active" id="courseTabCourse" role="tab"
+              aria-selected="true" aria-controls="coursesWrap" tabindex="0" data-view="course">حسب الفرقة</button>
+      <button type="button" class="vtab" id="courseTabOfficer" role="tab"
+              aria-selected="false" aria-controls="coursesWrap" tabindex="-1" data-view="officer">حسب الضابط</button>
     </div>
-    <input id="crsSearch" class="search" placeholder="بحث باسم الفرقة أو الضابط...">
+    <input id="crsSearch" class="search" aria-label="البحث في الفرق والضباط"
+           placeholder="بحث باسم الفرقة أو الضابط…">
     <select id="crsKindFilter" class="select" aria-label="تصفية حسب نوع الفرقة">
       <option value="">كل الأنواع</option>
       <option value="تأهيلية">تأهيلية</option>
@@ -27,7 +30,7 @@
     «فرقة» في الخوارج طول مدتها من غير ما تتكتب في تشغيله كل يوم، وبتغطي كمان
     الأيام اللي لسه ماتعملّهاش يومية.
   </p>
-  <div id="coursesWrap"></div>
+  <div id="coursesWrap" role="tabpanel" aria-labelledby="courseTabCourse"></div>
 </div>
 {% endblock %}
 

@@ -235,7 +235,7 @@ function renderCommand() {
       <div class="cmd-slots">${COMMAND_ROLES().map(role => {
         const cur = COMMAND[role], p = cur ? personById(cur) : null;
         return `<label class="cmd-slot"><span class="cmd-role">${esc(role)}</span>
-          <select data-cmd-role="${esc(role)}">
+          <select data-cmd-role="${esc(role)}" aria-label="${esc(role)}">
             <option value="">— غير محدد —</option>
             ${officers.map(o => `<option value="${esc(o.id)}" ${o.id === cur ? "selected" : ""}>${esc(o.role)} / ${esc(o.name)}</option>`).join("")}
           </select>
@@ -249,7 +249,7 @@ function renderCommand() {
         const ids = COMMAND_GROUPS[role] || [];
         return `<label class="cmd-slot"><span class="cmd-role">${esc(role)}</span>
           <div class="cmd-group-pick">
-            <select data-group-role="${esc(role)}" multiple size="4">
+            <select data-group-role="${esc(role)}" multiple size="4" aria-label="${esc(role)}">
               ${officers.map(o => `<option value="${esc(o.id)}" ${ids.includes(o.id) ? "selected" : ""}>${esc(o.role)} / ${esc(o.name)}</option>`).join("")}
             </select>
             <button type="button" class="mini ok" data-save-group="${esc(role)}">حفظ</button>
@@ -422,8 +422,13 @@ if (IS_OFF) ACTIONS.openLeaveFor = id => openLeave(null, id, personById(id));
 
 /* ---------- ربط ---------- */
 $$("[data-bucket]").forEach(b => b.onclick = () => {
-  $$("[data-bucket]").forEach(x => x.classList.remove("active"));
-  b.classList.add("active");
+  $$("[data-bucket]").forEach(x => {
+    const selected=x===b;
+    x.classList.toggle("active",selected);
+    x.setAttribute("aria-selected",String(selected));
+    x.tabIndex=selected?0:-1;
+  });
+  $("#tableWrap").setAttribute("aria-labelledby",b.id);
   BUCKET = b.dataset.bucket; $("#search").value = ""; render();
 });
 $("#search").oninput = debounce(render);   // إعادة الرسم بعد ما الكتابة تهدى

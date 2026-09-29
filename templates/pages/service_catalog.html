@@ -4,10 +4,10 @@
 <div class="panel">
   <div class="toolbar">
     <button class="primary" id="addServiceBtn">{{ icon('plus') }} خدمة جديدة</button>
-    <input class="search" id="svcSearch" placeholder="دوّر بالاسم أو التعليمات">
-    <select class="select" id="svcKindFilter"></select>
-    <select class="select" id="svcPeriodFilter"></select>
-    <select class="select" id="svcTagFilter"></select>
+    <input class="search" id="svcSearch" aria-label="البحث في دليل الخدمات" placeholder="بحث بالاسم أو التعليمات">
+    <select class="select" id="svcKindFilter" aria-label="تصفية حسب نوع الخدمة"></select>
+    <select class="select" id="svcPeriodFilter" aria-label="تصفية حسب فترة الخدمة"></select>
+    <select class="select" id="svcTagFilter" aria-label="تصفية حسب الوسم"></select>
   </div>
   <div id="svcSeedBanner" class="alert-card hidden">
     <div class="alert-head"><span class="alert-ico">ℹ</span><strong>الدليل فاضي لسه</strong>

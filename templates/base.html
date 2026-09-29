@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body data-page="{{ page }}">
+<a class="skip-link" href="#main">تخطي إلى المحتوى</a>
 {% include "partials/icons.html" %}
 <header class="topbar">
   <button class="burger" id="burgerBtn" aria-label="فتح القائمة" aria-expanded="false"
@@ -146,7 +147,7 @@
 
   </nav>
 
-  <main class="content">
+  <main class="content" id="main" tabindex="-1">
     <div class="container">
       {# ترويسة الصفحة أولًا، بعدها التنبيهات — العكس كان بيدفن عنوان الصفحة
          تحت عشر صفوف تنبيه قبل ما المستخدم يعرف هو فين أصلًا. #}

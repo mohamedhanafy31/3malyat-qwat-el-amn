@@ -175,7 +175,13 @@ function render() {
 
 $$("#viewTabs .vtab").forEach(btn => btn.onclick = () => {
   VIEW = btn.dataset.view;
-  $$("#viewTabs .vtab").forEach(b => b.classList.toggle("active", b === btn));
+  $$("#viewTabs .vtab").forEach(b => {
+    const selected=b===btn;
+    b.classList.toggle("active",selected);
+    b.setAttribute("aria-selected",String(selected));
+    b.tabIndex=selected?0:-1;
+  });
+  $("#coursesWrap").setAttribute("aria-labelledby",btn.id);
   $("#crsKindFilter")?.classList.toggle("hidden", VIEW !== "course");
   render();
 });

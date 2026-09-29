@@ -250,8 +250,14 @@ ACTIONS.deleteLeave = async (id, extra) => {
 
 // ── Event Listeners ────────────────────────────────────────────────────────
 $$("[data-lv]").forEach(b => b.onclick = () => {
-  $$("[data-lv]").forEach(x => x.classList.remove("active"));
-  b.classList.add("active"); LEAVE_TAB = b.dataset.lv; render();
+  $$("[data-lv]").forEach(x => {
+    const selected=x===b;
+    x.classList.toggle("active",selected);
+    x.setAttribute("aria-selected",String(selected));
+    x.tabIndex=selected?0:-1;
+  });
+  $("#leaveWrap").setAttribute("aria-labelledby",b.id);
+  LEAVE_TAB = b.dataset.lv; render();
 });
 $("#leaveSearch").oninput      = debounce(render);   // إعادة الرسم بعد ما الكتابة تهدى
 $("#leaveTypeFilter").onchange = render;

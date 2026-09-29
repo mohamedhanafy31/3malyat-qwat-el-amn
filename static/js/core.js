@@ -265,7 +265,7 @@ document.addEventListener("click",e=>{
   if(!fn) return;
   let extra={};
   if(el.dataset.extra){ try{extra=JSON.parse(el.dataset.extra)}catch(err){} }
-  fn(el.dataset.id,extra,el);
+  fn(el.dataset.id,extra,el,e);
 });
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -313,19 +313,28 @@ function _sortTh(label, key, cid, onSort) {
   const isCur = st.col === key;
   const dir = isCur ? st.dir : 0;
   const cls = isCur && dir === 1 ? " asc" : isCur && dir === -1 ? " desc" : "";
-  return `<th class="th-sort${cls}" data-action="_thSort"
-    data-extra="${dataAttr({cid, key})}">${esc(label)}</th>`;
+  const ariaSort = dir === 1 ? "ascending" : dir === -1 ? "descending" : "none";
+  const sortIcon = dir === -1 ? "chevron-down" : dir === 1 ? "chevron-up" : "sort";
+  return `<th class="th-sort${cls}" aria-sort="${ariaSort}">
+    <button type="button" class="th-sort-btn" data-action="_thSort"
+      data-sort-key="${esc(key)}" data-extra="${dataAttr({cid, key})}"><span>${esc(label)}</span>${icon(sortIcon,"sort-arrow")}</button></th>`;
 }
 
 // يلتقط الضغط على أي th-sort ويحدّث الـ state ويعيد الرسم
-ACTIONS._thSort = (_id, extra) => {
+ACTIONS._thSort = (_id, extra, el, event) => {
   const { cid, key } = extra;
+  const restoreFocus = event?.detail === 0 && el?.classList.contains("th-sort-btn");
   const st = _sortState(cid);
   if (st.col !== key) { st.col = key; st.dir = 1; }
   else if (st.dir === 1) { st.dir = -1; }
   else { st.col = null; st.dir = 0; }
   // استدعاء render المخزن للصفحة الحالية
   if (typeof _sortRenders[cid] === "function") _sortRenders[cid]();
+  if (restoreFocus) {
+    const button = [...(document.getElementById(cid)?.querySelectorAll(".th-sort-btn") || [])]
+      .find(candidate => candidate.dataset.sortKey === String(key));
+    button?.focus({preventScroll:true});
+  }
 };
 const _sortRenders = {};   // { cid: renderFn }
 
@@ -640,11 +649,15 @@ function renderAlerts(alerts){
    هو من غير أي تعديل فيه — الفرق الوحيد اللي المستخدم شايفه هو النص. */
 const AR_MONTHS=Array.from({length:12},(_,i)=>
   new Date(2000,i,1).toLocaleDateString("ar-EG-u-nu-latn",{month:"long"}));
-const WD_SHORT=["س","ح","ن","ث","ر","خ","ج"];   // بادئة بالسبت زي WEEKDAYS
+const WD_SHORT=["سبت","أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة"];
+const WD_FULL=["السبت","الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة"];
 const _dateValueDesc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");
 
 const datePopover=document.createElement("div");
 datePopover.className="date-popover hidden";
+datePopover.id="datePopover";
+datePopover.setAttribute("role","dialog");
+datePopover.setAttribute("aria-label","اختيار التاريخ");
 document.body.appendChild(datePopover);
 let _dpInput=null, _dpView=null;
 
@@ -675,9 +688,13 @@ function _dpDayGrid(y,m){
   for(let d=1;d<=daysInMonth;d++){
     const iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
     const cls=[iso===todayIso?"today":"",iso===selIso?"sel":""].filter(Boolean).join(" ");
-    cells.push(`<button type="button" class="${cls}" data-action="_dpPickDay" data-id="${iso}">${d}</button>`);
+    const current=iso===todayIso?' aria-current="date"':"";
+    const selected=iso===selIso;
+    cells.push(`<button type="button" class="${cls}" data-action="_dpPickDay" data-id="${iso}"
+      aria-label="${esc(fmt(iso))}" aria-pressed="${selected}" aria-selected="${selected}"${current}>${d}</button>`);
   }
-  const heads=WD_SHORT.map(h=>`<span class="dp-wd">${h}</span>`).join("");
+  const heads=WD_SHORT.map((h,i)=>`<span class="dp-wd" role="columnheader" aria-label="${WD_FULL[i]}">
+    <abbr title="${WD_FULL[i]}">${h}</abbr></span>`).join("");
   return `<div class="dp-head">
       <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1" aria-label="الشهر السابق">${icon("chevron-prev")}</button>
       <b>${new Date(y,m,1).toLocaleDateString("ar-EG-u-nu-latn",{month:"long",year:"numeric"})}</b>
@@ -703,13 +720,14 @@ function _dpMonthGrid(y){
 function _dpRender(){
   const isMonth=_dpInput.dataset.picker==="month";
   const body=isMonth?_dpMonthGrid(_dpView.y):_dpDayGrid(_dpView.y,_dpView.m);
-  const clearBtn=_dpInput.required?"":`<button type="button" class="dp-clear" data-action="_dpClearBtn">مسح</button>`;
+  const clearBtn=(_dpInput.required||_dpInput.id==="dutyDate")?"":`<button type="button" class="dp-clear" data-action="_dpClearBtn">مسح</button>`;
   datePopover.innerHTML=body+clearBtn;
 }
 function _dpPosition(input){
   const r=input.getBoundingClientRect();
   const top=Math.min(r.bottom+6,window.innerHeight-320);
-  const left=Math.min(Math.max(8,r.left),window.innerWidth-260);
+  const width=datePopover.offsetWidth||300;
+  const left=Math.min(Math.max(8,r.left),window.innerWidth-width-8);
   datePopover.style.top=`${top}px`;
   datePopover.style.left=`${left}px`;
 }
@@ -722,7 +740,30 @@ function _dpOpen(input){
   _dpRender();
   _dpPosition(input);
   datePopover.classList.remove("hidden");
+  const wanted=input.value||fallback;
+  const target=isMonth
+    ? datePopover.querySelector(`[data-action="_dpPickMonth"][data-id="${wanted}"]`)
+    : datePopover.querySelector(`[data-action="_dpPickDay"][data-id="${wanted}"]`);
+  (target||datePopover.querySelector(".dp-grid button"))?.focus();
 }
+
+datePopover.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){
+    e.preventDefault();
+    const input=_dpInput; _dpClose(); input?.focus();
+    return;
+  }
+  const day=e.target.closest('[data-action="_dpPickDay"]');
+  if(!day) return;
+  const moves={ArrowLeft:1,ArrowRight:-1,ArrowUp:-7,ArrowDown:7};
+  if(!(e.key in moves)) return;
+  e.preventDefault();
+  const next=addDays(day.dataset.id,moves[e.key]);
+  const [y,m]=next.split("-").map(Number);
+  _dpView={y,m:m-1};
+  _dpRender();
+  datePopover.querySelector(`[data-action="_dpPickDay"][data-id="${next}"]`)?.focus();
+});
 ACTIONS._dpPickDay=id=>_dpPick(id);
 ACTIONS._dpPickMonth=id=>_dpPick(id);
 ACTIONS._dpClearBtn=()=>_dpClear();
@@ -813,6 +854,8 @@ const _selValueDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototyp
 
 const comboPop = document.createElement("div");
 comboPop.className = "combo-pop hidden";
+comboPop.id = "comboListbox";
+comboPop.setAttribute("role", "listbox");
 document.body.appendChild(comboPop);
 
 /* الضغط على خيار لازم ما يسحبش التركيز من حقل البحث.
@@ -824,6 +867,7 @@ document.body.appendChild(comboPop);
 comboPop.addEventListener("mousedown", e => e.preventDefault());
 
 let _cbSel = null, _cbInput = null, _cbOpts = [], _cbIdx = -1, _cbMulti = false;
+let _cbSeq = 0;
 
 const _cbLabel = sel => sel.options[sel.selectedIndex]?.textContent ?? "";
 
@@ -879,22 +923,26 @@ function _cbRender(q) {
   const custom = allowCustom && typed && !exact
     ? [{custom: true, text: typed, value: typed}] : [];
   _cbOpts = [...custom, ...(q ? all.filter(o => arIncludes(o.text, q)) : all)];
+  comboPop.toggleAttribute("aria-multiselectable", _cbMulti);
   if (!_cbOpts.length) {
     comboPop.innerHTML = `<div class="combo-empty">مفيش خيار مطابق لـ«${esc(q)}»</div>`;
+    _cbInput.removeAttribute("aria-activedescendant");
     return;
   }
   if (custom.length) _cbIdx = 0;
   if (_cbIdx >= _cbOpts.length) _cbIdx = _cbOpts.length - 1;
   const cur = _selValueDesc.get.call(_cbSel);
   const chosen = o => !o.custom && (_cbMulti ? opts[o.i].selected : o.value === cur);
-  comboPop.innerHTML = `<ul class="combo-list" role="listbox"
-    ${_cbMulti ? 'aria-multiselectable="true"' : ""}>${_cbOpts.map((o, n) => {
+  comboPop.innerHTML = `<ul class="combo-list" role="presentation">${_cbOpts.map((o, n) => {
     const on = chosen(o);
-    return `<li role="option" aria-selected="${on}" data-action="_cbPick" data-id="${n}"
+    return `<li id="${_cbSel._comboId}-option-${n}" role="option" aria-selected="${on}" data-action="_cbPick" data-id="${n}"
       class="combo-opt${o.custom ? " custom" : ""}${on ? " sel" : ""}${n === _cbIdx ? " active" : ""}"
       >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? icon("check") : ""}</span>` : ""}${o.custom
         ? `${icon("plus")} قسم جديد: «${esc(o.text)}»` : esc(o.text)}</li>`;
   }).join("")}</ul>`;
+  const active=comboPop.querySelector(".combo-opt.active");
+  if(active) _cbInput.setAttribute("aria-activedescendant",active.id);
+  else _cbInput.removeAttribute("aria-activedescendant");
 }
 
 function _cbScrollActive() {
@@ -926,7 +974,7 @@ function _cbOpen(sel, query = "") {
   _cbIdx = _cbMulti ? 0 : Math.max(0, sel.selectedIndex);
   if (!_cbMulti) {
     // الحقل بيتفضّى عشان الكتابة تبدأ بحث جديد، والمختار حاليًا باين كـplaceholder
-    _cbInput.placeholder = (sel._comboCustomDraft ?? _cbLabel(sel)) || "اختار...";
+    _cbInput.placeholder = (sel._comboCustomDraft ?? _cbLabel(sel)) || "اختر…";
     _cbInput.value = query;
   }
   _cbRender(query);
@@ -940,6 +988,7 @@ function _cbOpen(sel, query = "") {
 function _cbClose() {
   if (_cbInput) {
     _cbInput.setAttribute("aria-expanded", "false");
+    _cbInput.removeAttribute("aria-activedescendant");
     if (_cbMulti) { _cbInput.value = ""; _msSync(_cbSel) }
     else { _cbInput.placeholder = ""; _cbSync(_cbSel) }
   }
@@ -989,7 +1038,24 @@ function _cbMove(step) {
   _cbIdx = (_cbIdx + step + _cbOpts.length) % _cbOpts.length;
   comboPop.querySelectorAll(".combo-opt").forEach((el, i) =>
     el.classList.toggle("active", i === _cbIdx));
+  const active=comboPop.querySelector(".combo-opt.active");
+  if(active) _cbInput.setAttribute("aria-activedescendant",active.id);
   _cbScrollActive();
+}
+
+function _cbSetName(sel,inp){
+  const own=sel.getAttribute("aria-label")?.trim();
+  if(own){ inp.setAttribute("aria-label",own.slice(0,59)); return }
+  const labelledby=sel.getAttribute("aria-labelledby")?.trim();
+  if(labelledby){ inp.setAttribute("aria-labelledby",labelledby); return }
+  const explicit=sel.id?document.querySelector(`label[for="${CSS.escape(sel.id)}"]`):null;
+  const wrapper=sel.closest("label");
+  const direct=explicit?explicit.textContent.replace(/\s+/g," ").trim():wrapper?[...wrapper.childNodes]
+    .filter(node=>node.nodeType===Node.TEXT_NODE)
+    .map(node=>node.textContent).join(" ").replace(/\s+/g," ").trim():"";
+  const fallback=sel.options[0]?.textContent?.replace(/\s+/g," ").trim()
+    || sel.getAttribute("placeholder")?.trim() || "اختيار قيمة";
+  inp.setAttribute("aria-label",(direct||fallback).slice(0,59));
 }
 
 /** صندوق الوسوم للاختيار المتعدد — شارة لكل مختار + حقل بحث جنبهم. */
@@ -1002,8 +1068,9 @@ function _upgradeMulti(sel) {
   inp.setAttribute("role", "combobox");
   inp.setAttribute("aria-expanded", "false");
   inp.setAttribute("aria-autocomplete", "list");
-  const lab = sel.closest("label");
-  if (lab) inp.setAttribute("aria-label", lab.textContent.replace(/\s+/g, " ").trim());
+  inp.setAttribute("aria-controls", comboPop.id);
+  sel._comboId=`combo-${++_cbSeq}`;
+  _cbSetName(sel,inp);
   box.appendChild(inp);
 
   box._sel = sel; sel._comboBox = box; sel._comboInput = inp;
@@ -1072,12 +1139,9 @@ function upgradeSelects(root) {
     inp.setAttribute("role", "combobox");
     inp.setAttribute("aria-expanded", "false");
     inp.setAttribute("aria-autocomplete", "list");
-    // الاسم المقروء: من aria-label أو من الـ<label> المرتبط (صريح أو محيط)
-    const lab = sel.closest("label")
-      || (sel.id && document.querySelector(`label[for="${CSS.escape(sel.id)}"]`));
-    const name = sel.getAttribute("aria-label")
-      || (lab ? lab.textContent.replace(/\s+/g, " ").trim() : "");
-    if (name) inp.setAttribute("aria-label", name);
+    inp.setAttribute("aria-controls", comboPop.id);
+    sel._comboId=`combo-${++_cbSeq}`;
+    _cbSetName(sel,inp);
 
     /* التحقق المطلوب (required) بينتقل للحقل الظاهر: المتصفح مايقدرش يوقف
        عند عنصر مخفي، وكان هيرمي "not focusable" ويمنع الحفظ. القوايم
@@ -1160,6 +1224,23 @@ function upgradeSelects(root) {
   });
 }
 upgradeSelects();
+
+document.addEventListener("keydown",e=>{
+  const tab=e.target.closest('[role="tab"]');
+  const tablist=tab?.closest('[role="tablist"]');
+  if(!tablist) return;
+  const tabs=[...tablist.querySelectorAll('[role="tab"]')];
+  const index=tabs.indexOf(tab);
+  let next=null;
+  if(e.key==="ArrowLeft") next=(index+1)%tabs.length;
+  else if(e.key==="ArrowRight") next=(index-1+tabs.length)%tabs.length;
+  else if(e.key==="Home") next=0;
+  else if(e.key==="End") next=tabs.length-1;
+  if(next===null) return;
+  e.preventDefault();
+  tabs[next].click();
+  tabs[next].focus();
+});
 
 /* رسائل موحّدة داخل النموذج بدل فقاعات المتصفح التي تختلف لغتها وشكلها. */
 let _fieldErrorSeq=0;

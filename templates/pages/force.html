@@ -9,29 +9,32 @@
 
 <div class="panel">
   <div class="panel-head">
-    <div class="tabs">
-      <button class="tab active" data-bucket="active">على القوة</button>
-      <button class="tab" data-bucket="archive">الأرشيف</button>
+    <div class="tabs" role="tablist" aria-label="عرض سجلات القوة">
+      <button type="button" class="tab active" id="forceTabActive" role="tab"
+              aria-selected="true" aria-controls="tableWrap" tabindex="0" data-bucket="active">على القوة</button>
+      <button type="button" class="tab" id="forceTabArchive" role="tab"
+              aria-selected="false" aria-controls="tableWrap" tabindex="-1" data-bucket="archive">الأرشيف</button>
     </div>
   </div>
 
   <div class="toolbar">
-    <input id="search" class="search" placeholder="بحث بالاسم أو الأقدمية أو الهاتف...">
+    <input id="search" class="search" aria-label="البحث في سجلات القوة"
+           placeholder="بحث بالاسم أو الأقدمية أو الهاتف…">
     {% if page == 'officers' %}
-      <select id="restFilter" class="select"></select>
-      <select id="rankFilter" class="select">
+      <select id="restFilter" class="select" aria-label="تصفية حسب نظام الراحة"></select>
+      <select id="rankFilter" class="select" aria-label="تصفية حسب الرتبة">
         <option value="">جميع الرتب</option>
         <option value="leaders">ضباط قادة (عميد/عقيد/مقدم)</option>
         <option value="officers">ضباط أعوان (رائد/نقيب/ملازم)</option>
       </select>
     {% else %}
-      <select id="rankFilter" class="select">
+      <select id="rankFilter" class="select" aria-label="تصفية حسب الفئة">
         <option value="">جميع الفئات</option>
         <option value="nco">صف ضباط (مساعد/رقيب/عريف)</option>
         <option value="soldiers">جنود</option>
       </select>
     {% endif %}
-    <select id="statusFilter" class="select">
+    <select id="statusFilter" class="select" aria-label="تصفية حسب الحالة اليوم">
       <option value="">جميع الحالات اليوم</option>
       <option value="resting">في راحة اليوم</option>
       <option value="working">متواجد بالمعسكر</option>
@@ -39,7 +42,7 @@
     <button class="primary" id="addBtn">{{ icon('plus') }} إضافة</button>
   </div>
 
-  <div id="tableWrap"></div>
+  <div id="tableWrap" role="tabpanel" aria-labelledby="forceTabActive"></div>
 </div>
 
 {# إعدادات بتتظبط مرة كل حركة ضباط — مطوية تحت الجدول بدل ما تاخد
