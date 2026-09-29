@@ -1,21 +1,13 @@
 {% extends "base.html" %}
+{% block page_actions %}
+<a href="{{ url_for('pages.duty') }}" class="btn back-link">{{ icon('arrow-back') }} العودة ليومية الضباط</a>
+{% endblock %}
 
 {% block content %}
 
 <!-- ── شريط الأرقام السريع ── -->
-<div class="stats" id="summaryStats"></div>
+<div class="stats" id="summaryStats">{{ skeleton("stats", 5) }}</div>
 
-<!-- ── رابط رجوع ── -->
-<div class="ls-nav">
-  <a href="{{ url_for('pages.duty') }}" class="ls-back">
-    {{ icon('arrow-back') }}
-    العودة ليومية الضباط
-  </a>
-  <button type="button" class="btn ls-refresh" id="refreshBtn" title="تحديث البيانات">
-    {{ icon('refresh') }}
-    تحديث
-  </button>
-</div>
 
 <!-- ── شريط فلاتر المدى ── -->
 <div class="ls-filter-bar">
@@ -39,6 +31,9 @@
     <button type="button" class="btn btn-xs" id="dsPreset30">آخر 30 يوم</button>
     <button type="button" class="btn btn-xs" id="dsPresetMonth">الشهر ده</button>
   </div>
+  <button type="button" class="btn btn-xs ls-refresh" id="refreshBtn" title="تحديث البيانات">
+    {{ icon('refresh') }} تحديث
+  </button>
 </div>
 
 <!-- ── توازن التشغيل ── -->
@@ -101,5 +96,6 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 <script src="{{ url_for('static', filename='js/duty-stats.js') }}"></script>
 {% endblock %}

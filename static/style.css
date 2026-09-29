@@ -1317,6 +1317,22 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 /* عمود أفقي بعدد صفوف كبير (كل الضباط مثلًا) محتاج ارتفاع أكبر من الافتراضي
    عشان أسماء الضباط ما تتزاحمش فوق بعض */
 .ls-tall{height:640px}
+.chart-key{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);margin:0 0 var(--s3);font-size:var(--t-sm);
+  color:var(--ink-700)}
+.chart-key span{display:inline-flex;align-items:center;gap:var(--s1)}
+.chart-key i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.chart-key .k-navy{background:var(--navy-800)} .chart-key .k-gold{background:var(--gold-700)}
+.chart-key .k-soft{background:var(--navy-200)} .chart-key .k-bad{background:var(--bad-700)}
+.status-numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3)}
+.status-number{display:flex;flex-direction:column;align-items:center;gap:var(--s1);padding:var(--s4);
+  border:1px solid var(--line);border-radius:var(--radius-card);border-top-width:3px}
+.status-number strong{font-size:var(--t-2xl);font-family:var(--font-head);color:var(--navy-950);
+  font-variant-numeric:tabular-nums}
+.status-number span{font-size:var(--t-sm);color:var(--ink-500)}
+.status-number.info{border-top-color:var(--info-700)} .status-number.navy{border-top-color:var(--navy-500)}
+.status-number.muted{border-top-color:var(--line-strong)}
+.gap-table td.n,.gap-table th:not(:first-child){text-align:center}
+.back-link{text-decoration:none;height:var(--control-h)}
 .ls-card-hint{margin:calc(var(--s3) * -1) 0 var(--s3);color:var(--ink-500);font-size:var(--t-sm)}
 .ls-legend{display:flex;flex-direction:column;gap:var(--s2);flex:1;min-width:0}
 .ls-legend-item{display:flex;align-items:center;gap:var(--s2);font-size:var(--t-sm)}

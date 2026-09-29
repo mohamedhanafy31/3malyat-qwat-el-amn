@@ -1,22 +1,13 @@
 {% extends "base.html" %}
+{% block page_actions %}
+<a href="{{ url_for('pages.leaves') }}" class="btn back-link">{{ icon('arrow-back') }} العودة لسجل الراحات</a>
+{% endblock %}
 
 {% block content %}
 
 <!-- ── شريط الأرقام السريع ── -->
-<div class="stats" id="summaryStats"></div>
+<div class="stats" id="summaryStats">{{ skeleton("stats", 4) }}</div>
 
-<!-- ── رابط رجوع للسجل ── -->
-<div class="ls-nav">
-  <a href="{{ url_for('pages.leaves') }}" class="ls-back">
-    {{ icon('arrow-back') }}
-    العودة لسجل الراحات
-  </a>
-  {# كان <span> — مش قابل للوصول بلوحة المفاتيح ومالوش حلقة تركيز. #}
-  <button type="button" class="btn ls-refresh" id="refreshBtn" title="تحديث البيانات">
-    {{ icon('refresh') }}
-    تحديث
-  </button>
-</div>
 
 <!-- ── شريط فلاتر الإحصائيات ── -->
 <div class="ls-filter-bar">
@@ -64,23 +55,20 @@
   </div>
 
   <button type="button" class="btn btn-xs btn-outline" id="lsResetFilters">إعادة ضبط</button>
+  <button type="button" class="btn btn-xs ls-refresh" id="refreshBtn" title="تحديث البيانات">
+    {{ icon('refresh') }} تحديث
+  </button>
 </div>
 
 <!-- ── الصف الأول: دونات + شريط أفقي ── -->
 <div class="ls-grid ls-grid-2">
   <div class="ls-card">
     <h3 class="ls-card-title">توزيع الراحات حسب النوع</h3>
-    <div class="ls-chart-wrap ls-donut-wrap">
-      <canvas id="typeChart"></canvas>
-      <div id="typeLegend" class="ls-legend"></div>
-    </div>
+    <div class="ls-chart-wrap ls-horiz-wrap"><canvas id="typeChart"></canvas></div>
   </div>
   <div class="ls-card">
     <h3 class="ls-card-title">الحالة الراهنة للراحات</h3>
-    <div class="ls-chart-wrap ls-status-wrap">
-      <canvas id="statusChart"></canvas>
-      <div id="statusLegend" class="ls-legend"></div>
-    </div>
+    <div class="status-numbers" id="statusNumbers"></div>
   </div>
 </div>
 
@@ -98,7 +86,7 @@
 <!-- ── الصف الثالث: أعلى ضباط + توزيع المدد ── -->
 <div class="ls-grid ls-grid-2">
   <div class="ls-card">
-    <h3 class="ls-card-title">أكثر الضباط راحات (Top 10)</h3>
+    <h3 class="ls-card-title">أكثر 10 ضباط حصولًا على الراحات</h3>
     <div class="ls-chart-wrap ls-horiz-wrap">
       <canvas id="officerChart"></canvas>
     </div>
@@ -132,5 +120,6 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 <script src="{{ url_for('static', filename='js/leaves-stats.js') }}"></script>
 {% endblock %}

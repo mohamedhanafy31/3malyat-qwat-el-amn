@@ -1,286 +1,135 @@
 /* إحصائيات الراحات — leaves-stats.js
-   يحمّل /api/leaves/stats ويرسم 6 مخططات بـ Chart.js */
+   يحمّل /api/leaves/stats ويرسم المخططات. الثيم والاتجاه (RTL) والألوان من
+   charts.js — نفس رموز باقي النظام، مش باليتة تانية. */
 
-// ── ألوان النظام ──────────────────────────────────────────────
-const PALETTE = {
-  types: {
-    "أسبوعية":      "#2563eb",
-    "نصف شهرية":   "#7c3aed",
-    "شهرية":        "#0891b2",
-    "راحة":         "#16a34a",
-    "إجازة طارئة": "#dc2626",
-    "إجازة مصيف":  "#d97706",
-    "راحة فرقة":   "#9333ea",
-    "غير محدد":     "#6b7280",
-  },
-  status: {
-    "جارية":  "#dc2626",
-    "قادمة":  "#2563eb",
-    "منتهية": "#6b7280",
-  },
-  bar:        "#1e3a5a",
-  barHover:   "#2563eb",
-  line:       "#0891b2",
-  duration:   ["#2563eb", "#7c3aed", "#0891b2", "#d97706"],
-  weekday:    "#16a34a",
-};
-
-// ── إعدادات Chart.js العامة ──────────────────────────────────
-Chart.defaults.font.family   = getComputedStyle(document.documentElement).getPropertyValue('--font-body').trim();
-Chart.defaults.font.size     = 13;
-Chart.defaults.color         = "#374151";
-Chart.defaults.animation.duration = 600;
-
-const BASE_OPTS = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-};
-
-// ── مساعدات ──────────────────────────────────────────────────
 const monthLabel = ym => {
   if (!ym) return ym;
   const [y, m] = ym.split("-");
   return new Date(`${y}-${m}-15T12:00:00`).toLocaleDateString("ar-EG-u-nu-latn", { month: "short", year: "2-digit" });
 };
 
-function buildLegend(containerId, labels, colors, values) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  const dotClasses = {
-    "#2563eb": "ls-dot-blue", "#7c3aed": "ls-dot-purple",
-    "#0891b2": "ls-dot-cyan", "#d97706": "ls-dot-amber",
-    "#16a34a": "ls-dot-green", "#dc2626": "ls-dot-red",
-    "#6b7280": "ls-dot-gray", "#1e3a5a": "ls-dot-navy",
-  };
-  el.innerHTML = labels.map((l, i) => `
-    <div class="ls-legend-item">
-      <span class="ls-legend-dot ${dotClasses[colors[i]] || "ls-dot-gray"}"></span>
-      <span class="ls-legend-label">${l}</span>
-      <span class="ls-legend-val">${values[i]}</span>
-    </div>`).join("");
-}
-
-// ── رسم المخططات ──────────────────────────────────────────────
-
+/* توزيع الأنواع: أعمدة أفقية مرتبة تنازليًا بدل دونات بسبع ألوان متقاربة */
 function drawTypeChart(data) {
-  const labels = Object.keys(data.by_type);
-  const values = Object.values(data.by_type);
-  const colors = labels.map(l => PALETTE.types[l] || "#6b7280");
-
+  const entries = Object.entries(data.by_type).sort((a, b) => b[1] - a[1]);
+  const total = data.summary.total || 1;
   new Chart(document.getElementById("typeChart"), {
-    type: "doughnut",
-    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: "#fff", hoverOffset: 8 }] },
+    type: "bar",
+    data: { labels: entries.map(e => e[0]),
+      datasets: [{ data: entries.map(e => e[1]), backgroundColor: CT.navy, borderRadius: 4,
+        borderSkipped: false, maxBarThickness: 20 }] },
     options: {
-      ...BASE_OPTS,
-      cutout: "68%",
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: {
-          label: ctx => ` ${ctx.label}: ${ctx.raw} راحة (${Math.round(ctx.raw / data.summary.total * 100)}%)`
-        }}
-      }
-    }
+      ...CHART_BASE,
+      indexAxis: "y",
+      scales: hbarScales(),
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة (${Math.round(ctx.raw / total * 100)}%)` } } },
+    },
   });
-  buildLegend("typeLegend", labels, colors, values);
 }
 
+/* الحالة الراهنة: 95% من الدونات كانت «منتهية» فمكانتش بتقول حاجة —
+   بقت تلات أرقام واضحة */
 function drawStatusChart(data) {
-  const labels = Object.keys(data.status_counts);
-  const values = Object.values(data.status_counts);
-  const colors = labels.map(l => PALETTE.status[l] || "#6b7280");
-
-  new Chart(document.getElementById("statusChart"), {
-    type: "doughnut",
-    data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 2, borderColor: "#fff", hoverOffset: 8 }] },
-    options: {
-      ...BASE_OPTS,
-      cutout: "68%",
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: {
-          label: ctx => ` ${ctx.label}: ${ctx.raw}`
-        }}
-      }
-    }
-  });
-  buildLegend("statusLegend", labels, colors, values);
+  const c = data.status_counts || {};
+  const box = document.getElementById("statusNumbers");
+  if (!box) return;
+  box.innerHTML = [["جارية", "جارية الآن", "info"], ["قادمة", "قادمة", "navy"], ["منتهية", "منتهية", "muted"]]
+    .map(([k, label, cls]) => `<div class="status-number ${cls}"><strong>${c[k] || 0}</strong><span>${label}</span></div>`).join("");
 }
 
 function drawMonthChart(data) {
-  const labels = Object.keys(data.by_month).map(monthLabel);
+  const keys = Object.keys(data.by_month);
   const values = Object.values(data.by_month);
-  const maxVal = values.length ? Math.max(...values) : 0;
-
+  const current = curDate().slice(0, 7);
+  chartLegend("monthChart", [["gold", "الشهر الحالي"], ["navy", "باقي الشهور"]]);
   new Chart(document.getElementById("monthChart"), {
     type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: values.map(v => v === maxVal ? "#2563eb" : "#93c5fd"),
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
-    },
+    data: { labels: keys.map(monthLabel), datasets: [{ data: values,
+      backgroundColor: keys.map(k => k === current ? CT.gold : CT.navy),
+      borderRadius: 6, borderSkipped: false, maxBarThickness: 56 }] },
     options: {
-      ...BASE_OPTS,
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 12 } } },
-        y: { grid: { color: "#f1f5f9" }, beginAtZero: true, ticks: { stepSize: 10 } }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } }
-      }
-    }
+      ...CHART_BASE,
+      scales: vbarScales(),
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } } },
+    },
   });
 }
 
 function drawOfficerChart(data) {
-  const labels = data.top_officers.map(o => {
-    // اختصار الاسم لو طويل
-    const parts = o.name.split(" ");
-    return parts.length > 2 ? parts.slice(0, 2).join(" ") : o.name;
-  });
-  const counts = data.top_officers.map(o => o.count);
-  const days   = data.top_officers.map(o => o.days);
-
+  const rows = data.top_officers;
   new Chart(document.getElementById("officerChart"), {
     type: "bar",
     data: {
-      labels,
+      labels: uniqueShortNames(rows.map(o => o.name)),
       datasets: [
-        {
-          label: "عدد الراحات",
-          data: counts,
-          backgroundColor: "#1e3a5a",
-          borderRadius: 4,
-          borderSkipped: false,
-        },
-        {
-          label: "إجمالي الأيام",
-          data: days,
-          backgroundColor: "#93c5fd",
-          borderRadius: 4,
-          borderSkipped: false,
-        }
-      ]
+        { label: "عدد الراحات", data: rows.map(o => o.count), backgroundColor: CT.navy, borderRadius: 4, borderSkipped: false, maxBarThickness: 12 },
+        { label: "إجمالي الأيام", data: rows.map(o => o.days), backgroundColor: CT.navySoft, borderRadius: 4, borderSkipped: false, maxBarThickness: 12 },
+      ],
     },
     options: {
-      ...BASE_OPTS,
+      ...CHART_BASE,
       indexAxis: "y",
-      scales: {
-        x: { grid: { color: "#f1f5f9" }, beginAtZero: true },
-        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
-      },
+      scales: hbarScales(),
       plugins: {
-        legend: { display: true, position: "top", labels: { boxWidth: 12, padding: 16 } },
+        legend: { display: true, position: "top", align: "start", labels: { boxWidth: 12, padding: 16 } },
         tooltip: { callbacks: {
-          label: ctx => ctx.datasetIndex === 0
-            ? ` ${ctx.raw} راحة`
-            : ` ${ctx.raw} يوم`
-        }}
-      }
-    }
+          title: items => rows[items[0].dataIndex].name,
+          label: ctx => ctx.datasetIndex === 0 ? ` ${ctx.raw} راحة` : ` ${ctx.raw} يوم`,
+        }},
+      },
+    },
   });
 }
 
 function drawDurationChart(data) {
   const labels = Object.keys(data.duration_buckets);
-  const values = Object.values(data.duration_buckets);
-
   new Chart(document.getElementById("durationChart"), {
     type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: PALETTE.duration,
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
-    },
+    data: { labels, datasets: [{ data: Object.values(data.duration_buckets), backgroundColor: CT.navy,
+      borderRadius: 6, borderSkipped: false, maxBarThickness: 56 }] },
     options: {
-      ...BASE_OPTS,
-      scales: {
-        x: { grid: { display: false } },
-        y: { grid: { color: "#f1f5f9" }, beginAtZero: true }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } }
-      }
-    }
+      ...CHART_BASE,
+      scales: vbarScales(),
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } } },
+    },
   });
 }
 
 function drawWeekdayChart(data) {
-  const ORDER = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
-  const labels = ORDER;
-  const values = ORDER.map(d => data.by_weekday[d] || 0);
+  // نفس بداية الأسبوع في كل النظام: السبت أولًا (على اليمين)
+  const order = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+  const values = order.map(d => data.by_weekday[d] || 0);
   const maxVal = values.length ? Math.max(...values) : 0;
-
+  chartLegend("weekdayChart", [["gold", "اليوم الأكثر بداية للراحات"], ["navy", "باقي الأيام"]]);
   new Chart(document.getElementById("weekdayChart"), {
     type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: values.map(v => v === maxVal ? "#16a34a" : "#86efac"),
-        borderRadius: 6,
-        borderSkipped: false,
-      }]
-    },
+    data: { labels: order, datasets: [{ data: values,
+      backgroundColor: values.map(v => v === maxVal && v > 0 ? CT.gold : CT.navy),
+      borderRadius: 6, borderSkipped: false, maxBarThickness: 44 }] },
     options: {
-      ...BASE_OPTS,
-      scales: {
-        x: { grid: { display: false } },
-        y: { grid: { color: "#f1f5f9" }, beginAtZero: true }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } }
-      }
-    }
+      ...CHART_BASE,
+      scales: vbarScales(),
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } } },
+    },
   });
 }
 
 function drawCumulativeChart(data) {
-  const labels = data.cumulative.map(c => monthLabel(c.month));
-  const values = data.cumulative.map(c => c.total);
-
   new Chart(document.getElementById("cumulativeChart"), {
     type: "line",
     data: {
-      labels,
-      datasets: [{
-        data: values,
-        borderColor: "#0891b2",
-        backgroundColor: "rgba(8,145,178,0.12)",
-        borderWidth: 2.5,
-        pointBackgroundColor: "#0891b2",
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        fill: true,
-        tension: 0.35,
-      }]
+      labels: data.cumulative.map(c => monthLabel(c.month)),
+      datasets: [{ data: data.cumulative.map(c => c.total), borderColor: CT.navy, backgroundColor: CT.navySoft,
+        borderWidth: 2.5, pointBackgroundColor: CT.navy, pointRadius: 4, pointHoverRadius: 6, fill: true, tension: 0.3 }],
     },
     options: {
-      ...BASE_OPTS,
-      scales: {
-        x: { grid: { display: false } },
-        y: { grid: { color: "#f1f5f9" }, beginAtZero: true }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة تراكمياً` } }
-      }
-    }
+      ...CHART_BASE,
+      scales: vbarScales(),
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة تراكميًا` } } },
+    },
   });
 }
 
-// ── شريط الملخص ───────────────────────────────────────────────
 function renderSummary(s) {
   document.getElementById("summaryStats").innerHTML = `
     <div class="stat">
