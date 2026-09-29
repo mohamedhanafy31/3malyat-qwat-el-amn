@@ -64,6 +64,34 @@ def test_same_officer_cannot_hold_two_posts(client):
     assert _set(client, DEPUTY, "OFF-001").status_code == 409
 
 
+def test_medical_and_search_are_group_roles_with_checkbox_style_selection(client):
+    """«طبي» و«بحث» تحت «قيادة الإدارة» برضو، بس جماعيين — عكس مدير/وكيل
+    الإدارة، أكتر من ضابط ممكن يشيلوا نفس المنصب في نفس الوقت
+    (`PATCH /api/command-groups` بقايمة معرّفات كاملة، مش تعيين مفرد)."""
+    r = client.patch("/api/command-groups", json={"طبي": ["OFF-001", "OFF-002"]})
+    assert r.status_code == 200, r.get_json()
+    assert set(r.get_json()["طبي"]) == {"OFF-001", "OFF-002"}
+
+    d = client.get("/api/data").get_json()
+    assert set(d["command_groups"]["طبي"]) == {"OFF-001", "OFF-002"}
+    assert d["command_groups"]["بحث"] == []
+
+
+def test_command_groups_rejects_unknown_role_and_non_list_and_missing_officer(client):
+    assert client.patch("/api/command-groups",
+                        json={"منصب مخترع": ["OFF-001"]}).status_code == 400
+    assert client.patch("/api/command-groups", json={"طبي": "OFF-001"}).status_code == 400
+    assert client.patch("/api/command-groups", json={"طبي": ["OFF-999"]}).status_code == 404
+
+
+def test_command_groups_replace_membership_entirely(client):
+    """كل نداء بيستبدل الأعضاء بالكامل — مش إضافة تراكمية."""
+    client.patch("/api/command-groups", json={"طبي": ["OFF-001", "OFF-002"]})
+    client.patch("/api/command-groups", json={"طبي": ["OFF-002"]})
+    d = client.get("/api/data").get_json()
+    assert d["command_groups"]["طبي"] == ["OFF-002"]
+
+
 def test_rejects_unknown_role_and_missing_officer(client):
     assert client.patch("/api/command", json={"منصب مخترع": "OFF-001"}).status_code == 400
     assert _set(client, DIRECTOR, "OFF-999").status_code == 404
@@ -74,3 +102,4 @@ def test_command_exposed_in_api_data(client):
     d = client.get("/api/data").get_json()
     assert d["command"][DIRECTOR] == "OFF-001"
     assert d["meta"]["command_roles"] == [DIRECTOR, DEPUTY]
+    assert d["meta"]["group_roles"] == ["طبي", "بحث"]

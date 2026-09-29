@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <button class="primary" id="addServiceBtn">＋ خدمة جديدة</button>
+    <input class="search" id="svcSearch" placeholder="دوّر بالاسم أو التعليمات">
+    <select class="select" id="svcKindFilter"></select>
+    <select class="select" id="svcPeriodFilter"></select>
+    <select class="select" id="svcTagFilter"></select>
+  </div>
+  <div id="svcSeedBanner" class="alert-card" style="display:none">
+    <div class="alert-head"><span class="alert-ico">ℹ</span><strong>الدليل فاضي لسه</strong>
+      <span class="muted">تقدر تبدأ بتوليد الدليل من الخدمات الأساسية الموجودة في اعداد الخدمات وتعدّله زي ما تحب بعدين</span></div>
+    <button class="mini ok" id="btnSeedCatalog">توليد الدليل من اعداد الخدمات</button>
+  </div>
+  <div id="inspectionScheduleBar"></div>
+  <div id="catalogWrap"></div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% include "partials/service_catalog_modal.html" %}
+{% include "partials/service_location_modal.html" %}
+{% include "partials/inspection_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vendor/pdf.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/service-catalog.js') }}"></script>
+{% endblock %}

@@ -3,7 +3,8 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar">
-    <a class="mini" href="{{ url_for('pages.register') }}">◀ رجوع لدفتر 43</a>
+    <a class="mini" href="{{ url_for('pages.register') }}">◀ رجوع لحصر تشغيل السادة الضباط</a>
+    <a class="mini ok" href="{{ url_for('pages.officer_log') }}?officer={{ officer_id }}">سجل الخدمات (List تفصيلي)</a>
     <span id="offHead" class="muted"></span>
   </div>
   <div id="officerWrap"></div>

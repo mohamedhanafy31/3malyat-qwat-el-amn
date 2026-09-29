@@ -5,6 +5,23 @@
   if (!d) return;
   const c = d.counts;
 
+  // تحذير غير مانع — ساعة الجهاز رجعت لتاريخ قبل آخر مرة شغّل عليها
+  // السيستم، وممكن ده يأثر على القفل التلقائي لليوم (backend/clock.py)
+  $("#clockWarning").innerHTML = d.clock_warning
+    ? `<div class="alert-card"><div class="alert-head">
+         <span class="alert-ico">⏱</span><strong>تنبيه: ساعة الجهاز</strong></div>
+         <p class="muted">${esc(d.clock_warning)}</p></div>`
+    : "";
+
+  // أمر وقف راحات ساري — لازم يبان أول ما السيستم يتفتح، مش بس في صفحة الراحات
+  const susp = META.rest_suspension || {};
+  $("#restSuspension").innerHTML = (susp.active || []).length
+    ? `<div class="alert-card susp-banner"><div class="alert-head">
+         <span class="alert-ico">⛔</span><strong>الراحات موقوفة: ${(susp.types || []).map(esc).join("، ")}</strong>
+         <span class="muted">من ${fmt(susp.active[0].started_on)} — تسجيل راحة من الأنواع دي لأي ضابط بيترفض.</span>
+         <a class="mini" href="/leaves">إدارة الوقف</a></div></div>`
+    : "";
+
   // لون الحافة العلوية بيقول معنى: التقصيرة ذهبية زي التنبيه، الراحة زرقاء
   $("#dashStats").innerHTML = `
     <div class="stat"><span>الضباط على القوة</span><strong>${c.officers}</strong></div>

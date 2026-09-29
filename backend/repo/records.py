@@ -29,6 +29,9 @@ class LeaveRepo(Repo):
     def _invalidate(self):
         super()._invalidate()
         self.data.pop("_idx_leaves_by_person", None)
+        # فهرس `leaves.leaves_of` التاني — بيتحقق من الطول بس، فمسح + إضافة
+        # في نفس الطلب كانوا بيسيبوه قديم من غير ما يحس.
+        self.data.pop("_leaves_by_person", None)
 
     def of_person(self, person_id):
         return [Leave.from_dict(r) for r in self._by_person().get(person_id, [])]

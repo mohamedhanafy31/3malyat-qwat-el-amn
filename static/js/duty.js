@@ -37,7 +37,7 @@ function sectionRows(rows) {
     const mine = rows.filter(r => (r.section || order[0]) === section);
     if (!mine.length) continue;
     if (section !== order[0]) {
-      out.push(`<tr class="section-row"><td colspan="6">${esc(section)}</td></tr>`);
+      out.push(`<tr class="section-row"><td colspan="7">${esc(section)}</td></tr>`);
     }
     out.push(...mine.map(officerRow));
   }
@@ -57,6 +57,7 @@ function officerRow(r) {
   const search = r.search_attached ? ` <span class="chip soon" title="تشغيل من إدارة البحث">بحث</span>` : "";
   return `<tr class="${r.later_left ? "was" : ""}">
     <td class="name">${esc(r.name)}<div class="sub">${esc(r.role)}${search} ${gone}</div></td>
+    <td class="phone-col">${esc(r.phone) || "—"}</td>
     <td class="wrap">${esc(r.post) || "<span class='muted'>—</span>"}</td>
     <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
     <td>${grp}</td>
@@ -70,7 +71,7 @@ function render() {
   renderSummary(DUTY.summary);
   const gone = DUTY.rows.filter(r => r.later_left).length;
   $("#dutyBoard").innerHTML = tableBlock(
-    ["الضابط", "العمل المسند إليه", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"],
+    ["الضابط", "التليفون", "العمل المسند إليه", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"],
     sectionRows(DUTY.rows),
     `قوة اليوم: ${DUTY.rows.length} ضابط${gone ? ` — منهم ${gone} خرجوا من القوة بعد كده` : ""}`);
 }
@@ -91,6 +92,17 @@ ACTIONS.openAssign = id => {
   $("#assignStatus").value = row.status || "";
   $("#assignTaq").checked = !!row.taqseera;
   $("#assignNote").value = row.note || "";
+  // الضابط في راحة اليوم ده — إيقافها من هنا مباشرة، من غير ما تروح صفحة الراحات
+  const lv = row.leave;
+  $("#assignRest").classList.toggle("hidden", !lv?.id);
+  if (lv?.id) {
+    $("#assignRestText").textContent = `في ${lv.type} لحد ${fmt(lv.end)}`;
+    $("#assignStopRest").onclick = () => {
+      closeModal("assignModal");
+      openStopLeave({id: lv.id, name: row.name, type: lv.type, start: lv.start, end: lv.end},
+                    () => loadDay(DUTY.date));
+    };
+  }
   openModal("assignModal");
 };
 
@@ -106,6 +118,7 @@ $("#assignForm").onsubmit = async e => {
 async function loadDay(day) {
   const d = await api(`/api/duty/${day}`); if (!d) return;
   DUTY = d; render();
+  renderRestStrip($("#restStrip"), day);
 }
 const shiftDay = n => { const d = addDays($("#dutyDate").value || curDate(), n); $("#dutyDate").value = d; loadDay(d) };
 $("#dayPrev").onclick = () => shiftDay(-1);

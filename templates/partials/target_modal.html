@@ -1,0 +1,21 @@
+<!-- ============ تعيين ضابط بهدف/فترة كتلة ثابتة — قايمة مقفولة، خانة
+     واحدة بس (مودال مشترك بين الأهداف والكتل الثابتة الثلاثة) ============ -->
+<div class="modal hidden" id="targetModal">
+  <div class="modal-card">
+    <button class="close" data-close="targetModal">×</button>
+    <h2 id="targetModalTitle">تعيين</h2>
+    <form id="targetForm">
+      <input type="hidden" id="tgEndpoint">
+      <label>الضابط المعيّن اليوم <small>واحد أو أكتر — سيبها فاضية لإلغاء التعيين</small>
+        <select id="tgOfficers" multiple size="6"></select>
+      </label>
+      <div class="actions" style="margin-top:10px">
+        <button class="primary full" type="submit">حفظ</button>
+      </div>
+      <p class="muted" id="tgCommanderNote" style="margin:8px 0 0">
+        قائد الهدف العام خانة ثابتة بتتحدد من منصب الضابط — عدّله من صفحة
+        «بيانات الضابط» لو محتاج تغييره.
+      </p>
+    </form>
+  </div>
+</div>

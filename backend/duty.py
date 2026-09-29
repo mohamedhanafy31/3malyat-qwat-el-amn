@@ -15,16 +15,9 @@
 """
 from .assignments import assignments_of, officer_state
 from .courses import by_id as courses_by_id, term_on
-from .constants import LEAVE_BUCKET, MEDICAL_POSTS, SHIFTS
+from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SHIFTS
 from .leaves import leave_on
 from .people import effective, officers_on
-from .text import norm
-
-
-def is_medical_post(post):
-    """منصب ضابط عيادة/منتدب من القطاع الطبي — بيتقارن بعد التطبيع."""
-    flat = norm(post)
-    return any(key in flat for key in MEDICAL_POSTS)
 
 # سلّم أولويات خانة الإجمالي — أول قاعدة تنطبق هي اللي بتاخد الضابط.
 # كل ضابط في خانة واحدة بس، ومجموع الخانات لازم يساوي أصل القوة (ثابت في
@@ -32,7 +25,9 @@ def is_medical_post(post):
 # tools/calibrate_summary.py الأول.
 #
 #   1. حالة مكتوبة لليوم ده   انتداب/غياب/مرضي/فرقة/طارئة
-#   2. ضابط العيادة           بيفضل في عمود الطبية حتى وهو في راحة
+#   2. ضابط العيادة           عضو في منصب «طبي» الجماعي في قيادة الإدارة، أو خدمة
+#                             اليوم تصنيفها «طبية» — بيفضل في عمود الطبية
+#                             حتى وهو في راحة
 #   3. راحة مسجّلة
 #   4. تقصيرة                 بتغلب الخدمة **والحراسة** — الضابط اشتغل وخرج بدري
 #   5. حراسات                 قائد الهدف حراسة مهما كان ترتيب خدماته
@@ -118,7 +113,6 @@ def _bucket(kinds, leave, state, medical, search_attached, course=None):
 def summarise(data, day):
     """يومية الضباط كاملة: صف لكل ضابط كان على القوة + جدول الإجمالي."""
     officers = officers_on(data, day)
-    medical_ids = set(data.get("medical_officers") or [])
     course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
 
     s = _empty_summary(len(officers))
@@ -141,8 +135,7 @@ def summarise(data, day):
         # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في
         # قايمة «الصافي» بالاسم في كل مرة.
         kinds = [(it["kind"], it["shift"]) for it in items if it["counted"]]
-        medical = (o["id"] in medical_ids
-                   or is_medical_post(eff["post"])
+        medical = (o["id"] in ((data.get("command_groups") or {}).get(ROLE_MEDICAL) or [])
                    or any(k == "طبية" for k, _ in kinds))
 
         group, sub = _bucket(kinds, leave, state, medical,
@@ -155,14 +148,15 @@ def summarise(data, day):
             s[group][sub] += 1
 
         rows.append({
-            "id": o["id"], "name": o.get("name", ""),
+            "id": o["id"], "name": o.get("name", ""), "phone": o.get("phone", ""),
             "role": eff["role"], "post": eff["post"], "section": eff["section"],
             "search_attached": eff["search_attached"],
             "group": group, "bucket": sub,
             "services": items,
             "taqseera": bool(state.get("taqseera")),
             "status": state.get("status", ""),
-            "leave": ({"type": leave["type"], "start": leave["start"], "end": leave["end"],
+            "leave": ({"id": leave.get("id"), "type": leave["type"], "start": leave["start"],
+                       "end": leave["end"],
                        "return_date": leave["return_date"]} if leave else None),
             "note": state.get("note", ""),
             "course": ({"id": term["id"], "course_id": term["course_id"],

@@ -1,0 +1,73 @@
+<!-- ============ خدمة في دليل الخدمات ============ -->
+<div class="modal hidden" id="serviceModal">
+  <div class="modal-card">
+    <button class="close" data-close="serviceModal">×</button>
+    <h2 id="serviceModalTitle">خدمة جديدة</h2>
+    <form id="serviceForm">
+      <input type="hidden" id="svcId">
+      <div class="grid">
+        <label>اسم الخدمة
+          <input id="svcName" required>
+        </label>
+        <label>الفترة
+          <select id="svcPeriod"></select>
+        </label>
+        <label>التصنيف
+          <select id="svcKind"></select>
+        </label>
+        <label>نوع النقطة <small>ارتكاز / قول</small>
+          <select id="svcPostType"></select>
+        </label>
+        <label class="command-check" id="svcHasCommandPick">
+          <input type="checkbox" id="svcHasCommand">
+          <span class="command-check-icon" aria-hidden="true">✓</span>
+          برئاسة <small>محتاجة حد يرأسها</small>
+        </label>
+        <div id="svcCommandWrap">
+          <label>عدد ضباط الرئاسة
+            <input id="svcCommandOfficers" type="number" min="0" value="0">
+          </label>
+          <label>عدد أفراد الرئاسة
+            <input id="svcCommandIndividuals" type="number" min="0" value="0">
+          </label>
+        </div>
+        <label>عدد المجندين
+          <input id="svcCount" type="number" min="0" value="0">
+        </label>
+        <label>نوع التسليح <small>آلي / دونك / خرطوش / فض / فيدرال / كلبش</small>
+          <input id="svcWeapon">
+        </label>
+      </div>
+      <label>تعليمات الخدمة
+        <textarea id="svcInstructions" rows="3"></textarea>
+      </label>
+      <label>الموقع <small>وصف نصي لمكان الخدمة</small>
+        <textarea id="svcLocationText" rows="2"></textarea>
+      </label>
+      <div class="field-section">
+        <div class="field-legend">الوسوم</div>
+        <input id="svcTags" list="svcTagList" placeholder="اكتب وسم واضغط Enter">
+        <datalist id="svcTagList"></datalist>
+        <div id="svcTagChips" class="tag-chips"></div>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button class="primary full" type="submit">حفظ</button>
+      </div>
+    </form>
+
+    <div id="svcImagesSection" class="field-section hidden">
+      <div class="field-legend">صور الموقع</div>
+      <div id="svcImageGallery" class="svc-gallery"></div>
+
+      <label>ارفع صورة أو PDF
+        <small>لو PDF هتقدر تختار أي صفحة فيه تتحفظ كصورة</small>
+        <input type="file" id="svcImageFile" accept="image/png,image/jpeg,image/webp,application/pdf">
+      </label>
+      <div id="svcPdfPicker" class="svc-pdf-picker hidden">
+        <p class="hint">اختَر الصفحة اللي عايز تحفظها كصورة الموقع:</p>
+        <div id="svcPdfPages" class="svc-pdf-pages"></div>
+      </div>
+    </div>
+    <p id="svcImagesHint" class="hint field-section hidden">احفظ الخدمة الأول عشان تقدر تضيف صور موقع ليها.</p>
+  </div>
+</div>

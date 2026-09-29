@@ -78,3 +78,89 @@ def test_lifecycle_is_recorded_in_the_change_log(client):
     entries = client.get(f"/api/changes?entity=mission&entity_id={mid}").get_json()["entries"]
     actions = [e["action"] for e in entries]
     assert actions == ["delete", "update", "create"]
+
+
+# ---------- دورة الحياة اتجاه واحد (#9) ----------
+
+def test_jumping_over_a_stage_is_rejected(client):
+    """من «مخططة» مباشرة لـ«أغلقت» — من غير ما تعدّي بـ«بدأت» و«عادت»."""
+    mid = _add(client).get_json()["id"]
+    r = client.patch(f"/api/missions/{mid}", json={"status": "أغلقت"})
+    assert r.status_code == 400
+    assert "أغلقت" in r.get_json()["error"]
+
+
+def test_a_closed_mission_cannot_move_back(client):
+    mid = _add(client).get_json()["id"]
+    for status in ("بدأت", "عادت", "أغلقت"):
+        client.patch(f"/api/missions/{mid}", json={"status": status})
+    r = client.patch(f"/api/missions/{mid}", json={"status": "مخططة"})
+    assert r.status_code == 400
+
+
+def test_cancelling_is_allowed_from_any_open_stage(client):
+    mid = _add(client).get_json()["id"]
+    client.patch(f"/api/missions/{mid}", json={"status": "بدأت"})
+    r = client.patch(f"/api/missions/{mid}", json={"status": "ألغيت"})
+    assert r.status_code == 200
+
+
+def test_setting_the_same_status_again_is_a_no_op(client):
+    mid = _add(client).get_json()["id"]
+    r = client.patch(f"/api/missions/{mid}", json={"status": "مخططة"})
+    assert r.status_code == 200
+
+
+# ---------- الأعضاء لازم يكونوا على القوة يوم بداية المأمورية (#9) ----------
+
+def test_member_not_on_the_force_at_start_is_rejected(client):
+    client.patch("/api/person/OFF-002", json={"join_date": "2026-05-01"})
+    r = _add(client, member_ids=["OFF-002"], start="2026-04-10")
+    assert r.status_code == 400
+    assert "على القوة" in r.get_json()["error"]
+
+
+def test_members_are_not_date_checked_when_no_start_is_set(client):
+    """مالوش تاريخ بداية بعد؟ الأعضاء ينفع يتحطوا من غير أي فحص تاريخ —
+    زي ما كان قبل كده."""
+    client.patch("/api/person/OFF-002", json={"join_date": "2026-05-01"})
+    r = _add(client, member_ids=["OFF-002"])
+    assert r.status_code == 201
+
+
+def test_member_on_force_at_start_is_accepted(client):
+    r = _add(client, member_ids=["OFF-001"], start="2026-04-10")
+    assert r.status_code == 201
+
+
+# ---------- تنبيه: مكلّف بخدمة وهو في مأمورية بدأت (#9) ----------
+
+def test_officer_on_a_started_mission_gets_flagged_if_assigned_a_service(client):
+    mid = _add(client, member_ids=["OFF-001"], start="2026-04-10").get_json()["id"]
+    client.patch(f"/api/missions/{mid}", json={"status": "بدأت"})
+
+    client.post("/api/assignments/2026-04-12",
+               json={"name": "دورية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
+    warnings = client.get("/api/board/2026-04-12").get_json()["warnings"]
+    assert any(w["kind"] == "مأمورية" and w["officer_id"] == "OFF-001" for w in warnings)
+
+
+def test_no_warning_before_the_mission_even_starts(client):
+    mid = _add(client, member_ids=["OFF-001"], start="2026-04-10").get_json()["id"]
+    client.patch(f"/api/missions/{mid}", json={"status": "بدأت"})
+
+    client.post("/api/assignments/2026-04-09",
+               json={"name": "دورية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
+    warnings = client.get("/api/board/2026-04-09").get_json()["warnings"]
+    assert not any(w["kind"] == "مأمورية" for w in warnings)
+
+
+def test_no_warning_once_the_mission_has_returned(client):
+    mid = _add(client, member_ids=["OFF-001"], start="2026-04-10").get_json()["id"]
+    client.patch(f"/api/missions/{mid}", json={"status": "بدأت"})
+    client.patch(f"/api/missions/{mid}", json={"status": "عادت"})
+
+    client.post("/api/assignments/2026-04-12",
+               json={"name": "دورية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
+    warnings = client.get("/api/board/2026-04-12").get_json()["warnings"]
+    assert not any(w["kind"] == "مأمورية" for w in warnings)

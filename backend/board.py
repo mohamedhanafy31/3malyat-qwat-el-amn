@@ -6,7 +6,8 @@
     1. الخدمات أساسية      خدمات   — الفترة بتتكتب جوّه الاسم («تدخل سريع صبح»)
     2. الخدمات الطارئة     خدمات   — أغلبها بدون ضابط: قوام أفراد ومجندين
     3. عمل بالإدارة        محسوب   — الضباط بلا تكليف خدمي + نص عملهم
-    4. الأهداف             خدمات   — أسماء مختصرة، «مشرف الأهداف» أولًا، بلا فترة
+    4. الأهداف             قايمة مغلقة — مشرف الأهداف + سبعة أهداف ثابتة، كل
+                            واحد بقائده (من منصب الضابط) والمعيّن فيه فعليًا
     5. الراحات             محسوب
     6. التقصيرات           محسوب
     7. الخوارج             محسوب
@@ -16,24 +17,19 @@
 
 الكتل الثابتة (8-10) بتظهر بصفّيها دايمًا حتى لو شاغرة — الوورد بيطبع
 الصفين في كل يوم، والخانة الفاضية معناها «محتاجة تكليف» مش «مش موجودة».
-
-الخدمات الموسومة (مباراة، خطة انتشار) بتفضل **جوّه** قسمها مع عنوان
-فرعي، زي «خطة انتشار 6م» في لوحة 15/6 — مش في جريد منفصل.
 """
-from .assignments import label, officer_states, peek_day
+from .assignments import forget_seq_if_day_empty, label, officer_states, peek_day
 from .checks import day_warnings
 from .confirm import state_of as confirm_state
 from .constants import (
-    SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_SECURITY,
-    SECTION_SUBCAMP, SECTION_TARGETS, SHIFTS,
+    BOARD_ROTATIONS, SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT,
+    SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_RESTS, SECTION_SECURITY,
+    SECTION_SUBCAMP, SECTION_TAQSEERA, SECTION_TARGETS, SHIFTS, SUBCAMP_SERVICES,
+    TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL,
 )
 from .duty import summarise
 from .people import effective
-
-SECTION_ADMIN_WORK = "عمل بالإدارة"
-SECTION_RESTS = "الراحات"
-SECTION_TAQSEERA = "التقصيرات"
-SECTION_OUTSIDERS = "الخوارج"
+from .text import norm
 
 # الترتيب زي الوورد. العمود اليمين: أساسية → طارئة → عمل بالإدارة،
 # والشمال: الأهداف → الراحات → التقصيرات → الخوارج → الكتل الثلاثة.
@@ -50,8 +46,147 @@ ASSIGNMENT_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS,
 # الكتل اللي ليها صفّان ثابتان (صباحية/ليلية) بيتطبعوا حتى لو فاضيين
 FIXED_SLOT_SECTIONS = [SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
 
-# «مشرف الأهداف» أول صف في قسم الأهداف في كل يوم من الـ101
-TARGETS_FIRST = "مشرف الأهداف"
+# الأقسام الحرة اللي المشغّل يضيف جواها خدمات من مودال الخانة العام. الأهداف
+# والكتل الثابتة ليهم واجهاتهم المقفولة، والأقسام المحسوبة مالهاش صفوف خدمات
+# محفوظة أصلًا؛ عشان كده ماينفعش يظهروا كاقتراح لإضافة خانة حرة.
+FREE_SERVICE_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL]
+NON_FREE_SECTIONS = {
+    SECTION_TARGETS, *FIXED_SLOT_SECTIONS,
+    SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
+}
+
+# تعريف الخدمة اللي يتنقل بين الأيام. القائمون بها مستبعدين عمدًا: الأشخاص
+# تكليف يومي، إنما الحقول دي هي قالب الخدمة نفسه.
+SECTION_COPY_FIELDS = (
+    "name", "kind", "section", "shift", "weapon", "time",
+    "party", "conscripts", "conscript_count", "note", "counts_in_summary",
+)
+_SECTION_COPY_DEFAULTS = {
+    "name": "", "kind": "", "section": "", "shift": "",
+    "weapon": "", "time": "", "party": "", "conscripts": [], "conscript_count": 0,
+    "note": "", "counts_in_summary": True,
+}
+
+
+def section_names(data):
+    """اقتراحات أقسام الخدمات من كل الأيام المحمّلة.
+
+    الرسمية الحرة ثابتة في الأول، وبعدها المخصّصة حسب أحدث يوم استُخدمت
+    فيه. اللفة واحدة على ``day_assignments`` مهما كان عدد الأيام.
+    """
+    latest = {}
+    first_seen = {}
+    seen_seq = 0
+    for day, rows in (data.get("day_assignments") or {}).items():
+        for row in rows:
+            name = str(row.get("section") or SECTION_OCCASIONAL).strip()
+            if not name or name in FREE_SERVICE_SECTIONS or name in NON_FREE_SECTIONS:
+                continue
+            if name not in first_seen:
+                first_seen[name] = seen_seq
+                seen_seq += 1
+            if day > latest.get(name, ""):
+                latest[name] = day
+
+    custom = sorted(latest, key=lambda name: (latest[name], -first_seen[name]), reverse=True)
+    return [*FREE_SERVICE_SECTIONS, *custom]
+
+
+def _copyable_row(row):
+    """نسخة JSON مستقلة من تعريف الخدمة، من غير أي شخص مكلّف عليها."""
+    out = {"id": row.get("id")}
+    for key in SECTION_COPY_FIELDS:
+        value = row.get(key, _SECTION_COPY_DEFAULTS[key])
+        if value is None:
+            value = _SECTION_COPY_DEFAULTS[key]
+        if key == "conscripts":
+            value = [dict(item) for item in (value or []) if isinstance(item, dict)]
+        out[key] = value
+    return out
+
+
+def section_history(data, day, section):
+    """آخر يوم آخر فيه صفوف للقسم: الأسبق أولًا، وإلا أحدث يوم آخر."""
+    section = str(section or "").strip()
+    if not section or section in NON_FREE_SECTIONS:
+        return {"section": section, "source_day": None, "rows": []}
+
+    earlier_day = None
+    other_day = None
+    by_day = data.get("day_assignments") or {}
+    for candidate_day, rows in by_day.items():
+        if candidate_day == day or not any(str(r.get("section") or SECTION_OCCASIONAL).strip() == section
+                                           for r in rows):
+            continue
+        if candidate_day < day and (earlier_day is None or candidate_day > earlier_day):
+            earlier_day = candidate_day
+        if other_day is None or candidate_day > other_day:
+            other_day = candidate_day
+
+    source_day = earlier_day or other_day
+    rows = [] if not source_day else [
+        _copyable_row(row) for row in by_day[source_day]
+        if str(row.get("section") or SECTION_OCCASIONAL).strip() == section
+    ]
+    return {"section": section, "source_day": source_day, "rows": rows}
+
+
+def copy_section_rows(data, day, section, source_day, ids):
+    """ينسخ تعريفات خدمات مختارة إلى يوم جديد، ويرجع (النتيجة، الخطأ، الحالة)."""
+    from .assignments import blank, for_day, new_id
+
+    section = str(section or "").strip()
+    if not section:
+        return None, "اسم القسم مطلوب.", 400
+    if section in NON_FREE_SECTIONS:
+        return None, f"«{section}» له واجهة مخصّصة ومش قسم خدمات حر.", 400
+    if source_day == day:
+        return None, "يوم المصدر لازم يكون مختلف عن يوم اللوحة.", 400
+    if not isinstance(ids, list) or not ids:
+        return None, "اختار خدمة واحدة على الأقل للنسخ.", 400
+    if any(not isinstance(item, str) or not item.strip() for item in ids):
+        return None, "معرّفات الخدمات غير صحيحة.", 400
+
+    by_day = data.get("day_assignments") or {}
+    if source_day not in by_day:
+        return None, "يوم المصدر غير موجود.", 404
+
+    wanted = list(dict.fromkeys(item.strip() for item in ids))
+    source_rows = [row for row in by_day[source_day]
+                   if str(row.get("section") or SECTION_OCCASIONAL).strip() == section
+                   and row.get("id") in wanted]
+    found = {row.get("id") for row in source_rows}
+    missing = [item for item in wanted if item not in found]
+    if missing:
+        return None, "خدمة مختارة غير موجودة في يوم المصدر والقسم المحددين.", 404
+
+    entries = for_day(data, day)
+    existing = {
+        (norm(row.get("name", "")), row.get("shift") or "")
+        for row in entries if str(row.get("section") or SECTION_OCCASIONAL).strip() == section
+    }
+    added = []
+    skipped = 0
+    for source in source_rows:
+        duplicate_key = (norm(source.get("name", "")), source.get("shift") or "")
+        if duplicate_key in existing:
+            skipped += 1
+            continue
+        row = blank(new_id(data, day, entries), source.get("name", ""), section)
+        copied = _copyable_row(source)
+        for key in SECTION_COPY_FIELDS:
+            row[key] = copied[key]
+        row["section"] = section
+        entries.append(row)
+        added.append(row)
+        existing.add(duplicate_key)
+
+    return {"added": len(added), "skipped": skipped, "rows": added}, None, None
+
+
+def target_row_names():
+    """كل أسماء صفوف الأهداف بترتيبها الثابت — «مشرف الأهداف» أولًا."""
+    return [TARGETS_FIRST, *TARGET_NAMES]
 
 
 def _people_index(data):
@@ -68,6 +203,40 @@ def _person(people, person_id, day):
         return {"id": person_id, "name": "", "role": "", "missing": True}
     eff = effective(p, day)
     return {"id": person_id, "name": p.get("name", ""), "role": eff["role"]}
+
+
+def _roster(data, day):
+    """الضباط والأفراد اللي كانوا على القوة في اليوم ده — نفس القيد اللي
+    الحفظ بيفرضه على الضباط بالظبط (`assignments.clean_people` بينده
+    `officers_on`)، عشان قايمة الاختيار في مودال الخانة تطابق اللي
+    هيتقبل فعلًا. ضابط اتأرشف بعد اليوم ده بيفضل ظاهر — كان على القوة
+    وقتها، وده اللي بيخلّي تعديل يوم قديم يشتغل.
+
+    قبل كده مودال الخانة كان بيعرض **كل** ضابط اتسجّل في السيستم يومًا
+    (بيانات ثابتة من `bootstrap`، مش محسوبة لليوم)، فأي ضابط خرج من
+    القوة كان لسه ظاهر في قايمة الاختيار لأي يوم — حتى النهاردة.
+
+    اللي عنده راحة/إجازة مسجّلة تغطي اليوم ده مش معروض هنا — مايتعيّنش
+    خدمة جديدة وهو في الخوارج. لو كان معيّن فعلًا على خدمة قبل ما راحته
+    تتسجّل، بيفضل ظاهر في مودال التعديل بتاعه بس (`withCurrent` في
+    board.js)، مش في نتيجة البحث لتعيين جديد.
+    """
+    from .leaves import leave_on
+    from .repo import PeopleRepo, Repos
+
+    repo = PeopleRepo(data)
+    medical_ids = set(Repos(data).config.group(ROLE_MEDICAL))
+
+    def slim(person):
+        role = person.effective(day)["role"] if hasattr(person, "effective") else person.role
+        return {"id": person.id, "name": person.name, "role": role}
+
+    def not_on_leave(person):
+        return not leave_on(data, person.id, day)
+
+    return {"officers": [slim(o) for o in repo.on_force(day, "officers")
+                         if o.id not in medical_ids and not_on_leave(o)],
+            "personnel": [slim(p) for p in repo.on_force(day, "personnel") if not_on_leave(p)]}
 
 
 def _row(assignment, people, day):
@@ -90,57 +259,361 @@ def _row(assignment, people, day):
         "time": assignment.get("time", ""),
         "party": assignment.get("party", ""),
         "note": assignment.get("note", ""),
-        "tags": assignment.get("tags") or [],
+        "pos": assignment.get("pos") if isinstance(assignment.get("pos"), int)
+        and not isinstance(assignment.get("pos"), bool) else None,
         "vacant": not officers and not personnel,
     }
 
 
-def _target_key(row):
-    """«مشرف الأهداف» أولًا، والباقي بترتيب إدخاله."""
-    return (0 if row["label"].startswith(TARGETS_FIRST) else 1,)
+# البادئة اللي منصب قائد الهدف الثابت بيتكتب بيها دايمًا («قائد هدف سوميد»)
+_COMMANDER_PREFIX = "قائد هدف"
+
+# «مشرف الأهداف» صف مختلف عن باقي السبعة: مالوش منصب «قائد هدف مشرف
+# الأهداف» أصلًا — المسئول عنه هو رئيس قسم الحراسات المشددة نفسه (كل
+# الأهداف تبع الحراسات المشددة أصلًا)، فمنصبه مكتوب كامل من غير بادئة
+# «قائد هدف».
+_TARGETS_SUPERVISOR_POST = "رئيس قسم الحراسات المشددة"
 
 
-def _fixed_slots(rows):
-    """الكتلة الثابتة: صف لكل فترة، بالصف الموجود أو خانة شاغرة."""
+def _officers_on_force(data, day):
+    """الضباط اللي كانوا فعلًا على القوة في اليوم ده — مش أي ضابط اتسجّل
+    يومًا في السيستم. قادة الأهداف بتتاخد من الضباط الحاليين بس، عشان
+    ضابط اتأرشف زمان ومنصبه القديم لسه متسجّل بالصدفة زي «قائد هدف
+    سوميد» ما يظهرش قائد لهدف هو مالوش أي علاقة بيه فعليًا النهاردة."""
+    from .repo import PeopleRepo
+
+    return PeopleRepo(data).raw_on_force(day, "officers")
+
+
+def _target_commanders(officers, name, day):
+    """قائد الهدف العام — خانة ثابتة، مش تكليف يومي. بتتحدد من منصب
+    الضابط **الفعّال في اليوم ده** (`effective`) لا الحالي، عشان لوحة
+    قديمة تفضل تطبع القائد اللي كان وقتها لو المنصب اتغيّر بعد كده.
+
+    القائد ممكن يكون **مختلف** عن الضابط المعيّن بالهدف فعليًا النهاردة —
+    الأرشيف فيه أيام كتير حد بيغطي هدف مش قائده الأصلي (يوم 2/6: هدف
+    «أنابيب البترول» غطّاه قائد هدف «هلة المحجر»). الخانتين مقصود يتعرضوا
+    منفصلين مش مدموجين.
+
+    `officers` هنا الضباط اللي على القوة في اليوم ده بس (`_officers_on_force`)
+    — مش كل ضابط اتسجّل في السيستم يومًا، عشان ضابط متأرشف قبل كده بكتير
+    ما يظهرش قائد لهدف من غير علاقة فعلية باليوم ده.
+
+    بترجّع قايمة — ممكن تطلع أكتر من واحد لو المنصب اتكرر بالغلط على
+    ضابطين (الأرشيف فيه حالة كده لهدف «عيون موسي» ولرئيس قسم الحراسات
+    المشددة نفسه)، وده بيتعرض زي ما هو بدل ما نختار واحد عشوائي ونخبي الغلط.
+    """
+    from .text import norm
+
+    if name == TARGETS_FIRST:
+        needle, prefix = norm(_TARGETS_SUPERVISOR_POST), ""
+    else:
+        needle, prefix = norm(name), norm(_COMMANDER_PREFIX)
+
     out = []
+    for p in officers:
+        post = norm(effective(p, day).get("post", ""))
+        if post.startswith(prefix) and post[len(prefix):].strip() == needle:
+            out.append({"id": p["id"], "name": p.get("name", ""),
+                        "role": effective(p, day)["role"]})
+    return out
+
+
+def _blank_target(name, day, officers):
+    """صف هدف من غير أي حد معيّن فيه — القائد بيفضل محسوب حتى لو مفيش
+    تكليف مسجّل خالص، عشان القايمة الثابتة تبان كاملة من أول يوم."""
+    return {
+        "id": None, "name": name, "kind": "حراسات", "section": SECTION_TARGETS,
+        "label": name, "shift": "",
+        "officers": [], "personnel": [], "conscripts": [], "conscript_count": 0,
+        "weapon": "", "time": "", "party": "", "note": "",
+        "commander": _target_commanders(officers, name, day),
+        "vacant": True, "placeholder": True,
+    }
+
+
+def _target_slots(rows, officers, day):
+    """صف ثابت لكل هدف من الثمانية (مشرف الأهداف + سبعة أهداف)، بترتيب
+    ثابت، بيظهر كل يوم حتى لو محدش لسه عيّن حد فيه — عكس باقي الأقسام،
+    الأهداف قايمة مغلقة مالهاش «+ إضافة» حر.
+    """
+    by_name = {}
+    for r in rows:
+        if r["name"] in by_name:
+            # صفين بنفس اسم الهدف في نفس اليوم (بيانات مش متوقعة) — بيتجمّعوا
+            # في صف واحد بدل ما واحد منهم يضيع بصمت من الـdict comprehension.
+            prev = by_name[r["name"]]
+            prev["officers"] = prev["officers"] + r["officers"]
+            prev["personnel"] = prev["personnel"] + r["personnel"]
+            prev["vacant"] = prev["vacant"] and r["vacant"]
+        else:
+            by_name[r["name"]] = r
+    out = []
+    for name in target_row_names():
+        row = by_name.pop(name, None)
+        if row:
+            row["commander"] = _target_commanders(officers, name, day)
+            out.append(row)
+        else:
+            out.append(_blank_target(name, day, officers))
+    # هدف اتكتب قبل كده برّه القايمة المغلقة (ملوش وجود في الأرشيف، بس
+    # القاعدة العامة هنا هي «مفيش بيانات بتختفي بصمت») بيتعرض في الآخر
+    for row in by_name.values():
+        row["commander"] = _target_commanders(officers, row["name"], day)
+        out.append(row)
+    return out
+
+
+def target_rows_for_day(data, day):
+    """صفوف الأهداف الثمانية ليوم واحد بس — نفس مخرجات قسم الأهداف على
+    اللوحة، بس من غير باقي التسعة أقسام. `build_board()` مكلّف زيادة عن
+    اللزوم لما محتاج الأهداف بس (زي إحصائيات التشغيل اللي بتلفّ على
+    عشرات الأيام)."""
+    people = _people_index(data)
+    rows = [_row(a, people, day) for a in peek_day(data, day)
+            if a.get("section") == SECTION_TARGETS]
+    return _target_slots(rows, _officers_on_force(data, day), day)
+
+
+def set_target_officers(data, day, name, officer_ids):
+    """بيعيّن (أو يشيل) الضابط المعيّن بهدف من الأهداف الثابتة الثمانية.
+
+    القائد خانة ثابتة محسوبة من منصب الضابط (`_target_commanders`) —
+    بيتغيّر من صفحة بيانات الضابط مش من هنا. اللي بيتحدد هنا هو مين
+    شغّال في الهدف فعليًا النهاردة بس.
+
+    التعيين الفاضي بيشيل الصف بالكامل من `day_assignments` بدل ما يسيبه
+    فاضي بلا فايدة — هدف من غير حد معيّن أصلًا بيتعرض كخانة شاغرة من
+    القايمة الثابتة، مش محتاج سجل مخزّن.
+
+    بترجّع (row, error, status).
+    """
+    from .assignments import blank, clean_people, for_day, new_id
+
+    if name not in target_row_names():
+        return None, f"«{name}» مش من الأهداف الثابتة — الأهداف قايمة مغلقة.", 400
+
+    ids, err, status = clean_people(data, day, officer_ids, "officers")
+    if err:
+        return None, err, status
+
+    entries = for_day(data, day)
+    row = next((r for r in entries if r.get("section") == SECTION_TARGETS
+               and r.get("name") == name), None)
+
+    if not ids:
+        if row:
+            entries.remove(row)
+            forget_seq_if_day_empty(data, day)
+        return None, None, None
+
+    if not row:
+        row = blank(new_id(data, day, entries), name, SECTION_TARGETS, kind="حراسات")
+        entries.append(row)
+    row["officer_ids"] = ids
+    return row, None, None
+
+
+# الاسم الثابت لكل قسم من الكتل التلاتة — مش اسم حر زي باقي الخدمات،
+# نفس مبدأ الأهداف بالظبط بس هنا اسم واحد لكل قسم مش قايمة. مستخرج من
+# الأرشيف: `SUBCAMP_SERVICES[0]`/`BOARD_ROTATIONS` هما الاسمين اللي
+# فعليًا اتكتبوا على صفوف الكتل دي في كل الأيام المفحوصة.
+FIXED_SLOT_NAMES = {
+    SECTION_SUBCAMP: SUBCAMP_SERVICES[0],
+    SECTION_GREAT: BOARD_ROTATIONS[0],
+    SECTION_SECURITY: BOARD_ROTATIONS[1],
+}
+
+
+def set_slot_officers(data, day, section, shift, officer_ids):
+    """بيعيّن (أو يشيل) الضابط في خانة فترة معيّنة من كتلة ثابتة (ضابط
+    عظيم الإدارة/الأمن/المعسكر الفرعي) — نفس فكرة `set_target_officers`
+    بالظبط، بس المفتاح هنا (قسم، فترة) مش اسم، لأن كل قسم من التلاتة
+    اسمه واحد ثابت (`FIXED_SLOT_NAMES`) بيتكرر على صفّين (صباحية/ليلية).
+
+    التعيين الفاضي بيشيل الصف بالكامل بدل ما يسيبه فاضي بلا فايدة —
+    الخانة الشاغرة بتتعرض من `_fixed_slots` تلقائيًا زي أي فترة فاضية.
+
+    بترجّع (row, error, status).
+    """
+    from .assignments import blank, clean_people, for_day, new_id
+
+    name = FIXED_SLOT_NAMES.get(section)
+    if not name:
+        return None, f"«{section}» مش من الأقسام الثابتة.", 400
+    if shift not in SHIFTS:
+        return None, "الفترة غير صحيحة.", 400
+
+    ids, err, status = clean_people(data, day, officer_ids, "officers")
+    if err:
+        return None, err, status
+
+    entries = for_day(data, day)
+    row = next((r for r in entries
+               if r.get("section") == section and r.get("shift") == shift), None)
+
+    if not ids:
+        if row:
+            entries.remove(row)
+            forget_seq_if_day_empty(data, day)
+        return None, None, None
+
+    if not row:
+        # المعسكر الفرعي مالوش خانة في جدول الإجمالي (README) — الضابط
+        # بيفضل في الصافي حتى وهو نوبتجي، عكس الاتنين التانيين.
+        row = blank(new_id(data, day, entries), name, section, shift=shift, kind="داخلية",
+                    counts_in_summary=(section != SECTION_SUBCAMP))
+        entries.append(row)
+    row["officer_ids"] = ids
+    return row, None, None
+
+
+def _fixed_slots(rows, canonical_name):
+    """الكتلة الثابتة: صف لكل فترة بالاسم الثابت (`slot: True` — ده اللي
+    زرار «تعيين» السريع بيتحكم فيه)، بالصف الموجود أو خانة شاغرة.
+
+    القسم **مش** قايمة مقفولة زي الأهداف — لو المشغّل ضاف دور تاني في
+    نفس القسم بإيده من «＋ إضافة» (زي منصب فرعي تاني للمعسكر الفرعي)،
+    الصف ده بيتحط بعد الصفّين الثابتين (`slot: False`) وبيتعرض بجدول
+    خدمات عادي تحتهم — عشان الدور ده يفضل **جوّه** قسمه الصح، مش يضطر
+    المشغّل يكتبه في قسم تاني (زي «الخدمات الطارئة») علشان مفيش مكان
+    يضيفه فيه هنا.
+    """
+    out = []
+    primary_objects = set()
     for shift in SHIFTS:
         match = [r for r in rows if r["shift"] == shift]
-        if match:
-            out.extend(match)
+        primary = next((r for r in match if r.get("name") == canonical_name), None)
+        if primary:
+            out.append({**primary, "slot": True})
+            primary_objects.add(id(primary))
         else:
             out.append({"id": None, "name": "", "kind": "", "label": "", "shift": shift,
                         "officers": [], "personnel": [], "conscripts": [], "conscript_count": 0,
                         "weapon": "", "time": "", "party": "", "note": "",
-                        "tags": [], "vacant": True, "placeholder": True})
-    # صفوف بلا فترة (لو حد حطها كده) بتتعرض بعد الصفّين الثابتين
-    out.extend(r for r in rows if r["shift"] not in SHIFTS)
+                        "vacant": True, "placeholder": True, "slot": True})
+    # الأدوار الإضافية بتتعرض كقايمة خدمات واحدة بعد الصفّين الثابتين؛
+    # ترتيبها المحفوظ للعرض لازم يغلب تجميعها حسب الفترة، وإلا نقل خدمة
+    # ليل قبل خدمة صباح مستحيل حتى لو `pos` اتغيّر صح.
+    out.extend({**r, "slot": False} for r in rows if id(r) not in primary_objects)
     return out
 
 
-def _grouped(rows):
-    """الخدمات الموسومة بتتجمّع تحت عنوان فرعي جوّه القسم، زي «خطة انتشار
-    6م» في لوحة 15/6 — الوورد بيسيبها في مكانها مش في جريد لوحده."""
-    plain = [r for r in rows if not r["tags"]]
-    groups = {}
-    for r in rows:
-        for tag in r["tags"]:
-            groups.setdefault(tag, []).append(r)
-    return plain, [{"tag": t, "rows": rs} for t, rs in groups.items()]
+def _display_key(row, source_order):
+    """ترتيب اللوحة فقط؛ عدم وجود `pos` يرجّع ترتيب التخزين الأصلي."""
+    pos = row.get("pos")
+    if not isinstance(pos, int) or isinstance(pos, bool):
+        pos = source_order
+    return pos, source_order
+
+
+def _visible_list_ids(data, day, stored):
+    """معرّفات القايمة اللي الصف بيتعرض جواها فعلًا على اللوحة."""
+    board = build_board(data, day)
+    section_name = stored.get("section") or SECTION_OCCASIONAL
+    section = next((item for item in board["sections"] if item["name"] == section_name), None)
+    if not section or section["type"] not in ("services", "slots"):
+        return None
+
+    if section["type"] == "slots":
+        shown = [row for row in section["rows"] if not row.get("slot")]
+    else:
+        shown = section["rows"]
+    return [row.get("id") for row in shown]
+
+
+def _renumber_display_positions(entries, ids):
+    """يثبّت ترتيب قايمة ظاهرة في `pos` من غير تحريك قايمة التخزين."""
+    by_id = {row.get("id"): row for row in entries}
+    for pos, row_id in enumerate(ids):
+        by_id[row_id]["pos"] = pos
+
+
+def place_assignment_after(data, day, assignment_id, after_id):
+    """يحط الصف بعد صف مرجعي لو الاتنين في نفس القايمة الظاهرة.
+
+    المرجع الغلط أو الموجود في قسم تاني بيتساب من غير خطأ؛ الصف
+    الجديد يفضل في آخر قائمته زي الإضافة العادية.
+    """
+    entries = peek_day(data, day)
+    stored = next((row for row in entries if row.get("id") == assignment_id), None)
+    if not stored or not after_id or after_id == assignment_id:
+        return
+    ids = _visible_list_ids(data, day, stored)
+    if not ids or assignment_id not in ids or after_id not in ids:
+        return
+
+    ids.remove(assignment_id)
+    ids.insert(ids.index(after_id) + 1, assignment_id)
+    _renumber_display_positions(entries, ids)
+
+
+def move_assignment(data, day, assignment_id, direction):
+    """ينقل خدمة خطوة داخل القايمة اللي بتظهر فيها، من غير تحريك التخزين.
+
+    `day_assignments` نفسها ليها معنى تشغيلي في يومية الضباط: أول خدمة
+    اتحط عليها الضابط هي خانته في الإجمالي. عشان كده بنبدّل `pos` للعرض
+    فقط، وما بنعملش `remove/insert` في القايمة الأصلية أبدًا.
+    """
+    entries = peek_day(data, day)
+    stored = next((row for row in entries if row.get("id") == assignment_id), None)
+    if not stored:
+        return "التكليف غير موجود.", 404
+
+    ids = _visible_list_ids(data, day, stored)
+    if ids is None:
+        return "ترتيب الخدمة دي ثابت ومش بيتغيّر.", 400
+    if assignment_id not in ids:
+        return "الخدمة دي مش ضمن قايمة قابلة للترتيب.", 400
+    index = ids.index(assignment_id)
+    neighbour = index - 1 if direction == "up" else index + 1
+    if neighbour < 0 or neighbour >= len(ids):
+        return None, None
+
+    # بنطبّع مواضع القايمة الظاهرة قبل التبديل؛ كده الصفوف القديمة اللي
+    # مالهاش `pos` والصفوف الجديدة تفضل قابلة للحركة من غير تعادل مبهم.
+    _renumber_display_positions(entries, ids)
+    by_id = {row.get("id"): row for row in entries}
+    by_id[ids[index]]["pos"], by_id[ids[neighbour]]["pos"] = neighbour, index
+    return None, None
 
 
 def build_board(data, day):
+    from .repo import Repos
+
     people = _people_index(data)
     states = officer_states(data, day)
+    medical_ids = set(Repos(data).config.group(ROLE_MEDICAL))
 
     by_section = {name: [] for name in ASSIGNMENT_SECTIONS}
-    for a in peek_day(data, day):
+    for source_order, a in enumerate(peek_day(data, day)):
         section = a.get("section") or SECTION_OCCASIONAL
-        by_section.setdefault(section, []).append(_row(a, people, day))
-    by_section[SECTION_TARGETS].sort(key=_target_key)
+        row = _row(a, people, day)
+        row["_source_order"] = source_order
+        by_section.setdefault(section, []).append(row)
+    # الفرز هنا على نسخة العرض فقط. `_source_order` متغير داخلي بيتشال
+    # قبل بناء الاستجابة، وقايمة التكليفات الأصلية ما بتتلمسش.
+    for rows in by_section.values():
+        rows.sort(key=lambda row: _display_key(row, row["_source_order"]))
+        for row in rows:
+            row.pop("_source_order", None)
+    # الأهداف قايمة مغلقة بترتيب ثابت — عكس باقي الأقسام، بتظهر بصفوفها
+    # الثمانية كل يوم حتى لو محدش لسه عيّن حد فيها، ومعاها قائد كل هدف
+    # (خانة ثابتة محسوبة من منصب الضابط، منفصلة عن `officers` على نفس
+    # الصف اللي هو الضابط المعيّن بالهدف فعليًا النهاردة)
+    target_commanders = [o for o in _officers_on_force(data, day)
+                         if o["id"] not in medical_ids]
+    by_section[SECTION_TARGETS] = _target_slots(
+        by_section[SECTION_TARGETS], target_commanders, day)
 
     full = summarise(data, day)
     rests, taqseeras, outsiders, admin_work = [], [], [], []
     for r in full["rows"]:
+        # ضباط العيادة ليهم عرضهم وحسابهم في يومية الضباط، إنما اليومية
+        # التفصيلية ما بتسردهمش في أقسام الضباط المحسوبة حتى لو حالة مكتوبة
+        # نقلتهم من «طبية» إلى «الخوارج». صف خدمة محفوظ يفضل ظاهر فوق عادي.
+        if r["id"] in medical_ids:
+            continue
         who = {"id": r["id"], "name": r["name"], "role": r["role"]}
         if r["group"] == "خوارج":
             if r["bucket"] == "تقصيرة":
@@ -166,23 +639,36 @@ def build_board(data, day):
     sections = []
     for name in BOARD_ORDER:
         if name in computed:
-            sections.append({"name": name, "type": "officers",
-                             "rows": computed[name], "groups": []})
+            sections.append({"name": name, "type": "officers", "rows": computed[name]})
             continue
         rows = by_section.get(name, [])
+        if name == SECTION_TARGETS:
+            # قايمة مغلقة بترتيب ثابت — بلا «+ إضافة» حر
+            from .target_defaults import untouched_seed
+
+            seeded = untouched_seed(data, day)
+            section = {"name": name, "type": "targets", "rows": rows}
+            if seeded:
+                section["seeded_from"] = seeded["source_day"]
+            sections.append(section)
+            continue
         if name in FIXED_SLOT_SECTIONS:
             sections.append({"name": name, "type": "slots",
-                             "rows": _fixed_slots(rows), "groups": []})
+                             "rows": _fixed_slots(rows, FIXED_SLOT_NAMES.get(name))})
             continue
-        plain, groups = _grouped(rows)
-        sections.append({"name": name, "type": "services", "rows": plain, "groups": groups})
+        sections.append({"name": name, "type": "services", "rows": rows})
 
-    # أي قسم اتكتب بالإيد ومش من العشرة بيتعرض في الآخر بدل ما يختفي
+    # أي قسم اتكتب بالإيد ومش من العشرة بيتعرض في الآخر بدل ما يختفي —
+    # زي «خدمات مباراة المصري» ليوم فيه مباراة، لليوم ده بس من غير أي
+    # تسجيل مسبق لاسم القسم في أي مكان.
     extra = [n for n in by_section if n not in BOARD_ORDER and by_section[n]]
     for name in extra:
-        plain, groups = _grouped(by_section[name])
-        sections.append({"name": name, "type": "services", "rows": plain, "groups": groups})
+        sections.append({"name": name, "type": "services", "rows": by_section[name]})
 
     return {"date": day, "sections": sections, "states": states,
             "confirm": confirm_state(data, day),
+            "roster": _roster(data, day),
+            # الرسمية الحرة الأول، وبعدها كل اسم مخصّص ظهر في أي يوم حسب
+            # أحدث استعمال — عشان القسم اللي اتعمل امبارح يفضل متاح النهاردة.
+            "section_names": section_names(data),
             "warnings": day_warnings(data, day, full["rows"])}

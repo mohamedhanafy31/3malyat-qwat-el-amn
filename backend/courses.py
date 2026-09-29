@@ -99,6 +99,22 @@ def build_term(payload, data, term_id):
     start, end, error = parse_range(payload, 400, "مدة الفرقة كبيرة بشكل غير منطقي.")
     if error:
         return None, error
+    # التاريخين مالهمش لازمة يتحددوا (الالتحاق ينفع يتسجّل بدون مدى —
+    # اتحقق يعني بس)، لكن نص مدى (بداية بدون نهاية أو العكس) غالبًا
+    # غلط إدخال، ومكانش بيترفض من قبل.
+    if bool(start) != bool(end):
+        return None, "لازم تحدد تاريخ البداية والنهاية الاتنين، أو تسيبهم فاضيين الاتنين."
+
+    if start and end:
+        # الالتحاق لازم يقع جوّه فترة خدمة الضابط — نفس قيد الراحة بالظبط
+        # (`leaves.build_leave`)، وإلا يفضل غلط مخفي في الإحصائيات وحساب
+        # خانة «فرقة» في جدول الإجمالي.
+        join = str(person.get("join_date", "") or "")
+        if join and start.isoformat() < join:
+            return None, f"تاريخ الفرقة قبل تاريخ انضمام الضابط ({join})."
+        left = str(person.get("leave_date", "") or "")
+        if left and end.isoformat() > left:
+            return None, f"تاريخ الفرقة بعد تاريخ خروج الضابط من القوة ({left})."
 
     return {
         "id": term_id,
@@ -144,21 +160,20 @@ def _detail(term, course, person, day=None):
 
 
 def by_officer(data):
-    """صف لكل ضابط، وقدامه الفرق اللي خدها — التجميع التاني للصفحة.
+    """صف لكل ضابط على القوة **حاليًا**، وقدامه الفرق اللي خدها — التجميع
+    التاني للصفحة.
 
     الضباط اللي مخدوش أي فرقة بيظهروا برضو: «مين لسه ماخدش فرقة» سؤال
-    تشغيلي زي «مين خد إيه» بالظبط.
+    تشغيلي زي «مين خد إيه» بالظبط. لكن ضابط خرج من القوة مابيظهرش هنا
+    حتى لو ليه التحاقات قديمة — الصفحة دي روستر القوة الحالية، مش أرشيف؛
+    تاريخه التدريبي يفضل موجود في تفاصيل الفرقة نفسها (تبويب «حسب الفرقة»).
     """
     catalog = by_id(data)
     grouped = {}
     for term in terms(data):
         grouped.setdefault(term["officer_id"], []).append(term)
 
-    # النشطين كلهم + أي متأرشف ليه التحاق مسجّل
     shown = list(PeopleRepo(data).bucket("officers", "active"))
-    known = {p["id"] for p in shown}
-    shown += [p for p in PeopleRepo(data).bucket("officers", "archive")
-              if p["id"] in grouped and p["id"] not in known]
     priority = command_priority_map(data)
     shown.sort(key=lambda p: rank_key(p, priority))
 

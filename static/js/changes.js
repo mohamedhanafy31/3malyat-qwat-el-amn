@@ -9,14 +9,19 @@ const ACTION_LABEL = {
   create: "إضافة", update: "تعديل", delete: "حذف",
   assign: "تكليف", unassign: "رفع تكليف",
   confirm: "تأكيد", close: "قفل يوم", reopen: "فتح استثنائي",
+  stop: "إيقاف راحة", cancel: "إلغاء راحة", suspend: "وقف الراحات", lift: "فتح الراحات",
+  restore: "رجوع راحة",
+  retro: "بأثر رجعي",
 };
 const ENTITY_LABEL = {
   duty_move: "حركة ضابط/فرد", assignment: "خدمة", day_confirm: "تأكيد يومية",
   day_lock: "قفل يوم", officer_state: "حالة ضابط", leave: "راحة", mission: "مأمورية",
+  rest_suspension: "وقف الراحات",
 };
 const ENTITY_CLS = {
   duty_move: "m", assignment: "w", day_confirm: "on",
   day_lock: "taq", officer_state: "h", leave: "soon", mission: "w",
+  rest_suspension: "rest",
 };
 
 /* "2026-09-16T14:30:00" -> "١٦ سبتمبر ٢٠٢٦ — 14:30" */

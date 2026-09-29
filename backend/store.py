@@ -79,6 +79,20 @@ DAY_SECTIONS = {
     "day_confirm": "confirm",
     "day_status": "status",
     "service_counts": "counts",
+    # عدّاد أرقام التكليفات (AS-xxxx) لكل يوم — جوّه ملف اليوم نفسه عشان
+    # ما يتوليدش نفس الرقم تاني بعد مسح آخر تكليف، من غير ما يلمس
+    # core.json مع كل حفظ خانة (backend/assignments.py new_id).
+    "day_assignment_seq": "assignment_seq",
+    # يومية الأفراد — القائم بها والتليفون والانتظام لكل خدمة أساسية
+    # (دليل الخدمات) في يوم بعينه؛ الخدمة نفسها (الاسم/العدد/التسليح)
+    # ثابتة في `service_catalog` بـcore.json، اللي بيتغيّر يوميًا بس هنا.
+    "day_afraad": "afraad_basic",
+    # فتح اليوم لأول مرة هو اللي بيسجّل الراحة الأسبوعية التلقائية. العلامة
+    # تخص اليوم نفسه عشان حذف الراحة بعد كده مايرجعهاش في الفتح التالي.
+    "weekly_rest_seeded_days": "weekly_rest_seeded",
+    # النسخة المبدئية لضباط الأهداف جاية من آخر تأكيد لليوم السابق. بنحفظ
+    # المصدر والبصمة جوّه ملف اليوم عشان نعرف هل المشغّل لمسها قبل تحديثها.
+    "target_defaults": "target_defaults",
 }
 
 
@@ -330,7 +344,9 @@ def _read():
     command = data.setdefault("command", {})
     for role in DEFAULT_DATA["command"]:
         command.setdefault(role, None)
-    data.setdefault("medical_officers", [])
+    groups = data.setdefault("command_groups", {})
+    for role in DEFAULT_DATA["command_groups"]:
+        groups.setdefault(role, [])
     data.setdefault("id_seq", {})      # عدّادات الأرقام — شوف reserve_id()
 
     # بصمات اللي اتقرا — `_write` بيقارن بيها ويكتب اللي اتغيّر بس.
@@ -541,6 +557,83 @@ def restore_backup(name):
         snapshot_now()                    # لقطة للوضع الحالي قبل الاستبدال
         explode(data)
     return data
+
+
+# ---------- قفل العملية الواحدة ----------
+
+LOCK_FILE_NAME = ".lock"
+
+
+def _pid_alive(pid):
+    """في المصنع كل مرة — مفيش مكتبة زيادة (`psutil`) عشان النظام يفضل
+    يشتغل أوفلاين بالمكتبات الأساسية بس (`requirements.txt`)."""
+    if os.name == "nt":
+        import ctypes
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        handle = ctypes.windll.kernel32.OpenProcess(
+            PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if handle:
+            ctypes.windll.kernel32.CloseHandle(handle)
+            return True
+        return False
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True   # موجودة بس مش لينا صلاحية عليها — نادر هنا (نفس المستخدم غالبًا)
+    return True
+
+
+def acquire_process_lock():
+    """يمنع سيرفرين يشتغلوا على نفس مجلد `data/` في نفس اللحظة.
+
+    `LOCK` فوق بيحمي الكتابة **جوّه** عملية واحدة بس — طلبين في نفس
+    اللحظة من المتصفح لنفس السيرفر. من غير القفل ده، سيرفرين شغّالين
+    على بورتات مختلفة (أو من جهازين على نفس المجلد المشترك على الشبكة)
+    كل واحد فيهم عنده نسخته من `_cache` في الذاكرة، وكتابة من الاتنين
+    في نفس اللحظة ممكن تمسح تعديل بعضها من غير ما أي حد ياخد باله —
+    نفس المشكلة اللي `with_data()` بيحلّها جوّه العملية الواحدة، بس هنا
+    بين عمليتين مختلفتين تمامًا.
+
+    الملف بيحمل رقم العملية (PID)، فلو قفلة عالقة من قفل غير نضيف (قطع
+    كهربا، Task Manager، أو `preview_stop` بتاع بيئة التطوير) بيتحقق إن
+    العملية اللي كتبته لسه شغّالة فعلًا قبل ما يرفض — وإلا كان السيستم
+    مش هيشتغل تاني أبدًا لحد ما حد يمسح الملف بإيده.
+
+    لازم تتنادى بس لما السيرفر فعلًا بيشتغل (`if __name__ == "__main__"`
+    في `app.py`/`serve.py`)، مش وقت `import app` — الاختبارات بتعمل
+    `import` للملف من غير ما تشغّل سيرفر حقيقي."""
+    lock_path = DATA_DIR / LOCK_FILE_NAME
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    def _try_create():
+        return os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+
+    try:
+        fd = _try_create()
+    except FileExistsError:
+        stale = True
+        try:
+            stale = not _pid_alive(int(lock_path.read_text().strip()))
+        except (OSError, ValueError):
+            pass       # ملف فاضي أو تالف — يتعامل معاه كقفلة عالقة
+        if not stale:
+            raise SystemExit(
+                f"\n[X] السيستم شغّال بالفعل من عملية تانية على نفس مجلد data/.\n"
+                f"[X] The system is already running (another process) on this data/ folder.\n"
+                f"\n"
+                f"    اقفل النسخة التانية الأول وجرّب تاني.\n"
+                f"    Close the other window/process first, then try again.\n"
+            )
+        lock_path.unlink(missing_ok=True)     # قفلة عالقة من عملية ماتت — بتتشال وتتحاول تاني
+        fd = _try_create()
+
+    os.write(fd, str(os.getpid()).encode())
+    os.close(fd)
+
+    import atexit
+    atexit.register(lambda: lock_path.unlink(missing_ok=True))
 
 
 # ---------- الواجهة ----------

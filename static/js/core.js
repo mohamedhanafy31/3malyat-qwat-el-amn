@@ -49,6 +49,12 @@ const fmt=d=>{
 const iso=d=>{const t=new Date(d);t.setHours(12);return t.toISOString().slice(0,10)};
 const addDays=(s,n)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)};
 const dayName=s=>{
+  // كانت بتفضل من غير حراسة زي fmt() جنبها — أي نداء بتاريخ فاضي كان بيرمي
+  // "Invalid time value" ويوقف الدالة اللي نادتها في نص تنفيذها. ده كان
+  // بيكسر نافذة تفاصيل الالتحاق بصمت لأي التحاق من غير تاريخ بداية/نهاية
+  // مسجّل (أغلب فرق الأرشيف)، لأن الزرار بيحدّث العنوان الأول قبل ما يوصل
+  // لنداء dayName ويقف من غير ما المستخدم يشوف أي رسالة خطأ.
+  if(!s) return "-";
   let v=_wdCache.get(s);
   if(v===undefined){ v=_FMT_WEEKDAY.format(new Date(s+"T12:00:00")); _wdCache.set(s,v) }
   return v;
@@ -84,7 +90,7 @@ const DURATIONS=()=>META.rest_durations||{"شهرية":7,"نصف شهرية":3,"
 const KINDS=()=>META.service_kinds||["خارجية","داخلية","حراسات","طبية"];
 const SHIFTS=()=>META.shifts||["صباحية","ليلية"];
 const COMMAND_ROLES=()=>META.command_roles||[];
-const MEDICAL_BADGE=()=>META.medical_badge||"ضابط العيادة الطبية";
+const GROUP_ROLES=()=>META.group_roles||[];
 const KIND_CLS={"خارجية":"w","داخلية":"h","حراسات":"m","طبية":"on","بحث":"soon"};
 
 /* ---------- الشبكة ---------- */
@@ -103,7 +109,26 @@ async function api(url,opts){
   try{ r=await fetch(url,opts) }
   catch(e){ showToast("تعذر الاتصال بالخادم",true); return null }
   let out={}; try{out=await r.json()}catch(e){}
-  if(!r.ok){showToast(out.error||"حدث خطأ",true); return null}
+  if(!r.ok){
+    // التعديل بيمس يوم/أيام مقفولة (راحة أو فرقة بتاريخ فات مثلًا) —
+    // مسموح بس محتاج سبب مكتوب (backend/retro.py). بنسأل هنا مرة واحدة
+    // في مكان واحد عشان كل نداء `api()` في السيستم يستفيد من غير ما كل
+    // صفحة تتعامل مع الحالة دي لوحدها.
+    if(out && out.needs_reason && !opts.__retro){
+      const days=(out.closed_days||[]).join("، ");
+      const reason=prompt(`التعديل ده بيمس يوم/أيام مقفولة (${days}) — اكتب سبب التعديل:`);
+      if(reason && reason.trim()){
+        return api(url,{...opts,__retro:true,
+          headers:{...(opts.headers||{}),"X-Retro-Reason":encodeURIComponent(reason.trim())}});
+      }
+      return null;      // المستخدم لغى — مفيش توست، هو اللي قرر يوقف
+    }
+    // opts.onError(out, status) بتاخد فرصة تتصرّف في خطأ معيّن (409
+    // محتاج تأكيد إضافي مثلًا) — لو رجّعت true بتتلغى التوست الافتراضي
+    // لأن المتصل هيتصرّف هو بنفسه.
+    if(opts.onError && opts.onError(out,r.status)) return null;
+    showToast(out.error||"حدث خطأ",true); return null;
+  }
   return out;
 }
 const jsonReq=(method,body)=>({method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
@@ -132,6 +157,29 @@ function paintNavCounts(d){
   }
   const alerts = (d.alerts || []).length;
   $("#navAlerts")?.classList.toggle("hidden", !alerts);
+  // أمر وقف راحات ساري — بيبان في القايمة من أي صفحة
+  $("#navSuspension")?.classList.toggle("hidden", !(META.rest_suspension?.active || []).length);
+}
+
+/* ---------- شريط وقف الراحات (اليومية التفصيلية + يومية الضباط) ----------
+   مكان التسكين نفسه لازم يقول: الأنواع الموقوفة في اليوم ده، ومين رجع من
+   إيقاف راحته فيه — دول الضباط اللي محتاجين يتسكّنوا. */
+async function renderRestStrip(el, day){
+  if(!el || !day) return;
+  el.dataset.day = day;
+  const r = await api(`/api/rest-suspensions/day/${encodeURIComponent(day)}`);
+  if(el.dataset.day !== day) return;          // اتغيّر اليوم قبل ما الرد يوصل
+  if(!r || (!r.types.length && !r.returned.length)){ el.innerHTML = ""; return }
+  const returned = r.returned.map(o => `<span class="chip on"
+      title="${esc(o.stop_reason)} — كانت لحد ${esc(fmt(o.original_end))}">${esc(o.role)}/ ${esc(o.name)}
+      <i>${esc(o.type)}</i></span>`).join("");
+  el.innerHTML = `<div class="alert-card susp-banner rest-strip"><div class="alert-head">
+      <span class="alert-ico">⛔</span>
+      <strong>${r.types.length ? `الراحات موقوفة: ${r.types.map(esc).join("، ")}` : "إيقاف راحات"}</strong>
+      <a class="mini" href="/leaves/suspension">إدارة الوقف</a></div>
+    ${r.returned.length ? `<div class="sub">رجعوا للعمل في اليوم ده بإيقاف راحتهم — محتاجين تسكين:</div>
+      <div class="returned">${returned}</div>` : ""}
+  </div>`;
 }
 
 /* ---------- عناصر عامة ---------- */
@@ -428,9 +476,30 @@ ACTIONS._dpNav=id=>{
   }
   _dpRender();
 };
+/* `_dpNav` (فوق) بينادي `_dpRender()` اللي بيستبدل innerHTML بتاع
+   التقويم — يعني الزرار اللي المستخدم دوس عليه (‹/›) بيتشال من الـDOM
+   **قبل** ما الحدث ده يوصل لمعالج الإغلاق هنا (الاتنين مسجّلين على
+   `document` بنفس مرحلة الفقاعة، وده مسجّل بعد معالج data-action). ساعتها
+   `datePopover.contains(e.target)` بترجع false — العنصر اتشال فعلًا —
+   فالتقويم كان بيتقفل لوحده أول ما حد يضغط على زرار تنقّل الشهر بالظبط،
+   بدل ما يتنقل. `composedPath()` بترجع سلسلة الأجداد وقت إطلاق الحدث
+   **قبل** أي تعديل في الـDOM، فبتفضل شايفة التقويم كجدّ للزرار حتى بعد
+   ما الزرار نفسه يتشال. */
 document.addEventListener("click",e=>{
-  if(_dpInput && !datePopover.contains(e.target) && e.target!==_dpInput) _dpClose();
+  if(_dpInput && !e.composedPath().includes(datePopover) && e.target!==_dpInput) _dpClose();
 });
+/* التقويم `position:fixed` وموضعه بيتحسب مرة واحدة وقت الفتح (`_dpPosition`)
+   نسبة لمكان الحقل وقتها. لو المستخدم بعد كده عمل اسكرول (الصفحة نفسها،
+   أو أي حاوية بتتمرّر جواها الحقل زي شريط فلترة طويل) الحقل بيتحرك
+   والتقويم بيفضل ثابت في نفس بكسلات الشاشة — يعني بيبان طاير في مكان غلط
+   عن الحقل. الاسكرول مالوش bubble للـdocument زي الكليك، فلازم نلقطه في
+   مرحلة الالتقاط (capture) من أي حاوية بتتمرّر. بنحرّك التقويم بدل ما
+   نقفله عشان نفس مشكلة `composedPath` فوق: أي حدث `scroll` بيتطلق أثناء
+   `_dpRender()` (تغيير الفوكس بعد شيل الزرار القديم من الـDOM ممكن
+   يسبّبه في بعض المتصفحات) كان بيقفل التقويم لوحده. */
+document.addEventListener("scroll",e=>{
+  if(_dpInput && !datePopover.contains(e.target)) _dpPosition(_dpInput);
+},true);
 
 /** بتحوّل أي input[type=date]/input[type=month] لسه ما اترقّاش. بتتنادى
  * مرة تلقائي على كل الصفحة، وبرضو من أي صفحة بتولّد حقول تاريخ ديناميكيًا
@@ -536,7 +605,7 @@ ACTIONS._msRemove = (_id, extra, el) => {
 function _cbSync(sel) {
   const inp = sel._comboInput;
   if (!inp) return;
-  inp.value = _cbLabel(sel);
+  inp.value = sel._comboCustomDraft ?? _cbLabel(sel);
   inp.disabled = sel.disabled;
 }
 
@@ -544,20 +613,27 @@ function _cbRender(q) {
   if (!_cbSel) return;
   const opts = [..._cbSel.options];
   const all = opts.map((o, i) => ({i, text: o.textContent, value: o.value}));
-  _cbOpts = q ? all.filter(o => arIncludes(o.text, q)) : all;
+  const typed = String(q || "").trim();
+  const allowCustom = !_cbMulti && _cbSel.hasAttribute("data-combo-custom");
+  const exact = typed && all.some(o => o.value.trim() === typed || o.text.trim() === typed);
+  const custom = allowCustom && typed && !exact
+    ? [{custom: true, text: typed, value: typed}] : [];
+  _cbOpts = [...custom, ...(q ? all.filter(o => arIncludes(o.text, q)) : all)];
   if (!_cbOpts.length) {
     comboPop.innerHTML = `<div class="combo-empty">مفيش خيار مطابق لـ«${esc(q)}»</div>`;
     return;
   }
+  if (custom.length) _cbIdx = 0;
   if (_cbIdx >= _cbOpts.length) _cbIdx = _cbOpts.length - 1;
-  const cur = _cbSel.value;
-  const chosen = o => _cbMulti ? opts[o.i].selected : o.value === cur;
+  const cur = _selValueDesc.get.call(_cbSel);
+  const chosen = o => !o.custom && (_cbMulti ? opts[o.i].selected : o.value === cur);
   comboPop.innerHTML = `<ul class="combo-list" role="listbox"
     ${_cbMulti ? 'aria-multiselectable="true"' : ""}>${_cbOpts.map((o, n) => {
     const on = chosen(o);
     return `<li role="option" aria-selected="${on}" data-action="_cbPick" data-id="${n}"
-      class="combo-opt${on ? " sel" : ""}${n === _cbIdx ? " active" : ""}"
-      >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? "✔" : ""}</span>` : ""}${esc(o.text)}</li>`;
+      class="combo-opt${o.custom ? " custom" : ""}${on ? " sel" : ""}${n === _cbIdx ? " active" : ""}"
+      >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? "✔" : ""}</span>` : ""}${o.custom
+        ? `＋ قسم جديد: «${esc(o.text)}»` : esc(o.text)}</li>`;
   }).join("")}</ul>`;
 }
 
@@ -582,16 +658,16 @@ function _cbPosition() {
   }
 }
 
-function _cbOpen(sel) {
+function _cbOpen(sel, query = "") {
   if (sel.disabled) return;
   _cbSel = sel; _cbInput = sel._comboInput; _cbMulti = !!sel.multiple;
   _cbIdx = _cbMulti ? 0 : Math.max(0, sel.selectedIndex);
   if (!_cbMulti) {
     // الحقل بيتفضّى عشان الكتابة تبدأ بحث جديد، والمختار حاليًا باين كـplaceholder
-    _cbInput.placeholder = _cbLabel(sel) || "اختار...";
-    _cbInput.value = "";
+    _cbInput.placeholder = (sel._comboCustomDraft ?? _cbLabel(sel)) || "اختار...";
+    _cbInput.value = query;
   }
-  _cbRender("");
+  _cbRender(query);
   comboPop.classList.remove("hidden");
   comboPop.classList.toggle("is-multi", _cbMulti);
   _cbPosition();
@@ -606,13 +682,23 @@ function _cbClose() {
     else { _cbInput.placeholder = ""; _cbSync(_cbSel) }
   }
   comboPop.classList.add("hidden");
-  _cbSel = null; _cbInput = null; _cbOpts = []; _cbIdx = -1; _cbMulti = false;
+  _cbSel = null; _cbInput = null; _cbOpts = []; _cbIdx = -1;
+  _cbMulti = false;
 }
 
 function _cbPick(n) {
   const o = _cbOpts[n];
   if (!o) return;
   const sel = _cbSel, inp = _cbInput;
+
+  if (o.custom) {
+    sel._comboCustomDraft = o.value;
+    _cbClose();
+    sel.dispatchEvent(new Event("input", {bubbles: true}));
+    sel.dispatchEvent(new Event("change", {bubbles: true}));
+    inp?.focus();
+    return;
+  }
 
   if (_cbMulti) {
     // الاختيار المتعدد: القايمة بتفضل مفتوحة عشان تكمّل اختيار من غير ما تعيد فتحها
@@ -628,6 +714,7 @@ function _cbPick(n) {
   }
 
   _cbClose();
+  sel._comboCustomDraft = null;
   sel.value = o.value;                       // بيعدي على الـsetter المعدّل فيسيّنك الحقل
   sel.dispatchEvent(new Event("input", {bubbles: true}));
   sel.dispatchEvent(new Event("change", {bubbles: true}));
@@ -711,6 +798,7 @@ function upgradeSelects(root) {
   (root || document).querySelectorAll("select:not([data-combo])").forEach(sel => {
     sel.dataset.combo = "1";
     if (sel.multiple) { _upgradeMulti(sel); return }
+    const allowCustom = sel.hasAttribute("data-combo-custom");
 
     const inp = document.createElement("input");
     inp.type = "text";
@@ -736,6 +824,7 @@ function upgradeSelects(root) {
     if (sel.required) { inp.required = true; sel.removeAttribute("required") }
 
     sel._comboInput = inp;
+    sel._comboCustomDraft = null;
     sel.classList.add("combo-native");
     sel.setAttribute("tabindex", "-1");
     sel.setAttribute("aria-hidden", "true");
@@ -747,11 +836,19 @@ function upgradeSelects(root) {
       _cbSel === sel ? _cbClose() : _cbOpen(sel);
       inp.focus();
     });
-    inp.addEventListener("input", () => {
+    // الحقل الحر محتاج نفس سلوك النقر مع التنقّل بالكيبورد: أول ما ياخد
+    // focus يعرض كل الأقسام بدل ما النص الحالي يفلتر القايمة قبل الكتابة.
+    if (allowCustom) inp.addEventListener("focus", () => {
       if (_cbSel !== sel) _cbOpen(sel);
+    });
+    inp.addEventListener("input", () => {
+      const query = inp.value;
+      if (allowCustom) sel._comboCustomDraft = query;
+      if (_cbSel !== sel) _cbOpen(sel, query);
       _cbIdx = 0;
-      _cbRender(inp.value);
+      _cbRender(query);
       _cbPosition();
+      if (allowCustom) sel.dispatchEvent(new Event("input", {bubbles: true}));
     });
     inp.addEventListener("keydown", e => {
       const open = _cbSel === sel;
@@ -760,7 +857,11 @@ function upgradeSelects(root) {
       else if (e.key === "Home" && open) { e.preventDefault(); _cbIdx = 0; _cbMove(0) }
       else if (e.key === "End" && open) { e.preventDefault(); _cbIdx = _cbOpts.length - 1; _cbMove(0) }
       else if (e.key === "Enter") {
-        if (open) { e.preventDefault(); _cbPick(_cbIdx) }
+        if (open) {
+          e.preventDefault();
+          if (_cbOpts.length) _cbPick(_cbIdx);
+          else if (allowCustom) { _cbClose(); sel.dispatchEvent(new Event("change", {bubbles: true})) }
+        }
       }
       else if (e.key === "Escape") { if (open) { e.stopPropagation(); _cbClose() } }
       else if (e.key === "Tab") { if (open) _cbClose() }
@@ -774,8 +875,19 @@ function upgradeSelects(root) {
        نفس الأسلوب المستخدم فوق مع حقول التاريخ. */
     Object.defineProperty(sel, "value", {
       configurable: true,
-      get() { return _selValueDesc.get.call(sel) },
-      set(v) { _selValueDesc.set.call(sel, v); _cbSync(sel) },
+      get() {
+        return allowCustom && sel._comboCustomDraft !== null
+          ? sel._comboCustomDraft : _selValueDesc.get.call(sel)
+      },
+      set(v) {
+        const raw = String(v ?? "");
+        sel._comboCustomDraft = null;
+        _selValueDesc.set.call(sel, raw);
+        if (allowCustom && raw && _selValueDesc.get.call(sel) !== raw) {
+          sel._comboCustomDraft = raw;
+        }
+        _cbSync(sel);
+      },
     });
 
     // fillSelect() بيستبدل الـinnerHTML كله — الحقل لازم يتحدّث بعدها

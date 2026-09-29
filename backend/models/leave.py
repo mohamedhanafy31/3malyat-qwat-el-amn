@@ -23,6 +23,13 @@ class Leave(Model):
     return_date: str = ""           # محسوب: اليوم اللي بعد النهاية
     note: str = ""
     source: str = ""                # النص الأصلي لو السجل اتستخرج من الأرشيف
+    origin: str = ""                # تلقائية أسبوعية أو راحة أسبوعية إضافية
+    # إيقاف الراحة قبل نهايتها (`backend/rest_suspension.py::stop_leave`) —
+    # التاريخ الأصلي بيفضل محفوظ بدل ما يتكتب فوقه، والسبب مكتوب.
+    original_end: str = ""          # النهاية قبل أول إيقاف
+    stopped_on: str = ""            # أول يوم رجوع للعمل (= return_date بعد الإيقاف)
+    stop_reason: str = ""
+    suspension_id: str = ""         # أمر الوقف العام اللي أوقفها، لو من أمر عام
 
     ID_PREFIX = "LV"
 

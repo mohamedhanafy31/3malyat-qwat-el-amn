@@ -1,0 +1,19 @@
+<!-- ============ إيقاف راحة ضابط قبل نهايتها ============ -->
+<div class="modal hidden" id="stopLeaveModal">
+  <div class="modal-card small">
+    <button class="close" data-close="stopLeaveModal">×</button>
+    <h2>إيقاف الراحة</h2>
+    <p class="hint" id="stopLeaveWho"></p>
+    <form id="stopLeaveForm">
+      <input type="hidden" id="stopLeaveId">
+      <label>أول يوم رجوع للعمل
+        <input type="date" id="stopOn" required>
+      </label>
+      <label>السبب <span class="muted">(إجباري)</span>
+        <input id="stopReason" required placeholder="مثال: استدعاء بقرار المديرية">
+      </label>
+      <p class="hint" id="stopHint"></p>
+      <button class="primary full" type="submit">إيقاف الراحة</button>
+    </form>
+  </div>
+</div>

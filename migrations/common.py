@@ -120,5 +120,6 @@ def run(from_schema, to_schema, migrate, title):
 
     backup = snapshot()
     write(data)
+    target = _store().DATA_DIR if split_mode() else DATA_FILE
     print(f"\nنسخة احتياطية: {backup}")
-    print(f"اتكتب {DATA_FILE} (schema {to_schema})")
+    print(f"اتكتب {target} (schema {to_schema})")

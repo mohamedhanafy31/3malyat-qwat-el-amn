@@ -1,0 +1,39 @@
+<!-- ============ أمر وقف راحات عام — خطوتين ============ -->
+<div class="modal hidden" id="suspendModal">
+  <div class="modal-card">
+    <button class="close" data-close="suspendModal">×</button>
+    <h2>أمر وقف راحات</h2>
+    <ol class="susp-steps">
+      <li id="suspStepTab1" class="is-current">الأنواع والسبب</li>
+      <li id="suspStepTab2">اختيار الراحات</li>
+    </ol>
+
+    <form id="suspendForm">
+      <!-- الخطوة ١ -->
+      <div id="suspStep1">
+        <div class="field-section">
+          <div class="field-legend">الأنواع الموقوفة</div>
+          <div class="command-picks" id="suspendTypes"></div>
+        </div>
+        <label>السبب / رقم الأمر <span class="muted">(إجباري)</span>
+          <input id="suspendReason" placeholder="مثال: قرار المديرية بوقف الراحات">
+        </label>
+        <button type="button" class="primary full" id="suspNext">التالي ← اختيار الراحات</button>
+      </div>
+
+      <!-- الخطوة ٢ -->
+      <div id="suspStep2" class="hidden">
+        <p class="hint" id="suspRecap"></p>
+        <div class="susp-count" id="suspCount"></div>
+        <label class="checkline hidden" id="suspendAllWrap">
+          <input type="checkbox" id="suspendAll"> تحديد الكل
+        </label>
+        <div id="suspendCandidates"></div>
+        <div class="susp-actions">
+          <button type="button" class="mini" id="suspBack">→ رجوع</button>
+          <button type="submit" class="primary" id="suspSubmit">تنفيذ أمر الوقف</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

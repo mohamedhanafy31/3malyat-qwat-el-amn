@@ -3,6 +3,8 @@
 التكليف بخدمة بقى من `/api/assignments/<day>` (نفس النقطة اللي اللوحة
 بتستخدمها) — الصفحة دي بتعدّل **حالة** الضابط بس: تقصيرة، انتداب/غياب/
 مرضي/فرقة/طارئة، وملاحظة. دي حقيقة مختلفة عن التكليف مش نسخة تانية منه.
+تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
+حالة يومية هنا.
 """
 from flask import Blueprint, jsonify
 
@@ -10,6 +12,7 @@ from .. import changes
 from .. import day_status
 from ..assignments import OFFICER_STATUSES, officer_state, set_officer_state
 from ..duty import summarise
+from ..day_open import needs_prepare, prepare
 from ..people import officers_on
 from ..store import AbortRequest, load_data, with_data
 from ..utils import MAX_LEN, canonical_day, json_payload
@@ -22,7 +25,15 @@ def get_duty(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    return jsonify(summarise(load_data(), day))
+    data = load_data()
+    if not needs_prepare(data, day):
+        return jsonify(summarise(data, day))
+
+    def mutate(data):
+        prepare(data, day)
+        return jsonify(summarise(data, day))
+
+    return with_data(mutate)
 
 
 @bp.put("/api/duty/<day>/<person_id>")
@@ -86,4 +97,3 @@ def clear_state(day, person_id):
         return jsonify({"ok": True})
 
     return with_data(mutate)
-

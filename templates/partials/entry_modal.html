@@ -15,23 +15,37 @@
           <label>التصنيف <small>خانتها في جدول الإجمالي</small>
             <select id="enKind" required></select>
           </label>
-          <label>القسم على اللوحة
-            <select id="enSection"></select>
+          <label>القسم على اللوحة <small>اختار قسم مستخدم قبل كده، أو اكتب اسم قسم جديد</small>
+            <select id="enSection" data-combo-custom aria-label="القسم على اللوحة"></select>
           </label>
-          <label id="enShiftWrap">الفترة
-            <select id="enShift"></select>
-          </label>
+          <fieldset id="enShiftWrap" class="seg-field">
+            <legend>الفترة</legend>
+            <div class="seg-toggle" id="enShift"></div>
+          </fieldset>
+          <div id="enSectionHistory" class="section-history hidden" aria-live="polite"></div>
         </div>
       </div>
 
       <div class="field-section">
         <div class="field-legend">القوام
           <small>الخانة تنفع تفضل من غير ضابط — خدمة بقوام أفراد ومجندين بس</small></div>
+        <div class="command-picks">
+          <label class="command-check" id="enHasOfficersPick">
+            <input type="checkbox" id="enHasOfficers">
+            <span class="command-check-icon" aria-hidden="true">✓</span>
+            رئاسة ضابط
+          </label>
+          <label class="command-check" id="enHasPersonnelPick">
+            <input type="checkbox" id="enHasPersonnel">
+            <span class="command-check-icon" aria-hidden="true">✓</span>
+            رئاسة فرد
+          </label>
+        </div>
         <div class="grid">
-          <label>الضباط <small>واحد أو أكتر</small>
+          <label id="enOfficersWrap" class="hidden">الضباط <small>واحد أو أكتر</small>
             <select id="enOfficers" multiple size="4"></select>
           </label>
-          <label>الأفراد <small>واحد أو أكتر</small>
+          <label id="enPersonnelWrap" class="hidden">الأفراد <small>واحد أو أكتر</small>
             <select id="enPersonnel" multiple size="4"></select>
           </label>
         </div>
@@ -39,7 +53,7 @@
         <div id="conRows" class="req-rows"></div>
         <button type="button" class="mini" id="addConRow">＋ إضافة فئة</button>
         <label style="margin-top:10px">عدد المجندين
-          <small>للخدمات الطارئة بس — بيظهر في صفحة اعداد الخدمات تلقائيًا</small>
+          <small>لأي خدمة غير الأساسية (طارئة أو قسم مخصّص) — بيظهر في صفحة اعداد الخدمات تلقائيًا</small>
           <input id="enConCount" type="number" min="0">
         </label>
       </div>
@@ -56,17 +70,7 @@
           <label>الجهة <small>عتاقة / الجناين / فيصل / الاربعين</small>
             <input id="enParty">
           </label>
-          <label>الاسم على اللوحة <small>اختياري — لو مختلف عن اسم الخدمة</small>
-            <input id="enLabel">
-          </label>
         </div>
-      </div>
-
-      <div class="field-section">
-        <div class="field-legend">الوسوم <small>مباراة، خطة انتشار... بتفضل جوّه القسم بعنوان فرعي</small></div>
-        <input id="enTags" list="tagList" placeholder="اكتب وسم واضغط Enter">
-        <datalist id="tagList"></datalist>
-        <div id="tagChips" class="tag-chips"></div>
       </div>
 
       <label>ملاحظات
@@ -74,6 +78,7 @@
       </label>
       <div class="actions" style="margin-top:10px">
         <button class="primary full" type="submit">حفظ</button>
+        <span class="shortcut-save-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> للحفظ</span>
       </div>
       <p class="muted" style="margin:8px 0 0">
         الحفظ بيكتب في اليومية على طول — عشان يتسجّل في سجل التغييرات

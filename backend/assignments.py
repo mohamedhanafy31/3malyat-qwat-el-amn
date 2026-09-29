@@ -29,8 +29,25 @@
   - واحد   = الحالة العادية.
   - أكتر   = صف مشترك، زي «رائد/جمال امين م.اول/ماركو ماجد» في لوحة 20/8.
 """
-from .constants import SECTION_OCCASIONAL, SERVICE_KINDS, SHIFTS
-from .store import next_id
+from .constants import (
+    SECTION_ADMIN_WORK, SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_RESTS,
+    SECTION_TAQSEERA, SECTION_TARGETS, SERVICE_KINDS, SHIFTS, TARGET_NAMES,
+    TARGETS_FIRST,
+)
+from .utils import too_long
+
+# القسم على اللوحة حر — أي اسم المشغّل يكتبه بيبقى قسم مستقل (لليوم ده بس،
+# `backend/board.py` هو اللي بيفسّره). الأسماء الأربعة دي استثناء: هي عناوين
+# محسوبة من حالة الضباط مش خدمات مخزّنة، فلو خدمة اتسمّت بنفس اسم واحد منهم
+# صفوفها هتختفي من اللوحة تمامًا (العرض المحسوب بياخد الأولوية) بدل ما تتعرض
+# كقسم مخصّص — القسم الحر لازم يتفادى الأسماء دي بالذات.
+RESERVED_SECTIONS = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
+
+# الأهداف قايمة مغلقة (`board.target_row_names`) — عكس باقي الأقسام. الاسم
+# والتصنيف ثابتين مش اختيار المشغّل، فالتحقق هنا بيفرضهم حتى لو حد نادى
+# المسار العام (`/api/assignments`) بدل مسار الأهداف المخصّص
+# (`/api/board/<day>/target/<name>`).
+_TARGET_ROW_NAMES = {TARGETS_FIRST, *TARGET_NAMES}
 
 # حالات الضابط اللي مش تكليف بخدمة. «مرضي» و«فرقة» و«طارئة» كانوا ناقصين،
 # فكانت خاناتهم في جدول الإجمالي مستحيل يوصلها رقم صح رغم إنهم في الوورد
@@ -68,7 +85,7 @@ def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=No
     if note is not None:
         entry["note"] = note
 
-    if not entry.get("taqseera") and not entry.get("status") and not entry.get("note"):
+    if not any((entry.get("taqseera"), entry.get("status"), entry.get("note"))):
         states.pop(officer_id, None)
     else:
         states[officer_id] = entry
@@ -82,8 +99,33 @@ def assignments_of(data, day, officer_id):
     return [a for a in peek_day(data, day) if officer_id in (a.get("officer_ids") or [])]
 
 
-def new_id(entries):
-    return next_id(entries, "AS", width=4)
+def new_id(data, day, entries):
+    """رقم تكليف جديد ما يتكررش **جوّه اليوم ده**، حتى لو اتشال آخر صف
+    وحد جديد اتضاف بعده. كان `next_id` (max+1) بيرجّع نفس الرقم بعد مسح
+    آخر صف — وده بيخلّي تأكيد اليومية يقرا الصف الجديد كـ«تعديل» على
+    الصف المحذوف مش «حذف + إضافة»، فسطر السجل بيقول كذب.
+
+    العدّاد بيتخزّن في `day_assignment_seq[day]` — **جوّه ملف اليوم نفسه**
+    (مضاف لـ`DAY_SECTIONS`) مش في `id_seq` العام على `core.json`؛ لو
+    استخدمنا `reserve_id` العادي كان كل حفظ خانة على اللوحة هيكتب
+    core.json كمان، وده بيكسر مبدأ «الملف اللي ما اتغيّرش ما بيتلمسش»
+    وبيلغي تأخير النسخ الاحتياطي لليوميات (BACKUP_MIN_GAP)."""
+    from .store import _max_num
+
+    seq = data.setdefault("day_assignment_seq", {})
+    nxt = max(int(seq.get(day, 0)), _max_num(entries, "AS")) + 1
+    seq[day] = nxt
+    return f"AS-{nxt:04d}"
+
+
+def forget_seq_if_day_empty(data, day):
+    """يشيل عدّاد id التكليفات لليوم ده لو مفيش تكليفات عليه خالص بعد
+    حذف مباشر من `day_assignments[day]` (زي `board.set_target_officers`/
+    `set_slot_officers` — بيشيلوا الصف بإيدهم مش عن طريق `DayRepo`).
+    من غيرها، ملف اليوم الفاضي بيفضل موجود بس عشان العدّاد
+    (test_split_storage.py::test_emptying_a_day_removes_its_file)."""
+    if not data.get("day_assignments", {}).get(day):
+        data.get("day_assignment_seq", {}).pop(day, None)
 
 
 def clean_shift(shift, kind):
@@ -133,9 +175,7 @@ def blank(assignment_id, name, section, **over):
         "weapon": "",
         "time": "",
         "party": "",
-        "label_override": "",
         "counts_in_summary": True,
-        "tags": [],
         "note": "",
     }
     row.update(over)
@@ -146,9 +186,6 @@ def label(assignment, with_shift=True):
     """النص اللي بيتطبع على اللوحة. الوورد بيكتب الفترة **جوّه** اسم
     الخدمة في القسم الأساسي («تدخل سريع صبح»)."""
     from .constants import SHIFT_SHORT
-    text = (assignment.get("label_override") or "").strip()
-    if text:
-        return text
     text = (assignment.get("name") or "").strip()
     short = SHIFT_SHORT.get(assignment.get("shift") or "")
     if with_shift and short:
@@ -160,14 +197,18 @@ def clean_people(data, day, ids, want):
     """يتحقق إن كل شخص موجود وإنه من النوع الصح وإنه كان على القوة يومها.
     بترجع (القايمة, error, status) — error=None لو تمام.
 
-    الضابط المتأرشف ينفع يتكلّف في يوم كان فيه بالقوة — ده مطلوب عشان
+    الشخص المتأرشف ينفع يتكلّف في يوم كان فيه بالقوة — ده مطلوب عشان
     تعديل الأيام القديمة يشتغل. قبل كده اللوحة كانت بتعرض النشطين بس
     بينما يومية التشغيل بتقبل الاتنين، فالصفحتين مكانوش شايفين نفس القايمة.
+
+    القيد ده كان على الضباط بس — أي فرد اتأرشف زمان كان لسه ينفع يتكلّف
+    بأي يوم، حتى قبل انضمامه أو بعد خروجه بكتير، من غير أي فحص.
     """
-    from .people import find_person, officers_on
+    from .people import find_person
+    from .repo import PeopleRepo
 
     out = []
-    on_force = {o["id"] for o in officers_on(data, day)} if want == "officers" else None
+    on_force = {p["id"] for p in PeopleRepo(data).raw_on_force(day, want)}
     for pid in ids or []:
         pid = str(pid).strip()
         if not pid or pid in out:
@@ -175,7 +216,7 @@ def clean_people(data, day, ids, want):
         person, category, _ = find_person(data, pid)
         if not person or category != want:
             return None, ("ضابط غير موجود." if want == "officers" else "فرد غير موجود."), 404
-        if on_force is not None and pid not in on_force:
+        if pid not in on_force:
             return None, f"«{person.get('name', '')}» لم يكن على القوة في هذا اليوم.", 400
         out.append(pid)
     return out, None, None
@@ -215,7 +256,12 @@ def apply_assignment(data, day, row, payload):
     if "shift" in payload:
         row["shift"] = clean_shift(payload["shift"], row.get("kind", ""))
     if "section" in payload:
+        err = too_long(payload, "section")
+        if err:
+            return None, err, 400
         section = str(payload["section"]).strip()
+        if section in RESERVED_SECTIONS:
+            return None, f"«{section}» اسم محجوز لقسم محسوب تلقائيًا — اختار اسم تاني.", 400
         row["section"] = section or SECTION_OCCASIONAL
     if "counts_in_summary" in payload:
         row["counts_in_summary"] = bool(payload["counts_in_summary"])
@@ -236,12 +282,13 @@ def apply_assignment(data, day, row, payload):
             row["conscript_count"] = max(0, int(payload["conscript_count"]))
         except (TypeError, ValueError):
             row["conscript_count"] = 0
-    if "tags" in payload:
-        row["tags"] = [str(t).strip() for t in payload["tags"] if str(t).strip()]
-        for tag in row["tags"]:
-            if tag not in data["service_tags"]:
-                data["service_tags"].append(tag)
-    for key in ("weapon", "time", "party", "label_override", "note"):
+    for key in ("weapon", "time", "party", "note"):
         if key in payload:
             row[key] = str(payload[key]).strip()
+
+    if row.get("section") == SECTION_TARGETS:
+        if row.get("name") not in _TARGET_ROW_NAMES:
+            return None, f"«{row.get('name')}» مش من الأهداف الثابتة — الأهداف قايمة مغلقة.", 400
+        row["kind"] = "حراسات"
+        row["shift"] = ""
     return row, None, None

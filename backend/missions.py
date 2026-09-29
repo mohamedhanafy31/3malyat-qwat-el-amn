@@ -10,6 +10,16 @@ from .store import reserve_id
 STATUSES = ["مخططة", "بدأت", "عادت", "أغلقت", "ألغيت"]
 OPEN_STATUSES = {"مخططة", "بدأت"}
 
+# دورة الحياة اتجاه واحد بالترتيب ده، والإلغاء ينفع من أي حالة مفتوحة —
+# من غيره كان ينفع تحط «أغلقت» رجوع لـ«مخططة» من غير أي معنى تشغيلي.
+TRANSITIONS = {
+    "مخططة": {"بدأت", "ألغيت"},
+    "بدأت": {"عادت", "ألغيت"},
+    "عادت": {"أغلقت"},
+    "أغلقت": set(),
+    "ألغيت": set(),
+}
+
 
 def missions(data):
     return data.setdefault("missions", [])
@@ -19,8 +29,15 @@ def new_id(data):
     return reserve_id(data, "MSN", missions(data))
 
 
-def _clean_members(data, ids):
+def _clean_members(data, ids, start):
+    """بترجع (قايمة, error). `start` لو محدد، العضو لازم يكون على القوة
+    وقتها — من غيره ضابط اتأرشف قبل بداية المأمورية بكتير (أو مش على
+    القوة أصلًا لسه) كان ينفع يتضاف عضو من غير أي فحص."""
     from .people import find_person
+    from .repo import PeopleRepo
+
+    on_force = ({p["id"] for p in PeopleRepo(data).raw_on_force(start, "officers")}
+               if start else None)
 
     out = []
     for pid in ids or []:
@@ -30,6 +47,8 @@ def _clean_members(data, ids):
         person, category, _ = find_person(data, pid)
         if not person or category != "officers":
             return None, f"«{pid}» مش ضابط موجود في السجل."
+        if on_force is not None and pid not in on_force:
+            return None, f"«{person.get('name', '')}» لم يكن على القوة في تاريخ بداية المأمورية."
         out.append(pid)
     return out, None
 
@@ -51,21 +70,29 @@ def apply_mission(data, mission, payload):
         if not name:
             return None, "اسم المأمورية مطلوب."
         mission["name"] = name
-    if "member_ids" in payload:
-        members, err = _clean_members(data, payload["member_ids"])
-        if err:
-            return None, err
-        mission["member_ids"] = members
+    # تاريخ البداية لازم يتحدّد قبل التحقق من الأعضاء — فحص «كان على
+    # القوة وقتها» محتاج التاريخ النهائي (من الطلب ده أو المسجّل بالفعل).
     if "start" in payload:
         raw = payload.get("start")
         start = canonical_day(raw) if raw else ""
         if raw and not start:
             return None, "تاريخ البداية غير صحيح."
         mission["start"] = start
+    if "member_ids" in payload:
+        members, err = _clean_members(data, payload["member_ids"], mission.get("start", ""))
+        if err:
+            return None, err
+        mission["member_ids"] = members
     if "status" in payload:
         status = str(payload["status"]).strip()
         if status not in STATUSES:
             return None, "حالة غير صحيحة."
+        current = mission.get("status", "مخططة")
+        # دورة الحياة اتجاه واحد — من غير القيد ده كان ينفع ترجّع مأمورية
+        # «أغلقت» لـ«مخططة» من غير أي معنى تشغيلي، ودورة الحياة اللي
+        # الصفحة بتتابعها تبقى مالهاش قيمة.
+        if status != current and status not in TRANSITIONS.get(current, set()):
+            return None, f"لا يمكن تغيير حالة المأمورية من «{current}» إلى «{status}» مباشرة."
         mission["status"] = status
     if "note" in payload:
         mission["note"] = str(payload["note"]).strip()

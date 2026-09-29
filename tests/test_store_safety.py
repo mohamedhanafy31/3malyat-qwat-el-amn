@@ -5,6 +5,7 @@
 مجمّعة، عشان الاختبار يفضل يتكلم عن البيانات مش عن تقسيمها.
 """
 import json
+import os
 
 import pytest
 
@@ -171,3 +172,48 @@ def test_a_corrupt_day_file_stops_everything_instead_of_reading_empty(client, da
 
     with pytest.raises(store.DataUnreadable, match="2026-04-10"):
         store.load_data()
+
+
+# ---------- قفل العملية الواحدة ----------
+
+def test_second_process_on_the_same_data_folder_is_refused(client, data_file):
+    store.acquire_process_lock()
+    try:
+        with pytest.raises(SystemExit):
+            store.acquire_process_lock()
+    finally:
+        (store.DATA_DIR / store.LOCK_FILE_NAME).unlink(missing_ok=True)
+
+
+def test_lock_file_holds_the_owning_process_id(client, data_file):
+    store.acquire_process_lock()
+    try:
+        pid = (store.DATA_DIR / store.LOCK_FILE_NAME).read_text().strip()
+        assert int(pid) > 0
+    finally:
+        (store.DATA_DIR / store.LOCK_FILE_NAME).unlink(missing_ok=True)
+
+
+def test_a_stale_lock_from_a_dead_process_is_recovered_automatically(client, data_file):
+    """قفلة عالقة من عملية ماتت (قطع كهربا، Task Manager) لازم تتشال
+    تلقائيًا — وإلا السيستم عمره ما هيشتغل تاني لحد ما حد يمسحها بإيده."""
+    import subprocess
+
+    proc = subprocess.Popen(["true"] if os.name != "nt" else ["cmd", "/c", "exit"])
+    proc.wait()
+    dead_pid = proc.pid   # اتقفلت خالص بعد wait() — مفيش عملية بالرقم ده تاني
+
+    lock_path = store.DATA_DIR / store.LOCK_FILE_NAME
+    lock_path.write_text(str(dead_pid), encoding="utf-8")
+
+    store.acquire_process_lock()   # مش لازم يطلع SystemExit
+    assert lock_path.exists()
+    lock_path.unlink(missing_ok=True)
+
+
+def test_a_lock_from_a_still_running_process_is_respected(client, data_file):
+    lock_path = store.DATA_DIR / store.LOCK_FILE_NAME
+    lock_path.write_text(str(os.getpid()), encoding="utf-8")   # الاختبار نفسه لسه شغّال
+    with pytest.raises(SystemExit):
+        store.acquire_process_lock()
+    lock_path.unlink(missing_ok=True)

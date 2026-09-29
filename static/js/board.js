@@ -1,7 +1,20 @@
 /* اليومية التفصيلية — أقسام الوورد العشرة على سجل تكليف واحد.
    اسم الخدمة حر بيكتبه المشغّل على الخانة نفسها، والتصنيف (خارجية/داخلية/
    حراسات/طبية) بيتحدد معاه — مفيش كتالوج منفصل يتربط بيه. */
-let BOARD = null, DAY = null, OFFICERS = [], PERSONNEL = [], ENTRY_TAGS = [];
+let BOARD = null, DAY = null;
+let SECTION_HISTORY = null, SECTION_HISTORY_TIMER = null, SECTION_HISTORY_SEQ = 0;
+let SELECTED_ROW_ID = null, MOVING_ROW = false, ENTRY_AFTER_ID = null;
+
+/* زرار «Word» العام (export.js) بيلف أي صفحة كـHTML متلبّس .doc — هنا
+   لازم يبقى ملف Word حقيقي بنفس شكل الورقة الرسمية (نفس التقسيمة
+   والحدود والتظليل)، فبيتولّد من السيرفر (`backend/board_export.py`)
+   بدل نسخ الـHTML الظاهر على الشاشة. */
+(function bindWordExport() {
+  const btn = document.getElementById("exportWordBtn");
+  if (!btn) return;
+  btn.title = "تنزيل اليومية كملف Word رسمي بنفس شكل الورقة";
+  btn.onclick = () => { window.location.href = `/api/board/${DAY}/export.docx`; };
+})();
 
 const nameOf = list => p => `${p.role ? p.role + "/ " : ""}${p.name}`;
 
@@ -10,9 +23,54 @@ const chips = (list, cls) => list.map(p =>
   `<span class="chip ${cls}">${esc(nameOf()(p))}</span>`).join(" ");
 const conChips = cons => (cons || []).map(c =>
   `<span class="chip w">${esc(c.class || "مجند")}${c.count ? " ×" + c.count : ""}</span>`).join(" ");
-const tagChips = tags => (tags || []).map(t => `<span class="chip soon">#${esc(t)}</span>`).join(" ");
 
 const SERVICE_HEAD = ["الخدمة", "القائم بها", "المجندين", "التسليح", "الانتظام", "الجهة", "الإجراء"];
+
+/* الأهداف قايمة مغلقة بترتيب ثابت (مشرف الأهداف + سبعة أهداف)، عكس باقي
+   الأقسام — مفيش «+ إضافة» حر ولا حذف. عمودين بس بيتغيّروا:
+     قائد الهدف العام     محسوب من منصب الضابط الثابت، بيتغيّر من صفحة
+                          بيانات الضابط مش من هنا
+     الضابط المعيّن اليوم  تكليف يومي عادي — نفس الشخص أو حد تاني بيغطّي
+   مفيش أفراد ولا مجندين ولا تفاصيل خدمة تانية جوّه الهدف. */
+const TARGET_HEAD = ["الهدف", "قائد الهدف العام", "الضابط المعيّن اليوم", "الإجراء"];
+
+function targetSlotRow(row) {
+  const commander = row.commander?.length
+    ? chips(row.commander, "h")
+    : `<span class="muted">لسه محدّدش من صفحة بيانات الضابط</span>`;
+  const assigned = row.officers.length
+    ? chips(row.officers, "m")
+    : `<span class="muted">مفيش حد معيّن</span>`;
+  return `<tr class="${row.vacant ? "vacant" : ""}">
+    <td class="name">${esc(row.label)}</td>
+    <td class="wrap">${commander}</td>
+    <td class="wrap">${assigned}</td>
+    <td><div class="actions">
+      <button class="mini${row.vacant ? " ok" : ""}" data-action="openTargetAssign"
+        data-id="${esc(row.name)}" data-extra="${dataAttr({officers: row.officers})}"
+      >${row.vacant ? "تعيين" : "تعديل"}</button>
+    </div></td></tr>`;
+}
+
+/* الكتل الثابتة الثلاثة (ضابط عظيم الإدارة/الأمن/المعسكر الفرعي) — نفس
+   فكرة الأهداف بالظبط بس من غير عمود قائد ثابت: اسم القسم نفسه ثابت
+   وواحد على الصفّين، فالعمود المتغيّر هو الفترة (صباحية/ليلية) بس. */
+const SLOT_HEAD = ["الخدمة", "القائم بها", "الإجراء"];
+
+function slotRow(row, sectionName) {
+  const assigned = row.officers.length
+    ? chips(row.officers, "m")
+    : `<span class="muted">مفيش حد معيّن</span>`;
+  return `<tr class="${row.vacant ? "vacant" : ""}">
+    <td class="name">${esc(row.shift)}</td>
+    <td class="wrap">${assigned}</td>
+    <td><div class="actions">
+      <button class="mini${row.vacant ? " ok" : ""}" data-action="openSlotAssign"
+        data-id="${esc(sectionName)}"
+        data-extra="${dataAttr({shift: row.shift, officers: row.officers})}"
+      >${row.vacant ? "تعيين" : "تعديل"}</button>
+    </div></td></tr>`;
+}
 
 function serviceRow(row) {
   if (row.placeholder) {
@@ -23,17 +81,26 @@ function serviceRow(row) {
   }
   const who = [chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ")
     || `<span class='muted'>—</span>`;
-  return `<tr class="${row.vacant ? "vacant" : ""}">
-    <td class="name">${esc(row.label)}${row.tags.length ? " " + tagChips(row.tags) : ""}
+  const selected = row.id === SELECTED_ROW_ID;
+  return `<tr class="service-row${row.vacant ? " vacant" : ""}${selected ? " is-selected" : ""}"
+    data-service-id="${esc(row.id)}" tabindex="-1" aria-selected="${selected}">
+    <td class="name">${esc(row.label)}
       ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}</td>
     <td class="wrap">${who}</td>
-    <td>${conChips(row.conscripts)}${row.conscript_count ? ` <span class="chip w">×${row.conscript_count}</span>` : ""}
+    <td>${conChips(row.conscripts)}${row.conscript_count ? ` <span class="chip w">(${row.conscript_count})</span>` : ""}
       ${!row.conscripts.length && !row.conscript_count ? "<span class='muted'>—</span>" : ""}</td>
     <td>${esc(row.weapon) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.time) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.party) || "<span class='muted'>—</span>"}</td>
-    <td><div class="actions">
+    <td><div class="actions service-actions">
+      <button type="button" class="mini btn-xs move" data-action="moveEntry"
+        data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
+        title="حرّك لفوق" aria-label="حرّك الخدمة لفوق">▲</button>
+      <button type="button" class="mini btn-xs move" data-action="moveEntry"
+        data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
+        title="حرّك لتحت" aria-label="حرّك الخدمة لتحت">▼</button>
       <button class="mini" data-action="openEntry" data-id="${esc(row.id)}">تعديل</button>
+      <button class="mini" data-action="duplicateEntry" data-id="${esc(row.id)}">تكرار</button>
       <button class="mini bad" data-action="deleteEntry" data-id="${esc(row.id)}"
         data-extra="${dataAttr({name: row.label})}">حذف</button>
     </div></td></tr>`;
@@ -57,31 +124,44 @@ const OFFICER_VIEWS = {
 };
 
 function sectionCard(sec) {
-  const count = sec.rows.length + (sec.groups || []).reduce((n, g) => n + g.rows.length, 0);
+  const count = sec.rows.length;
   let body;
   if (sec.type === "officers") {
     const [head, render] = OFFICER_VIEWS[sec.name];
     body = count ? mtable(head, sec.rows.map(render)) : `<div class="mempty">لا يوجد</div>`;
+  } else if (sec.type === "targets") {
+    body = mtable(TARGET_HEAD, sec.rows.map(targetSlotRow));
+  } else if (sec.type === "slots") {
+    // الصفّين الثابتين (صباحية/ليلية بالاسم الرسمي) بأسلوب الأهداف —
+    // تعيين سريع بس. أي دور تاني ضافه المشغّل بإيده لنفس القسم (`+
+    // إضافة» تحت) بيتحط في جدول خدمات عادي تحتهم، عشان يفضل جوّه قسمه
+    // الصح مش مضطر يتكتب في قسم تاني (زي الخدمات الطارئة) من غير مكان
+    // يتحط فيه هنا.
+    const fixed = sec.rows.filter(r => r.slot);
+    const extra = sec.rows.filter(r => !r.slot);
+    body = mtable(SLOT_HEAD, fixed.map(r => slotRow(r, sec.name)))
+      + (extra.length ? mtable(SERVICE_HEAD, extra.map(serviceRow)) : "");
   } else {
-    const parts = [];
-    if (sec.rows.length) parts.push(mtable(SERVICE_HEAD, sec.rows.map(serviceRow)));
-    for (const g of sec.groups || []) {
-      parts.push(`<div class="sub-head">#${esc(g.tag)}</div>`);
-      parts.push(mtable(SERVICE_HEAD, g.rows.map(serviceRow)));
-    }
-    body = parts.length ? parts.join("") : `<div class="mempty">لا توجد خدمات — اضغط «إضافة» فوق</div>`;
+    body = sec.rows.length ? mtable(SERVICE_HEAD, sec.rows.map(serviceRow))
+      : `<div class="mempty">لا توجد خدمات — اضغط «إضافة» فوق</div>`;
   }
-  const addBtn = sec.type === "officers" ? "" :
+  // الأهداف قايمة مقفولة بس — مفيش «+ إضافة» حر ليها زي الأقسام المحسوبة.
+  // الكتل الثابتة عندها الصفّين الثابتين + إمكانية إضافة دور تاني حر.
+  const addBtn = ["officers", "targets"].includes(sec.type) ? "" :
     `<button class="mini ok" data-action="openEntry"
       data-extra="${dataAttr({section: sec.name})}">＋ إضافة</button>`;
+  const seededNote = sec.type === "targets" && sec.seeded_from
+    ? `<small class="target-default-note">مبدئيًا من تأكيد يوم ${fmt(sec.seeded_from)}</small>`
+    : "";
   return `<div class="mcard">
-    <h3>${esc(sec.name)}<span class="mcount">${count}</span>${addBtn}</h3>
+    <h3>${esc(sec.name)}${seededNote}<span class="mcount">${count}</span>${addBtn}</h3>
     ${body}</div>`;
 }
 
 /* تنبيهات مش موانع: الأرشيف فيه ضباط على خدمتين في نفس الفترة فعلًا،
    فالفحص بيلفت النظر ومابيمنعش الحفظ. */
-const WARN_ICON = {"راحة": "☾", "حالة": "⚑", "ازدحام": "⇄", "شاغرة": "○"};
+const WARN_ICON = {"راحة": "☾", "حالة": "⚑", "راحة+فرقة": "☾⇄", "مأمورية": "✈",
+                   "ازدحام": "⇄", "شاغرة": "○", "راحة أسبوعية غير مسجلة": "☾?"};
 const LEVEL_ORDER = ["critical", "warning", "info"];
 const LEVEL_LABEL = {critical: "تحذير حرج", warning: "تحذير", info: "معلومة"};
 const LEVEL_CLS = {critical: "err", warning: "taq", info: "w"};
@@ -104,26 +184,67 @@ function warningsCard(list) {
     ${body}</div>`;
 }
 
+/* التقسيمة زي الوورد بالظبط: عمود يمين للخدمات (أساسية/طارئة/عمل
+   بالإدارة + أي قسم مخصّص المشغّل ضافه بإيده — نفس نوع «services»)،
+   وعمود شمال للأهداف والمحسوبات والكتل الثابتة الثلاثة. */
+const RIGHT_COLUMN_SECTIONS = ["الخدمات أساسية", "الخدمات الطارئة", "عمل بالإدارة"];
+
+function splitColumns(sections) {
+  const right = [], left = [];
+  for (const s of sections) {
+    const inRight = RIGHT_COLUMN_SECTIONS.includes(s.name)
+      || (s.type === "services" && !RIGHT_COLUMN_SECTIONS.includes(s.name));
+    (inRight ? right : left).push(s);
+  }
+  return [right, left];
+}
+
 function render() {
   const wrap = $("#matchBoard");
   if (!BOARD) { wrap.innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+  if (SELECTED_ROW_ID && !findRow(SELECTED_ROW_ID)) SELECTED_ROW_ID = null;
+  const [right, left] = splitColumns(BOARD.sections);
   wrap.innerHTML = `
-    <div class="match-head">
-      <span class="muted">اليومية التفصيلية — ${dayName(BOARD.date)} ${fmt(BOARD.date)}</span>
-    </div>
-    ${warningsCard(BOARD.warnings)}
-    <div class="match-grid">${BOARD.sections.map(sectionCard).join("")}</div>`;
+    <div class="ledger-board">
+      <div class="ledger-head">
+        <h2>اليومية التفصيلية</h2>
+        <div class="ledger-sub">${dayName(BOARD.date)} الموافق ${fmt(BOARD.date)}</div>
+      </div>
+      ${warningsCard(BOARD.warnings)}
+      <div class="match-grid">
+        <div class="match-col">${right.map(sectionCard).join("")}</div>
+        <div class="match-col">${left.map(sectionCard).join("")}</div>
+      </div>
+    </div>`;
 }
 
 /* ---------- نموذج الخانة ---------- */
 function findRow(id) {
   for (const s of BOARD.sections) {
-    const hit = s.rows.find(r => r.id === id)
-      || (s.groups || []).flatMap(g => g.rows).find(r => r.id === id);
+    const hit = s.rows.find(r => r.id === id);
     if (hit) return hit;
   }
   return null;
 }
+
+function selectService(id, {scroll = false, focus = false} = {}) {
+  if (!id || !findRow(id)) return;
+  SELECTED_ROW_ID = id;
+  $$(`#matchBoard tr[data-service-id]`).forEach(row => {
+    const selected = row.dataset.serviceId === id;
+    row.classList.toggle("is-selected", selected);
+    row.setAttribute("aria-selected", String(selected));
+  });
+  const row = $$("#matchBoard tr[data-service-id]")
+    .find(item => item.dataset.serviceId === id);
+  if (scroll) row?.scrollIntoView({block: "nearest", behavior: "smooth"});
+  if (focus) row?.focus({preventScroll: true});
+}
+
+$("#matchBoard").addEventListener("click", e => {
+  const row = e.target.closest("tr[data-service-id]");
+  if (row) selectService(row.dataset.serviceId);
+});
 
 function conRow(c) {
   return `<div class="req-row">
@@ -132,69 +253,234 @@ function conRow(c) {
     <button type="button" class="mini bad" data-action="removeConRow">حذف</button>
   </div>`;
 }
-function renderTagChips() {
-  $("#tagChips").innerHTML = ENTRY_TAGS.map((t, i) =>
-    `<span class="chip soon">#${esc(t)} <a data-action="removeTag" data-id="${i}">×</a></span>`).join(" ");
-}
-
 function fillMulti(el, people, chosen) {
   el.innerHTML = people.map(p =>
     `<option value="${esc(p.id)}" ${chosen.includes(p.id) ? "selected" : ""}>${esc(nameOf()(p))}</option>`).join("");
 }
 const readMulti = el => [...el.selectedOptions].map(o => o.value);
 
-function syncShiftOptions() {
+function renderShiftToggle() {
+  $("#enShift").innerHTML = SHIFTS().map(shift => `<label>
+    <input type="radio" name="enShift" value="${esc(shift)}">
+    <span>${esc(shift)}</span>
+  </label>`).join("");
+}
+
+function selectedShift() {
+  return $("#enShift input:checked")?.value || "";
+}
+
+function selectShift(value) {
+  const shifts = SHIFTS();
+  const selected = shifts.includes(value) ? value : (shifts[0] || "");
+  $$("#enShift input").forEach(input => { input.checked = input.value === selected; });
+}
+
+function syncShiftOptions(preferredShift) {
   const isTarget = $("#enKind").value === "حراسات";
   // الأهداف هدف ثابت طول اليوم فمالهاش فترة
   $("#enShiftWrap").classList.toggle("hidden", isTarget);
-  fillSelect($("#enShift"), isTarget ? [["", "— بدون —"]] : SHIFTS().map(x => [x, x]), true);
+  if (isTarget) {
+    $$("#enShift input").forEach(input => { input.checked = false; });
+    return;
+  }
+  selectShift(preferredShift ?? selectedShift());
 }
 
-function openEntry(rowId, preset) {
+function hideSectionHistory() {
+  SECTION_HISTORY = null;
+  const panel = $("#enSectionHistory");
+  panel.classList.add("hidden");
+  panel.innerHTML = "";
+}
+
+function sectionHasDedicatedUi(name) {
+  const section = (BOARD?.sections || []).find(item => item.name === name);
+  return section && ["targets", "slots", "officers"].includes(section.type);
+}
+
+function historyConscriptCount(row) {
+  return Number(row.conscript_count) || (row.conscripts || [])
+    .reduce((total, item) => total + (Number(item.count) || 0), 0);
+}
+
+function renderSectionHistory(history, expanded) {
+  const panel = $("#enSectionHistory");
+  const rows = history.rows || [];
+  if (!history.source_day || !rows.length) { hideSectionHistory(); return }
+  SECTION_HISTORY = history;
+  panel.innerHTML = `<div class="section-history-head">
+      <div class="section-history-summary">آخر خدمات «${esc(history.section)}» يوم
+        ${fmt(history.source_day)} <span>— ${rows.length} خدمة</span></div>
+      <button type="button" class="mini section-history-toggle"
+        aria-expanded="${expanded}">${expanded ? "إخفاء" : "عرض"}</button>
+    </div>
+    <div class="section-history-details${expanded ? "" : " hidden"}">
+      <div class="section-history-list">${rows.map(row => {
+        return `<label class="section-history-service">
+          <input type="checkbox" class="section-history-choice" value="${esc(row.id)}" checked>
+          <span class="section-history-body"><b>${esc(row.name)}</b>
+            <span class="section-history-meta">
+              <span>الفترة: ${esc(row.shift || "—")}</span>
+              <span>التصنيف: ${esc(row.kind || "—")}</span>
+              <span>المجندين: ${historyConscriptCount(row)}</span>
+              <span>التسليح: ${esc(row.weapon || "—")}</span>
+            </span>
+          </span>
+        </label>`;
+      }).join("")}</div>
+      <div class="section-history-actions">
+        <button type="button" class="mini ok" id="copySectionHistory"></button>
+      </div>
+    </div>`;
+  panel.classList.remove("hidden");
+  panel.querySelectorAll(".section-history-choice").forEach(input =>
+    input.addEventListener("change", syncSectionCopyCount));
+  panel.querySelector(".section-history-toggle").onclick = toggleSectionHistory;
+  $("#copySectionHistory").onclick = copySelectedSectionHistory;
+  syncSectionCopyCount();
+}
+
+function toggleSectionHistory() {
+  const details = $("#enSectionHistory .section-history-details");
+  const button = $("#enSectionHistory .section-history-toggle");
+  const expanded = details.classList.contains("hidden");
+  details.classList.toggle("hidden", !expanded);
+  button.textContent = expanded ? "إخفاء" : "عرض";
+  button.setAttribute("aria-expanded", String(expanded));
+}
+
+function syncSectionCopyCount() {
+  const button = $("#copySectionHistory");
+  if (!button) return;
+  const count = $$("#enSectionHistory .section-history-choice:checked").length;
+  button.textContent = `إضافة الخدمات المختارة (${count})`;
+  button.disabled = count === 0;
+}
+
+function queueSectionHistory(expanded) {
+  clearTimeout(SECTION_HISTORY_TIMER);
+  const seq = ++SECTION_HISTORY_SEQ;
+  hideSectionHistory();
+  const section = $("#enSection").value.trim();
+  if ($("#enId").value || !section || sectionHasDedicatedUi(section)) return;
+  SECTION_HISTORY_TIMER = setTimeout(async () => {
+    const out = await api(`/api/board/${DAY}/section-history?section=${encodeURIComponent(section)}`);
+    if (seq !== SECTION_HISTORY_SEQ || $("#enId").value
+        || $("#enSection").value.trim() !== section) return;
+    if (out?.rows?.length) renderSectionHistory(out, expanded);
+  }, 180);
+}
+
+async function copySelectedSectionHistory() {
+  if (!SECTION_HISTORY) return;
+  const ids = $$("#enSectionHistory .section-history-choice:checked").map(input => input.value);
+  if (!ids.length) { showToast("اختار خدمة واحدة على الأقل", true); return }
+  const button = $("#copySectionHistory");
+  button.disabled = true;
+  const out = await api(`/api/board/${DAY}/section-copy`, jsonReq("POST", {
+    section: $("#enSection").value.trim(),
+    source_day: SECTION_HISTORY.source_day,
+    ids,
+  }));
+  if (!out) { button.disabled = false; return }
+  closeModal("entryModal");
+  showToast(`تمت إضافة ${out.added} خدمة، واتخطت ${out.skipped} موجودة بالفعل`);
+  loadDay(DAY);
+}
+
+function openEntry(rowId, preset, duplicate = false) {
   const row = rowId ? findRow(rowId) : null;
-  $("#enId").value = rowId || "";
-  $("#entryTitle").textContent = row ? "تعديل خانة" : "إضافة خانة";
-  $("#tagList").innerHTML = (META.service_tags || []).map(x => `<option value="${esc(x)}">`).join("");
+  const editingId = duplicate ? "" : rowId || "";
+  ENTRY_AFTER_ID = duplicate ? rowId : null;
+  $("#enId").value = editingId;
+  $("#entryTitle").textContent = duplicate ? "تكرار خدمة" : row ? "تعديل خانة" : "إضافة خانة";
 
   $("#enName").value = row?.name || "";
   fillSelect($("#enKind"), KINDS().map(x => [x, x]));
   $("#enKind").value = row?.kind || KINDS()[0] || "";
-  fillSelect($("#enSection"), (META.service_sections || []).map(x => [x, x]));
-  $("#enSection").value = row?.section || preset?.section || (META.service_sections || [])[1] || "";
-  syncShiftOptions();
-  $("#enShift").value = row?.shift ?? preset?.shift ?? "";
-  fillMulti($("#enOfficers"), OFFICERS, row?.officers?.map(o => o.id) || []);
-  fillMulti($("#enPersonnel"), PERSONNEL, row?.personnel?.map(p => p.id) || []);
+  // القايمة جاية من كل الأيام، والقسم الحالي بيتضاف لها وقت التعديل لو كان
+  // هدفًا/كتلة ثابتة قديمة مستبعدة من الاقتراحات العامة. الـcombobox العام
+  // بيفتح كل الاختيارات مهما كانت القيمة الحالية ويسمح باسم جديد كمان.
+  const currentSection = row?.section || preset?.section || "";
+  const sectionOptions = [...(BOARD.section_names || META.service_sections || [])];
+  if (currentSection && !sectionOptions.includes(currentSection)) sectionOptions.push(currentSection);
+  fillSelect($("#enSection"), sectionOptions.map(x => [x, x]));
+  $("#enSection").value = currentSection || sectionOptions[1] || sectionOptions[0] || "";
+  renderShiftToggle();
+  syncShiftOptions(row?.shift ?? preset?.shift ?? SHIFTS()[0] ?? "");
+  // الاختيار بيقتصر على اللي كانوا على القوة في يوم اللوحة المفتوح بس —
+  // مش كل ضابط/فرد اتسجّل في السيستم يومًا. لو الخانة بتتعدّل ولسه فيها
+  // شخص اتشال من القوة بعد كده، بيتضاف لقايمة الاختيار برضه (بدل ما
+  // يختفي من غير ما ننبّه حد) عشان الحفظ ما يمسحوش من الخانة بالغلط.
+  const roster = BOARD.roster || {officers: [], personnel: []};
+  const withCurrent = (list, current) => {
+    const extra = (current || []).filter(c => !list.some(p => p.id === c.id));
+    return [...list, ...extra];
+  };
+  const currentOfficers = duplicate ? [] : row?.officers || [];
+  const currentPersonnel = duplicate ? [] : row?.personnel || [];
+  fillMulti($("#enOfficers"), withCurrent(roster.officers, currentOfficers),
+            currentOfficers.map(o => o.id));
+  fillMulti($("#enPersonnel"), withCurrent(roster.personnel, currentPersonnel),
+            currentPersonnel.map(p => p.id));
+  // الاختيار مقفول وراه checkbox — الخانة تنفع تفضل من غير ضابط أو فرد،
+  // فالمربّعين دول بيبانوا بس لو الخانة فعلًا فيها رئاسة (تعديل) أو
+  // المستخدم فعّلها بنفسه (إضافة).
+  $("#enHasOfficers").checked = !!currentOfficers.length;
+  $("#enHasPersonnel").checked = !!currentPersonnel.length;
+  syncCommandWraps();
   $("#conRows").innerHTML = (row?.conscripts || []).map(conRow).join("");
   $("#enConCount").value = row?.conscript_count || "";
   $("#enWeapon").value = row?.weapon || "";
   $("#enTime").value = row?.time || "";
   $("#enParty").value = row?.party || "";
-  $("#enLabel").value = row?.label_override || "";
   $("#enNote").value = row?.note || "";
-  ENTRY_TAGS = [...(row?.tags || [])]; renderTagChips();
   openModal("entryModal");
+  queueSectionHistory(false);
 }
 
+function syncCommandWraps() {
+  const officersOn = $("#enHasOfficers").checked, personnelOn = $("#enHasPersonnel").checked;
+  $("#enOfficersWrap").classList.toggle("hidden", !officersOn);
+  $("#enPersonnelWrap").classList.toggle("hidden", !personnelOn);
+  $("#enHasOfficersPick").classList.toggle("is-on", officersOn);
+  $("#enHasPersonnelPick").classList.toggle("is-on", personnelOn);
+}
+$("#enHasOfficers").addEventListener("change", syncCommandWraps);
+$("#enHasPersonnel").addEventListener("change", syncCommandWraps);
+
 ACTIONS.openEntry = (id, extra) => openEntry(id || null, extra);
-ACTIONS.deleteEntry = async (id, extra) => {
-  if (!confirm(`حذف «${extra.name}» من اليومية؟`)) return;
+ACTIONS.duplicateEntry = id => openEntry(id, {section: findRow(id)?.section}, true);
+
+async function deleteService(id, name) {
+  if (!confirm(`حذف «${name}» من اليومية؟`)) return;
   if (await api(`/api/assignments/${DAY}/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم الحذف"); loadDay(DAY);
   }
-};
-ACTIONS.removeTag = i => { ENTRY_TAGS.splice(Number(i), 1); renderTagChips() };
+}
+ACTIONS.deleteEntry = (id, extra) => deleteService(id, extra.name);
+
+async function moveService(id, direction) {
+  if (MOVING_ROW) return;
+  MOVING_ROW = true;
+  SELECTED_ROW_ID = id;
+  const out = await api(`/api/assignments/${DAY}/${encodeURIComponent(id)}/move`,
+                        jsonReq("POST", {direction}));
+  MOVING_ROW = false;
+  if (!out) return;
+  BOARD = out;
+  render();
+  renderConfirmBadge();
+  requestAnimationFrame(() => selectService(id, {scroll: true, focus: true}));
+}
+ACTIONS.moveEntry = (id, extra) => moveService(id, extra.direction);
 ACTIONS.removeConRow = (id, extra, el) => el.closest(".req-row").remove();
 
 $("#addConRow").onclick = () => $("#conRows").insertAdjacentHTML("beforeend", conRow({}));
-$("#enKind").addEventListener("change", syncShiftOptions);
-$("#enTags").addEventListener("keydown", e => {
-  if (e.key !== "Enter") return;
-  e.preventDefault();
-  const v = $("#enTags").value.trim();
-  if (v && !ENTRY_TAGS.includes(v)) { ENTRY_TAGS.push(v); renderTagChips() }
-  $("#enTags").value = "";
-});
+$("#enKind").addEventListener("change", () => syncShiftOptions());
+$("#enSection").addEventListener("input", () => queueSectionHistory(true));
+$("#enSection").addEventListener("change", () => queueSectionHistory(true));
 
 $("#entryForm").onsubmit = async e => {
   e.preventDefault();
@@ -205,26 +491,63 @@ $("#entryForm").onsubmit = async e => {
   const body = {
     name: $("#enName").value.trim(),
     kind: $("#enKind").value,
-    section: $("#enSection").value,
-    shift: $("#enShift").value,
-    officer_ids: readMulti($("#enOfficers")),
-    personnel_ids: readMulti($("#enPersonnel")),
+    section: $("#enSection").value.trim(),
+    shift: selectedShift(),
+    officer_ids: $("#enHasOfficers").checked ? readMulti($("#enOfficers")) : [],
+    personnel_ids: $("#enHasPersonnel").checked ? readMulti($("#enPersonnel")) : [],
     conscripts,
     conscript_count: parseInt($("#enConCount").value) || 0,
     weapon: $("#enWeapon").value.trim(),
     time: $("#enTime").value.trim(),
     party: $("#enParty").value.trim(),
-    label_override: $("#enLabel").value.trim(),
-    tags: ENTRY_TAGS,
     note: $("#enNote").value.trim(),
   };
   const id = $("#enId").value;
+  if (!id && ENTRY_AFTER_ID) body.after_id = ENTRY_AFTER_ID;
   const out = id
     ? await api(`/api/assignments/${DAY}/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api(`/api/assignments/${DAY}`, jsonReq("POST", body));
   if (!out) return;
+  SELECTED_ROW_ID = out.id;
   closeModal("entryModal"); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");
   loadDay(DAY);
+};
+
+/* ---------- تعيين ضابط بهدف/فترة كتلة ثابتة ----------
+   الأهداف والكتل الثابتة قوائم مقفولة — التعديل الوحيد هو مين معيّن،
+   فمودال منفصل صغير بدل مودال الخانة العام (مالوش تصنيف ولا قوام).
+   المودال والفورم متشاركين بين الاتنين، والفرق بس نقطة الحفظ
+   (`#tgEndpoint`) وظهور ملاحظة قائد الهدف. */
+function _openAssignModal(endpoint, title, extra, showCommanderNote) {
+  const roster = BOARD.roster || {officers: []};
+  const current = (extra.officers || []).filter(c => !roster.officers.some(p => p.id === c.id));
+  $("#tgEndpoint").value = endpoint;
+  $("#targetModalTitle").textContent = title;
+  $("#tgCommanderNote").classList.toggle("hidden", !showCommanderNote);
+  fillMulti($("#tgOfficers"), [...roster.officers, ...current],
+            (extra.officers || []).map(o => o.id));
+  openModal("targetModal");
+}
+
+function openTargetAssign(name, extra) {
+  _openAssignModal(`/api/board/${DAY}/target/${encodeURIComponent(name)}`,
+                   `تعيين هدف «${name}»`, extra, true);
+}
+ACTIONS.openTargetAssign = (name, extra) => openTargetAssign(name, extra);
+
+function openSlotAssign(section, extra) {
+  _openAssignModal(
+    `/api/board/${DAY}/slot/${encodeURIComponent(section)}/${encodeURIComponent(extra.shift)}`,
+    `تعيين «${section}» (${extra.shift})`, extra, false);
+}
+ACTIONS.openSlotAssign = (section, extra) => openSlotAssign(section, extra);
+
+$("#targetForm").onsubmit = async e => {
+  e.preventDefault();
+  const officer_ids = readMulti($("#tgOfficers"));
+  const out = await api($("#tgEndpoint").value, jsonReq("PUT", {officer_ids}));
+  if (!out) return;
+  BOARD = out; closeModal("targetModal"); showToast("تم الحفظ"); render();
 };
 
 /* ---------- حفظ ↔ تأكيد ----------
@@ -265,7 +588,9 @@ $("#btnConfirmDay").onclick = async () => {
 /* ---------- تنقّل الأيام ---------- */
 async function loadDay(day) {
   const b = await api(`/api/board/${day}`); if (!b) return;
+  if (DAY && day !== DAY) SELECTED_ROW_ID = null;
   BOARD = b; DAY = day; $("#dutyDate").value = day; render();
+  renderRestStrip($("#restStrip"), day);
   renderConfirmBadge();
   loadDayStatus();
 }
@@ -274,6 +599,73 @@ $("#dayPrev").onclick = () => shiftDay(-1);
 $("#dayNext").onclick = () => shiftDay(1);
 $("#dayToday").onclick = () => loadDay(curDate());
 $("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
+$("#btnShortcuts").onclick = () => openModal("shortcutsModal");
+
+/* اختصارات اللوحة بتشتغل على الصف المختار، وبالحروف الفيزيائية (`code`)
+   عشان مكان المفتاح يفضل ثابت حتى لو لوحة المفاتيح عربي. */
+function selectableRows() {
+  const seen = new Set();
+  return $$("#matchBoard tr[data-service-id]").filter(row => {
+    if (seen.has(row.dataset.serviceId)) return false;
+    seen.add(row.dataset.serviceId);
+    return true;
+  });
+}
+
+function stepSelection(delta) {
+  const rows = selectableRows();
+  if (!rows.length) return;
+  let index = rows.findIndex(row => row.dataset.serviceId === SELECTED_ROW_ID);
+  if (index < 0) index = delta > 0 ? -1 : rows.length;
+  index = Math.max(0, Math.min(rows.length - 1, index + delta));
+  selectService(rows[index].dataset.serviceId, {scroll: true, focus: true});
+}
+
+function focusAcceptsText(target) {
+  return target?.isContentEditable || !!target?.closest?.("input, textarea, select, [contenteditable]");
+}
+
+document.addEventListener("keydown", e => {
+  const entryOpen = !$("#entryModal").classList.contains("hidden");
+  if (entryOpen && e.ctrlKey && e.key === "Enter") {
+    e.preventDefault();
+    $("#entryForm").requestSubmit();
+    return;
+  }
+  if ($$(".modal:not(.hidden)").length || focusAcceptsText(e.target) || e.defaultPrevented) return;
+
+  const moveCombo = (e.ctrlKey && e.altKey && !e.shiftKey)
+    || (e.altKey && e.shiftKey && !e.ctrlKey);
+  if (moveCombo && (e.code === "ArrowUp" || e.code === "ArrowDown")) {
+    e.preventDefault();
+    if (SELECTED_ROW_ID) moveService(SELECTED_ROW_ID, e.code === "ArrowUp" ? "up" : "down");
+    return;
+  }
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+  if (e.code === "ArrowUp" || e.code === "ArrowDown") {
+    e.preventDefault();
+    stepSelection(e.code === "ArrowUp" ? -1 : 1);
+  } else if (e.code === "Enter" || e.code === "KeyE") {
+    if (!SELECTED_ROW_ID) return;
+    e.preventDefault(); openEntry(SELECTED_ROW_ID);
+  } else if (e.code === "KeyD") {
+    if (!SELECTED_ROW_ID) return;
+    e.preventDefault(); openEntry(SELECTED_ROW_ID, {section: findRow(SELECTED_ROW_ID)?.section}, true);
+  } else if (e.code === "Delete") {
+    if (!SELECTED_ROW_ID) return;
+    e.preventDefault(); deleteService(SELECTED_ROW_ID, findRow(SELECTED_ROW_ID)?.label || "الخدمة");
+  } else if (e.code === "KeyN") {
+    e.preventDefault();
+    openEntry(null, {section: findRow(SELECTED_ROW_ID)?.section || "الخدمات الطارئة"});
+  } else if (e.code === "PageUp" || e.code === "PageDown") {
+    e.preventDefault(); shiftDay(e.code === "PageUp" ? -1 : 1);
+  } else if (e.code === "KeyT") {
+    e.preventDefault(); loadDay(curDate());
+  } else if (e.shiftKey && e.code === "Slash") {
+    e.preventDefault(); openModal("shortcutsModal");
+  }
+});
 
 /* إغلاق اليوم: أي يوم فات بيتقفل لوحده الساعة ١٢ بالليل، والقفل بالإيد
    لليوم الحالي بس (قفل بدري). يوم مقفول بيرفض أي تعديل من الباك إند
@@ -293,8 +685,14 @@ async function loadDayStatus() {
     badge.innerHTML = `<span class="chip taq"
         title="الفتح الاستثنائي صالح النهاردة بس — اليوم هيرجع يتقفل تلقائي الساعة ١٢">
         🔓 مفتوح استثنائيًا النهاردة</span>`;
+  } else if (s.stage === "not_open") {
+    badge.innerHTML = `<span class="chip w" title="يوم جاي — لسه معدّاش عليه دوره، بس التجهيز المسبق مسموح">
+        ⏳ لسة متفتحش</span>
+      <button class="mini" id="btnCloseDay" title="قفل اليوم مقدّم قبل ما يجيله دوره">قفل اليوم بدري</button>`;
+    $("#btnCloseDay").onclick = closeDay;
   } else {
-    badge.innerHTML = `<button class="mini" id="btnCloseDay"
+    badge.innerHTML = `<span class="chip on" title="النهاردة — مفتوح للتعديل">🟢 مفتوح</span>
+      <button class="mini" id="btnCloseDay"
       title="اليوم بيتقفل لوحده الساعة ١٢ بالليل — الزرار ده للقفل بدري">قفل اليوم بدري</button>`;
     $("#btnCloseDay").onclick = closeDay;
   }
@@ -327,8 +725,7 @@ $("#dayTomorrow").onclick = async () => {
   const rows = leaving.map(a => {
     let service = "بدون خدمة مسجلة النهاردة";
     for (const sec of todayBoard?.sections || []) {
-      const all = [...sec.rows, ...(sec.groups || []).flatMap(g => g.rows)];
-      const hit = all.find(r => (r.officers || []).some(o => o.id === a.id));
+      const hit = sec.rows.find(r => (r.officers || []).some(o => o.id === a.id));
       if (hit) { service = hit.label; break }
     }
     return `<li><span class="a-name">${esc(a.role)} / ${esc(a.name)}</span>
@@ -344,8 +741,6 @@ $("#dayTomorrow").onclick = async () => {
 async function load() {
   const d = await bootstrap();
   if (!d) return;
-  OFFICERS = d.officer_index || [];
-  PERSONNEL = d.personnel_index || [];
   const days = d.days || [];
   loadDay(days.includes(curDate()) ? curDate() : (days[days.length - 1] || curDate()));
 }

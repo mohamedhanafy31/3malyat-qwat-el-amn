@@ -7,9 +7,15 @@
 
 بيتخزّن جوه data.json نفسها (مش ملف لوج منفصل) عشان يدخل في النسخ
 الاحتياطية المضغوطة تلقائيًا زي أي بيانات تانية، ويتقرا ويتصفّى من غير
-أداة زيادة. مسقوف بعدد ثابت — أقدم سجل بيتشال لما العدد يعدّي السقف،
-زي `store.BACKUP_KEEP` بالظبط، عشان الملف ما يكبرش من غير حد.
+أداة زيادة. مسقوف بعدد ثابت — أقدم سجل بيتشال من الملف لما العدد يعدّي
+السقف، زي `store.BACKUP_KEEP` بالظبط، عشان الملف ما يكبرش من غير حد.
+
+اللي بيتشال من `data.json` **مابيضيعش**: بيتضاف لـ`logs/
+change_log_archive.jsonl` (سطر JSON لكل تغيير) قبل الحذف — من غيرها،
+مكتب فيه حركة يومية كتير كان بيوصل السقف في أسابيع وأي تغيير أقدم بيروح
+للأبد، رغم إن التدقيق أحيانًا محتاج يرجع لأبعد من كده.
 """
+import json
 from datetime import datetime
 from urllib.parse import unquote
 
@@ -30,6 +36,26 @@ def _edited_by():
         return unquote(request.headers.get("X-Edited-By", "")).strip()
     except RuntimeError:
         return ""
+
+
+def _archive_path():
+    """محسوبة عند كل نداء (مش تابتة وقت الاستيراد) عشان الاختبارات تقدر
+    تحوّلها بتحويل `store._LOG_DIR` — زي `store.backup_dir()` بالظبط."""
+    from . import store
+    return store._LOG_DIR / "change_log_archive.jsonl"
+
+
+def _archive_trimmed(entries):
+    """بيحفظ السطور اللي هتتشال من `data.json` (JSON Lines، الأقدم أولًا)
+    قبل ما تتشال — قابلة للقراءة بإيد أو بأي سكربت لاحق، بدل ما تروح
+    للأبد بمجرد ما السقف يوصله."""
+    if not entries:
+        return
+    path = _archive_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a", encoding="utf-8") as f:
+        for entry in entries:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 
 def record(data, entity, entity_id, action, before=None, after=None, reason="",
@@ -54,7 +80,9 @@ def record(data, entity, entity_id, action, before=None, after=None, reason="",
         "edited_by": _edited_by() or None,
     })
     if len(entries) > MAX_ENTRIES:
-        del entries[:len(entries) - MAX_ENTRIES]
+        overflow = len(entries) - MAX_ENTRIES
+        _archive_trimmed(entries[:overflow])
+        del entries[:overflow]
 
 
 def recent(data, limit=200, entity=None, entity_id=None, day=None):

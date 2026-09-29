@@ -41,7 +41,7 @@ def build_leave(payload, data, leave_id):
     # `name` **مابيتخزّنش** — بيتحلّ من `person_id` وقت القراءة
     # (`LeaveRepo.named`). تخزينه كان بيخلي أي تعديل اسم يسيب الراحات
     # القديمة بالاسم القديم لحد ما كود مزامنة يلحقها.
-    return {
+    leave = {
         "id": leave_id,
         "person_id": person_id,
         "type": kind,
@@ -52,7 +52,13 @@ def build_leave(payload, data, leave_id):
         # بيتحافظ عليه تلقائيًا عند التعديل لأن edit_leave بيمرر السجل الحالي
         # مدموج مع التعديلات الجديدة، فلو الطلب ما لمسوش فضل زي ما هو
         "source": str(payload.get("source", "")).strip(),
-    }, None
+    }
+    # السجلات العادية والقديمة تفضل بنفس شكلها؛ الحقل بيتكتب بس لما يكون
+    # للراحة مصدر آلي معروف محتاج يظهر في الواجهة.
+    origin = str(payload.get("origin", "")).strip()
+    if origin:
+        leave["origin"] = origin
+    return leave, None
 
 
 def overlapping(data, leave, ignore_id=None):
@@ -99,6 +105,9 @@ def monthly_roster(data, today):
     today_iso = today.isoformat()
     out = []
     from .repo import PeopleRepo
+    from .rest_suspension import suspended_types
+
+    suspended = suspended_types(data)
 
     for o in PeopleRepo(data).bucket("officers", "active"):
         system = o.get("rest_system", "")
@@ -112,9 +121,63 @@ def monthly_roster(data, today):
                 status, info = "active", {"start": current["start"], "end": current["end"]}
             elif current["start"] > today_iso:
                 status, info = "upcoming", {"start": current["start"], "end": current["end"]}
+        # نوع راحته موقوف بأمر — مش «متأخر» عن تسجيل الكشف، هو ممنوع يتسجّل أصلًا
+        if status == "due" and system in suspended:
+            order = suspended[system]
+            status, info = "suspended", {"since": order.get("started_on"), "id": order.get("id")}
         out.append({"id": o["id"], "name": o.get("name", ""), "role": o.get("role", ""),
                     "rest_system": system, "status": status, "current": info})
     return out
+
+
+def weekly_roster(data, today):
+    """ضباط الراحة الأسبوعية الحاليون + الموعد الثابت والسجلات القادمة.
+
+    الموعد الثابت معلومة جدول، والسجلات القادمة حقيقة مخزنة؛ الاتنين
+    بيرجعوا منفصلين عشان الواجهة ماتعرضش التخمين كأنه سجل راحة.
+    """
+    from .repo import PeopleRepo
+    from .rest_status import is_weekly_rest_weekday, next_weekday
+
+    today_iso = today.isoformat()
+    out = []
+    for officer in PeopleRepo(data).active("officers"):
+        if officer.rest_system != "أسبوعية" or not officer.rest_day:
+            continue
+        fixed = today if is_weekly_rest_weekday(officer.rest_day, today_iso) \
+            else next_weekday(officer.rest_day, today)
+        upcoming = [
+            {k: lv.get(k, "") for k in ("id", "start", "end", "origin")}
+            for lv in leaves_of(data, officer.id)
+            if lv.get("type") == "أسبوعية" and lv.get("start", "") >= today_iso
+        ]
+        upcoming.sort(key=lambda lv: (lv["start"], lv["id"]))
+        out.append({
+            "id": officer.id, "name": officer.name, "role": officer.role,
+            "rest_day": officer.rest_day,
+            "next_fixed": fixed.isoformat() if fixed else "",
+            "upcoming": upcoming,
+        })
+    return out
+
+
+def validate_weekly_extra(data, leave, today):
+    """قواعد المصدر `weekly_extra` فوق تحقق الراحة العادي."""
+    if leave.get("origin") != "weekly_extra":
+        return None
+    from .repo import PeopleRepo
+    from .rest_status import is_weekly_rest_weekday
+
+    officer = PeopleRepo(data).find_in(leave.get("person_id"), "officers")
+    if not officer or officer.archived or officer.rest_system != "أسبوعية":
+        return "الراحة الإضافية متاحة لضابط على القوة بنظام راحة أسبوعية بس."
+    if leave.get("type") != "أسبوعية" or leave.get("start") != leave.get("end"):
+        return "الراحة الأسبوعية الإضافية لازم تكون يوم واحد."
+    if leave.get("start", "") < today:
+        return "الراحة الأسبوعية الإضافية لازم تكون النهاردة أو تاريخ جاي."
+    if is_weekly_rest_weekday(officer.rest_day, leave["start"]):
+        return "اليوم المختار هو يوم الراحة الأسبوعية الثابتة؛ اختار يوم إضافي مختلف."
+    return None
 
 
 def stats(data, filters):

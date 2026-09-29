@@ -1,6 +1,7 @@
 """فرق الضباط — الفرقة نفسها والتحاق الضباط بيها."""
 from flask import Blueprint, jsonify
 
+from .. import retro
 from ..courses import (
     build_course, build_term, by_id, by_officer, courses, new_course_id,
     new_term_id, overlapping, summary, terms,
@@ -87,7 +88,13 @@ def add_term():
         if clash:
             raise AbortRequest((jsonify({
                 "error": f"الضابط ملتحق بفرقة تانية من {clash['start']} إلى {clash['end']}."}), 409))
+
+        closed = retro.closed_days_in(data, term.get("start", ""), term.get("end", ""))
+        reason = retro.require_reason(closed)
+
         terms(data).append(term)
+        if closed:
+            retro.log_retro(data, "course_term", term["id"], closed, reason, after=dict(term))
         return jsonify(term), 201
 
     return with_data(mutate)
@@ -108,7 +115,16 @@ def edit_term(term_id):
         if clash:
             raise AbortRequest((jsonify({
                 "error": f"الضابط ملتحق بفرقة تانية من {clash['start']} إلى {clash['end']}."}), 409))
+
+        closed = sorted(set(retro.closed_days_in(data, current.get("start", ""), current.get("end", ""))
+                            + retro.closed_days_in(data, term.get("start", ""), term.get("end", ""))))
+        reason = retro.require_reason(closed)
+
+        before = dict(current)
         current.update(term)
+        if closed:
+            retro.log_retro(data, "course_term", term_id, closed, reason,
+                           before=before, after=dict(current))
         return jsonify(current)
 
     return with_data(mutate)
@@ -117,8 +133,16 @@ def edit_term(term_id):
 @bp.delete("/api/course-terms/<term_id>")
 def delete_term(term_id):
     def mutate(data):
-        if not Repos(data).terms.remove(term_id):
+        found = Repos(data).terms.find(term_id)
+        if not found:
             raise AbortRequest((jsonify({"error": "الالتحاق غير موجود."}), 404))
+
+        closed = retro.closed_days_in(data, found.start, found.end)
+        reason = retro.require_reason(closed)
+
+        Repos(data).terms.remove(term_id)
+        if closed:
+            retro.log_retro(data, "course_term", term_id, closed, reason, before=found.as_dict())
         return jsonify({"ok": True})
 
     return with_data(mutate)

@@ -19,6 +19,10 @@ OFFICER_STATES = "day_officers"
 STATUS = "day_status"
 COUNTS = "service_counts"
 CONFIRM = "day_confirm"
+# عدّاد أرقام التكليفات لكل يوم (`backend/assignments.py new_id`) — بيتشال
+# لما اليوم يفضى تمامًا، عشان ملف اليوم الفاضي يختفي زي أي يوم تاني
+# (test_split_storage.py::test_emptying_a_day_removes_its_file).
+ASSIGNMENT_SEQ = "day_assignment_seq"
 
 
 class DayRepo:
@@ -85,11 +89,18 @@ class DayRepo:
             confirmed_by=entry.get("by", ""),
         )
 
+    def _forget_seq_if_empty(self, day):
+        """يشيل عدّاد id التكليفات لليوم ده لو مفيش تكليفات عليه خالص —
+        وإلا ملف اليوم الفاضي يفضل موجود بس عشان العدّاد."""
+        if day not in self._map(ASSIGNMENTS):
+            self._map(ASSIGNMENT_SEQ).pop(day, None)
+
     def save(self, day_obj):
         """بيكتب التجميعة كلها. المفاتيح الفاضية بتتشال بدل ما تتخزّن
         مدخلات فاضية بتكبّر الملف من غير معنى."""
         day = day_obj.date
         self._write_list(ASSIGNMENTS, day, [a.as_dict() for a in day_obj.assignments])
+        self._forget_seq_if_empty(day)
         self._write_map(OFFICER_STATES, day, {
             oid: s.as_dict() for oid, s in day_obj.officer_states.items()
             if not s.empty})
@@ -110,13 +121,14 @@ class DayRepo:
     # ---------- تعديلات موضعية ----------
 
     def add_assignment(self, day, assignment):
-        """بيضيف صف تكليف. المعرّف نطاقه اليوم بس (`next_id` مش
-        `reserve_id`) — إعادة استخدام رقم اتمسح في نفس اليوم مالهاش أثر
-        بره اليوم ده."""
-        from ..store import next_id
+        """بيضيف صف تكليف. المعرّف بيتولّد بـ`assignments.new_id` (عدّاد
+        لا يتكررش جوّه اليوم ده) — مش max+1 خام، عشان مسح آخر صف وإضافة
+        صف جديد ما يرجّعش نفس الرقم (كان بيخلي تأكيد اليومية يقرا الصف
+        الجديد كـ«تعديل» على المحذوف بدل «حذف + إضافة»)."""
+        from ..assignments import new_id
         rows = self._map(ASSIGNMENTS).setdefault(day, [])
         if not assignment.id:
-            assignment.id = next_id(rows, "AS", width=4)
+            assignment.id = new_id(self.data, day, rows)
         rows.append(assignment.as_dict())
         return assignment
 
@@ -138,6 +150,7 @@ class DayRepo:
             store[day] = kept
         else:
             store.pop(day, None)
+        self._forget_seq_if_empty(day)
         return True
 
     def set_state(self, day, officer_id, state):
@@ -183,6 +196,51 @@ class DayRepo:
         store = self.data.get(OFFICER_STATES) or {}
         touched = 0
         for day in list(store):
+            if store[day].pop(officer_id, None) is not None:
+                touched += 1
+            if not store[day]:
+                store.pop(day)
+        return touched
+
+    # ---------- تنظيف مرجعي بأيام محدّدة (تغيّر مدى خدمة شخص) ----------
+    #
+    # مستخدمة لما مدى خدمة شخص يتغيّر (خروج، أو تعديل تاريخ انضمام/خروج)
+    # وبيبقى فيه تكليفات مسجّلة برّه المدى الجديد. بعكس `detach_person`/
+    # `drop_officer_states` (تنظيف كامل عند الحذف النهائي)، دول بيمسّوا
+    # أيام محدّدة بس اتحسبت قبلها.
+
+    def assignment_days_of(self, person_id, keys):
+        """كل الأيام اللي الشخص متكلّف فيها بخدمة (أي `key` من `keys`)."""
+        out = []
+        for day, rows in (self.data.get(ASSIGNMENTS) or {}).items():
+            if any(person_id in (row.get(k) or []) for row in rows for k in keys):
+                out.append(day)
+        return sorted(out)
+
+    def officer_state_days_of(self, officer_id):
+        """كل الأيام اللي عليها حالة مسجّلة (تقصيرة/حالة/ملاحظة/طبية) لضابط."""
+        return sorted(day for day, states in (self.data.get(OFFICER_STATES) or {}).items()
+                      if officer_id in states)
+
+    def detach_person_on_days(self, person_id, key, days):
+        """زي `detach_person` بس على الأيام دي بس. بترجّع عدد الصفوف المتأثرة."""
+        wanted = set(days)
+        touched = 0
+        for day in wanted:
+            for raw in (self.data.get(ASSIGNMENTS) or {}).get(day, []):
+                ids = raw.get(key) or []
+                if person_id in ids:
+                    raw[key] = [i for i in ids if i != person_id]
+                    touched += 1
+        return touched
+
+    def drop_officer_states_on_days(self, officer_id, days):
+        """زي `drop_officer_states` بس على الأيام دي بس."""
+        store = self.data.get(OFFICER_STATES) or {}
+        touched = 0
+        for day in set(days):
+            if day not in store:
+                continue
             if store[day].pop(officer_id, None) is not None:
                 touched += 1
             if not store[day]:

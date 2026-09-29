@@ -94,6 +94,12 @@ function leaveRow(l, today) {
   } else {
     stateHtml = `<span class="chip done">منتهية</span>`;
   }
+  // اتوقفت قبل نهايتها — التاريخ الأصلي والسبب محفوظين على السجل
+  if (l.stopped_on) {
+    stateHtml += `<div><span class="chip taq">موقوفة</span></div>
+      <div class="sub">كانت لحد ${fmt(l.original_end)} — ${esc(l.stop_reason)}</div>`;
+  }
+  const canStop = OFFICER_IDS.has(l.person_id) && (live || upcoming);
 
   // تمييز صف العائدين قريباً
   const rowClass = live && daysUntil(l.return_date, today) <= 1 ? ' class="returning-soon"' : "";
@@ -102,10 +108,14 @@ function leaveRow(l, today) {
   const who = p
     ? `<span class="badge ${OFFICER_IDS.has(l.person_id) ? "" : "person"}">${esc(p.role)}</span>`
     : '<span class="muted">(محذوف)</span>';
+  const origin = l.type === "أسبوعية" && l.origin === "auto_weekly"
+    ? `<div class="sub"><span class="chip w">تلقائية</span></div>`
+    : l.type === "أسبوعية" && l.origin === "weekly_extra"
+      ? `<div class="sub"><span class="chip soon">إضافية</span></div>` : "";
 
   return `<tr${rowClass}>
     <td class="name">${esc(l.name)}<div class="sub">${who}</div></td>
-    <td><span class="chip ${l.type === "شهرية" ? "m" : l.type === "نصف شهرية" ? "h" : "w"}">${esc(l.type)}</span></td>
+    <td><span class="chip ${l.type === "شهرية" ? "m" : l.type === "نصف شهرية" ? "h" : "w"}">${esc(l.type)}</span>${origin}</td>
     <td>${fmt(l.start)}<div class="sub">تقصيرة ${dayName(addDays(l.start, -1))}</div></td>
     <td>${fmt(l.end)}</td>
     <td>${fmt(l.return_date)}</td>
@@ -113,6 +123,8 @@ function leaveRow(l, today) {
     <td>${stateHtml}</td>
     <td class="wrap">${esc(l.note) || "<span class='muted'>—</span>"}</td>
     <td><div class="actions">
+      ${canStop ? `<button class="mini bad" data-action="stopLeave" data-id="${esc(l.id)}"
+        data-extra="${dataAttr({name: l.name, type: l.type, start: l.start, end: l.end})}">إيقاف</button>` : ""}
       <button class="mini" data-action="openLeaveEdit" data-id="${esc(l.id)}">تعديل</button>
       <button class="mini bad" data-action="deleteLeave" data-id="${esc(l.id)}" data-extra="${dataAttr({name: l.name})}">حذف</button>
     </div></td></tr>`;
@@ -223,6 +235,7 @@ function render() {
 
 // ── Actions ────────────────────────────────────────────────────────────────
 ACTIONS.openLeaveEdit = id => openLeave(id);
+ACTIONS.stopLeave = (id, extra) => openStopLeave({id, ...extra}, load);
 ACTIONS.deleteLeave = async (id, extra) => {
   if (!confirm(`حذف سجل راحة «${extra.name}»؟`)) return;
   if (await api(`/api/leaves/${encodeURIComponent(id)}`, { method: "DELETE" })) {
@@ -242,6 +255,17 @@ if ($("#leaveCategoryFilter")) $("#leaveCategoryFilter").onchange = render;
 if ($("#leaveDurationFilter")) $("#leaveDurationFilter").onchange = render;
 $("#addLeaveBtn").onclick = () => openLeave(null);
 
+// ── وقف الراحات — سطر حالة بس؛ الإدارة نفسها في صفحتها (/leaves/suspension) ──
+function renderSuspensionStrip() {
+  const susp = META.rest_suspension || {};
+  $("#suspensionBar").innerHTML = (susp.active || []).length
+    ? `<div class="alert-card susp-banner"><div class="alert-head"><span class="alert-ico">⛔</span>
+        <strong>الراحات موقوفة: ${(susp.types || []).map(esc).join("، ")}</strong>
+        <span class="muted">تسجيل راحة من الأنواع دي لأي ضابط بيترفض.</span>
+        <a class="mini" href="/leaves/suspension">إدارة الوقف</a></div></div>`
+    : "";
+}
+
 // ── Bootstrap ──────────────────────────────────────────────────────────────
 async function load() {
   const d = await bootstrap();
@@ -259,5 +283,6 @@ async function load() {
     [["", "كل الأشهر"], ...buildMonthOptions()], true);
 
   render();
+  renderSuspensionStrip();
 }
 load();

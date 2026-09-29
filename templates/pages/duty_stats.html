@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- ── شريط الأرقام السريع ── -->
+<div class="stats" id="summaryStats"></div>
+
+<!-- ── رابط رجوع ── -->
+<div class="ls-nav">
+  <a href="{{ url_for('pages.duty') }}" class="ls-back">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    العودة ليومية الضباط
+  </a>
+  <button type="button" class="btn ls-refresh" id="refreshBtn" title="تحديث البيانات">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+    تحديث
+  </button>
+</div>
+
+<!-- ── شريط فلاتر المدى ── -->
+<div class="ls-filter-bar">
+  <div class="ls-filter-title">
+    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+    <span>مدى التاريخ:</span>
+  </div>
+
+  <div class="ls-filter-group">
+    <label for="dsFrom">من:</label>
+    <input type="date" id="dsFrom" class="select select-sm">
+  </div>
+
+  <div class="ls-filter-group">
+    <label for="dsTo">إلى:</label>
+    <input type="date" id="dsTo" class="select select-sm">
+  </div>
+
+  <div class="ls-filter-quick">
+    <button type="button" class="btn btn-xs" id="dsPreset7">آخر 7 أيام</button>
+    <button type="button" class="btn btn-xs" id="dsPreset30">آخر 30 يوم</button>
+    <button type="button" class="btn btn-xs" id="dsPresetMonth">الشهر ده</button>
+  </div>
+</div>
+
+<!-- ── توازن التشغيل ── -->
+<div class="ls-grid ls-grid-1">
+  <div class="ls-card">
+    <h3 class="ls-card-title">توازن التشغيل بين الضباط</h3>
+    <p class="ls-card-hint">عدد مرات التشغيل لكل ضابط في المدى المحدد — الخط المنقّط هو المتوسط العام</p>
+    <div class="ls-chart-wrap ls-horiz-wrap ls-tall">
+      <canvas id="loadChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── الصافي + صباحية/ليلية ── -->
+<div class="ls-grid ls-grid-2">
+  <div class="ls-card">
+    <h3 class="ls-card-title">معدل «الصافي» لكل ضابط</h3>
+    <p class="ls-card-hint">نسبة الأيام اللي الضابط كان فيها بلا أي خدمة</p>
+    <div class="ls-chart-wrap ls-horiz-wrap ls-tall">
+      <canvas id="netChart"></canvas>
+    </div>
+  </div>
+  <div class="ls-card">
+    <h3 class="ls-card-title">توازن صباحية / ليلية</h3>
+    <p class="ls-card-hint">مرتب بحجم الفرق بين الفترتين — أعلى فرق أولًا</p>
+    <div class="ls-chart-wrap ls-horiz-wrap ls-tall">
+      <canvas id="shiftChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── فجوة قائد الهدف ── -->
+<div class="ls-grid ls-grid-1">
+  <div class="ls-card">
+    <h3 class="ls-card-title">فجوة قائد الهدف — القائد الرسمي مقابل المعيّن فعليًا</h3>
+    <p class="ls-card-hint">نسبة الأيام اللي الهدف اتغطى فيها بضابط غير قائده الرسمي (من الأيام اللي القائد معروف فيها)</p>
+    <div id="targetGapTable"></div>
+  </div>
+</div>
+
+<!-- ── التقصيرات + النمط الأسبوعي ── -->
+<div class="ls-grid ls-grid-2">
+  <div class="ls-card">
+    <h3 class="ls-card-title">التقصيرات المتكررة</h3>
+    <p class="ls-card-hint">الضباط اللي عندهم تقصيرة واحدة على الأقل في المدى، تنازليًا</p>
+    <div class="ls-chart-wrap ls-horiz-wrap">
+      <canvas id="taqseeraChart"></canvas>
+    </div>
+  </div>
+  <div class="ls-card">
+    <h3 class="ls-card-title">نمط التشغيل الأسبوعي</h3>
+    <p class="ls-card-hint">إجمالي الخدمات المسندة حسب يوم الأسبوع</p>
+    <div class="ls-chart-wrap ls-bar-wrap">
+      <canvas id="weekdayChart"></canvas>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/duty-stats.js') }}"></script>
+{% endblock %}

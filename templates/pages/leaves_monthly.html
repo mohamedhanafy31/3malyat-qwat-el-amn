@@ -1,15 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div id="suspensionBar"></div>
+
 <div class="panel">
   <div class="toolbar">
-    <p class="hint" style="margin:0;flex:1">
-      كل صف ضابط نظامه شهري أو نصف شهري — دخّل تاريخ بداية راحته الجاية من
-      كشف المديرية بس، والمدة والنوع بيتحسبوا تلقائيًا.
-    </p>
+    <div style="flex:1">
+      <h3 style="margin:0">الراحات الشهرية ونصف الشهرية</h3>
+      <p class="hint" style="margin:4px 0 0">
+        دخّل تاريخ بداية الراحة الجاية من كشف المديرية؛ المدة والنوع بيتحسبوا تلقائيًا.
+      </p>
+    </div>
     <button class="primary" id="saveRosterBtn">حفظ الكشف</button>
   </div>
   <div id="rosterWrap"></div>
+</div>
+
+<div class="panel weekly-rest-panel">
+  <div class="panel-head">
+    <div>
+      <h3 style="margin:0">الراحات الأسبوعية</h3>
+      <p class="hint" style="margin:4px 0 0">
+        اليوم الثابت بيتسجّل تلقائيًا عند فتح اليومية. من هنا تقدر تضيف يوم راحة تاني من غير ما تغيّر اليوم الثابت.
+      </p>
+    </div>
+  </div>
+  <div id="weeklyRosterWrap"></div>
 </div>
 {% endblock %}
 

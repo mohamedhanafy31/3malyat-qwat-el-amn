@@ -1,0 +1,36 @@
+<!-- ============ القائم بها/التليفون/الانتظام على خدمة أساسية ============ -->
+<div class="modal hidden" id="afEntryModal">
+  <div class="modal-card">
+    <button class="close" data-close="afEntryModal">×</button>
+    <h2 id="afEntryTitle">تعديل الخدمة</h2>
+    <form id="afEntryForm">
+      <input type="hidden" id="afEntryId">
+      <div class="grid">
+        <label>القائم بها صباحًا
+          <input id="afMorningName">
+        </label>
+        <label>تليفون الصباحية
+          <input id="afMorningPhone">
+        </label>
+        <label>القائم بها ليلًا
+          <input id="afNightName">
+        </label>
+        <label>تليفون الليلية
+          <input id="afNightPhone">
+        </label>
+        <label>قوام الخدمة <small>مثال: 1 مجند صبح + 1 سائق</small>
+          <input id="afCount">
+        </label>
+        <label>التسليح <small>مثال: الي + كلبش</small>
+          <input id="afWeapon">
+        </label>
+        <label>معاد الانتظام <small>مثال: 8ص / 8م</small>
+          <input id="afSchedule">
+        </label>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button class="primary full" type="submit">حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>

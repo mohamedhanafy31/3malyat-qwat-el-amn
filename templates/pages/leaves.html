@@ -3,6 +3,8 @@
 {% block content %}
 <div class="stats" id="leaveStats"></div>
 
+<div id="suspensionBar"></div>
+
 <div class="panel">
   <div class="panel-head">
     <div class="tabs">
@@ -34,9 +36,13 @@
 {% endblock %}
 
 
-{% block modals %}{% include "partials/leave_modal.html" %}{% endblock %}
+{% block modals %}
+{% include "partials/leave_modal.html" %}
+{% include "partials/stop_leave_modal.html" %}
+{% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/leave-form.js') }}"></script>
+<script src="{{ url_for('static', filename='js/rest-stop.js') }}"></script>
 <script src="{{ url_for('static', filename='js/leaves.js') }}"></script>
 {% endblock %}

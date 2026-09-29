@@ -187,6 +187,7 @@ def test_removing_the_last_assignment_drops_the_day_key(repos):
 
 def test_command_roles_are_always_present(repos):
     assert set(repos.config.command()) == {"مدير الإدارة", "وكيل الإدارة"}
+    assert set(repos.config.groups()) == {"طبي", "بحث"}
 
 
 def test_clearing_command_empties_every_post_the_officer_holds(repos):

@@ -4,11 +4,16 @@ from datetime import date
 from flask import Blueprint, jsonify
 
 from ..constants import (
-    COMMAND_ROLES, EDITABLE, OFFICER_ROLES, OFFICER_SECTIONS, PERSONNEL_FAMILIES,
+    COMMAND_ROLES, EDITABLE, GROUP_ROLES, OFFICER_ROLES, OFFICER_SECTIONS,
+    PERSONNEL_FAMILIES,
 )
+from .. import changes, day_status, retro
 from ..references import cascade_delete
 from ..repo import Repos
-from ..people import HISTORY_FIELDS, record_change, valid_rest
+from ..people import (
+    HISTORY_FIELDS, cleanup_outside_window, record_change, service_window_conflicts,
+    valid_rest,
+)
 from ..store import AbortRequest, with_data
 from ..utils import (
     MAX_LEN, canonical_day, category_for, check_lengths, json_payload, valid_phone,
@@ -18,11 +23,7 @@ bp = Blueprint("people", __name__)
 
 
 def _require_active_officer(repos, officer_id):
-    """ضابط موجود وعلى القوة — بيرمي 404/400 من غير ما يكمّل.
-
-    المنصب القيادي وضباط العيادة الاتنين محتاجين نفس الشرطين بنفس
-    الرسايل، وكانوا مكرّرين حرفيًا في الدالتين.
-    """
+    """ضابط موجود وعلى القوة — بيرمي 404/400 من غير ما يكمّل."""
     raw, category, bucket = repos.people.locate(officer_id)
     if raw is None or category != "officers":
         raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
@@ -56,27 +57,30 @@ def set_command():
     return with_data(mutate)
 
 
-@bp.patch("/api/medical-officers")
-def set_medical_officers():
-    """تحديد قايمة ضباط العيادة الطبية — تشغيلهم "طبية" بيتحسب تلقائيًا
-    كل يوم (موجود أو راحة) من غير تكليف يدوي. ابعت القايمة كاملة كل مرة."""
+@bp.patch("/api/command-groups")
+def set_command_groups():
+    """أعضاء منصب جماعي في قيادة الإدارة (طبي/بحث) — عكس `/api/command`،
+    أكتر من ضابط ممكن يشيل نفس المنصب، فالجسم `{role: [officer_id, ...]}`
+    قايمة كاملة بتستبدل الأعضاء الحاليين، مش تعيين مفرد. ابعت قايمة فاضية
+    لتفريغ المنصب بالكامل."""
     payload = json_payload()
-    ids = payload.get("officer_ids")
-    if not isinstance(ids, list):
-        return jsonify({"error": "officer_ids لازم تكون قايمة."}), 400
 
     def mutate(data):
         repos = Repos(data)
-        seen, clean = set(), []
-        for officer_id in ids:
-            officer_id = str(officer_id or "").strip()
-            if not officer_id or officer_id in seen:
-                continue
-            _require_active_officer(repos, officer_id)
-            seen.add(officer_id)
-            clean.append(officer_id)
-        repos.config.set_medical(clean)
-        return jsonify(repos.config.medical())
+        for role, officer_ids in payload.items():
+            if role not in GROUP_ROLES:
+                raise AbortRequest((jsonify({"error": f"منصب غير معروف: {role}"}), 400))
+            if not isinstance(officer_ids, list):
+                raise AbortRequest((jsonify({"error": "لازم تبعت قايمة معرّفات."}), 400))
+            clean_ids = []
+            for raw_id in officer_ids:
+                officer_id = str(raw_id or "").strip()
+                if not officer_id or officer_id in clean_ids:
+                    continue
+                _require_active_officer(repos, officer_id)
+                clean_ids.append(officer_id)
+            repos.config.assign_group(role, clean_ids)
+        return jsonify(repos.config.groups())
 
     return with_data(mutate)
 
@@ -139,6 +143,7 @@ def add_person():
         if category == "officers":
             person["rest_system"] = str(payload.get("rest_system", "—")).strip() or "—"
             person["rest_day"] = str(payload.get("rest_day", "")).strip()
+            person["weapon_custody"] = str(payload.get("weapon_custody", "")).strip()
         else:
             person["address"] = str(payload.get("address", "")).strip()
 
@@ -171,6 +176,17 @@ def edit_person(person_id):
             if not join_date:
                 raise AbortRequest((jsonify({"error": "تاريخ الانضمام غير صحيح."}), 400))
             payload["join_date"] = join_date      # يتخزّن معياري دايمًا
+
+            # تأجيل تاريخ الانضمام ممكن يسيب راحات/فرق/تكليفات مسجّلة
+            # قبل التاريخ الجديد — بتفضل معلّقة لشخص السيستم بيقول إنه
+            # لسه مانضمش وقتها. بترفض بدل ما تعدّل وتسيبها معلّقة بصمت.
+            current_leave = person.get("leave_date", "") if bucket == "archive" else ""
+            conflicts = service_window_conflicts(data, person_id, category,
+                                                 join_date, current_leave)
+            if conflicts:
+                raise AbortRequest((jsonify({
+                    "error": "تعديل تاريخ الانضمام ده هيسيب بيانات مسجّلة قبله معلّقة.",
+                    "conflicts": conflicts}), 400))
         if "role" in payload and category == "personnel":
             family = str(payload["role"]).strip().split(" ")[0]
             if family not in PERSONNEL_FAMILIES:
@@ -183,7 +199,7 @@ def edit_person(person_id):
                 raise AbortRequest((jsonify({"error": "قسم اليومية غير صحيح."}), 400))
 
         bad_length = check_lengths(payload, ("name", "code", "phone", "post",
-                                             "address", "leave_reason"))
+                                             "address", "leave_reason", "weapon_custody"))
         if bad_length:
             raise AbortRequest((jsonify({"error": bad_length}), 400))
         if "phone" in payload and not valid_phone(payload["phone"]):
@@ -206,7 +222,21 @@ def edit_person(person_id):
                 str(payload.get("effective_from", "")).strip() or date.today().isoformat())
             if not effective_from:
                 raise AbortRequest((jsonify({"error": "تاريخ السريان غير صحيح."}), 400))
+
+            # سريان بتاريخ فات معناه أيام مقفولة بالفعل هتتطبع ببيانات
+            # مختلفة من دلوقتي (`people.effective`) — رتبة/منصب/قسم
+            # جديد على يوم كان معتمد فعلًا. مسموح، بس محتاج سبب.
+            closed = retro.closed_days_in(data, effective_from, day_status.today_iso())
+            reason = retro.require_reason(closed)
+
+            before = {k: person.get(k) for k in historic}
             record_change(person, effective_from, historic)
+            if closed:
+                retro.log_retro(data, "person", person_id, closed, reason,
+                               before=before, after=dict(historic),
+                               text=f"تعديل بأثر رجعي على بيانات {person.get('name', '')} "
+                                    f"سارٍ من {effective_from} — يوم/أيام مقفولة: "
+                                    f"{'، '.join(closed)}")
 
         for key in EDITABLE:
             if key in payload and not (historic and key in historic and category == "officers"):
@@ -218,6 +248,16 @@ def edit_person(person_id):
                 raise AbortRequest((jsonify({"error": "تاريخ الخروج غير صحيح."}), 400))
             if leave_date < person.get("join_date", ""):
                 raise AbortRequest((jsonify({"error": "تاريخ الخروج لا يمكن أن يسبق تاريخ الانضمام."}), 400))
+
+            # تقديم تاريخ الخروج ممكن يسيب راحات/فرق/تكليفات مسجّلة بعد
+            # التاريخ الجديد معلّقة — نفس مبدأ فحص الانضمام فوق.
+            conflicts = service_window_conflicts(data, person_id, category,
+                                                 person.get("join_date", ""), leave_date,
+                                                 check_missions=True)
+            if conflicts:
+                raise AbortRequest((jsonify({
+                    "error": "تعديل تاريخ الخروج ده هيسيب بيانات مسجّلة بعده معلّقة.",
+                    "conflicts": conflicts}), 400))
             person["leave_date"] = leave_date
         if bucket == "archive" and "leave_reason" in payload:
             person["leave_reason"] = str(payload["leave_reason"]).strip()
@@ -239,6 +279,7 @@ def remove_person(person_id):
     leave_date = canonical_day(
         str(payload.get("leave_date", "")).strip() or date.today().isoformat())
     reason = str(payload.get("reason", "")).strip()
+    cleanup = bool(payload.get("cleanup"))
     if not leave_date:
         return jsonify({"error": "تاريخ الخروج غير صحيح."}), 400
     if len(reason) > MAX_LEN["reason"]:
@@ -252,24 +293,48 @@ def remove_person(person_id):
         if leave_date < found.get("join_date", ""):
             raise AbortRequest((jsonify({"error": "تاريخ الخروج لا يمكن أن يسبق تاريخ الانضمام."}), 400))
 
+        # فيه راحات/فرق/تكليفات مسجّلة بعد تاريخ الخروج ده (مجهّزة مقدّمًا)؟
+        # لو مفيش تأكيد تنظيف من المشغّل، بترفض وتوريه اللي هيتأثر —
+        # عشان الخروج ما يسيبهاش معلّقة لشخص السيستم بيقول إنه خرج.
+        conflicts = service_window_conflicts(data, person_id, category,
+                                             found.get("join_date", ""), leave_date,
+                                             check_missions=True)
+        if conflicts and not cleanup:
+            raise AbortRequest((jsonify({
+                "error": "فيه بيانات مسجّلة بعد تاريخ الخروج ده — أكّد التنظيف عشان تكمّل.",
+                "needs_confirm": True, "conflicts": conflicts}), 409))
+
+        report = {}
+        if conflicts:
+            report = cleanup_outside_window(data, person_id, category,
+                                            found.get("join_date", ""), leave_date)
+
         found["leave_date"] = leave_date
         found["leave_reason"] = reason
         found["status"] = "archived"
 
         Repos(data).people.move(person_id, "archive")
 
-        # لو الضابط شايل منصب قيادي أو من ضباط العيادة، الإخراج من القوة
-        # يفضّي المنصب — ميفضلش متعيّن لحد مش على القوة أصلًا
-        config = Repos(data).config
-        config.clear_command(person_id)
-        config.drop_medical(person_id)
-        return jsonify(found)
+        # لو الضابط شايل منصب قيادي (فردي أو جماعي)، الإخراج من القوة
+        # يفضّي المنصب/يشيله من العضوية — ميفضلش متعيّن لحد مش على القوة أصلًا.
+        Repos(data).config.clear_command(person_id)
+        Repos(data).config.remove_from_groups(person_id)
+
+        if report:
+            changes.record(data, "person", person_id, "cleanup_on_remove",
+                           after=report,
+                           text=f"تنظيف بيانات بعد إخراج {found.get('name', '')}: "
+                                f"{'، '.join(report)}",
+                           reason=reason)
+        return jsonify({**found, "cleanup": report} if report else found)
 
     return with_data(mutate)
 
 
 @bp.post("/api/person/<person_id>/restore")
 def restore_person(person_id):
+    payload = json_payload()
+
     def mutate(data):
         found, category, bucket = Repos(data).people.locate(person_id)
         if not found or bucket != "archive":
@@ -280,12 +345,26 @@ def restore_person(person_id):
         if repos.people.code_taken(category, code):
             raise AbortRequest((jsonify({"error": "يوجد شخص على القوة بنفس رقم الأقدمية."}), 409))
 
+        raw_join = str(payload.get("join_date", "")).strip()
+        join_date = canonical_day(raw_join) if raw_join else date.today().isoformat()
+        if raw_join and not join_date:
+            raise AbortRequest((jsonify({"error": "تاريخ الانضمام غير صحيح."}), 400))
+        # لازم يكون بعد تاريخ خروجه القديم — وإلا نفس الشخص هيبقى على القوة
+        # مرتين في نفس اليوم (سجل الأرشيف لسه شامل يوم الخروج، والسجل الجديد
+        # هيبتدي منه أو قبله) وأصل القوة هيتحسب زيادة واحد في جدول الإجمالي.
+        left = str(found.get("leave_date", "") or "")
+        if left and join_date <= left:
+            raise AbortRequest((jsonify({
+                "error": f"تاريخ الانضمام الجديد لازم يكون بعد تاريخ الخروج ({left}) — "
+                         "وإلا الشخص هيتحسب مرتين في نفس اليوم.",
+                "leave_date": left}), 400))
+
         # Keep the historical record intact and create a new active period.
         restored = dict(found)
         restored.update({
             "id": repos.people.new_id(category),
             "code": code,
-            "join_date": date.today().isoformat(),
+            "join_date": join_date,
             "status": "active",
             "previous_archive_id": found.get("id"),
         })
@@ -312,8 +391,34 @@ def delete_archive_record(person_id):
         if raw is None or bucket != "archive":
             raise AbortRequest((jsonify({"error": "السجل غير موجود."}), 404))
 
+        # الحذف النهائي بيمسح تكليفات/حالات/راحات/التحاقات من أيام كتير،
+        # ومنها أيام مقفولة من زمان — لازم يتحسبوا **قبل** الحذف عشان
+        # بعده مفيش أثر يتحسب منه أصلًا.
+        key = "officer_ids" if category == "officers" else "personnel_ids"
+        closed = set(d for d in repos.days.assignment_days_of(person_id, (key,))
+                    if day_status.is_closed(data, d))
+        for lv in repos.leaves.of_person(person_id):
+            closed |= set(retro.closed_days_in(data, lv.start, lv.end))
+        if category == "officers":
+            closed |= set(d for d in repos.days.officer_state_days_of(person_id)
+                          if day_status.is_closed(data, d))
+            for t in repos.terms.of_officer(person_id):
+                closed |= set(retro.closed_days_in(data, t.start, t.end))
+        closed = sorted(closed)
+        reason = retro.require_reason(closed)
+
         repos.people.remove(person_id)
-        cascade_delete(repos, person_id, category)
+        report = cascade_delete(repos, person_id, category)
+        changes.record(data, "person", person_id, "delete", before=raw, after=report,
+                       reason=reason,
+                       text=f"حذف نهائي لسجل {raw.get('name', '')} من الأرشيف"
+                            + (f" — {'، '.join(f'{k}: {v}' for k, v in report.items())}"
+                               if report else ""))
+        if closed:
+            retro.log_retro(data, "person", person_id, closed, reason,
+                           before=raw, after=report,
+                           text=f"حذف نهائي لسجل {raw.get('name', '')} بيمس يوم/أيام "
+                                f"مقفولة: {'، '.join(closed)}")
         return jsonify({"ok": True})
 
     return with_data(mutate)

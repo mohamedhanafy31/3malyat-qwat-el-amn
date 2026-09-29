@@ -22,12 +22,26 @@
 بس، والصف اللي مالوش رقم كان **بيختفي** من الصفحة خالص، فالنتيجة كانت ورقة
 طوارئ فاضية في كل يوم من أيام الأرشيف الـ101 رغم إن فيها 1257 خدمة طارئة.
 
+نفس المبدأ بالظبط بيتمدّد لأي **قسم مخصّص** المشغّل كتبه بإيده على اللوحة
+لليوم ده بس (زي «خدمات مباراة المصري» ليوم فيه مباراة) — مفيش تسجيل مسبق
+لاسم القسم في أي مكان، وأي قسم غير الستة الرسمية بيتحسب هنا تلقائيًا في
+بلوكه المستقل بمجرد ما أول صف عليه يتحفظ على اللوحة (`custom_sections`).
+
 اسم الخدمة في القسمين حر بالكامل — مفيش كتالوج تتربط بيه أي خانة هنا.
 """
 from .assignments import peek_day as peek_assignments
-from .constants import SECTION_OCCASIONAL
+from .constants import (
+    SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_SECURITY,
+    SECTION_SUBCAMP, SECTION_TARGETS,
+)
 from .day_status import status_of
 from .store import reserve_id
+
+# الأقسام اللي عددها له مصدر تاني (الأساسية بيها القالب الدائم) أو مش
+# «خدمات» أصلًا هنا (الأهداف والكتل التنظيمية الثابتة) — أي قسم غيرهم على
+# اللوحة (الطوارئ أو مخصّص) بيتحسب في هذه الصفحة.
+_NOT_COUNTABLE_HERE = {SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP,
+                       SECTION_GREAT, SECTION_SECURITY}
 
 BLOCKS = ["صباحية", "ليلية", "طوارئ"]
 
@@ -97,7 +111,7 @@ DEFAULT_SEED = [
 
 def _blank_entry(entry_id, block, **over):
     row = {"id": entry_id, "name": "", "block": block,
-           "count": 0, "party": "", "order": 0}
+           "count": 0, "party": "", "weapon": "", "order": 0}
     row.update(over)
     return row
 
@@ -150,6 +164,27 @@ def for_day_entries(data, day):
     return store[day]["entries"]
 
 
+def freeze_past_days(data):
+    """بيحفظ نسخة القالب الحالي لكل يوم **مسجّل قبل النهاردة** ومالوش
+    نسخة خاصة بيه لسه — لازم تتنادى قبل أي تعديل على القالب نفسه (بذر/
+    إضافة/تعديل/حذف صف).
+
+    من غيرها، الصفحة دي كانت باب جانبي بيغيّر شكل أيام اتقفلت وانتهت من
+    زمان — رغم إن اليومية التفصيلية نفسها محمية بالقفل (`day_status.
+    check_open`) ومحدش قدر يلمسها، تعديل القالب النهاردة كان بيغيّر
+    «اعداد الخدمات» المعروضة ليوم فات من غير أي علم لحد راجعه أو
+    أكّده بالفعل. بعد التجميد، تعديل القالب بيأثر على النهاردة والأيام
+    الجاية بس.
+    """
+    from .day_status import today_iso
+    from .repo import DayRepo
+
+    today = today_iso()
+    for day in DayRepo(data).dates():
+        if day < today:
+            for_day_entries(data, day)
+
+
 def strength_text(row):
     """قوام الصف زي ما هو مكتوب على اللوحة — تلميح للمشغّل وهو بيكتب العدد،
     **مش رقم بيتحسب**.
@@ -173,18 +208,11 @@ def strength_text(row):
     return "، ".join(bits)
 
 
-def emergency_rows(data, day):
-    """بلوك الطوارئ اليومي — محسوب من اللوحة، مش متخزّن هنا خالص.
-
-    **كل** صف قسمه «الخدمات الطارئة» بيظهر هنا، سواء عليه عدد مجندين أو لأ.
-    كان في فلتر بيخفي الصف اللي عدده صفر، فالخدمة اللي المشغّل لسه ما كتبش
-    عددها كانت بتختفي من الورقة بدل ما تفكّره إنها ناقصة — والنتيجة ورقة
-    طوارئ فاضية تمامًا في كل يوم.
-    """
+def _rows_for(rows):
+    """صفوف بلوك محسوب من اللوحة — نفس شكل بلوك الطوارئ بالظبط، مستخدم
+    ليه ولأي قسم مخصّص كمان."""
     out = []
-    for row in peek_assignments(data, day):
-        if row.get("section") != SECTION_OCCASIONAL:
-            continue
+    for row in rows:
         count = int(row.get("conscript_count") or 0)
         out.append({
             "assignment_id": row["id"],
@@ -195,13 +223,47 @@ def emergency_rows(data, day):
     return out
 
 
-def set_emergency_count(data, day, assignment_id, count):
+def emergency_rows(data, day):
+    """بلوك الطوارئ اليومي — محسوب من اللوحة، مش متخزّن هنا خالص.
+
+    **كل** صف قسمه «الخدمات الطارئة» بيظهر هنا، سواء عليه عدد مجندين أو لأ.
+    كان في فلتر بيخفي الصف اللي عدده صفر، فالخدمة اللي المشغّل لسه ما كتبش
+    عددها كانت بتختفي من الورقة بدل ما تفكّره إنها ناقصة — والنتيجة ورقة
+    طوارئ فاضية تمامًا في كل يوم.
+    """
+    rows = [r for r in peek_assignments(data, day) if r.get("section") == SECTION_OCCASIONAL]
+    return _rows_for(rows)
+
+
+def custom_sections(data, day):
+    """أي قسم كتبه المشغّل بإيده على اللوحة **لليوم ده بس** ومش من الستة
+    الرسمية ولا «الخدمات الطارئة» — زي «خدمات مباراة المصري» ليوم فيه
+    مباراة. القسم مالوش أي تسجيل مسبق: بيظهر لحظة ما أول صف عليه يتحفظ
+    على اللوحة، وبيختفي لوحده لو كل صفوفه اتشالت — مفيش قايمة أقسام
+    مخزّنة لازم تتنضّف وراه.
+
+    كل قسم من دول بيتعامل بالظبط زي «الخدمات الطارئة»: عدد المجندين على
+    صف التكليف نفسه، والصفحة دي بتجمعه وتسيبه يتعدّل من هنا.
+    """
+    by_section = {}
+    for row in peek_assignments(data, day):
+        section = row.get("section") or SECTION_OCCASIONAL
+        if section == SECTION_OCCASIONAL or section in _NOT_COUNTABLE_HERE:
+            continue
+        by_section.setdefault(section, []).append(row)
+    return [{"name": name, "rows": _rows_for(rows)} for name, rows in by_section.items()]
+
+
+def set_board_count(data, day, assignment_id, count):
     """بيكتب عدد المجندين على صف التكليف نفسه — نفس الحقل اللي خانة الخدمة
-    على اللوحة بتكتبه. بترجّع (row, error)."""
+    على اللوحة بتكتبه. بيشتغل على «الخدمات الطارئة» وأي قسم مخصّص، مش على
+    الأساسية ولا الأقسام الثابتة (دول ليهم مصدر عدّهم في مكان تاني).
+    بترجّع (row, error)."""
     for row in peek_assignments(data, day):
         if row["id"] == assignment_id:
-            if row.get("section") != SECTION_OCCASIONAL:
-                return None, "الصف ده مش من الخدمات الطارئة."
+            section = row.get("section") or SECTION_OCCASIONAL
+            if section in _NOT_COUNTABLE_HERE:
+                return None, "الصف ده مش من الخدمات اللي بتتحسب هنا."
             row["conscript_count"] = max(0, int(count))
             return row, None
     return None, "الخدمة غير موجودة في اليومية التفصيلية."
@@ -209,12 +271,14 @@ def set_emergency_count(data, day, assignment_id, count):
 
 def build(data, day):
     """المخرج الكامل لصفحة اعداد الخدمات — الأساسية والطوارئ شبه الثابتة من
-    نسخة عمل اليوم، والطوارئ اليومي من اللوحة، مع الإجماليات المحسوبة."""
+    نسخة عمل اليوم، والطوارئ اليومي وأي قسم مخصّص من اللوحة، مع الإجماليات
+    المحسوبة."""
     entries = peek_day_entries(data, day)
     basic_am = [e for e in entries if e["block"] == "صباحية"]
     basic_pm = [e for e in entries if e["block"] == "ليلية"]
     recurring = [e for e in entries if e["block"] == "طوارئ"]
     emergency = emergency_rows(data, day)
+    custom = custom_sections(data, day)
 
     basic_am_total = sum(e["count"] for e in basic_am)
     basic_pm_total = sum(e["count"] for e in basic_pm)
@@ -222,6 +286,8 @@ def build(data, day):
     emergency_day_total = sum(r["count"] for r in emergency)
     # الطوارئ في ورقة الإكسل رقم واحد: المتكررة + اليومي مع بعض
     emergency_total = recurring_total + emergency_day_total
+    custom_total = sum(r["count"] for sec in custom for r in sec["rows"])
+    custom_rows_count = sum(len(sec["rows"]) for sec in custom)
 
     return {
         "date": day,
@@ -230,20 +296,26 @@ def build(data, day):
         "basic_am": basic_am, "basic_pm": basic_pm,
         "recurring": recurring, "emergency": emergency,
         "emergency_missing": sum(1 for r in emergency if r["needs_count"]),
+        # أي قسم كتبه المشغّل بإيده لليوم ده بس، غير الستة الرسمية —
+        # قايمة فاضية في الأغلبية الساحقة من الأيام
+        "custom_sections": custom,
         # إجمالي المجندين لكل بلوك — `emergency` هو مجموع المتكررة واليومي
         # زي الورقة بالظبط، و`recurring`/`emergency_day` مفكوكين لأن كل
-        # واحد منهم بلوك مستقل على الصفحة وله إجمالي تحته.
+        # واحد منهم بلوك مستقل على الصفحة وله إجمالي تحته. `custom` مجموع
+        # كل الأقسام المخصّصة مع بعض — كل قسم منها له بلوكه وإجماليه لوحده.
         "totals": {
             "basic_am": basic_am_total, "basic_pm": basic_pm_total,
             "recurring": recurring_total, "emergency_day": emergency_day_total,
-            "emergency": emergency_total,
-            "grand_total": basic_am_total + basic_pm_total + emergency_total,
+            "emergency": emergency_total, "custom": custom_total,
+            "grand_total": basic_am_total + basic_pm_total + emergency_total + custom_total,
         },
         # عدد الخدمات (صفوف) مقابل عدد المجندين — رقمين مختلفين والورقة
         # بتعرضهم مع بعض في كل بلوك
         "services": {
             "basic_am": len(basic_am), "basic_pm": len(basic_pm),
             "recurring": len(recurring), "emergency_day": len(emergency),
-            "total": len(basic_am) + len(basic_pm) + len(recurring) + len(emergency),
+            "custom": custom_rows_count,
+            "total": (len(basic_am) + len(basic_pm) + len(recurring)
+                     + len(emergency) + custom_rows_count),
         },
     }

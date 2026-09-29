@@ -36,6 +36,21 @@ def test_a_future_day_stays_open_for_advance_planning(client, frozen_today):
     assert client.get(f"/api/day-status/{OTHER_DAY}").get_json()["closed"] is False
 
 
+def test_stage_distinguishes_not_yet_open_from_open_from_closed(client, frozen_today):
+    """الحالة الثلاثية: يوم جاي «لسة متفتحش»، النهاردة «مفتوح»، يوم فات
+    «مغلق» — تصنيف عرض بس، مايأثرش على `check_open`."""
+    frozen_today(DAY)
+    assert client.get(f"/api/day-status/{OTHER_DAY}").get_json()["stage"] == "not_open"
+    assert client.get(f"/api/day-status/{DAY}").get_json()["stage"] == "open"
+    assert client.get(f"/api/day-status/{PAST_DAY}").get_json()["stage"] == "closed"
+
+
+def test_manually_closing_a_future_day_reports_closed_stage_not_not_open(client, frozen_today):
+    frozen_today(DAY)
+    client.post(f"/api/day-status/{OTHER_DAY}/close", json={})
+    assert client.get(f"/api/day-status/{OTHER_DAY}").get_json()["stage"] == "closed"
+
+
 def test_closing_a_day_records_who_and_when(client):
     r = client.post(f"/api/day-status/{DAY}/close", json={"closed_by": "أحمد"})
     assert r.status_code == 201

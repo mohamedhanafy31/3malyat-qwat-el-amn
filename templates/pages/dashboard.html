@@ -3,6 +3,8 @@
 {% block alerts %}<div id="alerts"></div>{% endblock %}
 
 {% block content %}
+<div id="clockWarning"></div>
+<div id="restSuspension"></div>
 <div id="dashStats" class="stats"></div>
 
 {# الكرت الكبير كان بيحمل جملة واحدة ساكنة بتقول «افتح كذا من القائمة» —
@@ -30,7 +32,7 @@
         <a href="{{ url_for('pages.officers') }}"><span>سجل الضباط</span><b id="qlOfficers">—</b></a>
         <a href="{{ url_for('pages.personnel') }}"><span>سجل الأفراد</span><b id="qlPersonnel">—</b></a>
         <a href="{{ url_for('pages.leaves') }}"><span>الراحات والإجازات</span><b id="qlLeaves">—</b></a>
-        <a href="{{ url_for('pages.register') }}"><span>دفتر 43</span><b>◂</b></a>
+        <a href="{{ url_for('pages.register') }}"><span>حصر تشغيل السادة الضباط</span><b>◂</b></a>
       </div>
     </div>
   </div>

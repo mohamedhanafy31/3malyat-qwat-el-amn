@@ -113,6 +113,30 @@ def test_term_with_empty_dates_is_allowed(client):
     assert data["start"] == "" and data["end"] == ""
 
 
+def test_term_with_only_one_date_is_rejected(client):
+    """نص مدى (بداية بدون نهاية أو العكس) غالبًا غلط إدخال، مش قصد
+    «مالوش تواريخ لسه» — ده لازم الاتنين فاضيين."""
+    course = _course(client).get_json()
+    assert _term(client, course_id=course["id"], start="2026-04-05", end="").status_code == 400
+    assert _term(client, course_id=course["id"], start="", end="2026-04-15").status_code == 400
+
+
+def test_term_before_the_officers_join_date_is_rejected(client):
+    course = _course(client).get_json()
+    client.patch("/api/person/OFF-002", json={"join_date": "2026-04-08"})
+    r = _term(client, course_id=course["id"], start="2026-04-01", end="2026-04-10")
+    assert r.status_code == 400
+    assert "انضمام" in r.get_json()["error"]
+
+
+def test_term_after_the_officers_leave_date_is_rejected(client):
+    course = _course(client).get_json()
+    client.post("/api/person/OFF-002/remove", json={"leave_date": "2026-04-10"})
+    r = _term(client, course_id=course["id"], start="2026-04-05", end="2026-04-15")
+    assert r.status_code == 400
+    assert "خروج" in r.get_json()["error"]
+
+
 
 def test_duplicate_course_name_is_refused(client):
     _course(client)

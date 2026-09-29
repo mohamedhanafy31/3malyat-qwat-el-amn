@@ -44,6 +44,9 @@ def person_references(data):
     """
     for lv in data.get("leaves") or []:
         yield f"leaves[{lv.get('id')}].person_id", "person", lv.get("person_id")
+        if lv.get("suspension_id"):
+            yield (f"leaves[{lv.get('id')}].suspension_id", "rest_suspension",
+                   lv["suspension_id"])
 
     for term in data.get("course_terms") or []:
         where = f"course_terms[{term.get('id')}]"
@@ -74,8 +77,15 @@ def person_references(data):
         if pid:
             yield f"command[{role}]", "officer", pid
 
-    for pid in data.get("medical_officers") or []:
-        yield "medical_officers[]", "officer", pid
+    for order in data.get("rest_suspensions") or []:
+        for snap in order.get("cancelled_leaves") or []:
+            if snap.get("person_id"):
+                yield (f"rest_suspensions[{order.get('id')}].cancelled_leaves",
+                       "person", snap["person_id"])
+
+    for role, ids in (data.get("command_groups") or {}).items():
+        for pid in ids or []:
+            yield f"command_groups[{role}]", "officer", pid
 
     for entry in (data.get("counts_template") or {}).get("entries") or []:
         if entry.get("service_id"):
@@ -111,8 +121,11 @@ PERSON_REFERENCES = [
     ("command.<value>", SET_NULL,
      lambda repos, pid, cat: repos.config.clear_command(pid)),
 
-    ("medical_officers[]", DETACH,
-     lambda repos, pid, cat: repos.config.drop_medical(pid)),
+    ("command_groups.<value>", DETACH,
+     lambda repos, pid, cat: repos.config.remove_from_groups(pid)),
+
+    ("rest_suspensions.cancelled_leaves", DETACH,
+     lambda repos, pid, cat: _detach_suspension_snapshots(repos, pid)),
 ]
 
 
@@ -128,6 +141,18 @@ def cascade_delete(repos, person_id, category):
         if touched:
             report[label] = touched
     return report
+
+
+def _detach_suspension_snapshots(repos, person_id):
+    """شخص اتمسح نهائيًا — لقطات راحاته الملغية تحت أوامر الوقف بتتشال."""
+    touched = 0
+    for order in repos.data.get("rest_suspensions") or []:
+        snaps = order.get("cancelled_leaves") or []
+        kept = [s for s in snaps if s.get("person_id") != person_id]
+        if len(kept) != len(snaps):
+            order["cancelled_leaves"] = kept
+            touched += len(snaps) - len(kept)
+    return touched
 
 
 def _drop_leaves(repos, person_id):

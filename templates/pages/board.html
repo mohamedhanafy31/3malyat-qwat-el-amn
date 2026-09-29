@@ -10,15 +10,40 @@
     <button class="mini ok" id="dayTomorrow">بكرة</button>
     <button class="mini ok" id="btnConfirmDay"
             title="بيعتمد اليومية الحالية ويسجّل اللي اتغيّر من آخر تأكيد">✔ تأكيد اليومية</button>
+    <button class="mini" id="btnShortcuts" title="اختصارات لوحة المفاتيح">⌨ اختصارات</button>
     <span id="confirmBadge"></span>
     <span id="dayLockBadge"></span>
   </div>
+  <div id="restStrip"></div>
   <div id="matchBoard"></div>
 </div>
 {% endblock %}
 
 {% block modals %}
 {% include "partials/entry_modal.html" %}
+{% include "partials/target_modal.html" %}
+<div class="modal hidden" id="shortcutsModal">
+  <div class="modal-card small shortcut-help" role="dialog" aria-modal="true"
+       aria-labelledby="shortcutsTitle">
+    <button class="close" data-close="shortcutsModal">×</button>
+    <h2 id="shortcutsTitle">اختصارات اليومية</h2>
+    <dl class="shortcut-list">
+      <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>اختيار الخدمة السابقة أو التالية</dd></div>
+      <div><dt><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></dt>
+        <dd>تحريك الخدمة داخل قسمها</dd></div>
+      <div><dt><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></dt>
+        <dd>بديل لتحريك الخدمة لو النظام حجز الاختصار الأول</dd></div>
+      <div><dt><kbd>Enter</kbd> أو <kbd>E</kbd></dt><dd>تعديل الخدمة المختارة</dd></div>
+      <div><dt><kbd>D</kbd></dt><dd>تكرار الخدمة من غير الأشخاص</dd></div>
+      <div><dt><kbd>Delete</kbd></dt><dd>حذف الخدمة المختارة</dd></div>
+      <div><dt><kbd>N</kbd></dt><dd>إضافة خدمة في القسم الحالي</dd></div>
+      <div><dt><kbd>PageUp</kbd> / <kbd>PageDown</kbd></dt><dd>اليوم السابق / التالي</dd></div>
+      <div><dt><kbd>T</kbd></dt><dd>الذهاب للنهاردة</dd></div>
+      <div><dt><kbd>Ctrl</kbd> + <kbd>Enter</kbd></dt><dd>حفظ نموذج الخدمة وهو مفتوح</dd></div>
+      <div><dt><kbd>?</kbd></dt><dd>فتح شاشة الاختصارات دي</dd></div>
+    </dl>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

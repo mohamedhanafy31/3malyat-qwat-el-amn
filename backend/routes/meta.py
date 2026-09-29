@@ -8,14 +8,15 @@ from datetime import date
 
 from flask import Blueprint, jsonify
 
+from .. import clock, day_status, rest_suspension
 from ..assignments import OFFICER_STATUSES
 from ..board import BOARD_ORDER
 from ..constants import (
-    COMMAND_ROLES, LEAVE_TYPES, MEDICAL_BADGE, OFFICER_SECTIONS, REST_DURATIONS,
+    COMMAND_ROLES, GROUP_ROLES, LEAVE_TYPES, OFFICER_SECTIONS, REST_DURATIONS,
     REST_SYSTEMS, SERVICE_DOCUMENTS, SERVICE_KINDS, SERVICE_SECTIONS, SHIFTS,
     TAQSEERA_NOTICE_DAYS, WEEKDAYS,
 )
-from ..leaves import monthly_roster
+from ..leaves import monthly_roster, weekly_roster
 from ..rest_status import officer_status, taqseera_alerts
 from ..repo import Repos
 from ..store import load_data
@@ -38,10 +39,11 @@ def _meta(data):
         "service_documents": SERVICE_DOCUMENTS,
         "officer_statuses": OFFICER_STATUSES,
         "officer_sections": OFFICER_SECTIONS,
-        "service_tags": Repos(data).config.tags(),
         "command_roles": COMMAND_ROLES,
         "command": Repos(data).config.command(),
-        "medical_badge": MEDICAL_BADGE,
+        "group_roles": GROUP_ROLES,
+        "command_groups": Repos(data).config.groups(),
+        "rest_suspension": rest_suspension.summary(data),
         "today": date.today().isoformat(),
     }
 
@@ -95,6 +97,7 @@ def bootstrap(page):
                       if officer_status(data, o.as_dict(), today)["state"] == "resting")
         alerts = taqseera_alerts(data, today)
         return jsonify({"meta": meta, "alerts": alerts, "upcoming": build_upcoming(data, today),
+                        "clock_warning": clock.check(today),
                         "counts": {
                             **_counts(data),
                             "on_rest": on_rest,
@@ -107,7 +110,7 @@ def bootstrap(page):
             "officers": {"active": _officers_with_status(data, today),
                           "archive": Repos(data).people.bucket("officers", "archive")},
             "command": Repos(data).config.command(),
-            "medical_officers": Repos(data).config.medical(),
+            "command_groups": Repos(data).config.groups(),
             "alerts": taqseera_alerts(data, today),
             "counts": _counts(data),
         })
@@ -134,12 +137,15 @@ def bootstrap(page):
         return jsonify(payload)
 
     if page == "board":
-        payload = _days_payload(data, meta)
-        payload["officer_index"] = _slim(Repos(data).people.all("officers"))
-        payload["personnel_index"] = _slim(Repos(data).people.active("personnel"))
-        return jsonify(payload)
+        # مفيش officer_index/personnel_index هنا — مين ينفع يتكلّف في خانة
+        # بيتحدد **لليوم المفتوح بالظبط**، فقايمة الاختيار بتيجي من
+        # `build_board()` نفسها (`roster`) مش من بيانات ثابتة هنا.
+        return jsonify(_days_payload(data, meta))
 
     if page == "counts":
+        return jsonify(_days_payload(data, meta))
+
+    if page == "afraad":
         return jsonify(_days_payload(data, meta))
 
     if page == "changes":
@@ -171,11 +177,33 @@ def bootstrap(page):
         # صفحة الإحصائيات محتاجة meta + counts فقط — الداتا بتيجي من /api/leaves/stats
         return jsonify({"meta": meta, "counts": _counts(data)})
 
+    if page == "duty_stats":
+        # زي leaves_stats بالظبط — الداتا بتيجي من /api/duty/stats
+        return jsonify({"meta": meta, "counts": _counts(data)})
+
+    if page == "service_catalog":
+        # زي leaves_stats بالظبط — الداتا بتيجي من /api/service-catalog
+        return jsonify({"meta": meta, "counts": _counts(data)})
+
+    if page == "officer_log":
+        # قايمة الضباط لاختيار مين تعرض سجله — الضباط الحاليين بس (على
+        # عكس courses/missions اللي محتاجين المتأرشفين كمان لسجل قديم
+        # ليهم)، عشان القايمة ما تتزحلقش بأسماء خرجوا من القوة من زمان.
+        payload = {"meta": meta, "counts": _counts(data)}
+        payload["officer_index"] = _slim(Repos(data).people.active("officers"))
+        return jsonify(payload)
+
+    if page == "rest_suspension":
+        # الأوامر نفسها بتيجي من /api/rest-suspensions — هنا meta بس
+        return jsonify({"meta": meta, "counts": _counts(data)})
+
     if page == "leaves_monthly":
         # الاسم "roster" مقصود مش "officers" — core.js's paintNavCounts()
         # بتفترض إن أي مفتاح "officers" شكله {active, archive} زي صفحة
         # الضباط، ومش قايمة مسطّحة زي الكشف ده.
+        weekly_today = date.fromisoformat(day_status.today_iso())
         return jsonify({"meta": meta, "roster": monthly_roster(data, today),
+                        "weekly_roster": weekly_roster(data, weekly_today),
                         "counts": _counts(data)})
 
     return jsonify({"error": "صفحة غير معروفة."}), 404

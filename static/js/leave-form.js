@@ -39,6 +39,12 @@ function openLeave(leaveId, personId, personHint) {
     $("#lvEnd").value = $("#lvStart").value;
     applyDuration();
   }
+  // راحة اتوقفت قبل كده: تواريخها ونوعها وصاحبها مقفولين (الباك إند بيرفض
+  // تغييرهم أصلًا) — الملاحظة بس اللي تتعدّل.
+  const locked = !!lv?.stopped_on;
+  ["#lvPerson", "#lvType", "#lvStart", "#lvEnd"].forEach(sel => {
+    const el = $(sel); el.disabled = locked; el.value = el.value;   // بيحدّث حقل البحث الظاهر
+  });
   updateHint(); openModal("leaveModal");
 }
 
@@ -56,6 +62,9 @@ function updateHint() {
   let msg = `المدة ${n} يوم — العودة يوم ${dayName(addDays(e, 1))} ${fmt(addDays(e, 1))}`;
   msg += ` • التقصيرة يوم ${dayName(addDays(s, -1))} ${fmt(addDays(s, -1))}`;
   if (std && n !== std) msg += ` ⚠ المدة القياسية لـ«${t}» ${std} أيام`;
+  if ((META.rest_suspension?.types || []).includes(t))
+    msg += ` • ⛔ الراحات «${t}» موقوفة حاليًا للضباط — التسجيل هيترفض`;
+  if ($("#lvStart").disabled) msg += " • 🔒 الراحة دي اتوقفت — الملاحظة بس اللي تتعدّل";
   $("#lvHint").textContent = msg;
 }
 

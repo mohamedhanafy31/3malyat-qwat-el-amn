@@ -3,16 +3,25 @@
    سجلات الراحات هنا. */
 const IS_OFF = PAGE === "officers";
 let LIST = {active: [], archive: []}, BUCKET = "active";
-let COMMAND = {}, MEDICAL = [];
+let COMMAND = {}, COMMAND_GROUPS = {};
 
+const readMulti = el => [...el.selectedOptions].map(o => o.value);
 const personById = id => [...LIST.active, ...LIST.archive].find(p => p.id === id);
 const commandOf = id => COMMAND_ROLES().find(r => COMMAND[r] === id);
-const isMedical = id => MEDICAL.includes(id);
+const groupRolesOf = id => GROUP_ROLES().filter(r => (COMMAND_GROUPS[r] || []).includes(id));
+
+/* ضابط في راحة دلوقتي — إيقافها من هنا مباشرة (`rest-stop.js`) */
+function restStopButton(p) {
+  const lv = p.status_today?.state === "resting" ? p.status_today.leave : null;
+  if (!lv?.id) return "";
+  return `<button class="mini bad" data-action="stopRestFor" data-id="${esc(lv.id)}"
+    data-extra="${dataAttr({name: p.name, type: lv.type, start: lv.start, end: lv.end})}">إيقاف الراحة</button>`;
+}
+ACTIONS.stopRestFor = (id, extra) => openStopLeave({id, ...extra}, load);
 
 function badges(p) {
-  const role = commandOf(p.id);
-  return (role ? ` <span class="chip cmd">${esc(role)}</span>` : "")
-       + (isMedical(p.id) ? ` <span class="chip cmd">${esc(MEDICAL_BADGE())}</span>` : "");
+  const roles = [commandOf(p.id), ...groupRolesOf(p.id)].filter(Boolean);
+  return roles.map(r => ` <span class="chip cmd">${esc(r)}</span>`).join("");
 }
 
 function renderStats() {
@@ -80,18 +89,21 @@ function renderTable() {
       role:      { label: "الرتبة",      fn: p => rankIndex(p.role),                type: "num"  },
       code:      { label: "الأقدمية",    fn: p => p.code,                           type: "text" },
       post:      { label: "العمل المسند",fn: p => p.post || "",                     type: "text" },
+      weapon:    { label: "عهدة السلاح", fn: p => p.weapon_custody || "",           type: "text" },
       rest:      { label: "نظام الراحة", fn: p => p.rest_system || "—",             type: "text" },
     };
     extraHeads = ["الهاتف", "الإجراء"];
     rowHtml = p => {
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
         <button class="mini ok" data-action="openLeaveFor" data-id="${esc(p.id)}">راحة</button>
+        ${restStopButton(p)}
         <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">إخراج</button>`;
       return `<tr>
         <td class="name">${esc(p.name)}${badges(p)}<div class="sub">${esc(p.role)}</div></td>
         <td><span class="badge">${esc(p.role)}</span></td>
         <td>${esc(p.code)}</td>
         <td>${esc(p.post) || "-"}</td>
+        <td>${esc(p.weapon_custody) || "<span class='muted'>—</span>"}</td>
         <td>${restLabel(p)}</td>
         <td class="num">${esc(p.phone) || dash}</td>
         <td><div class="actions">${acts}</div></td></tr>`;
@@ -192,19 +204,26 @@ function renderTable() {
 function render() { renderStats(); renderTable(); }
 
 
-/* ---------- قيادة الإدارة + ضباط العيادة (صفحة الضباط بس) ---------- */
-/* الاتنين إعدادات بتتغيّر مرة كل حركة ضباط، فالاتنين بقوا مطويين تحت الجدول
-   بنفس الشكل. سطر الملخص بيقول مين شايل كل منصب من غير ما تفتح الكرت. */
+/* ---------- قيادة الإدارة (صفحة الضباط بس) ---------- */
+/* إعدادات بتتغيّر مرة كل حركة ضباط، فمطوية تحت الجدول. سطر الملخص بيقول
+   مين شايل كل منصب من غير ما تفتح الكرت. */
 function renderCommand() {
   const box = $("#commandBar"); if (!box) return;
+  const wasOpen = box.querySelector("details")?.open;
   const officers = LIST.active;
-  const held = COMMAND_ROLES().map(role => {
-    const p = COMMAND[role] ? personById(COMMAND[role]) : null;
-    return p ? `${role}: ${esc(p.role)} / ${esc(p.name)}` : null;
-  }).filter(Boolean);
+  const held = [
+    ...COMMAND_ROLES().map(role => {
+      const p = COMMAND[role] ? personById(COMMAND[role]) : null;
+      return p ? `${role}: ${esc(p.role)} / ${esc(p.name)}` : null;
+    }),
+    ...GROUP_ROLES().map(role => {
+      const ids = COMMAND_GROUPS[role] || [];
+      return ids.length ? `${role} (${ids.length})` : null;
+    }),
+  ].filter(Boolean);
 
   box.innerHTML = `
-    <details class="settings-fold">
+    <details class="settings-fold"${wasOpen ? " open" : ""}>
       <summary>
         <span class="fold-title">قيادة الإدارة</span>
         <span class="fold-now">${held.length ? held.join(" • ")
@@ -223,6 +242,24 @@ function renderCommand() {
           ${p ? `<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
               : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
       }).join("")}</div>
+      <p class="hint" style="margin:16px 0 12px">«طبي» و«بحث» ممكن يشيلهم أكتر من ضابط
+        في نفس الوقت — اختار كل الضباط اللي عليهم بالمنصب ده، وبعدين
+        اضغط «حفظ».</p>
+      <div class="cmd-slots">${GROUP_ROLES().map(role => {
+        const ids = COMMAND_GROUPS[role] || [];
+        return `<label class="cmd-slot"><span class="cmd-role">${esc(role)}</span>
+          <div class="cmd-group-pick">
+            <select data-group-role="${esc(role)}" multiple size="4">
+              ${officers.map(o => `<option value="${esc(o.id)}" ${ids.includes(o.id) ? "selected" : ""}>${esc(o.role)} / ${esc(o.name)}</option>`).join("")}
+            </select>
+            <button type="button" class="mini ok" data-save-group="${esc(role)}">حفظ</button>
+          </div>
+          ${ids.length ? `<span class="cmd-now">${ids.map(oid => {
+              const p = personById(oid);
+              return p ? `${esc(p.role)} / ${esc(p.name)}` : "";
+            }).filter(Boolean).join("، ")}</span>`
+              : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
+      }).join("")}</div>
     </details>`;
 
   upgradeSelects(box);   // القوايم دي متولّدة بعد التحميل الأول
@@ -231,39 +268,16 @@ function renderCommand() {
     if (!out) { renderCommand(); return }   // رجّع الاختيار القديم لو الطلب اترفض
     showToast("تم تحديث القيادة"); load();
   });
-}
-
-/* ضباط العيادة — إعداد بيتظبط مرة كل فترة طويلة، فمطوي في آخر الصفحة
-   وبيوضح المحددين حاليًا في سطر واحد من غير ما ياخد مساحة. */
-function renderMedical() {
-  const box = $("#medicalBar"); if (!box) return;
-  const chosen = LIST.active.filter(o => isMedical(o.id));
-  box.innerHTML = `
-    <details class="settings-fold">
-      <summary>
-        <span class="fold-title">${esc(MEDICAL_BADGE())}</span>
-        <span class="fold-now">${chosen.length
-          ? chosen.map(o => esc(o.role) + " / " + esc(o.name)).join(" • ")
-          : "<span class='muted'>مش محدد</span>"}</span>
-        <span class="fold-hint">تعديل</span>
-      </summary>
-      <p class="hint" style="margin:12px 0">تشغيلهم "طبية" (موجود/راحة) بيتحسب
-        تلقائيًا في أي يوم جديد من غير تكليف يدوي.</p>
-      <div class="svc-picker" id="medOfficerPicker" style="margin-bottom:0">
-        ${LIST.active.map(o => `<label class="svc-item ${isMedical(o.id) ? "on" : ""}">
-          <input type="checkbox" value="${esc(o.id)}" ${isMedical(o.id) ? "checked" : ""}>
-          <span class="svc-name">${esc(o.role)} / ${esc(o.name)}</span>
-        </label>`).join("")}
-      </div>
-    </details>`;
-
-  const picker = $("#medOfficerPicker");
-  picker.querySelectorAll("input").forEach(cb => cb.onchange = async () => {
-    cb.closest(".svc-item").classList.toggle("on", cb.checked);
-    const ids = [...picker.querySelectorAll("input:checked")].map(x => x.value);
-    const out = await api("/api/medical-officers", jsonReq("PATCH", {officer_ids: ids}));
-    if (!out) { renderMedical(); return }
-    showToast("تم تحديث ضباط العيادة"); load();
+  // مناصب «طبي»/«بحث» بتتحفظ بزرار — مش عند كل تحديد/إلغاء اختيار، عشان
+  // اختيار كذا ضابط من قايمة الاختيار المتعدد يفضل مفتوح من غير ما يتقفل
+  // ويرجّع الصفحة تحمّل تاني بعد أول اختيار.
+  box.querySelectorAll("[data-save-group]").forEach(btn => btn.onclick = async () => {
+    const role = btn.dataset.saveGroup;
+    const sel = box.querySelector(`[data-group-role="${CSS.escape(role)}"]`);
+    const out = await api("/api/command-groups", jsonReq("PATCH", {[role]: readMulti(sel)}));
+    if (!out) return;
+    COMMAND_GROUPS = out;
+    showToast("تم تحديث القيادة"); render(); renderCommand();
   });
 }
 
@@ -271,6 +285,7 @@ function renderMedical() {
 function updateRoles() {
   const isOff = $("#type").value === "officer";
   fillSelect($("#role"), (isOff ? OFFICER_ROLES : PERSONNEL_ROLES).map(x => [x, x]), true);
+  $("#weaponWrap").classList.toggle("hidden", !isOff);
   $("#restSysWrap").classList.toggle("hidden", !isOff);
   $("#restDayWrap").classList.toggle("hidden", !isOff);
   $("#addressWrap").classList.toggle("hidden", isOff);
@@ -298,6 +313,7 @@ function openPerson(id) {
   $("#fPhone").value = p?.phone || "";
   $("#fJoin").value = p?.join_date || curDate();
   $("#fPost").value = p?.post || "";
+  $("#fWeaponCustody").value = p?.weapon_custody || "";
   $("#fAddress").value = p?.address || "";
   if (p?.role) fillSelect($("#role"),
     [[p.role, p.role], ...(IS_OFF ? OFFICER_ROLES : PERSONNEL_ROLES).filter(x => x !== p.role).map(x => [x, x])]);
@@ -316,8 +332,11 @@ $("#personForm").onsubmit = async e => {
   const id = $("#personId").value, isOff = $("#type").value === "officer";
   const body = {name: $("#fName").value, role: $("#role").value, code: $("#fCode").value,
     phone: $("#fPhone").value, join_date: $("#fJoin").value, post: $("#fPost").value};
-  if (isOff) { body.rest_system = $("#fRestSystem").value; body.rest_day = $("#fRestSystem").value === "أسبوعية" ? $("#fRestDay").value : "" }
-  else body.address = $("#fAddress").value;
+  if (isOff) {
+    body.rest_system = $("#fRestSystem").value;
+    body.rest_day = $("#fRestSystem").value === "أسبوعية" ? $("#fRestDay").value : "";
+    body.weapon_custody = $("#fWeaponCustody").value.trim();
+  } else body.address = $("#fAddress").value;
   if (!$("#archiveFields").classList.contains("hidden")) {
     body.leave_date = $("#fLeaveDate").value; body.leave_reason = $("#fLeaveReason").value;
   }
@@ -330,8 +349,28 @@ $("#personForm").onsubmit = async e => {
 
 $("#removeForm").onsubmit = async e => {
   e.preventDefault();
-  const out = await api(`/api/person/${encodeURIComponent($("#removeId").value)}/remove`,
-    jsonReq("POST", {leave_date: $("#leaveDate").value, reason: $("#reason").value}));
+  const id = $("#removeId").value;
+  const body = {leave_date: $("#leaveDate").value, reason: $("#reason").value};
+
+  // فيه راحات/فرق/تكليفات مسجّلة بعد تاريخ الخروج ده؟ السيرفر بيرفض
+  // (409 + needs_confirm) من غير تأكيد صريح — نعرض ملخّص ونسأل قبل
+  // ما نعيد النداء بـ`cleanup: true`.
+  let conflicts = null;
+  let out = await api(`/api/person/${encodeURIComponent(id)}/remove`,
+    {...jsonReq("POST", body), onError: (b) => {
+      if (b && b.needs_confirm) { conflicts = b; return true; }
+      return false;
+    }});
+
+  if (!out && conflicts) {
+    const summary = Object.entries(conflicts.conflicts || {})
+      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.length : v}`).join("، ");
+    if (confirm(`فيه بيانات مسجّلة بعد تاريخ الخروج ده (${summary}) — `
+                + "تأكيد تنظيفها والإخراج؟")) {
+      out = await api(`/api/person/${encodeURIComponent(id)}/remove`,
+        jsonReq("POST", {...body, cleanup: true}));
+    }
+  }
   if (!out) return;
   closeModal("removeModal"); showToast("تم الإخراج وحفظ السجل في الأرشيف"); load();
 };
@@ -342,8 +381,15 @@ ACTIONS.openRemove = (id, extra) => {
   $("#leaveDate").value = curDate(); $("#reason").value = ""; openModal("removeModal");
 };
 ACTIONS.restorePerson = async id => {
+  // تاريخ الانضمام لازم يكون بعد تاريخ خروجه القديم — وإلا نفس الشخص
+  // يتحسب مرتين في نفس اليوم على القوة (السجل القديم لسه بيغطي يوم
+  // خروجه، والجديد بدأ منه أو قبله). السيرفر بيرفض (400) لو مخالف.
+  const joinDate = prompt("تاريخ الانضمام الجديد (سيب الحقل فاضي لاستخدام النهاردة):",
+                          curDate());
+  if (joinDate === null) return;
   if (!confirm("استرجاع هذا السجل إلى القوة؟")) return;
-  if (await api(`/api/person/${encodeURIComponent(id)}/restore`, {method: "POST"})) {
+  const body = joinDate.trim() ? {join_date: joinDate.trim()} : {};
+  if (await api(`/api/person/${encodeURIComponent(id)}/restore`, jsonReq("POST", body))) {
     showToast("تم الاسترجاع إلى القوة"); load();
   }
 };
@@ -375,12 +421,12 @@ async function load() {
   LIST = IS_OFF ? d.officers : d.personnel;
   $("#addBtn").textContent = IS_OFF ? "＋ إضافة ضابط" : "＋ إضافة فرد";
   if (IS_OFF) {
-    COMMAND = d.command || {}; MEDICAL = d.medical_officers || [];
+    COMMAND = d.command || {};
+    COMMAND_GROUPS = d.command_groups || {};
     fillSelect($("#restFilter"), [["", "كل أنظمة الراحة"], ["__rest_now", "في راحة اليوم"],
       ...REST_SYSTEMS().map(x => [x, x])], true);
     renderAlerts(d.alerts);
     renderCommand();
-    renderMedical();
     if (typeof setLeavePeople === "function") setLeavePeople(LIST.active);
   }
   render();

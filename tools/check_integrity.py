@@ -51,6 +51,7 @@ def targets(data):
         "individual": _people_ids(data, "personnel"),
         "person": _people_ids(data, "officers") | _people_ids(data, "personnel"),
         "course": {c.get("id") for c in data.get("courses") or []},
+        "rest_suspension": {s.get("id") for s in data.get("rest_suspensions") or []},
     }
 
 

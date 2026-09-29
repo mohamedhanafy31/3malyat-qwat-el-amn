@@ -1,9 +1,9 @@
 """أدوات عامة صغيرة مستخدمة في أكتر من مكان."""
-from datetime import date
+from datetime import date, timedelta
 
 from flask import request
 
-from .constants import COMMAND_ROLES, RANK_ORDER
+from .constants import COMMAND_ROLES, RANK_ORDER, WEEKDAYS
 
 
 def json_payload():
@@ -18,6 +18,19 @@ def parse_date(value):
         return date.fromisoformat(str(value).strip())
     except (ValueError, TypeError):
         return None
+
+
+# WEEKDAYS بيبدأ بالسبت؛ date.weekday() بيبدأ بالاثنين (0=اثنين .. 6=أحد) —
+# جدول التحويل ده مكانه هنا عشان أي كود محتاج «اسم يوم الأسبوع من تاريخ»
+# (راحة الضباط الأسبوعية، جدول التفتيشات) يستخدم نفس التحويل بالظبط.
+_TO_PY_WEEKDAY = [5, 6, 0, 1, 2, 3, 4]      # السبت=5, الأحد=6, الاثنين=0 ...
+_PY_WEEKDAY_TO_INDEX = {py: i for i, py in enumerate(_TO_PY_WEEKDAY)}
+
+
+def weekday_name(value):
+    """اسم يوم الأسبوع بالعربي (من `WEEKDAYS`) لتاريخ ISO — أو None لو غلط."""
+    parsed = parse_date(value)
+    return WEEKDAYS[_PY_WEEKDAY_TO_INDEX[parsed.weekday()]] if parsed else None
 
 
 def canonical_day(value):
@@ -36,7 +49,8 @@ def canonical_day(value):
 # حدود طول الحقول الحرة — مش قواعد تشغيلية، دي حماية من الإدخال الغلط
 # (لصق صفحة كاملة في خانة الاسم) ومن تضخيم ملف البيانات.
 MAX_LEN = {"name": 120, "code": 40, "phone": 30, "post": 200,
-           "address": 200, "note": 500, "reason": 200}
+           "address": 200, "note": 500, "reason": 200, "section": 60,
+           "weapon_custody": 60}
 
 
 def too_long(payload, field):
@@ -81,7 +95,10 @@ def category_for(person_type):
 
 
 def command_priority_map(data):
-    """{officer_id: ترتيبه بين مناصب القيادة} — مدير الإدارة أولًا ثم وكيله."""
+    """{officer_id: ترتيبه بين مناصب القيادة} — مدير الإدارة أولًا ثم وكيله.
+
+    «طبي» و«بحث» (`command_groups`) مش هنا عن قصد — منصبين جماعيين
+    مالهمش أثر على ترتيب أي قايمة ضباط، عكس مدير/وكيل الإدارة."""
     priority = {}
     command = (data or {}).get("command") or {}
     for i, role in enumerate(COMMAND_ROLES):
@@ -106,4 +123,43 @@ def sort_active(data, category):
     زي ما هو معمول من الأول."""
     from .repo import PeopleRepo
     PeopleRepo(data).sort(category)
+
+
+# ---------- مدى تاريخ بيتحل من فلتر مستخدم (تجميع على عدة أيام) ----------
+# مستخدمة في أي صفحة بتلفّ على مدى أيام بدل يوم واحد (إحصائيات التشغيل،
+# سجل خدمات الضابط) — منطق واحد لتحديد المدى الافتراضي وقايمة الأيام
+# المسجّلة فعلًا، بدل ما يتكرر في كل موديول.
+
+def days_between(start, end):
+    """كل يوم بين `start` و`end` (شاملهم) كنص معياري — start/end كائنات date."""
+    out, cur = [], start
+    while cur <= end:
+        out.append(cur.isoformat())
+        cur += timedelta(days=1)
+    return out
+
+
+def resolve_recorded_range(data, filters, default_range_days=30):
+    """(date_from, date_to, recorded) بصورتهم المعيارية — افتراضي آخر
+    `default_range_days` يوم فيهم يومية فعلًا لو الفلتر فاضي.
+
+    `recorded` = تكليف أو حالة ضابط مسجّلة — نفس تعريف `register.py::
+    recorded_days()` بالظبط، وعن قصد **أضيق** من `DayRepo.dates()`
+    (اللي بتضيف قفل/تأكيد/عدّ خدمات كمان): يوم اتقفل أو اتأكد من غير
+    ما حد يكتب فيه تكليف أو حالة ضابط لسه مش «يوم شغل فعلي» — بالظبط
+    الالتباس اللي `register.py` بيتفاداه بالتفرقة دي. تقصيرة أو حالة
+    مسجّلة بس من غير تكليف لسه لازم تتحسب، فـ`day_officers` باقي في
+    التعريف — بس مش القفل/التأكيد/العدّ.
+    """
+    recorded = sorted(set(data.get("day_assignments") or {}) | set(data.get("day_officers") or {}))
+    date_from = canonical_day(filters.get("date_from", ""))
+    date_to = canonical_day(filters.get("date_to", ""))
+    if not date_to:
+        date_to = recorded[-1] if recorded else date.today().isoformat()
+    if not date_from:
+        end = date.fromisoformat(date_to)
+        date_from = (end - timedelta(days=default_range_days - 1)).isoformat()
+    if date_from > date_to:
+        date_from, date_to = date_to, date_from
+    return date_from, date_to, recorded
 

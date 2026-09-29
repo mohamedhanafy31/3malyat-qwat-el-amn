@@ -11,6 +11,10 @@
 from .assignments import peek_day
 from .constants import SHIFTS, WARNING_LEVELS
 from .leaves import leave_on
+from .missions import missions as missions_of_data
+from .people import officers_on
+from .rest_status import is_weekly_rest_weekday
+from .rest_suspension import is_suspended_on
 from .text import norm
 
 
@@ -34,15 +38,56 @@ def duplicate_of(data, day, name, shift, person_ids, ignore_id=None):
     return None
 
 
+def _started_mission_members(data, day):
+    """أعضاء أي مأمورية حالتها «بدأت» وبدأت في اليوم ده أو قبله — المأمورية
+    مالهاش تاريخ نهاية (دورة حياتها هي اللي بتتابَع)، فـ«لسه ما رجعش» يعني
+    أي يوم من البداية لحد ما حد يغيّر حالتها بالإيد لـ«عادت»."""
+    out = set()
+    for m in missions_of_data(data):
+        if m.get("status") == "بدأت" and m.get("start") and m["start"] <= day:
+            out.update(m.get("member_ids") or [])
+    return out
+
+
 def day_warnings(data, day, rows):
     """تنبيهات اليوم من صفوف يومية الضباط المحسوبة.
 
     `rows` هي مخرجات summarise — فيها التكليفات والراحة والحالة لكل ضابط.
     """
     out = []
+    on_mission = _started_mission_members(data, day)
+    raw_officers = {o["id"]: o for o in officers_on(data, day)}
 
     for row in rows:
         name = f'{row["role"]}/ {row["name"]}'.strip(" /")
+
+        # النهاردة يوم راحته الأسبوعية الثابت (`rest_day`) ومفيش راحة
+        # مسجّلة له — الحساب الأسبوعي دايمًا تخمين دوري لحد ما تُسجّل
+        # الراحة فعليًا (`rest_status.next_rest_start`)، فالتنبيه ده
+        # تذكير يسجّلها بدل ما تفضل تنبيه تقصيرة/راحة يطلع لوحده صامت.
+        officer = raw_officers.get(row["id"]) or {}
+        if (officer.get("rest_system") == "أسبوعية" and officer.get("rest_day")
+                and is_weekly_rest_weekday(officer["rest_day"], day) and not row["leave"]
+                # الفرقة سبب مقصود لعدم تسجيل الراحة الأسبوعية في اليوم ده
+                and not row["course"]
+                # الراحة الأسبوعية موقوفة بأمر — مفيش راحة مستحقة تتسجّل أصلًا
+                and not is_suspended_on(data, "أسبوعية", day)):
+            out.append(_tag({
+                "kind": "راحة أسبوعية غير مسجلة",
+                "officer_id": row["id"],
+                "text": f'{name} النهاردة يوم راحته الأسبوعية ({officer["rest_day"]}) '
+                        "ولسه مالوش راحة مسجّلة",
+            }))
+
+        # مكلّف بخدمة وهو في مأمورية «بدأت» ولسه ما اترجّعش — المأمورية
+        # مالهاش سجل يومي يمنع التكليف زي الراحة، فممكن يفضل معيّن على
+        # خدمة يومية من غير أي علم إنه في مأمورية.
+        if row["id"] in on_mission and row["services"]:
+            out.append(_tag({
+                "kind": "مأمورية",
+                "officer_id": row["id"],
+                "text": f'{name} مكلّف بخدمة وهو في مأمورية «بدأت» ولسه ما رجعش',
+            }))
 
         # مكلّف وهو في راحة — بيحصل غلط، والوورد مابيعملهوش
         if row["leave"] and row["services"]:
@@ -51,6 +96,17 @@ def day_warnings(data, day, rows):
                 "officer_id": row["id"],
                 "text": f'{name} مكلّف بخدمة وهو في {row["leave"]["type"]}'
                         f' لحد {row["leave"]["end"]}',
+            }))
+
+        # راحة والتحاق فرقة في نفس اليوم — الاتنين مسجّلين لوحدهم من غير
+        # تعارض بينهم (build_leave وbuild_term ما بيشوفش حاجة عن التاني)،
+        # فممكن ضابط يفضل عنده الاتنين سهوًا.
+        if row["leave"] and row["course"]:
+            out.append(_tag({
+                "kind": "راحة+فرقة",
+                "officer_id": row["id"],
+                "text": f'{name} في {row["leave"]["type"]} و«{row["course"]["name"]}» '
+                        "في نفس اليوم",
             }))
 
         # حالة خوارج (انتداب/غياب/مرضي/فرقة) مع تكليف

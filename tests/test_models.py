@@ -190,8 +190,6 @@ def test_assignment_label_embeds_the_shift():
     row = Assignment.from_dict({"name": "تدخل سريع", "shift": "صباحية"})
     assert row.label() == "تدخل سريع صبح"
     assert row.label(with_shift=False) == "تدخل سريع"
-    row.label_override = "اسم تاني"
-    assert row.label() == "اسم تاني"
 
 
 def test_empty_officer_state_is_detected():

@@ -127,3 +127,23 @@ def test_log_is_capped(client, monkeypatch):
     data = store.load_data()
     assert len(changes.log(data)) == 3
     assert [e["entity_id"] for e in changes.log(data)] == ["AS-3", "AS-4", "AS-5"]
+
+
+def test_entries_dropped_from_the_cap_are_archived_not_lost(client, monkeypatch):
+    """السطور اللي بتتشال من data.json لما السقف يوصله مش لازم تروح
+    للأبد — بتتضاف لملف أرشيف قبل الحذف."""
+    import json
+    from backend import changes, store
+
+    monkeypatch.setattr(changes, "MAX_ENTRIES", 3)
+
+    def mutate(data):
+        for i in range(6):
+            changes.record(data, "assignment", f"AS-{i}", "create", after={"i": i})
+        return None
+
+    store.with_data(mutate)
+
+    archived = [json.loads(line) for line in changes._archive_path().read_text(
+        encoding="utf-8").splitlines()]
+    assert [e["entity_id"] for e in archived] == ["AS-0", "AS-1", "AS-2"]

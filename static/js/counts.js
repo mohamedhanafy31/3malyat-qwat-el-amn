@@ -4,7 +4,11 @@
    بلوك الطوارئ اليومي مالوش سجل هنا: بيتقرا مباشرة من قسم «الخدمات الطارئة»
    في اليومية التفصيلية، فأي خدمة طارئة بتتكتب هناك بتظهر هنا على طول. خانة
    العدد اللي جنب كل خدمة بتكتب على صف التكليف نفسه — نفس الحقل اللي خانة
-   الخدمة على اللوحة بتكتبه، فالرقم واحد مهما اتعدّل من فين. */
+   الخدمة على اللوحة بتكتبه، فالرقم واحد مهما اتعدّل من فين.
+
+   نفس المبدأ لأي قسم مخصّص المشغّل كتبه بإيده على اللوحة لليوم ده بس (زي
+   «خدمات مباراة المصري») — بيوصل هنا في `VIEW.custom_sections` وبياخد
+   بلوك مستقل بنفس شكل بلوك الطوارئ بالظبط. */
 let DAY = null, MODE = "day", VIEW = null;
 
 /* ---------- العرض ---------- */
@@ -20,12 +24,19 @@ function blockTotal(services, conscripts) {
     </span></div>`;
 }
 
+/* التسليح بيتحدد من هنا للأساسية بس — الطوارئ (متكررة أو يومية) بتاخده
+   من اليومية التفصيلية أصلًا (خانة التسليح على صف الخدمة في اللوحة). */
+const WEAPON_BLOCKS = new Set(["صباحية", "ليلية"]);
+
 function editableCard(label, block, rows) {
+  const showWeapon = WEAPON_BLOCKS.has(block);
+  const head = ["الخدمة", "الجهة", ...(showWeapon ? ["التسليح"] : []), "عدد المجندين", "الإجراء"];
   const body = rows.length
-    ? mtable(["الخدمة", "الجهة", "عدد المجندين", "الإجراء"], rows.map(e => `
+    ? mtable(head, rows.map(e => `
       <tr>
         <td class="name">${esc(e.name) || "<span class='muted'>—</span>"}</td>
         <td>${esc(e.party) || "<span class='muted'>—</span>"}</td>
+        ${showWeapon ? `<td>${esc(e.weapon) || "<span class='muted'>—</span>"}</td>` : ""}
         <td><strong>${e.count}</strong></td>
         <td><div class="actions">
           <button class="mini" data-action="openCount" data-id="${esc(e.id)}"
@@ -42,7 +53,11 @@ function editableCard(label, block, rows) {
     </h3>${body}${blockTotal(rows.length, total)}</div>`;
 }
 
-function emergencyCard(label, rows) {
+/* بلوك محسوب من اللوحة — لبلوك الطوارئ ولأي قسم مخصّص بنفس الشكل بالظبط.
+   `emptyText` بيفرّق الرسالة بين «مفيش طوارئ النهاردة» و«مفيش صفوف لسه
+   في القسم ده» لأن القسم المخصّص أصلًا اسمه معروف مسبقًا (مختلف عن
+   «الخدمات الطارئة» الثابت). */
+function boardCountCard(label, rows, emptyText) {
   const locked = VIEW?.locked;
   const body = rows.length
     ? mtable(["الخدمة", "الفترة", "الجهة", "القوام على اللوحة", "عدد المجندين"], rows.map(r => `
@@ -51,13 +66,12 @@ function emergencyCard(label, rows) {
         <td>${esc(r.shift) || "-"}</td>
         <td>${esc(r.party) || "<span class='muted'>—</span>"}</td>
         <td class="wrap">${esc(r.strength) || "<span class='muted'>—</span>"}</td>
-        <td><input class="emg-count" type="number" min="0" value="${r.count}"
+        <td><input class="board-count" type="number" min="0" value="${r.count}"
              data-id="${esc(r.assignment_id)}" ${locked ? "disabled" : ""}
              aria-label="عدد مجندين ${esc(r.name)}"></td>
       </tr>`))
-    : `<div class="mempty">مفيش خدمات طارئة في اليومية التفصيلية لليوم ده —
-         أي خدمة تتضاف هناك في قسم «الخدمات الطارئة» هتظهر هنا على طول</div>`;
-  const missing = VIEW?.emergency_missing || 0;
+    : `<div class="mempty">${esc(emptyText)}</div>`;
+  const missing = rows.filter(r => r.needs_count).length;
   const note = locked
     ? "اليوم ده مقفول — افتحه فتح استثنائي من اليومية التفصيلية عشان تعدّل الأعداد"
     : missing
@@ -98,17 +112,25 @@ function render() {
   $("#cntSeedBanner").style.display = (VIEW.from_template && !totalEntries) ? "" : "none";
   $("#btnReset").style.display = VIEW.from_template ? "none" : "";
   const t = VIEW.totals;
+  const customSections = VIEW.custom_sections || [];
+  const extraStat = t.custom
+    ? `<div class="stat stat-accent-purple"><span>أقسام إضافية</span><strong>${t.custom}</strong></div>`
+    : "";
   $("#cntTotals").innerHTML = `<div class="stats">
     <div class="stat"><span>أساسية صباحية</span><strong>${t.basic_am}</strong></div>
     <div class="stat"><span>أساسية ليلية</span><strong>${t.basic_pm}</strong></div>
     <div class="stat stat-accent-orange"><span>الطوارئ</span><strong>${t.emergency}</strong></div>
+    ${extraStat}
     <div class="stat stat-accent-blue"><span>الإجمالي الكلي</span><strong>${t.grand_total}</strong></div>
   </div>`;
   $("#cntBlocks").innerHTML = [
     editableCard("الخدمات الأساسية — صباحية", "صباحية", VIEW.basic_am),
     editableCard("الخدمات الأساسية — ليلية", "ليلية", VIEW.basic_pm),
     editableCard("طوارئ متكررة", "طوارئ", VIEW.recurring),
-    emergencyCard("طوارئ اليوم — من اليومية التفصيلية", VIEW.emergency),
+    boardCountCard("طوارئ اليوم — من اليومية التفصيلية", VIEW.emergency,
+      "مفيش خدمات طارئة في اليومية التفصيلية لليوم ده — أي خدمة تتضاف هناك في قسم «الخدمات الطارئة» هتظهر هنا على طول"),
+    ...customSections.map(sec => boardCountCard(sec.name, sec.rows,
+      `مفيش صفوف لسه — أضِف خدمة على اللوحة بقسم «${sec.name}» وهتظهر هنا على طول`)),
   ].join("");
   grandTotal(VIEW.services.total, t.grand_total, `إجمالي خدمات يوم ${dayName(DAY)} ${fmt(DAY)}`);
 }
@@ -125,13 +147,14 @@ function grandTotal(services, conscripts, label) {
     </div>`;
 }
 
-/* خانة العدد جوّه بلوك الطوارئ. المستمع على الحاوية نفسها (مش على كل خانة)
-   عشان render() بيستبدل كل المحتوى — الربط مرة واحدة وخلاص. */
+/* خانة العدد جوّه بلوك الطوارئ أو أي قسم مخصّص. المستمع على الحاوية نفسها
+   (مش على كل خانة) عشان render() بيستبدل كل المحتوى — الربط مرة واحدة
+   وخلاص. */
 $("#cntBlocks").addEventListener("change", async e => {
-  const box = e.target.closest(".emg-count");
+  const box = e.target.closest(".board-count");
   if (!box) return;
   const count = Math.max(0, parseInt(box.value) || 0);
-  const v = await api(`/api/counts/${DAY}/emergency/${encodeURIComponent(box.dataset.id)}`,
+  const v = await api(`/api/counts/${DAY}/board/${encodeURIComponent(box.dataset.id)}`,
                       jsonReq("PATCH", {count}));
   if (!v) return;
   VIEW = v; showToast("تم حفظ العدد"); render();
@@ -175,6 +198,11 @@ function currentPool() {
   return [...VIEW.basic_am, ...VIEW.basic_pm, ...VIEW.recurring];
 }
 
+function syncWeaponVisibility() {
+  $("#cnWeaponWrap").style.display = WEAPON_BLOCKS.has($("#cnBlock").value) ? "" : "none";
+}
+$("#cnBlock").onchange = syncWeaponVisibility;
+
 function openCount(id, extra) {
   const row = id ? currentPool().find(e => e.id === id) : null;
   $("#cnId").value = id || "";
@@ -184,6 +212,8 @@ function openCount(id, extra) {
   $("#cnName").value = row?.name || "";
   $("#cnParty").value = row?.party || "";
   $("#cnCount").value = row?.count ?? 0;
+  $("#cnWeapon").value = row?.weapon || "";
+  syncWeaponVisibility();
   openModal("countModal");
 }
 ACTIONS.openCount = (id, extra) => openCount(id || null, extra);
@@ -203,6 +233,7 @@ $("#countForm").onsubmit = async e => {
     name: $("#cnName").value.trim(),
     party: $("#cnParty").value.trim(),
     count: parseInt($("#cnCount").value) || 0,
+    weapon: WEAPON_BLOCKS.has($("#cnBlock").value) ? $("#cnWeapon").value.trim() : "",
   };
   const id = $("#cnId").value;
   const source = $("#cnSource").value;

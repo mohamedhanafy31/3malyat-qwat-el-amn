@@ -11,7 +11,10 @@
 
     يوم فات       -> مقفول تلقائيًا (من الساعة ١٢ اللي بعده)
     النهاردة      -> مفتوح، إلا لو المشغّل قفله بدري بإيده
-    يوم جاي       -> مفتوح (التجهيز المسبق مسموح)
+    يوم جاي       -> لسة متفتحش (التجهيز المسبق يفضل مسموح، الحالة دي تصنيف عرض بس)
+
+الحالة الثلاثية دي (`stage`: closed/open/not_open) عرض بس — الكتابة نفسها
+لسه محكومة بـ`check_open` زي ما هي، ويوم جاي لسه ينفع تُجهّزه مقدّم.
 
 الفتح الاستثنائي (`reopen_day`) صالح **لليوم اللي اتعمل فيه بس** — بيرجع
 يتقفل تلقائي في منتصف الليل زي أي يوم تاني. من غير القيد ده كان الفتح
@@ -34,23 +37,40 @@ def _auto_closed_at(day):
         return ""
 
 
+def _stage(closed, day, today):
+    """الحالة الثلاثية المعروضة: مقفول / مفتوح (النهاردة) / لسة متفتحش
+    (يوم جاي لسه معدّاش عليه دوره). التجهيز المسبق ليوم جاي يفضل مسموح
+    زي ما هو — الحالة دي تصنيف عرض بس، ملهاش تأثير على `check_open`."""
+    if closed:
+        return "closed"
+    return "not_open" if day > today else "open"
+
+
 def status_of(data, day):
     entry = dict((data.get("day_status") or {}).get(day) or {})
     today = today_iso()
 
     # فتح استثنائي — صالح لليوم اللي اتعمل فيه بس
     if entry.get("reopened_on") == today:
-        return {**entry, "closed": False, "auto": False, "reopened": True}
+        result = {**entry, "closed": False, "auto": False, "reopened": True}
+        result["stage"] = _stage(False, day, today)
+        return result
 
     # قفل بدري بإيد المشغّل (قبل منتصف الليل)
     if entry.get("closed"):
-        return {**entry, "closed": True, "auto": False, "reopened": False}
+        result = {**entry, "closed": True, "auto": False, "reopened": False}
+        result["stage"] = _stage(True, day, today)
+        return result
 
     if day < today:
-        return {"closed": True, "auto": True, "reopened": False,
-                "closed_at": _auto_closed_at(day), "closed_by": ""}
+        result = {"closed": True, "auto": True, "reopened": False,
+                  "closed_at": _auto_closed_at(day), "closed_by": ""}
+        result["stage"] = _stage(True, day, today)
+        return result
 
-    return {"closed": False, "auto": False, "reopened": False}
+    result = {"closed": False, "auto": False, "reopened": False}
+    result["stage"] = _stage(False, day, today)
+    return result
 
 
 def is_closed(data, day):

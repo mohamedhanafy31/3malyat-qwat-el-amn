@@ -1,0 +1,24 @@
+<!-- ============ تفتيش في الجدول الأسبوعي (نظام التفتيشات) ============ -->
+<div class="modal hidden" id="inspectionModal">
+  <div class="modal-card small">
+    <button class="close" data-close="inspectionModal">×</button>
+    <h2 id="inspectionModalTitle">تفتيش جديد</h2>
+    <p class="hint" id="inspectionModalDay"></p>
+    <form id="inspectionForm">
+      <input type="hidden" id="inspWeekday">
+      <input type="hidden" id="inspId">
+      <label>اسم التفتيش <small>تفتيش + اسم السجن، مثال: تفتيش فيصل</small>
+        <input id="inspName" required placeholder="تفتيش ...">
+      </label>
+      <label>التسليح
+        <input id="inspWeapon">
+      </label>
+      <label>عدد المجندين
+        <input id="inspCount" type="number" min="0">
+      </label>
+      <div class="actions" style="margin-top:10px">
+        <button class="primary full" type="submit">حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>

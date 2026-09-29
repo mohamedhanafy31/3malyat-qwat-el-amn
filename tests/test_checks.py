@@ -45,6 +45,31 @@ def test_assigning_an_officer_on_leave_warns(client):
     assert "راحة" in _kinds(client, day)
 
 
+def test_opening_weekly_rest_day_registers_it_before_warnings(client):
+    """فتح اليومية بيسجّل الراحة الأسبوعية، فالتنبيه القديم مايظهرش."""
+    assert "راحة أسبوعية غير مسجلة" not in _kinds(client, "2026-04-11")
+
+
+def test_weekly_rest_warning_disappears_once_the_leave_is_recorded(client):
+    client.post("/api/leaves", json={"person_id": "OFF-001", "type": "أسبوعية",
+                                     "start": "2026-04-11", "end": "2026-04-11"})
+    assert "راحة أسبوعية غير مسجلة" not in _kinds(client, "2026-04-11")
+
+
+def test_weekly_rest_warning_does_not_fire_on_other_days(client):
+    assert "راحة أسبوعية غير مسجلة" not in _kinds(client, "2026-04-12")
+
+
+def test_leave_and_course_term_on_the_same_day_warns(client):
+    """OFF-001 عنده راحة يوم 2026-01-10 — التحاق فرقة يغطي نفس اليوم
+    مسجّل لوحده من غير أي فحص تعارض بينهم، فيستاهل تنبيه."""
+    course = client.post("/api/courses", json={"name": "فرقة اختبار"}).get_json()
+    client.post("/api/course-terms", json={
+        "course_id": course["id"], "officer_id": "OFF-001",
+        "start": "2026-01-05", "end": "2026-01-15"})
+    assert "راحة+فرقة" in _kinds(client, "2026-01-10")
+
+
 def test_status_plus_assignment_warns(client):
     client.put(f"/api/duty/{DAY}/OFF-002", json={"status": "انتداب"})
     _add(client, officer_ids=["OFF-002"])

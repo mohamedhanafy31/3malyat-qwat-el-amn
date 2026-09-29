@@ -43,9 +43,10 @@ def test_unseeded_day_view_is_all_zero(client):
     assert body["basic_am"] == body["basic_pm"] == body["recurring"] == []
     assert body["emergency"] == []
     assert body["totals"] == {"basic_am": 0, "basic_pm": 0, "recurring": 0,
-                              "emergency_day": 0, "emergency": 0, "grand_total": 0}
+                              "emergency_day": 0, "emergency": 0, "custom": 0, "grand_total": 0}
     assert body["services"] == {"basic_am": 0, "basic_pm": 0, "recurring": 0,
-                                "emergency_day": 0, "total": 0}
+                                "emergency_day": 0, "custom": 0, "total": 0}
+    assert body["custom_sections"] == []
     assert body["from_template"] is True
 
 
@@ -172,7 +173,7 @@ def test_the_count_can_be_typed_from_the_counts_page_itself(client, data_file):
     دلوقتي بيتكتب من هنا، وبيروح لنفس الحقل على صف التكليف."""
     row = _add_assignment(client, name="خدمة طارئة", section="الخدمات الطارئة")
 
-    r = client.patch(f"/api/counts/{DAY}/emergency/{row['id']}", json={"count": 7})
+    r = client.patch(f"/api/counts/{DAY}/board/{row['id']}", json={"count": 7})
     assert r.status_code == 200
     body = r.get_json()
     assert body["emergency"][0]["count"] == 7
@@ -184,7 +185,7 @@ def test_the_count_can_be_typed_from_the_counts_page_itself(client, data_file):
 
 def test_typing_a_count_on_a_non_emergency_row_is_refused(client):
     row = _add_assignment(client, name="خدمة أساسية", section="الخدمات أساسية")
-    assert client.patch(f"/api/counts/{DAY}/emergency/{row['id']}",
+    assert client.patch(f"/api/counts/{DAY}/board/{row['id']}",
                         json={"count": 4}).status_code == 404
 
 
@@ -192,11 +193,47 @@ def test_the_counts_page_cannot_edit_a_closed_day_through_the_side_door(client):
     row = _add_assignment(client, name="خدمة طارئة", section="الخدمات الطارئة")
     client.post(f"/api/day-status/{DAY}/close", json={})
 
-    assert client.patch(f"/api/counts/{DAY}/emergency/{row['id']}",
+    assert client.patch(f"/api/counts/{DAY}/board/{row['id']}",
                         json={"count": 3}).status_code == 409
     assert client.post(f"/api/counts/{DAY}/entries",
                        json={"block": "صباحية", "name": "س", "count": 1}).status_code == 409
     assert client.post(f"/api/counts/{DAY}/reset").status_code == 409
+
+
+def test_editing_the_template_freezes_a_past_days_view_first(client, frozen_today):
+    """يوم فات وليه سجل (تكليف مثلًا) ولسه بيقرا القالب الحيّ — تعديل
+    القالب النهاردة ما يلمسهوش، وإلا «اعداد الخدمات» بتاعته تتغيّر
+    بأثر رجعي رغم إن اليومية التفصيلية نفسها ما اتلمستش."""
+    _add_assignment(client)        # يسجّل DAY في DayRepo.dates() (لسه مفتوح)
+    frozen_today("2026-04-15")     # يخلي DAY (2026-04-10) «فات»
+
+    before = client.get(f"/api/counts/{DAY}").get_json()
+    assert before["from_template"] is True     # لسه بيقرا القالب الحيّ
+
+    client.post("/api/counts/template/entries",
+               json={"block": "صباحية", "name": "خدمة جديدة", "count": 5})
+
+    after = client.get(f"/api/counts/{DAY}").get_json()
+    assert after["from_template"] is False     # اتجمّد له نسخة قبل التعديل
+    assert after["totals"] == before["totals"]
+    assert [e["name"] for e in after["basic_am"]] == [e["name"] for e in before["basic_am"]]
+
+    # يوم جاي (مش مسجّل بعد ولا فات) بيشوف التعديل عادي
+    future = client.get("/api/counts/2026-06-01").get_json()
+    assert future["from_template"] is True
+    assert "خدمة جديدة" in [e["name"] for e in future["basic_am"]]
+
+
+def test_a_day_with_no_record_at_all_is_not_frozen(client, frozen_today):
+    """يوم فات بس مفيهوش أي سجل خالص (`DayRepo.dates()` ما بتشمّلوش) —
+    مفيش لازمة تتجمّد له نسخة، لسه هيقرا القالب زي أي يوم جاي."""
+    frozen_today("2026-04-15")
+    client.post("/api/counts/template/entries",
+               json={"block": "صباحية", "name": "خدمة جديدة", "count": 5})
+
+    view = client.get(f"/api/counts/{DAY}").get_json()
+    assert view["from_template"] is True
+    assert "خدمة جديدة" in [e["name"] for e in view["basic_am"]]
 
 
 def test_each_block_carries_its_own_total_and_they_add_up(client):
@@ -206,7 +243,7 @@ def test_each_block_carries_its_own_total_and_they_add_up(client):
     client.post(f"/api/counts/{DAY}/entries", json={"block": "ليلية", "name": "ب", "count": 3})
     client.post(f"/api/counts/{DAY}/entries", json={"block": "طوارئ", "name": "ج", "count": 4})
     row = _add_assignment(client, name="طارئة اليوم", section="الخدمات الطارئة")
-    client.patch(f"/api/counts/{DAY}/emergency/{row['id']}", json={"count": 6})
+    client.patch(f"/api/counts/{DAY}/board/{row['id']}", json={"count": 6})
 
     t = client.get(f"/api/counts/{DAY}").get_json()["totals"]
     assert (t["basic_am"], t["basic_pm"], t["recurring"], t["emergency_day"]) == (5, 3, 4, 6)
@@ -225,3 +262,80 @@ def test_basic_section_assignment_is_not_counted_as_emergency(client):
 
     body = client.get(f"/api/counts/{DAY}").get_json()
     assert body["emergency"] == []
+
+
+# ---------- قسم مخصّص كتبه المشغّل بإيده لليوم ده بس ----------
+
+def test_a_custom_section_typed_on_the_board_gets_its_own_block_here(client):
+    """يوم فيه مباراة: قسم «خدمات مباراة المصري» جديد كليًا، مالوش أي
+    تسجيل مسبق — لازم يظهر هنا في بلوكه المستقل بمجرد ما يتحفظ على اللوحة."""
+    row = _add_assignment(client, name="تأمين مدرجات الاستاد",
+                          section="خدمات مباراة المصري", conscript_count=12)
+
+    body = client.get(f"/api/counts/{DAY}").get_json()
+    assert len(body["custom_sections"]) == 1
+    section = body["custom_sections"][0]
+    assert section["name"] == "خدمات مباراة المصري"
+    assert section["rows"][0]["assignment_id"] == row["id"]
+    assert section["rows"][0]["count"] == 12
+    assert body["totals"]["custom"] == 12
+    assert body["totals"]["grand_total"] == 12
+    assert body["services"]["custom"] == 1
+
+
+def test_two_different_custom_sections_stay_in_separate_blocks(client):
+    _add_assignment(client, name="تأمين مدرجات الاستاد",
+                    section="خدمات مباراة المصري", conscript_count=10)
+    _add_assignment(client, name="تأمين مدرجات الاستاد",
+                    section="خدمات مباراة الزمالك", conscript_count=8)
+
+    sections = {s["name"]: s for s in client.get(f"/api/counts/{DAY}").get_json()["custom_sections"]}
+    assert set(sections) == {"خدمات مباراة المصري", "خدمات مباراة الزمالك"}
+    assert sections["خدمات مباراة المصري"]["rows"][0]["count"] == 10
+    assert sections["خدمات مباراة الزمالك"]["rows"][0]["count"] == 8
+
+
+def test_a_custom_section_with_no_days_left_disappears_on_its_own(client):
+    """مفيش قايمة أقسام مخزّنة تتنضّف — القسم بيختفي لوحده لما آخر صف
+    عليه يتشال، زي أي خدمة عادية بالظبط."""
+    row = _add_assignment(client, name="تأمين مدرجات الاستاد",
+                          section="خدمات مباراة المصري")
+    assert len(client.get(f"/api/counts/{DAY}").get_json()["custom_sections"]) == 1
+
+    client.delete(f"/api/assignments/{DAY}/{row['id']}")
+    assert client.get(f"/api/counts/{DAY}").get_json()["custom_sections"] == []
+
+
+def test_the_count_of_a_custom_section_row_can_be_typed_from_the_counts_page(client, data_file):
+    row = _add_assignment(client, name="تأمين مدرجات الاستاد", section="خدمات مباراة المصري")
+
+    r = client.patch(f"/api/counts/{DAY}/board/{row['id']}", json={"count": 15})
+    assert r.status_code == 200
+    assert r.get_json()["custom_sections"][0]["rows"][0]["count"] == 15
+
+    saved = json.loads(data_file.read_text(encoding="utf-8"))
+    assert saved["day_assignments"][DAY][0]["conscript_count"] == 15, "نفس حقل اللوحة بالظبط"
+
+
+def test_a_custom_section_is_scoped_to_its_own_day_only(client):
+    """«لليوم ده بس مش في العموم» — نفس القسم في يوم تاني قسم مختلف
+    مالوش أي علاقة بيه."""
+    _add_assignment(client, name="تأمين مدرجات الاستاد", section="خدمات مباراة المصري")
+
+    assert client.get(f"/api/counts/{OTHER_DAY}").get_json()["custom_sections"] == []
+
+
+def test_naming_a_new_section_after_a_computed_one_is_refused(client):
+    """«الراحات»/«التقصيرات»/«الخوارج»/«عمل بالإدارة» عناوين محسوبة من حالة
+    الضباط — لو خدمة اتسمّت بنفس اسم واحد منهم هتختفي من اللوحة تمامًا،
+    فالكتابة بترفض بدل ما تسيب فخ."""
+    for reserved in ("الراحات", "التقصيرات", "الخوارج", "عمل بالإدارة"):
+        r = client.post(f"/api/assignments/{DAY}",
+                        json={"name": "خدمة", "kind": "خارجية", "section": reserved})
+        assert r.status_code == 400, reserved
+
+
+def test_an_extremely_long_section_name_is_refused(client):
+    r = client.post(f"/api/assignments/{DAY}",
+                    json={"name": "خدمة", "kind": "خارجية", "section": "س" * 61})
+    assert r.status_code == 400

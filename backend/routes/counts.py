@@ -35,6 +35,8 @@ def _clean_payload(data, payload, current=None):
         out["name"] = str(payload["name"]).strip()
     if "party" in payload:
         out["party"] = str(payload["party"]).strip()
+    if "weapon" in payload:
+        out["weapon"] = str(payload["weapon"]).strip()
     if "count" in payload:
         try:
             out["count"] = max(0, int(payload["count"]))
@@ -45,6 +47,7 @@ def _clean_payload(data, payload, current=None):
     out.setdefault("block", counts_lib.BLOCKS[0])
     out.setdefault("count", 0)
     out.setdefault("party", "")
+    out.setdefault("weapon", "")
     out.setdefault("name", "")
     return out, None
 
@@ -71,6 +74,9 @@ def seed_template():
     def mutate(data):
         if counts_lib.is_seeded(data):
             raise AbortRequest((jsonify({"error": "القالب فيه بيانات بالفعل."}), 409))
+        # قبل ما القالب يتملا: أي يوم فات ولسه بيقرا القالب الحيّ (الفاضي)
+        # لازم يتجمّد عليه، وإلا هيطلع فيه صفوف البذرة بأثر رجعي.
+        counts_lib.freeze_past_days(data)
         entries = counts_lib.seed_template(data)
         return jsonify({"entries": entries}), 201
 
@@ -85,6 +91,9 @@ def add_template_entry():
         fields, err = _clean_payload(data, payload)
         if err:
             raise AbortRequest((jsonify({"error": err}), 400))
+        # لازم تتنادى قبل `for_template` — نفس القالب الحالي (قبل الإضافة)
+        # هو اللي المفروض يفضل معروض للأيام اللي فاتت.
+        counts_lib.freeze_past_days(data)
         entries = counts_lib.for_template(data)
         fields["id"] = counts_lib.new_entry_id(data, entries)
         fields["order"] = len(entries)
@@ -99,6 +108,7 @@ def edit_template_entry(entry_id):
     payload = json_payload()
 
     def mutate(data):
+        counts_lib.freeze_past_days(data)
         entries = counts_lib.for_template(data)
         entry = next((e for e in entries if e["id"] == entry_id), None)
         if not entry:
@@ -117,6 +127,7 @@ def edit_template_entry(entry_id):
 @bp.delete("/api/counts/template/entries/<entry_id>")
 def delete_template_entry(entry_id):
     def mutate(data):
+        counts_lib.freeze_past_days(data)
         config = Repos(data).config
         kept = [e for e in config.template() if e.id != entry_id]
         if len(kept) == len(config.template_rows()):
@@ -192,10 +203,11 @@ def delete_day_entry(day, entry_id):
     return with_data(mutate)
 
 
-@bp.patch("/api/counts/<day>/emergency/<assignment_id>")
-def set_emergency_count(day, assignment_id):
-    """عدد مجندين خدمة طارئة — بيتكتب على صف التكليف في اليومية التفصيلية،
-    مش في سجل تاني هنا. فنفس الرقم بيتعدّل من الصفحتين وبيفضل واحد."""
+@bp.patch("/api/counts/<day>/board/<assignment_id>")
+def set_board_count(day, assignment_id):
+    """عدد مجندين خدمة طارئة أو قسم مخصّص — بيتكتب على صف التكليف في
+    اليومية التفصيلية، مش في سجل تاني هنا. فنفس الرقم بيتعدّل من الصفحتين
+    وبيفضل واحد."""
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
@@ -207,7 +219,7 @@ def set_emergency_count(day, assignment_id):
 
     def mutate(data):
         _guard_day(data, day)
-        row, err = counts_lib.set_emergency_count(data, day, assignment_id, count)
+        row, err = counts_lib.set_board_count(data, day, assignment_id, count)
         if err:
             raise AbortRequest((jsonify({"error": err}), 404))
         return jsonify(counts_lib.build(data, day))

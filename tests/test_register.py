@@ -124,8 +124,12 @@ def test_emergency_leave_status_is_a_leave_not_a_rest(client):
 def test_medical_officer_gets_only_present_or_rest_no_third_option(client):
     """ضابط العيادة كان بياخد «ط» طول الأيام حتى وهو شغال عادي. دلوقتي
     مالوش غير حالتين بس: شغال «أ» أو مرتاح «ر» — من غير تفرقة راحة/إجازة
-    زي باقي الضباط، حتى لو الإجازة نوعها غير مرتب (مصيف/طارئة/مجمعة)."""
-    client.patch("/api/medical-officers", json={"officer_ids": ["OFF-001"]})
+    زي باقي الضباط، حتى لو الإجازة نوعها غير مرتب (مصيف/طارئة/مجمعة).
+
+    الطبية بقت منصب جماعي في قيادة الإدارة (`PATCH /api/command-groups`)
+    — بيسري على كل يوم من غير أي تحديد لكل يوم بالذات."""
+    client.patch("/api/command-groups", json={"طبي": ["OFF-001"]})
+
     _add(client, day=DAY, officer_ids=["OFF-001"])
     assert _cell(_month(client), "OFF-001", DAY)["code"] == "أ"
 
@@ -182,11 +186,11 @@ def test_officer_page_covers_every_recorded_day(client):
 def test_officer_page_counts_services_by_name(client):
     """«حصر لعدد الخدمات وأنواعها» — الخدمة بالاسم مش بالخانة بس."""
     _add(client, officer_ids=["OFF-002"])
-    _add(client, day="2026-04-11", name="هدف سوميد", kind="حراسات", section="الأهداف",
+    _add(client, day="2026-04-11", name="سوميد", kind="حراسات", section="الأهداف",
          officer_ids=["OFF-002"])
     out = client.get("/api/register/officer/OFF-002").get_json()
     assert {s["name"]: s["count"] for s in out["tally"]["services"]} == {
-        "دورية خارجية": 1, "هدف سوميد": 1}
+        "دورية خارجية": 1, "سوميد": 1}
     assert out["tally"]["by_code"] == {"أ": 2}
 
 

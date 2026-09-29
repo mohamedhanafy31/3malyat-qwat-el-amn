@@ -16,9 +16,13 @@ def _dangling(data_file):
 
 
 def _archive_and_delete(client, person_id, leave_date="2026-02-01"):
-    """إخراج من القوة ثم حذف نهائي — الحذف مسموح لسجلات الأرشيف بس."""
+    """إخراج من القوة ثم حذف نهائي — الحذف مسموح لسجلات الأرشيف بس.
+
+    `cleanup: true` عشان الاختبارات دي بتسجّل فرق/مأموريات/راحات مفتوحة
+    عمدًا وبتخرج الشخص بتاريخ مايغطّيهاش — ده لازم يترفض من غير تأكيد
+    (`test_force_lifecycle.py`)، فهنا بنأكّده صريح."""
     r = client.post(f"/api/person/{person_id}/remove",
-                    json={"leave_date": leave_date, "reason": ""})
+                    json={"leave_date": leave_date, "reason": "", "cleanup": True})
     assert r.status_code == 200, r.get_data(as_text=True)
     r = client.delete(f"/api/person/{person_id}")
     assert r.status_code == 200, r.get_data(as_text=True)

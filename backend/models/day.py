@@ -64,9 +64,7 @@ class Assignment(Model):
     weapon: str = ""
     time: str = ""
     party: str = ""
-    label_override: str = ""
     counts_in_summary: bool = True
-    tags: list = field(default_factory=list)
     note: str = ""
 
     ID_PREFIX = "AS"
@@ -83,9 +81,6 @@ class Assignment(Model):
         """النص اللي بيتطبع على اللوحة. الوورد بيكتب الفترة **جوّه** اسم
         الخدمة في القسم الأساسي («تدخل سريع صبح»)."""
         from ..constants import SHIFT_SHORT
-        override = text(self.label_override)
-        if override:
-            return override
         out = text(self.name)
         short = SHIFT_SHORT.get(text(self.shift))
         return f"{out} {short}" if with_shift and short else out
@@ -116,11 +111,17 @@ class OfficerDayState(Model):
     """حالة الضابط نفسه في اليوم — **مش** تكليف بخدمة.
 
     السجل بيتشال لما يفضّى عشان الملف ما يمتلئش بمدخلات فاضية، فالحقول
-    التلاتة كلها اختيارية بالتصميم.
+    كلها اختيارية بالتصميم.
+
+    `medical` — الضابط ده شغّال طبية النهاردة بس. ده اختياري وليوم واحد،
+    عكس القايمة الثابتة القديمة (`data["medical_officers"]`) اللي كانت
+    بتخلي الضابط «طبية» في كل يوم للأبد بمجرد ما يتحط فيها مرة — شوف
+    `migrations/011_daily_medical_flag.py`.
     """
     taqseera: bool = False
     status: str = ""
     note: str = ""
+    medical: bool = False
 
     def _check(self, errors):
         from ..assignments import OFFICER_STATUSES
@@ -129,7 +130,7 @@ class OfficerDayState(Model):
 
     @property
     def empty(self):
-        return not (self.taqseera or text(self.status) or text(self.note))
+        return not (self.taqseera or text(self.status) or text(self.note) or self.medical)
 
 
 @dataclass

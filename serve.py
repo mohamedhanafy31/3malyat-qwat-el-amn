@@ -23,6 +23,7 @@ except ImportError:
     )
 
 from app import app
+from backend.store import acquire_process_lock
 
 PORT = int(os.environ.get("PORT", "5000"))
 
@@ -67,6 +68,7 @@ def _port_conflict_message():
 
 
 if __name__ == "__main__":
+    acquire_process_lock()
     print(f"Personnel System (waitress) starting on http://127.0.0.1:{PORT} ...")
     while True:
         try:

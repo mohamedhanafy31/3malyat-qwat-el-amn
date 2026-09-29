@@ -56,7 +56,8 @@ def test_everything_in_one_day_file_lives_together(client):
     client.post(f"/api/day-status/{DAY}/close", json={})
 
     blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
-    assert set(blob) == {"assignments", "officer_states", "confirm", "status"}
+    assert set(blob) == {"assignments", "officer_states", "confirm", "status",
+                          "assignment_seq"}
 
 
 # ---------- الكتابة للي اتغيّر بس ----------

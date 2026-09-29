@@ -1,9 +1,9 @@
 """الإعدادات وسجل التغييرات — المفاتيح المفردة اللي مش قوايم كيانات.
 
-`command` و`medical_officers` و`service_tags` و`counts_template` كلها
-إعدادات على مستوى النظام. مجمّعين هنا بدل ما كل واحد يتلمس من مكان مختلف.
+`command` و`service_tags` و`counts_template` كلها إعدادات على مستوى
+النظام. مجمّعين هنا بدل ما كل واحد يتلمس من مكان مختلف.
 """
-from ..constants import COMMAND_ROLES
+from ..constants import COMMAND_ROLES, GROUP_ROLES
 from ..models import MAX_ENTRIES, ChangeEntry, CountEntry
 from .base import Repo
 
@@ -12,7 +12,7 @@ class ConfigRepo:
     def __init__(self, data):
         self.data = data
 
-    # ---------- قيادة الإدارة ----------
+    # ---------- قيادة الإدارة — مناصب فردية (مدير/وكيل الإدارة) ----------
 
     def command(self):
         holder = self.data.setdefault("command", {})
@@ -24,28 +24,48 @@ class ConfigRepo:
         return self.command().get(role)
 
     def role_of(self, officer_id):
-        """المنصب القيادي اللي الضابط شايله — أو None."""
+        """المنصب القيادي الفردي اللي الضابط شايله — أو None."""
         return next((r for r, oid in self.command().items() if oid == officer_id), None)
 
     def assign_command(self, role, officer_id):
         self.command()[role] = officer_id or None
 
     def clear_command(self, officer_id):
-        """يفضّي أي منصب قيادي الضابط ده شايله."""
+        """يفضّي أي منصب قيادي فردي الضابط ده شايله."""
         for role, holder in self.command().items():
             if holder == officer_id:
                 self.data["command"][role] = None
 
-    # ---------- ضباط العيادة ----------
+    # ---------- قيادة الإدارة — مناصب جماعية (طبي/بحث) ----------
 
-    def medical(self):
-        return self.data.setdefault("medical_officers", [])
+    def groups(self):
+        groups = self.data.setdefault("command_groups", {})
+        for role in GROUP_ROLES:
+            groups.setdefault(role, [])
+        return groups
 
-    def set_medical(self, officer_ids):
-        self.data["medical_officers"] = list(officer_ids)
+    def group(self, role):
+        return self.groups().get(role, [])
 
-    def drop_medical(self, officer_id):
-        self.data["medical_officers"] = [i for i in self.medical() if i != officer_id]
+    def group_roles_of(self, officer_id):
+        """كل المناصب الجماعية اللي الضابط ده عضو فيها."""
+        return [role for role, ids in self.groups().items() if officer_id in ids]
+
+    def assign_group(self, role, officer_ids):
+        """بيستبدل أعضاء المنصب الجماعي بالكامل — مكرّرات بتتشال، والترتيب
+        بيفضل زي ما اتبعت (نفس ترتيب الاختيار في الواجهة)."""
+        self.groups()[role] = list(dict.fromkeys(officer_ids))
+
+    def remove_from_groups(self, officer_id):
+        """يشيل الضابط ده من أي منصب جماعي عضو فيه — بيتنادى لما يخرج من
+        القوة أو يتحذف نهائيًا، زي `clear_command` بالظبط للمناصب الفردية.
+        بترجّع عدد المناصب اللي اتشال منها — للاستخدام في تقرير الحذف."""
+        removed = 0
+        for role, ids in self.groups().items():
+            if officer_id in ids:
+                self.data["command_groups"][role] = [i for i in ids if i != officer_id]
+                removed += 1
+        return removed
 
     # ---------- وسوم الخدمات ----------
 

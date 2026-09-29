@@ -94,8 +94,14 @@ class _Assembled:
 
 
 @pytest.fixture(autouse=True)
-def _isolate_audit_log(tmp_path):
-    """يمنع اختبارات السجل التدقيقي إنها تكتب على logs/audit.log الحقيقي."""
+def _isolate_audit_log(tmp_path, monkeypatch):
+    """يمنع اختبارات السجل التدقيقي وأرشيف سجل التغييرات (`backend/
+    changes.py::_archive_trimmed`) إنهم يكتبوا على `logs/` الحقيقي.
+
+    `_audit_logger` مربوط بمساره وقت الاستيراد، فلازم نبدّل الـhandler
+    نفسه؛ `_LOG_DIR` بالعكس بيتقرا من جديد كل نداء (`changes._archive_path`)،
+    فتحويل المتغيّر كفاية من غيره."""
+    monkeypatch.setattr(store, "_LOG_DIR", tmp_path)
     handler = logging.FileHandler(tmp_path / "audit.log", encoding="utf-8")
     handler.setFormatter(logging.Formatter("%(message)s"))
     old_handlers = store._audit_logger.handlers

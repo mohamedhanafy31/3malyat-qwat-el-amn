@@ -1,0 +1,22 @@
+<!-- ============ فتح الراحات (إنهاء أمر وقف) ============ -->
+<div class="modal hidden" id="liftModal">
+  <div class="modal-card small">
+    <button class="close" data-close="liftModal">×</button>
+    <h2>فتح الراحات</h2>
+    <p class="hint" id="liftWhat"></p>
+    <form id="liftForm">
+      <input type="hidden" id="liftId">
+      <label class="command-check hidden" id="liftRestoreWrap">
+        <input type="checkbox" id="liftRestore">
+        <span class="command-check-icon" aria-hidden="true">✓</span>
+        رجّع الراحات زي ما كانت
+        <small id="liftRestoreHint"></small>
+      </label>
+      <p class="susp-warn" id="liftWarn"></p>
+      <label>سبب الفتح <span class="muted">(اختياري)</span>
+        <input id="liftReason" placeholder="مثال: انتهاء الأمر">
+      </label>
+      <button class="primary full" type="submit">فتح الراحات</button>
+    </form>
+  </div>
+</div>
