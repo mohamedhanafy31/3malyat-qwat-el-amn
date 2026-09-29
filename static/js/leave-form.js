@@ -59,12 +59,12 @@ function updateHint() {
   const s = $("#lvStart").value, e = $("#lvEnd").value, t = $("#lvType").value;
   if (!s || !e || e < s) { $("#lvHint").textContent = ""; return }
   const std = DURATIONS()[t], n = days(s, e);
-  let msg = `المدة ${n} يوم — العودة يوم ${dayName(addDays(e, 1))} ${fmt(addDays(e, 1))}`;
+  let msg = `المدة ${countLabel(n, "يوم")} — العودة يوم ${dayName(addDays(e, 1))} ${fmt(addDays(e, 1))}`;
   msg += ` • التقصيرة يوم ${dayName(addDays(s, -1))} ${fmt(addDays(s, -1))}`;
-  if (std && n !== std) msg += ` ${icon("alert")} المدة القياسية لـ«${esc(t)}» ${std} أيام`;
+  if (std && n !== std) msg += ` ${icon("alert")} المدة القياسية لـ«${esc(t)}» ${countLabel(std, "يوم")}`;
   if ((META.rest_suspension?.types || []).includes(t))
-    msg += ` • ${icon("block")} الراحات «${esc(t)}» موقوفة حاليًا للضباط — التسجيل هيترفض`;
-  if ($("#lvStart").disabled) msg += ` • ${icon("lock")} الراحة دي اتوقفت — الملاحظة بس اللي تتعدّل`;
+    msg += ` • ${icon("block")} الراحات «${esc(t)}» موقوفة حاليًا للضباط — سيُرفض التسجيل`;
+  if ($("#lvStart").disabled) msg += ` • ${icon("lock")} أُوقفت هذه الراحة — يمكن تعديل الملاحظة فقط`;
   $("#lvHint").innerHTML = msg;
 }
 

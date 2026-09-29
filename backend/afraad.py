@@ -78,7 +78,7 @@ _EDITABLE_FIELDS = ("morning_name", "morning_phone", "night_name", "night_phone"
 def set_basic_entry(data, day, entry_id, payload):
     """بيحفظ تفاصيل خدمة أساسية ليوم واحد — بترجع (entry, error, status)."""
     if entry_id not in _BASIC_IDS:
-        return None, "الخدمة دي مش من الخدمات الأساسية الثابتة.", 404
+        return None, "هذه الخدمة ليست من الخدمات الأساسية الثابتة.", 404
     ov = _overrides(data, day).setdefault(entry_id, {})
     for key in _EDITABLE_FIELDS:
         if key in payload:

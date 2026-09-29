@@ -60,7 +60,7 @@ function render() {
   const total = AF.basic.length * 2 + AF.occasional.length;
   const summary = vacant
     ? `<p class="vacancy-summary warn"><span class="status-dot warn" aria-hidden="true"></span>
-        <b>${countLabel(vacant, "خانة")} شاغرة</b> من ${total}</p>`
+        <b>الخانات الشاغرة: ${countLabel(vacant, "خانة")}</b> من ${total}</p>`
     : `<p class="vacancy-summary ok"><span class="status-dot ok" aria-hidden="true"></span>لا توجد خانات شاغرة</p>`;
   wrap.innerHTML = summary + `
     <div class="ledger-board">
@@ -85,9 +85,9 @@ async function loadDayStatus() {
   if (!s) return;
   const badge = $("#dayLockBadge");
   if (s.closed) {
-    badge.innerHTML = `<span class="chip err">${icon("lock")} مقفول${s.auto ? " (تلقائي)" : ""}</span>`;
+    badge.innerHTML = `<span class="chip err">${icon("lock")} مغلق${s.auto ? " (تلقائي)" : ""}</span>`;
   } else if (s.stage === "not_open") {
-    badge.innerHTML = `<span class="chip w">⏳ لسة متفتحش</span>`;
+    badge.innerHTML = `<span class="chip w">${icon("clock")} لم يُفتح بعد</span>`;
   } else {
     badge.innerHTML = `<span class="chip on"><span class="status-dot ok" aria-hidden="true"></span> مفتوح</span>`;
   }

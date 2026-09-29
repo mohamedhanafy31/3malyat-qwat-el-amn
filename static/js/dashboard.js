@@ -18,7 +18,7 @@
   $("#restSuspension").innerHTML = (susp.active || []).length
     ? `<div class="alert-card susp-banner"><div class="alert-head">
          <span class="alert-ico">${icon("block","ico-lg")}</span><strong>الراحات موقوفة: ${(susp.types || []).map(esc).join("، ")}</strong>
-         <span class="muted">من ${fmt(susp.active[0].started_on)} — تسجيل راحة من الأنواع دي لأي ضابط بيترفض.</span>
+         <span class="muted">من ${fmt(susp.active[0].started_on)} — يُرفض تسجيل راحة من هذه الأنواع لأي ضابط.</span>
          <a class="mini" href="/leaves">إدارة الوقف</a></div></div>`
     : "";
 
@@ -49,12 +49,12 @@
         : task("ok", `اليومية مؤكدة الساعة ${esc(hhmm(conf.at))}${conf.by ? ` — ${esc(conf.by)}` : ""}`, "/board", "عرض اليومية");
   const vac = (u.tomorrow_vacant || []).length;
   const vacTask = vac
-    ? task("warn", `<b>${countLabel(vac, "خدمة")} شاغرة غدًا</b>`, "/board", "تعيين")
+    ? task("warn", `<b>الخدمات الشاغرة غدًا: ${countLabel(vac, "خدمة")}</b>`, "/board", "تعيين")
     : task("ok", "لا توجد خدمات شاغرة غدًا", "", "");
   const back = (u.leaves_ending_soon || []).length;
   const backTask = back
-    ? task("muted", `${back === 1 ? "ضابط واحد يعود" : `${countLabel(back, "ضابط")} يعودون`} من الراحة خلال 3 أيام`, "/leaves", "سجل الراحات")
-    : task("muted", "لا يعود أحد من الراحة خلال 3 أيام", "", "");
+    ? task("muted", `العائدون من الراحة خلال ${countLabel(3, "يوم")}: ${countLabel(back, "ضابط")}`, "/leaves", "سجل الراحات")
+    : task("muted", `لا يعود أحد من الراحة خلال ${countLabel(3, "يوم")}`, "", "");
   $("#dashTasks").innerHTML = confirmTask + vacTask + backTask;
 
   const recent = d.recent_changes || [];
@@ -73,10 +73,10 @@
   </section>`;
 
   $("#dashUpcoming").innerHTML =
-    col("راحات هترجع خلال 3 أيام", u.leaves_ending_soon || [], lv =>
+    col(`راحات ستنتهي خلال ${countLabel(3, "يوم")}`, u.leaves_ending_soon || [], lv =>
       `<li><b>${esc(lv.person_role)} / ${esc(lv.person_name)}</b><span>${esc(lv.type)} · يعود ${esc(dayName(lv.return_date))} ${esc(fmt(lv.return_date))}</span></li>`) +
-    col("فرق هتبدأ خلال 3 أيام", u.courses_starting_soon || [], t =>
+    col(`فرق ستبدأ خلال ${countLabel(3, "يوم")}`, u.courses_starting_soon || [], t =>
       `<li><b>${esc(t.officer_name)}</b><span>${esc(t.course_name)} — يبدأ ${fmt(t.start)}</span></li>`) +
-    col("خدمات بكرة لسه شاغرة", u.tomorrow_vacant || [], w =>
+    col("خدمات غدٍ ما زالت شاغرة", u.tomorrow_vacant || [], w =>
       `<li><b>${esc(w.text)}</b></li>`);
 })();

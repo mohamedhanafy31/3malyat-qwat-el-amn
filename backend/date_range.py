@@ -35,7 +35,7 @@ def parse_range(payload, max_span_days, span_error, required=False):
 
     if required:
         if not start or not end:
-            return None, None, "برجاء إدخال تاريخ بداية ونهاية صحيحين."
+            return None, None, "يرجى إدخال تاريخي بداية ونهاية صحيحين."
     else:
         if raw_start and not start:
             return None, None, "تاريخ البداية غير صحيح."

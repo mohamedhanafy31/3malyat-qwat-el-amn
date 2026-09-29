@@ -27,7 +27,7 @@ def close_day(day):
 
     def mutate(data):
         if day_status_lib.is_closed(data, day):
-            raise AbortRequest((jsonify({"error": "اليوم مقفول بالفعل."}), 409))
+            raise AbortRequest((jsonify({"error": "اليوم مغلق بالفعل."}), 409))
         entry = day_status_lib.close_day(data, day, closed_by)
         changes.record(data, "day_lock", day, "close", after=dict(entry), day=day,
                        text=f"قفل يوم {day}" + (f" — {closed_by}" if closed_by else ""))
@@ -50,7 +50,7 @@ def reopen_day(day):
 
     def mutate(data):
         if not day_status_lib.is_closed(data, day):
-            raise AbortRequest((jsonify({"error": "اليوم مش مقفول أصلًا."}), 409))
+            raise AbortRequest((jsonify({"error": "اليوم غير مغلق أصلًا."}), 409))
         before = dict(day_status_lib.status_of(data, day))
         entry = day_status_lib.reopen_day(data, day, reason, reopened_by)
         changes.record(data, "day_lock", day, "reopen", before=before, after=dict(entry),

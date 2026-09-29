@@ -25,7 +25,7 @@ function monthStrip(block) {
   const t = block.tally.by_family;
   return `<div class="mcard">
     <h3>${monthLabel(block.month)}
-      <span class="mcount">${block.tally.days} يوم</span>
+      <span class="mcount">${countLabel(block.tally.days, "يوم")}</span>
       <span class="fam-row">
         <span class="chip on">عمل ${t["عمل"]}</span>
         <span class="chip w">راحة ${t["راحة"]}</span>

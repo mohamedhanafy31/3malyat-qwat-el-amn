@@ -23,7 +23,7 @@ function missionRow(m) {
 
 function render() {
   $("#missionsWrap").innerHTML = tableBlock(
-    ["المأمورية", "المشاركين", "تاريخ البداية", "الحالة", "الإجراء"],
+    ["المأمورية", "المشاركون", "تاريخ البداية", "الحالة", "الإجراء"],
     MISSIONS.map(missionRow), `عدد المأموريات: ${MISSIONS.length}`, {title: "لا توجد مأموريات", hint: "أضف مأمورية جديدة لمتابعة حالتها من التخطيط حتى الإغلاق.",
       action: {label: "مأمورية جديدة", id: "addMissionBtn"}});
 }

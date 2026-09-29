@@ -134,7 +134,7 @@ def test_weekly_rest_without_a_weekday_is_rejected():
     officer = Officer.from_dict({"id": "OFF-1", "name": "فلان", "code": "1",
                                  "role": "نقيب", "join_date": "2026-01-01",
                                  "rest_system": "أسبوعية", "rest_day": ""})
-    assert "الراحة الأسبوعية لازم يتحدد ليها يوم في الأسبوع." in officer.validate()
+    assert "يجب تحديد يوم في الأسبوع للراحة الأسبوعية." in officer.validate()
 
 
 def test_leave_dates_must_be_ordered_and_sane():
@@ -160,7 +160,7 @@ def test_leave_must_fall_inside_the_person_service_period():
 def test_guard_service_has_no_shift():
     """الحراسات هدف ثابت طول اليوم فمالهاش فترة."""
     row = Assignment.from_dict({"name": "هدف", "kind": "حراسات", "shift": "صباحية"})
-    assert "الحراسات مالهاش فترة." in row.validate()
+    assert "الحراسات ليست لها فترة." in row.validate()
     assert Assignment.from_dict({"name": "هدف", "kind": "حراسات", "shift": ""}).ok
 
 
@@ -196,4 +196,3 @@ def test_empty_officer_state_is_detected():
     """الحالة الفاضية بتتشال من الملف بدل ما تتخزّن مدخل فاضي."""
     assert OfficerDayState.from_dict({}).empty
     assert not OfficerDayState.from_dict({"note": "راحة"}).empty
-

@@ -61,7 +61,7 @@ def _clean(payload, current=None):
     try:
         count = max(0, int(raw_count))
     except (TypeError, ValueError):
-        return None, "عدد المجندين لازم يكون رقم."
+        return None, "يجب أن يكون عدد المجندين رقمًا."
 
     clean = {"name": name, "weapon": weapon, "count": count}
     error = check_lengths(clean, ["name"])
@@ -88,7 +88,7 @@ def edit_entry(data, weekday, entry_id, payload):
         return None, "يوم غير معروف."
     entry = _find(data, weekday, entry_id)
     if not entry:
-        return None, "التفتيش ده مش موجود."
+        return None, "هذا التفتيش غير موجود."
     clean, error = _clean(payload, current=entry)
     if error:
         return None, error

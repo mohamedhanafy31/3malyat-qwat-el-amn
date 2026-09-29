@@ -8,8 +8,8 @@
       <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
       <input type="date" id="dutyDate" class="select">
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
-      <button class="mini day-jump" id="dayToday">النهاردة</button>
-      <button class="mini day-jump" id="dayTomorrow">بكرة</button>
+      <button class="mini day-jump" id="dayToday">اليوم</button>
+      <button class="mini day-jump" id="dayTomorrow">غدًا</button>
     </div>
     <div class="tb-group" role="group" aria-label="حالة اليوم">
       <span id="confirmBadge"></span>
@@ -17,7 +17,7 @@
     </div>
     <div class="tb-group tb-end" role="group" aria-label="إجراءات اليومية">
       <button class="mini ok confirm-day-btn" id="btnConfirmDay"
-              title="بيعتمد اليومية الحالية ويسجّل اللي اتغيّر من آخر تأكيد">{{ icon('check') }} تأكيد اليومية</button>
+              title="يعتمد اليومية الحالية ويسجّل ما تغيّر منذ آخر تأكيد">{{ icon('check') }} تأكيد اليومية</button>
       <button class="mini kbd-only" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
     </div>
   </div>
@@ -40,15 +40,15 @@
       <div><dt><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></dt>
         <dd>تحريك الخدمة داخل قسمها</dd></div>
       <div><dt><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd></dt>
-        <dd>بديل لتحريك الخدمة لو النظام حجز الاختصار الأول</dd></div>
+        <dd>بديل لتحريك الخدمة إذا حجز النظام الاختصار الأول</dd></div>
       <div><dt><kbd>Enter</kbd> أو <kbd>E</kbd></dt><dd>تعديل الخدمة المختارة</dd></div>
-      <div><dt><kbd>D</kbd></dt><dd>تكرار الخدمة من غير الأشخاص</dd></div>
+      <div><dt><kbd>D</kbd></dt><dd>تكرار الخدمة دون الأشخاص</dd></div>
       <div><dt><kbd>Delete</kbd></dt><dd>حذف الخدمة المختارة</dd></div>
       <div><dt><kbd>N</kbd></dt><dd>إضافة خدمة في القسم الحالي</dd></div>
       <div><dt><kbd>PageUp</kbd> / <kbd>PageDown</kbd></dt><dd>اليوم السابق / التالي</dd></div>
-      <div><dt><kbd>T</kbd></dt><dd>الذهاب للنهاردة</dd></div>
-      <div><dt><kbd>Ctrl</kbd> + <kbd>Enter</kbd></dt><dd>حفظ نموذج الخدمة وهو مفتوح</dd></div>
-      <div><dt><kbd>?</kbd></dt><dd>فتح شاشة الاختصارات دي</dd></div>
+      <div><dt><kbd>T</kbd></dt><dd>الذهاب إلى اليوم</dd></div>
+      <div><dt><kbd>Ctrl</kbd> + <kbd>Enter</kbd></dt><dd>حفظ نموذج الخدمة أثناء فتحه</dd></div>
+      <div><dt><kbd>?</kbd></dt><dd>فتح شاشة الاختصارات هذه</dd></div>
     </dl>
   </div>
 </div>

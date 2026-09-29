@@ -90,7 +90,7 @@ def build_term(payload, data, term_id):
     officer_id = str(payload.get("officer_id", "")).strip()
     person, category, _ = find_person(data, officer_id)
     if not person or category != "officers":
-        return None, "برجاء اختيار الضابط."
+        return None, "يرجى اختيار الضابط."
 
     course_id = str(payload.get("course_id", "")).strip()
     if course_id not in by_id(data):
@@ -103,7 +103,7 @@ def build_term(payload, data, term_id):
     # اتحقق يعني بس)، لكن نص مدى (بداية بدون نهاية أو العكس) غالبًا
     # غلط إدخال، ومكانش بيترفض من قبل.
     if bool(start) != bool(end):
-        return None, "لازم تحدد تاريخ البداية والنهاية الاتنين، أو تسيبهم فاضيين الاتنين."
+        return None, "يجب تحديد تاريخي البداية والنهاية معًا، أو تركهما فارغين معًا."
 
     if start and end:
         # الالتحاق لازم يقع جوّه فترة خدمة الضابط — نفس قيد الراحة بالظبط

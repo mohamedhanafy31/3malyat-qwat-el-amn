@@ -22,7 +22,7 @@ function drawTypeChart(data) {
       indexAxis: "y",
       scales: hbarScales(),
       plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة (${Math.round(ctx.raw / total * 100)}%)` } } },
+        tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")} (${Math.round(ctx.raw / total * 100)}%)` } } },
     },
   });
 }
@@ -50,7 +50,7 @@ function drawMonthChart(data) {
     options: {
       ...CHART_BASE,
       scales: vbarScales(),
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")}` } } },
     },
   });
 }
@@ -74,7 +74,7 @@ function drawOfficerChart(data) {
         legend: { display: true, position: "top", align: "start", labels: { boxWidth: 12, padding: 16 } },
         tooltip: { callbacks: {
           title: items => rows[items[0].dataIndex].name,
-          label: ctx => ctx.datasetIndex === 0 ? ` ${ctx.raw} راحة` : ` ${ctx.raw} يوم`,
+          label: ctx => ctx.datasetIndex === 0 ? ` ${countLabel(ctx.raw, "راحة")}` : ` ${countLabel(ctx.raw, "يوم")}`,
         }},
       },
     },
@@ -90,7 +90,7 @@ function drawDurationChart(data) {
     options: {
       ...CHART_BASE,
       scales: vbarScales(),
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")}` } } },
     },
   });
 }
@@ -109,7 +109,7 @@ function drawWeekdayChart(data) {
     options: {
       ...CHART_BASE,
       scales: vbarScales(),
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة` } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")}` } } },
     },
   });
 }
@@ -125,7 +125,7 @@ function drawCumulativeChart(data) {
     options: {
       ...CHART_BASE,
       scales: vbarScales(),
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} راحة تراكميًا` } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")} تراكميًا` } } },
     },
   });
 }
@@ -134,7 +134,7 @@ function renderSummary(s) {
   document.getElementById("summaryStats").innerHTML = `
     <div class="stat">
       <span>إجمالي الراحات</span><strong>${s.total}</strong>
-      <div class="stat-sub">${s.total_days} يوم مجموع</div>
+      <div class="stat-sub">المجموع ${countLabel(s.total_days, "يوم")}</div>
     </div>
     <div class="stat">
       <span>متوسط المدة</span><strong>${s.avg_duration}</strong>

@@ -36,7 +36,7 @@ function stamp(ts) {
 
 function diffLine(before, after) {
   if (!before && after) return "<span class='muted'>إضافة جديدة</span>";
-  if (before && !after) return "<span class='muted'>اتحذف</span>";
+  if (before && !after) return "<span class='muted'>حُذف</span>";
   const keys = [...new Set([...Object.keys(before || {}), ...Object.keys(after || {})])];
   const changed = keys.filter(k => JSON.stringify(before?.[k]) !== JSON.stringify(after?.[k]));
   if (!changed.length) return "<span class='muted'>—</span>";
@@ -63,7 +63,7 @@ function changeRow(e) {
 
 function render() {
   $("#changesWrap").innerHTML = tableBlock(
-    ["وقت التسجيل", "اليومية", "النوع", "العملية", "التغيير", "مين عدّل"],
+    ["وقت التسجيل", "اليومية", "النوع", "العملية", "التغيير", "المُعدِّل"],
     ENTRIES.map(changeRow), `عدد السجلات: ${ENTRIES.length}`,
     {title: "لا توجد تغييرات مسجّلة", hint: "تُسجَّل تغييرات اليومية التفصيلية بعد الضغط على «تأكيد اليومية»."},
     "changesWrap", render);

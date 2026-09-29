@@ -14,7 +14,7 @@ def build_leave(payload, data, leave_id):
     person_id = str(payload.get("person_id", "")).strip()
     person, _, _ = find_person(data, person_id)
     if not person:
-        return None, "برجاء اختيار الشخص."
+        return None, "يرجى اختيار الشخص."
 
     kind = str(payload.get("type", "")).strip()
     if kind not in LEAVE_TYPES:
@@ -170,13 +170,13 @@ def validate_weekly_extra(data, leave, today):
 
     officer = PeopleRepo(data).find_in(leave.get("person_id"), "officers")
     if not officer or officer.archived or officer.rest_system != "أسبوعية":
-        return "الراحة الإضافية متاحة لضابط على القوة بنظام راحة أسبوعية بس."
+        return "الراحة الإضافية متاحة فقط لضابط على القوة بنظام راحة أسبوعية."
     if leave.get("type") != "أسبوعية" or leave.get("start") != leave.get("end"):
-        return "الراحة الأسبوعية الإضافية لازم تكون يوم واحد."
+        return "يجب أن تكون الراحة الأسبوعية الإضافية يومًا واحدًا."
     if leave.get("start", "") < today:
-        return "الراحة الأسبوعية الإضافية لازم تكون النهاردة أو تاريخ جاي."
+        return "يجب أن تكون الراحة الأسبوعية الإضافية اليوم أو في تاريخ لاحق."
     if is_weekly_rest_weekday(officer.rest_day, leave["start"]):
-        return "اليوم المختار هو يوم الراحة الأسبوعية الثابتة؛ اختار يوم إضافي مختلف."
+        return "اليوم المختار هو يوم الراحة الأسبوعية الثابتة؛ اختر يومًا إضافيًا مختلفًا."
     return None
 
 

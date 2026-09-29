@@ -68,7 +68,7 @@ def test_moving_an_officer_between_services_reads_as_one_sentence(client):
     moves = _entries(client, entity="duty_move", entity_id="OFF-002")
     assert len(moves) == 1
     assert moves[0]["action"] == "update"
-    assert moves[0]["text"] == "نقيب/ محمود علي: كان «تدخل سريع ليل» ← بقى «أمن المعسكر ليل»"
+    assert moves[0]["text"] == "نقيب/ محمود علي: كان «تدخل سريع ليل» ← أصبح «أمن المعسكر ليل»"
 
 
 def test_putting_an_officer_on_a_service_for_the_first_time_reads_as_assignment(client):
@@ -79,7 +79,7 @@ def test_putting_an_officer_on_a_service_for_the_first_time_reads_as_assignment(
 
     move = _entries(client, entity="duty_move", entity_id="OFF-001")[0]
     assert move["action"] == "assign"
-    assert move["text"] == "عقيد/ أحمد محمد: اتكلّف بـ«تدخل سريع صبح»"
+    assert move["text"] == "عقيد/ أحمد محمد: كُلِّف بـ«تدخل سريع صبح»"
 
 
 def test_taking_an_officer_off_every_service_reads_as_removal(client):
@@ -90,7 +90,7 @@ def test_taking_an_officer_off_every_service_reads_as_removal(client):
 
     move = _entries(client, entity="duty_move", entity_id="OFF-001")[0]
     assert move["action"] == "unassign"
-    assert "اتشال من «تدخل سريع صبح»" in move["text"]
+    assert "أُزيل من «تدخل سريع صبح»" in move["text"]
 
 
 def test_a_field_change_on_a_service_is_described_in_arabic(client):

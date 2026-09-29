@@ -44,7 +44,7 @@ class Leave(Model):
         return (date.fromisoformat(self.end) - date.fromisoformat(self.start)).days + 1
 
     def _check(self, errors):
-        require(errors, self.person_id, "برجاء اختيار الشخص.")
+        require(errors, self.person_id, "يرجى اختيار الشخص.")
         one_of(errors, self.type, LEAVE_TYPES, "نوع الراحة غير صحيح.", required=True)
         start = valid_date(errors, self.start, "تاريخ البداية غير صحيح.", required=True)
         end = valid_date(errors, self.end, "تاريخ النهاية غير صحيح.", required=True)

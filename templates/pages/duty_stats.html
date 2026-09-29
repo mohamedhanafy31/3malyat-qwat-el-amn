@@ -28,8 +28,8 @@
 
   <div class="ls-filter-quick">
     <button type="button" class="btn btn-xs" id="dsPreset7">آخر 7 أيام</button>
-    <button type="button" class="btn btn-xs" id="dsPreset30">آخر 30 يوم</button>
-    <button type="button" class="btn btn-xs" id="dsPresetMonth">الشهر ده</button>
+    <button type="button" class="btn btn-xs" id="dsPreset30">آخر 30 يومًا</button>
+    <button type="button" class="btn btn-xs" id="dsPresetMonth">هذا الشهر</button>
   </div>
   <button type="button" class="btn btn-xs ls-refresh" id="refreshBtn" title="تحديث البيانات">
     {{ icon('refresh') }} تحديث
@@ -51,14 +51,14 @@
 <div class="ls-grid ls-grid-2">
   <div class="ls-card">
     <h3 class="ls-card-title">معدل «الصافي» لكل ضابط</h3>
-    <p class="ls-card-hint">نسبة الأيام اللي الضابط كان فيها بلا أي خدمة</p>
+    <p class="ls-card-hint">نسبة الأيام التي كان فيها الضابط بلا أي خدمة</p>
     <div class="ls-chart-wrap ls-horiz-wrap ls-tall">
       <canvas id="netChart"></canvas>
     </div>
   </div>
   <div class="ls-card">
     <h3 class="ls-card-title">توازن صباحية / ليلية</h3>
-    <p class="ls-card-hint">مرتب بحجم الفرق بين الفترتين — أعلى فرق أولًا</p>
+    <p class="ls-card-hint">مرتّب حسب حجم الفرق بين الفترتين — أعلى فرق أولًا</p>
     <div class="ls-chart-wrap ls-horiz-wrap ls-tall">
       <canvas id="shiftChart"></canvas>
     </div>
@@ -69,7 +69,7 @@
 <div class="ls-grid ls-grid-1">
   <div class="ls-card">
     <h3 class="ls-card-title">فجوة قائد الهدف — القائد الرسمي مقابل المعيّن فعليًا</h3>
-    <p class="ls-card-hint">نسبة الأيام اللي الهدف اتغطى فيها بضابط غير قائده الرسمي (من الأيام اللي القائد معروف فيها)</p>
+    <p class="ls-card-hint">نسبة الأيام التي غُطّي فيها الهدف بضابط غير قائده الرسمي (من الأيام التي يُعرف فيها القائد)</p>
     <div id="targetGapTable"></div>
   </div>
 </div>
@@ -78,7 +78,7 @@
 <div class="ls-grid ls-grid-2">
   <div class="ls-card">
     <h3 class="ls-card-title">التقصيرات المتكررة</h3>
-    <p class="ls-card-hint">الضباط اللي عندهم تقصيرة واحدة على الأقل في المدى، تنازليًا</p>
+    <p class="ls-card-hint">الضباط الذين لديهم تقصيرة واحدة على الأقل في المدى، تنازليًا</p>
     <div class="ls-chart-wrap ls-horiz-wrap">
       <canvas id="taqseeraChart"></canvas>
     </div>

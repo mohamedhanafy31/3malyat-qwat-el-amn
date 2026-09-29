@@ -13,10 +13,10 @@
           <label><span class="label-text">اسم الخدمة <span class="req" aria-hidden="true">*</span></span>
             <input id="enName" required placeholder="اكتب اسم الخدمة">
           </label>
-          <label><span class="label-text">التصنيف <span class="req" aria-hidden="true">*</span></span> <small>خانتها في جدول الإجمالي</small>
+          <label><span class="label-text">التصنيف <span class="req" aria-hidden="true">*</span></span> <small>تظهر خانته في جدول الإجمالي</small>
             <select id="enKind" required></select>
           </label>
-          <label>القسم على اللوحة <small>اختار قسم مستخدم قبل كده، أو اكتب اسم قسم جديد</small>
+          <label>القسم على اللوحة <small>اختر قسمًا مستخدمًا من قبل، أو اكتب اسم قسم جديد</small>
             <select id="enSection" data-combo-custom aria-label="القسم على اللوحة"></select>
           </label>
           <fieldset id="enShiftWrap" class="seg-field">
@@ -29,7 +29,7 @@
 
       <div class="field-section">
         <div class="field-legend">القوام
-          <small>الخانة تنفع تفضل من غير ضابط — خدمة بقوام أفراد ومجندين بس</small></div>
+          <small>يمكن إبقاء الخانة دون ضابط — خدمة بقوام أفراد ومجندين فقط</small></div>
         <div class="command-picks">
           <label class="command-check" id="enHasOfficersPick">
             <input type="checkbox" id="enHasOfficers">
@@ -43,18 +43,18 @@
           </label>
         </div>
         <div class="grid">
-          <label id="enOfficersWrap" class="hidden">الضباط <small>واحد أو أكتر</small>
+          <label id="enOfficersWrap" class="hidden">الضباط <small>واحد أو أكثر</small>
             <select id="enOfficers" multiple size="4"></select>
           </label>
-          <label id="enPersonnelWrap" class="hidden">الأفراد <small>واحد أو أكتر</small>
+          <label id="enPersonnelWrap" class="hidden">الأفراد <small>واحد أو أكثر</small>
             <select id="enPersonnel" multiple size="4"></select>
           </label>
         </div>
-        <div class="field-legend field-legend-spaced">المجندين</div>
+        <div class="field-legend field-legend-spaced">المجندون</div>
         <div id="conRows" class="req-rows"></div>
         <button type="button" class="mini" id="addConRow">{{ icon('plus') }} إضافة فئة</button>
         <label class="field-label-spaced">عدد المجندين
-          <small>لأي خدمة غير الأساسية (طارئة أو قسم مخصّص) — بيظهر في صفحة اعداد الخدمات تلقائيًا</small>
+          <small>لأي خدمة غير أساسية (طارئة أو قسم مخصّص) — يظهر في صفحة أعداد الخدمات تلقائيًا</small>
           <input id="enConCount" type="number" min="0">
         </label>
       </div>
@@ -68,7 +68,7 @@
           <label>الانتظام <small>8ص / 8م / 11ص حتى الانتهاء</small>
             <input id="enTime">
           </label>
-          <label>الجهة <small>عتاقة / الجناين / فيصل / الاربعين</small>
+          <label>الجهة <small>عتاقة / الجناين / فيصل / الأربعين</small>
             <input id="enParty">
           </label>
         </div>

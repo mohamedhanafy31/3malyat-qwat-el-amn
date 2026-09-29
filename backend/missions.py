@@ -46,7 +46,7 @@ def _clean_members(data, ids, start):
             continue
         person, category, _ = find_person(data, pid)
         if not person or category != "officers":
-            return None, f"«{pid}» مش ضابط موجود في السجل."
+            return None, f"«{pid}» ليس ضابطًا موجودًا في السجل."
         if on_force is not None and pid not in on_force:
             return None, f"«{person.get('name', '')}» لم يكن على القوة في تاريخ بداية المأمورية."
         out.append(pid)

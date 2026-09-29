@@ -112,7 +112,7 @@ def valid_rest(payload, errors, current=None):
         # في تنبيه التقصيرة ولا بيتحسب في الالتزام — وكل ده في صمت.
         effective_day = day or str((current or {}).get("rest_day", "")).strip()
         if not effective_day:
-            errors.append("الراحة الأسبوعية لازم يتحدد ليها يوم في الأسبوع.")
+            errors.append("يجب تحديد يوم في الأسبوع للراحة الأسبوعية.")
 
 
 def officers_on(data, day):

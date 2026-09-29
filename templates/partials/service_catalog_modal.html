@@ -22,7 +22,7 @@
         <label class="command-check" id="svcHasCommandPick">
           <input type="checkbox" id="svcHasCommand">
           <span class="command-check-icon" aria-hidden="true">{{ icon('check') }}</span>
-          برئاسة <small>محتاجة حد يرأسها</small>
+          برئاسة <small>تحتاج إلى من يرأسها</small>
         </label>
         <div id="svcCommandWrap">
           <label>عدد ضباط الرئاسة
@@ -47,7 +47,7 @@
       </label>
       <div class="field-section">
         <div class="field-legend">الوسوم</div>
-        <input id="svcTags" list="svcTagList" placeholder="اكتب وسم واضغط Enter">
+        <input id="svcTags" list="svcTagList" placeholder="اكتب وسمًا واضغط مفتاح الإدخال">
         <datalist id="svcTagList"></datalist>
         <div id="svcTagChips" class="tag-chips"></div>
       </div>
@@ -62,14 +62,14 @@
       <div id="svcImageGallery" class="svc-gallery"></div>
 
       <label>ارفع صورة أو PDF
-        <small>لو PDF هتقدر تختار أي صفحة فيه تتحفظ كصورة</small>
+        <small>إذا كان الملف PDF، فيمكنك اختيار أي صفحة فيه لحفظها كصورة</small>
         <input type="file" id="svcImageFile" accept="image/png,image/jpeg,image/webp,application/pdf">
       </label>
       <div id="svcPdfPicker" class="svc-pdf-picker hidden">
-        <p class="hint">اختَر الصفحة اللي عايز تحفظها كصورة الموقع:</p>
+        <p class="hint">اختر الصفحة التي تريد حفظها كصورة للموقع:</p>
         <div id="svcPdfPages" class="svc-pdf-pages"></div>
       </div>
     </div>
-    <p id="svcImagesHint" class="hint field-section hidden">احفظ الخدمة الأول عشان تقدر تضيف صور موقع ليها.</p>
+    <p id="svcImagesHint" class="hint field-section hidden">احفظ الخدمة أولًا لتتمكن من إضافة صور موقع إليها.</p>
   </div>
 </div>

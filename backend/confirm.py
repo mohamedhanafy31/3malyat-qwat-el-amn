@@ -57,7 +57,7 @@ TRACKED = {
     "note": "ملاحظات",
     "conscripts": "فئات المجندين",
     "conscript_count": "عدد المجندين",
-    "counts_in_summary": "بيتحسب في الإجمالي",
+    "counts_in_summary": "يُحتسب في الإجمالي",
 }
 
 
@@ -164,11 +164,11 @@ def _person_events(data, day, before_rows, after_rows):
         who = _person_name(data, pid, day)
         old_txt, new_txt = "، ".join(old), "، ".join(new)
         if not old:
-            action, text = "assign", f"{who}: اتكلّف بـ«{new_txt}»"
+            action, text = "assign", f"{who}: كُلِّف بـ«{new_txt}»"
         elif not new:
-            action, text = "unassign", f"{who}: اتشال من «{old_txt}» — من غير خدمة"
+            action, text = "unassign", f"{who}: أُزيل من «{old_txt}» — بلا خدمة"
         else:
-            action, text = "update", f"{who}: كان «{old_txt}» ← بقى «{new_txt}»"
+            action, text = "update", f"{who}: كان «{old_txt}» ← أصبح «{new_txt}»"
         events.append({"entity": "duty_move", "entity_id": pid, "action": action,
                        "before": {"name": who, "services": old},
                        "after": {"name": who, "services": new}, "text": text})
@@ -190,7 +190,7 @@ def _service_events(before_rows, after_rows):
         row = before[rid]
         events.append({"entity": "assignment", "entity_id": rid, "action": "delete",
                        "before": dict(row), "after": None,
-                       "text": f"خدمة اتشالت: «{_service_label(row)}»"})
+                       "text": f"خدمة أُزيلت: «{_service_label(row)}»"})
 
     for rid in sorted(set(before) & set(after)):
         old, new = before[rid], after[rid]

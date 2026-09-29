@@ -119,7 +119,7 @@ def test_extra_weekly_rest_is_future_only_and_coexists_with_auto(
     past = client.post("/api/leaves", json={
         "person_id": "OFF-001", "type": "أسبوعية",
         "start": "2026-04-05", "end": "2026-04-05", "origin": "weekly_extra"})
-    assert past.status_code == 400 and "النهاردة" in past.get_json()["error"]
+    assert past.status_code == 400 and "اليوم" in past.get_json()["error"]
 
     fixed = client.post("/api/leaves", json={
         "person_id": "OFF-001", "type": "أسبوعية",

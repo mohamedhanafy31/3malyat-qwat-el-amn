@@ -147,7 +147,7 @@ def blocking(data, leave, current=None):
             or leave.get("end", "") > current.get("end", "")):
         return None
     return (f"الراحات «{leave.get('type')}» موقوفة حاليًا (أمر وقف من "
-            f"{order.get('started_on')}) — لازم «فتح الراحات» الأول.")
+            f"{order.get('started_on')}) — يلزم «فتح الراحات» أولًا.")
 
 
 def edit_guard(current, leave):
@@ -156,7 +156,7 @@ def edit_guard(current, leave):
     بيبني dict جديد بحقوله هو بس، فمن غير ده أي تعديل كان هيمسحها."""
     if current.get("stopped_on") and any(
             str(leave.get(f, "")) != str(current.get(f, "")) for f in _LOCKED_ON_STOPPED):
-        _fail("الراحة دي اتوقفت — تواريخها مقفولة؛ امسحها وسجّل من جديد لو محتاج.")
+        _fail("أُوقفت هذه الراحة — تواريخها مغلقة؛ احذفها وسجّلها من جديد عند الحاجة.")
     for f in STOP_FIELDS:
         if current.get(f):
             leave[f] = current[f]
@@ -209,10 +209,10 @@ def stop_leave(data, leave_id, reason, on=None, suspension_id=None, today=None):
     if not lv:
         _fail("سجل الراحة غير موجود.", 404)
     if not _is_officer(data, lv.person_id):
-        _fail("إيقاف الراحة للضباط بس.")
+        _fail("إيقاف الراحة متاح للضباط فقط.")
     reason = str(reason or "").strip()
     if not reason:
-        _fail("لازم سبب مكتوب لإيقاف الراحة.")
+        _fail("يلزم سبب مكتوب لإيقاف الراحة.")
     if len(reason) > MAX_LEN["note"]:
         _fail(f"السبب أطول من الحد المسموح ({MAX_LEN['note']} حرف).")
 
@@ -223,9 +223,9 @@ def stop_leave(data, leave_id, reason, on=None, suspension_id=None, today=None):
         _fail("تاريخ الإيقاف غير صحيح.")
     on = on_date.isoformat()
     if lv.end < today:
-        _fail("الراحة دي خلصت بالفعل — عدّلها من «تعديل» لو محتاج.")
+        _fail("انتهت هذه الراحة بالفعل — عدّلها من «تعديل» عند الحاجة.")
     if on > lv.end:
-        _fail("تاريخ الإيقاف بعد نهاية الراحة — مفيش حاجة تتوقف.")
+        _fail("تاريخ الإيقاف بعد نهاية الراحة — لا توجد راحة لإيقافها.")
 
     name = repos.leaves.name_of(lv.person_id)
     before = lv.as_dict()
@@ -261,8 +261,8 @@ def stop_leave(data, leave_id, reason, on=None, suspension_id=None, today=None):
     repos.leaves.save(lv)
     after = lv.as_dict()
     changes.record(data, "leave", lv.id, "stop", before=before, after=after, reason=reason,
-                   text=f"إيقاف راحة {name} ({lv.type}): كانت لحد {original_end} ← "
-                        f"آخر يوم بقى {lv.end}، العودة {on}{by_order} — السبب: {reason}")
+                   text=f"إيقاف راحة {name} ({lv.type}): كانت حتى {original_end} ← "
+                        f"أصبح آخر يوم {lv.end}، والعودة {on}{by_order} — السبب: {reason}")
     if closed:
         retro.log_retro(data, "leave", lv.id, closed, reason, before=before, after=after)
     return {"leave": repos.leaves.named(lv), "cancelled": False}
@@ -275,7 +275,7 @@ def create(data, payload, today):
     الطلب كله (`with_data` مابيحفظش)، فالعملية ذرّية."""
     raw_types = payload.get("types")
     if not isinstance(raw_types, list) or not raw_types:
-        _fail("اختار نوع راحة واحد على الأقل.")
+        _fail("اختر نوع راحة واحدًا على الأقل.")
     unknown = [t for t in raw_types if t not in LEAVE_TYPES]
     if unknown:
         _fail(f"نوع راحة غير معروف: {'، '.join(map(str, unknown))}")
@@ -283,22 +283,22 @@ def create(data, payload, today):
 
     reason = str(payload.get("reason", "") or "").strip()
     if not reason:
-        _fail("لازم سبب مكتوب لأمر الوقف.")
+        _fail("يلزم سبب مكتوب لأمر الوقف.")
     if len(reason) > MAX_LEN["note"]:
         _fail(f"السبب أطول من الحد المسموح ({MAX_LEN['note']} حرف).")
 
     held = suspended_types(data)
     already = [t for t in types if t in held]
     if already:
-        _fail(f"الأنواع دي موقوفة بالفعل بأمر ساري: {'، '.join(already)}", 409)
+        _fail(f"هذه الأنواع موقوفة بالفعل بأمر سارٍ: {'، '.join(already)}", 409)
 
     stop_ids = payload.get("stop_leave_ids") or []
     if not isinstance(stop_ids, list):
-        _fail("قايمة الراحات المطلوب إيقافها غير صحيحة.")
+        _fail("قائمة الراحات المطلوب إيقافها غير صحيحة.")
     allowed = {c["leave_id"] for c in candidates(data, types, today)}
     bad = [i for i in stop_ids if i not in allowed]
     if bad:
-        _fail(f"الراحة دي مش من المرشّحين للإيقاف: {bad[0]}")
+        _fail(f"هذه الراحة ليست من المرشحين للإيقاف: {bad[0]}")
 
     rows = data.setdefault(KEY, [])
     order = {
@@ -323,8 +323,9 @@ def create(data, payload, today):
 
     changes.record(data, "rest_suspension", order["id"], "suspend", after=dict(order),
                    reason=reason,
-                   text=f"وقف الراحات: {'، '.join(types)} — اتوقفت {order['stopped_count']} "
-                        f"راحة واتلغت {order['cancelled_count']} — السبب: {reason}")
+                   text=f"وقف الراحات: {'، '.join(types)} — عدد الراحات الموقوفة: "
+                        f"{order['stopped_count']}، وعدد الراحات الملغاة: "
+                        f"{order['cancelled_count']} — السبب: {reason}")
     return order, report
 
 
@@ -348,8 +349,8 @@ def _restore(data, order, reason):
     def clash_guard(leave, name, ignore_id=None):
         clash = overlapping(data, leave, ignore_id=ignore_id)
         if clash:
-            _fail(f"مش ممكن ترجع راحة {name}: فيه راحة تانية متسجّلة في نفس المدة "
-                  f"({clash['start']} ← {clash['end']}). عدّلها الأول أو افتح من غير رجوع.", 409)
+            _fail(f"لا يمكن استعادة راحة {name}: توجد راحة أخرى مسجّلة في المدة نفسها "
+                  f"({clash['start']} ← {clash['end']}). عدّلها أولًا أو افتح من دون استعادة.", 409)
 
     for lv in [l for l in repos.leaves.all() if l.suspension_id == order.get("id")]:
         name = repos.leaves.name_of(lv.person_id)
@@ -363,7 +364,7 @@ def _restore(data, order, reason):
         lv._absent = frozenset(lv._absent | set(STOP_FIELDS))   # مايتخزّنوش فاضيين
         repos.leaves.save(lv)
         changes.record(data, "leave", lv.id, "restore", before=before, after=lv.as_dict(),
-                       reason=reason, text=f"رجوع راحة {name} ({lv.type}) لنهايتها الأصلية "
+                       reason=reason, text=f"استعادة راحة {name} ({lv.type}) لنهايتها الأصلية "
                                            f"{end} — فتح الراحات في نفس يوم الوقف")
         restored.append(lv.id)
 
@@ -378,8 +379,8 @@ def _restore(data, order, reason):
         clash_guard(leave, snap.get("name", ""))
         repos.leaves.add(Leave.from_dict(leave))
         changes.record(data, "leave", leave["id"], "restore", after=dict(leave), reason=reason,
-                       text=f"رجوع راحة {snap.get('name', '')} ({leave['type']} {leave['start']} "
-                            f"← {leave['end']}) اللي اتلغت — فتح الراحات في نفس يوم الوقف")
+                       text=f"استعادة راحة {snap.get('name', '')} ({leave['type']} {leave['start']} "
+                            f"← {leave['end']}) التي أُلغيت — فتح الراحات في يوم الوقف نفسه")
         restored.append(leave["id"])
     return restored
 
@@ -389,10 +390,10 @@ def lift(data, order_id, payload, today):
     if not order:
         _fail("أمر الوقف غير موجود.", 404)
     if order.get("lifted_on"):
-        _fail("الأمر ده اتفتح بالفعل.", 409)
+        _fail("فُتح هذا الأمر بالفعل.", 409)
     restore = bool(payload.get("restore"))
     if restore and not can_restore(order, today):
-        _fail("الرجوع للراحات زي ما كانت متاح بس لو الفتح في نفس يوم الوقف.")
+        _fail("استعادة الراحات إلى حالتها السابقة متاحة فقط إذا تم الفتح في يوم الوقف نفسه.")
     lift_reason = str(payload.get("reason", "") or "").strip()[:MAX_LEN["note"]]
     before = dict(order)
     order["lifted_on"] = today
@@ -402,6 +403,6 @@ def lift(data, order_id, payload, today):
     changes.record(data, "rest_suspension", order_id, "lift", before=before,
                    after=dict(order), reason=lift_reason,
                    text=f"فتح الراحات: {'، '.join(order.get('types', []))}"
-                        + (f" — ورجعت {len(restored)} راحة زي ما كانت" if restore else "")
+                        + (f" — عدد الراحات المستعادة: {len(restored)}" if restore else "")
                         + (f" — {lift_reason}" if lift_reason else ""))
     return order

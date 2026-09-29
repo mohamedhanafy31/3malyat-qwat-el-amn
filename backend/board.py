@@ -139,11 +139,11 @@ def copy_section_rows(data, day, section, source_day, ids):
     if not section:
         return None, "اسم القسم مطلوب.", 400
     if section in NON_FREE_SECTIONS:
-        return None, f"«{section}» له واجهة مخصّصة ومش قسم خدمات حر.", 400
+        return None, f"لـ«{section}» واجهة مخصّصة، وليس قسم خدمات حرًا.", 400
     if source_day == day:
-        return None, "يوم المصدر لازم يكون مختلف عن يوم اللوحة.", 400
+        return None, "يجب أن يختلف يوم المصدر عن يوم اللوحة.", 400
     if not isinstance(ids, list) or not ids:
-        return None, "اختار خدمة واحدة على الأقل للنسخ.", 400
+        return None, "اختر خدمة واحدة على الأقل للنسخ.", 400
     if any(not isinstance(item, str) or not item.strip() for item in ids):
         return None, "معرّفات الخدمات غير صحيحة.", 400
 
@@ -391,7 +391,7 @@ def set_target_officers(data, day, name, officer_ids):
     from .assignments import blank, clean_people, for_day, new_id
 
     if name not in target_row_names():
-        return None, f"«{name}» مش من الأهداف الثابتة — الأهداف قايمة مغلقة.", 400
+        return None, f"«{name}» ليس من الأهداف الثابتة — قائمة الأهداف مغلقة.", 400
 
     ids, err, status = clean_people(data, day, officer_ids, "officers")
     if err:
@@ -440,7 +440,7 @@ def set_slot_officers(data, day, section, shift, officer_ids):
 
     name = FIXED_SLOT_NAMES.get(section)
     if not name:
-        return None, f"«{section}» مش من الأقسام الثابتة.", 400
+        return None, f"«{section}» ليس من الأقسام الثابتة.", 400
     if shift not in SHIFTS:
         return None, "الفترة غير صحيحة.", 400
 
@@ -562,9 +562,9 @@ def move_assignment(data, day, assignment_id, direction):
 
     ids = _visible_list_ids(data, day, stored)
     if ids is None:
-        return "ترتيب الخدمة دي ثابت ومش بيتغيّر.", 400
+        return "ترتيب هذه الخدمة ثابت ولا يتغير.", 400
     if assignment_id not in ids:
-        return "الخدمة دي مش ضمن قايمة قابلة للترتيب.", 400
+        return "هذه الخدمة ليست ضمن قائمة قابلة للترتيب.", 400
     index = ids.index(assignment_id)
     neighbour = index - 1 if direction == "up" else index + 1
     if neighbour < 0 or neighbour >= len(ids):

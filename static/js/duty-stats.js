@@ -75,7 +75,7 @@ function drawNetChart(data) {
         legend: { display: false },
         tooltip: { callbacks: {
           title: items => fullName(rows[items[0].dataIndex]),
-          label: ctx => { const r = rows[ctx.dataIndex]; return ` ${r.rate}% — ${r.net_days} من ${r.total_days} يوم`; },
+          label: ctx => { const r = rows[ctx.dataIndex]; return ` ${r.rate}% — ${r.net_days} من ${countLabel(r.total_days, "يوم")}`; },
         }},
       },
     },
@@ -123,7 +123,7 @@ function drawTaqseeraChart(data) {
       scales: hbarScales({ ticks: { font: { size: 12 }, stepSize: 1 } }),
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { title: items => fullName(rows[items[0].dataIndex]), label: ctx => ` ${ctx.raw} تقصيرة` } },
+        tooltip: { callbacks: { title: items => fullName(rows[items[0].dataIndex]), label: ctx => ` ${countLabel(ctx.raw, "تقصيرة")}` } },
       },
     },
   });
@@ -147,7 +147,7 @@ function drawWeekdayChart(data) {
       plugins: {
         legend: { display: false },
         tooltip: { callbacks: {
-          label: ctx => { const w = byName[order[ctx.dataIndex]]; return [` ${ctx.raw} خدمة عبر ${w?.days || 0} يوم`, ` صافي: ${w?.net || 0} مرة`]; },
+          label: ctx => { const w = byName[order[ctx.dataIndex]]; return [` ${countLabel(ctx.raw, "خدمة")} عبر ${countLabel(w?.days || 0, "يوم")}`, ` صافي: ${w?.net || 0} مرة`]; },
         }},
       },
     },

@@ -7,6 +7,11 @@
    دخل بمعالجة PDF خالص). */
 let CATALOG = [], PERIODS = [], SVC_KINDS = [], SVC_POST_TYPES = [], SVC_TAGS = [], SVC_ENTRY_TAGS = [];
 let INSPECTIONS = {}, INSP_WEEKDAYS = [];
+const SERVICE_PERIOD_LABELS = {
+  "صباحية بس": "صباحية فقط",
+  "ليلية بس": "ليلية فقط",
+};
+const servicePeriodLabel = period => SERVICE_PERIOD_LABELS[period] || period;
 
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -21,7 +26,7 @@ function serviceCard(s) {
     if (s.command_individuals) who.push(countLabel(s.command_individuals, "فرد"));
     bits.push(`برئاسة ${who.length ? who.join(" و") : "—"}`);
   } else {
-    bits.push("من غير رئاسة");
+    bits.push("بلا رئاسة");
   }
   bits.push(s.count ? countLabel(s.count, "مجند") : "بدون مجندين");
   if (s.weapon) bits.push(esc(s.weapon));
@@ -36,7 +41,7 @@ function serviceCard(s) {
         </h3>
         <div class="service-meta">
           ${s.post_type ? `<span class="chip m">${esc(s.post_type)}</span>` : ""}
-          ${s.period ? `<span class="chip w">${esc(s.period)}</span>` : ""}
+          ${s.period ? `<span class="chip w">${esc(servicePeriodLabel(s.period))}</span>` : ""}
           ${s.kind ? `<span class="chip ${s.kind === "داخلية" ? "h" : "w"}">${esc(s.kind)}</span>` : ""}
           ${(s.tags || []).map(t => `<span class="chip soon">#${esc(t)}</span>`).join("")}
         </div>
@@ -75,9 +80,9 @@ function filteredCatalog() {
 function render() {
   const rows = filteredCatalog();
   if (!CATALOG.length) {
-    $("#catalogWrap").innerHTML = emptyState({title: "لا توجد خدمات في الدليل", hint: "اضغط «توليد الدليل» أو «خدمة جديدة» للبدء."});
+    $("#catalogWrap").innerHTML = emptyState({title: "لا توجد خدمات في الدليل", hint: "اضغط «إنشاء الدليل» أو «خدمة جديدة» للبدء."});
   } else if (!rows.length) {
-    $("#catalogWrap").innerHTML = emptyState({icon: "search", title: "لا توجد خدمة مطابقة للتصفية", hint: "جرّب تعديل البحث أو عوامل التصفية."});
+    $("#catalogWrap").innerHTML = emptyState({icon: "search", title: "لا توجد خدمة مطابقة للتصفية", hint: "حاول تعديل البحث أو عوامل التصفية."});
   } else {
     $("#catalogWrap").innerHTML = `<div class="service-grid">${rows.map(serviceCard).join("")}</div>`;
   }
@@ -85,7 +90,7 @@ function render() {
 
 function syncCatalogFilters() {
   fillSelect($("#svcKindFilter"), [["", "كل التصنيفات"], ...SVC_KINDS.map(k => [k, k])], true);
-  fillSelect($("#svcPeriodFilter"), [["", "كل الفترات"], ...PERIODS.map(p => [p, p])], true);
+  fillSelect($("#svcPeriodFilter"), [["", "كل الفترات"], ...PERIODS.map(p => [p, servicePeriodLabel(p)])], true);
   fillSelect($("#svcTagFilter"), [["", "كل الوسوم"], ...SVC_TAGS.map(t => [t, `#${t}`])], true);
 }
 ["input", "change"].forEach(evt => {
@@ -223,7 +228,7 @@ async function renderPdfPageThumbs(pdf) {
     await withTimeout(
       page.render({canvasContext: canvas.getContext("2d"), viewport}).promise,
       PDF_RENDER_TIMEOUT_MS,
-      "استغرق رسم صفحات الـPDF وقت أطول من اللازم — تأكد إن التبويب ده ظاهر وجرّب تاني.");
+      "استغرق رسم صفحات PDF وقتًا أطول من اللازم — تأكد من ظهور هذا التبويب وحاول مرة أخرى.");
     canvas.className = "svc-pdf-thumb";
     canvas.title = `صفحة ${i} — اضغط للاختيار`;
     canvas.onclick = () => pickPdfPage(pdf, i);
@@ -241,7 +246,7 @@ async function pickPdfPage(pdf, pageNum) {
   await withTimeout(
     page.render({canvasContext: canvas.getContext("2d"), viewport}).promise,
     PDF_RENDER_TIMEOUT_MS,
-    "استغرق رسم الصفحة وقت أطول من اللازم — تأكد إن التبويب ده ظاهر وجرّب تاني.");
+    "استغرق رسم الصفحة وقتًا أطول من اللازم — تأكد من ظهور هذا التبويب وحاول مرة أخرى.");
   const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
   $("#svcPdfPicker").classList.add("hidden");
   $("#svcPdfPages").innerHTML = "";
@@ -253,13 +258,13 @@ $("#svcImageFile").onchange = async e => {
   e.target.value = "";
   if (!file) return;
   if (file.type === "application/pdf") {
-    if (!window.pdfjsLib) { showToast("مكتبة قراءة PDF مش محمّلة.", true); return }
+    if (!window.pdfjsLib) { showToast("لم تُحمَّل مكتبة قراءة PDF.", true); return }
     try {
       const buf = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({data: buf}).promise;
       await renderPdfPageThumbs(pdf);
     } catch (err) {
-      showToast(err.message || "تعذّر قراءة ملف PDF ده.", true);
+      showToast(err.message || "تعذّرت قراءة ملف PDF هذا.", true);
     }
     return;
   }
@@ -272,7 +277,7 @@ function openService(id) {
   $("#svcId").value = id || "";
   $("#serviceModalTitle").textContent = s ? "تعديل خدمة" : "خدمة جديدة";
   $("#svcName").value = s?.name || "";
-  fillSelect($("#svcPeriod"), [["", "— اختَر —"], ...PERIODS.map(p => [p, p])]);
+  fillSelect($("#svcPeriod"), [["", "— اختَر —"], ...PERIODS.map(p => [p, servicePeriodLabel(p)])]);
   $("#svcPeriod").value = s?.period || "";
   fillSelect($("#svcKind"), [["", "— اختَر —"], ...SVC_KINDS.map(k => [k, k])]);
   $("#svcKind").value = s?.kind || "";
@@ -335,7 +340,7 @@ $("#serviceForm").onsubmit = async e => {
     : await api("/api/service-catalog/entries", jsonReq("POST", body));
   if (!out) return;
   markModalSaved("serviceModal");
-  showToast(id ? "تم الحفظ" : "تمت الإضافة — تقدر تضيف صور الموقع دلوقتي");
+  showToast(id ? "تم الحفظ" : "تمت الإضافة — يمكنك إضافة صور الموقع الآن");
   if (id) {
     syncEntryEverywhere(out);
   } else {
@@ -370,7 +375,7 @@ function inspectionRow(weekday, entry) {
     <div class="insp-bits">
       <div class="insp-tags">
         ${entry.weapon ? `<span class="insp-tag">${esc(entry.weapon)}</span>` : ""}
-        <span class="insp-tag">${entry.count} مجند</span>
+        <span class="insp-tag">${countLabel(entry.count, "مجند")}</span>
       </div>
       <div class="actions">
         <button class="mini" data-action="openInspection"
@@ -392,13 +397,13 @@ function renderInspectionSchedule() {
       <summary>
         <span class="fold-title">نظام التفتيشات</span>
         <span class="fold-now">${total
-          ? `${total} تفتيش على مدار الأسبوع`
+          ? `${countLabel(total, "تفتيش")} على مدار الأسبوع`
           : "<span class='muted'>لا توجد تفتيشات معرّفة</span>"}</span>
         <span class="fold-hint">تعديل</span>
       </summary>
-      <p class="hint generated-hint">تفتيشات تأمين زيارات الأهالي — بتتحط
-        تلقائيًا على اليومية التفصيلية أول ما يوم الأسبوع بتاعها يتفتح، وبعد
-        كده تتعدّل/تتشال زي أي خانة تانية من غير ما تأثّر على الجدول هنا.</p>
+      <p class="hint generated-hint">تفتيشات تأمين زيارات الأهالي — تُضاف
+        تلقائيًا إلى اليومية التفصيلية عند فتح يومها لأول مرة، ثم
+        يمكن تعديلها أو إزالتها كأي خانة أخرى دون التأثير في الجدول هنا.</p>
       <div class="insp-days">${INSP_WEEKDAYS.map(day => {
         const entries = INSPECTIONS[day] || [];
         return `<div class="insp-day">

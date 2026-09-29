@@ -8,16 +8,16 @@
       <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
       <input type="date" id="dutyDate" class="select">
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
-      <button class="mini day-jump" id="dayToday">النهاردة</button>
+      <button class="mini day-jump" id="dayToday">اليوم</button>
     </div>
     <div class="tb-group tb-end" role="group" aria-label="القالب الدائم">
       <button class="mini" id="btnModeToggle">{{ icon('edit') }} تعديل القالب الدائم</button>
-      <button class="mini hidden" id="btnReset">↺ استرجاع القالب الافتراضي لليوم ده</button>
+      <button class="mini hidden" id="btnReset">{{ icon('refresh') }} استرجاع القالب الافتراضي لهذا اليوم</button>
     </div>
   </div>
   <div id="cntSeedBanner" class="alert-card hidden">
-    <div class="alert-head"><span class="alert-ico">ℹ</span><strong>القالب فاضي لسه</strong>
-      <span class="muted">تقدر تبدأ بقالب مبدئي من يومية حقيقية وتعدّله زي ما تحب بعدين</span></div>
+    <div class="alert-head"><span class="alert-ico">{{ icon('info') }}</span><strong>القالب فارغ حتى الآن</strong>
+      <span class="muted">يمكنك البدء بقالب مبدئي من يومية فعلية وتعديله كما تشاء لاحقًا</span></div>
     <button class="mini" id="btnSeed">تحميل قالب مبدئي</button>
   </div>
   <div id="cntTotals"><div class="stats">{{ skeleton("stats", 5) }}</div></div>

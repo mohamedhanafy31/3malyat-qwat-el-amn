@@ -11,13 +11,13 @@ const typeChips = types => types.map(t => `<span class="chip rest">${esc(t)}</sp
 function affectedList(o) {
   const stopped = (o.stopped_leaves || []).map(l => `<li>
       <b>${esc(l.name)}</b> <span class="chip w">${esc(l.type)}</span>
-      <span class="sub">اتوقفت — كانت لحد ${fmt(l.original_end)}، رجع ${fmt(l.stopped_on)}</span></li>`);
+      <span class="sub">أُوقفت — كانت حتى ${fmt(l.original_end)}، وعاد في ${fmt(l.stopped_on)}</span></li>`);
   const cancelled = (o.cancelled_leaves || []).map(l => `<li>
       <b>${l.role ? esc(l.role) + "/ " : ""}${esc(l.name)}</b> <span class="chip w">${esc(l.type)}</span>
-      <span class="sub">اتلغت قبل بدايتها (${fmt(l.start)} – ${fmt(l.end)})</span></li>`);
+      <span class="sub">أُلغيت قبل بدايتها (${fmt(l.start)} – ${fmt(l.end)})</span></li>`);
   const all = [...stopped, ...cancelled];
   return all.length ? `<ul class="susp-affected">${all.join("")}</ul>`
-    : `<p class="muted susp-none">ما اتوقفتش أي راحة مسجّلة بالأمر ده.</p>`;
+    : `<p class="muted susp-none">لم تُوقَف أي راحة مسجّلة بهذا الأمر.</p>`;
 }
 
 function activeCard(o) {
@@ -38,7 +38,7 @@ function historyRow(o) {
     <td>${typeChips(o.types)}</td>
     <td>${fmt(o.started_on)}</td><td>${fmt(o.lifted_on)}</td>
     <td class="wrap">${esc(o.reason)}${o.lift_reason ? `<div class="sub">الفتح: ${esc(o.lift_reason)}</div>` : ""}
-      ${o.restored_count ? `<div class="sub"><span class="chip on">رجعت ${o.restored_count} راحة زي ما كانت</span></div>` : ""}</td>
+      ${o.restored_count ? `<div class="sub"><span class="chip on">عادت ${countLabel(o.restored_count, "راحة")} إلى حالتها السابقة</span></div>` : ""}</td>
     <td class="num">${(o.stopped_leaves || []).length}</td>
     <td class="num">${(o.cancelled_leaves || []).length}</td>
   </tr>`;
@@ -49,7 +49,7 @@ function render() {
     ? `<div class="susp-list">${SUSP.active.map(activeCard).join("")}</div>`
     : emptyState({icon: "check", title: "الراحات مفتوحة", hint: "لا يوجد أمر وقف ساري حاليًا."});
   $("#suspHistory").innerHTML = tableBlock(
-    ["الأنواع", "من", "اتفتح", "السبب", "اتوقفت", "اتلغت"],
+    ["الأنواع", "من", "فُتح", "السبب", "أُوقفت", "أُلغيت"],
     SUSP.history.map(historyRow), `عدد الأوامر: ${SUSP.history.length}`,
     "لم تُفتح أي أوامر بعد");
 }
@@ -98,18 +98,18 @@ function updateCount() {
   const stops = picked.length - cancels;
   const untouched = SUSP_CANDS.length - picked.length;
   $("#suspCount").innerHTML = SUSP_CANDS.length
-    ? `<span class="chip rest">هيتوقف ${stops} راحة جارية</span>
-       <span class="chip soon">هيتلغي ${cancels} قادمة</span>
-       <span class="chip done">${untouched} هتفضل زي ما هي</span>`
+    ? `<span class="chip rest">ستُوقَف ${countLabel(stops, "راحة")} من الراحات الجارية</span>
+       <span class="chip soon">ستُلغى ${countLabel(cancels, "راحة")} من الراحات القادمة</span>
+       <span class="chip done">ستظل ${countLabel(untouched, "راحة")} كما هي</span>`
     : "";
   $("#suspSubmit").textContent = picked.length
-    ? `تنفيذ الأمر وإيقاف ${picked.length} راحة` : "تنفيذ أمر الوقف";
+    ? `تنفيذ الأمر وإيقاف ${countLabel(picked.length, "راحة")}` : "تنفيذ أمر الوقف";
 }
 
 async function goToStep2() {
   if (!_validateModalForm($("#suspendForm"))) return;
   const types = chosenTypes(), reason = $("#suspendReason").value.trim();
-  if (!types.length) { showToast("اختار نوع راحة واحد على الأقل"); return }
+  if (!types.length) { showToast("اختر نوع راحة واحدًا على الأقل"); return }
 
   const q = types.map(t => `type=${encodeURIComponent(t)}`).join("&");
   const r = await api(`/api/rest-suspensions/candidates?${q}`);
@@ -118,19 +118,19 @@ async function goToStep2() {
   $("#suspRecap").innerHTML = `الأنواع: <b>${types.map(esc).join("، ")}</b> — السبب: ${esc(reason)}`;
 
   const weeklyNote = types.includes("أسبوعية")
-    ? `<p class="hint">الراحة الأسبوعية المحسوبة من يوم راحة الضابط (من غير سجل) بتقف لوحدها — مش محتاجة تتختار هنا.</p>`
+    ? `<p class="hint">تتوقف الراحة الأسبوعية المحسوبة من يوم راحة الضابط (بلا سجل) تلقائيًا — لا حاجة إلى اختيارها هنا.</p>`
     : "";
   $("#suspendAll").checked = false;
   $("#suspendAllWrap").classList.toggle("hidden", !r.rows.length);
   $("#suspendCandidates").innerHTML = weeklyNote + (r.rows.length
-    ? `<p class="hint">اختار الراحات اللي عايز توقفها — اللي مش مختار بيفضل زي ما هو.</p>`
+    ? `<p class="hint">اختر الراحات التي تريد إيقافها — سيظل ما لم تختره كما هو.</p>`
       + r.rows.map(c => `<label class="checkline susp-cand">
       <input type="checkbox" data-susp-leave value="${esc(c.leave_id)}" data-effect="${esc(c.effect)}">
       <span class="susp-cand-main"><b>${esc(c.role)}/ ${esc(c.name)}</b>
         <span class="chip w">${esc(c.type)}</span>
         <span class="chip ${c.state === "active" ? "rest" : "soon"}">${c.state === "active" ? "جارية" : "قادمة"}</span>
         <span class="sub">${fmt(c.start)} – ${fmt(c.end)} — ${c.effect === "cancel"
-          ? "هتتلغي بالكامل" : `آخر يوم هيبقى ${fmt(c.new_end)}، يرجع ${fmt(c.return_date)}`}</span>
+          ? "ستُلغى بالكامل" : `سيكون آخر يوم ${fmt(c.new_end)}، ويعود ${fmt(c.return_date)}`}</span>
       </span>
     </label>`).join("")
     : `<p class="muted">لا توجد راحات جارية أو قادمة من هذه الأنواع — سيمنع الأمر التسجيل الجديد فقط.</p>`);
@@ -169,9 +169,9 @@ function syncLiftWarn() {
   const restore = $("#liftRestore").checked;
   $("#liftRestoreWrap").classList.toggle("is-on", restore);
   $("#liftWarn").innerHTML = restore
-    ? `الراحات اللي اتوقفت بالأمر ده <b>هترجع لنهايتها الأصلية</b>، واللي اتلغت هتتسجّل تاني —
-       كأن الأمر ماحصلش.`
-    : `الراحات اللي اتوقفت بالأمر ده <b>مش هترجع</b> — الضباط بعد الفتح يتسكّنوا في راحة من جديد عادي.`;
+    ? `الراحات التي أُوقفت بهذا الأمر <b>ستعود إلى نهاياتها الأصلية</b>، وستُسجَّل الراحات المُلغاة مرة أخرى —
+       كأن الأمر لم يحدث.`
+    : `الراحات التي أُوقفت بهذا الأمر <b>لن تعود</b> — يمكن تسكين الضباط في راحة من جديد بعد الفتح.`;
 }
 
 ACTIONS.liftSuspension = (id, extra) => {
@@ -182,7 +182,7 @@ ACTIONS.liftSuspension = (id, extra) => {
   $("#liftRestoreWrap").classList.toggle("hidden", !offer);
   $("#liftRestore").checked = false;
   $("#liftRestoreHint").textContent = offer
-    ? `${extra.affected} راحة — متاح لأن الفتح في نفس يوم الوقف` : "";
+    ? `${countLabel(extra.affected, "راحة")} — متاح لأن الفتح في نفس يوم الوقف` : "";
   syncLiftWarn();
   openModal("liftModal");
 };
@@ -194,7 +194,7 @@ $("#liftForm").onsubmit = async e => {
     jsonReq("POST", {reason: $("#liftReason").value.trim(), restore: $("#liftRestore").checked}));
   if (!out) return;
   closeModal("liftModal", true);
-  showToast(out.restored_count ? `تم فتح الراحات ورجعت ${out.restored_count} راحة زي ما كانت`
+  showToast(out.restored_count ? `تم فتح الراحات، وعادت ${countLabel(out.restored_count, "راحة")} إلى حالتها السابقة`
                                : "تم فتح الراحات");
   load();
 };

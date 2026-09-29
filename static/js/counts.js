@@ -19,8 +19,8 @@ function blockTotal(services, conscripts) {
   return `<div class="blk-total">
     <span>الإجمالي</span>
     <span class="blk-total-bits">
-      <span><b>${services}</b> خدمة</span>
-      <span><b>${conscripts}</b> مجند</span>
+      <span>${countLabel(services, "خدمة")}</span>
+      <span>${countLabel(conscripts, "مجند")}</span>
     </span></div>`;
 }
 
@@ -69,15 +69,15 @@ function boardCountCard(label, rows, emptyText) {
         <td class="wrap">${esc(r.strength) || "<span class='muted'>—</span>"}</td>
         <td><input class="board-count" type="number" min="0" value="${r.count}"
              data-id="${esc(r.assignment_id)}" ${locked ? "disabled" : ""}
-             aria-label="عدد مجندين ${esc(r.name)}"></td>
+             aria-label="عدد المجندين في ${esc(r.name)}"></td>
       </tr>`))
     : emptyState({compact: true, title: emptyText});
   const missing = rows.filter(r => r.needs_count).length;
   const note = locked
-    ? "اليوم ده مقفول — افتحه فتح استثنائي من اليومية التفصيلية عشان تعدّل الأعداد"
+    ? "هذا اليوم مغلق — افتحه استثنائيًا من اليومية التفصيلية لتعديل الأعداد"
     : missing
-      ? `${missing} خدمة لسه من غير عدد مجندين — اكتب الرقم في الخانة والصف هيتظبط`
-      : "الأعداد بتتخزّن على صف الخدمة في اليومية التفصيلية — نفس الرقم في المكانين";
+      ? `${countLabel(missing, "خدمة")} بلا عدد مجندين بعد — أدخل الرقم في الخانة لضبط الصف`
+      : "تُحفظ الأعداد على صف الخدمة في اليومية التفصيلية — الرقم نفسه في الموضعين";
   const total = rows.reduce((n, r) => n + (r.count || 0), 0);
   return `<div class="mcard special">
     <h3>${esc(label)}<span class="mcount">${rows.length}</span></h3>
@@ -145,8 +145,8 @@ function grandTotal(services, conscripts, label) {
   $("#cntGrand").innerHTML = `
     <div class="grand-label">${esc(label)}</div>
     <div class="grand-bits">
-      <span><b>${services}</b> خدمة</span>
-      <span class="grand-main"><b>${conscripts}</b> مجند</span>
+      <span>${countLabel(services, "خدمة")}</span>
+      <span class="grand-main">${countLabel(conscripts, "مجند")}</span>
     </div>`;
 }
 

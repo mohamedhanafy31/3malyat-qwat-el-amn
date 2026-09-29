@@ -51,10 +51,10 @@ function renderStats() {
     <div class="stat">
       <span>جارية الآن</span>
       <strong>${current.length}</strong>
-      <div class="stat-sub">${officersOnLeave} ضابط على راحة</div>
+      <div class="stat-sub">${countLabel(officersOnLeave, "ضابط")} على راحة</div>
     </div>
     <div class="stat stat-accent-orange">
-      <span>يعودون غداً أو بعده</span>
+      <span>يعودون غدًا أو بعده</span>
       <strong>${returningTomorrow.length}</strong>
       <div class="stat-sub">${returningTomorrow.length ? returningTomorrow.map(l => esc(l.name.split(" ")[0])).join("، ") : "—"}</div>
     </div>
@@ -87,21 +87,21 @@ function leaveRow(l, today) {
     const returnsLabel = remaining === 0
       ? `<span class="chip-return-today">يعود اليوم!</span>`
       : remaining === 1
-        ? `<span class="chip-return-soon">يعود غداً</span>`
+        ? `<span class="chip-return-soon">يعود غدًا</span>`
         : remaining <= 2
-          ? `<span class="chip-return-soon">يعود بعد ${remaining} أيام</span>`
-          : `<span class="stat-sub">يعود بعد ${remaining} أيام</span>`;
+          ? `<span class="chip-return-soon">يعود بعد ${countLabel(remaining, "يوم")}</span>`
+          : `<span class="stat-sub">يعود بعد ${countLabel(remaining, "يوم")}</span>`;
     stateHtml = `<span class="chip rest">جارية</span><div>${returnsLabel}</div>`;
   } else if (upcoming) {
     const starts = daysUntil(l.start, today);
-    stateHtml = `<span class="chip soon">قادمة</span><div class="stat-sub">بعد ${starts} يوم</div>`;
+    stateHtml = `<span class="chip soon">قادمة</span><div class="stat-sub">بعد ${countLabel(starts, "يوم")}</div>`;
   } else {
     stateHtml = `<span class="chip done">منتهية</span>`;
   }
   // اتوقفت قبل نهايتها — التاريخ الأصلي والسبب محفوظين على السجل
   if (l.stopped_on) {
     stateHtml += `<div><span class="chip err">موقوفة</span></div>
-      <div class="sub">كانت لحد ${fmt(l.original_end)} — ${esc(l.stop_reason)}</div>`;
+      <div class="sub">كانت حتى ${fmt(l.original_end)} — ${esc(l.stop_reason)}</div>`;
   }
   const canStop = OFFICER_IDS.has(l.person_id) && (live || upcoming);
 
@@ -302,7 +302,7 @@ function renderSuspensionStrip() {
   $("#suspensionBar").innerHTML = (susp.active || []).length
     ? `<div class="alert-card susp-banner"><div class="alert-head"><span class="alert-ico">${icon("block","ico-lg")}</span>
         <strong>الراحات موقوفة: ${(susp.types || []).map(esc).join("، ")}</strong>
-        <span class="muted">تسجيل راحة من الأنواع دي لأي ضابط بيترفض.</span>
+        <span class="muted">يُرفض تسجيل راحة من هذه الأنواع لأي ضابط.</span>
         <a class="mini" href="/leaves/suspension">إدارة الوقف</a></div></div>`
     : "";
 }

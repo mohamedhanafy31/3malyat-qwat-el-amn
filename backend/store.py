@@ -172,8 +172,8 @@ def _read_text(path):
         return path.read_text(encoding="utf-8")
     except OSError as exc:
         raise DataUnreadable(
-            f"تعذّرت قراءة «{path.name}» ({exc}). اتأكد من الصلاحيات، "
-            f"أو ارجع لنسخة من {BACKUP_DIR_NAME}/."
+            f"تعذّرت قراءة «{path.name}» ({exc}). تأكد من الصلاحيات، "
+            f"أو استعد نسخة من {BACKUP_DIR_NAME}/."
         ) from exc
 
 
@@ -190,13 +190,13 @@ def _parse(raw, path):
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise DataUnreadable(
-            f"الملف «{path.name}» تالف وما اتقراش (سطر {exc.lineno}، عمود {exc.colno}). "
-            f"ما اتكتبش عليه أي حاجة — ارجع لأحدث نسخة سليمة من {BACKUP_DIR_NAME}/."
+            f"الملف «{path.name}» تالف وتعذّرت قراءته (السطر {exc.lineno}، العمود {exc.colno}). "
+            f"لم تُكتب عليه أي بيانات — استعد أحدث نسخة سليمة من {BACKUP_DIR_NAME}/."
         ) from exc
     if not isinstance(data, dict):
         raise DataUnreadable(
-            f"الملف «{path.name}» مش بالشكل المتوقع (لقى {type(data).__name__} بدل كائن). "
-            f"ارجع لنسخة من {BACKUP_DIR_NAME}/."
+            f"الملف «{path.name}» ليس بالشكل المتوقع (وُجد {type(data).__name__} بدلًا من كائن). "
+            f"استعد نسخة من {BACKUP_DIR_NAME}/."
         )
     return data
 
@@ -217,13 +217,13 @@ def _check_schema(found):
         return
     if found < SCHEMA_VERSION:
         raise SchemaMismatch(
-            f"البيانات ببنية {found} والكود بيتوقع {SCHEMA_VERSION}. "
-            f"شغّل سكربتات الهجرة في migrations/ الأول (كل واحد بيعمل نسخة "
-            f"احتياطية في {BACKUP_DIR_NAME}/ قبل ما يكتب)."
+            f"البيانات ببنية {found}، بينما يتوقع البرنامج البنية {SCHEMA_VERSION}. "
+            f"شغّل برامج الهجرة النصية في migrations/ أولًا (ينشئ كل منها نسخة "
+            f"احتياطية في {BACKUP_DIR_NAME}/ قبل الكتابة)."
         )
     raise SchemaMismatch(
         f"البيانات ببنية {found} أحدث من الكود ({SCHEMA_VERSION}). "
-        f"حدّث الكود أو ارجع لنسخة من {BACKUP_DIR_NAME}/."
+        f"حدّث البرنامج أو استعد نسخة من {BACKUP_DIR_NAME}/."
     )
 
 
@@ -310,15 +310,15 @@ def _read():
     if not core_file().exists():
         if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
             raise DataUnreadable(
-                f"مجلد البيانات «{DATA_DIR.name}» موجود بس مافيهوش {CORE_NAME}. "
-                f"ارجع لنسخة من {BACKUP_DIR_NAME}/."
+                f"مجلد البيانات «{DATA_DIR.name}» موجود، لكنه لا يحتوي على {CORE_NAME}. "
+                f"استعد نسخة من {BACKUP_DIR_NAME}/."
             )
         legacy = ROOT / "data.json"
         if legacy.exists():
             raise SchemaMismatch(
-                f"البيانات لسه في الملف الواحد القديم «{legacy.name}». "
-                f"شغّل migrations/010_split_data_files.py عشان يفكّه لمجلد "
-                f"«{DATA_DIR.name}/» (بيعمل نسخة احتياطية قبل ما يكتب)."
+                f"لا تزال البيانات في الملف القديم الواحد «{legacy.name}». "
+                f"شغّل migrations/010_split_data_files.py لتفكيكه في مجلد "
+                f"«{DATA_DIR.name}/» (ينشئ نسخة احتياطية قبل الكتابة)."
             )
         explode(json.loads(json.dumps(DEFAULT_DATA)))    # نسخة — explode بيعدّل
 
@@ -510,9 +510,9 @@ def read_backup(path):
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise DataUnreadable(
-            f"النسخة «{path.name}» مش JSON سليم (سطر {exc.lineno}).") from exc
+            f"النسخة «{path.name}» ليست ملف JSON سليمًا (السطر {exc.lineno}).") from exc
     if not isinstance(data, dict):
-        raise DataUnreadable(f"النسخة «{path.name}» مش بالشكل المتوقع.")
+        raise DataUnreadable(f"النسخة «{path.name}» ليست بالشكل المتوقع.")
     return data
 
 
@@ -550,7 +550,7 @@ def restore_backup(name):
     """
     path = backup_dir() / name
     if not path.exists():
-        raise DataUnreadable(f"مافيش نسخة بالاسم «{name}».")
+        raise DataUnreadable(f"لا توجد نسخة بالاسم «{name}».")
     data = read_backup(path)              # بيرمي قبل أي كتابة لو تالفة
     _check_schema(data.get("schema", 1))  # ومش بنرجّع بنية الكود مايفهمهاش
     with LOCK:
@@ -620,11 +620,9 @@ def acquire_process_lock():
             pass       # ملف فاضي أو تالف — يتعامل معاه كقفلة عالقة
         if not stale:
             raise SystemExit(
-                f"\n[X] السيستم شغّال بالفعل من عملية تانية على نفس مجلد data/.\n"
-                f"[X] The system is already running (another process) on this data/ folder.\n"
+                f"\n[X] النظام قيد التشغيل بالفعل من عملية أخرى على مجلد data/ نفسه.\n"
                 f"\n"
-                f"    اقفل النسخة التانية الأول وجرّب تاني.\n"
-                f"    Close the other window/process first, then try again.\n"
+                f"    أغلق النسخة الأخرى أولًا، ثم حاول مجددًا.\n"
             )
         lock_path.unlink(missing_ok=True)     # قفلة عالقة من عملية ماتت — بتتشال وتتحاول تاني
         fd = _try_create()

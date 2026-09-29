@@ -79,9 +79,19 @@ const AR_NOUNS={
   "ضابط":{one:"ضابط واحد",two:"ضابطان",few:"ضباط",many:"ضابطًا",sing:"ضابط"},
   "فرد":{one:"فرد واحد",two:"فردان",few:"أفراد",many:"فردًا",sing:"فرد"},
   "يوم":{one:"يوم واحد",two:"يومان",few:"أيام",many:"يومًا",sing:"يوم"},
-  "خدمة":{one:"خدمة واحدة",two:"خدمتان",few:"خدمات",many:"خدمة",sing:"خدمة"},
+  "خدمة":{one:"خدمة واحدة",two:"خدمتان",few:"خدمات",many:"خدمةً",sing:"خدمة"},
   "خانة":{one:"خانة واحدة",two:"خانتان",few:"خانات",many:"خانة",sing:"خانة"},
   "تعديل":{one:"تعديل واحد",two:"تعديلان",few:"تعديلات",many:"تعديلًا",sing:"تعديل"},
+  "تقصيرة":{one:"تقصيرة واحدة",two:"تقصيرتان",few:"تقصيرات",many:"تقصيرةً",sing:"تقصيرة"},
+  "راحة":{one:"راحة واحدة",two:"راحتان",few:"راحات",many:"راحةً",sing:"راحة"},
+  "تغيير":{one:"تغيير واحد",two:"تغييران",few:"تغييرات",many:"تغييرًا",sing:"تغيير"},
+  "فرقة":{one:"فرقة واحدة",two:"فرقتان",few:"فرق",many:"فرقةً",sing:"فرقة"},
+  "التحاق":{one:"التحاق واحد",two:"التحاقان",few:"التحاقات",many:"التحاقًا",sing:"التحاق"},
+  "مأمورية":{one:"مأمورية واحدة",two:"مأموريتان",few:"مأموريات",many:"مأموريةً",sing:"مأمورية"},
+  "تنبيه":{one:"تنبيه واحد",two:"تنبيهان",few:"تنبيهات",many:"تنبيهًا",sing:"تنبيه"},
+  "تفتيش":{one:"تفتيش واحد",two:"تفتيشان",few:"تفتيشات",many:"تفتيشًا",sing:"تفتيش"},
+  "سجل":{one:"سجل واحد",two:"سجلان",few:"سجلات",many:"سجلًا",sing:"سجل"},
+  "نتيجة":{one:"نتيجة واحدة",two:"نتيجتان",few:"نتائج",many:"نتيجةً",sing:"نتيجة"},
 };
 function countLabel(n,forms){
   const f=typeof forms==="string"?AR_NOUNS[forms]:forms;
@@ -268,13 +278,13 @@ async function renderRestStrip(el, day){
   if(el.dataset.day !== day) return;          // اتغيّر اليوم قبل ما الرد يوصل
   if(!r || (!r.types.length && !r.returned.length)){ el.innerHTML = ""; return }
   const returned = r.returned.map(o => `<span class="chip on"
-      title="${esc(o.stop_reason)} — كانت لحد ${esc(fmt(o.original_end))}">${esc(o.role)}/ ${esc(o.name)}
+      title="${esc(o.stop_reason)} — كانت حتى ${esc(fmt(o.original_end))}">${esc(o.role)}/ ${esc(o.name)}
       <i>${esc(o.type)}</i></span>`).join("");
   el.innerHTML = `<div class="alert-card susp-banner rest-strip"><div class="alert-head">
       <span class="alert-ico">${icon("block","ico-lg")}</span>
       <strong>${r.types.length ? `الراحات موقوفة: ${r.types.map(esc).join("، ")}` : "إيقاف راحات"}</strong>
       <a class="mini" href="/leaves/suspension">إدارة الوقف</a></div>
-    ${r.returned.length ? `<div class="sub">رجعوا للعمل في اليوم ده بإيقاف راحتهم — محتاجين تسكين:</div>
+    ${r.returned.length ? `<div class="sub">عادوا إلى العمل في هذا اليوم بإيقاف راحتهم — يحتاجون إلى تسكين:</div>
       <div class="returned">${returned}</div>` : ""}
   </div>`;
 }
@@ -328,7 +338,7 @@ function _filtersActive(){
 }
 function _emptyHtml(v){
   if(_filtersActive()) return emptyState({icon:"search",title:"لا توجد نتائج مطابقة",
-    hint:"جرّب تعديل البحث أو عوامل التصفية."});
+    hint:"حاول تعديل البحث أو عوامل التصفية."});
   return emptyState(typeof v==="string"?{title:v}:v);
 }
 function tableBlock(head,rows,countText,emptyText,cid,renderFn){
@@ -859,7 +869,7 @@ function statusCell(p){
   if(st.state==="resting")
     return `<span class="chip rest">في راحة</span><div class="sub">حتى ${fmt(st.leave?.end)}</div>`;
   if(st.state==="taqseera")
-    return `<span class="chip taq">تقصيرة ${st.taqseera_date===curDate()?"النهاردة":"يوم "+dayName(st.taqseera_date)}</span>`+
+    return `<span class="chip taq">تقصيرة ${st.taqseera_date===curDate()?"اليوم":"يوم "+dayName(st.taqseera_date)}</span>`+
            `<div class="sub">الراحة ${fmt(st.rest_start)}</div>`;
   if(st.state==="upcoming")
     return `<span class="chip soon">راحة قادمة</span><div class="sub">${fmt(st.rest_start)}</div>`;
@@ -881,7 +891,7 @@ function renderAlerts(alerts){
   const sorted=[...alerts].sort((a,b)=>String(a.taqseera_date).localeCompare(String(b.taqseera_date)));
   const todayCount=sorted.filter(a=>a.taqseera_date===today).length;
   const lede=todayCount
-    ? `${todayCount} اليوم · ${sorted.length - todayCount} خلال الأيام القادمة`
+    ? `${countLabel(todayCount,"ضابط")} اليوم · ${countLabel(sorted.length - todayCount,"ضابط")} خلال الأيام القادمة`
     : `${countLabel(sorted.length,"ضابط")} خلال الأيام القادمة`;
   /* بيبدأ مطوي في كل الصفحات — المفتوح كان بيزق الصفحة كلها 250 بكسل لتحت
      بعد التحميل، والعدد ظاهر في سطر الملخص. اختيار المستخدم بيتحفظ له. */
@@ -1160,10 +1170,10 @@ function _msSync(sel) {
     chip.className = "multi-chip";
     chip.innerHTML = `${esc(o.textContent)}<button type="button" class="multi-x"
       data-action="_msRemove" data-extra="${dataAttr({v: o.value})}"
-      aria-label="شيل ${esc(o.textContent)}">×</button>`;
+      aria-label="إزالة ${esc(o.textContent)}">×</button>`;
     box.insertBefore(chip, inp);
   }
-  inp.placeholder = chosen.length ? "زوّد كمان…" : "دوّر واختار…";
+  inp.placeholder = chosen.length ? "أضف المزيد…" : "ابحث واختر…";
   box.classList.toggle("has-items", chosen.length > 0);
 }
 

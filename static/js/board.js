@@ -19,7 +19,7 @@ const chips = (list, cls) => list.map(p =>
 const conChips = cons => (cons || []).map(c =>
   `<span class="chip w">${esc(c.class || "مجند")}${c.count ? " ×" + c.count : ""}</span>`).join(" ");
 
-const SERVICE_HEAD = ["الخدمة", "القائم بها", "المجندين", "التسليح", "الانتظام", "الجهة", "الإجراء"];
+const SERVICE_HEAD = ["الخدمة", "القائم بها", "المجندون", "التسليح", "الانتظام", "الجهة", "الإجراء"];
 
 /* الأهداف قايمة مغلقة بترتيب ثابت (مشرف الأهداف + سبعة أهداف)، عكس باقي
    الأقسام — مفيش «+ إضافة» حر ولا حذف. عمودين بس بيتغيّروا:
@@ -32,7 +32,7 @@ const TARGET_HEAD = ["الهدف", "قائد الهدف العام", "الضاب
 function targetSlotRow(row) {
   const commander = row.commander?.length
     ? chips(row.commander, "h")
-    : `<span class="muted">لسه محدّدش من صفحة بيانات الضابط</span>`;
+    : `<span class="muted">لم يُحدَّد بعد من صفحة بيانات الضابط</span>`;
   const assigned = row.officers.length
     ? chips(row.officers, "m")
     : `<span class="muted">لم يُعيَّن أحد</span>`;
@@ -70,7 +70,7 @@ function slotRow(row, sectionName) {
 function serviceRow(row) {
   if (row.placeholder) {
     return `<tr class="vacant"><td class="name">${esc(row.shift)}</td>
-      <td colspan="5"><span class="muted">شاغرة — محتاجة تكليف</span></td>
+      <td colspan="5"><span class="muted">شاغرة — تحتاج إلى تكليف</span></td>
       <td class="col-actions"><div class="actions"><button class="mini" data-action="openEntry"
         data-extra="${dataAttr({shift: row.shift})}" aria-label="إضافة">${icon("plus")}</button></div></td></tr>`;
   }
@@ -90,10 +90,10 @@ function serviceRow(row) {
     <td class="col-actions"><div class="actions service-actions">
       <button type="button" class="mini btn-xs move" data-action="moveEntry"
         data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
-        title="حرّك لفوق" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
+        title="حرّك إلى أعلى" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
       <button type="button" class="mini btn-xs move" data-action="moveEntry"
         data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
-        title="حرّك لتحت" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
+        title="حرّك إلى أسفل" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
       <button class="mini" data-action="openEntry" data-id="${esc(row.id)}">تعديل</button>
       ${rowMenu([
         {action: "duplicateEntry", id: row.id, label: "تكرار"},
@@ -176,7 +176,7 @@ function warningsCard(list) {
     </div>`).join("");
   return `<div class="alert-card">
     <div class="alert-head"><span class="alert-ico">${icon("alert","ico-lg")}</span><strong>مراجعة اليوم</strong>
-      <span class="muted">${list.length} ملاحظة — للفت النظر مش للمنع</span></div>
+      <span class="muted">${countLabel(list.length, "تنبيه")} — للفت النظر لا للمنع</span></div>
     ${body}</div>`;
 }
 
@@ -307,7 +307,7 @@ function renderSectionHistory(history, expanded) {
   SECTION_HISTORY = history;
   panel.innerHTML = `<div class="section-history-head">
       <div class="section-history-summary">آخر خدمات «${esc(history.section)}» يوم
-        ${fmt(history.source_day)} <span>— ${rows.length} خدمة</span></div>
+        ${fmt(history.source_day)} <span>— ${countLabel(rows.length, "خدمة")}</span></div>
       <button type="button" class="mini section-history-toggle"
         aria-expanded="${expanded}">${expanded ? "إخفاء" : "عرض"}</button>
     </div>
@@ -319,7 +319,7 @@ function renderSectionHistory(history, expanded) {
             <span class="section-history-meta">
               <span>الفترة: ${esc(row.shift || "—")}</span>
               <span>التصنيف: ${esc(row.kind || "—")}</span>
-              <span>المجندين: ${historyConscriptCount(row)}</span>
+              <span>المجندون: ${historyConscriptCount(row)}</span>
               <span>التسليح: ${esc(row.weapon || "—")}</span>
             </span>
           </span>
@@ -371,7 +371,7 @@ function queueSectionHistory(expanded) {
 async function copySelectedSectionHistory() {
   if (!SECTION_HISTORY) return;
   const ids = $$("#enSectionHistory .section-history-choice:checked").map(input => input.value);
-  if (!ids.length) { showToast("اختار خدمة واحدة على الأقل", true); return }
+  if (!ids.length) { showToast("اختر خدمة واحدة على الأقل", true); return }
   const button = $("#copySectionHistory");
   button.disabled = true;
   const out = await api(`/api/board/${DAY}/section-copy`, jsonReq("POST", {
@@ -381,7 +381,7 @@ async function copySelectedSectionHistory() {
   }));
   if (!out) { button.disabled = false; return }
   closeModal("entryModal", true);
-  showToast(`تمت إضافة ${out.added} خدمة، واتخطت ${out.skipped} موجودة بالفعل`);
+  showToast(`تمت إضافة ${countLabel(out.added, "خدمة")}، والخدمات التي تم تجاوزها: ${countLabel(out.skipped, "خدمة")}`);
   loadDay(DAY);
 }
 
@@ -625,9 +625,9 @@ $("#btnConfirmDay").onclick = async () => {
   const by = ($("#editedBy")?.value || "").trim();
   const out = await api(`/api/board/${DAY}/confirm`, jsonReq("POST", {confirmed_by: by}));
   if (!out) return;
-  showToast(out.first ? "اتأكدت اليومية لأول مرة"
-            : out.changes ? `اتأكدت اليومية — ${out.changes} تغيير اتسجّل`
-            : "اتأكدت اليومية — من غير تغييرات");
+  showToast(out.first ? "تم تأكيد اليومية لأول مرة"
+            : out.changes ? `تم تأكيد اليومية — سُجِّل ${countLabel(out.changes, "تغيير")}`
+            : "تم تأكيد اليومية — دون تغييرات");
   loadDay(DAY);
 };
 
@@ -732,24 +732,24 @@ async function loadDayStatus() {
   if (!s) return;
   const badge = $("#dayLockBadge");
   if (s.closed) {
-    const why = s.auto ? "اتقفل تلقائيًا الساعة 12 بالليل"
-                       : `اتقفل بالإيد${s.closed_by ? " — " + s.closed_by : ""}`;
-    badge.innerHTML = `<span class="chip err" title="${esc(why)}">${icon("lock")} مقفول</span>
+    const why = s.auto ? "أُغلق تلقائيًا الساعة 12 ليلًا"
+                       : `أُغلق يدويًا${s.closed_by ? " — " + s.closed_by : ""}`;
+    badge.innerHTML = `<span class="chip err" title="${esc(why)}">${icon("lock")} مغلق</span>
       <button class="mini" id="btnReopenDay">فتح استثنائي</button>`;
     $("#btnReopenDay").onclick = reopenDay;
   } else if (s.reopened) {
     badge.innerHTML = `<span class="chip taq"
-        title="الفتح الاستثنائي صالح النهاردة بس — اليوم هيرجع يتقفل تلقائي الساعة 12">
-        ${icon("unlock")} مفتوح استثنائيًا النهاردة</span>`;
+        title="الفتح الاستثنائي صالح لليوم فقط — سيُغلق اليوم تلقائيًا الساعة 12">
+        ${icon("unlock")} مفتوح استثنائيًا اليوم</span>`;
   } else if (s.stage === "not_open") {
-    badge.innerHTML = `<span class="chip w" title="يوم جاي — لسه معدّاش عليه دوره، بس التجهيز المسبق مسموح">
-        ⏳ لسة متفتحش</span>
-      <button class="mini" id="btnCloseDay" title="قفل اليوم مقدّم قبل ما يجيله دوره">قفل اليوم بدري</button>`;
+    badge.innerHTML = `<span class="chip w" title="يوم قادم — لم يحن دوره بعد، ويُسمح بالتجهيز المسبق">
+        ${icon("clock")} لم يُفتح بعد</span>
+      <button class="mini" id="btnCloseDay" title="إغلاق اليوم مسبقًا قبل حلول دوره">إغلاق اليوم مبكرًا</button>`;
     $("#btnCloseDay").onclick = closeDay;
   } else {
-    badge.innerHTML = `<span class="chip on" title="النهاردة — مفتوح للتعديل"><span class="status-dot ok" aria-hidden="true"></span> مفتوح</span>
+    badge.innerHTML = `<span class="chip on" title="اليوم — مفتوح للتعديل"><span class="status-dot ok" aria-hidden="true"></span> مفتوح</span>
       <button class="mini" id="btnCloseDay"
-      title="اليوم بيتقفل لوحده الساعة 12 بالليل — الزرار ده للقفل بدري">قفل اليوم بدري</button>`;
+      title="يُغلق اليوم تلقائيًا الساعة 12 ليلًا — هذا الزر للإغلاق المبكر">إغلاق اليوم مبكرًا</button>`;
     $("#btnCloseDay").onclick = closeDay;
   }
 }
@@ -762,7 +762,7 @@ async function closeDay() {
   }))) return;
   const name = ($("#editedBy")?.value || "").trim();
   if (!(await api(`/api/day-status/${DAY}/close`, jsonReq("POST", {closed_by: name})))) return;
-  showToast("اتقفل اليوم"); loadDayStatus();
+  showToast("أُغلق اليوم"); loadDayStatus();
 }
 async function reopenDay() {
   const reason = await reasonDialog({
@@ -774,7 +774,7 @@ async function reopenDay() {
   if (!reason) return;
   const by = ($("#editedBy")?.value || "").trim();
   if (!(await api(`/api/day-status/${DAY}/reopen`, jsonReq("POST", {reason, reopened_by: by})))) return;
-  showToast("اتفتح اليوم — لغاية آخر النهاردة"); loadDayStatus();
+  showToast("فُتح اليوم — حتى نهاية اليوم"); loadDayStatus();
 }
 
 /* تنبيه تسليم واستلام: مين هيبدأ راحته بكرة (تقصيرته النهاردة) وكان
@@ -789,18 +789,18 @@ $("#dayTomorrow").onclick = async () => {
   if (!leaving.length) return;
   const todayBoard = await api(`/api/board/${today}`);
   const rows = leaving.map(a => {
-    let service = "بدون خدمة مسجلة النهاردة";
+    let service = "بدون خدمة مسجلة اليوم";
     for (const sec of todayBoard?.sections || []) {
       const hit = sec.rows.find(r => (r.officers || []).some(o => o.id === a.id));
       if (hit) { service = hit.label; break }
     }
     return `<li><span class="a-name">${esc(a.role)} / ${esc(a.name)}</span>
-      <span class="a-mid">في راحة (${esc(a.type)}) بداية من بكرة</span>
-      <span class="a-rest">كان بيشتغل: ${esc(service)}</span></li>`;
+      <span class="a-mid">في راحة (${esc(a.type)}) اعتبارًا من غدٍ</span>
+      <span class="a-rest">كان يعمل: ${esc(service)}</span></li>`;
   });
   $("#matchBoard").insertAdjacentHTML("afterbegin", `<div class="alert-card handover-card">
-    <div class="alert-head"><span class="alert-ico">↷</span><strong>تسليم واستلام بكرة</strong>
-      <span class="muted">${leaving.length} ضابط هيبدأ راحته بكرة — محتاجين تكليف بديل على خدمتهم</span></div>
+    <div class="alert-head"><span class="alert-ico">${icon("arrow-end","ico-lg")}</span><strong>تسليم واستلام غدًا</strong>
+      <span class="muted">عدد الضباط الذين ستبدأ راحتهم غدًا: ${leaving.length} — يحتاجون إلى تكليف بديل على خدمتهم</span></div>
     <ul class="alert-list">${rows.join("")}</ul></div>`);
 };
 

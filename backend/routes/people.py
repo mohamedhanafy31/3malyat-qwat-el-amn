@@ -28,7 +28,7 @@ def _require_active_officer(repos, officer_id):
     if raw is None or category != "officers":
         raise AbortRequest((jsonify({"error": "الضابط غير موجود."}), 404))
     if bucket != "active":
-        raise AbortRequest((jsonify({"error": "الضابط مش على القوة."}), 400))
+        raise AbortRequest((jsonify({"error": "الضابط ليس على القوة."}), 400))
     return raw
 
 
@@ -49,7 +49,7 @@ def set_command():
                 clash = repos.config.role_of(officer_id)
                 if clash and clash != role:
                     raise AbortRequest((jsonify({
-                        "error": f"الضابط ده شايل «{clash}» بالفعل."}), 409))
+                        "error": f"يتولى هذا الضابط «{clash}» بالفعل."}), 409))
             repos.config.assign_command(role, officer_id)
         repos.people.sort("officers")   # قيادة الإدارة أعلى اتنين في الترتيب
         return jsonify(repos.config.command())
@@ -71,7 +71,7 @@ def set_command_groups():
             if role not in GROUP_ROLES:
                 raise AbortRequest((jsonify({"error": f"منصب غير معروف: {role}"}), 400))
             if not isinstance(officer_ids, list):
-                raise AbortRequest((jsonify({"error": "لازم تبعت قايمة معرّفات."}), 400))
+                raise AbortRequest((jsonify({"error": "يجب إرسال قائمة معرّفات."}), 400))
             clean_ids = []
             for raw_id in officer_ids:
                 officer_id = str(raw_id or "").strip()
@@ -90,7 +90,7 @@ def add_person():
     payload = json_payload()
     required = ["name", "code", "phone", "join_date", "type"]
     if any(not str(payload.get(k, "")).strip() for k in required):
-        return jsonify({"error": "برجاء إدخال كل البيانات المطلوبة."}), 400
+        return jsonify({"error": "يرجى إدخال جميع البيانات المطلوبة."}), 400
 
     person_type = payload["type"]
     if person_type == "personnel":
@@ -111,7 +111,7 @@ def add_person():
     if bad_length:
         return jsonify({"error": bad_length}), 400
     if not valid_phone(payload["phone"]):
-        return jsonify({"error": "رقم التليفون غير صحيح."}), 400
+        return jsonify({"error": "رقم الهاتف غير صحيح."}), 400
 
     errors = []
     valid_rest(payload, errors)
@@ -185,7 +185,7 @@ def edit_person(person_id):
                                                  join_date, current_leave)
             if conflicts:
                 raise AbortRequest((jsonify({
-                    "error": "تعديل تاريخ الانضمام ده هيسيب بيانات مسجّلة قبله معلّقة.",
+                    "error": "سيترك تعديل تاريخ الانضمام هذا بيانات مسجّلة قبله معلّقة.",
                     "conflicts": conflicts}), 400))
         if "role" in payload and category == "personnel":
             family = str(payload["role"]).strip().split(" ")[0]
@@ -203,7 +203,7 @@ def edit_person(person_id):
         if bad_length:
             raise AbortRequest((jsonify({"error": bad_length}), 400))
         if "phone" in payload and not valid_phone(payload["phone"]):
-            raise AbortRequest((jsonify({"error": "رقم التليفون غير صحيح."}), 400))
+            raise AbortRequest((jsonify({"error": "رقم الهاتف غير صحيح."}), 400))
 
         errors = []
         valid_rest(payload, errors, current=person)
@@ -235,7 +235,7 @@ def edit_person(person_id):
                 retro.log_retro(data, "person", person_id, closed, reason,
                                before=before, after=dict(historic),
                                text=f"تعديل بأثر رجعي على بيانات {person.get('name', '')} "
-                                    f"سارٍ من {effective_from} — يوم/أيام مقفولة: "
+                                    f"سارٍ من {effective_from} — يوم مغلق أو عدة أيام مغلقة: "
                                     f"{'، '.join(closed)}")
 
         for key in EDITABLE:
@@ -256,7 +256,7 @@ def edit_person(person_id):
                                                  check_missions=True)
             if conflicts:
                 raise AbortRequest((jsonify({
-                    "error": "تعديل تاريخ الخروج ده هيسيب بيانات مسجّلة بعده معلّقة.",
+                    "error": "سيترك تعديل تاريخ الخروج هذا بيانات مسجّلة بعده معلّقة.",
                     "conflicts": conflicts}), 400))
             person["leave_date"] = leave_date
         if bucket == "archive" and "leave_reason" in payload:
@@ -301,7 +301,7 @@ def remove_person(person_id):
                                              check_missions=True)
         if conflicts and not cleanup:
             raise AbortRequest((jsonify({
-                "error": "فيه بيانات مسجّلة بعد تاريخ الخروج ده — أكّد التنظيف عشان تكمّل.",
+                "error": "توجد بيانات مسجّلة بعد تاريخ الخروج هذا — أكّد التنظيف للمتابعة.",
                 "needs_confirm": True, "conflicts": conflicts}), 409))
 
         report = {}
@@ -355,8 +355,8 @@ def restore_person(person_id):
         left = str(found.get("leave_date", "") or "")
         if left and join_date <= left:
             raise AbortRequest((jsonify({
-                "error": f"تاريخ الانضمام الجديد لازم يكون بعد تاريخ الخروج ({left}) — "
-                         "وإلا الشخص هيتحسب مرتين في نفس اليوم.",
+                "error": f"يجب أن يكون تاريخ الانضمام الجديد بعد تاريخ الخروج ({left}) — "
+                         "وإلا فسيُحتسب الشخص مرتين في اليوم نفسه.",
                 "leave_date": left}), 400))
 
         # Keep the historical record intact and create a new active period.
@@ -417,9 +417,8 @@ def delete_archive_record(person_id):
         if closed:
             retro.log_retro(data, "person", person_id, closed, reason,
                            before=raw, after=report,
-                           text=f"حذف نهائي لسجل {raw.get('name', '')} بيمس يوم/أيام "
-                                f"مقفولة: {'، '.join(closed)}")
+                           text=f"حذف نهائي لسجل {raw.get('name', '')} يؤثر في يوم مغلق "
+                                f"أو عدة أيام مغلقة: {'، '.join(closed)}")
         return jsonify({"ok": True})
 
     return with_data(mutate)
-

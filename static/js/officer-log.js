@@ -35,12 +35,14 @@ function render(d) {
   $("#ologWrap").innerHTML = tableBlock(
     ["التاريخ", "اليوم", "الخدمات", "الحالة", "ملاحظة"],
     rows.map(logRow),
-    `${d.rows.length} يوم مسجّل من ${fmt(d.date_from)} إلى ${fmt(d.date_to)} — ${esc(d.officer.role)}/ ${esc(d.officer.name)}`,
+    `عدد الأيام المسجّلة: ${d.rows.length} من ${fmt(d.date_from)} إلى ${fmt(d.date_to)} — ${esc(d.officer.role)}/ ${esc(d.officer.name)}`,
     {title: "لا توجد أيام مسجّلة لهذا الضابط في المدى المحدد", hint: "ربما لم يكن على القوة في هذه الفترة."});
 }
 
 function syncSortLabel() {
-  $("#ologSortToggle").textContent = OLOG_SORT_DESC ? "الأحدث أولًا ↑" : "الأقدم أولًا ↓";
+  $("#ologSortToggle").innerHTML = OLOG_SORT_DESC
+    ? `الأحدث أولًا ${icon("chevron-up")}`
+    : `الأقدم أولًا ${icon("chevron-down")}`;
 }
 $("#ologSortToggle").onclick = () => {
   OLOG_SORT_DESC = !OLOG_SORT_DESC;

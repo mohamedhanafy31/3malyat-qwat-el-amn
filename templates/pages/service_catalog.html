@@ -13,9 +13,9 @@
     <select class="select" id="svcTagFilter" aria-label="تصفية حسب الوسم"></select>
   </div>
   <div id="svcSeedBanner" class="alert-card hidden">
-    <div class="alert-head"><span class="alert-ico">ℹ</span><strong>الدليل فاضي لسه</strong>
-      <span class="muted">تقدر تبدأ بتوليد الدليل من الخدمات الأساسية الموجودة في اعداد الخدمات وتعدّله زي ما تحب بعدين</span></div>
-    <button class="mini" id="btnSeedCatalog">توليد الدليل من اعداد الخدمات</button>
+    <div class="alert-head"><span class="alert-ico">{{ icon('info') }}</span><strong>الدليل فارغ حتى الآن</strong>
+      <span class="muted">يمكنك البدء بإنشاء الدليل من الخدمات الأساسية الموجودة في أعداد الخدمات، ثم تعديله كما تشاء لاحقًا</span></div>
+    <button class="mini" id="btnSeedCatalog">إنشاء الدليل من أعداد الخدمات</button>
   </div>
   <div id="inspectionScheduleBar"></div>
   <div id="catalogWrap">{{ skeleton("cards", 4) }}</div>

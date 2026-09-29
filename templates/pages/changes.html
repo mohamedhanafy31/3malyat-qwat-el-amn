@@ -6,10 +6,10 @@
   <div class="toolbar">
     <select id="chgEntityFilter" class="select" aria-label="تصفية حسب الكيان">
       <option value="">كل الأنواع</option>
-      <option value="duty_move">حركة الضباط والأفراد (كان ← بقى)</option>
+      <option value="duty_move">حركة الضباط والأفراد (كان ← أصبح)</option>
       <option value="assignment">الخدمات (إضافة/تعديل/حذف)</option>
       <option value="day_confirm">تأكيد اليوميات</option>
-      <option value="day_lock">قفل وفتح الأيام</option>
+      <option value="day_lock">إغلاق وفتح الأيام</option>
       <option value="officer_state">حالة الضباط (تقصيرة/انتداب/غياب...)</option>
       <option value="leave">الراحات والإجازات</option>
       <option value="rest_suspension">وقف وفتح الراحات</option>
@@ -19,8 +19,8 @@
     <button class="mini" id="chgClearDay">كل الأيام</button>
   </div>
   <p class="hint panel-notice changes-note">
-    تغييرات اليومية التفصيلية بتتسجّل وقت <b>تأكيد اليومية</b> مش وقت الحفظ —
-    فالوقت اللي في العمود الأول هو لحظة التأكيد.
+    تُسجَّل تغييرات اليومية التفصيلية عند <b>تأكيد اليومية</b> لا عند الحفظ —
+    لذا يمثّل الوقت في العمود الأول لحظة التأكيد.
   </p>
   <div id="changesWrap" data-mobile-cards>{{ skeleton("rows", 10) }}</div>
 </div>

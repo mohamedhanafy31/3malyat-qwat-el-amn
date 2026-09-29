@@ -85,7 +85,7 @@ def test_overlapping_terms_for_the_same_officer_are_refused(client):
     _term(client, course_id=course["id"])
     r = _term(client, course_id=course["id"], start="2026-04-12", end="2026-04-20")
     assert r.status_code == 409
-    assert "ملتحق بفرقة تانية" in r.get_json()["error"]
+    assert "ملتحق بفرقة أخرى" in r.get_json()["error"]
 
 
 def test_two_officers_can_share_the_same_course(client):
@@ -148,7 +148,7 @@ def test_course_with_terms_cannot_be_deleted(client):
     _term(client, course_id=course["id"])
     r = client.delete(f"/api/courses/{course['id']}")
     assert r.status_code == 409
-    assert "التحاق مسجّل" in r.get_json()["error"]
+    assert "الالتحاقات المسجّلة" in r.get_json()["error"]
 
 
 def test_deleting_the_term_frees_the_officer_and_the_course(client):

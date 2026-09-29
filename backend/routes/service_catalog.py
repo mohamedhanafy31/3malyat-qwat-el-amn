@@ -30,7 +30,7 @@ def list_catalog():
 def seed_catalog():
     def mutate(data):
         if catalog_lib.is_seeded(data):
-            raise AbortRequest((jsonify({"error": "الدليل فيه بيانات بالفعل."}), 409))
+            raise AbortRequest((jsonify({"error": "يحتوي الدليل على بيانات بالفعل."}), 409))
         entries = catalog_lib.seed_from_counts_template(data)
         return jsonify({"entries": entries}), 201
 
@@ -94,10 +94,10 @@ def delete_entry(entry_id):
 def upload_image(entry_id):
     file = request.files.get("image")
     if not file or not file.filename:
-        return jsonify({"error": "مفيش صورة مرفوعة."}), 400
+        return jsonify({"error": "لا توجد صورة مرفوعة."}), 400
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else ""
     if ext not in catalog_lib.ALLOWED_IMAGE_EXT:
-        return jsonify({"error": "امتداد الصورة غير مدعوم (png/jpg/jpeg/webp بس)."}), 400
+        return jsonify({"error": "امتداد الصورة غير مدعوم (png/jpg/jpeg/webp فقط)."}), 400
     file.seek(0, 2)
     size = file.tell()
     file.seek(0)

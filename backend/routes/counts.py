@@ -41,7 +41,7 @@ def _clean_payload(data, payload, current=None):
         try:
             out["count"] = max(0, int(payload["count"]))
         except (TypeError, ValueError):
-            return None, "عدد المجندين لازم يكون رقم."
+            return None, "يجب أن يكون عدد المجندين رقمًا."
     if not out.get("name"):
         return None, "اسم الخدمة مطلوب."
     out.setdefault("block", counts_lib.BLOCKS[0])
@@ -73,7 +73,7 @@ def get_template():
 def seed_template():
     def mutate(data):
         if counts_lib.is_seeded(data):
-            raise AbortRequest((jsonify({"error": "القالب فيه بيانات بالفعل."}), 409))
+            raise AbortRequest((jsonify({"error": "يحتوي القالب على بيانات بالفعل."}), 409))
         # قبل ما القالب يتملا: أي يوم فات ولسه بيقرا القالب الحيّ (الفاضي)
         # لازم يتجمّد عليه، وإلا هيطلع فيه صفوف البذرة بأثر رجعي.
         counts_lib.freeze_past_days(data)
@@ -215,7 +215,7 @@ def set_board_count(day, assignment_id):
     try:
         count = max(0, int(payload.get("count", 0)))
     except (TypeError, ValueError):
-        return jsonify({"error": "عدد المجندين لازم يكون رقم."}), 400
+        return jsonify({"error": "يجب أن يكون عدد المجندين رقمًا."}), 400
 
     def mutate(data):
         _guard_day(data, day)

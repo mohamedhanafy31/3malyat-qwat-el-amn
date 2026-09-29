@@ -37,7 +37,7 @@ def edit_entry(weekday, entry_id):
     def mutate(data):
         entry, err = sched_lib.edit_entry(data, weekday, entry_id, payload)
         if err:
-            status = 404 if err == "التفتيش ده مش موجود." else 400
+            status = 404 if err == "هذا التفتيش غير موجود." else 400
             raise AbortRequest((jsonify({"error": err}), status))
         return jsonify(entry)
 
@@ -48,7 +48,7 @@ def edit_entry(weekday, entry_id):
 def delete_entry(weekday, entry_id):
     def mutate(data):
         if not sched_lib.delete_entry(data, weekday, entry_id):
-            raise AbortRequest((jsonify({"error": "التفتيش ده مش موجود."}), 404))
+            raise AbortRequest((jsonify({"error": "هذا التفتيش غير موجود."}), 404))
         return jsonify({"ok": True})
 
     return with_data(mutate)

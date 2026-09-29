@@ -92,7 +92,7 @@ class Person(Model):
                 errors.append("تاريخ الخروج لا يمكن أن يسبق تاريخ الانضمام.")
         max_length(errors, self.leave_reason, "reason")
         if self.phone and not _phone_ok(self.phone):
-            errors.append("رقم التليفون غير صحيح.")
+            errors.append("رقم الهاتف غير صحيح.")
 
 
 @dataclass
@@ -117,7 +117,7 @@ class Officer(Person):
         # `next_rest_start` مابتلاقيش يوم تبني عليه، فالضابط عمره ما بيطلع
         # في تنبيه التقصيرة ولا بيتحسب في الالتزام.
         if text(self.rest_system) == "أسبوعية" and not text(self.rest_day):
-            errors.append("الراحة الأسبوعية لازم يتحدد ليها يوم في الأسبوع.")
+            errors.append("يجب تحديد يوم في الأسبوع للراحة الأسبوعية.")
 
     def effective(self, day):
         """الرتبة/المنصب/القسم/جهة التشغيل زي ما كانوا في اليوم ده."""
@@ -152,7 +152,7 @@ class Individual(Person):
             errors.append("رتبة الفرد غير معروفة.")
         for extra in self.other_phones or []:
             if not _phone_ok(extra):
-                errors.append("رقم تليفون إضافي غير صحيح.")
+                errors.append("رقم هاتف إضافي غير صحيح.")
                 break
 
 

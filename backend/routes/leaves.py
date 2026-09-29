@@ -32,7 +32,7 @@ def add_leave():
             raise AbortRequest((jsonify({"error": blocked, "suspended": True}), 409))
         clash = overlapping(data, leave)
         if clash:
-            raise AbortRequest((jsonify({"error": f"يوجد راحة متداخلة لنفس الشخص ({clash['start']} → {clash['end']})."}), 409))
+            raise AbortRequest((jsonify({"error": f"توجد راحة متداخلة للشخص نفسه ({clash['start']} → {clash['end']})."}), 409))
 
         # الراحة دي بتمس يوم/أيام مقفولة (فاتت بالفعل)؟ مسموح، بس محتاج
         # سبب مكتوب — وإلا أصل القوة وحالة الضابط في اليوم ده بتتغيّر من
@@ -69,7 +69,7 @@ def edit_leave(leave_id):
             raise AbortRequest((jsonify({"error": blocked, "suspended": True}), 409))
         clash = overlapping(data, leave, ignore_id=leave_id)
         if clash:
-            raise AbortRequest((jsonify({"error": f"يوجد راحة متداخلة لنفس الشخص ({clash['start']} → {clash['end']})."}), 409))
+            raise AbortRequest((jsonify({"error": f"توجد راحة متداخلة للشخص نفسه ({clash['start']} → {clash['end']})."}), 409))
 
         # المدى القديم والجديد الاتنين — تعديل بيقصّر راحة كانت بتغطي يوم
         # مقفول برضو تعديل بأثر رجعي عليه، مش بس المدى الجديد.
@@ -131,7 +131,7 @@ def add_monthly_roster():
     payload = json_payload()
     entries = payload.get("entries")
     if not isinstance(entries, list):
-        return jsonify({"error": "entries لازم تكون قايمة."}), 400
+        return jsonify({"error": "يجب أن تكون المدخلات قائمة."}), 400
 
     def mutate(data):
         repos = Repos(data)
@@ -175,7 +175,7 @@ def add_monthly_roster():
             system = person.rest_system
             if system not in MONTHLY_REST_SYSTEMS:
                 errors.append({"officer_id": officer_id,
-                               "error": "نظام راحة الضابط مش شهري ولا نصف شهري."})
+                               "error": "نظام راحة الضابط ليس شهريًا ولا نصف شهري."})
                 continue
             start_date = parse_date(start)
             if not start_date:
@@ -196,7 +196,7 @@ def add_monthly_roster():
             clash = overlapping(data, leave)
             if clash:
                 errors.append({"officer_id": officer_id, "error":
-                               f"يوجد راحة متداخلة لنفس الضابط ({clash['start']} → {clash['end']})."})
+                    f"توجد راحة متداخلة للضابط نفسه ({clash['start']} → {clash['end']})."})
                 continue
             added = repos.leaves.add(Leave.from_dict(leave))
             changes.record(data, "leave", leave["id"], "create", after=dict(leave))

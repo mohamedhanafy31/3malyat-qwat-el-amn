@@ -263,7 +263,7 @@ def set_board_count(data, day, assignment_id, count):
         if row["id"] == assignment_id:
             section = row.get("section") or SECTION_OCCASIONAL
             if section in _NOT_COUNTABLE_HERE:
-                return None, "الصف ده مش من الخدمات اللي بتتحسب هنا."
+                return None, "هذا الصف ليس من الخدمات التي تُحتسب هنا."
             row["conscript_count"] = max(0, int(count))
             return row, None
     return None, "الخدمة غير موجودة في اليومية التفصيلية."

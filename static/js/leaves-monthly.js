@@ -8,7 +8,7 @@ function suspensionBanner(types) {
   if (!types.length) return "";
   return `<div class="alert-card susp-banner"><div class="alert-head"><span class="alert-ico">${icon("block","ico-lg")}</span>
     <strong>الراحات موقوفة: ${types.map(esc).join("، ")}</strong>
-    <span class="muted">الضباط اللي نظامهم من الأنواع دي مايتسجّلش لهم كشف لحد «فتح الراحات» من صفحة الراحات.</span>
+    <span class="muted">لا يمكن تسجيل كشف للضباط ذوي هذه الأنواع حتى «فتح الراحات» من صفحة الراحات.</span>
   </div></div>`;
 }
 
@@ -53,7 +53,7 @@ function updateRowHint(id) {
   if (!start || !row) { hint.textContent = ""; return }
   const n = DURATIONS()[row.rest_system] || 1;
   const end = addDays(start, n - 1);
-  hint.textContent = `${n} يوم — حتى ${fmt(end)}، العودة ${fmt(addDays(end, 1))}`;
+  hint.textContent = `${countLabel(n, "يوم")} — حتى ${fmt(end)}، العودة ${fmt(addDays(end, 1))}`;
 }
 
 function render() {
@@ -95,7 +95,7 @@ function weeklyRow(row) {
   return `<tr data-id="${esc(row.id)}">
     <td class="name">${esc(row.name)}<div class="sub">${esc(row.role)}</div></td>
     <td><span class="chip w">${esc(row.rest_day)}</span></td>
-    <td>${fmt(row.next_fixed)}<div class="sub">الموعد الثابت الجاي</div></td>
+    <td>${fmt(row.next_fixed)}<div class="sub">الموعد الثابت القادم</div></td>
     <td class="wrap weekly-rest-chips">${chips}</td>
     <td>
       <div class="weekly-extra-controls">
@@ -112,7 +112,7 @@ function weeklyRow(row) {
 function renderWeekly() {
   const wrap = $("#weeklyRosterWrap");
   wrap.innerHTML = tableBlock(
-    ["الضابط", "اليوم الثابت", "الموعد الجاي", "الراحات المسجّلة القادمة", "راحة إضافية"],
+    ["الضابط", "اليوم الثابت", "الموعد القادم", "الراحات المسجّلة القادمة", "راحة إضافية"],
     WEEKLY_ROSTER.map(weeklyRow),
     `عدد ضباط الراحة الأسبوعية: ${WEEKLY_ROSTER.length}`,
     "لا يوجد ضباط بنظام راحة أسبوعية");
@@ -125,7 +125,7 @@ ACTIONS.addWeeklyExtra = async (id, _extra, button) => {
   if (errorBox) errorBox.innerHTML = "";
   const start = input?.value || "";
   if (!start) {
-    if (errorBox) errorBox.innerHTML = `<span class="chip err">اختار تاريخ الراحة الإضافية.</span>`;
+    if (errorBox) errorBox.innerHTML = `<span class="chip err">اختر تاريخ الراحة الإضافية.</span>`;
     return;
   }
   button.disabled = true;
@@ -149,8 +149,7 @@ const dirtyInputs = () => $$(".roster-date").filter(i => !i.disabled && (i.value
 function updateDirty() {
   const n = dirtyInputs().length;
   // الصفة بتتبع العدد: تعديل واحد غير محفوظ، تعديلان غير محفوظين، تعديلات غير محفوظة
-  $("#rosterDirty").textContent = !n ? "" : n === 1 ? "تعديل واحد غير محفوظ"
-    : n === 2 ? "تعديلان غير محفوظين" : `${countLabel(n, "تعديل")} غير محفوظة`;
+  $("#rosterDirty").textContent = n ? `عدد التعديلات غير المحفوظة: ${n}` : "";
   $("#rosterUndo").classList.toggle("hidden", !n);
   $("#saveRosterBtn").disabled = !n;
 }
@@ -181,7 +180,7 @@ $("#saveRosterBtn").onclick = async () => {
     const box = $(`#err-${e.officer_id}`);
     if (box) box.innerHTML = `<span class="chip err">${esc(e.error)}</span>`;
   }
-  if (out.created?.length) showToast(`تم حفظ ${out.created.length} راحة`);
+  if (out.created?.length) showToast(`تم حفظ ${countLabel(out.created.length, "راحة")}`);
   if (out.errors?.length && !out.created?.length) showToast("حصلت أخطاء — راجع الصفوف المعلّمة", true);
   await load();
 };

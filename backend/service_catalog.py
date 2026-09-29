@@ -87,7 +87,7 @@ def apply_entry(data, entry, payload):
         try:
             entry["count"] = max(0, int(payload["count"]))
         except (TypeError, ValueError):
-            return None, "عدد المجندين لازم يكون رقم."
+            return None, "يجب أن يكون عدد المجندين رقمًا."
     if "weapon" in payload:
         entry["weapon"] = str(payload["weapon"]).strip()
     if "instructions" in payload:
@@ -104,12 +104,12 @@ def apply_entry(data, entry, payload):
         try:
             entry["command_officers"] = max(0, int(payload["command_officers"]))
         except (TypeError, ValueError):
-            return None, "عدد ضباط الرئاسة لازم يكون رقم."
+            return None, "يجب أن يكون عدد ضباط الرئاسة رقمًا."
     if "command_individuals" in payload:
         try:
             entry["command_individuals"] = max(0, int(payload["command_individuals"]))
         except (TypeError, ValueError):
-            return None, "عدد أفراد الرئاسة لازم يكون رقم."
+            return None, "يجب أن يكون عدد أفراد الرئاسة رقمًا."
     # لازم بعد command_officers/command_individuals عشان لو الخدمة
     # اتحولت لـ«من غير رئاسة» العددين يترجعوا صفر مهما كانت القيم اللي
     # اتبعتت معاهم في نفس الطلب — مفيش قائم رئاسة من غير رئاسة أصلًا.

@@ -194,7 +194,7 @@ def move_assignment_row(day, assignment_id):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     direction = str(json_payload().get("direction", "")).strip()
     if direction not in ("up", "down"):
-        return jsonify({"error": "اتجاه النقل لازم يكون up أو down."}), 400
+        return jsonify({"error": "يجب أن يكون اتجاه النقل إلى أعلى أو إلى أسفل."}), 400
 
     def mutate(data):
         ok, lock_err = day_status.check_open(data, day)
@@ -302,11 +302,11 @@ def confirm_day(day):
                            before=ev["before"], after=ev["after"], text=ev["text"],
                            day=day, ts=summary["at"])
         if summary["first"]:
-            note = f"تأكيد أول ليومية {day} — {summary['count']} خدمة"
+            note = f"تأكيد أول ليومية {day} — عدد الخدمات: {summary['count']}"
         elif not summary["changes"]:
-            note = f"إعادة تأكيد ليومية {day} — من غير أي تغيير"
+            note = f"إعادة تأكيد ليومية {day} — بلا أي تغيير"
         else:
-            note = f"تأكيد يومية {day} — {summary['changes']} تغيير"
+            note = f"تأكيد يومية {day} — عدد التغييرات: {summary['changes']}"
         changes.record(data, "day_confirm", day, "confirm", after=dict(summary),
                        text=note, day=day, ts=summary["at"])
         return jsonify(summary), 201

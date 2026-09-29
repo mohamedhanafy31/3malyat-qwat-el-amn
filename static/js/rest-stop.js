@@ -9,11 +9,11 @@ function _stopHint() {
   if (lv.end && on > lv.end) {
     $("#stopHint").innerHTML = `${icon("alert")} التاريخ بعد نهاية الراحة — لا يوجد ما يتوقف.`;
   } else if (lv.start && on <= lv.start) {
-    $("#stopHint").textContent = "الراحة هتتلغي بالكامل (لسه ما بدأتش).";
+    $("#stopHint").textContent = "ستُلغى الراحة بالكامل (لم تبدأ بعد).";
   } else {
     $("#stopHint").textContent =
-      `آخر يوم راحة هيبقى ${fmt(addDays(on, -1))}، ويرجع للعمل ${fmt(on)}`
-      + (lv.end ? ` (بدل ${fmt(addDays(lv.end, 1))})` : "") + ".";
+      `سيكون آخر يوم راحة ${fmt(addDays(on, -1))}، ويعود إلى العمل ${fmt(on)}`
+      + (lv.end ? ` (عوضًا عن ${fmt(addDays(lv.end, 1))})` : "") + ".";
   }
 }
 
@@ -34,7 +34,7 @@ $("#stopOn").addEventListener("change", _stopHint);
 $("#stopLeaveForm").onsubmit = async e => {
   e.preventDefault();
   const reason = $("#stopReason").value.trim();
-  if (!reason) { showToast("لازم سبب مكتوب لإيقاف الراحة"); return }
+  if (!reason) { showToast("يلزم سبب مكتوب لإيقاف الراحة"); return }
   const out = await api(`/api/leaves/${encodeURIComponent($("#stopLeaveId").value)}/stop`,
     jsonReq("POST", {on: $("#stopOn").value, reason}));
   if (!out) return;

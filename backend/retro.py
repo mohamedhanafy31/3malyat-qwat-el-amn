@@ -48,7 +48,7 @@ def require_reason(days):
     reason = _reason_header()
     if not reason:
         raise AbortRequest((jsonify({
-            "error": "التعديل ده بيمس يوم/أيام مقفولة — لازم سبب مكتوب عشان تكمّل.",
+            "error": "يؤثر هذا التعديل في يوم مغلق أو عدة أيام مغلقة — يلزم سبب مكتوب للمتابعة.",
             "needs_reason": True, "closed_days": days,
         }), 409))
     return reason
@@ -58,5 +58,5 @@ def log_retro(data, entity, entity_id, days, reason, before=None, after=None, te
     """سطر واحد في سجل التغييرات بالأيام المتأثرة والسبب."""
     changes.record(data, entity, entity_id, "retro", before=before, after=after,
                    reason=reason,
-                   text=text or f"تعديل بأثر رجعي على يوم/أيام مقفولة: {'، '.join(days)}"
+                   text=text or f"تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: {'، '.join(days)}"
                         + (f" — السبب: {reason}" if reason else ""))

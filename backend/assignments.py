@@ -239,7 +239,7 @@ def guard_duplicate(data, day, row, ignore_id):
     clash = duplicate_of(data, day, row.get("name", ""), row.get("shift"),
                          people, ignore_id=ignore_id)
     if clash:
-        return "الشخص ده متكلّف بنفس الخدمة ونفس الفترة في خانة تانية."
+        return "هذا الشخص مكلَّف بنفس الخدمة والفترة في خانة أخرى."
     return None
 
 
@@ -261,7 +261,7 @@ def apply_assignment(data, day, row, payload):
             return None, err, 400
         section = str(payload["section"]).strip()
         if section in RESERVED_SECTIONS:
-            return None, f"«{section}» اسم محجوز لقسم محسوب تلقائيًا — اختار اسم تاني.", 400
+            return None, f"«{section}» اسم محجوز لقسم محسوب تلقائيًا — اختر اسمًا آخر.", 400
         row["section"] = section or SECTION_OCCASIONAL
     if "counts_in_summary" in payload:
         row["counts_in_summary"] = bool(payload["counts_in_summary"])
@@ -288,7 +288,7 @@ def apply_assignment(data, day, row, payload):
 
     if row.get("section") == SECTION_TARGETS:
         if row.get("name") not in _TARGET_ROW_NAMES:
-            return None, f"«{row.get('name')}» مش من الأهداف الثابتة — الأهداف قايمة مغلقة.", 400
+            return None, f"«{row.get('name')}» ليس من الأهداف الثابتة — قائمة الأهداف مغلقة.", 400
         row["kind"] = "حراسات"
         row["shift"] = ""
     return row, None, None

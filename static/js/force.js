@@ -256,8 +256,8 @@ function renderCommand() {
           ${p ? `<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
               : `<span class="cmd-now empty">لم يُحدَّد ضابط لهذا المنصب</span>`}</label>`;
       }).join("")}</div>
-      <p class="hint generated-hint generated-hint-wide">«طبي» و«بحث» ممكن يشيلهم أكتر من ضابط
-        في نفس الوقت — اختار كل الضباط اللي عليهم بالمنصب ده، وبعدين
+      <p class="hint generated-hint generated-hint-wide">يمكن أن يشغل منصبَي «طبي» و«بحث» أكثر من ضابط
+        في الوقت نفسه — اختر كل الضباط الشاغلين لهذا المنصب، ثم
         اضغط «حفظ».</p>
       <div class="cmd-slots">${GROUP_ROLES().map(role => {
         const ids = COMMAND_GROUPS[role] || [];

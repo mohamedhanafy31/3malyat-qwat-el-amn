@@ -35,7 +35,7 @@ function termRosterRow(t) {
       <div class="roster-meta">
         ${hasPeriod
           ? `<span class="roster-period num">${shortDate(t.start)} – ${shortDate(t.end)}</span>
-             <span class="chip w">${t.days} يوم</span>`
+             <span class="chip w">${countLabel(t.days, "يوم")}</span>`
           : `<span class="roster-period muted">بدون تاريخ</span>`}
         <div class="roster-actions">
           <button class="mini" data-action="openTerm" data-id="${esc(t.id)}"
@@ -55,13 +55,13 @@ function termRosterRow(t) {
 function officerRow(o) {
   const chips = o.courses.length
     ? o.courses.map(termChip).join(" ")
-    : `<span class="muted">لسه ماخدش فرقة</span>`;
+    : `<span class="muted">لم يلتحق بفرقة بعد</span>`;
   return `<tr class="${o.count ? "" : "dim"}">
     <td class="name">${esc(o.name)}<div class="sub">${esc(o.role)}</div></td>
     <td><span class="badge">${esc(o.role)}</span></td>
     <td class="wrap">${esc(o.post) || "<span class='muted'>—</span>"}</td>
     <td>${o.count ? `<b>${o.count}</b>` : "<span class='muted'>0</span>"}</td>
-    <td>${o.days ? `<span class="chip w">${o.days} يوم</span>` : "<span class='muted'>—</span>"}</td>
+    <td>${o.days ? `<span class="chip w">${countLabel(o.days, "يوم")}</span>` : "<span class='muted'>—</span>"}</td>
     <td class="wrap chip-cell">${chips}</td>
     <td class="col-actions"><div class="actions">
       <button class="mini" data-action="openTerm"
@@ -91,7 +91,7 @@ function courseCard(c) {
           ${c.place ? `<span class="course-place">${esc(c.place)}</span>` : ""}
         </div>
       </div>
-      <span class="course-count">${c.officers}<i>ضابط</i></span>
+      <span class="course-count">${countLabel(c.officers, "ضابط")}</span>
     </div>
     ${c.note ? `<p class="hint course-hint">${esc(c.note)}</p>` : ""}
     <div class="course-bar">
@@ -156,7 +156,7 @@ function render() {
   if (VIEW === "course") {
     const list = filteredCourses();
     const emptyMsg = COURSES.length
-      ? {icon: "search", title: "لا توجد فرق مطابقة للبحث أو التصفية", hint: "جرّب تعديل البحث أو نوع الفرقة."}
+      ? {icon: "search", title: "لا توجد فرق مطابقة للبحث أو التصفية", hint: "حاول تعديل البحث أو نوع الفرقة."}
       : {title: "لا توجد فرق مسجّلة", hint: "أضف فرقة جديدة للبدء.", action: {label: "فرقة جديدة", id: "addCrsBtn"}};
     // 51 فرقة كروت ورا بعض كانت صفحة طولها 6700 بكسل — الكرت أطول بكتير من
     // صف الجدول، فبتتعرض 20 20
@@ -165,7 +165,7 @@ function render() {
     const unclassified = COURSES.filter(c => !c.kind).length;
     const banner = unclassified && $("#crsKindFilter").value !== "__none"
       ? `<div class="unclassified-banner"><span class="status-dot warn" aria-hidden="true"></span>
-          <span><b>${countLabel(unclassified, {one: "فرقة واحدة", two: "فرقتان", few: "فرق", many: "فرقة", sing: "فرقة"})} بدون تصنيف</b>
+          <span><b>${countLabel(unclassified, "فرقة")} بدون تصنيف</b>
           — يلوّن التصنيف الكرت ويسهّل التصفية.</span>
           <button type="button" class="btn" data-filter-unclassified>عرض غير المصنّفة</button></div>`
       : "";
@@ -178,8 +178,8 @@ function render() {
   const withCourses = list.filter(o => o.count).length;
   $("#coursesWrap").innerHTML = sortableTableBlock(
     "coursesWrap", OFFICER_COURSE_COLS, list, officerRow,
-    ["الفرق اللي خدها", "الإجراء"],
-    `${withCourses} من ${list.length} ضابط خدوا فرق`,
+    ["الفرق التي التحق بها", "الإجراء"],
+    `عدد الضباط الذين التحقوا بفرق: ${withCourses} من أصل ${countLabel(list.length, "ضابط")}`,
     "لا يوجد ضباط", render);
 }
 
@@ -217,7 +217,7 @@ ACTIONS.openDetail = id => {
     // من غير أي معلومة حقيقية فيه.
     line("من يوم", t.start ? `${dayName(t.start)} ${fmt(t.start)}` : ""),
     line("إلى يوم", t.end ? `${dayName(t.end)} ${fmt(t.end)}` : ""),
-    line("المدة", t.days ? `${t.days} يوم` : ""),
+    line("المدة", t.days ? countLabel(t.days, "يوم") : ""),
     line("رتبته وقتها", t.officer_role),
     line("ملاحظات", t.note),
     line("ملاحظات الفرقة", t.course_note),

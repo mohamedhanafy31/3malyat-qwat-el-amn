@@ -51,7 +51,7 @@ def edit_course(course_id):
         clash = any(c["name"] == merged["name"] and c["id"] != course_id
                     for c in courses(data))
         if clash:
-            raise AbortRequest((jsonify({"error": "فيه فرقة تانية بنفس الاسم."}), 409))
+            raise AbortRequest((jsonify({"error": "توجد فرقة أخرى بالاسم نفسه."}), 409))
         current.update(merged)
         return jsonify(current)
 
@@ -65,7 +65,7 @@ def delete_course(course_id):
         used = len(repos.terms.of_course(course_id))
         if used:
             raise AbortRequest((jsonify({
-                "error": f"الفرقة ليها {used} التحاق مسجّل. امسح الالتحاقات الأول."}), 409))
+                "error": f"عدد الالتحاقات المسجّلة للفرقة: {used}. احذف الالتحاقات أولًا."}), 409))
         if not repos.courses.remove(course_id):
             raise AbortRequest((jsonify({"error": "الفرقة غير موجودة."}), 404))
         return jsonify({"ok": True})
@@ -87,7 +87,7 @@ def add_term():
         clash = overlapping(data, term)
         if clash:
             raise AbortRequest((jsonify({
-                "error": f"الضابط ملتحق بفرقة تانية من {clash['start']} إلى {clash['end']}."}), 409))
+                "error": f"الضابط ملتحق بفرقة أخرى من {clash['start']} إلى {clash['end']}."}), 409))
 
         closed = retro.closed_days_in(data, term.get("start", ""), term.get("end", ""))
         reason = retro.require_reason(closed)
@@ -114,7 +114,7 @@ def edit_term(term_id):
         clash = overlapping(data, term, ignore_id=term_id)
         if clash:
             raise AbortRequest((jsonify({
-                "error": f"الضابط ملتحق بفرقة تانية من {clash['start']} إلى {clash['end']}."}), 409))
+                "error": f"الضابط ملتحق بفرقة أخرى من {clash['start']} إلى {clash['end']}."}), 409))
 
         closed = sorted(set(retro.closed_days_in(data, current.get("start", ""), current.get("end", ""))
                             + retro.closed_days_in(data, term.get("start", ""), term.get("end", ""))))

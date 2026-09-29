@@ -93,7 +93,7 @@ class Assignment(Model):
         if text(self.kind) != "حراسات":
             one_of(errors, self.shift, SHIFTS, "الفترة غير صحيحة.")
         elif text(self.shift):
-            errors.append("الحراسات مالهاش فترة.")
+            errors.append("الحراسات ليست لها فترة.")
         if self.conscript_count is not None and int(self.conscript_count or 0) < 0:
             errors.append("عدد المجندين لا يمكن أن يكون سالبًا.")
         max_length(errors, self.note, "note")
@@ -163,7 +163,7 @@ class CountEntry(Model):
     def _check(self, errors):
         from ..counts import BLOCKS
         require(errors, self.name, "اسم الخدمة مطلوب.")
-        one_of(errors, self.block, BLOCKS, "البلوك غير صحيح.", required=True)
+        one_of(errors, self.block, BLOCKS, "القسم غير صحيح.", required=True)
         if int(self.count or 0) < 0:
             errors.append("العدد لا يمكن أن يكون سالبًا.")
 

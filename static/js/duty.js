@@ -90,7 +90,7 @@ function render() {
   $("#dutyBoard").innerHTML = tableBlock(
     ["الضابط", "الهاتف", "العمل المسند إليه", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"],
     sectionRows(DUTY.rows),
-    `قوة اليوم: ${DUTY.rows.length} ضابط${gone ? ` — منهم ${gone} خرجوا من القوة بعد كده` : ""}`);
+    `قوة اليوم: ${countLabel(DUTY.rows.length, "ضابط")}${gone ? ` — عدد من خرجوا من القوة لاحقًا: ${gone}` : ""}`);
 }
 
 ACTIONS.openAssign = id => {
@@ -99,7 +99,7 @@ ACTIONS.openAssign = id => {
   $("#assignTitle").textContent = `حالة: ${row.name}`;
   $("#assignHint").textContent =
     `يوم ${dayName(DUTY.date)} ${fmt(DUTY.date)} — التكليف بالخدمات من اليومية التفصيلية.`
-    + (row.leave ? ` تنبيه: الضابط في ${row.leave.type} لحد ${fmt(row.leave.end)}.` : "");
+    + (row.leave ? ` تنبيه: الضابط في ${row.leave.type} حتى ${fmt(row.leave.end)}.` : "");
   fillSelect($("#assignStatus"),
     [["", "— بدون —"], ...(META.officer_statuses || []).map(x => [x, x])]);
   // الحالة المسجّلة بس — مش الخانة المحسوبة. الضابط بيقع في «خوارج/فرقة»
@@ -113,7 +113,7 @@ ACTIONS.openAssign = id => {
   const lv = row.leave;
   $("#assignRest").classList.toggle("hidden", !lv?.id);
   if (lv?.id) {
-    $("#assignRestText").textContent = `في ${lv.type} لحد ${fmt(lv.end)}`;
+    $("#assignRestText").textContent = `في ${lv.type} حتى ${fmt(lv.end)}`;
     $("#assignStopRest").onclick = async () => {
       if(!(await closeModal("assignModal"))) return;
       openStopLeave({id: lv.id, name: row.name, type: lv.type, start: lv.start, end: lv.end},

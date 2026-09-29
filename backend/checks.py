@@ -75,8 +75,8 @@ def day_warnings(data, day, rows):
             out.append(_tag({
                 "kind": "راحة أسبوعية غير مسجلة",
                 "officer_id": row["id"],
-                "text": f'{name} النهاردة يوم راحته الأسبوعية ({officer["rest_day"]}) '
-                        "ولسه مالوش راحة مسجّلة",
+                "text": f'اليوم هو يوم الراحة الأسبوعية لـ{name} ({officer["rest_day"]})، '
+                        "ولم تُسجَّل له راحة بعد",
             }))
 
         # مكلّف بخدمة وهو في مأمورية «بدأت» ولسه ما اترجّعش — المأمورية
@@ -86,7 +86,7 @@ def day_warnings(data, day, rows):
             out.append(_tag({
                 "kind": "مأمورية",
                 "officer_id": row["id"],
-                "text": f'{name} مكلّف بخدمة وهو في مأمورية «بدأت» ولسه ما رجعش',
+                "text": f'{name} مكلّف بخدمة وهو في مأمورية «بدأت» ولم يعد منها بعد',
             }))
 
         # مكلّف وهو في راحة — بيحصل غلط، والوورد مابيعملهوش
@@ -95,7 +95,7 @@ def day_warnings(data, day, rows):
                 "kind": "راحة",
                 "officer_id": row["id"],
                 "text": f'{name} مكلّف بخدمة وهو في {row["leave"]["type"]}'
-                        f' لحد {row["leave"]["end"]}',
+                        f' حتى {row["leave"]["end"]}',
             }))
 
         # راحة والتحاق فرقة في نفس اليوم — الاتنين مسجّلين لوحدهم من غير
@@ -124,8 +124,8 @@ def day_warnings(data, day, rows):
                 out.append(_tag({
                     "kind": "ازدحام",
                     "officer_id": row["id"],
-                    "text": f'{name} على {len(same)} خدمات في الفترة ال{shift}:'
-                            f' {"، ".join(same)}',
+                    "text": f'عدد خدمات {name} في الفترة ال{shift}: {len(same)} — '
+                            f'{"، ".join(same)}',
                 }))
 
     # خانة شاغرة تمامًا — من غير ضابط ولا فرد ولا حتى عدد مجندين مسجّل.
@@ -139,7 +139,7 @@ def day_warnings(data, day, rows):
         out.append(_tag({
             "kind": "شاغرة",
             "assignment_id": assignment["id"],
-            "text": f'«{display}» شاغرة تمامًا — من غير ضابط ولا فرد ولا عدد مجندين',
+            "text": f'«{display}» شاغرة تمامًا — بلا ضابط أو فرد أو عدد مجندين',
         }))
 
     return out

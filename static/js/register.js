@@ -50,7 +50,7 @@ function render() {
   if (!REG) { wrap.innerHTML = skeleton("rows", 10); return }
   const q = $("#regSearch").value.trim();
   const rows = q ? REG.rows.filter(r => r.name.includes(q)) : REG.rows;
-  $("#regCount").textContent = `${rows.length} ضابط · ${REG.days.length} يوم`;
+  $("#regCount").textContent = `${countLabel(rows.length, "ضابط")} · ${countLabel(REG.days.length, "يوم")}`;
   wrap.innerHTML = `<div class="table-scroll reg-scroll">
     <table class="table reg43">
       <thead>${headRow()}</thead>

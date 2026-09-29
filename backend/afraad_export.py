@@ -22,7 +22,7 @@ def _title(day):
     try:
         d = date.fromisoformat(day)
         return (f"يومية الأفراد عن يوم {WEEKDAY_BY_INDEX[d.weekday()]} الموافق "
-                f"{d.day}/{d.month}/{d.year}م — الاساسية والطارئة")
+                f"{d.day}/{d.month}/{d.year}م — الأساسية والطارئة")
     except ValueError:
         return f"يومية الأفراد — {day}"
 

@@ -46,7 +46,7 @@ class CourseTerm(Model):
         return bool(self.start and self.end) and self.start <= day <= self.end
 
     def _check(self, errors):
-        require(errors, self.officer_id, "برجاء اختيار الضابط.")
+        require(errors, self.officer_id, "يرجى اختيار الضابط.")
         require(errors, self.course_id, "الفرقة غير موجودة.")
         start = valid_date(errors, self.start, "تاريخ البداية غير صحيح.")
         end = valid_date(errors, self.end, "تاريخ النهاية غير صحيح.")
