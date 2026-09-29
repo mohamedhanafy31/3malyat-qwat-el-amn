@@ -8,17 +8,17 @@
       <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
       <input type="date" id="dutyDate" class="select">
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
-      <button class="mini" id="dayToday">النهاردة</button>
-      <button class="mini" id="dayTomorrow">بكرة</button>
+      <button class="mini day-jump" id="dayToday">النهاردة</button>
+      <button class="mini day-jump" id="dayTomorrow">بكرة</button>
     </div>
     <div class="tb-group" role="group" aria-label="حالة اليوم">
       <span id="confirmBadge"></span>
       <span id="dayLockBadge"></span>
     </div>
     <div class="tb-group tb-end" role="group" aria-label="إجراءات اليومية">
-      <button class="mini ok" id="btnConfirmDay"
+      <button class="mini ok confirm-day-btn" id="btnConfirmDay"
               title="بيعتمد اليومية الحالية ويسجّل اللي اتغيّر من آخر تأكيد">{{ icon('check') }} تأكيد اليومية</button>
-      <button class="mini" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
+      <button class="mini kbd-only" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
     </div>
   </div>
   <div id="confirmBar" aria-live="polite"></div>

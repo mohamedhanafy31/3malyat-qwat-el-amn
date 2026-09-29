@@ -86,6 +86,8 @@
 
   /* — ارتفاع موحّد لكل عنصر تفاعلي في نفس الشريط — */
   --control-h:38px; --control-h-sm:30px;
+  /* — شاشات اللمس: أقل مساحة ضغط مريحة لإصبع، وعرض حافة التمرير الباهتة — */
+  --touch-control:40px; --touch-target:44px; --fade-edge:28px;
 
   --radius-control:6px; --radius-card:10px; --radius-pill:999px;
   --radius-sm:var(--radius-control); --radius-md:var(--radius-card); --radius-lg:var(--radius-card);
@@ -1605,3 +1607,105 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 @media(max-width:520px){.insp-bits{flex-direction:column;align-items:flex-start;gap:var(--s2)}}
 
 @media(max-width:900px){.service-grid{grid-template-columns:1fr}}
+
+/* ═══════════════════ ㉗ الموبايل واللمس ═══════════════════ */
+/* مساحة الضغط: 30px كانت أصغر من طرف الإصبع — الزراير الصغيرة والقوايم
+   ولينكات القائمة الجانبية بتكبر على شاشات اللمس والشاشات الضيقة بس،
+   والكمبيوتر بالماوس بيفضل بنفس الكثافة */
+@media (pointer:coarse),(max-width:700px){
+  .btn,.mini,.primary,.danger,.search,.select,.combo-input,.tab,.vtab,.row-menu-btn{min-height:var(--touch-control)}
+  .row-menu-btn{min-width:var(--touch-control)}
+  .navbtn{min-height:var(--touch-target)}
+  .close{width:var(--touch-target);height:var(--touch-target)}
+  .row-menu-item{min-height:var(--touch-target)}
+  .multi{min-height:var(--touch-control)}
+  .multi-input{min-height:var(--control-h-sm)}
+  .multi-x{min-width:var(--control-h-sm);min-height:var(--control-h-sm)}
+  /* اختصارات لوحة المفاتيح مالهاش لازمة على شاشة لمس */
+  .kbd-only{display:none}
+}
+/* شريط الأيام على الموبايل: «السابق | التاريخ | التالي» في سطر، والقفزات
+   السريعة (النهاردة/بكرة) في سطر تحته — التاريخ كان واخد سطر لوحده
+   والشريط كله ~300px قبل أول قسم */
+@media(max-width:700px){
+  .toolbar .tb-group .date-input-display{flex:1 1 110px;min-width:0}
+  .tb-group > .day-jump{flex:1 1 30%}
+  /* شريط التأكيد تحت الأدوات فيه نفس الزرار بشكل أوضح — مايتكررش */
+  .panel:has(.confirm-bar .primary) .confirm-day-btn{display:none}
+}
+
+/* زرار «تصفية» وشيت التصفية — الزرار بيظهر على الشاشة الضيقة بس (core.js) */
+.filter-toggle{display:inline-flex;align-items:center;justify-content:center;gap:var(--s1);
+  height:var(--control-h)}
+.filter-toggle svg{width:16px;height:16px;fill:currentColor}
+.filter-count{min-width:20px;padding:0 var(--s1);border-radius:var(--radius-pill);
+  background:var(--navy-800);color:var(--on-dark);font-size:var(--t-xs);line-height:20px;text-align:center}
+.sheet-body{display:flex;flex-direction:column;gap:var(--s4)}
+.sheet-field{display:flex;flex-direction:column;gap:6px}
+.sheet-label{font-size:var(--t-cap);font-weight:700;color:var(--ink-700)}
+.sheet-field .select{width:100%;min-width:0}
+.sheet-handle{display:none}
+@media(max-width:700px){
+  .toolbar .filter-toggle{flex:0 0 auto}
+  .toolbar:has(> .filter-toggle:not(.hidden)) > .search{flex:1 1 0;min-width:0}
+  /* الشيت بيطلع من تحت الشاشة بعرضها — أقرب للإبهام من نافذة في النص */
+  .modal.sheet{align-items:flex-end;padding:0}
+  .sheet-card{width:100%;max-height:85vh;border-radius:var(--radius-card) var(--radius-card) 0 0;
+    border-top-width:0;padding-top:var(--s5)}
+  .sheet-handle{display:block;width:40px;height:4px;margin:calc(-1 * var(--s2)) auto var(--s3);
+    border-radius:var(--radius-pill);background:var(--line-strong)}
+  .sheet-card .modal-foot{flex-wrap:wrap}
+  .sheet-card .modal-foot > *{flex:1 1 0}
+}
+
+/* كروت بدل الجدول تحت 700px: كل صف كرت، وكل خانة سطر «اسم العمود: القيمة».
+   الجدول بعرض 900px كان بيتمرر أفقيًا والاسم يفضل ظاهر لوحده من غير باقي الصف */
+.mobile-sort{display:none}
+/* screen بس — الطباعة من موبايل أو على ورق ضيق تفضل جدول */
+@media screen and (max-width:700px){
+  .mobile-sort{display:flex;align-items:center;gap:var(--s2);padding:var(--s3) var(--s4) 0;
+    font-size:var(--t-sm);font-weight:700;color:var(--ink-500)}
+  .mobile-sort .select{flex:1;min-width:0}
+  [data-mobile-cards] .table-scroll{overflow:visible}
+  [data-mobile-cards] .table{display:block;min-width:0}
+  [data-mobile-cards] .table thead{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap}
+  [data-mobile-cards] .table tbody{display:block}
+  [data-mobile-cards] .table tbody tr{display:block;border-bottom:1px solid var(--line)}
+  [data-mobile-cards] .table tbody td{display:flex;align-items:baseline;gap:var(--s3);border:0;
+    padding:3px var(--s4);white-space:normal;overflow-wrap:anywhere;font-size:var(--t-sm)}
+  [data-mobile-cards] .table tbody td[data-label]:not([data-label=""])::before{content:attr(data-label);
+    flex:0 0 7em;color:var(--ink-500);font-size:var(--t-xs);font-weight:700}
+  [data-mobile-cards] .table tbody td:first-child{padding-top:var(--s3)}
+  [data-mobile-cards] .table tbody td:last-child{padding-bottom:var(--s3)}
+  /* الاسم عنوان الكرت — من غير «الاسم:» قبله */
+  [data-mobile-cards] .table tbody td.name:first-child{display:block;font-size:var(--t-base);font-weight:700}
+  [data-mobile-cards] .table tbody td.name:first-child::before{content:none}
+  [data-mobile-cards] .table tbody td.col-actions{display:block;width:auto;padding-top:var(--s2)}
+  [data-mobile-cards] .table tbody td.col-actions[data-label]::before{content:none}
+  /* خانات الأرقام اتجاهها ltr — الكرت محتاج ترتيب السطر RTL، والرقم نفسه
+     محمي بالـspan dir=ltr جواه */
+  [data-mobile-cards] .table tbody td.num{direction:rtl}
+  [data-mobile-cards] .table tbody td.cell-empty{display:none}
+  [data-mobile-cards] .table tr.grouprow td{padding:var(--s2) var(--s4)}
+  /* علامة الصف (راجع قريب/منتهي) بتبقى شريط على طول الكرت مش على أول خانة بس */
+  [data-mobile-cards] .table tr.returning-soon td{border-inline-start:3px solid var(--warn-500)}
+  [data-mobile-cards] .table tr.was td{border-inline-start:3px solid var(--ink-300)}
+}
+
+/* تلميح التمرير الأفقي: الحافة اللي وراها محتوى بتبهت. ظل مرسوم على
+   الحاوية كان بيتغطى بخلفيات الخلايا الملونة؛ الـmask بيبهّت المحتوى نفسه */
+/* RTL: نهاية التمرير على الشمال، وبدايته على اليمين */
+.fade-end{-webkit-mask-image:linear-gradient(to right,transparent,black var(--fade-edge));
+  mask-image:linear-gradient(to right,transparent,black var(--fade-edge))}
+.fade-start{-webkit-mask-image:linear-gradient(to left,transparent,black var(--fade-edge));
+  mask-image:linear-gradient(to left,transparent,black var(--fade-edge))}
+.fade-start.fade-end{
+  -webkit-mask-image:linear-gradient(to left,transparent,black var(--fade-edge),black calc(100% - var(--fade-edge)),transparent);
+  mask-image:linear-gradient(to left,transparent,black var(--fade-edge),black calc(100% - var(--fade-edge)),transparent)}
+@media print{.fade-start,.fade-end{-webkit-mask-image:none;mask-image:none}}
+
+/* مكان «نظام التفتيشات» في دليل الخدمات محجوز بارتفاعه المطوي قبل ما يتحمّل —
+   كان بيظهر بعد الكروت ويزقها لتحت */
+#inspectionScheduleBar:empty{min-height:52px}
+@media(max-width:700px){#inspectionScheduleBar:empty{min-height:73px}}

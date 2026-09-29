@@ -1638,3 +1638,174 @@ if(editedByEl){
   editedByEl.value=localStorage.getItem("editedBy")||"";
   editedByEl.addEventListener("input",()=>localStorage.setItem("editedBy",editedByEl.value.trim()));
 }
+
+/* ═══════════════ الموبايل: شيت التصفية، كروت الجداول، وتلميح التمرير ═══════════════ */
+
+/* شيت «تصفية» — على الشاشة الضيقة القوايم المنسدلة للتصفية بتتنقل (نفس
+   العناصر، مش نسخة، فكل الـlisteners بتفضل شغالة) لشيت من تحت الشاشة؛
+   البحث بيفضل ظاهر. أربع قوايم فوق بعض كانت بتاخد أول شاشة كلها قبل ما
+   يظهر أي صف بيانات. */
+const MOBILE_Q = window.matchMedia("(max-width: 700px)");
+const _sheets = [];
+// الحقل الظاهر (combobox) بيتحط قبل الـ<select> الأصلي من غير غلاف،
+// فالاتنين بيتنقلوا مع بعض
+const _filterNodes = sel => (sel._comboInput ? [sel._comboInput, sel] : [sel]);
+function _activeFilters(sheet) {
+  return sheet.selects.filter(sel => sel.selectedIndex > 0).length;
+}
+function _syncSheetButton(sheet) {
+  const n = _activeFilters(sheet);
+  sheet.button.innerHTML = `${icon("filter")} تصفية${n ? ` <span class="filter-count">${n}</span>` : ""}`;
+  sheet.button.setAttribute("aria-label", n ? `تصفية — ${n} مفعّلة` : "تصفية");
+}
+function setupFilterSheets() {
+  $$("main .toolbar").forEach((toolbar, i) => {
+    const selects = [...toolbar.querySelectorAll(":scope > select")];
+    if (selects.length < 2 || toolbar.dataset.sheet) return;
+    toolbar.dataset.sheet = "1";
+    const id = `filterSheet${i}`;
+    const modal = document.createElement("div");
+    modal.className = "modal sheet hidden";
+    modal.id = id;
+    // الفوكس على العنوان مش أول حقل — الحقل بيفتح كيبورد الموبايل فوق الشيت
+    modal.innerHTML = `<div class="modal-card sheet-card" role="dialog" aria-modal="true" aria-labelledby="${id}Title">
+      <span class="sheet-handle" aria-hidden="true"></span>
+      <button type="button" class="close" data-close="${id}" aria-label="إغلاق">×</button>
+      <h2 id="${id}Title" tabindex="-1" autofocus>تصفية</h2>
+      <div class="sheet-body"></div>
+      <div class="modal-foot">
+        <button type="button" class="primary" data-sheet-apply>عرض النتائج</button>
+        <button type="button" class="btn" data-sheet-clear>مسح عوامل التصفية</button>
+      </div></div>`;
+    document.body.appendChild(modal);
+    modal.querySelector("[data-close]").onclick = () => closeModal(id);
+    modal.onclick = e => { if (e.target === modal) closeModal(id); };
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn filter-toggle hidden";   // _placeFilters بيظهره تحت 700px بس
+    button.setAttribute("aria-haspopup", "dialog");
+    const anchor = document.createComment("filters");
+    _filterNodes(selects[0])[0].before(anchor);
+    const sheet = { id, selects, modal, button, anchor, inSheet: false };
+    toolbar.querySelector(".search") ? toolbar.querySelector(".search").after(button) : toolbar.prepend(button);
+    button.onclick = () => openModal(id);
+    modal.querySelector("[data-sheet-apply]").onclick = () => closeModal(id);
+    modal.querySelector("[data-sheet-clear]").onclick = () => {
+      selects.forEach(sel => {
+        // عن طريق value عشان الحقل الظاهر يتحدّث معاه (الـsetter بتاع الكومبو)
+        if (sel.selectedIndex > 0) { sel.value = sel.options[0].value; sel.dispatchEvent(new Event("change", {bubbles: true})); }
+      });
+      _syncSheetButton(sheet);
+    };
+    selects.forEach(sel => sel.addEventListener("change", () => _syncSheetButton(sheet)));
+    _sheets.push(sheet);
+    _syncSheetButton(sheet);
+  });
+  _placeFilters();
+}
+function _placeFilters() {
+  for (const s of _sheets) {
+    const toSheet = MOBILE_Q.matches;
+    if (toSheet === s.inSheet) continue;
+    const body = s.modal.querySelector(".sheet-body");
+    s.selects.forEach(sel => {
+      const nodes = _filterNodes(sel);
+      if (toSheet) {
+        const f = document.createElement("div");
+        f.className = "sheet-field";
+        const cap = document.createElement("span");
+        cap.className = "sheet-label";
+        cap.setAttribute("aria-hidden", "true");   // الاسم الكامل موجود على الحقل نفسه
+        cap.textContent = (sel.getAttribute("aria-label") || "").replace(/^تصفية حسب\s*/, "");
+        f.append(cap, ...nodes);
+        body.appendChild(f);
+      } else s.anchor.before(...nodes);
+    });
+    if (!toSheet) { body.innerHTML = ""; if (!s.modal.classList.contains("hidden")) closeModal(s.id); }
+    s.button.classList.toggle("hidden", !toSheet);
+    s.inSheet = toSheet;
+  }
+}
+MOBILE_Q.addEventListener("change", _placeFilters);
+// فورًا (بعد upgradeSelects فوق) مش بعد load — النقل بعد أول رسم كان بيقلّص
+// الشريط ويزق الجدول لفوق (CLS)
+setupFilterSheets();
+
+/* كروت الجداول على الموبايل: كل خانة بتاخد اسم عمودها (data-label) من رأس
+   الجدول، والـCSS بيحوّل الصف لكرت. الرأس بيستخبى فالترتيب بيبقى من قايمة
+   «ترتيب حسب» فوق الكروت. */
+function _labelMobileCards() {
+  $$("[data-mobile-cards]").forEach(box => {
+    const t = box.querySelector("table.table");
+    if (t) {
+      const heads = [...(t.querySelector("thead tr:last-child")?.children || [])].map(th => th.textContent.trim());
+      t.querySelectorAll("tbody tr:not(.grouprow)").forEach(tr => {
+        [...tr.children].forEach((td, i) => {
+          if (td.dataset.label !== undefined) return;
+          td.dataset.label = heads[i] || "";
+          // «-» و«—» في كرت بتبقى سطر فاضي بعنوان — بيستخبى على الموبايل بس
+          const txt = td.textContent.trim();
+          if (!td.querySelector("button,a,input,select") && (!txt || txt === "-" || txt === "—")) td.classList.add("cell-empty");
+        });
+      });
+    }
+    // قايمة الترتيب بره الحاوية عشان إعادة الرسم ماتمسحهاش وتضيّع الفوكس
+    const cid = box.id;
+    const btns = t ? [...t.querySelectorAll("thead .th-sort-btn")] : [];
+    let wrap = box.previousElementSibling?.classList.contains("mobile-sort") ? box.previousElementSibling : null;
+    if (!btns.length) { wrap?.classList.add("hidden"); return; }
+    const opts = btns.map(b => [b.dataset.sortKey, b.textContent.trim()]);
+    const sig = opts.map(o => o[0]).join("|");
+    if (!wrap) {
+      wrap = document.createElement("label");
+      wrap.className = "mobile-sort";
+      wrap.innerHTML = `<span>ترتيب حسب</span><select class="select" data-combo="native"></select>`;
+      wrap.querySelector("select").onchange = e => {
+        const [k, d] = e.target.value.split(":");
+        const st = _sortState(cid);
+        st.col = k || null;
+        st.dir = k ? Number(d) : 0;
+        _sortRenders[cid]?.();
+      };
+      box.before(wrap);
+    }
+    wrap.classList.remove("hidden");
+    const sel = wrap.querySelector("select");
+    if (sel.dataset.sig !== sig) {
+      sel.dataset.sig = sig;
+      sel.innerHTML = `<option value="">الترتيب الافتراضي</option>` + opts.map(([k, l]) =>
+        `<option value="${esc(k)}:1">${esc(l)} — تصاعديًا</option><option value="${esc(k)}:-1">${esc(l)} — تنازليًا</option>`).join("");
+    }
+    const st = _sortState(cid);
+    const want = st.col ? `${st.col}:${st.dir}` : "";
+    if (sel.value !== want) sel.value = want;
+  });
+}
+
+/* تلميح التمرير الأفقي: الحافة اللي وراها محتوى بتبهت (mask) — الخلفيات
+   الملونة للخلايا كانت بتغطي أي ظل مرسوم على الحاوية نفسها */
+// .mtable-wrap ليه ظل طرفي خاص بيه من الخلفية (style.css) — مش محتاج ده
+const SCROLLERS = ".table-scroll.is-wide, .reg-scroll, .stats, .duty-strip";
+function _syncScrollFade(el) {
+  const max = el.scrollWidth - el.clientWidth;
+  const pos = Math.abs(el.scrollLeft);   // RTL: scrollLeft بيبدأ من 0 وبيقل
+  el.classList.toggle("fade-end", max > 1 && pos < max - 1);
+  el.classList.toggle("fade-start", max > 1 && pos > 1);
+}
+document.addEventListener("scroll", e => { if (e.target.matches?.(SCROLLERS)) _syncScrollFade(e.target); }, true);
+function _syncAllFades() {
+  // جدول بطّل يبقى أعرض من مكانه (.is-wide اتشالت) مايفضلش باهت
+  $$(".fade-start, .fade-end").forEach(el => { if (!el.matches(SCROLLERS)) el.classList.remove("fade-start", "fade-end"); });
+  $$(SCROLLERS).forEach(_syncScrollFade);
+}
+if (_mainEl) new MutationObserver(() => requestAnimationFrame(() => { _labelMobileCards(); _syncAllFades(); }))
+  .observe(_mainEl, {childList: true, subtree: true});
+window.addEventListener("resize", () => requestAnimationFrame(_syncAllFades));
+
+/* صفحات اليوم بتفتح على النهاردة — التاريخ بيتكتب في عنوان الصفحة قبل أول
+   رسم، عشان السطر اللي بيطول بيه العنوان مايزقّش الصفحة بعد التحميل */
+if ($("#dutyDate")) {
+  // META لسه ماوصلش هنا، وtoISOString بالتوقيت العالمي (بعد نص الليل بيبقى امبارح)
+  const d = new Date();
+  setPageDay(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+}
