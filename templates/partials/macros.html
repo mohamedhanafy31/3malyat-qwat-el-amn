@@ -5,8 +5,16 @@
 {# نفس هيكل skeleton() في core.js — بيتعرض من السيرفر عشان المكان ما يبقاش
    فاضي لحد ما الجافاسكريبت يجيب البيانات #}
 {% macro skeleton(kind='rows', n=8) -%}
-{%- if kind == 'stats' -%}
-{% for _ in range(n) %}<div class="stat skel-stat" aria-hidden="true"><span class="skel skel-line short"></span><span class="skel skel-line big"></span></div>{% endfor %}
+{%- if kind == 'stats' or kind == 'stats-sub' or kind == 'stats-sub-wrap' -%}
+{% for _ in range(n) %}<div class="stat skel-stat" aria-hidden="true"><span><i class="skel skel-line short">&nbsp;</i></span><strong><i class="skel skel-line big">&nbsp;</i></strong>{% if kind != 'stats' %}<div class="stat-sub"><i class="skel skel-line skel-sub-line"></i>{% if kind == 'stats-sub-wrap' %}<i class="skel skel-line skel-sub-line"></i>{% endif %}</div>{% endif %}</div>{% endfor %}
+{%- elif kind == 'tasks' -%}
+{% for _ in range(n) %}<li class="task skel-task" aria-hidden="true"><span class="status-dot skel"></span><span class="task-text"><i class="skel skel-line"></i><i class="skel skel-line"></i></span>{% if loop.index <= 2 %}<span class="btn skel skel-task-action"></span>{% endif %}</li>{% endfor %}
+{%- elif kind == 'changes' -%}
+<div class="skel-changes" aria-hidden="true"><h4><i class="skel skel-line"></i></h4><ul class="change-list">{% for _ in range(n) %}<li><time><i class="skel skel-line"></i></time><span><i class="skel skel-line"></i></span><em><i class="skel skel-line"></i></em></li>{% endfor %}</ul></div>
+{%- elif kind == 'confirm-bar' -%}
+<div class="confirm-bar warn confirm-bar-skel" aria-hidden="true"><i class="skel skel-dot"></i><span><i class="skel skel-line"></i><i class="skel skel-line"></i></span><i class="primary skel skel-action"></i></div>
+{%- elif kind == 'status' -%}
+<span class="skel status-skel" aria-hidden="true">&nbsp;</span>
 {%- elif kind == 'cards' -%}
 <div class="skel-cards" role="status" aria-busy="true"><span class="sr-only">جارٍ التحميل…</span>{% for _ in range(n) %}<div class="skel skel-card"></div>{% endfor %}</div>
 {%- else -%}

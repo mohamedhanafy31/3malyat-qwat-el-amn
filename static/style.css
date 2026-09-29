@@ -988,9 +988,30 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .skel-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr));
   gap:var(--s4);padding:var(--s4) var(--s5)}
 .skel-card{height:200px}
-.skel-stat .skel-line{display:block;height:12px;margin-bottom:var(--s2)}
+.skel-stat .skel-line{display:inline-block;color:transparent;font-style:normal;
+  height:.7em;vertical-align:middle}
 .skel-stat .skel-line.short{width:45%}
-.skel-stat .skel-line.big{height:26px;width:30%;margin-bottom:0}
+.skel-stat .skel-line.big{width:30%}
+.skel-stat .skel-sub-line{display:block;width:72%;height:1.4em;padding-block:.35em;
+  background-clip:content-box}
+.skel-stat .skel-sub-line + .skel-sub-line{display:none;width:52%}
+.skel-task .skel-line{display:block;width:72%;height:1.55em;padding-block:.4em;
+  background-clip:content-box}
+.skel-task .skel-line + .skel-line{display:none;width:52%}
+.skel-task-action{width:76px}
+.skel-changes .skel-line{display:block;height:1.55em;padding-block:.42em;
+  background-clip:content-box;font-style:normal}
+.skel-changes h4 .skel-line{width:112px;height:1.3em;padding-block:.3em}
+.skel-changes time .skel-line{width:86px}
+.skel-changes li > span .skel-line{width:68%}
+.skel-changes em .skel-line{width:54px}
+.confirm-bar-skel .skel-dot{width:1em;height:1em;flex:none}
+.confirm-bar-skel > span{display:flex;flex-direction:column;justify-content:center}
+.confirm-bar-skel .skel-line{display:block;width:min(420px,72%);height:1.55em;
+  padding-block:.4em;background-clip:content-box;font-style:normal}
+.confirm-bar-skel .skel-line + .skel-line{display:none;width:min(280px,54%)}
+.confirm-bar-skel .skel-action{width:132px}
+.status-skel{display:inline-block;width:128px;height:var(--control-h);vertical-align:middle}
 .navbtn em.is-loading{width:30px;min-height:18px;color:transparent;border-color:transparent;
   background:linear-gradient(90deg,var(--navy-50) 25%,var(--navy-100) 37%,var(--navy-50) 63%);
   background-size:400% 100%;animation:skel 1.4s ease infinite}
@@ -1116,11 +1137,15 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .change-list time{flex:none;color:var(--ink-500);font-variant-numeric:tabular-nums;direction:ltr}
 .change-list span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .change-list em{font-style:normal;color:var(--ink-500);flex:none}
+.recent-empty{margin:var(--s4) 0 0;color:var(--ink-500);font-size:var(--t-sm)}
 .dash-tasks{margin-top:0}
 .dash-card h3{flex-wrap:wrap}
 @media(max-width:700px){
   .dash-quick{margin-inline-start:0;width:100%}
   .task{flex-wrap:wrap}
+  .skel-task .skel-line + .skel-line{display:block}
+  .confirm-bar-skel .skel-line + .skel-line{display:block}
+  .status-skel{height:var(--touch-control)}
 }
 .dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--s5)}
 .dash-col h4{margin:0 0 var(--s3);font-size:var(--t-sm);color:var(--ink-500);
@@ -1458,6 +1483,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   .stats{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:var(--s2);
     padding-bottom:var(--s1);scrollbar-width:thin}
   .stats > .stat{flex:0 0 44%;scroll-snap-align:start}
+  .skel-stat .skel-sub-line + .skel-sub-line{display:block}
 }
 
 /* ═══════════════════ ㉖ الفِرق والدورات — كروت الفرقة ═══════════════════ */
@@ -1646,6 +1672,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .sheet-field .select{width:100%;min-width:0}
 .sheet-handle{display:none}
 @media(max-width:700px){
+  main .toolbar:has(> select ~ select) > select{display:none}
   .toolbar .filter-toggle{flex:0 0 auto}
   .toolbar:has(> .filter-toggle:not(.hidden)) > .search{flex:1 1 0;min-width:0}
   /* الشيت بيطلع من تحت الشاشة بعرضها — أقرب للإبهام من نافذة في النص */

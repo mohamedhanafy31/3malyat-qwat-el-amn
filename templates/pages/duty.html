@@ -10,7 +10,7 @@
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
       <button class="mini day-jump" id="dayToday">النهاردة</button>
     </div>
-    <div class="tb-group tb-end"><span id="balanceTag"></span></div>
+    <div class="tb-group tb-end"><span id="balanceTag">{{ skeleton("status") }}</span></div>
   </div>
   <div id="restStrip"></div>
   <div id="dutySummary" class="duty-summary-slot">{{ skeleton("rows", 3) }}</div>

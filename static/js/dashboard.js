@@ -62,7 +62,8 @@
     <ul class="change-list">${recent.map(e => `<li>
       <time>${esc(fmtShort((e.ts || "").slice(0, 10)))} ${esc(hhmm(e.ts))}</time>
       <span>${esc(humanizeDates(e.text || `${e.entity} ${e.action}`))}</span>
-      ${e.edited_by ? `<em>${esc(e.edited_by)}</em>` : ""}</li>`).join("")}</ul>` : "";
+      ${e.edited_by ? `<em>${esc(e.edited_by)}</em>` : ""}</li>`).join("")}</ul>`
+    : `<p class="recent-empty">لا توجد تغييرات حديثة.</p>`;
 
   const col = (title, rows, render) => `<section class="dash-col">
     <h4>${title} <em>${rows.length || ""}</em></h4>

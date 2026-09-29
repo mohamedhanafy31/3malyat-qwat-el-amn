@@ -13,7 +13,7 @@
     </div>
     <div class="tb-group" role="group" aria-label="حالة اليوم">
       <span id="confirmBadge"></span>
-      <span id="dayLockBadge"></span>
+      <span id="dayLockBadge">{{ skeleton("status") }}</span>
     </div>
     <div class="tb-group tb-end" role="group" aria-label="إجراءات اليومية">
       <button class="mini ok confirm-day-btn" id="btnConfirmDay"
@@ -21,7 +21,7 @@
       <button class="mini kbd-only" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
     </div>
   </div>
-  <div id="confirmBar" aria-live="polite"></div>
+  <div id="confirmBar" aria-live="polite">{{ skeleton("confirm-bar") }}</div>
   <div id="restStrip"></div>
   <div id="matchBoard">{{ skeleton("cards", 4) }}</div>
 </div>

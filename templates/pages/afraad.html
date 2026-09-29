@@ -10,7 +10,7 @@
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
       <button class="mini day-jump" id="dayToday">النهاردة</button>
     </div>
-    <div class="tb-group" role="group" aria-label="حالة اليوم"><span id="dayLockBadge"></span></div>
+    <div class="tb-group" role="group" aria-label="حالة اليوم"><span id="dayLockBadge">{{ skeleton("status") }}</span></div>
   </div>
   <div id="afWrap">{{ skeleton("rows", 10) }}</div>
 </div>

@@ -310,7 +310,14 @@ document.addEventListener("click",e=>{
 function skeleton(kind="rows",n=8){
   const sr='<span class="sr-only">جارٍ التحميل…</span>';
   const rep=(k)=>Array.from({length:n},()=>k).join("");
-  if(kind==="stats") return rep('<div class="stat skel-stat" aria-hidden="true"><span class="skel skel-line short"></span><span class="skel skel-line big"></span></div>');
+  if(["stats","stats-sub","stats-sub-wrap"].includes(kind)){
+    const sub=kind==="stats"?"":`<div class="stat-sub"><i class="skel skel-line skel-sub-line"></i>${kind==="stats-sub-wrap"?'<i class="skel skel-line skel-sub-line"></i>':""}</div>`;
+    return rep(`<div class="stat skel-stat" aria-hidden="true"><span><i class="skel skel-line short">&nbsp;</i></span><strong><i class="skel skel-line big">&nbsp;</i></strong>${sub}</div>`);
+  }
+  if(kind==="tasks") return Array.from({length:n},(_,i)=>`<li class="task skel-task" aria-hidden="true"><span class="status-dot skel"></span><span class="task-text"><i class="skel skel-line"></i><i class="skel skel-line"></i></span>${i<2?'<span class="btn skel skel-task-action"></span>':""}</li>`).join("");
+  if(kind==="changes") return `<div class="skel-changes" aria-hidden="true"><h4><i class="skel skel-line"></i></h4><ul class="change-list">${rep('<li><time><i class="skel skel-line"></i></time><span><i class="skel skel-line"></i></span><em><i class="skel skel-line"></i></em></li>')}</ul></div>`;
+  if(kind==="confirm-bar") return '<div class="confirm-bar warn confirm-bar-skel" aria-hidden="true"><i class="skel skel-dot"></i><span><i class="skel skel-line"></i><i class="skel skel-line"></i></span><i class="primary skel skel-action"></i></div>';
+  if(kind==="status") return '<span class="skel status-skel" aria-hidden="true">&nbsp;</span>';
   if(kind==="cards") return `<div class="skel-cards" role="status" aria-busy="true">${sr}${rep('<div class="skel skel-card"></div>')}</div>`;
   return `<div class="skel-rows" role="status" aria-busy="true">${sr}${rep('<div class="skel skel-row"></div>')}</div>`;
 }
