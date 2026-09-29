@@ -673,16 +673,25 @@ const _modalTop=()=>_modalStack[_modalStack.length-1]||null;
 const _modalVisible=el=>!!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
 const _modalForm=modal=>modal.id==="sharedDialog"?null:modal.querySelector("form");
 function _modalFormState(form){
+  const keyed=(elements,valueOf)=>{
+    const seen=new Map();
+    return elements.map(el=>{
+      const key=el.id||el.name||"";
+      const index=seen.get(key)||0;
+      seen.set(key,index+1);
+      return [key,index,valueOf(el)];
+    }).sort((a,b)=>a[0]===b[0]?a[1]-b[1]:(a[0]<b[0]?-1:1));
+  };
   const controls=[...form.elements]
-    .filter(el=>!el.matches('button,[type="submit"],[type="button"],[type="hidden"]'))
-    .map(el=>{
-      if(el.type==="checkbox"||el.type==="radio") return [el.id||el.name,el.checked];
-      if(el instanceof HTMLSelectElement&&el.multiple)
-        return [el.id||el.name,[...el.selectedOptions].map(option=>option.value)];
-      return [el.id||el.name,el.value];
-    });
-  const generated=[...form.querySelectorAll(".tag-chips")].map(el=>[el.id,el.textContent]);
-  return JSON.stringify({controls,generated});
+    .filter(el=>!el.matches('button,[type="submit"],[type="button"],[type="hidden"]'));
+  const controlState=keyed(controls,el=>{
+    if(el.type==="checkbox"||el.type==="radio") return el.checked;
+    if(el instanceof HTMLSelectElement&&el.multiple)
+      return [...el.selectedOptions].map(option=>option.value);
+    return el.value;
+  });
+  const generated=keyed([...form.querySelectorAll(".tag-chips")],el=>el.textContent);
+  return JSON.stringify({controls:controlState,generated});
 }
 function _clearFieldError(control){
   const errorId=control.getAttribute("data-field-error");
@@ -700,6 +709,21 @@ function markModalSaved(id){
   entry.snapshot=_modalFormState(entry.form);
   entry.form.querySelectorAll('[data-field-error]').forEach(_clearFieldError);
 }
+function _captureModalBaseline(event){
+  if(!event.isTrusted) return;
+  const entry=_modalTop();
+  if(!entry?.form||entry.snapshot!==null) return;
+  const path=event.composedPath();
+  const card=entry.modal.querySelector(".modal-card");
+  const inCard=card&&path.includes(card);
+  // القوائم والتقويم في body، لكن تغييرهما محسوب على حقل النافذة الأصلية.
+  const inCombo=_cbSel&&entry.form.contains(_cbSel)&&path.includes(comboPop);
+  const inDate=_dpInput&&entry.form.contains(_dpInput)&&path.includes(datePopover);
+  if(inCard||inCombo||inDate) entry.snapshot=_modalFormState(entry.form);
+}
+document.addEventListener("pointerdown",_captureModalBaseline,true);
+document.addEventListener("keydown",_captureModalBaseline,true);
+document.addEventListener("beforeinput",_captureModalBaseline,true);
 function _modalFocusable(root){
   return [...root.querySelectorAll(_modalFocusableSelector)].filter(el=>
     el.tabIndex>=0 && !el.closest("[inert]") && _modalVisible(el));
@@ -733,7 +757,8 @@ function openModal(id){
   modal.classList.remove("hidden");
   const form=_modalForm(modal);
   form?.querySelectorAll('[data-field-error]').forEach(_clearFieldError);
-  const entry={modal,opener,form,snapshot:form?_modalFormState(form):null,guardPending:false};
+  // التهيئة المتأخرة في صفحات النماذج لازم تدخل في خط الأساس قبل أول تعديل حقيقي.
+  const entry={modal,opener,form,snapshot:null,guardPending:false};
   _modalStack.push(entry);
   _syncModalState();
   _focusModal(modal);
@@ -760,7 +785,7 @@ async function closeModal(id,submitted=false){
   const entry=_modalStack.find(item=>item.modal===modal);
   if(!entry){ _closeModalNow(modal); return true }
   if(submitted) markModalSaved(id);
-  const changed=entry.form&&entry.snapshot!==_modalFormState(entry.form);
+  const changed=entry.form&&entry.snapshot!==null&&entry.snapshot!==_modalFormState(entry.form);
   if(!submitted&&changed){
     if(entry.guardPending) return false;
     entry.guardPending=true;
