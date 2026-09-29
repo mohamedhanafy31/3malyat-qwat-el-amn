@@ -318,8 +318,66 @@ function sortableTableBlock(cid, cols, rows, rowHtml, extraHeads, countText, emp
   return `<div class="table-scroll">${tableHtml}</div><div class="count">${countText}</div>`;
 }
 
-function openModal(id){$("#"+id)?.classList.remove("hidden")}
-function closeModal(id){$("#"+id)?.classList.add("hidden")}
+const _modalStack=[];
+const _modalFocusableSelector=[
+  "a[href]", "button:not([disabled])", "input:not([disabled]):not([type=hidden])",
+  "select:not([disabled])", "textarea:not([disabled])", "[tabindex]", '[contenteditable="true"]',
+].join(",");
+
+const _modalTop=()=>_modalStack[_modalStack.length-1]||null;
+const _modalVisible=el=>!!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
+function _modalFocusable(root){
+  return [...root.querySelectorAll(_modalFocusableSelector)].filter(el=>
+    el.tabIndex>=0 && !el.closest("[inert]") && _modalVisible(el));
+}
+function _syncModalState(){
+  const top=_modalTop()?.modal||null;
+  $$(".topbar,.shell").forEach(el=>el.toggleAttribute("inert",!!top));
+  $$(".modal").forEach(modal=>modal.toggleAttribute("inert",!!top&&!modal.classList.contains("hidden")&&modal!==top));
+  document.body.classList.toggle("modal-open",!!top);
+}
+function _focusModal(modal){
+  const card=modal.querySelector(".modal-card");
+  if(!card) return;
+  const autofocus=[...card.querySelectorAll("[autofocus]")].find(el=>
+    !el.disabled&&!el.classList.contains("close")&&_modalVisible(el));
+  const field=[...card.querySelectorAll("input:not([type=hidden]),select,textarea,button:not(.close)")].find(el=>
+    !el.disabled&&el.tabIndex>=0&&_modalVisible(el));
+  const target=autofocus||field||card;
+  if(target===card&&!card.hasAttribute("tabindex")) card.setAttribute("tabindex","-1");
+  target.focus({preventScroll:true});
+}
+function openModal(id){
+  const modal=$("#"+id);
+  if(!modal) return;
+  const current=_modalStack.find(entry=>entry.modal===modal);
+  if(current){
+    if(_modalTop()===current) _focusModal(modal);
+    return;
+  }
+  const opener=document.activeElement instanceof HTMLElement?document.activeElement:null;
+  modal.classList.remove("hidden");
+  const entry={modal,opener};
+  _modalStack.push(entry);
+  _syncModalState();
+  _focusModal(modal);
+}
+function closeModal(id){
+  const modal=$("#"+id);
+  if(!modal) return;
+  const index=_modalStack.findIndex(entry=>entry.modal===modal);
+  const entry=index<0?null:_modalStack[index];
+  const wasTop=index===_modalStack.length-1;
+  modal.classList.add("hidden");
+  modal.removeAttribute("inert");
+  if(index>=0) _modalStack.splice(index,1);
+  if(_cbSel&&modal.contains(_cbSel)) _cbClose();
+  if(_dpInput&&modal.contains(_dpInput)) _dpClose();
+  _syncModalState();
+  if(!wasTop) return;
+  if(entry?.opener?.isConnected&&!entry.opener.closest("[inert]")) entry.opener.focus({preventScroll:true});
+  else if(_modalTop()) _focusModal(_modalTop().modal);
+}
 
 /* ---------- شارات الحالة (الحالة نفسها محسوبة في الباك إند) ---------- */
 function restLabel(p){
@@ -937,12 +995,31 @@ scrimEl.onclick=()=>setSidebar(false);
 sidebarEl.addEventListener("click",e=>{ if(e.target.closest(".navbtn")) setSidebar(false) });
 
 $$("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
-$$(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)m.classList.add("hidden")});
+$$(".modal").forEach(m=>m.onclick=e=>{
+  if(e.target===m&&_modalTop()?.modal===m) closeModal(m.id);
+});
 document.addEventListener("keydown",e=>{
+  if(e.key==="Tab"&&_modalTop()){
+    const card=_modalTop().modal.querySelector(".modal-card");
+    const active=document.activeElement;
+    const popup=(!_cbSel||comboPop.classList.contains("hidden")||!comboPop.contains(active))
+      ? (!_dpInput||datePopover.classList.contains("hidden")||!datePopover.contains(active)?null:datePopover)
+      : comboPop;
+    const focusable=[..._modalFocusable(card),...(popup?_modalFocusable(popup):[])];
+    if(!focusable.length){ e.preventDefault(); card.focus({preventScroll:true}); return }
+    const index=focusable.indexOf(active);
+    if(index<0||(e.shiftKey&&index===0)||(!e.shiftKey&&index===focusable.length-1)){
+      e.preventDefault();
+      focusable[e.shiftKey?focusable.length-1:0].focus();
+    }
+    return;
+  }
   if(e.key!=="Escape") return;
   // Esc وقت القايمة مفتوحة بيقفل القايمة بس — مش النافذة اللي هي جواها
   if(_cbSel){ _cbClose(); return }
-  $$(".modal").forEach(m=>m.classList.add("hidden")); _dpClose(); setSidebar(false);
+  if(_dpInput){ const input=_dpInput; _dpClose(); input.focus(); return }
+  if(_modalTop()){ closeModal(_modalTop().modal.id); return }
+  setSidebar(false);
 });
 
 /* اسم من قام بالتعديل — بيتحفظ محليًا وبيتبعت مع أي طلب تعديل كـheader،

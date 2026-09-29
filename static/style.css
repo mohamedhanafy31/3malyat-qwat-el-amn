@@ -934,9 +934,11 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 /* ═══════════════════ ㉒ النوافذ ═══════════════════ */
 .modal{position:fixed;inset:0;background:var(--overlay-screen);display:flex;align-items:center;
   justify-content:center;padding:var(--s5);z-index:30;overflow-y:auto}
+body.modal-open{overflow:hidden;scrollbar-gutter:stable}
 .modal-card{background:var(--surface);width:min(680px,100%);border-radius:var(--radius-md);
   padding:var(--s6);position:relative;max-height:92vh;overflow-y:auto;
   border-top:4px solid var(--navy-800);box-shadow:var(--shadow-pop)}
+.modal-card:focus{outline:none}
 .modal-card.small{width:min(480px,100%)}
 .modal-card h2{margin:0 0 var(--s5);font-size:var(--t-lg);color:var(--navy-950);
   padding-bottom:var(--s3);padding-inline-end:calc(var(--s8) + var(--s1));

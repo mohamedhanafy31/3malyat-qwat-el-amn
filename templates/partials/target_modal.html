@@ -1,8 +1,8 @@
 <!-- ============ تعيين ضابط بهدف/فترة كتلة ثابتة — قايمة مقفولة، خانة
      واحدة بس (مودال مشترك بين الأهداف والكتل الثابتة الثلاثة) ============ -->
 <div class="modal hidden" id="targetModal">
-  <div class="modal-card">
-    <button class="close" data-close="targetModal">×</button>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="targetModalTitle">
+    <button type="button" class="close" data-close="targetModal" aria-label="إغلاق">×</button>
     <h2 id="targetModalTitle">تعيين</h2>
     <form id="targetForm">
       <input type="hidden" id="tgEndpoint">

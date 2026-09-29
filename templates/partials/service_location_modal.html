@@ -1,7 +1,7 @@
 <!-- ============ عرض موقع خدمة (نافذة منبثقة للعرض بس) ============ -->
 <div class="modal hidden" id="locationModal">
-  <div class="modal-card">
-    <button class="close" data-close="locationModal">×</button>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="locationModalTitle">
+    <button type="button" class="close" data-close="locationModal" aria-label="إغلاق">×</button>
     <h2 id="locationModalTitle">موقع الخدمة</h2>
     <p id="locationModalText" class="hint"></p>
     <div id="locationModalGallery" class="location-gallery"></div>
@@ -10,8 +10,10 @@
 
 <!-- ============ تكبير صورة الموقع (فوق نافذة الموقع) ============ -->
 <div class="modal hidden" id="locationZoomModal">
-  <div class="modal-card small location-zoom-card">
-    <button class="close" data-close="locationZoomModal">×</button>
+  <div class="modal-card small location-zoom-card" role="dialog" aria-modal="true"
+       aria-labelledby="locationZoomModalTitle">
+    <button type="button" class="close" data-close="locationZoomModal" aria-label="إغلاق">×</button>
+    <h2 id="locationZoomModalTitle" class="sr-only">تكبير صورة موقع الخدمة</h2>
     <img id="locationZoomImg" src="" alt="">
   </div>
 </div>
