@@ -10,6 +10,11 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 // المتصفح بيفك تشفير HTML بتاع الـattribute قبل ما يجمّع أي onclick كـJS، وده كان
 // بيلغي تأثير esc() ويسمح بحقن سكريبت من أي حقل حر. القيم هنا بتتقرأ JSON.parse بس.
 const dataAttr=obj=>esc(JSON.stringify(obj));
+function icon(name,opts={}){
+  const extra=typeof opts==="string"?opts:(opts.className||"");
+  const cls=`ico${extra?` ${extra}`:""}`;
+  return `<svg class="${esc(cls)}" aria-hidden="true" focusable="false"><use href="#i-${esc(name)}"></use></svg>`;
+}
 
 /* ---------- تطبيع النص العربي ----------
    نسخة مطابقة لـ backend/text.py norm() — الحرف الواحد بيتكتب بأكتر من صورة
@@ -180,7 +185,7 @@ async function renderRestStrip(el, day){
       title="${esc(o.stop_reason)} — كانت لحد ${esc(fmt(o.original_end))}">${esc(o.role)}/ ${esc(o.name)}
       <i>${esc(o.type)}</i></span>`).join("");
   el.innerHTML = `<div class="alert-card susp-banner rest-strip"><div class="alert-head">
-      <span class="alert-ico">⛔</span>
+      <span class="alert-ico">${icon("block","ico-lg")}</span>
       <strong>${r.types.length ? `الراحات موقوفة: ${r.types.map(esc).join("، ")}` : "إيقاف راحات"}</strong>
       <a class="mini" href="/leaves/suspension">إدارة الوقف</a></div>
     ${r.returned.length ? `<div class="sub">رجعوا للعمل في اليوم ده بإيقاف راحتهم — محتاجين تسكين:</div>
@@ -354,7 +359,7 @@ function renderAlerts(alerts){
   const open=saved===null?PAGE==="dashboard":saved==="1";
   box.innerHTML=`<div class="alert-card"><details class="alert-fold" ${open?"open":""}>
     <summary>
-      <span class="alert-head"><span class="alert-ico">⚠</span>
+      <span class="alert-head"><span class="alert-ico">${icon("alert","ico-lg")}</span>
         <strong>تنبيه تقصيرة</strong>
         <span class="muted">${esc(lede)}</span></span>
       <span class="alert-toggle">التفاصيل</span>
@@ -425,9 +430,9 @@ function _dpDayGrid(y,m){
   }
   const heads=WD_SHORT.map(h=>`<span class="dp-wd">${h}</span>`).join("");
   return `<div class="dp-head">
-      <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1">‹</button>
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1" aria-label="الشهر السابق">${icon("chevron-prev")}</button>
       <b>${new Date(y,m,1).toLocaleDateString("ar-EG-u-nu-latn",{month:"long",year:"numeric"})}</b>
-      <button type="button" class="dp-nav" data-action="_dpNav" data-id="1">›</button>
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="1" aria-label="الشهر التالي">${icon("chevron-next")}</button>
     </div>
     <div class="dp-grid dp-grid-day">${heads}${cells.join("")}</div>`;
 }
@@ -440,9 +445,9 @@ function _dpMonthGrid(y){
     return `<button type="button" class="${cls}" data-action="_dpPickMonth" data-id="${iso}">${name}</button>`;
   }).join("");
   return `<div class="dp-head">
-      <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1">‹</button>
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1" aria-label="الشهر السابق">${icon("chevron-prev")}</button>
       <b>${y.toLocaleString("ar-EG-u-nu-latn",{useGrouping:false})}</b>
-      <button type="button" class="dp-nav" data-action="_dpNav" data-id="1">›</button>
+      <button type="button" class="dp-nav" data-action="_dpNav" data-id="1" aria-label="الشهر التالي">${icon("chevron-next")}</button>
     </div>
     <div class="dp-grid dp-grid-month">${btns}</div>`;
 }
@@ -483,7 +488,7 @@ ACTIONS._dpNav=id=>{
   _dpRender();
 };
 /* `_dpNav` (فوق) بينادي `_dpRender()` اللي بيستبدل innerHTML بتاع
-   التقويم — يعني الزرار اللي المستخدم دوس عليه (‹/›) بيتشال من الـDOM
+   التقويم — يعني زر التنقل اللي المستخدم دوس عليه بيتشال من الـDOM
    **قبل** ما الحدث ده يوصل لمعالج الإغلاق هنا (الاتنين مسجّلين على
    `document` بنفس مرحلة الفقاعة، وده مسجّل بعد معالج data-action). ساعتها
    `datePopover.contains(e.target)` بترجع false — العنصر اتشال فعلًا —
@@ -638,8 +643,8 @@ function _cbRender(q) {
     const on = chosen(o);
     return `<li role="option" aria-selected="${on}" data-action="_cbPick" data-id="${n}"
       class="combo-opt${o.custom ? " custom" : ""}${on ? " sel" : ""}${n === _cbIdx ? " active" : ""}"
-      >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? "✔" : ""}</span>` : ""}${o.custom
-        ? `＋ قسم جديد: «${esc(o.text)}»` : esc(o.text)}</li>`;
+      >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? icon("check") : ""}</span>` : ""}${o.custom
+        ? `${icon("plus")} قسم جديد: «${esc(o.text)}»` : esc(o.text)}</li>`;
   }).join("")}</ul>`;
 }
 

@@ -118,6 +118,14 @@ button,input,select,textarea{font-family:inherit}
 /* عنصر مقروء لقارئ الشاشة بس — بديل نصي لأي إشارة لونية بحتة */
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
   clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.icon-sprite{display:none}
+.ico{width:1em;height:1em;flex:none;fill:currentColor;vertical-align:-.15em}
+.ico-lg{width:20px;height:20px}
+.status-dot{display:inline-block;width:8px;height:8px;flex:none;border-radius:50%;background:var(--ink-400)}
+.status-dot.ok{background:var(--ok-700)}
+.status-dot.warn{background:var(--warn-700)}
+.status-dot.bad{background:var(--bad-700)}
+.status-dot.muted{background:var(--ink-400)}
 
 /* حلقة تركيز واحدة لكل شيء تفاعلي — بدل قائمة انتقائية بتنسى العناصر الجديدة */
 :where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{
@@ -221,8 +229,11 @@ button,input,select,textarea{font-family:inherit}
 .alert-toggle{margin-inline-start:auto;font-size:var(--t-sm);color:var(--warn-700);
   border:1px solid var(--border-control);border-radius:var(--radius-control);padding:2px var(--s2);
   background:var(--surface);white-space:nowrap}
-.alert-fold[open] .alert-toggle::after{content:" ▲"}
-.alert-fold:not([open]) .alert-toggle::after{content:" ▼"}
+.alert-toggle::after,.fold-hint::after{content:"";display:inline-block;width:12px;height:12px;
+  margin-inline-start:var(--s1);vertical-align:-2px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6 1.4 1.4-7.4 7.4-7.4-7.4L6 9Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6 1.4 1.4-7.4 7.4-7.4-7.4L6 9Z'/%3E%3C/svg%3E") center/contain no-repeat}
+.alert-fold[open] .alert-toggle::after,.settings-fold[open] .fold-hint::after{transform:rotate(180deg)}
 
 /* شبكة بدل قائمة عمودية: سطرين لكل ضابط، وأربع أعمدة على الشاشة الكبيرة —
    العشر تنبيهات بقوا ٣ صفوف بدل عشرة. */
@@ -293,8 +304,6 @@ button,input,select,textarea{font-family:inherit}
 .fold-hint{color:var(--navy-800);font-size:var(--t-sm);border:1px solid var(--line-strong);
   border-radius:var(--radius-sm);padding:2px var(--s3);white-space:nowrap}
 .settings-fold[open] summary{border-bottom:1px solid var(--line)}
-.settings-fold[open] .fold-hint::after{content:" ▲"}
-.settings-fold:not([open]) .fold-hint::after{content:" ▼"}
 .settings-fold > :not(summary){margin-inline:var(--s4)}
 .settings-fold > .svc-picker{margin-bottom:var(--s4) !important}
 
@@ -434,6 +443,7 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
   margin-bottom:var(--s2);font-weight:700;color:var(--navy-950);font-family:var(--font-head)}
 .dp-nav{border:0;background:none;font-size:var(--t-lg);line-height:1;color:var(--ink-700);
   cursor:pointer;padding:2px var(--s2);border-radius:var(--radius-sm)}
+.dp-nav .ico{display:block}
 .dp-nav:hover{background:var(--navy-50)}
 .dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
 .dp-grid-month{grid-template-columns:repeat(3,1fr);gap:var(--s1)}
@@ -1260,9 +1270,8 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:25px
 .service-head{padding:var(--s4) var(--s4) 0}
 .service-name{margin:0 0 6px;font-size:var(--t-md);color:var(--navy-950);
   font-family:var(--font-head);line-height:1.35}
-.svc-location-flag{display:inline-block;margin-inline-start:6px;font-size:var(--t-sm);
-  opacity:.35;filter:grayscale(1)}
-.svc-location-flag.on{opacity:1;filter:none}
+.svc-location-flag{display:inline-block;margin-inline-start:6px;font-size:var(--t-sm);color:var(--ink-400)}
+.svc-location-flag.on{color:var(--navy-700)}
 .service-meta{display:flex;flex-wrap:wrap;gap:6px}
 .service-bits{margin:var(--s2) var(--s4) 0;font-size:var(--t-sm);color:var(--ink-700)}
 .service-location{margin:var(--s2) var(--s4) 0;font-size:var(--t-sm);color:var(--ink-700);

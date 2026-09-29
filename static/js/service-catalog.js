@@ -31,7 +31,8 @@ function serviceCard(s) {
       <div class="service-head-main">
         <h3 class="service-name">${esc(s.name)}
           <span class="svc-location-flag ${hasLocation ? "on" : "off"}"
-            title="${hasLocation ? "الموقع محفوظ" : "مفيش موقع محفوظ لسه"}">📍</span>
+            role="img" aria-label="${hasLocation ? "له موقع مسجّل" : "لا يوجد موقع مسجّل"}"
+            title="${hasLocation ? "الموقع محفوظ" : "لا يوجد موقع محفوظ"}">${icon("pin")}${hasLocation ? "" : '<span class="sr-only">لا يوجد موقع مسجّل</span>'}</span>
         </h3>
         <div class="service-meta">
           ${s.post_type ? `<span class="chip m">${esc(s.post_type)}</span>` : ""}
@@ -45,7 +46,7 @@ function serviceCard(s) {
     ${s.instructions ? `<p class="hint service-hint">${esc(s.instructions)}</p>` : ""}
     <div class="service-bar">
       <button class="mini" data-action="openLocation" data-id="${esc(s.id)}"
-        ${hasLocation ? "" : "disabled"} title="${hasLocation ? "عرض موقع الخدمة" : "مفيش موقع مسجّل لسه"}">📍 الموقع</button>
+        ${hasLocation ? "" : "disabled"} title="${hasLocation ? "عرض موقع الخدمة" : "لا يوجد موقع مسجّل"}">${icon("pin")} الموقع</button>
       <div class="actions">
         <button class="mini" data-action="openService" data-id="${esc(s.id)}">تعديل</button>
         <button class="mini bad" data-action="deleteService" data-id="${esc(s.id)}"
@@ -74,7 +75,7 @@ function filteredCatalog() {
 function render() {
   const rows = filteredCatalog();
   if (!CATALOG.length) {
-    $("#catalogWrap").innerHTML = `<div class="empty">لا توجد خدمات — اضغط «توليد الدليل» أو «＋ خدمة جديدة»</div>`;
+    $("#catalogWrap").innerHTML = `<div class="empty">لا توجد خدمات — اضغط «توليد الدليل» أو «خدمة جديدة»</div>`;
   } else if (!rows.length) {
     $("#catalogWrap").innerHTML = `<div class="empty">مفيش خدمة مطابقة للفلاتر</div>`;
   } else {
@@ -393,7 +394,7 @@ function renderInspectionSchedule() {
           ${entries.length ? entries.map(e => inspectionRow(day, e)).join("")
             : `<p class="muted insp-empty">مفيش تفتيش يوم ${esc(day)}</p>`}
           <button type="button" class="mini" data-action="addInspection"
-            data-extra="${dataAttr({weekday: day})}">＋ إضافة تفتيش</button>
+            data-extra="${dataAttr({weekday: day})}">${icon("plus")} إضافة تفتيش</button>
         </div>`;
       }).join("")}</div>
     </details>`;

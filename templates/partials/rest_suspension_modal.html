@@ -18,7 +18,7 @@
         <label>السبب / رقم الأمر <span class="muted">(إجباري)</span>
           <input id="suspendReason" placeholder="مثال: قرار المديرية بوقف الراحات">
         </label>
-        <button type="button" class="primary full" id="suspNext">التالي ← اختيار الراحات</button>
+        <button type="button" class="primary full" id="suspNext">التالي — اختيار الراحات {{ icon('chevron-next') }}</button>
       </div>
 
       <!-- الخطوة ٢ -->
@@ -30,7 +30,7 @@
         </label>
         <div id="suspendCandidates"></div>
         <div class="susp-actions">
-          <button type="button" class="mini" id="suspBack">→ رجوع</button>
+          <button type="button" class="mini" id="suspBack">{{ icon('arrow-back') }} رجوع</button>
           <button type="submit" class="primary" id="suspSubmit">تنفيذ أمر الوقف</button>
         </div>
       </div>

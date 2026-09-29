@@ -6,7 +6,7 @@ const suspendedTypes = () => META.rest_suspension?.types || [];
 /* بانر وقف الراحات — مشترك الشكل مع الرئيسية وصفحة الراحات */
 function suspensionBanner(types) {
   if (!types.length) return "";
-  return `<div class="alert-card susp-banner"><div class="alert-head"><span class="alert-ico">⛔</span>
+  return `<div class="alert-card susp-banner"><div class="alert-head"><span class="alert-ico">${icon("block","ico-lg")}</span>
     <strong>الراحات موقوفة: ${types.map(esc).join("، ")}</strong>
     <span class="muted">الضباط اللي نظامهم من الأنواع دي مايتسجّلش لهم كشف لحد «فتح الراحات» من صفحة الراحات.</span>
   </div></div>`;
@@ -99,7 +99,7 @@ function weeklyRow(row) {
         <input type="date" class="select weekly-extra-date" data-id="${esc(row.id)}"
           min="${esc(curDate())}" ${blocked ? "disabled" : ""}>
         <button class="mini" data-action="addWeeklyExtra" data-id="${esc(row.id)}"
-          ${blocked ? "disabled" : ""}>＋ راحة إضافية</button>
+          ${blocked ? "disabled" : ""}>${icon("plus")} راحة إضافية</button>
       </div>
       <div class="sub roster-error" id="weekly-err-${esc(row.id)}"></div>
     </td>

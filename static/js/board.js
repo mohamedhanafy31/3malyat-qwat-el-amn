@@ -77,7 +77,7 @@ function serviceRow(row) {
     return `<tr class="vacant"><td class="name">${esc(row.shift)}</td>
       <td colspan="5"><span class="muted">شاغرة — محتاجة تكليف</span></td>
       <td><div class="actions"><button class="mini" data-action="openEntry"
-        data-extra="${dataAttr({shift: row.shift})}">＋</button></div></td></tr>`;
+        data-extra="${dataAttr({shift: row.shift})}" aria-label="إضافة">${icon("plus")}</button></div></td></tr>`;
   }
   const who = [chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ")
     || `<span class='muted'>—</span>`;
@@ -95,10 +95,10 @@ function serviceRow(row) {
     <td><div class="actions service-actions">
       <button type="button" class="mini btn-xs move" data-action="moveEntry"
         data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
-        title="حرّك لفوق" aria-label="حرّك الخدمة لفوق">▲</button>
+        title="حرّك لفوق" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
       <button type="button" class="mini btn-xs move" data-action="moveEntry"
         data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
-        title="حرّك لتحت" aria-label="حرّك الخدمة لتحت">▼</button>
+        title="حرّك لتحت" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
       <button class="mini" data-action="openEntry" data-id="${esc(row.id)}">تعديل</button>
       <button class="mini" data-action="duplicateEntry" data-id="${esc(row.id)}">تكرار</button>
       <button class="mini bad" data-action="deleteEntry" data-id="${esc(row.id)}"
@@ -151,7 +151,7 @@ function sectionCard(sec) {
   // الكتل الثابتة عندها الصفّين الثابتين + إمكانية إضافة دور تاني حر.
   const addBtn = ["officers", "targets"].includes(sec.type) ? "" :
     `<button class="mini" data-action="openEntry"
-      data-extra="${dataAttr({section: sec.name})}">＋ إضافة</button>`;
+      data-extra="${dataAttr({section: sec.name})}">${icon("plus")} إضافة</button>`;
   const seededNote = sec.type === "targets" && sec.seeded_from
     ? `<small class="target-default-note">مبدئيًا من تأكيد يوم ${fmt(sec.seeded_from)}</small>`
     : "";
@@ -162,8 +162,6 @@ function sectionCard(sec) {
 
 /* تنبيهات مش موانع: الأرشيف فيه ضباط على خدمتين في نفس الفترة فعلًا،
    فالفحص بيلفت النظر ومابيمنعش الحفظ. */
-const WARN_ICON = {"راحة": "☾", "حالة": "⚑", "راحة+فرقة": "☾⇄", "مأمورية": "✈",
-                   "ازدحام": "⇄", "شاغرة": "○", "راحة أسبوعية غير مسجلة": "☾?"};
 const LEVEL_ORDER = ["critical", "warning", "info"];
 const LEVEL_LABEL = {critical: "تحذير حرج", warning: "تحذير", info: "معلومة"};
 const LEVEL_CLS = {critical: "err", warning: "taq", info: "w"};
@@ -177,11 +175,11 @@ function warningsCard(list) {
       <div class="warn-group-head"><span class="chip ${LEVEL_CLS[g.lv]}">${LEVEL_LABEL[g.lv]}</span>
         <span class="muted">${g.items.length}</span></div>
       <ul class="alert-list warn-list">${g.items.map(w => `
-        <li><span class="w-ico">${WARN_ICON[w.kind] || "⚠"}</span>
+        <li><span class="w-ico">${icon("alert")}</span>
           <span class="chip taq">${esc(w.kind)}</span> ${esc(w.text)}</li>`).join("")}</ul>
     </div>`).join("");
   return `<div class="alert-card">
-    <div class="alert-head"><span class="alert-ico">⚠</span><strong>مراجعة اليوم</strong>
+    <div class="alert-head"><span class="alert-ico">${icon("alert","ico-lg")}</span><strong>مراجعة اليوم</strong>
       <span class="muted">${list.length} ملاحظة — للفت النظر مش للمنع</span></div>
     ${body}</div>`;
 }
@@ -680,20 +678,20 @@ async function loadDayStatus() {
   if (s.closed) {
     const why = s.auto ? "اتقفل تلقائيًا الساعة 12 بالليل"
                        : `اتقفل بالإيد${s.closed_by ? " — " + s.closed_by : ""}`;
-    badge.innerHTML = `<span class="chip err" title="${esc(why)}">🔒 مقفول</span>
+    badge.innerHTML = `<span class="chip err" title="${esc(why)}">${icon("lock")} مقفول</span>
       <button class="mini" id="btnReopenDay">فتح استثنائي</button>`;
     $("#btnReopenDay").onclick = reopenDay;
   } else if (s.reopened) {
     badge.innerHTML = `<span class="chip taq"
         title="الفتح الاستثنائي صالح النهاردة بس — اليوم هيرجع يتقفل تلقائي الساعة 12">
-        🔓 مفتوح استثنائيًا النهاردة</span>`;
+        ${icon("unlock")} مفتوح استثنائيًا النهاردة</span>`;
   } else if (s.stage === "not_open") {
     badge.innerHTML = `<span class="chip w" title="يوم جاي — لسه معدّاش عليه دوره، بس التجهيز المسبق مسموح">
         ⏳ لسة متفتحش</span>
       <button class="mini" id="btnCloseDay" title="قفل اليوم مقدّم قبل ما يجيله دوره">قفل اليوم بدري</button>`;
     $("#btnCloseDay").onclick = closeDay;
   } else {
-    badge.innerHTML = `<span class="chip on" title="النهاردة — مفتوح للتعديل">🟢 مفتوح</span>
+    badge.innerHTML = `<span class="chip on" title="النهاردة — مفتوح للتعديل"><span class="status-dot ok" aria-hidden="true"></span> مفتوح</span>
       <button class="mini" id="btnCloseDay"
       title="اليوم بيتقفل لوحده الساعة 12 بالليل — الزرار ده للقفل بدري">قفل اليوم بدري</button>`;
     $("#btnCloseDay").onclick = closeDay;

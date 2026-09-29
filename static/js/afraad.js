@@ -80,11 +80,11 @@ async function loadDayStatus() {
   if (!s) return;
   const badge = $("#dayLockBadge");
   if (s.closed) {
-    badge.innerHTML = `<span class="chip err">🔒 مقفول${s.auto ? " (تلقائي)" : ""}</span>`;
+    badge.innerHTML = `<span class="chip err">${icon("lock")} مقفول${s.auto ? " (تلقائي)" : ""}</span>`;
   } else if (s.stage === "not_open") {
     badge.innerHTML = `<span class="chip w">⏳ لسة متفتحش</span>`;
   } else {
-    badge.innerHTML = `<span class="chip on">🟢 مفتوح</span>`;
+    badge.innerHTML = `<span class="chip on"><span class="status-dot ok" aria-hidden="true"></span> مفتوح</span>`;
   }
 }
 

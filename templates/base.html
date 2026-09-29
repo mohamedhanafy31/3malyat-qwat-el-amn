@@ -1,3 +1,4 @@
+{% from "partials/macros.html" import icon %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -7,9 +8,10 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body data-page="{{ page }}">
+{% include "partials/icons.html" %}
 <header class="topbar">
   <button class="burger" id="burgerBtn" aria-label="فتح القائمة" aria-expanded="false"
-          aria-controls="sidebar">☰</button>
+          aria-controls="sidebar">{{ icon('menu') }}</button>
   <div class="crest">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5.2 3.6 9.9 9 11 5.4-1.1 9-5.8 9-11V6l-9-4Zm0 2.2 7 3.1v4.7c0 4.1-2.7 7.9-7 8.9-4.3-1-7-4.8-7-8.9V7.3l7-3.1Zm-1 5.8v6l5-3-5-3Z"/></svg>
   </div>

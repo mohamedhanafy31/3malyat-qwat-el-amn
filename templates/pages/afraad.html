@@ -3,9 +3,9 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar" id="afBar">
-    <button class="mini" id="dayPrev">◀ السابق</button>
+    <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
     <input type="date" id="dutyDate" class="select">
-    <button class="mini" id="dayNext">التالي ▶</button>
+    <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
     <button class="mini" id="dayToday">النهاردة</button>
     <span id="dayLockBadge"></span>
   </div>

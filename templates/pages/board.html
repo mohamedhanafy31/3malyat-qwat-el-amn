@@ -3,14 +3,14 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar" id="dutyBar">
-    <button class="mini" id="dayPrev">◀ السابق</button>
+    <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
     <input type="date" id="dutyDate" class="select">
-    <button class="mini" id="dayNext">التالي ▶</button>
+    <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
     <button class="mini" id="dayToday">النهاردة</button>
     <button class="mini" id="dayTomorrow">بكرة</button>
     <button class="mini ok" id="btnConfirmDay"
-            title="بيعتمد اليومية الحالية ويسجّل اللي اتغيّر من آخر تأكيد">✔ تأكيد اليومية</button>
-    <button class="mini" id="btnShortcuts" title="اختصارات لوحة المفاتيح">⌨ اختصارات</button>
+            title="بيعتمد اليومية الحالية ويسجّل اللي اتغيّر من آخر تأكيد">{{ icon('check') }} تأكيد اليومية</button>
+    <button class="mini" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
     <span id="confirmBadge"></span>
     <span id="dayLockBadge"></span>
   </div>

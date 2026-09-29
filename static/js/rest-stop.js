@@ -7,7 +7,7 @@ function _stopHint() {
   const lv = _STOP_LEAVE, on = $("#stopOn").value;
   if (!lv || !on) { $("#stopHint").textContent = ""; return }
   if (lv.end && on > lv.end) {
-    $("#stopHint").textContent = "⚠ التاريخ بعد نهاية الراحة — مفيش حاجة تتوقف.";
+    $("#stopHint").innerHTML = `${icon("alert")} التاريخ بعد نهاية الراحة — مفيش حاجة تتوقف.`;
   } else if (lv.start && on <= lv.start) {
     $("#stopHint").textContent = "الراحة هتتلغي بالكامل (لسه ما بدأتش).";
   } else {
@@ -21,7 +21,7 @@ function openStopLeave(leave, onDone) {
   _STOP_LEAVE = leave; _STOP_DONE = onDone;
   $("#stopLeaveId").value = leave.id;
   $("#stopLeaveWho").textContent = [leave.name, leave.type,
-    leave.start && leave.end ? `${fmt(leave.start)} ← ${fmt(leave.end)}` : ""]
+    leave.start && leave.end ? `${fmt(leave.start)} – ${fmt(leave.end)}` : ""]
     .filter(Boolean).join(" — ");
   $("#stopOn").value = curDate();
   $("#stopReason").value = "";

@@ -14,7 +14,7 @@ function affectedList(o) {
       <span class="sub">اتوقفت — كانت لحد ${fmt(l.original_end)}، رجع ${fmt(l.stopped_on)}</span></li>`);
   const cancelled = (o.cancelled_leaves || []).map(l => `<li>
       <b>${l.role ? esc(l.role) + "/ " : ""}${esc(l.name)}</b> <span class="chip w">${esc(l.type)}</span>
-      <span class="sub">اتلغت قبل بدايتها (${fmt(l.start)} ← ${fmt(l.end)})</span></li>`);
+      <span class="sub">اتلغت قبل بدايتها (${fmt(l.start)} – ${fmt(l.end)})</span></li>`);
   const all = [...stopped, ...cancelled];
   return all.length ? `<ul class="susp-affected">${all.join("")}</ul>`
     : `<p class="muted susp-none">ما اتوقفتش أي راحة مسجّلة بالأمر ده.</p>`;
@@ -77,7 +77,7 @@ function openSuspension() {
   const held = new Set(META.rest_suspension?.types || []);
   $("#suspendTypes").innerHTML = LEAVE_TYPES().map(t => `<label class="command-check${held.has(t) ? " is-disabled" : ""}">
     <input type="checkbox" data-susp-type value="${esc(t)}" ${held.has(t) ? "disabled" : ""}>
-    <span class="command-check-icon" aria-hidden="true">✓</span>
+    <span class="command-check-icon" aria-hidden="true">${icon("check")}</span>
     ${esc(t)}${held.has(t) ? ` <small>موقوفة بالفعل</small>` : ""}
   </label>`).join("");
   $("#suspendReason").value = "";
@@ -128,7 +128,7 @@ async function goToStep2() {
       <span class="susp-cand-main"><b>${esc(c.role)}/ ${esc(c.name)}</b>
         <span class="chip w">${esc(c.type)}</span>
         <span class="chip ${c.state === "active" ? "rest" : "soon"}">${c.state === "active" ? "جارية" : "قادمة"}</span>
-        <span class="sub">${fmt(c.start)} ← ${fmt(c.end)} — ${c.effect === "cancel"
+        <span class="sub">${fmt(c.start)} – ${fmt(c.end)} — ${c.effect === "cancel"
           ? "هتتلغي بالكامل" : `آخر يوم هيبقى ${fmt(c.new_end)}، يرجع ${fmt(c.return_date)}`}</span>
       </span>
     </label>`).join("")

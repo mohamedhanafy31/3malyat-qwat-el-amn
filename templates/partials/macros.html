@@ -1,0 +1,3 @@
+{% macro icon(name, class_name='') -%}
+<svg class="ico{{ (' ' ~ class_name) if class_name else '' }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
+{%- endmacro %}

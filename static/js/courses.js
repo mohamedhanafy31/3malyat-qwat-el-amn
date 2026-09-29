@@ -34,10 +34,7 @@ function termRosterRow(t) {
       </div>
       <div class="roster-meta">
         ${hasPeriod
-          // السهم "→" مش "←": السطر ده متفروض عليه direction:ltr (زي أي
-          // خانة أرقام في النظام) عشان "14/08" ما تتقلبش بيدي، فالسهم
-          // لازم يتفق مع اتجاه القراءة الجديد ده مش اتجاه الصفحة العام.
-          ? `<span class="roster-period num">${shortDate(t.start)} → ${shortDate(t.end)}</span>
+          ? `<span class="roster-period num">${shortDate(t.start)} – ${shortDate(t.end)}</span>
              <span class="chip w">${t.days} يوم</span>`
           : `<span class="roster-period muted">بدون تاريخ</span>`}
         <div class="roster-actions">
@@ -68,7 +65,7 @@ function officerRow(o) {
     <td class="wrap chip-cell">${chips}</td>
     <td><div class="actions">
       <button class="mini" data-action="openTerm"
-        data-extra="${dataAttr({officer_id: o.id})}">＋ فرقة</button>
+        data-extra="${dataAttr({officer_id: o.id})}">${icon("plus")} فرقة</button>
     </div></td></tr>`;
 }
 
@@ -99,7 +96,7 @@ function courseCard(c) {
     ${c.note ? `<p class="hint course-hint">${esc(c.note)}</p>` : ""}
     <div class="course-bar">
       <button class="mini" data-action="openTerm"
-        data-extra="${dataAttr({course_id: c.id})}">＋ التحاق</button>
+        data-extra="${dataAttr({course_id: c.id})}">${icon("plus")} التحاق</button>
       <div class="actions">
         <button class="mini" data-action="openCourse" data-id="${esc(c.id)}"
           title="تعديل بيانات الفرقة">تعديل</button>

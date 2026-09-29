@@ -259,7 +259,7 @@ $("#addLeaveBtn").onclick = () => openLeave(null);
 function renderSuspensionStrip() {
   const susp = META.rest_suspension || {};
   $("#suspensionBar").innerHTML = (susp.active || []).length
-    ? `<div class="alert-card susp-banner"><div class="alert-head"><span class="alert-ico">⛔</span>
+    ? `<div class="alert-card susp-banner"><div class="alert-head"><span class="alert-ico">${icon("block","ico-lg")}</span>
         <strong>الراحات موقوفة: ${(susp.types || []).map(esc).join("، ")}</strong>
         <span class="muted">تسجيل راحة من الأنواع دي لأي ضابط بيترفض.</span>
         <a class="mini" href="/leaves/suspension">إدارة الوقف</a></div></div>`

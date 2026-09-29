@@ -61,11 +61,11 @@ function updateHint() {
   const std = DURATIONS()[t], n = days(s, e);
   let msg = `المدة ${n} يوم — العودة يوم ${dayName(addDays(e, 1))} ${fmt(addDays(e, 1))}`;
   msg += ` • التقصيرة يوم ${dayName(addDays(s, -1))} ${fmt(addDays(s, -1))}`;
-  if (std && n !== std) msg += ` ⚠ المدة القياسية لـ«${t}» ${std} أيام`;
+  if (std && n !== std) msg += ` ${icon("alert")} المدة القياسية لـ«${esc(t)}» ${std} أيام`;
   if ((META.rest_suspension?.types || []).includes(t))
-    msg += ` • ⛔ الراحات «${t}» موقوفة حاليًا للضباط — التسجيل هيترفض`;
-  if ($("#lvStart").disabled) msg += " • 🔒 الراحة دي اتوقفت — الملاحظة بس اللي تتعدّل";
-  $("#lvHint").textContent = msg;
+    msg += ` • ${icon("block")} الراحات «${esc(t)}» موقوفة حاليًا للضباط — التسجيل هيترفض`;
+  if ($("#lvStart").disabled) msg += ` • ${icon("lock")} الراحة دي اتوقفت — الملاحظة بس اللي تتعدّل`;
+  $("#lvHint").innerHTML = msg;
 }
 
 $("#lvStart").oninput = () => {

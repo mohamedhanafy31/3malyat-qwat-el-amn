@@ -419,7 +419,7 @@ async function load() {
   const d = await bootstrap();
   if (!d) return;
   LIST = IS_OFF ? d.officers : d.personnel;
-  $("#addBtn").textContent = IS_OFF ? "＋ إضافة ضابط" : "＋ إضافة فرد";
+  $("#addBtn").innerHTML = `${icon("plus")} ${IS_OFF ? "إضافة ضابط" : "إضافة فرد"}`;
   if (IS_OFF) {
     COMMAND = d.command || {};
     COMMAND_GROUPS = d.command_groups || {};

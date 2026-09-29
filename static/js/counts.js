@@ -46,11 +46,11 @@ function editableCard(label, block, rows) {
             data-extra="${dataAttr({name: e.name})}">حذف</button>
         </div></td>
       </tr>`))
-    : `<div class="mempty">لا توجد خدمات — اضغط «＋ إضافة»</div>`;
+    : `<div class="mempty">لا توجد خدمات — اضغط «إضافة»</div>`;
   const total = rows.reduce((n, e) => n + (e.count || 0), 0);
   return `<div class="mcard">
     <h3>${esc(label)}<span class="mcount">${rows.length}</span>
-      <button class="mini" data-action="openCount" data-extra="${dataAttr({block})}">＋ إضافة</button>
+      <button class="mini" data-action="openCount" data-extra="${dataAttr({block})}">${icon("plus")} إضافة</button>
     </h3>${body}${blockTotal(rows.length, total)}</div>`;
 }
 
@@ -87,7 +87,9 @@ function boardCountCard(label, rows, emptyText) {
 
 function render() {
   const isTemplate = MODE === "template";
-  $("#btnModeToggle").textContent = isTemplate ? "↩ رجوع لعرض اليوم" : "✎ تعديل القالب الدائم";
+  $("#btnModeToggle").innerHTML = isTemplate
+    ? `${icon("arrow-back")} رجوع لعرض اليوم`
+    : `${icon("edit")} تعديل القالب الدائم`;
   ["dayPrev", "dayNext", "dayToday", "dutyDate", "btnPrint", "btnReset"].forEach(id => {
     $("#" + id).style.display = isTemplate ? "none" : "";
   });
