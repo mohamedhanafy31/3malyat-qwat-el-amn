@@ -555,19 +555,61 @@ $("#targetForm").onsubmit = async e => {
    الحفظ بيكتب في اليومية على طول وبيظهر في كل العروض (يومية الضباط، دفتر
    ٤٣، اعداد الخدمات) — بس مابيسجّلش حاجة. التأكيد هو اللي بيعتمد الوضع
    الحالي ويسجّل الفرق عن آخر تأكيد في سجل التغييرات بلحظة الضغط. */
+/* ---------- حالة التأكيد ----------
+   الحفظ بيكتب في اليومية فورًا، لكن سجل التغييرات بيتسجّل بس عند «تأكيد
+   اليومية». الحالة دي كانت شارة صغيرة في آخر الشريط، فالتعديلات كانت
+   بتضيع من السجل بسهولة؛ بقت شريط واضح فوق اللوحة، وزرار التأكيد بيبقى
+   الإجراء الأساسي طول ما فيه حاجة ما اتأكدتش، والخروج من الصفحة بيسأل. */
+let SESSION_EDITS = false;   // تعديلات اتعملت في الجلسة دي على اليوم المعروض
+document.addEventListener("api:mutated", e => {
+  const url = e.detail?.url || "";
+  if (url.includes("/confirm")) SESSION_EDITS = false;
+  else if (!url.includes("/day-status/")) SESSION_EDITS = true;
+});
+const needsConfirm = () => {
+  const c = BOARD?.confirm;
+  return !!c && (c.pending || (!c.confirmed && c.count > 0));
+};
+const hhmm = at => (at || "").split("T")[1]?.slice(0, 5) || "";
+
 function renderConfirmBadge() {
   const c = BOARD?.confirm;
-  const badge = $("#confirmBadge");
-  if (!badge) return;
-  if (!c) { badge.innerHTML = ""; return }
+  const bar = $("#confirmBar");
+  $("#btnConfirmDay")?.classList.toggle("is-urgent", needsConfirm());
+  if (!bar) return;
+  if (!c || (!c.confirmed && !c.count)) { bar.innerHTML = ""; return }
   if (!c.confirmed) {
-    badge.innerHTML = `<span class="chip taq" title="اليومية دي لسه ما اتأكدتش ولا مرة">لسه ما اتأكدتش</span>`;
+    bar.innerHTML = `<div class="confirm-bar warn">${icon("alert")}
+      <span><b>لم تُؤكَّد يومية ${dayName(DAY)} ${fmt(DAY)} بعد</b> — التغييرات لا تُسجَّل في سجل التغييرات قبل التأكيد.</span>
+      <button type="button" class="primary" data-confirm-day>${icon("check")} تأكيد اليومية</button></div>`;
   } else if (c.pending) {
-    badge.innerHTML = `<span class="chip err" title="آخر تأكيد ${esc(c.at || "")}">فيه تعديلات غير مؤكدة</span>`;
+    bar.innerHTML = `<div class="confirm-bar warn">${icon("alert")}
+      <span><b>توجد تعديلات بعد آخر تأكيد</b> (الساعة ${esc(hhmm(c.at))}).</span>
+      <button type="button" class="primary" data-confirm-day>${icon("check")} تأكيد التعديلات</button></div>`;
   } else {
-    const time = (c.at || "").split("T")[1]?.slice(0, 5) || "";
-    badge.innerHTML = `<span class="chip on">مؤكدة${time ? " " + time : ""}${c.by ? " — " + esc(c.by) : ""}</span>`;
+    bar.innerHTML = `<div class="confirm-bar ok">${icon("check")}
+      <span>اليومية مؤكدة الساعة ${esc(hhmm(c.at))}${c.by ? ` — ${esc(c.by)}` : ""}</span></div>`;
   }
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-confirm-day]")) $("#btnConfirmDay").click();
+});
+window.addEventListener("beforeunload", e => {
+  if (SESSION_EDITS && needsConfirm()) { e.preventDefault(); e.returnValue = ""; }
+});
+/* الانتقال ليوم تاني وفيه تعديلات ما اتأكدتش بيسأل الأول */
+async function switchDay(day) {
+  if (day !== DAY && SESSION_EDITS && needsConfirm()) {
+    const go = await confirmDialog({
+      title: "اليومية غير مؤكدة",
+      body: `عدّلت يومية ${fmt(DAY)} ولم تؤكّدها بعد؛ لن تُسجَّل التعديلات في سجل التغييرات قبل التأكيد.`,
+      confirmLabel: "الانتقال دون تأكيد",
+    });
+    if (!go) { $("#dutyDate").value = DAY; return false; }
+    SESSION_EDITS = false;
+  }
+  await loadDay(day);
+  return true;
 }
 
 $("#btnConfirmDay").onclick = async () => {
@@ -598,11 +640,11 @@ async function loadDay(day) {
   renderConfirmBadge();
   loadDayStatus();
 }
-const shiftDay = n => loadDay(addDays($("#dutyDate").value || curDate(), n));
+const shiftDay = n => switchDay(addDays(DAY || curDate(), n));
 $("#dayPrev").onclick = () => shiftDay(-1);
 $("#dayNext").onclick = () => shiftDay(1);
-$("#dayToday").onclick = () => loadDay(curDate());
-$("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
+$("#dayToday").onclick = () => switchDay(curDate());
+$("#dutyDate").onchange = () => switchDay($("#dutyDate").value);
 $("#btnShortcuts").onclick = () => openModal("shortcutsModal");
 
 /* اختصارات اللوحة بتشتغل على الصف المختار، وبالحروف الفيزيائية (`code`)
@@ -675,7 +717,7 @@ document.addEventListener("keydown", e => {
   } else if (e.code === "PageUp" || e.code === "PageDown") {
     e.preventDefault(); shiftDay(e.code === "PageUp" ? -1 : 1);
   } else if (e.code === "KeyT") {
-    e.preventDefault(); loadDay(curDate());
+    e.preventDefault(); switchDay(curDate());
   } else if (e.shiftKey && e.code === "Slash") {
     e.preventDefault(); openModal("shortcutsModal");
   }
@@ -739,7 +781,7 @@ async function reopenDay() {
    بيشتغل إيه، عشان يتكلّف بديل — من غير ما ننسخ التكليفات تلقائي. */
 $("#dayTomorrow").onclick = async () => {
   const today = curDate(), tmr = addDays(today, 1);
-  await loadDay(tmr);
+  if (!(await switchDay(tmr))) return;
   // الكارت القديم بيتشال الأول — الضغط مرتين كان بيكدّس نسخ متطابقة فوق بعض
   $$("#matchBoard .handover-card").forEach(el => el.remove());
   const boot = await api("/api/bootstrap/dashboard");

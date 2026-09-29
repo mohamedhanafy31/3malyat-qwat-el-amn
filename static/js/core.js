@@ -80,6 +80,7 @@ const AR_NOUNS={
   "فرد":{one:"فرد واحد",two:"فردان",few:"أفراد",many:"فردًا",sing:"فرد"},
   "يوم":{one:"يوم واحد",two:"يومان",few:"أيام",many:"يومًا",sing:"يوم"},
   "خدمة":{one:"خدمة واحدة",two:"خدمتان",few:"خدمات",many:"خدمة",sing:"خدمة"},
+  "خانة":{one:"خانة واحدة",two:"خانتان",few:"خانات",many:"خانة",sing:"خانة"},
 };
 function countLabel(n,forms){
   const f=typeof forms==="string"?AR_NOUNS[forms]:forms;
@@ -218,6 +219,9 @@ async function api(url,opts){
     if(opts.onError && opts.onError(out,r.status)) return null;
     showToast(out.error||"حدث خطأ",true); return null;
   }
+  // أي تعديل نجح بيتعلن — اليومية التفصيلية بتعرف منه إن فيه تغييرات لسه ما اتأكدتش
+  if(opts.method&&opts.method!=="GET")
+    document.dispatchEvent(new CustomEvent("api:mutated",{detail:{url,method:opts.method}}));
   return out;
 }
 const jsonReq=(method,body)=>({method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});

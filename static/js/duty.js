@@ -9,7 +9,24 @@ function renderSummary(s) {
   $("#balanceTag").innerHTML = s.balanced
     ? `<span class="chip on">متوازن ${s.counted}/${s["أصل القوة"]}</span>`
     : `<span class="chip taq">غير متوازن ${s.counted}/${s["أصل القوة"]}</span>`;
-  $("#dutySummary").innerHTML = `<div class="table-scroll"><table class="table sum">
+  /* شريط أرقام مضغوط بدل جدول الإجمالي: خلية «الصافي» كان فيها 25 اسم
+     فالصف كان طوله ~680 بكسل والجدول الأساسي بيبدأ تحت حافة الشاشة. الأسماء
+     بقت قايمة مطوية تحت الشريط. الجدول الكامل بيفضل مخفي كمصدر للتصدير. */
+  const tile = (label, v) => `<div class="sum-tile${v ? "" : " zero"}"><span>${label}</span><b>${v}</b></div>`;
+  const group = (title, tiles) => `<div class="sum-group"><h4>${title}</h4><div class="sum-tiles">${tiles}</div></div>`;
+  const single = (title, v, cls = "") => `<div class="sum-group single ${cls}"><h4>${title}</h4><b>${v}</b></div>`;
+  const strip = `<div class="duty-strip">
+    ${single("أصل القوة", s["أصل القوة"])}
+    ${group("الخدمات الخارجية", tile("صباحية", x["صباحية"]) + tile("ليلية", x["ليلية"]) + tile("بحث", x["بحث"]))}
+    ${group("الخدمات الداخلية", tile("صباحية", dl["صباحية"]) + tile("ليلية", dl["ليلية"]))}
+    ${group("الخدمات الطبية", tile("موجود", tb["موجود"]) + tile("راحة", tb["راحة"]))}
+    ${group("الخوارج", ["تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب"].map(k => tile(k, kh[k])).join(""))}
+    ${single("الحراسات المشددة", s["حراسات"])}
+    ${single("الصافي", s["صافي"], "key")}
+  </div>
+  <details class="net-names"><summary>عرض أسماء الصافي (${s.net_names.length})</summary>
+    <ol>${s.net_names.map(n => `<li>${esc(n)}</li>`).join("")}</ol></details>`;
+  $("#dutySummary").innerHTML = strip + `<div class="table-scroll export-only" hidden><table class="table sum">
    <thead>
     <tr><th rowspan="2">أصل القوة</th><th colspan="3">الخدمات الخارجية</th><th colspan="2">الخدمات الداخلية</th>
         <th colspan="2">الخدمات الطبية</th><th colspan="7">الخوارج</th>
@@ -134,3 +151,6 @@ async function load() {
   loadDay($("#dutyDate").value);
 }
 load();
+
+// الطباعة بتفتح قايمة أسماء الصافي عشان الورقة تطلع كاملة
+window.addEventListener("beforeprint", () => $$(".net-names").forEach(d => d.open = true));

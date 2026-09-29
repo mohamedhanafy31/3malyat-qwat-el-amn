@@ -12,7 +12,7 @@ let AF = null, DAY = null;
 window.exportDocxUrl = () => `/api/afraad/${DAY}/export.docx`;
 
 function personCell(p) {
-  if (!p?.name && !p?.phone) return `<span class="muted">شاغرة</span>`;
+  if (!p?.name && !p?.phone) return `<span class="cell-vacant">${icon("alert")} شاغرة</span>`;
   return `${esc(p.name) || "<span class='muted'>—</span>"}${p.phone ? `<div class="sub">${esc(p.phone)}</div>` : ""}`;
 }
 
@@ -36,7 +36,7 @@ const whoText = (list, cls) => (list || []).map(p =>
 
 function occRow(r) {
   const who = [whoText(r.officers, "m"), whoText(r.personnel, "h")].filter(Boolean).join(" ")
-    || `<span class="muted">${esc(r.vacant ? "شاغرة" : "—")}</span>`;
+    || (r.vacant ? `<span class="cell-vacant">${icon("alert")} شاغرة</span>` : `<span class="muted">—</span>`);
   const count = r.conscript_count || (r.conscripts || []).reduce((n, c) => n + (c.count || 1), 0);
   return `<tr>
     <td class="name">${esc(r.label)}</td>
@@ -52,7 +52,17 @@ const OCC_HEAD = ["الخدمة", "القائم بها", "العدد", "التس
 function render() {
   const wrap = $("#afWrap");
   if (!AF) { wrap.innerHTML = skeleton("rows", 10); return }
-  wrap.innerHTML = `
+  // الشواغر كانت نص رمادي زي أي خانة فاضية — الحالة الأهم في الصفحة بتبان
+  // دلوقتي كتحذير، وعددها الكلي فوق الجدول
+  const empty = p => !p?.name && !p?.phone;
+  const vacant = AF.basic.reduce((n, r) => n + empty(r.morning) + empty(r.night), 0)
+    + AF.occasional.filter(r => r.vacant && !(r.officers || []).length && !(r.personnel || []).length).length;
+  const total = AF.basic.length * 2 + AF.occasional.length;
+  const summary = vacant
+    ? `<p class="vacancy-summary warn"><span class="status-dot warn" aria-hidden="true"></span>
+        <b>${countLabel(vacant, "خانة")} شاغرة</b> من ${total}</p>`
+    : `<p class="vacancy-summary ok"><span class="status-dot ok" aria-hidden="true"></span>لا توجد خانات شاغرة</p>`;
+  wrap.innerHTML = summary + `
     <div class="ledger-board">
       <div class="ledger-head">
         <h2>يومية الأفراد</h2>

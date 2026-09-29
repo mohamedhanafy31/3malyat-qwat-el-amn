@@ -1030,6 +1030,47 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 @media(max-width:700px){.day-links{grid-template-columns:1fr}}
 
 .dash-wide{margin-top:var(--s4)}
+/* شريط حالة التأكيد فوق اليومية التفصيلية */
+.confirm-bar{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s5);
+  border-bottom:1px solid var(--line);font-size:var(--t-cap)}
+.confirm-bar > span{flex:1;min-width:0}
+.confirm-bar .ico{fill:currentColor;flex:none}
+.confirm-bar.warn{background:var(--warn-100);color:var(--warn-700);border-inline-start:4px solid var(--warn-700)}
+.confirm-bar.warn b{color:var(--ink-900)}
+.confirm-bar.ok{background:var(--ok-100);color:var(--ok-700);padding-block:var(--s2)}
+.confirm-bar .primary{flex:none}
+.mini.ok.is-urgent{background:var(--navy-900);border-color:var(--navy-900);color:var(--on-dark)}
+@media(max-width:700px){.confirm-bar{flex-wrap:wrap}.confirm-bar .primary{width:100%}}
+/* شريط أرقام يومية الضباط */
+.duty-summary-slot{min-height:132px}
+.duty-strip{display:flex;flex-wrap:wrap;gap:var(--s2);padding:var(--s4) var(--s5) var(--s2)}
+.sum-group{border:1px solid var(--line);border-radius:var(--radius-card);padding:var(--s2) var(--s3);
+  background:var(--surface)}
+.sum-group h4{margin:0 0 var(--s1);font-size:var(--t-xs);color:var(--ink-500);font-family:var(--font-body)}
+.sum-tiles{display:flex;gap:var(--s2)}
+.sum-tile{display:flex;flex-direction:column;align-items:center;min-width:36px}
+.sum-group.single{display:flex;flex-direction:column;align-items:center;justify-content:space-between}
+.sum-group.single b{font-size:var(--t-lg);color:var(--navy-950);font-variant-numeric:tabular-nums}
+.sum-group.key{border-color:var(--navy-800);border-top:3px solid var(--navy-800)}
+@media(max-width:700px){
+  .duty-strip{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity}
+  .sum-group{flex:none;scroll-snap-align:start}
+}
+.sum-tile span{font-size:var(--t-xs);color:var(--ink-500)}
+.sum-tile b{font-size:var(--t-lg);color:var(--navy-950);font-variant-numeric:tabular-nums}
+.sum-tile.zero b{color:var(--ink-500);font-weight:400}
+.net-names{margin:0 var(--s5) var(--s3)}
+.net-names summary{cursor:pointer;color:var(--navy-800);font-weight:600;font-size:var(--t-sm);padding:var(--s1) 0}
+.net-names ol{columns:3 220px;margin:var(--s2) 0 0;padding-inline-start:var(--s5);font-size:var(--t-sm)}
+.export-only{display:none !important}
+/* الخانة الشاغرة تحذير، مش نص رمادي */
+.cell-vacant{display:inline-flex;align-items:center;gap:var(--s1);padding:1px var(--s2);
+  border-radius:var(--radius-control);background:var(--warn-100);color:var(--warn-700);font-weight:600;
+  font-size:var(--t-sm)}
+.cell-vacant .ico{fill:currentColor}
+.vacancy-summary{display:flex;align-items:center;gap:var(--s2);margin:var(--s4) var(--s5) 0;font-size:var(--t-cap)}
+.vacancy-summary.warn{color:var(--warn-700)}
+.vacancy-summary.ok{color:var(--ok-700)}
 /* بطاقات الأرقام في الرئيسية روابط لصفحاتها */
 .stat-link{display:block;text-decoration:none;color:inherit;transition:border-color .12s,background .12s}
 .stat-link:hover{border-color:var(--navy-500);background:var(--navy-50)}
