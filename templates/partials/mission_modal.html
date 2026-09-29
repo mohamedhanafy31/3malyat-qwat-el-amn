@@ -3,16 +3,16 @@
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="missionTitle">
     <button type="button" class="close" data-close="missionModal" aria-label="إغلاق">×</button>
     <h2 id="missionTitle">مأمورية جديدة</h2>
-    <form id="missionForm">
+    <form id="missionForm" novalidate>
       <input type="hidden" id="msnId">
       <div class="grid">
-        <label>اسم المأمورية
+        <label><span class="label-text">اسم المأمورية <span class="req" aria-hidden="true">*</span></span>
           <input id="msnName" required>
         </label>
         <label>الحالة
           <select id="msnStatus"></select>
         </label>
-        <label>تاريخ البداية المتوقع <small>اختياري</small>
+        <label>تاريخ البداية المتوقع
           <input type="date" id="msnStart">
         </label>
       </div>
@@ -22,8 +22,9 @@
       <label>ملاحظات
         <input id="msnNote">
       </label>
-      <div class="actions" style="margin-top:10px">
+      <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="missionModal">إلغاء</button>
       </div>
     </form>
   </div>

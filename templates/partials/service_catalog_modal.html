@@ -3,10 +3,11 @@
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
     <button type="button" class="close" data-close="serviceModal" aria-label="إغلاق">×</button>
     <h2 id="serviceModalTitle">خدمة جديدة</h2>
-    <form id="serviceForm">
+    <form id="serviceForm" novalidate>
       <input type="hidden" id="svcId">
+      <p class="form-note">الحقول المعلّمة بـ <span class="req" aria-hidden="true">*</span> مطلوبة</p>
       <div class="grid">
-        <label>اسم الخدمة
+        <label><span class="label-text">اسم الخدمة <span class="req" aria-hidden="true">*</span></span>
           <input id="svcName" required>
         </label>
         <label>الفترة
@@ -50,8 +51,9 @@
         <datalist id="svcTagList"></datalist>
         <div id="svcTagChips" class="tag-chips"></div>
       </div>
-      <div class="actions" style="margin-top:10px">
+      <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="serviceModal">إلغاء</button>
       </div>
     </form>
 

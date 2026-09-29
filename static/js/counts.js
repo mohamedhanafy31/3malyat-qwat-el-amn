@@ -91,12 +91,12 @@ function render() {
     ? `${icon("arrow-back")} رجوع لعرض اليوم`
     : `${icon("edit")} تعديل القالب الدائم`;
   ["dayPrev", "dayNext", "dayToday", "dutyDate", "btnPrint", "btnReset"].forEach(id => {
-    $("#" + id).style.display = isTemplate ? "none" : "";
+    $("#" + id).classList.toggle("hidden", isTemplate);
   });
   if (!VIEW) { $("#cntBlocks").innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
 
   if (isTemplate) {
-    $("#cntSeedBanner").style.display = VIEW.seeded ? "none" : "";
+    $("#cntSeedBanner").classList.toggle("hidden", VIEW.seeded);
     $("#cntTotals").innerHTML = "";
     const am = VIEW.entries.filter(e => e.block === "صباحية");
     const pm = VIEW.entries.filter(e => e.block === "ليلية");
@@ -112,8 +112,8 @@ function render() {
   }
 
   const totalEntries = VIEW.basic_am.length + VIEW.basic_pm.length + VIEW.recurring.length;
-  $("#cntSeedBanner").style.display = (VIEW.from_template && !totalEntries) ? "" : "none";
-  $("#btnReset").style.display = VIEW.from_template ? "none" : "";
+  $("#cntSeedBanner").classList.toggle("hidden", !(VIEW.from_template && !totalEntries));
+  $("#btnReset").classList.toggle("hidden", VIEW.from_template);
   const t = VIEW.totals;
   const customSections = VIEW.custom_sections || [];
   const extraStat = t.custom
@@ -207,7 +207,7 @@ function currentPool() {
 }
 
 function syncWeaponVisibility() {
-  $("#cnWeaponWrap").style.display = WEAPON_BLOCKS.has($("#cnBlock").value) ? "" : "none";
+  $("#cnWeaponWrap").classList.toggle("hidden", !WEAPON_BLOCKS.has($("#cnBlock").value));
 }
 $("#cnBlock").onchange = syncWeaponVisibility;
 
@@ -255,7 +255,7 @@ $("#countForm").onsubmit = async e => {
     ? await api(`${base}/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api(base, jsonReq("POST", body));
   if (!out) return;
-  closeModal("countModal"); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");
+  closeModal("countModal", true); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");
   source === "template" ? loadTemplateView() : loadDay(DAY);
 };
 

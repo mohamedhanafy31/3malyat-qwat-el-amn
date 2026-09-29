@@ -4,26 +4,29 @@
     <button type="button" class="close" data-close="termModal" aria-label="إغلاق">×</button>
     <h2 id="termTitle">التحاق بفرقة</h2>
     <p class="hint">المدة دي بتخلي الضابط في خانة «فرقة» بالخوارج في كل يوم بينها.</p>
-    <form id="termForm">
+    <form id="termForm" novalidate>
       <input type="hidden" id="trmId">
-      <label>الضابط
+      <label><span class="label-text">الضابط <span class="req" aria-hidden="true">*</span></span>
         <select id="trmOfficer" required></select>
       </label>
-      <label>الفرقة
+      <label><span class="label-text">الفرقة <span class="req" aria-hidden="true">*</span></span>
         <select id="trmCourse" required></select>
       </label>
       <div class="grid">
-        <label>من يوم (اختياري)
+        <label>من يوم
           <input type="date" id="trmStart">
         </label>
-        <label>إلى يوم (اختياري)
+        <label>إلى يوم
           <input type="date" id="trmEnd">
         </label>
       </div>
       <label>ملاحظات
         <input id="trmNote">
       </label>
-      <button class="primary full" type="submit">حفظ</button>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="termModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

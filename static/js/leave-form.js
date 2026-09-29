@@ -94,5 +94,5 @@ $("#leaveForm").onsubmit = async e => {
     ? await api(`/api/leaves/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api("/api/leaves", jsonReq("POST", body));
   if (!out) return;
-  closeModal("leaveModal"); showToast(id ? "تم تعديل الراحة" : "تم تسجيل الراحة"); load();
+  closeModal("leaveModal", true); showToast(id ? "تم تعديل الراحة" : "تم تسجيل الراحة"); load();
 };

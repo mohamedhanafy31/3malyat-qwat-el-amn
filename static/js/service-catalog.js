@@ -122,7 +122,7 @@ async function load() {
   if (!c) return;
   CATALOG = c.entries; PERIODS = c.periods; SVC_KINDS = c.kinds; SVC_POST_TYPES = c.post_types;
   SVC_TAGS = c.service_tags || [];
-  $("#svcSeedBanner").style.display = c.seeded ? "none" : "";
+  $("#svcSeedBanner").classList.toggle("hidden", c.seeded);
   syncCatalogFilters();
   render();
 
@@ -180,6 +180,7 @@ async function uploadImageBlob(blob, filename) {
   const out = await api(`/api/service-catalog/entries/${encodeURIComponent(id)}/images`,
     {method: "POST", body: form});
   if (!out) return;
+  markModalSaved("serviceModal");
   showToast("تم رفع الصورة");
   syncEntryEverywhere(out);
 }
@@ -333,6 +334,7 @@ $("#serviceForm").onsubmit = async e => {
     ? await api(`/api/service-catalog/entries/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api("/api/service-catalog/entries", jsonReq("POST", body));
   if (!out) return;
+  markModalSaved("serviceModal");
   showToast(id ? "تم الحفظ" : "تمت الإضافة — تقدر تضيف صور الموقع دلوقتي");
   if (id) {
     syncEntryEverywhere(out);
@@ -394,7 +396,7 @@ function renderInspectionSchedule() {
           : "<span class='muted'>مفيش تفتيشات معرّفة</span>"}</span>
         <span class="fold-hint">تعديل</span>
       </summary>
-      <p class="hint" style="margin:12px 0">تفتيشات تأمين زيارات الأهالي — بتتحط
+      <p class="hint generated-hint">تفتيشات تأمين زيارات الأهالي — بتتحط
         تلقائيًا على اليومية التفصيلية أول ما يوم الأسبوع بتاعها يتفتح، وبعد
         كده تتعدّل/تتشال زي أي خانة تانية من غير ما تأثّر على الجدول هنا.</p>
       <div class="insp-days">${INSP_WEEKDAYS.map(day => {
@@ -460,7 +462,7 @@ $("#inspectionForm").onsubmit = async e => {
     list.push(out);
   }
   showToast(id ? "تم الحفظ" : "تمت الإضافة");
-  closeModal("inspectionModal");
+  closeModal("inspectionModal", true);
   renderInspectionSchedule();
 };
 

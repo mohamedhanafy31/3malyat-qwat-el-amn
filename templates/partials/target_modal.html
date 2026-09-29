@@ -4,18 +4,19 @@
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="targetModalTitle">
     <button type="button" class="close" data-close="targetModal" aria-label="إغلاق">×</button>
     <h2 id="targetModalTitle">تعيين</h2>
-    <form id="targetForm">
+    <form id="targetForm" novalidate>
       <input type="hidden" id="tgEndpoint">
       <label>الضابط المعيّن اليوم <small>واحد أو أكتر — سيبها فاضية لإلغاء التعيين</small>
         <select id="tgOfficers" multiple size="6"></select>
       </label>
-      <div class="actions" style="margin-top:10px">
-        <button class="primary full" type="submit">حفظ</button>
-      </div>
-      <p class="muted" id="tgCommanderNote" style="margin:8px 0 0">
+      <p class="muted modal-save-note" id="tgCommanderNote">
         قائد الهدف العام خانة ثابتة بتتحدد من منصب الضابط — عدّله من صفحة
         «بيانات الضابط» لو محتاج تغييره.
       </p>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="targetModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

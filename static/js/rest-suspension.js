@@ -71,6 +71,7 @@ function showStep(n) {
   $("#suspStep2").classList.toggle("hidden", n !== 2);
   $("#suspStepTab1").classList.toggle("is-current", n === 1);
   $("#suspStepTab2").classList.toggle("is-current", n === 2);
+  $("#suspSubmit").classList.toggle("hidden", n !== 2);
 }
 
 function openSuspension() {
@@ -106,9 +107,9 @@ function updateCount() {
 }
 
 async function goToStep2() {
+  if (!_validateModalForm($("#suspendForm"))) return;
   const types = chosenTypes(), reason = $("#suspendReason").value.trim();
   if (!types.length) { showToast("اختار نوع راحة واحد على الأقل"); return }
-  if (!reason) { showToast("لازم سبب مكتوب لأمر الوقف"); $("#suspendReason").focus(); return }
 
   const q = types.map(t => `type=${encodeURIComponent(t)}`).join("&");
   const r = await api(`/api/rest-suspensions/candidates?${q}`);
@@ -156,7 +157,7 @@ $("#suspendForm").onsubmit = async e => {
     types: chosenTypes(), reason: $("#suspendReason").value.trim(),
     stop_leave_ids: pickedBoxes().map(cb => cb.value)}));
   if (!out) return;
-  closeModal("suspendModal");
+  closeModal("suspendModal", true);
   showToast("تم تنفيذ أمر الوقف");
   load();
 };
@@ -192,7 +193,7 @@ $("#liftForm").onsubmit = async e => {
   const out = await api(`/api/rest-suspensions/${encodeURIComponent($("#liftId").value)}/lift`,
     jsonReq("POST", {reason: $("#liftReason").value.trim(), restore: $("#liftRestore").checked}));
   if (!out) return;
-  closeModal("liftModal");
+  closeModal("liftModal", true);
   showToast(out.restored_count ? `تم فتح الراحات ورجعت ${out.restored_count} راحة زي ما كانت`
                                : "تم فتح الراحات");
   load();

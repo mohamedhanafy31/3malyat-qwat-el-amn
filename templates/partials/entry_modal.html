@@ -3,16 +3,17 @@
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="entryTitle">
     <button type="button" class="close" data-close="entryModal" aria-label="إغلاق">×</button>
     <h2 id="entryTitle">إضافة خانة</h2>
-    <form id="entryForm">
+    <form id="entryForm" novalidate>
       <input type="hidden" id="enId">
+      <p class="form-note">الحقول المعلّمة بـ <span class="req" aria-hidden="true">*</span> مطلوبة</p>
 
       <div class="field-section">
         <div class="field-legend">الخدمة</div>
         <div class="grid">
-          <label>اسم الخدمة
+          <label><span class="label-text">اسم الخدمة <span class="req" aria-hidden="true">*</span></span>
             <input id="enName" required placeholder="اكتب اسم الخدمة">
           </label>
-          <label>التصنيف <small>خانتها في جدول الإجمالي</small>
+          <label><span class="label-text">التصنيف <span class="req" aria-hidden="true">*</span></span> <small>خانتها في جدول الإجمالي</small>
             <select id="enKind" required></select>
           </label>
           <label>القسم على اللوحة <small>اختار قسم مستخدم قبل كده، أو اكتب اسم قسم جديد</small>
@@ -49,10 +50,10 @@
             <select id="enPersonnel" multiple size="4"></select>
           </label>
         </div>
-        <div class="field-legend" style="margin-top:10px">المجندين</div>
+        <div class="field-legend field-legend-spaced">المجندين</div>
         <div id="conRows" class="req-rows"></div>
         <button type="button" class="mini" id="addConRow">{{ icon('plus') }} إضافة فئة</button>
-        <label style="margin-top:10px">عدد المجندين
+        <label class="field-label-spaced">عدد المجندين
           <small>لأي خدمة غير الأساسية (طارئة أو قسم مخصّص) — بيظهر في صفحة اعداد الخدمات تلقائيًا</small>
           <input id="enConCount" type="number" min="0">
         </label>
@@ -76,14 +77,15 @@
       <label>ملاحظات
         <input id="enNote">
       </label>
-      <div class="actions" style="margin-top:10px">
-        <button class="primary full" type="submit">حفظ</button>
-        <span class="shortcut-save-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> للحفظ</span>
-      </div>
-      <p class="muted" style="margin:8px 0 0">
+      <span class="shortcut-save-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> للحفظ</span>
+      <p class="muted modal-save-note">
         الحفظ بيكتب في اليومية على طول — عشان يتسجّل في سجل التغييرات
         اضغط «تأكيد اليومية» فوق بعد ما تخلّص كل التعديلات.
       </p>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="entryModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

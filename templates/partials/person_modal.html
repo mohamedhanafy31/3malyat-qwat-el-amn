@@ -3,8 +3,9 @@
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="personModalTitle">
     <button type="button" class="close" data-close="personModal" aria-label="إغلاق">×</button>
     <h2 id="personModalTitle">إضافة إلى القوة</h2>
-    <form id="personForm">
+    <form id="personForm" novalidate>
       <input type="hidden" id="personId">
+      <p class="form-note">الحقول المعلّمة بـ <span class="req" aria-hidden="true">*</span> مطلوبة</p>
       <div class="grid">
         <label>الفئة
           <select name="type" id="type">
@@ -15,16 +16,16 @@
         <label>الرتبة / الدرجة
           <select name="role" id="role"></select>
         </label>
-        <label>الاسم
+        <label><span class="label-text">الاسم <span class="req" aria-hidden="true">*</span></span>
           <input name="name" id="fName" required>
         </label>
-        <label>رقم الأقدمية (الكود)
+        <label><span class="label-text">رقم الأقدمية (الكود) <span class="req" aria-hidden="true">*</span></span>
           <input name="code" id="fCode" required>
         </label>
         <label>رقم الهاتف
           <input name="phone" id="fPhone" inputmode="tel">
         </label>
-        <label>تاريخ الانضمام
+        <label><span class="label-text">تاريخ الانضمام <span class="req" aria-hidden="true">*</span></span>
           <input type="date" name="join_date" id="fJoin" required>
         </label>
         <label id="postWrap">العمل المسند
@@ -53,7 +54,10 @@
           </label>
         </div>
       </div>
-      <button class="primary full" type="submit" id="personSubmit">حفظ</button>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit" id="personSubmit">حفظ</button>
+        <button type="button" class="btn" data-close="personModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

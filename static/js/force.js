@@ -230,7 +230,7 @@ function renderCommand() {
           : "<span class='muted'>مفيش مناصب محددة</span>"}</span>
         <span class="fold-hint">تعديل</span>
       </summary>
-      <p class="hint" style="margin:12px 0">تشغيلهم ثابت يوميًا (إلا أيام الراحة)
+      <p class="hint generated-hint">تشغيلهم ثابت يوميًا (إلا أيام الراحة)
         — غيّرهم مع حركة الضباط.</p>
       <div class="cmd-slots">${COMMAND_ROLES().map(role => {
         const cur = COMMAND[role], p = cur ? personById(cur) : null;
@@ -242,7 +242,7 @@ function renderCommand() {
           ${p ? `<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
               : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
       }).join("")}</div>
-      <p class="hint" style="margin:16px 0 12px">«طبي» و«بحث» ممكن يشيلهم أكتر من ضابط
+      <p class="hint generated-hint generated-hint-wide">«طبي» و«بحث» ممكن يشيلهم أكتر من ضابط
         في نفس الوقت — اختار كل الضباط اللي عليهم بالمنصب ده، وبعدين
         اضغط «حفظ».</p>
       <div class="cmd-slots">${GROUP_ROLES().map(role => {
@@ -292,8 +292,8 @@ function updateRoles() {
   toggleRestDay();
 }
 function toggleRestDay() {
-  $("#restDayWrap").style.display =
-    ($("#fRestSystem").value === "أسبوعية" && $("#type").value === "officer") ? "" : "none";
+  $("#restDayWrap").classList.toggle("hidden",
+    $("#fRestSystem").value !== "أسبوعية" || $("#type").value !== "officer");
 }
 
 function openPerson(id) {
@@ -344,7 +344,7 @@ $("#personForm").onsubmit = async e => {
     ? await api(`/api/person/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api("/api/person", jsonReq("POST", {...body, type: $("#type").value}));
   if (!out) return;
-  closeModal("personModal"); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة إلى القوة"); load();
+  closeModal("personModal", true); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة إلى القوة"); load();
 };
 
 $("#removeForm").onsubmit = async e => {
@@ -380,7 +380,7 @@ $("#removeForm").onsubmit = async e => {
     }
   }
   if (!out) return;
-  closeModal("removeModal"); showToast("تم الإخراج وحفظ السجل في الأرشيف"); load();
+  closeModal("removeModal", true); showToast("تم الإخراج وحفظ السجل في الأرشيف"); load();
 };
 
 ACTIONS.openPerson = id => openPerson(id);

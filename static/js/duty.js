@@ -97,8 +97,8 @@ ACTIONS.openAssign = id => {
   $("#assignRest").classList.toggle("hidden", !lv?.id);
   if (lv?.id) {
     $("#assignRestText").textContent = `في ${lv.type} لحد ${fmt(lv.end)}`;
-    $("#assignStopRest").onclick = () => {
-      closeModal("assignModal");
+    $("#assignStopRest").onclick = async () => {
+      if(!(await closeModal("assignModal"))) return;
       openStopLeave({id: lv.id, name: row.name, type: lv.type, start: lv.start, end: lv.end},
                     () => loadDay(DUTY.date));
     };
@@ -112,7 +112,7 @@ $("#assignForm").onsubmit = async e => {
     jsonReq("PUT", {taqseera: $("#assignTaq").checked,
       status: $("#assignStatus").value, note: $("#assignNote").value}));
   if (!out) return;
-  DUTY = out; closeModal("assignModal"); showToast("تم حفظ الحالة"); render();
+  DUTY = out; closeModal("assignModal", true); showToast("تم حفظ الحالة"); render();
 };
 
 async function loadDay(day) {

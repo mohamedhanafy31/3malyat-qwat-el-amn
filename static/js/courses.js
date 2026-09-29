@@ -248,7 +248,7 @@ $("#courseForm").onsubmit = async e => {
     ? await api(`/api/courses/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api("/api/courses", jsonReq("POST", body));
   if (!out) return;
-  closeModal("courseModal"); showToast("تم الحفظ"); load();
+  closeModal("courseModal", true); showToast("تم الحفظ"); load();
 };
 
 /* ---------- الالتحاق ---------- */
@@ -291,7 +291,7 @@ $("#termForm").onsubmit = async e => {
     ? await api(`/api/course-terms/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api("/api/course-terms", jsonReq("POST", body));
   if (!out) return;
-  closeModal("termModal"); showToast("تم الحفظ"); load();
+  closeModal("termModal", true); showToast("تم الحفظ"); load();
 };
 $("#crsSearch").oninput = debounce(render);
 $("#crsKindFilter").onchange = render;

@@ -384,7 +384,7 @@ async function copySelectedSectionHistory() {
     ids,
   }));
   if (!out) { button.disabled = false; return }
-  closeModal("entryModal");
+  closeModal("entryModal", true);
   showToast(`تمت إضافة ${out.added} خدمة، واتخطت ${out.skipped} موجودة بالفعل`);
   loadDay(DAY);
 }
@@ -514,7 +514,7 @@ $("#entryForm").onsubmit = async e => {
     : await api(`/api/assignments/${DAY}`, jsonReq("POST", body));
   if (!out) return;
   SELECTED_ROW_ID = out.id;
-  closeModal("entryModal"); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");
+  closeModal("entryModal", true); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");
   loadDay(DAY);
 };
 
@@ -552,7 +552,7 @@ $("#targetForm").onsubmit = async e => {
   const officer_ids = readMulti($("#tgOfficers"));
   const out = await api($("#tgEndpoint").value, jsonReq("PUT", {officer_ids}));
   if (!out) return;
-  BOARD = out; closeModal("targetModal"); showToast("تم الحفظ"); render();
+  BOARD = out; closeModal("targetModal", true); showToast("تم الحفظ"); render();
 };
 
 /* ---------- حفظ ↔ تأكيد ----------

@@ -47,9 +47,15 @@ const monthLabel = ym => {
 function buildLegend(containerId, labels, colors, values) {
   const el = document.getElementById(containerId);
   if (!el) return;
+  const dotClasses = {
+    "#2563eb": "ls-dot-blue", "#7c3aed": "ls-dot-purple",
+    "#0891b2": "ls-dot-cyan", "#d97706": "ls-dot-amber",
+    "#16a34a": "ls-dot-green", "#dc2626": "ls-dot-red",
+    "#6b7280": "ls-dot-gray", "#1e3a5a": "ls-dot-navy",
+  };
   el.innerHTML = labels.map((l, i) => `
     <div class="ls-legend-item">
-      <span class="ls-legend-dot" style="background:${colors[i]}"></span>
+      <span class="ls-legend-dot ${dotClasses[colors[i]] || "ls-dot-gray"}"></span>
       <span class="ls-legend-label">${l}</span>
       <span class="ls-legend-val">${values[i]}</span>
     </div>`).join("");

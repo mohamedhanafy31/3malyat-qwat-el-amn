@@ -131,7 +131,7 @@ $("#afEntryForm").onsubmit = async e => {
   };
   const out = await api(`/api/afraad/${DAY}/basic/${encodeURIComponent(id)}`, jsonReq("PUT", body));
   if (!out) return;
-  AF = out; closeModal("afEntryModal"); showToast("تم الحفظ"); render();
+  AF = out; closeModal("afEntryModal", true); showToast("تم الحفظ"); render();
 };
 
 async function load() {

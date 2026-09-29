@@ -67,6 +67,9 @@
   --cat-2:#17605f; --cat-2-bg:#e2f2f0;
   --cat-3:#44546a; --cat-3-bg:#e9edf2;
   --cat-4:#7a4525; --cat-4-bg:#f5e9df;
+  --chart-blue:#2563eb;--chart-purple:#7c3aed;--chart-cyan:#0891b2;
+  --chart-amber:#d97706;--chart-green:#16a34a;--chart-red:#dc2626;
+  --chart-gray:#6b7280;--chart-navy:#1e3a5a;
 
   /* — طبقات لونية شفافة — */
   --overlay-screen:rgba(10,18,32,.6); --overlay-thumb:rgba(10,18,32,.7);
@@ -935,8 +938,9 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .modal{position:fixed;inset:0;background:var(--overlay-screen);display:flex;align-items:center;
   justify-content:center;padding:var(--s5);z-index:30;overflow-y:auto}
 body.modal-open{overflow:hidden;scrollbar-gutter:stable}
-.modal-card{background:var(--surface);width:min(680px,100%);border-radius:var(--radius-md);
-  padding:var(--s6);position:relative;max-height:92vh;overflow-y:auto;
+.modal-card{--modal-pad-inline:var(--s6);--modal-pad-block:var(--s6);
+  background:var(--surface);width:min(680px,100%);border-radius:var(--radius-md);
+  padding:var(--modal-pad-block) var(--modal-pad-inline);position:relative;max-height:92vh;overflow-y:auto;
   border-top:4px solid var(--navy-800);box-shadow:var(--shadow-pop)}
 .modal-card:focus{outline:none}
 .modal-card.small{width:min(480px,100%)}
@@ -965,11 +969,15 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:25px
    طبيعي ~٢٠ حرف (حقول التاريخ بتتحوّل لـtext في core.js فبتورّثه) — فالعمود
    كان بيتمدّد لـ384px والنموذج بيطلع له شريط تمرير أفقي. min-width:0
    بيخلّي الأعمدة تقدر تصغّر زي ما الجريد طالب. */
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4) var(--s5)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s5)}
 .grid > *{min-width:0}
 .modal label>input:not([type=checkbox]),.modal label>select,.modal label>textarea{width:100%;min-width:0}
 .modal label{display:flex;flex-direction:column;gap:6px;font-size:var(--t-cap);font-weight:700;
-  color:var(--ink-900);margin-bottom:var(--s4)}
+  color:var(--ink-900);margin-bottom:var(--s5)}
+.modal .grid>label{margin-bottom:0}
+.label-text{display:inline}
+.req{color:var(--bad-700);font-weight:700}
+.form-note{margin:calc(-1 * var(--s2)) 0 var(--s4);color:var(--ink-500);font-size:var(--t-xs)}
 .modal label small,.modal label .muted{font-size:var(--t-xs);font-weight:400;
   color:var(--ink-500);margin-inline-start:2px}
 /* لو حقلين جنب بعض وواحد بس فوقه سطر تلميح، يفضلوا محاذيين من تحت */
@@ -985,6 +993,18 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:25px
   background-position:left var(--s3) center;padding-left:var(--s7)}
 .modal input.date-input-display{background-repeat:no-repeat;background-size:16px 16px;
   background-position:left var(--s3) center;padding-left:var(--s7)}
+.modal [aria-invalid="true"]{border-color:var(--bad-700);box-shadow:0 0 0 1px var(--bad-700)}
+.field-error{width:100%;margin:0;color:var(--bad-700);font-size:var(--t-xs);font-weight:700;line-height:1.5}
+
+.modal-foot,.dialog-actions{position:sticky;bottom:0;z-index:2;display:flex;
+  justify-content:flex-start;align-items:center;gap:var(--s2);margin-top:var(--s5);
+  margin-inline:calc(-1 * var(--modal-pad-inline));margin-bottom:calc(-1 * var(--modal-pad-block));
+  padding:var(--s3) var(--s6);border-top:1px solid var(--line);background:var(--surface)}
+.modal-foot .full{width:auto;margin-top:0}
+.modal-foot .btn,.dialog-actions .btn{height:var(--control-h);padding:0 var(--s5);font-size:var(--t-base)}
+.field-legend-spaced,.field-label-spaced{margin-top:var(--s3)}
+.modal-save-note{margin:var(--s2) 0 0}
+.actions-spaced{margin-top:var(--s3)}
 
 .field-section{border:1px solid var(--line);border-radius:var(--radius-md);
   padding:var(--s4) var(--s4) var(--s1);margin-bottom:var(--s5);background:var(--surface-sunken)}
@@ -1023,10 +1043,16 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:25px
   margin:0 0 var(--s3);line-height:1.6}
 .hint.panel-notice{margin:var(--s4) var(--s5)}
 .hint:empty{display:none}
+.generated-hint{margin:var(--s3) 0}
+.generated-hint-wide{margin-top:var(--s4)}
+.changes-note{margin:0 0 var(--s3)}
+.rest-suspension-note{margin:0;flex:1}
+.monthly-head-copy{flex:1}
+.monthly-head-title{margin:0}
+.monthly-head-hint{margin:var(--s1) 0 0}
 
 .shared-dialog{border-top-color:var(--gold-700)}
 .dialog-body{margin:calc(-1 * var(--s2)) 0 var(--s5);color:var(--ink-700);line-height:1.8}
-.dialog-actions{display:flex;justify-content:flex-end;gap:var(--s2);margin-top:var(--s5)}
 .dialog-error{margin:calc(-1 * var(--s2)) 0 var(--s3);padding:var(--s2) var(--s3);
   border-radius:var(--radius-sm);background:var(--bad-100);color:var(--bad-800);font-size:var(--t-sm)}
 
@@ -1093,6 +1119,10 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ls-legend{display:flex;flex-direction:column;gap:var(--s2);flex:1;min-width:0}
 .ls-legend-item{display:flex;align-items:center;gap:var(--s2);font-size:var(--t-sm)}
 .ls-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.ls-dot-blue{background:var(--chart-blue)}.ls-dot-purple{background:var(--chart-purple)}
+.ls-dot-cyan{background:var(--chart-cyan)}.ls-dot-amber{background:var(--chart-amber)}
+.ls-dot-green{background:var(--chart-green)}.ls-dot-red{background:var(--chart-red)}
+.ls-dot-gray{background:var(--chart-gray)}.ls-dot-navy{background:var(--chart-navy)}
 .ls-legend-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-700)}
 .ls-legend-val{font-weight:700;color:var(--navy-900);font-size:var(--t-cap);min-width:28px;
   text-align:start;font-variant-numeric:tabular-nums}
@@ -1196,7 +1226,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   .panel-head{align-items:flex-start;flex-direction:column;padding:var(--s3) var(--s4) 0}
   .page-head{align-items:flex-start;flex-direction:column;gap:var(--s3)}
   .modal{padding:var(--s2)}
-  .modal-card{padding:var(--s5) var(--s4)}
+  .modal-card{--modal-pad-inline:var(--s4);--modal-pad-block:var(--s5)}
   .alert-list{grid-template-columns:1fr}
   .ls-filter-bar{gap:var(--s2)}
   .ls-filter-quick{margin-inline-start:0}

@@ -3,9 +3,9 @@
   <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="courseTitle">
     <button type="button" class="close" data-close="courseModal" aria-label="إغلاق">×</button>
     <h2 id="courseTitle">فرقة جديدة</h2>
-    <form id="courseForm">
+    <form id="courseForm" novalidate>
       <input type="hidden" id="crsId">
-      <label>اسم الفرقة
+      <label><span class="label-text">اسم الفرقة <span class="req" aria-hidden="true">*</span></span>
         <input id="crsName" required placeholder="فرقة الحراسات المشددة">
       </label>
       <div class="grid">
@@ -19,7 +19,10 @@
       <label>ملاحظات
         <input id="crsNote">
       </label>
-      <button class="primary full" type="submit">حفظ</button>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="courseModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

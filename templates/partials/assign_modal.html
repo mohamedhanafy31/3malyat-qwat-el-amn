@@ -8,7 +8,7 @@
       <span id="assignRestText"></span>
       <button type="button" class="mini bad" id="assignStopRest">إيقاف الراحة</button>
     </div>
-    <form id="assignForm">
+    <form id="assignForm" novalidate>
       <input type="hidden" id="assignPerson">
       <div class="grid">
         <label>حالة خاصة <small>خانتها في جدول الإجمالي</small>
@@ -21,7 +21,10 @@
       <label>ملاحظات
         <input id="assignNote" placeholder="نص التشغيل كما هو في اليومية">
       </label>
-      <button class="primary full" type="submit">حفظ الحالة</button>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">حفظ الحالة</button>
+        <button type="button" class="btn" data-close="assignModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

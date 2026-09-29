@@ -8,15 +8,15 @@
       <li id="suspStepTab2">اختيار الراحات</li>
     </ol>
 
-    <form id="suspendForm">
+    <form id="suspendForm" novalidate>
       <!-- الخطوة ١ -->
       <div id="suspStep1">
         <div class="field-section">
           <div class="field-legend">الأنواع الموقوفة</div>
           <div class="command-picks" id="suspendTypes"></div>
         </div>
-        <label>السبب / رقم الأمر <span class="muted">(إجباري)</span>
-          <input id="suspendReason" placeholder="مثال: قرار المديرية بوقف الراحات">
+        <label><span class="label-text">السبب / رقم الأمر <span class="req" aria-hidden="true">*</span></span>
+          <input id="suspendReason" required placeholder="مثال: قرار المديرية بوقف الراحات">
         </label>
         <button type="button" class="primary full" id="suspNext">التالي — اختيار الراحات {{ icon('chevron-next') }}</button>
       </div>
@@ -31,8 +31,11 @@
         <div id="suspendCandidates"></div>
         <div class="susp-actions">
           <button type="button" class="mini" id="suspBack">{{ icon('arrow-back') }} رجوع</button>
-          <button type="submit" class="primary" id="suspSubmit">تنفيذ أمر الوقف</button>
         </div>
+      </div>
+      <div class="actions modal-foot">
+        <button type="submit" class="primary hidden" id="suspSubmit">تنفيذ أمر الوقف</button>
+        <button type="button" class="btn" data-close="suspendModal">إلغاء</button>
       </div>
     </form>
   </div>

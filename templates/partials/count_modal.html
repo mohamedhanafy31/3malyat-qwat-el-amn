@@ -3,7 +3,7 @@
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="countTitle">
     <button type="button" class="close" data-close="countModal" aria-label="إغلاق">×</button>
     <h2 id="countTitle">إضافة خدمة</h2>
-    <form id="countForm">
+    <form id="countForm" novalidate>
       <input type="hidden" id="cnId">
       <input type="hidden" id="cnSource">
       <div class="grid">
@@ -14,10 +14,10 @@
             <option value="طوارئ">طوارئ متكررة</option>
           </select>
         </label>
-        <label>الاسم
+        <label><span class="label-text">الاسم <span class="req" aria-hidden="true">*</span></span>
           <input id="cnName" required>
         </label>
-        <label>الجهة <small>الطرق / فيصل / السويس... اختياري</small>
+        <label>الجهة <small>الطرق / فيصل / السويس...</small>
           <input id="cnParty">
         </label>
         <label>عدد المجندين
@@ -27,8 +27,9 @@
           <input id="cnWeapon">
         </label>
       </div>
-      <div class="actions" style="margin-top:10px">
+      <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="countModal">إلغاء</button>
       </div>
     </form>
   </div>

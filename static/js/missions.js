@@ -83,7 +83,7 @@ $("#missionForm").onsubmit = async e => {
     ? await api(`/api/missions/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api("/api/missions", jsonReq("POST", body));
   if (!out) return;
-  closeModal("missionModal"); showToast(id ? "تم الحفظ" : "تمت الإضافة");
+  closeModal("missionModal", true); showToast(id ? "تم الحفظ" : "تمت الإضافة");
   loadList($("#msnStatusFilter").value);
 };
 

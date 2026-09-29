@@ -4,7 +4,7 @@
     <button type="button" class="close" data-close="liftModal" aria-label="إغلاق">×</button>
     <h2 id="liftModalTitle">فتح الراحات</h2>
     <p class="hint" id="liftWhat"></p>
-    <form id="liftForm">
+    <form id="liftForm" novalidate>
       <input type="hidden" id="liftId">
       <label class="command-check hidden" id="liftRestoreWrap">
         <input type="checkbox" id="liftRestore">
@@ -13,10 +13,13 @@
         <small id="liftRestoreHint"></small>
       </label>
       <p class="susp-warn" id="liftWarn"></p>
-      <label>سبب الفتح <span class="muted">(اختياري)</span>
+      <label>سبب الفتح
         <input id="liftReason" placeholder="مثال: انتهاء الأمر">
       </label>
-      <button class="primary full" type="submit">فتح الراحات</button>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">فتح الراحات</button>
+        <button type="button" class="btn" data-close="liftModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

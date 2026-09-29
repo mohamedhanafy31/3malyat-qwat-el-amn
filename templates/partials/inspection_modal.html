@@ -4,10 +4,10 @@
     <button type="button" class="close" data-close="inspectionModal" aria-label="إغلاق">×</button>
     <h2 id="inspectionModalTitle">تفتيش جديد</h2>
     <p class="hint" id="inspectionModalDay"></p>
-    <form id="inspectionForm">
+    <form id="inspectionForm" novalidate>
       <input type="hidden" id="inspWeekday">
       <input type="hidden" id="inspId">
-      <label>اسم التفتيش <small>تفتيش + اسم السجن، مثال: تفتيش فيصل</small>
+      <label><span class="label-text">اسم التفتيش <span class="req" aria-hidden="true">*</span></span> <small>تفتيش + اسم السجن، مثال: تفتيش فيصل</small>
         <input id="inspName" required placeholder="تفتيش ...">
       </label>
       <label>التسليح
@@ -16,8 +16,9 @@
       <label>عدد المجندين
         <input id="inspCount" type="number" min="0">
       </label>
-      <div class="actions" style="margin-top:10px">
+      <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="inspectionModal">إلغاء</button>
       </div>
     </form>
   </div>

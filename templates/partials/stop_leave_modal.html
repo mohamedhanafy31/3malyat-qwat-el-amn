@@ -4,16 +4,19 @@
     <button type="button" class="close" data-close="stopLeaveModal" aria-label="إغلاق">×</button>
     <h2 id="stopLeaveModalTitle">إيقاف الراحة</h2>
     <p class="hint" id="stopLeaveWho"></p>
-    <form id="stopLeaveForm">
+    <form id="stopLeaveForm" novalidate>
       <input type="hidden" id="stopLeaveId">
-      <label>أول يوم رجوع للعمل
+      <label><span class="label-text">أول يوم رجوع للعمل <span class="req" aria-hidden="true">*</span></span>
         <input type="date" id="stopOn" required>
       </label>
-      <label>السبب <span class="muted">(إجباري)</span>
+      <label><span class="label-text">السبب <span class="req" aria-hidden="true">*</span></span>
         <input id="stopReason" required placeholder="مثال: استدعاء بقرار المديرية">
       </label>
       <p class="hint" id="stopHint"></p>
-      <button class="primary full" type="submit">إيقاف الراحة</button>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">إيقاف الراحة</button>
+        <button type="button" class="btn" data-close="stopLeaveModal">إلغاء</button>
+      </div>
     </form>
   </div>
 </div>

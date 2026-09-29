@@ -3,7 +3,7 @@
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="afEntryTitle">
     <button type="button" class="close" data-close="afEntryModal" aria-label="إغلاق">×</button>
     <h2 id="afEntryTitle">تعديل الخدمة</h2>
-    <form id="afEntryForm">
+    <form id="afEntryForm" novalidate>
       <input type="hidden" id="afEntryId">
       <div class="grid">
         <label>القائم بها صباحًا
@@ -28,8 +28,9 @@
           <input id="afSchedule">
         </label>
       </div>
-      <div class="actions" style="margin-top:10px">
+      <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="afEntryModal">إلغاء</button>
       </div>
     </form>
   </div>

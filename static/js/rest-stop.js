@@ -38,7 +38,7 @@ $("#stopLeaveForm").onsubmit = async e => {
   const out = await api(`/api/leaves/${encodeURIComponent($("#stopLeaveId").value)}/stop`,
     jsonReq("POST", {on: $("#stopOn").value, reason}));
   if (!out) return;
-  closeModal("stopLeaveModal");
+  closeModal("stopLeaveModal", true);
   showToast(out.cancelled ? "تم إلغاء الراحة" : "تم إيقاف الراحة");
   if (_STOP_DONE) _STOP_DONE();
 };

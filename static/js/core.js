@@ -372,8 +372,8 @@ _sharedDialog.innerHTML=`<div class="modal-card small shared-dialog" role="dialo
     <div id="sharedDialogField"></div>
     <p class="dialog-error hidden" id="sharedDialogError" role="alert"></p>
     <div class="dialog-actions">
-      <button type="button" class="btn" id="sharedDialogCancel">إلغاء</button>
       <button type="submit" class="primary" id="sharedDialogConfirm"></button>
+      <button type="button" class="btn" id="sharedDialogCancel">إلغاء</button>
     </div>
   </form>
 </div>`;
@@ -386,6 +386,35 @@ const _modalFocusableSelector=[
 
 const _modalTop=()=>_modalStack[_modalStack.length-1]||null;
 const _modalVisible=el=>!!(el.offsetWidth||el.offsetHeight||el.getClientRects().length);
+const _modalForm=modal=>modal.id==="sharedDialog"?null:modal.querySelector("form");
+function _modalFormState(form){
+  const controls=[...form.elements]
+    .filter(el=>!el.matches('button,[type="submit"],[type="button"],[type="hidden"]'))
+    .map(el=>{
+      if(el.type==="checkbox"||el.type==="radio") return [el.id||el.name,el.checked];
+      if(el instanceof HTMLSelectElement&&el.multiple)
+        return [el.id||el.name,[...el.selectedOptions].map(option=>option.value)];
+      return [el.id||el.name,el.value];
+    });
+  const generated=[...form.querySelectorAll(".tag-chips")].map(el=>[el.id,el.textContent]);
+  return JSON.stringify({controls,generated});
+}
+function _clearFieldError(control){
+  const errorId=control.getAttribute("data-field-error");
+  if(errorId) document.getElementById(errorId)?.remove();
+  control.removeAttribute("data-field-error");
+  control.removeAttribute("aria-invalid");
+  const described=(control.getAttribute("aria-describedby")||"").split(/\s+/)
+    .filter(id=>id&&id!==errorId);
+  if(described.length) control.setAttribute("aria-describedby",described.join(" "));
+  else control.removeAttribute("aria-describedby");
+}
+function markModalSaved(id){
+  const entry=_modalStack.find(item=>item.modal.id===id);
+  if(!entry?.form) return;
+  entry.snapshot=_modalFormState(entry.form);
+  entry.form.querySelectorAll('[data-field-error]').forEach(_clearFieldError);
+}
 function _modalFocusable(root){
   return [...root.querySelectorAll(_modalFocusableSelector)].filter(el=>
     el.tabIndex>=0 && !el.closest("[inert]") && _modalVisible(el));
@@ -417,15 +446,14 @@ function openModal(id){
   }
   const opener=document.activeElement instanceof HTMLElement?document.activeElement:null;
   modal.classList.remove("hidden");
-  const entry={modal,opener};
+  const form=_modalForm(modal);
+  form?.querySelectorAll('[data-field-error]').forEach(_clearFieldError);
+  const entry={modal,opener,form,snapshot:form?_modalFormState(form):null,guardPending:false};
   _modalStack.push(entry);
   _syncModalState();
   _focusModal(modal);
 }
-function closeModal(id){
-  const modal=$("#"+id);
-  if(!modal) return;
-  if(id==="sharedDialog"&&_dialogPending){ _dialogFinish(_dialogPending.cancelValue); return }
+function _closeModalNow(modal){
   const index=_modalStack.findIndex(entry=>entry.modal===modal);
   const entry=index<0?null:_modalStack[index];
   const wasTop=index===_modalStack.length-1;
@@ -438,6 +466,29 @@ function closeModal(id){
   if(!wasTop) return;
   if(entry?.opener?.isConnected&&!entry.opener.closest("[inert]")) entry.opener.focus({preventScroll:true});
   else if(_modalTop()) _focusModal(_modalTop().modal);
+}
+async function closeModal(id,submitted=false){
+  const modal=$("#"+id);
+  if(!modal) return false;
+  if(id==="sharedDialog"&&_dialogPending){ _dialogFinish(_dialogPending.cancelValue); return true }
+  const entry=_modalStack.find(item=>item.modal===modal);
+  if(!entry){ _closeModalNow(modal); return true }
+  if(submitted) markModalSaved(id);
+  const changed=entry.form&&entry.snapshot!==_modalFormState(entry.form);
+  if(!submitted&&changed){
+    if(entry.guardPending) return false;
+    entry.guardPending=true;
+    const discard=await confirmDialog({
+      title:"تجاهل التغييرات؟",
+      body:"لم تُحفظ التعديلات التي أدخلتها في هذا النموذج.",
+      confirmLabel:"تجاهل التغييرات",
+      danger:true,
+    });
+    entry.guardPending=false;
+    if(!discard||!_modalStack.includes(entry)) return false;
+  }
+  _closeModalNow(modal);
+  return true;
 }
 
 function _dialogFinish(value){
@@ -1110,6 +1161,74 @@ function upgradeSelects(root) {
 }
 upgradeSelects();
 
+/* رسائل موحّدة داخل النموذج بدل فقاعات المتصفح التي تختلف لغتها وشكلها. */
+let _fieldErrorSeq=0;
+function _validIsoDate(value){
+  const parts=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if(!parts) return false;
+  const date=new Date(Date.UTC(Number(parts[1]),Number(parts[2])-1,Number(parts[3])));
+  return date.getUTCFullYear()===Number(parts[1])
+    && date.getUTCMonth()===Number(parts[2])-1&&date.getUTCDate()===Number(parts[3]);
+}
+function _fieldMessage(control){
+  const value=String(control.value||"").trim();
+  if(control.required&&!value) return "هذا الحقل مطلوب";
+  if(!value) return "";
+  if(control.dataset.picker==="date"){
+    if(!_validIsoDate(value)||(control.min&&value<control.min)||(control.max&&value>control.max))
+      return "اختر تاريخًا صحيحًا";
+  }
+  if(control.type==="number"){
+    const number=Number(value);
+    if(control.min!==""&&number<Number(control.min)) return `أدخل رقمًا لا يقل عن ${control.min}`;
+    if(control.max!==""&&number>Number(control.max)) return `أدخل رقمًا لا يزيد على ${control.max}`;
+  }
+  return "";
+}
+function _showFieldError(control,message){
+  _clearFieldError(control);
+  const error=document.createElement("p");
+  error.className="field-error";
+  error.id=`fieldError${++_fieldErrorSeq}`;
+  error.textContent=message;
+  error.setAttribute("role","alert");
+  control.insertAdjacentElement("afterend",error);
+  control.setAttribute("data-field-error",error.id);
+  control.setAttribute("aria-invalid","true");
+  const described=(control.getAttribute("aria-describedby")||"").split(/\s+/).filter(Boolean);
+  control.setAttribute("aria-describedby",[...described,error.id].join(" "));
+}
+function _validateModalForm(form){
+  form.querySelectorAll('[data-field-error]').forEach(_clearFieldError);
+  const controls=[...form.querySelectorAll(
+    '[required],input[type="number"][min],input[type="number"][max],[data-picker="date"]')]
+    .filter(control=>!control.disabled&&_modalVisible(control));
+  let first=null;
+  controls.forEach(control=>{
+    const message=_fieldMessage(control);
+    if(!message) return;
+    _showFieldError(control,message);
+    first||=control;
+  });
+  if(first){ first.focus({preventScroll:false}); return false }
+  return true;
+}
+document.addEventListener("submit",event=>{
+  const form=event.target;
+  if(!(form instanceof HTMLFormElement)||!form.closest(".modal")||form.id==="sharedDialogForm") return;
+  if(_validateModalForm(form)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+},true);
+document.addEventListener("input",event=>{
+  const control=event.target._comboInput||event.target;
+  if(control instanceof HTMLElement&&control.hasAttribute("data-field-error")) _clearFieldError(control);
+},true);
+document.addEventListener("change",event=>{
+  const control=event.target._comboInput||event.target;
+  if(control instanceof HTMLElement&&control.hasAttribute("data-field-error")) _clearFieldError(control);
+},true);
+
 /* لازم mousedown مش click: اختيار عنصر من قايمة متعددة بيعيد رسم الـinnerHTML
    جوه معالج الـclick، فالعنصر اللي اتضغط بيبقى مفصول عن الـDOM وقت ما الحدث
    يوصل هنا — و`contains()` بترجع false فالقايمة كانت بتتقفل بعد كل اختيار. */
@@ -1136,7 +1255,7 @@ sidebarEl.addEventListener("click",e=>{ if(e.target.closest(".navbtn")) setSideb
 
 $$("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 $$(".modal").forEach(m=>m.onclick=e=>{
-  if(e.target===m&&_modalTop()?.modal===m) closeModal(m.id);
+  if(e.target===m&&_modalTop()?.modal===m&&!_modalForm(m)) closeModal(m.id);
 });
 document.addEventListener("keydown",e=>{
   if(e.key==="Tab"&&_modalTop()){
