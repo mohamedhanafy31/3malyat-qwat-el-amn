@@ -35,7 +35,7 @@ function targetSlotRow(row) {
     : `<span class="muted">لسه محدّدش من صفحة بيانات الضابط</span>`;
   const assigned = row.officers.length
     ? chips(row.officers, "m")
-    : `<span class="muted">مفيش حد معيّن</span>`;
+    : `<span class="muted">لم يُعيَّن أحد</span>`;
   return `<tr class="${row.vacant ? "vacant" : ""}">
     <td class="name">${esc(row.label)}</td>
     <td class="wrap">${commander}</td>
@@ -55,7 +55,7 @@ const SLOT_HEAD = ["الخدمة", "القائم بها", "الإجراء"];
 function slotRow(row, sectionName) {
   const assigned = row.officers.length
     ? chips(row.officers, "m")
-    : `<span class="muted">مفيش حد معيّن</span>`;
+    : `<span class="muted">لم يُعيَّن أحد</span>`;
   return `<tr class="${row.vacant ? "vacant" : ""}">
     <td class="name">${esc(row.shift)}</td>
     <td class="wrap">${assigned}</td>
@@ -126,7 +126,7 @@ function sectionCard(sec) {
   let body;
   if (sec.type === "officers") {
     const [head, render] = OFFICER_VIEWS[sec.name];
-    body = count ? cardTable(head, sec.rows.map(render)) : `<div class="mempty">لا يوجد</div>`;
+    body = count ? cardTable(head, sec.rows.map(render)) : emptyState({compact: true, title: "لا يوجد أحد في هذا القسم"});
   } else if (sec.type === "targets") {
     body = cardTable(TARGET_HEAD, sec.rows.map(targetSlotRow));
   } else if (sec.type === "slots") {
@@ -141,7 +141,7 @@ function sectionCard(sec) {
       + (extra.length ? cardTable(SERVICE_HEAD, extra.map(serviceRow)) : "");
   } else {
     body = sec.rows.length ? cardTable(SERVICE_HEAD, sec.rows.map(serviceRow))
-      : `<div class="mempty">لا توجد خدمات — اضغط «إضافة» فوق</div>`;
+      : emptyState({compact: true, title: "لا توجد خدمات في هذا القسم", hint: "استخدم زر «إضافة» في رأس القسم."});
   }
   // الأهداف قايمة مقفولة بس — مفيش «+ إضافة» حر ليها زي الأقسام المحسوبة.
   // الكتل الثابتة عندها الصفّين الثابتين + إمكانية إضافة دور تاني حر.
@@ -197,7 +197,7 @@ function splitColumns(sections) {
 
 function render() {
   const wrap = $("#matchBoard");
-  if (!BOARD) { wrap.innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+  if (!BOARD) { wrap.innerHTML = skeleton("cards", 4); return }
   if (SELECTED_ROW_ID && !findRow(SELECTED_ROW_ID)) SELECTED_ROW_ID = null;
   const [right, left] = splitColumns(BOARD.sections);
   wrap.innerHTML = `

@@ -28,7 +28,7 @@ function logRow(row) {
 function render(d) {
   OLOG_DATA = d;
   if (!d) {
-    $("#ologWrap").innerHTML = `<div class="empty">اختَر ضابط الأول</div>`;
+    $("#ologWrap").innerHTML = emptyState({icon: "users", title: "اختر ضابطًا لعرض سجل خدماته", hint: "اختر الضابط ومدى التاريخ من الأعلى."});
     return;
   }
   const rows = OLOG_SORT_DESC ? [...d.rows].reverse() : d.rows;
@@ -36,7 +36,7 @@ function render(d) {
     ["التاريخ", "اليوم", "الخدمات", "الحالة", "ملاحظة"],
     rows.map(logRow),
     `${d.rows.length} يوم مسجّل من ${fmt(d.date_from)} إلى ${fmt(d.date_to)} — ${esc(d.officer.role)}/ ${esc(d.officer.name)}`,
-    "مفيش أيام مسجّلة للضابط ده في المدى ده — يمكن ميكونش كان على القوة وقتها.");
+    {title: "لا توجد أيام مسجّلة لهذا الضابط في المدى المحدد", hint: "ربما لم يكن على القوة في هذه الفترة."});
 }
 
 function syncSortLabel() {

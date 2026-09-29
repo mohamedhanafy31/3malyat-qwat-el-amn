@@ -14,7 +14,7 @@
     </div>
     <button class="primary" id="saveRosterBtn">حفظ الكشف</button>
   </div>
-  <div id="rosterWrap"></div>
+  <div id="rosterWrap">{{ skeleton("rows", 12) }}</div>
 </div>
 
 <div class="panel weekly-rest-panel">
@@ -26,7 +26,7 @@
       </p>
     </div>
   </div>
-  <div id="weeklyRosterWrap"></div>
+  <div id="weeklyRosterWrap">{{ skeleton("rows", 6) }}</div>
 </div>
 {% endblock %}
 

@@ -211,7 +211,7 @@ function renderTable() {
 
   $("#tableWrap").innerHTML = sortableTableBlock(
     cid, cols, rows, rowHtml, extraHeads,
-    `عدد النتائج: ${rows.length}`, "لا توجد بيانات لعرضها.", renderTable
+    `عدد النتائج: ${rows.length}`, {title: IS_OFF ? "لا يوجد ضباط" : "لا يوجد أفراد"}, renderTable
   );
 }
 
@@ -241,7 +241,7 @@ function renderCommand() {
       <summary>
         <span class="fold-title">قيادة الإدارة</span>
         <span class="fold-now">${held.length ? held.join(" • ")
-          : "<span class='muted'>مفيش مناصب محددة</span>"}</span>
+          : "<span class='muted'>لا توجد مناصب محددة</span>"}</span>
         <span class="fold-hint">تعديل</span>
       </summary>
       <p class="hint generated-hint">تشغيلهم ثابت يوميًا (إلا أيام الراحة)
@@ -254,7 +254,7 @@ function renderCommand() {
             ${officers.map(o => `<option value="${esc(o.id)}" ${o.id === cur ? "selected" : ""}>${esc(o.role)} / ${esc(o.name)}</option>`).join("")}
           </select>
           ${p ? `<span class="cmd-now">${esc(p.role)} / ${esc(p.name)}</span>`
-              : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
+              : `<span class="cmd-now empty">لم يُحدَّد ضابط لهذا المنصب</span>`}</label>`;
       }).join("")}</div>
       <p class="hint generated-hint generated-hint-wide">«طبي» و«بحث» ممكن يشيلهم أكتر من ضابط
         في نفس الوقت — اختار كل الضباط اللي عليهم بالمنصب ده، وبعدين
@@ -272,7 +272,7 @@ function renderCommand() {
               const p = personById(oid);
               return p ? `${esc(p.role)} / ${esc(p.name)}` : "";
             }).filter(Boolean).join("، ")}</span>`
-              : `<span class="cmd-now empty">مفيش ضابط محدد للمنصب ده</span>`}</label>`;
+              : `<span class="cmd-now empty">لم يُحدَّد ضابط لهذا المنصب</span>`}</label>`;
       }).join("")}</div>
     </details>`;
 

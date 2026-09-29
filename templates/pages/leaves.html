@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="stats" id="leaveStats"></div>
+<div class="stats" id="leaveStats">{{ skeleton("stats", 5) }}</div>
 
 <div id="suspensionBar"></div>
 
@@ -35,7 +35,7 @@
       <option value="long">طويلة (أكثر من 7 أيام)</option>
     </select>
   </div>
-  <div id="leaveWrap" role="tabpanel" aria-labelledby="leaveTabAll"></div>
+  <div id="leaveWrap" role="tabpanel" aria-labelledby="leaveTabAll">{{ skeleton("rows", 10) }}</div>
 </div>
 {% endblock %}
 

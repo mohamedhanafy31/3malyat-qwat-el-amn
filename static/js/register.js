@@ -9,7 +9,7 @@ function headRow() {
   const recorded = new Set(REG.recorded_days || []);
   const cols = REG.days.map(d =>
     `<th class="d-col ${recorded.has(d) ? "" : "no-rec"}"
-      title="${dayName(d)} ${fmt(d)}${recorded.has(d) ? "" : " — مفيش يومية"}">${dayNum(d)}</th>`).join("");
+      title="${dayName(d)} ${fmt(d)}${recorded.has(d) ? "" : " — لا توجد يومية"}">${dayNum(d)}</th>`).join("");
   return `<tr><th class="who-col">الضابط</th>${cols}<th class="t-col">عمل</th>
     <th class="t-col">راحة</th><th class="t-col">إجازة</th><th class="t-col">خارج</th></tr>`;
 }
@@ -41,7 +41,7 @@ function totalsRows() {
 
 function render() {
   const wrap = $("#registerWrap");
-  if (!REG) { wrap.innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+  if (!REG) { wrap.innerHTML = skeleton("rows", 10); return }
   const q = $("#regSearch").value.trim();
   const rows = q ? REG.rows.filter(r => r.name.includes(q)) : REG.rows;
   $("#regCount").textContent = `${rows.length} ضابط · ${REG.days.length} يوم`;

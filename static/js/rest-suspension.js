@@ -47,11 +47,11 @@ function historyRow(o) {
 function render() {
   $("#suspActive").innerHTML = SUSP.active.length
     ? `<div class="susp-list">${SUSP.active.map(activeCard).join("")}</div>`
-    : `<div class="empty">الراحات مفتوحة — مفيش أمر وقف ساري.</div>`;
+    : emptyState({icon: "check", title: "الراحات مفتوحة", hint: "لا يوجد أمر وقف ساري حاليًا."});
   $("#suspHistory").innerHTML = tableBlock(
     ["الأنواع", "من", "اتفتح", "السبب", "اتوقفت", "اتلغت"],
     SUSP.history.map(historyRow), `عدد الأوامر: ${SUSP.history.length}`,
-    "مفيش أوامر اتفتحت لسه.");
+    "لم تُفتح أي أوامر بعد");
 }
 
 async function load() {
@@ -133,7 +133,7 @@ async function goToStep2() {
           ? "هتتلغي بالكامل" : `آخر يوم هيبقى ${fmt(c.new_end)}، يرجع ${fmt(c.return_date)}`}</span>
       </span>
     </label>`).join("")
-    : `<p class="muted">مفيش راحات جارية أو قادمة مسجّلة من الأنواع دي — الأمر هيمنع التسجيل الجديد بس.</p>`);
+    : `<p class="muted">لا توجد راحات جارية أو قادمة من هذه الأنواع — سيمنع الأمر التسجيل الجديد فقط.</p>`);
   updateCount();
   showStep(2);
 }

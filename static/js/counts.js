@@ -46,7 +46,7 @@ function editableCard(label, block, rows) {
             label: "حذف", danger: true}])}
         </div></td>
       </tr>`))
-    : `<div class="mempty">لا توجد خدمات — اضغط «إضافة»</div>`;
+    : emptyState({compact: true, title: "لا توجد خدمات في هذا القسم", hint: "استخدم زر «إضافة» في رأس القسم."});
   const total = rows.reduce((n, e) => n + (e.count || 0), 0);
   return `<div class="mcard">
     <h3>${esc(label)}<span class="mcount">${rows.length}</span>
@@ -71,7 +71,7 @@ function boardCountCard(label, rows, emptyText) {
              data-id="${esc(r.assignment_id)}" ${locked ? "disabled" : ""}
              aria-label="عدد مجندين ${esc(r.name)}"></td>
       </tr>`))
-    : `<div class="mempty">${esc(emptyText)}</div>`;
+    : emptyState({compact: true, title: emptyText});
   const missing = rows.filter(r => r.needs_count).length;
   const note = locked
     ? "اليوم ده مقفول — افتحه فتح استثنائي من اليومية التفصيلية عشان تعدّل الأعداد"
@@ -93,7 +93,7 @@ function render() {
   ["dayPrev", "dayNext", "dayToday", "dutyDate", "btnReset"].forEach(id => {
     $("#" + id).classList.toggle("hidden", isTemplate);
   });
-  if (!VIEW) { $("#cntBlocks").innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+  if (!VIEW) { $("#cntBlocks").innerHTML = skeleton("cards", 4); return }
 
   if (isTemplate) {
     $("#cntSeedBanner").classList.toggle("hidden", VIEW.seeded);
@@ -131,9 +131,9 @@ function render() {
     editableCard("الخدمات الأساسية — ليلية", "ليلية", VIEW.basic_pm),
     editableCard("طوارئ متكررة", "طوارئ", VIEW.recurring),
     boardCountCard("طوارئ اليوم — من اليومية التفصيلية", VIEW.emergency,
-      "مفيش خدمات طارئة في اليومية التفصيلية لليوم ده — أي خدمة تتضاف هناك في قسم «الخدمات الطارئة» هتظهر هنا على طول"),
+      "لا توجد خدمات طارئة في اليومية التفصيلية لهذا اليوم — أي خدمة تُضاف في قسم «الخدمات الطارئة» تظهر هنا تلقائيًا"),
     ...customSections.map(sec => boardCountCard(sec.name, sec.rows,
-      `مفيش صفوف لسه — أضِف خدمة على اللوحة بقسم «${sec.name}» وهتظهر هنا على طول`)),
+      `لا توجد صفوف بعد — أضف خدمة في قسم «${sec.name}» باليومية التفصيلية وستظهر هنا تلقائيًا`)),
   ].join("");
   grandTotal(VIEW.services.total, t.grand_total, `إجمالي خدمات يوم ${dayName(DAY)} ${fmt(DAY)}`);
 }

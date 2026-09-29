@@ -67,7 +67,7 @@ function officerRow(r) {
 }
 
 function render() {
-  if (!DUTY) { $("#dutyBoard").innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+  if (!DUTY) { $("#dutyBoard").innerHTML = skeleton("rows", 10); return }
   renderSummary(DUTY.summary);
   const gone = DUTY.rows.filter(r => r.later_left).length;
   $("#dutyBoard").innerHTML = tableBlock(

@@ -27,7 +27,7 @@ function openCell(cell, who) {
        <td>${esc(s.shift) || "<span class='muted'>—</span>"}</td>
        <td><span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.kind)}</span></td></tr>`)));
   } else {
-    rows.push(`<div class="mempty">مفيش خدمة مسجّلة في اليوم ده</div>`);
+    rows.push(emptyState({compact: true, title: "لا توجد خدمة مسجّلة في هذا اليوم"}));
   }
   if (cell.taqseera) rows.push(`<p class="hint"><span class="chip taq">تقصيرة</span></p>`);
   if (cell.leave) {
@@ -55,8 +55,8 @@ function tallyBox(tally, legend) {
   return `<div class="tally-grid">
     <div class="mcard"><h3>الأيام حسب الحالة<span class="mcount">${tally.days}</span></h3>
       <div class="fam-row">${fams}</div>
-      ${codes.length ? mtable(["", "الحالة", "أيام"], codes) : '<div class="mempty">لا يوجد</div>'}</div>
+      ${codes.length ? mtable(["", "الحالة", "أيام"], codes) : emptyState({compact: true, title: "لا يوجد"})}</div>
     <div class="mcard"><h3>الخدمات<span class="mcount">${(tally.services || []).length}</span></h3>
-      ${svcs.length ? mtable(["الخدمة", "مرات"], svcs) : '<div class="mempty">لا يوجد</div>'}</div>
+      ${svcs.length ? mtable(["الخدمة", "مرات"], svcs) : emptyState({compact: true, title: "لا يوجد"})}</div>
   </div>`;
 }

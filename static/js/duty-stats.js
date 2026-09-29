@@ -136,7 +136,7 @@ function drawTaqseeraChart(data) {
   const rows = data.taqseera_count;
   const el = document.getElementById("taqseeraChart");
   if (!rows.length) {
-    el.closest(".ls-chart-wrap").innerHTML = `<div class="mempty">مفيش تقصيرات في المدى ده</div>`;
+    el.closest(".ls-chart-wrap").innerHTML = emptyState({compact: true, title: "لا توجد تقصيرات في هذا المدى"});
     return;
   }
   new Chart(el, {
@@ -206,7 +206,7 @@ function renderTargetGapTable(rows) {
         <td>${r.mismatch_days}</td>
         <td>${r.mismatch_rate === null ? "<span class='muted'>—</span>" : `<b>${r.mismatch_rate}%</b>`}</td>
       </tr>`))}</div>`
-    : `<div class="mempty">مفيش بيانات في المدى ده</div>`;
+    : emptyState({compact: true, title: "لا توجد بيانات في هذا المدى"});
   document.getElementById("targetGapTable").innerHTML = body;
 }
 

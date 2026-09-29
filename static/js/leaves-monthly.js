@@ -56,13 +56,13 @@ function updateRowHint(id) {
 
 function render() {
   const wrap = $("#rosterWrap");
-  if (!ROSTER) { wrap.innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+  if (!ROSTER) { wrap.innerHTML = skeleton("rows", 8); return }
   $("#suspensionBar").innerHTML = suspensionBanner(suspendedTypes());
   wrap.innerHTML = tableBlock(
     ["الضابط", "نظام الراحة", "الحالة الحالية", "تاريخ الراحة الجديد", ""],
     ROSTER.map(rosterRow),
     `عدد الضباط: ${ROSTER.length}`,
-    "لا يوجد ضباط بنظام راحة شهري أو نصف شهري.");
+    "لا يوجد ضباط بنظام راحة شهري أو نصف شهري");
   // الصفوف دي بتتولّد من جديد كل render() — لازم ترقية يدوية كل مرة،
   // بعكس حقول التاريخ الثابتة في الـmodals اللي بترقّى مرة واحدة بس
   // في core.js وقت تحميل الصفحة.
@@ -88,7 +88,7 @@ function weeklyRow(row) {
   const blocked = suspendedTypes().includes("أسبوعية");
   const chips = row.upcoming?.length
     ? row.upcoming.map(weeklyLeaveChip).join(" ")
-    : `<span class="muted">مفيش راحات أسبوعية قادمة مسجّلة</span>`;
+    : `<span class="muted">لا توجد راحات أسبوعية قادمة مسجّلة</span>`;
   return `<tr data-id="${esc(row.id)}">
     <td class="name">${esc(row.name)}<div class="sub">${esc(row.role)}</div></td>
     <td><span class="chip w">${esc(row.rest_day)}</span></td>
@@ -112,7 +112,7 @@ function renderWeekly() {
     ["الضابط", "اليوم الثابت", "الموعد الجاي", "الراحات المسجّلة القادمة", "راحة إضافية"],
     WEEKLY_ROSTER.map(weeklyRow),
     `عدد ضباط الراحة الأسبوعية: ${WEEKLY_ROSTER.length}`,
-    "لا يوجد ضباط بنظام راحة أسبوعية.");
+    "لا يوجد ضباط بنظام راحة أسبوعية");
   upgradeDateInputs(wrap);
 }
 
@@ -150,7 +150,7 @@ $("#saveRosterBtn").onclick = async () => {
     const errBox = $(`#err-${row.id}`);
     if (errBox) errBox.innerHTML = "";
   }
-  if (!entries.length) { showToast("مفيش تواريخ جديدة لحفظها"); return }
+  if (!entries.length) { showToast("لا توجد تواريخ جديدة للحفظ"); return }
 
   const out = await api("/api/leaves/monthly", jsonReq("POST", {entries}));
   if (!out) return;

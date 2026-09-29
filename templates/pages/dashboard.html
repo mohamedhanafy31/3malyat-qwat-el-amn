@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block alerts %}<div id="alerts"></div>{% endblock %}
+{% block alerts %}<div id="alerts"><div class="alert-skel skel" aria-hidden="true"></div></div>{% endblock %}
 
 {% block content %}
 <div id="clockWarning"></div>
 <div id="restSuspension"></div>
-<div id="dashStats" class="stats"></div>
+<div id="dashStats" class="stats">{{ skeleton("stats", 4) }}</div>
 
 {# الكرت الكبير كان بيحمل جملة واحدة ساكنة بتقول «افتح كذا من القائمة» —
    مساحة الثلثين بتشرح التنقّل بدل ما تعمله. بقى مدخل مباشر ليوم الشغل. #}
@@ -41,7 +41,7 @@
 {# «القادم والمعلّق» ثلاث قوائم مستقلة — كانت متكدّسة في عمود ضيّق. #}
 <div class="dash-card dash-wide">
   <h3>القادم والمعلّق</h3>
-  <div class="body"><div class="dash-cols" id="dashUpcoming"></div></div>
+  <div class="body"><div class="dash-cols" id="dashUpcoming">{{ skeleton("rows", 4) }}</div></div>
 </div>
 {% endblock %}
 

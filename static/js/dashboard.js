@@ -41,7 +41,7 @@
     <h4>${title} <em>${rows.length || ""}</em></h4>
     ${rows.length
       ? `<ul class="dash-list">${rows.map(render).join("")}</ul>`
-      : `<p class="dash-none">مفيش حاجة مستحقة</p>`}
+      : emptyState({compact: true, title: "لا يوجد شيء مستحق"})}
   </section>`;
 
   $("#dashUpcoming").innerHTML =

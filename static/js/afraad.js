@@ -51,7 +51,7 @@ const OCC_HEAD = ["الخدمة", "القائم بها", "العدد", "التس
 
 function render() {
   const wrap = $("#afWrap");
-  if (!AF) { wrap.innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
+  if (!AF) { wrap.innerHTML = skeleton("rows", 10); return }
   wrap.innerHTML = `
     <div class="ledger-board">
       <div class="ledger-head">
@@ -65,7 +65,7 @@ function render() {
       <div class="mcard">
         <h3>الخدمات الطارئة<span class="mcount">${AF.occasional.length}</span></h3>
         ${AF.occasional.length ? mtable(OCC_HEAD, AF.occasional.map(occRow))
-          : `<div class="mempty">لا توجد خدمات طارئة اليوم — تُكتب من اليومية التفصيلية</div>`}
+          : emptyState({compact: true, title: "لا توجد خدمات طارئة اليوم", hint: "تُضاف من اليومية التفصيلية."})}
       </div>
     </div>`;
 }

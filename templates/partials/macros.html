@@ -1,3 +1,15 @@
 {% macro icon(name, class_name='') -%}
 <svg class="ico{{ (' ' ~ class_name) if class_name else '' }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
 {%- endmacro %}
+
+{# نفس هيكل skeleton() في core.js — بيتعرض من السيرفر عشان المكان ما يبقاش
+   فاضي لحد ما الجافاسكريبت يجيب البيانات #}
+{% macro skeleton(kind='rows', n=8) -%}
+{%- if kind == 'stats' -%}
+{% for _ in range(n) %}<div class="stat skel-stat" aria-hidden="true"><span class="skel skel-line short"></span><span class="skel skel-line big"></span></div>{% endfor %}
+{%- elif kind == 'cards' -%}
+<div class="skel-cards" role="status" aria-busy="true"><span class="sr-only">جارٍ التحميل…</span>{% for _ in range(n) %}<div class="skel skel-card"></div>{% endfor %}</div>
+{%- else -%}
+<div class="skel-rows" role="status" aria-busy="true"><span class="sr-only">جارٍ التحميل…</span>{% for _ in range(n) %}<div class="skel skel-row"></div>{% endfor %}</div>
+{%- endif -%}
+{%- endmacro %}

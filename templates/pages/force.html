@@ -6,10 +6,10 @@
 <button class="primary" id="addBtn">{{ icon('plus') }} {{ 'إضافة ضابط' if page == 'officers' else 'إضافة فرد' }}</button>
 {% endblock %}
 
-{% block alerts %}{% if page == 'officers' %}<div id="alerts"></div>{% endif %}{% endblock %}
+{% block alerts %}{% if page == 'officers' %}<div id="alerts"><div class="alert-skel skel" aria-hidden="true"></div></div>{% endif %}{% endblock %}
 
 {% block content %}
-<div class="stats" id="forceStats"></div>
+<div class="stats" id="forceStats">{{ skeleton("stats", 4) }}</div>
 
 <div class="panel">
   <div class="panel-head">
@@ -45,7 +45,7 @@
     </select>
   </div>
 
-  <div id="tableWrap" role="tabpanel" aria-labelledby="forceTabActive"></div>
+  <div id="tableWrap" role="tabpanel" aria-labelledby="forceTabActive">{{ skeleton("rows", 10) }}</div>
 </div>
 
 {# إعدادات بتتظبط مرة كل حركة ضباط — مطوية تحت الجدول بدل ما تاخد

@@ -81,7 +81,7 @@ const OFFICER_COURSE_COLS = {
 function courseCard(c) {
   const body = c.terms.length
     ? `<div class="course-roster">${c.terms.map(termRosterRow).join("")}</div>`
-    : `<div class="mempty">مفيش التحاقات مسجّلة لسه</div>`;
+    : emptyState({compact: true, title: "لا توجد التحاقات مسجّلة بعد"});
   return `<div class="course-card" data-kind="${esc(c.kind || "")}">
     <div class="course-head">
       <div class="course-head-main">
@@ -156,14 +156,14 @@ function render() {
   if (VIEW === "course") {
     const list = filteredCourses();
     const emptyMsg = COURSES.length
-      ? "مفيش فرق مطابقة للبحث أو الفلتر الحالي."
-      : "مفيش فرق مسجّلة — اضغط «فرقة جديدة» فوق عشان تبدأ.";
+      ? {icon: "search", title: "لا توجد فرق مطابقة للبحث أو التصفية", hint: "جرّب تعديل البحث أو نوع الفرقة."}
+      : {title: "لا توجد فرق مسجّلة", hint: "أضف فرقة جديدة للبدء.", action: {label: "فرقة جديدة", id: "addCrsBtn"}};
     // 51 فرقة كروت ورا بعض كانت صفحة طولها 6700 بكسل — الكرت أطول بكتير من
     // صف الجدول، فبتتعرض 20 20
     const { shown, footer } = pageSlice("coursesWrap", list, render, "", 20);
     $("#coursesWrap").innerHTML = list.length
       ? `<div class="courses-grid">${shown.map(courseCard).join("")}</div>${footer}`
-      : `<div class="empty">${emptyMsg}</div>`;
+      : emptyState(emptyMsg);
     return;
   }
   const list = filteredOfficers();
@@ -172,7 +172,7 @@ function render() {
     "coursesWrap", OFFICER_COURSE_COLS, list, officerRow,
     ["الفرق اللي خدها", "الإجراء"],
     `${withCourses} من ${list.length} ضابط خدوا فرق`,
-    "مفيش ضباط.", render);
+    "لا يوجد ضباط", render);
 }
 
 

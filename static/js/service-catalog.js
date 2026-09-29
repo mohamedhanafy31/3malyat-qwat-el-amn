@@ -75,9 +75,9 @@ function filteredCatalog() {
 function render() {
   const rows = filteredCatalog();
   if (!CATALOG.length) {
-    $("#catalogWrap").innerHTML = `<div class="empty">لا توجد خدمات — اضغط «توليد الدليل» أو «خدمة جديدة»</div>`;
+    $("#catalogWrap").innerHTML = emptyState({title: "لا توجد خدمات في الدليل", hint: "اضغط «توليد الدليل» أو «خدمة جديدة» للبدء."});
   } else if (!rows.length) {
-    $("#catalogWrap").innerHTML = `<div class="empty">مفيش خدمة مطابقة للفلاتر</div>`;
+    $("#catalogWrap").innerHTML = emptyState({icon: "search", title: "لا توجد خدمة مطابقة للتصفية", hint: "جرّب تعديل البحث أو عوامل التصفية."});
   } else {
     $("#catalogWrap").innerHTML = `<div class="service-grid">${rows.map(serviceCard).join("")}</div>`;
   }
@@ -106,7 +106,7 @@ function openLocationModal(id) {
   $("#locationModalGallery").innerHTML = images.length
     ? images.map(f => `<img src="/uploads/service-catalog/${esc(f)}" alt=""
         data-action="zoomLocationImage" data-extra="${dataAttr({filename: f})}">`).join("")
-    : `<div class="mempty">مفيش صور موقع مسجّلة لسه</div>`;
+    : emptyState({compact: true, title: "لا توجد صور موقع مسجّلة بعد"});
   openModal("locationModal");
 }
 ACTIONS.openLocation = id => openLocationModal(id);
@@ -162,7 +162,7 @@ function renderGallery(images) {
           data-id="${esc($("#svcId").value)}" data-extra="${dataAttr({filename: f})}"
           title="حذف الصورة">×</button>
       </div>`).join("")
-    : `<div class="mempty">مفيش صور لسه</div>`;
+    : emptyState({compact: true, title: "لا توجد صور بعد"});
 }
 
 function syncEntryEverywhere(entry) {
@@ -393,7 +393,7 @@ function renderInspectionSchedule() {
         <span class="fold-title">نظام التفتيشات</span>
         <span class="fold-now">${total
           ? `${total} تفتيش على مدار الأسبوع`
-          : "<span class='muted'>مفيش تفتيشات معرّفة</span>"}</span>
+          : "<span class='muted'>لا توجد تفتيشات معرّفة</span>"}</span>
         <span class="fold-hint">تعديل</span>
       </summary>
       <p class="hint generated-hint">تفتيشات تأمين زيارات الأهالي — بتتحط
@@ -404,7 +404,7 @@ function renderInspectionSchedule() {
         return `<div class="insp-day">
           <h4>${esc(day)}</h4>
           ${entries.length ? entries.map(e => inspectionRow(day, e)).join("")
-            : `<p class="muted insp-empty">مفيش تفتيش يوم ${esc(day)}</p>`}
+            : `<p class="muted insp-empty">لا يوجد تفتيش يوم ${esc(day)}</p>`}
           <button type="button" class="mini" data-action="addInspection"
             data-extra="${dataAttr({weekday: day})}">${icon("plus")} إضافة تفتيش</button>
         </div>`;

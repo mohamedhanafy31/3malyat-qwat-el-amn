@@ -241,7 +241,10 @@ function paintNavCounts(d){
   };
   for (const [id, v] of Object.entries(n)){
     const el = $("#" + id);
-    if (el && v != null && v !== undefined) el.textContent = v;
+    if (!el) continue;
+    if (v != null) el.textContent = v;
+    else if (el.classList.contains("is-loading")) el.textContent = "—";
+    el.classList.remove("is-loading");
   }
   const alerts = (d.alerts || []).length;
   $("#navAlerts")?.classList.toggle("hidden", !alerts);
@@ -281,8 +284,42 @@ function mtable(head,rows){
   return `<table class="table mtable"><thead><tr>${head.map(h=>`<th${h==="الإجراء"?" class=\"col-actions\"":""}>${h}</th>`).join("")}</tr></thead>
     <tbody>${rows.join("")}</tbody></table>`;
 }
+/* ---------- الحالة الفاضية والتحميل ----------
+   حالة فاضية بشكل واحد في كل مكان: أيقونة، عنوان، سطر توضيح، وإجراء لو فيه
+   خطوة واضحة. compact للكروت الصغيرة (أقسام اليومية، أعمدة الرئيسية). */
+function emptyState({icon:ic="inbox",title="",hint="",action=null,compact=false}={}){
+  const act=action?`<button type="button" class="${action.primary?"primary":"btn"}"
+      ${action.id?`data-empty-click="${esc(action.id)}"`:""}>${esc(action.label)}</button>`:"";
+  return `<div class="empty-state${compact?" compact":""}"${compact?"":' role="status"'}>
+    ${icon(ic,"empty-ico")}<p class="empty-title">${esc(title)}</p>
+    ${hint?`<p class="empty-hint">${esc(hint)}</p>`:""}${act}</div>`;
+}
+// زرار الإجراء في الحالة الفاضية بيعمل نفس زرار الصفحة الأصلي (نفس الـhandler)
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-empty-click]");
+  if(b) document.getElementById(b.dataset.emptyClick)?.click();
+});
+/* هيكل مكان المحتوى وقت التحميل بنفس ارتفاعه التقريبي — بدل «جارٍ التحميل»
+   كنص، وبدل ما المحتوى ينط لما يوصل */
+function skeleton(kind="rows",n=8){
+  const sr='<span class="sr-only">جارٍ التحميل…</span>';
+  const rep=(k)=>Array.from({length:n},()=>k).join("");
+  if(kind==="stats") return rep('<div class="stat skel-stat" aria-hidden="true"><span class="skel skel-line short"></span><span class="skel skel-line big"></span></div>');
+  if(kind==="cards") return `<div class="skel-cards" role="status" aria-busy="true">${sr}${rep('<div class="skel skel-card"></div>')}</div>`;
+  return `<div class="skel-rows" role="status" aria-busy="true">${sr}${rep('<div class="skel skel-row"></div>')}</div>`;
+}
+// فيه بحث أو تصفية شغّالة؟ — الجدول الفاضي ساعتها معناه «مفيش نتائج» مش «مفيش بيانات»
+function _filtersActive(){
+  return [...document.querySelectorAll("main .toolbar input.search")].some(i=>i.value.trim())
+    || [...document.querySelectorAll("main .toolbar select")].some(s=>s.selectedIndex>0);
+}
+function _emptyHtml(v){
+  if(_filtersActive()) return emptyState({icon:"search",title:"لا توجد نتائج مطابقة",
+    hint:"جرّب تعديل البحث أو عوامل التصفية."});
+  return emptyState(typeof v==="string"?{title:v}:v);
+}
 function tableBlock(head,rows,countText,emptyText,cid,renderFn){
-  if(!rows.length&&emptyText) return `<div class="empty">${emptyText}</div>`;
+  if(!rows.length&&emptyText) return _emptyHtml(emptyText);
   if(!cid) return `<div class="table-scroll">${mtable(head,rows)}</div><div class="count">${countText}</div>`;
   const {shown,footer}=pageSlice(cid,rows,renderFn,countText);
   return `<div class="table-scroll">${mtable(head,shown)}</div>${footer}`;
@@ -508,7 +545,7 @@ function sortableTableBlock(cid, cols, rows, rowHtml, extraHeads, countText, emp
     const { fn, type } = cols[st.col];
     sorted = applySort(rows, fn, st.dir, type);
   }
-  if (!sorted.length && emptyText) return `<div class="empty">${emptyText}</div>`;
+  if (!sorted.length && emptyText) return _emptyHtml(emptyText);
   const heads = [
     ...Object.entries(cols).map(([k, c]) => _sortTh(c.label, k, cid, null)),
     ...(extraHeads || []).map(h => `<th${h==="الإجراء"?' class="col-actions"':""}>${esc(h)}</th>`)
@@ -820,28 +857,34 @@ function statusCell(p){
    مضغوطة قابلة للطي، وضباط النهاردة متقدمين على اللي بعدهم لأنهم الأعجل. */
 function renderAlerts(alerts){
   const box=$("#alerts"); if(!box) return;
-  if(!alerts||!alerts.length){box.innerHTML="";return}
+  // «مفيش تنبيهات» بتتعرض كسطر أخضر بنفس الارتفاع — المكان محجوز من السيرفر
+  // (.alert-skel) فالمحتوى تحت ما ينطش لما البيانات توصل
+  if(!alerts||!alerts.length){
+    box.innerHTML=`<div class="alert-card is-clear"><p class="alert-clear">${icon("check","ico-lg")}
+      <span>لا توجد تنبيهات تقصيرة</span></p></div>`;
+    return;
+  }
   const today=curDate();
   const sorted=[...alerts].sort((a,b)=>String(a.taqseera_date).localeCompare(String(b.taqseera_date)));
   const todayCount=sorted.filter(a=>a.taqseera_date===today).length;
   const lede=todayCount
-    ? `${todayCount} تقصيرة النهاردة · ${sorted.length - todayCount} خلال الأيام الجاية`
-    : `${sorted.length} ضابط خلال الأيام الجاية`;
-  /* على الرئيسية التنبيه هو الخبر نفسه فبيفضل مفتوح. على صفحة الضباط الجدول
-     هو المقصود، والمعلومة نفسها موجودة في عمود «حالة اليوم» — فبيبدأ مطوي
-     وسطر الملخص لسه بيقول العدد. واللي المستخدم يختاره بيتحفظ له. */
-  const saved=localStorage.getItem("alertsOpen");
-  const open=saved===null?PAGE==="dashboard":saved==="1";
+    ? `${todayCount} اليوم · ${sorted.length - todayCount} خلال الأيام القادمة`
+    : `${countLabel(sorted.length,"ضابط")} خلال الأيام القادمة`;
+  /* بيبدأ مطوي في كل الصفحات — المفتوح كان بيزق الصفحة كلها 250 بكسل لتحت
+     بعد التحميل، والعدد ظاهر في سطر الملخص. اختيار المستخدم بيتحفظ له. */
+  let saved=null;
+  try{ saved=localStorage.getItem("alertsOpen") }catch(err){}
+  const open=saved==="1";
   box.innerHTML=`<div class="alert-card"><details class="alert-fold" ${open?"open":""}>
     <summary>
       <span class="alert-head"><span class="alert-ico">${icon("alert","ico-lg")}</span>
-        <strong>تنبيه تقصيرة</strong>
-        <span class="muted">${esc(lede)}</span></span>
+        <strong>تنبيه تقصيرة</strong><span class="alert-count">${sorted.length}</span>
+        <span class="muted alert-lede">${esc(lede)}</span></span>
       <span class="alert-toggle">التفاصيل</span>
     </summary>
     <ul class="alert-list">${sorted.map(a=>{
       const isToday=a.taqseera_date===today;
-      const when=isToday?"<b>النهاردة</b>":`${dayName(a.taqseera_date)} ${fmt(a.taqseera_date)}`;
+      const when=isToday?"<b>اليوم</b>":`${dayName(a.taqseera_date)} ${fmt(a.taqseera_date)}`;
       return `<li class="${isToday?"is-today":""}">
         <span class="a-name">${esc(a.role)} / ${esc(a.name)}</span>
         <span class="a-meta"><span class="a-mid">تقصيرة ${when}</span>
@@ -854,7 +897,7 @@ function renderAlerts(alerts){
      افتراضيًا) كانت بتكتب "1" وتخلّيه مفتوح في كل الصفحات التانية. */
   const fold=box.querySelector(".alert-fold");
   fold.querySelector("summary").addEventListener("click",()=>
-    setTimeout(()=>localStorage.setItem("alertsOpen",fold.open?"1":"0"),0));
+    setTimeout(()=>{ try{ localStorage.setItem("alertsOpen",fold.open?"1":"0") }catch(err){} },0));
 }
 
 /* ---------- منتقي التاريخ العربي ----------
@@ -1142,7 +1185,7 @@ function _cbRender(q) {
   _cbOpts = [...custom, ...(q ? all.filter(o => arIncludes(o.text, q)) : all)];
   comboPop.toggleAttribute("aria-multiselectable", _cbMulti);
   if (!_cbOpts.length) {
-    comboPop.innerHTML = `<div class="combo-empty">مفيش خيار مطابق لـ«${esc(q)}»</div>`;
+    comboPop.innerHTML = `<div class="combo-empty">لا يوجد خيار مطابق لـ«${esc(q)}»</div>`;
     _cbInput.removeAttribute("aria-activedescendant");
     return;
   }

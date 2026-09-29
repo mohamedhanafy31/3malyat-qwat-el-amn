@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="stats" id="crsStats"></div>
+<div class="stats" id="crsStats">{{ skeleton("stats", 4) }}</div>
 
 <div class="panel">
   <div class="toolbar">
@@ -33,7 +33,7 @@
     «فرقة» في الخوارج طول مدتها من غير ما تتكتب في تشغيله كل يوم، وبتغطي كمان
     الأيام اللي لسه ماتعملّهاش يومية.
   </p>
-  <div id="coursesWrap" role="tabpanel" aria-labelledby="courseTabCourse"></div>
+  <div id="coursesWrap" role="tabpanel" aria-labelledby="courseTabCourse">{{ skeleton("cards", 4) }}</div>
 </div>
 {% endblock %}
 
