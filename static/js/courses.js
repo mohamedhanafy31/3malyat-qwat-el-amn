@@ -228,7 +228,12 @@ function openCourse(id) {
 }
 ACTIONS.openCourse = id => openCourse(id);
 ACTIONS.deleteCourse = async (id, extra) => {
-  if (!confirm(`حذف فرقة «${extra.name}»؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف الفرقة",
+    body: `ستُحذف فرقة «${extra.name}» نهائيًا ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف الفرقة",
+    danger: true,
+  }))) return;
   if (await api(`/api/courses/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم الحذف"); load();
   }
@@ -265,7 +270,12 @@ ACTIONS.openTerm = (id, extra) => {
   openTerm(id, extra);
 };
 ACTIONS.deleteTerm = async (id, extra) => {
-  if (!confirm(`حذف التحاق «${extra.name}»؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف الالتحاق",
+    body: `سيُحذف التحاق «${extra.name}» نهائيًا ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف الالتحاق",
+    danger: true,
+  }))) return;
   if (await api(`/api/course-terms/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم الحذف"); load();
   }

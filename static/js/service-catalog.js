@@ -185,7 +185,12 @@ async function uploadImageBlob(blob, filename) {
 }
 
 ACTIONS.deleteServiceImage = async (id, extra) => {
-  if (!confirm("حذف الصورة دي؟")) return;
+  if (!(await confirmDialog({
+    title: "حذف الصورة",
+    body: "ستُحذف الصورة نهائيًا من دليل الخدمة ولا يمكن التراجع عن ذلك.",
+    confirmLabel: "حذف الصورة",
+    danger: true,
+  }))) return;
   const out = await api(`/api/service-catalog/entries/${encodeURIComponent(id)}/images/${encodeURIComponent(extra.filename)}`,
     {method: "DELETE"});
   if (!out) return;
@@ -295,7 +300,12 @@ function openService(id) {
 }
 ACTIONS.openService = id => openService(id || null);
 ACTIONS.deleteService = async (id, extra) => {
-  if (!confirm(`حذف «${extra.name}» من الدليل؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف الخدمة من الدليل",
+    body: `ستُحذف خدمة «${extra.name}» من الدليل نهائيًا، بما في ذلك بياناتها وصورها، ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف الخدمة",
+    danger: true,
+  }))) return;
   if (await api(`/api/service-catalog/entries/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم الحذف"); load();
   }
@@ -414,7 +424,12 @@ function openInspection(weekday, id) {
 ACTIONS.openInspection = (id, extra) => openInspection(extra.weekday, id);
 ACTIONS.addInspection = (_id, extra) => openInspection(extra.weekday, null);
 ACTIONS.deleteInspection = async (id, extra) => {
-  if (!confirm(`حذف «${extra.name}» من تفتيشات يوم ${extra.weekday}؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف التفتيش",
+    body: `سيُحذف تفتيش «${extra.name}» من جدول يوم ${extra.weekday} نهائيًا ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف التفتيش",
+    danger: true,
+  }))) return;
   const out = await api(
     `/api/inspection-schedule/${encodeURIComponent(extra.weekday)}/${encodeURIComponent(id)}`,
     {method: "DELETE"});

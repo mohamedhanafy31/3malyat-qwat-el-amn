@@ -184,7 +184,12 @@ $("#btnPrint").onclick = () => window.print();
 $("#btnModeToggle").onclick = () => (MODE === "day" ? loadTemplateView() : loadDay(DAY || curDate()));
 
 $("#btnReset").onclick = async () => {
-  if (!confirm("استرجاع القالب الافتراضي لليوم ده؟ أي تعديل خاص باليوم ده هيتمسح.")) return;
+  if (!(await confirmDialog({
+    title: "استرجاع القالب الافتراضي",
+    body: `ستُحذف جميع التعديلات الخاصة بيوم ${fmt(DAY)} ويُسترجع القالب الافتراضي.`,
+    confirmLabel: "استرجاع القالب",
+    danger: true,
+  }))) return;
   const v = await api(`/api/counts/${DAY}/reset`, {method: "POST"});
   if (!v) return;
   VIEW = v; showToast("تم الاسترجاع"); render();
@@ -221,7 +226,12 @@ function openCount(id, extra) {
 }
 ACTIONS.openCount = (id, extra) => openCount(id || null, extra);
 ACTIONS.deleteCount = async (id, extra) => {
-  if (!confirm(`حذف «${extra.name}»؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف الخدمة",
+    body: `ستُحذف خدمة «${extra.name}» نهائيًا ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف الخدمة",
+    danger: true,
+  }))) return;
   const base = MODE === "template" ? "/api/counts/template/entries" : `/api/counts/${DAY}/entries`;
   if (await api(`${base}/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم الحذف");

@@ -106,8 +106,43 @@ const KIND_CLS={"خارجية":"w","داخلية":"h","حراسات":"m","طبي
 
 /* ---------- الشبكة ---------- */
 function showToast(msg,bad){
-  const t=$("#toast"); t.textContent=humanizeDates(msg); t.classList.toggle("bad",!!bad); t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),2800);
+  const stack=$("#toast");
+  if(!stack) return;
+  const item=document.createElement("div");
+  item.className=`toast-item${bad?" bad":""}`;
+  item.setAttribute("role",bad?"alert":"status");
+  item.setAttribute("aria-live",bad?"assertive":"polite");
+  const message=document.createElement("span");
+  message.className="toast-message";
+  message.textContent=humanizeDates(msg);
+  item.appendChild(message);
+  if(bad){
+    const close=document.createElement("button");
+    close.type="button"; close.className="toast-close";
+    close.setAttribute("aria-label","إغلاق التنبيه"); close.textContent="×";
+    close.onclick=()=>item.remove();
+    item.appendChild(close);
+  }else item.tabIndex=0;
+  stack.appendChild(item);
+  while(stack.children.length>3) stack.firstElementChild.remove();
+  if(bad) return;
+
+  let remaining=4000, started=performance.now(), timer;
+  const dismiss=()=>item.remove();
+  const resume=()=>{
+    if(!item.isConnected||timer) return;
+    started=performance.now(); timer=setTimeout(dismiss,remaining);
+  };
+  const pause=()=>{
+    if(!timer) return;
+    clearTimeout(timer); timer=null;
+    remaining=Math.max(0,remaining-(performance.now()-started));
+  };
+  item.addEventListener("mouseenter",pause);
+  item.addEventListener("mouseleave",resume);
+  item.addEventListener("focusin",pause);
+  item.addEventListener("focusout",resume);
+  resume();
 }
 async function api(url,opts){
   opts=opts||{};
@@ -126,11 +161,18 @@ async function api(url,opts){
     // في مكان واحد عشان كل نداء `api()` في السيستم يستفيد من غير ما كل
     // صفحة تتعامل مع الحالة دي لوحدها.
     if(out && out.needs_reason && !opts.__retro){
-      const days=(out.closed_days||[]).map(humanizeDates).join("، ");
-      const reason=prompt(`التعديل ده بيمس يوم/أيام مقفولة (${days}) — اكتب سبب التعديل:`);
-      if(reason && reason.trim()){
+      const closedDays=(out.closed_days||[]).map(fmt);
+      const closedScope=closedDays.length===1?`اليوم المغلق ${closedDays[0]}`
+        :closedDays.length?`الأيام المغلقة: ${closedDays.join("، ")}`:"يومًا مغلقًا";
+      const reason=await reasonDialog({
+        title:"سبب التعديل على يوم مغلق",
+        body:`يمس هذا التعديل ${closedScope}. سيُسجَّل السبب في سجل التغييرات.`,
+        label:"سبب التعديل",
+        confirmLabel:"متابعة التعديل",
+      });
+      if(reason){
         return api(url,{...opts,__retro:true,
-          headers:{...(opts.headers||{}),"X-Retro-Reason":encodeURIComponent(reason.trim())}});
+          headers:{...(opts.headers||{}),"X-Retro-Reason":encodeURIComponent(reason)}});
       }
       return null;      // المستخدم لغى — مفيش توست، هو اللي قرر يوقف
     }
@@ -319,6 +361,24 @@ function sortableTableBlock(cid, cols, rows, rowHtml, extraHeads, countText, emp
 }
 
 const _modalStack=[];
+const _sharedDialog=document.createElement("div");
+_sharedDialog.id="sharedDialog";
+_sharedDialog.className="modal hidden";
+_sharedDialog.innerHTML=`<div class="modal-card small shared-dialog" role="dialog" aria-modal="true" aria-labelledby="sharedDialogTitle">
+  <button type="button" class="close" data-close="sharedDialog" aria-label="إغلاق">×</button>
+  <h2 id="sharedDialogTitle"></h2>
+  <p class="dialog-body" id="sharedDialogBody"></p>
+  <form id="sharedDialogForm" novalidate>
+    <div id="sharedDialogField"></div>
+    <p class="dialog-error hidden" id="sharedDialogError" role="alert"></p>
+    <div class="dialog-actions">
+      <button type="button" class="btn" id="sharedDialogCancel">إلغاء</button>
+      <button type="submit" class="primary" id="sharedDialogConfirm"></button>
+    </div>
+  </form>
+</div>`;
+document.body.appendChild(_sharedDialog);
+let _dialogPending=null;
 const _modalFocusableSelector=[
   "a[href]", "button:not([disabled])", "input:not([disabled]):not([type=hidden])",
   "select:not([disabled])", "textarea:not([disabled])", "[tabindex]", '[contenteditable="true"]',
@@ -365,6 +425,7 @@ function openModal(id){
 function closeModal(id){
   const modal=$("#"+id);
   if(!modal) return;
+  if(id==="sharedDialog"&&_dialogPending){ _dialogFinish(_dialogPending.cancelValue); return }
   const index=_modalStack.findIndex(entry=>entry.modal===modal);
   const entry=index<0?null:_modalStack[index];
   const wasTop=index===_modalStack.length-1;
@@ -378,6 +439,85 @@ function closeModal(id){
   if(entry?.opener?.isConnected&&!entry.opener.closest("[inert]")) entry.opener.focus({preventScroll:true});
   else if(_modalTop()) _focusModal(_modalTop().modal);
 }
+
+function _dialogFinish(value){
+  const pending=_dialogPending;
+  if(!pending) return;
+  _dialogPending=null;
+  closeModal("sharedDialog");
+  pending.resolve(value);
+}
+function _dialogStart(options,renderField,onConfirm,cancelValue){
+  if(_dialogPending) _dialogFinish(_dialogPending.cancelValue);
+  $("#sharedDialogTitle").textContent=options.title;
+  $("#sharedDialogBody").textContent=humanizeDates(options.body||"");
+  $("#sharedDialogField").replaceChildren();
+  $("#sharedDialogError").classList.add("hidden");
+  const confirm=$("#sharedDialogConfirm"), cancel=$("#sharedDialogCancel");
+  confirm.textContent=options.confirmLabel;
+  confirm.className=options.danger?"danger":"primary";
+  confirm.disabled=false;
+  cancel.textContent=options.cancelLabel||"إلغاء";
+  confirm.removeAttribute("autofocus"); cancel.removeAttribute("autofocus");
+  (options.danger?cancel:confirm).setAttribute("autofocus","");
+  renderField?.();
+  return new Promise(resolve=>{
+    _dialogPending={resolve,cancelValue,onConfirm};
+    openModal("sharedDialog");
+  });
+}
+function confirmDialog({title,body,confirmLabel,cancelLabel="إلغاء",danger=false}){
+  return _dialogStart({title,body,confirmLabel,cancelLabel,danger},null,()=>true,false);
+}
+function reasonDialog({title,body,label,confirmLabel,required=true,maxLength=300}){
+  return _dialogStart({title,body,confirmLabel},()=>{
+    const field=document.createElement("label");
+    field.textContent=label;
+    const textarea=document.createElement("textarea");
+    textarea.id="sharedDialogReason"; textarea.rows=4; textarea.maxLength=maxLength;
+    field.appendChild(textarea); $("#sharedDialogField").appendChild(field);
+    const confirm=$("#sharedDialogConfirm");
+    const sync=()=>{ confirm.disabled=required&&!textarea.value.trim() };
+    textarea.addEventListener("input",sync); sync();
+  },()=>{
+    const value=$("#sharedDialogReason").value.trim();
+    return value||(!required?"":null);
+  },null);
+}
+function dateDialog({title,body,label,value,confirmLabel,min,max}){
+  return _dialogStart({title,body,confirmLabel},()=>{
+    const field=document.createElement("label");
+    field.textContent=label;
+    const input=document.createElement("input");
+    input.id="sharedDialogDate"; input.type="date"; input.value=value||"";
+    if(min) input.min=min;
+    if(max) input.max=max;
+    field.appendChild(input); $("#sharedDialogField").appendChild(field);
+    upgradeDateInputs($("#sharedDialogField"));
+  },()=>{
+    const input=$("#sharedDialogDate"), value=input.value;
+    const error=$("#sharedDialogError");
+    let message="";
+    const parts=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    const date=parts?new Date(Date.UTC(Number(parts[1]),Number(parts[2])-1,Number(parts[3]))):null;
+    const valid=date&&date.getUTCFullYear()===Number(parts[1])
+      &&date.getUTCMonth()===Number(parts[2])-1&&date.getUTCDate()===Number(parts[3]);
+    if(!valid) message="اختر تاريخًا صحيحًا.";
+    else if(input.min&&value<input.min) message=`يجب ألا يسبق التاريخ ${fmt(input.min)}.`;
+    else if(input.max&&value>input.max) message=`يجب ألا يتجاوز التاريخ ${fmt(input.max)}.`;
+    error.textContent=message; error.classList.toggle("hidden",!message);
+    if(message){ input.focus(); return undefined }
+    return value;
+  },null);
+}
+
+$("#sharedDialogCancel").onclick=()=>_dialogFinish(_dialogPending?.cancelValue);
+$("#sharedDialogForm").onsubmit=e=>{
+  e.preventDefault();
+  if(!_dialogPending||$("#sharedDialogConfirm").disabled) return;
+  const value=_dialogPending.onConfirm();
+  if(value!==undefined) _dialogFinish(value);
+};
 
 /* ---------- شارات الحالة (الحالة نفسها محسوبة في الباك إند) ---------- */
 function restLabel(p){

@@ -454,7 +454,12 @@ ACTIONS.openEntry = (id, extra) => openEntry(id || null, extra);
 ACTIONS.duplicateEntry = id => openEntry(id, {section: findRow(id)?.section}, true);
 
 async function deleteService(id, name) {
-  if (!confirm(`حذف «${name}» من اليومية؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف الخدمة من اليومية",
+    body: `ستُحذف خدمة «${name}» من يومية ${fmt(DAY)} نهائيًا ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف الخدمة",
+    danger: true,
+  }))) return;
   if (await api(`/api/assignments/${DAY}/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم الحذف"); loadDay(DAY);
   }
@@ -572,10 +577,13 @@ function renderConfirmBadge() {
 $("#btnConfirmDay").onclick = async () => {
   const c = BOARD?.confirm;
   const extra = c?.confirmed && !c.pending
-    ? "\n\nملاحظة: مفيش أي تعديل من آخر تأكيد — ده هيتسجّل كإعادة تأكيد."
+    ? " لم تُجرَ تغييرات منذ آخر تأكيد، وسيُسجَّل هذا الإجراء بوصفه إعادة تأكيد."
     : "";
-  if (!confirm(`انت متأكد إنك عايز تأكد الخدمات الحالية ليوم ${DAY}؟`
-               + `\nاللي اتغيّر من آخر تأكيد هيتسجّل في سجل التغييرات بوقت دلوقتي.${extra}`)) return;
+  if (!(await confirmDialog({
+    title: "تأكيد اليومية",
+    body: `هل تريد تأكيد يومية ${fmt(DAY)}؟ سيتم تسجيل التغييرات الحالية في سجل التغييرات.${extra}`,
+    confirmLabel: "تأكيد اليومية",
+  }))) return;
   const by = ($("#editedBy")?.value || "").trim();
   const out = await api(`/api/board/${DAY}/confirm`, jsonReq("POST", {confirmed_by: by}));
   if (!out) return;
@@ -698,13 +706,23 @@ async function loadDayStatus() {
   }
 }
 async function closeDay() {
-  if (!confirm(`قفل يوم ${DAY}؟ أي تعديل بعد كده هيحتاج فتح استثنائي.`)) return;
+  if (!(await confirmDialog({
+    title: "إغلاق اليومية مبكرًا",
+    body: `سيُغلق يوم ${fmt(DAY)}، وسيتطلب أي تعديل لاحق فتحًا استثنائيًا.`,
+    confirmLabel: "إغلاق اليوم",
+    danger: true,
+  }))) return;
   const name = ($("#editedBy")?.value || "").trim();
   if (!(await api(`/api/day-status/${DAY}/close`, jsonReq("POST", {closed_by: name})))) return;
   showToast("اتقفل اليوم"); loadDayStatus();
 }
 async function reopenDay() {
-  const reason = prompt("سبب فتح اليوم المقفول؟ (الفتح صالح النهاردة بس)");
+  const reason = await reasonDialog({
+    title: "فتح اليومية استثنائيًا",
+    body: `سيُفتح يوم ${fmt(DAY)} للتعديل حتى نهاية اليوم الحالي فقط، وسيُسجَّل السبب في سجل التغييرات.`,
+    label: "سبب الفتح الاستثنائي",
+    confirmLabel: "فتح اليوم",
+  });
   if (!reason) return;
   const by = ($("#editedBy")?.value || "").trim();
   if (!(await api(`/api/day-status/${DAY}/reopen`, jsonReq("POST", {reason, reopened_by: by})))) return;

@@ -237,7 +237,12 @@ function render() {
 ACTIONS.openLeaveEdit = id => openLeave(id);
 ACTIONS.stopLeave = (id, extra) => openStopLeave({id, ...extra}, load);
 ACTIONS.deleteLeave = async (id, extra) => {
-  if (!confirm(`حذف سجل راحة «${extra.name}»؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف سجل الراحة",
+    body: `سيُحذف سجل راحة «${extra.name}» نهائيًا ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف السجل",
+    danger: true,
+  }))) return;
   if (await api(`/api/leaves/${encodeURIComponent(id)}`, { method: "DELETE" })) {
     showToast("تم حذف الراحة"); load();
   }

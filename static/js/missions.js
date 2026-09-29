@@ -57,7 +57,12 @@ function openMission(id) {
 }
 ACTIONS.openMission = id => openMission(id || null);
 ACTIONS.deleteMission = async (id, extra) => {
-  if (!confirm(`حذف مأمورية «${extra.name}»؟`)) return;
+  if (!(await confirmDialog({
+    title: "حذف المأمورية",
+    body: `ستُحذف مأمورية «${extra.name}» نهائيًا ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف المأمورية",
+    danger: true,
+  }))) return;
   if (await api(`/api/missions/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم الحذف"); loadList($("#msnStatusFilter").value);
   }

@@ -363,10 +363,18 @@ $("#removeForm").onsubmit = async e => {
     }});
 
   if (!out && conflicts) {
+    const conflictLabels = {
+      leaves: "الراحات", terms: "الفرق", assignment_days: "أيام التكليف",
+      state_days: "أيام الحالة", missions: "المأموريات",
+    };
     const summary = Object.entries(conflicts.conflicts || {})
-      .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.length : v}`).join("، ");
-    if (confirm(`فيه بيانات مسجّلة بعد تاريخ الخروج ده (${summary}) — `
-                + "تأكيد تنظيفها والإخراج؟")) {
+      .map(([k, v]) => `${conflictLabels[k] || k}: ${Array.isArray(v) ? v.length : v}`).join("، ");
+    if (await confirmDialog({
+      title: "تنظيف البيانات وإخراج السجل",
+      body: `توجد بيانات مسجلة بعد تاريخ الخروج (${summary}). ستُحذف هذه البيانات ويُخرج السجل من القوة.`,
+      confirmLabel: "تنظيف وإخراج",
+      danger: true,
+    })) {
       out = await api(`/api/person/${encodeURIComponent(id)}/remove`,
         jsonReq("POST", {...body, cleanup: true}));
     }
@@ -384,17 +392,28 @@ ACTIONS.restorePerson = async id => {
   // تاريخ الانضمام لازم يكون بعد تاريخ خروجه القديم — وإلا نفس الشخص
   // يتحسب مرتين في نفس اليوم على القوة (السجل القديم لسه بيغطي يوم
   // خروجه، والجديد بدأ منه أو قبله). السيرفر بيرفض (400) لو مخالف.
-  const joinDate = prompt("تاريخ الانضمام الجديد (سيب الحقل فاضي لاستخدام النهاردة):",
-                          curDate());
+  const person = personById(id);
+  const joinDate = await dateDialog({
+    title: "استرجاع السجل إلى القوة",
+    body: `سيُسترجع سجل «${person?.name || "السجل"}» إلى القوة من تاريخ الانضمام الجديد.`,
+    label: "تاريخ الانضمام الجديد",
+    value: curDate(),
+    confirmLabel: "استرجاع إلى القوة",
+    min: person?.leave_date ? addDays(person.leave_date, 1) : undefined,
+  });
   if (joinDate === null) return;
-  if (!confirm("استرجاع هذا السجل إلى القوة؟")) return;
-  const body = joinDate.trim() ? {join_date: joinDate.trim()} : {};
+  const body = {join_date: joinDate};
   if (await api(`/api/person/${encodeURIComponent(id)}/restore`, jsonReq("POST", body))) {
     showToast("تم الاسترجاع إلى القوة"); load();
   }
 };
 ACTIONS.deleteRecord = async (id, extra) => {
-  if (!confirm(`حذف سجل «${extra.name}» نهائيًا من الأرشيف؟ لا يمكن التراجع.`)) return;
+  if (!(await confirmDialog({
+    title: "حذف سجل من الأرشيف",
+    body: `سيُحذف سجل «${extra.name}» نهائيًا من الأرشيف ولا يمكن التراجع عن ذلك.`,
+    confirmLabel: "حذف السجل نهائيًا",
+    danger: true,
+  }))) return;
   if (await api(`/api/person/${encodeURIComponent(id)}`, {method: "DELETE"})) {
     showToast("تم حذف السجل"); load();
   }
