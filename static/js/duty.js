@@ -8,7 +8,7 @@ function renderSummary(s) {
   const x = s["خارجية"], dl = s["داخلية"], tb = s["طبية"], kh = s["خوارج"];
   $("#balanceTag").innerHTML = s.balanced
     ? `<span class="chip on">متوازن ${s.counted}/${s["أصل القوة"]}</span>`
-    : `<span class="chip rest">غير متوازن ${s.counted}/${s["أصل القوة"]}</span>`;
+    : `<span class="chip taq">غير متوازن ${s.counted}/${s["أصل القوة"]}</span>`;
   $("#dutySummary").innerHTML = `<div class="table-scroll"><table class="table sum">
    <thead>
     <tr><th rowspan="2">أصل القوة</th><th colspan="3">الخدمات الخارجية</th><th colspan="2">الخدمات الداخلية</th>

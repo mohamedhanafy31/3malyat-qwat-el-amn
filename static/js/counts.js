@@ -50,7 +50,7 @@ function editableCard(label, block, rows) {
   const total = rows.reduce((n, e) => n + (e.count || 0), 0);
   return `<div class="mcard">
     <h3>${esc(label)}<span class="mcount">${rows.length}</span>
-      <button class="mini ok" data-action="openCount" data-extra="${dataAttr({block})}">＋ إضافة</button>
+      <button class="mini" data-action="openCount" data-extra="${dataAttr({block})}">＋ إضافة</button>
     </h3>${body}${blockTotal(rows.length, total)}</div>`;
 }
 
@@ -115,14 +115,14 @@ function render() {
   const t = VIEW.totals;
   const customSections = VIEW.custom_sections || [];
   const extraStat = t.custom
-    ? `<div class="stat stat-accent-purple"><span>أقسام إضافية</span><strong>${t.custom}</strong></div>`
+    ? `<div class="stat"><span>أقسام إضافية</span><strong>${t.custom}</strong></div>`
     : "";
   $("#cntTotals").innerHTML = `<div class="stats">
     <div class="stat"><span>أساسية صباحية</span><strong>${t.basic_am}</strong></div>
     <div class="stat"><span>أساسية ليلية</span><strong>${t.basic_pm}</strong></div>
     <div class="stat stat-accent-orange"><span>الطوارئ</span><strong>${t.emergency}</strong></div>
     ${extraStat}
-    <div class="stat stat-accent-blue"><span>الإجمالي الكلي</span><strong>${t.grand_total}</strong></div>
+    <div class="stat"><span>الإجمالي الكلي</span><strong>${t.grand_total}</strong></div>
   </div>`;
   $("#cntBlocks").innerHTML = [
     editableCard("الخدمات الأساسية — صباحية", "صباحية", VIEW.basic_am),

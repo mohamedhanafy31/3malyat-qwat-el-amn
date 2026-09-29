@@ -44,7 +44,7 @@ function renderStats() {
   const officersOnLeave = new Set(current.map(l => l.person_id)).size;
 
   $("#leaveStats").innerHTML = `
-    <div class="stat stat-accent-red">
+    <div class="stat">
       <span>جارية الآن</span>
       <strong>${current.length}</strong>
       <div class="stat-sub">${officersOnLeave} ضابط على راحة</div>
@@ -54,12 +54,12 @@ function renderStats() {
       <strong>${returningTomorrow.length}</strong>
       <div class="stat-sub">${returningTomorrow.length ? returningTomorrow.map(l => esc(l.name.split(" ")[0])).join("، ") : "—"}</div>
     </div>
-    <div class="stat stat-accent-blue">
+    <div class="stat">
       <span>قادمة</span>
       <strong>${upcoming.length}</strong>
       <div class="stat-sub">لم تبدأ بعد</div>
     </div>
-    <div class="stat stat-accent-purple">
+    <div class="stat">
       <span>هذا الشهر</span>
       <strong>${thisMonthLeaves.length}</strong>
       <div class="stat-sub">إجمالي الراحات في ${monthLabel(thisMonth)}</div>
@@ -96,7 +96,7 @@ function leaveRow(l, today) {
   }
   // اتوقفت قبل نهايتها — التاريخ الأصلي والسبب محفوظين على السجل
   if (l.stopped_on) {
-    stateHtml += `<div><span class="chip taq">موقوفة</span></div>
+    stateHtml += `<div><span class="chip err">موقوفة</span></div>
       <div class="sub">كانت لحد ${fmt(l.original_end)} — ${esc(l.stop_reason)}</div>`;
   }
   const canStop = OFFICER_IDS.has(l.person_id) && (live || upcoming);

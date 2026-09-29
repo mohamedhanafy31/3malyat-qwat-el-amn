@@ -95,7 +95,7 @@ function renderTable() {
     extraHeads = ["الهاتف", "الإجراء"];
     rowHtml = p => {
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
-        <button class="mini ok" data-action="openLeaveFor" data-id="${esc(p.id)}">راحة</button>
+        <button class="mini" data-action="openLeaveFor" data-id="${esc(p.id)}">راحة</button>
         ${restStopButton(p)}
         <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">إخراج</button>`;
       return `<tr>

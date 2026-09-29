@@ -76,7 +76,7 @@ function serviceRow(row) {
   if (row.placeholder) {
     return `<tr class="vacant"><td class="name">${esc(row.shift)}</td>
       <td colspan="5"><span class="muted">شاغرة — محتاجة تكليف</span></td>
-      <td><div class="actions"><button class="mini ok" data-action="openEntry"
+      <td><div class="actions"><button class="mini" data-action="openEntry"
         data-extra="${dataAttr({shift: row.shift})}">＋</button></div></td></tr>`;
   }
   const who = [chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ")
@@ -150,7 +150,7 @@ function sectionCard(sec) {
   // الأهداف قايمة مقفولة بس — مفيش «+ إضافة» حر ليها زي الأقسام المحسوبة.
   // الكتل الثابتة عندها الصفّين الثابتين + إمكانية إضافة دور تاني حر.
   const addBtn = ["officers", "targets"].includes(sec.type) ? "" :
-    `<button class="mini ok" data-action="openEntry"
+    `<button class="mini" data-action="openEntry"
       data-extra="${dataAttr({section: sec.name})}">＋ إضافة</button>`;
   const seededNote = sec.type === "targets" && sec.seeded_from
     ? `<small class="target-default-note">مبدئيًا من تأكيد يوم ${fmt(sec.seeded_from)}</small>`
@@ -332,7 +332,7 @@ function renderSectionHistory(history, expanded) {
         </label>`;
       }).join("")}</div>
       <div class="section-history-actions">
-        <button type="button" class="mini ok" id="copySectionHistory"></button>
+        <button type="button" class="mini" id="copySectionHistory"></button>
       </div>
     </div>`;
   panel.classList.remove("hidden");

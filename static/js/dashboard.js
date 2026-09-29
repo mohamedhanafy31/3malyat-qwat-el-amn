@@ -22,12 +22,12 @@
          <a class="mini" href="/leaves">إدارة الوقف</a></div></div>`
     : "";
 
-  // لون الحافة العلوية بيقول معنى: التقصيرة ذهبية زي التنبيه، الراحة زرقاء
+  // التقصيرة وحدها تحتاج انتباهًا؛ بقية الأعداد معلومات محايدة.
   $("#dashStats").innerHTML = `
     <div class="stat"><span>الضباط على القوة</span><strong>${c.officers}</strong></div>
     <div class="stat"><span>الأفراد على القوة</span><strong>${c.personnel}</strong></div>
-    <div class="stat stat-accent-blue"><span>في راحة اليوم</span><strong>${c.on_rest}</strong></div>
-    <div class="stat stat-accent-gold"><span>تنبيهات تقصيرة</span><strong>${c.taqseera}</strong></div>`;
+    <div class="stat"><span>في راحة اليوم</span><strong>${c.on_rest}</strong></div>
+    <div class="stat${c.taqseera > 0 ? " stat-accent-orange" : ""}"><span>تنبيهات تقصيرة</span><strong>${c.taqseera}</strong></div>`;
   $("#qlOfficers").textContent = c.officers;
   $("#qlPersonnel").textContent = c.personnel;
   $("#qlLeaves").textContent = c.leaves;

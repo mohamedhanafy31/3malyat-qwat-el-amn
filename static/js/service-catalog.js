@@ -392,7 +392,7 @@ function renderInspectionSchedule() {
           <h4>${esc(day)}</h4>
           ${entries.length ? entries.map(e => inspectionRow(day, e)).join("")
             : `<p class="muted insp-empty">مفيش تفتيش يوم ${esc(day)}</p>`}
-          <button type="button" class="mini ok" data-action="addInspection"
+          <button type="button" class="mini" data-action="addInspection"
             data-extra="${dataAttr({weekday: day})}">＋ إضافة تفتيش</button>
         </div>`;
       }).join("")}</div>

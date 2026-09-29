@@ -21,7 +21,7 @@ function statusChip(row) {
     return `<span class="chip soon">قادمة</span><div class="sub">من ${fmt(c.start)}</div>`;
   }
   if (row.status === "suspended") {
-    return `<span class="chip taq">موقوفة</span><div class="sub">أمر وقف من ${fmt(c.since)}</div>`;
+    return `<span class="chip err">موقوفة</span><div class="sub">أمر وقف من ${fmt(c.since)}</div>`;
   }
   return `<span class="chip done">تم</span><div class="sub">محتاج تاريخ جديد</div>`;
 }
@@ -98,7 +98,7 @@ function weeklyRow(row) {
       <div class="weekly-extra-controls">
         <input type="date" class="select weekly-extra-date" data-id="${esc(row.id)}"
           min="${esc(curDate())}" ${blocked ? "disabled" : ""}>
-        <button class="mini ok" data-action="addWeeklyExtra" data-id="${esc(row.id)}"
+        <button class="mini" data-action="addWeeklyExtra" data-id="${esc(row.id)}"
           ${blocked ? "disabled" : ""}>＋ راحة إضافية</button>
       </div>
       <div class="sub roster-error" id="weekly-err-${esc(row.id)}"></div>

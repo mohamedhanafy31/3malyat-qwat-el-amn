@@ -277,19 +277,19 @@ function drawCumulativeChart(data) {
 // ── شريط الملخص ───────────────────────────────────────────────
 function renderSummary(s) {
   document.getElementById("summaryStats").innerHTML = `
-    <div class="stat stat-accent-red">
+    <div class="stat">
       <span>إجمالي الراحات</span><strong>${s.total}</strong>
       <div class="stat-sub">${s.total_days} يوم مجموع</div>
     </div>
-    <div class="stat stat-accent-blue">
+    <div class="stat">
       <span>متوسط المدة</span><strong>${s.avg_duration}</strong>
       <div class="stat-sub">يوم لكل راحة</div>
     </div>
-    <div class="stat stat-accent-orange">
+    <div class="stat">
       <span>جارية الآن</span><strong>${s.current}</strong>
       <div class="stat-sub">راحة نشطة اليوم</div>
     </div>
-    <div class="stat stat-accent-purple">
+    <div class="stat">
       <span>قادمة</span><strong>${s.upcoming}</strong>
       <div class="stat-sub">لم تبدأ بعد</div>
     </div>`;

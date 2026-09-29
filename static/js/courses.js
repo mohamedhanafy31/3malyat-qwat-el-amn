@@ -10,11 +10,8 @@ const termChip = t =>
     ${esc(t.course_name)}<i>${fmt(t.start)}</i></button>`;
 
 /* ---------- حسب الفرقة ---------- */
-/* لون النوع بيتكرر في حافة الكرت العلوية وفي الشارة جنب الاسم — نفس منطق
-   الألوان المستخدم في باقي النظام (chip w/h/m/on)، فـ«قادة» بقت ذهبية
-   بالذات لأنها تناسب هوية القيادة في باقي الصفحات. "أخرى" و«بدون تصنيف»
-   بياخدوا نفس اللون الرمادي — مفيش فرق حقيقي بينهم من ناحية الأهمية. */
-const KIND_CHIP_CLS = {"تأهيلية": "w", "تخصصية": "m", "قادة": "h", "تدريبية": "on", "أخرى": "done"};
+/* ألوان تصنيفية مستقلة، و«أخرى» تبقى محايدة لأنها غير مصنفة. */
+const KIND_CHIP_CLS = {"تأهيلية": "cat1", "تخصصية": "cat2", "قادة": "cat3", "تدريبية": "cat4", "أخرى": "done"};
 const kindChipCls = k => KIND_CHIP_CLS[k] || "done";
 
 /* يوم/شهر مختصر بالأرقام بدل "١٤ أغسطس ٢٠٢٦" — الاسم الكامل للشهر كان
@@ -70,7 +67,7 @@ function officerRow(o) {
     <td>${o.days ? `<span class="chip w">${o.days} يوم</span>` : "<span class='muted'>—</span>"}</td>
     <td class="wrap chip-cell">${chips}</td>
     <td><div class="actions">
-      <button class="mini ok" data-action="openTerm"
+      <button class="mini" data-action="openTerm"
         data-extra="${dataAttr({officer_id: o.id})}">＋ فرقة</button>
     </div></td></tr>`;
 }
@@ -101,7 +98,7 @@ function courseCard(c) {
     </div>
     ${c.note ? `<p class="hint course-hint">${esc(c.note)}</p>` : ""}
     <div class="course-bar">
-      <button class="mini ok" data-action="openTerm"
+      <button class="mini" data-action="openTerm"
         data-extra="${dataAttr({course_id: c.id})}">＋ التحاق</button>
       <div class="actions">
         <button class="mini" data-action="openCourse" data-id="${esc(c.id)}"
@@ -143,8 +140,8 @@ function renderCrsStats() {
     const noKind = list.filter(c => !c.kind).length;
     box.innerHTML = `
       <div class="stat"><span>الفرق</span><strong>${list.length}</strong></div>
-      <div class="stat stat-accent-blue"><span>الالتحاقات</span><strong>${termsCount}</strong></div>
-      <div class="stat stat-accent-purple"><span>ضباط شاركوا</span><strong>${officerIds.size}</strong></div>
+      <div class="stat"><span>الالتحاقات</span><strong>${termsCount}</strong></div>
+      <div class="stat"><span>ضباط شاركوا</span><strong>${officerIds.size}</strong></div>
       <div class="stat ${noKind ? "stat-accent-orange" : ""}"><span>فرق بلا تصنيف</span><strong>${noKind}</strong></div>`;
     return;
   }
@@ -153,8 +150,8 @@ function renderCrsStats() {
   const totalDays = list.reduce((n, o) => n + o.days, 0);
   box.innerHTML = `
     <div class="stat"><span>الضباط</span><strong>${list.length}</strong></div>
-    <div class="stat stat-accent-blue"><span>خدوا فرق</span><strong>${withCourses}</strong></div>
-    <div class="stat stat-accent-purple"><span>إجمالي أيام التدريب</span><strong>${totalDays}</strong></div>`;
+    <div class="stat"><span>خدوا فرق</span><strong>${withCourses}</strong></div>
+    <div class="stat"><span>إجمالي أيام التدريب</span><strong>${totalDays}</strong></div>`;
 }
 
 function render() {

@@ -212,7 +212,7 @@ function renderTargetGapTable(rows) {
 
 function renderSummary(d) {
   document.getElementById("summaryStats").innerHTML = `
-    <div class="stat stat-accent-blue">
+    <div class="stat">
       <span>عدد الأيام</span><strong>${d.days_count}</strong>
       <div class="stat-sub">${fmt(d.date_from)} — ${fmt(d.date_to)}</div>
     </div>
