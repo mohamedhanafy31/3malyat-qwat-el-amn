@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% block export %}xlsx print{% endblock %}
+{% block page_actions %}
+<button class="primary" id="addMissionBtn">{{ icon('plus') }} مأمورية جديدة</button>
+{% endblock %}
 
 {% block content %}
 <div class="panel">
@@ -6,7 +10,6 @@
     <select id="msnStatusFilter" class="select" aria-label="تصفية حسب الحالة">
       <option value="">كل الحالات</option>
     </select>
-    <button class="primary" id="addMissionBtn">{{ icon('plus') }} مأمورية جديدة</button>
   </div>
   <div id="missionsWrap"></div>
 </div>

@@ -218,6 +218,14 @@ button,input,select,textarea{font-family:inherit}
 .page-head .titles p{margin:var(--s1) 0 0;font-size:var(--t-cap);color:var(--ink-500);
   padding-inline-start:14px}
 .page-actions{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.page-actions .primary,.page-actions .btn{height:var(--control-h)}
+/* زرار التصدير بيستخدم قايمة الصف المشتركة، بس بعرض نصه */
+.row-menu-btn.export-btn{width:auto;display:inline-flex;gap:var(--s1);padding:0 var(--s3);
+  font-weight:600;font-size:var(--t-sm)}
+.row-menu-btn[aria-disabled="true"]{opacity:.5;cursor:not-allowed}
+/* «＋ إضافة» في رأس كرت كحلي: ثانوي شفاف، مش أخضر ولا ممتلئ */
+.mini.on-dark{background:transparent;color:var(--on-dark);border-color:var(--border-on-dark)}
+.mini.on-dark:hover{background:var(--on-dark-wash);color:var(--on-dark);border-color:var(--on-dark-soft)}
 
 /* ═══════════════════ ⑥ التنبيهات ═══════════════════ */
 /* كانت 10 ضباط × 3 أسطر فوق عنوان الصفحة — بتدفع كل المحتوى تحت حافة الشاشة.

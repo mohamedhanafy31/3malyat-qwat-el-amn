@@ -50,7 +50,7 @@ function editableCard(label, block, rows) {
   const total = rows.reduce((n, e) => n + (e.count || 0), 0);
   return `<div class="mcard">
     <h3>${esc(label)}<span class="mcount">${rows.length}</span>
-      <button class="mini" data-action="openCount" data-extra="${dataAttr({block})}">${icon("plus")} إضافة</button>
+      <button class="mini on-dark" data-action="openCount" data-extra="${dataAttr({block})}">${icon("plus")} إضافة</button>
     </h3>${body}${blockTotal(rows.length, total)}</div>`;
 }
 
@@ -90,7 +90,7 @@ function render() {
   $("#btnModeToggle").innerHTML = isTemplate
     ? `${icon("arrow-back")} رجوع لعرض اليوم`
     : `${icon("edit")} تعديل القالب الدائم`;
-  ["dayPrev", "dayNext", "dayToday", "dutyDate", "btnPrint", "btnReset"].forEach(id => {
+  ["dayPrev", "dayNext", "dayToday", "dutyDate", "btnReset"].forEach(id => {
     $("#" + id).classList.toggle("hidden", isTemplate);
   });
   if (!VIEW) { $("#cntBlocks").innerHTML = `<div class="empty">جارٍ التحميل...</div>`; return }
@@ -180,7 +180,6 @@ $("#dayPrev").onclick = () => shiftDay(-1);
 $("#dayNext").onclick = () => shiftDay(1);
 $("#dayToday").onclick = () => loadDay(curDate());
 $("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
-$("#btnPrint").onclick = () => window.print();
 $("#btnModeToggle").onclick = () => (MODE === "day" ? loadTemplateView() : loadDay(DAY || curDate()));
 
 $("#btnReset").onclick = async () => {

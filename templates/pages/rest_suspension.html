@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block page_actions %}
+<button class="primary" id="newSuspensionBtn">{{ icon('plus') }} أمر وقف راحات</button>
+{% endblock %}
 
 {% block content %}
 <div class="panel">
@@ -7,7 +10,6 @@
       أمر الوقف بيوقف أنواع راحة معيّنة لكل الضباط، وبيفضل ساري لحد «فتح الراحات».
       وهو ساري، تسجيل راحة من نوع موقوف بيترفض. فتح الراحات مابيرجّعش أي راحة اتوقفت.
     </p>
-    <button class="primary" id="newSuspensionBtn">{{ icon('plus') }} أمر وقف راحات</button>
   </div>
   <div id="suspActive"></div>
 </div>

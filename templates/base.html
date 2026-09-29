@@ -7,7 +7,7 @@
   <title>{{ page_title }} — مكتب العمليات وشئون الضباط</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body data-page="{{ page }}">
+<body data-page="{{ page }}" data-export="{% block export %}{% endblock %}">
 <a class="skip-link" href="#main">تخطي إلى المحتوى</a>
 {% include "partials/icons.html" %}
 <header class="topbar">

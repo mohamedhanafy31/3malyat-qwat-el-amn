@@ -1,4 +1,9 @@
 {% extends "base.html" %}
+{% block export %}xlsx print{% endblock %}
+{% block page_actions %}
+<button class="primary" id="addCrsBtn">{{ icon('plus') }} فرقة جديدة</button>
+<button class="btn" id="addTermBtn">{{ icon('plus') }} التحاق ضابط</button>
+{% endblock %}
 
 {% block content %}
 <div class="stats" id="crsStats"></div>
@@ -22,8 +27,6 @@
       <option value="أخرى">أخرى</option>
       <option value="__none">بدون تصنيف</option>
     </select>
-    <button class="primary" id="addCrsBtn">{{ icon('plus') }} فرقة جديدة</button>
-    <button class="mini" id="addTermBtn">{{ icon('plus') }} التحاق ضابط</button>
   </div>
   <p class="hint panel-notice">
     الالتحاق بفرقة سجل بمدى تواريخ — زي الراحة بالظبط — فالضابط بيظهر في خانة

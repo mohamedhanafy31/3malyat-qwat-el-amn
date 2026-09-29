@@ -1,9 +1,12 @@
 {% extends "base.html" %}
+{% block export %}xlsx print{% endblock %}
+{% block page_actions %}
+<button class="primary" id="addServiceBtn">{{ icon('plus') }} خدمة جديدة</button>
+{% endblock %}
 
 {% block content %}
 <div class="panel">
   <div class="toolbar">
-    <button class="primary" id="addServiceBtn">{{ icon('plus') }} خدمة جديدة</button>
     <input class="search" id="svcSearch" aria-label="البحث في دليل الخدمات" placeholder="بحث بالاسم أو التعليمات">
     <select class="select" id="svcKindFilter" aria-label="تصفية حسب نوع الخدمة"></select>
     <select class="select" id="svcPeriodFilter" aria-label="تصفية حسب فترة الخدمة"></select>

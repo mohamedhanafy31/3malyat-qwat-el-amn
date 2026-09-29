@@ -1,6 +1,10 @@
 {# صفحة واحدة بتخدم الضباط والأفراد — نفس الجدول والأدوات، بيختلفوا في
    الأعمدة وكرت القيادة، وده متحدد من data-page في <body>. #}
 {% extends "base.html" %}
+{% block export %}xlsx print{% endblock %}
+{% block page_actions %}
+<button class="primary" id="addBtn">{{ icon('plus') }} {{ 'إضافة ضابط' if page == 'officers' else 'إضافة فرد' }}</button>
+{% endblock %}
 
 {% block alerts %}{% if page == 'officers' %}<div id="alerts"></div>{% endif %}{% endblock %}
 
@@ -39,7 +43,6 @@
       <option value="resting">في راحة اليوم</option>
       <option value="working">متواجد بالمعسكر</option>
     </select>
-    <button class="primary" id="addBtn">{{ icon('plus') }} إضافة</button>
   </div>
 
   <div id="tableWrap" role="tabpanel" aria-labelledby="forceTabActive"></div>

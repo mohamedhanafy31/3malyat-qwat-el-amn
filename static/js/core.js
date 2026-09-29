@@ -370,6 +370,7 @@ function _rowMenuOpen(trigger,focus="first"){
 document.addEventListener("click",e=>{
   const trigger=e.target.closest(".row-menu-btn");
   if(trigger){
+    if(trigger.getAttribute("aria-disabled")==="true") return;
     if(_rowMenuTrigger===trigger) _rowMenuClose(false);
     else _rowMenuOpen(trigger,e.detail===0?"first":null);
     return;
@@ -380,6 +381,7 @@ document.addEventListener("keydown",e=>{
   const trigger=e.target.closest?.(".row-menu-btn");
   if(trigger&&["Enter"," ","ArrowDown","ArrowUp"].includes(e.key)){
     e.preventDefault();
+    if(trigger.getAttribute("aria-disabled")==="true") return;
     _rowMenuOpen(trigger,e.key==="ArrowUp"?"last":"first");
     return;
   }

@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% block export %}xlsx print{% endblock %}
+{% block page_actions %}
+<button class="primary" id="addLeaveBtn">{{ icon('plus') }} تسجيل راحة</button>
+{% endblock %}
 
 {% block content %}
 <div class="stats" id="leaveStats"></div>
@@ -30,7 +34,6 @@
       <option value="medium">متوسطة (4-7 أيام)</option>
       <option value="long">طويلة (أكثر من 7 أيام)</option>
     </select>
-    <button class="primary" id="addLeaveBtn">{{ icon('plus') }} تسجيل راحة</button>
   </div>
   <div id="leaveWrap" role="tabpanel" aria-labelledby="leaveTabAll"></div>
 </div>

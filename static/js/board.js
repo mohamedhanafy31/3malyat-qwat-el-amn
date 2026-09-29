@@ -9,12 +9,7 @@ let SELECTED_ROW_ID = null, MOVING_ROW = false, ENTRY_AFTER_ID = null;
    لازم يبقى ملف Word حقيقي بنفس شكل الورقة الرسمية (نفس التقسيمة
    والحدود والتظليل)، فبيتولّد من السيرفر (`backend/board_export.py`)
    بدل نسخ الـHTML الظاهر على الشاشة. */
-(function bindWordExport() {
-  const btn = document.getElementById("exportWordBtn");
-  if (!btn) return;
-  btn.title = "تنزيل اليومية كملف Word رسمي بنفس شكل الورقة";
-  btn.onclick = () => { window.location.href = `/api/board/${DAY}/export.docx`; };
-})();
+window.exportDocxUrl = () => `/api/board/${DAY}/export.docx`;
 
 const nameOf = list => p => `${p.role ? p.role + "/ " : ""}${p.name}`;
 
@@ -151,7 +146,7 @@ function sectionCard(sec) {
   // الأهداف قايمة مقفولة بس — مفيش «+ إضافة» حر ليها زي الأقسام المحسوبة.
   // الكتل الثابتة عندها الصفّين الثابتين + إمكانية إضافة دور تاني حر.
   const addBtn = ["officers", "targets"].includes(sec.type) ? "" :
-    `<button class="mini" data-action="openEntry"
+    `<button class="mini on-dark" data-action="openEntry"
       data-extra="${dataAttr({section: sec.name})}">${icon("plus")} إضافة</button>`;
   const seededNote = sec.type === "targets" && sec.seeded_from
     ? `<small class="target-default-note">مبدئيًا من تأكيد يوم ${fmt(sec.seeded_from)}</small>`

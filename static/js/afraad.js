@@ -9,12 +9,7 @@ let AF = null, DAY = null;
 /* زرار «Word» العام (export.js) بيلف الـHTML الظاهر — هنا لازم يبقى
    ملف Word حقيقي بنفس شكل ورقة «افراد» الحقيقية، فبيتولّد من السيرفر
    (`backend/afraad_export.py`) بدل نسخ الشاشة، نفس فكرة board.js. */
-(function bindWordExport() {
-  const btn = document.getElementById("exportWordBtn");
-  if (!btn) return;
-  btn.title = "تنزيل يومية الأفراد كملف Word رسمي بنفس شكل الورقة";
-  btn.onclick = () => { window.location.href = `/api/afraad/${DAY}/export.docx`; };
-})();
+window.exportDocxUrl = () => `/api/afraad/${DAY}/export.docx`;
 
 function personCell(p) {
   if (!p?.name && !p?.phone) return `<span class="muted">شاغرة</span>`;

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block export %}xlsx print{% endblock %}
 
 {% block content %}
 <div class="panel">
@@ -9,7 +10,6 @@
     <button class="mini" id="dayToday">النهاردة</button>
     <button class="mini" id="btnModeToggle">{{ icon('edit') }} تعديل القالب الدائم</button>
     <button class="mini hidden" id="btnReset">↺ استرجاع القالب الافتراضي لليوم ده</button>
-    <button class="mini" id="btnPrint">طباعة</button>
   </div>
   <div id="cntSeedBanner" class="alert-card hidden">
     <div class="alert-head"><span class="alert-ico">ℹ</span><strong>القالب فاضي لسه</strong>
