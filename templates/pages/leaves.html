@@ -12,10 +12,11 @@
 <div class="panel">
   <div class="panel-head">
     <div class="tabs" role="tablist" aria-label="عرض سجلات الراحات">
-      <button type="button" class="tab active" id="leaveTabAll" role="tab" aria-selected="true" aria-controls="leaveWrap" tabindex="0" data-lv="all">الكل</button>
+      <button type="button" class="tab active" id="leaveTabActive" role="tab" aria-selected="true" aria-controls="leaveWrap" tabindex="0" data-lv="active">الحالية والقادمة</button>
       <button type="button" class="tab" id="leaveTabCurrent" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="current">جارية الآن</button>
       <button type="button" class="tab" id="leaveTabUpcoming" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="upcoming">قادمة</button>
-      <button type="button" class="tab" id="leaveTabMonth" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="month">هذا الشهر</button>
+      <button type="button" class="tab" id="leaveTabEnded" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="ended">منتهية</button>
+      <button type="button" class="tab" id="leaveTabAll" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="all">الكل</button>
     </div>
   </div>
   <div class="toolbar">
@@ -35,7 +36,7 @@
       <option value="long">طويلة (أكثر من 7 أيام)</option>
     </select>
   </div>
-  <div id="leaveWrap" role="tabpanel" aria-labelledby="leaveTabAll">{{ skeleton("rows", 10) }}</div>
+  <div id="leaveWrap" role="tabpanel" aria-labelledby="leaveTabActive">{{ skeleton("rows", 10) }}</div>
 </div>
 {% endblock %}
 

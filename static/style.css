@@ -1030,6 +1030,32 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 @media(max-width:700px){.day-links{grid-template-columns:1fr}}
 
 .dash-wide{margin-top:var(--s4)}
+/* بطاقات الأرقام في الرئيسية روابط لصفحاتها */
+.stat-link{display:block;text-decoration:none;color:inherit;transition:border-color .12s,background .12s}
+.stat-link:hover{border-color:var(--navy-500);background:var(--navy-50)}
+.dash-quick{display:flex;flex-wrap:wrap;gap:var(--s2);margin-inline-start:auto;font-family:var(--font-body);
+  font-weight:400}
+.dash-quick .btn{text-decoration:none}
+.task-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.task{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) 0;border-bottom:1px solid var(--line)}
+.task:last-child{border-bottom:0}
+.task-text{flex:1;min-width:0;font-size:var(--t-cap);color:var(--ink-700)}
+.task-text b{color:var(--ink-900)}
+.task .btn{text-decoration:none;flex:none}
+.recent-changes h4{display:flex;align-items:center;gap:var(--s2);margin:var(--s4) 0 var(--s2);
+  font-size:var(--t-sm);color:var(--ink-500)}
+.recent-changes h4 a{margin-inline-start:auto;font-weight:600;color:var(--navy-800);font-family:var(--font-body)}
+.change-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s1)}
+.change-list li{display:flex;gap:var(--s3);align-items:baseline;font-size:var(--t-sm);color:var(--ink-700)}
+.change-list time{flex:none;color:var(--ink-500);font-variant-numeric:tabular-nums;direction:ltr}
+.change-list span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.change-list em{font-style:normal;color:var(--ink-500);flex:none}
+.dash-tasks{margin-top:0}
+.dash-card h3{flex-wrap:wrap}
+@media(max-width:700px){
+  .dash-quick{margin-inline-start:0;width:100%}
+  .task{flex-wrap:wrap}
+}
 .dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:var(--s5)}
 .dash-col h4{margin:0 0 var(--s3);font-size:var(--t-sm);color:var(--ink-500);
   display:flex;align-items:center;gap:var(--s2);

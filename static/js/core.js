@@ -79,6 +79,7 @@ const AR_NOUNS={
   "ضابط":{one:"ضابط واحد",two:"ضابطان",few:"ضباط",many:"ضابطًا",sing:"ضابط"},
   "فرد":{one:"فرد واحد",two:"فردان",few:"أفراد",many:"فردًا",sing:"فرد"},
   "يوم":{one:"يوم واحد",two:"يومان",few:"أيام",many:"يومًا",sing:"يوم"},
+  "خدمة":{one:"خدمة واحدة",two:"خدمتان",few:"خدمات",many:"خدمة",sing:"خدمة"},
 };
 function countLabel(n,forms){
   const f=typeof forms==="string"?AR_NOUNS[forms]:forms;

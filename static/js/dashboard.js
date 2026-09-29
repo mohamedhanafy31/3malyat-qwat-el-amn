@@ -22,21 +22,48 @@
          <a class="mini" href="/leaves">إدارة الوقف</a></div></div>`
     : "";
 
-  // التقصيرة وحدها تحتاج انتباهًا؛ بقية الأعداد معلومات محايدة.
-  $("#dashStats").innerHTML = `
-    <div class="stat"><span>الضباط على القوة</span><strong>${c.officers}</strong></div>
-    <div class="stat"><span>الأفراد على القوة</span><strong>${c.personnel}</strong></div>
-    <div class="stat"><span>في راحة اليوم</span><strong>${c.on_rest}</strong></div>
-    <div class="stat${c.taqseera > 0 ? " stat-accent-orange" : ""}"><span>تنبيهات تقصيرة</span><strong>${c.taqseera}</strong></div>`;
-  $("#qlOfficers").textContent = c.officers;
-  $("#qlPersonnel").textContent = c.personnel;
-  $("#qlLeaves").textContent = c.leaves;
-
-  const day = curDate();
-  $("#dashToday").innerHTML = `<b>${dayName(day)}</b> ${fmt(day)}`;
+  // كل بطاقة رابط لصفحتها. التقصيرة وحدها تحتاج انتباهًا؛ الباقي محايد.
+  const tile = (href, label, value, cls = "") =>
+    `<a class="stat stat-link ${cls}" href="${href}"><span>${label}</span><strong>${value}</strong></a>`;
+  $("#dashStats").innerHTML =
+    tile("/officers", "الضباط على القوة", c.officers) +
+    tile("/personnel", "الأفراد على القوة", c.personnel) +
+    tile("/leaves", "في راحة اليوم", c.on_rest) +
+    tile("/officers", "تنبيهات تقصيرة", c.taqseera, c.taqseera > 0 ? "stat-accent-orange" : "");
   renderAlerts(d.alerts);
 
+  // ── مهام اليوم ──
   const u = d.upcoming || {};
+  const hhmm = at => (at || "").slice(11, 16);
+  const conf = d.confirm || {};
+  const task = (state, text, href, label) => `<li class="task task-${state}">
+      <span class="status-dot ${state}" aria-hidden="true"></span>
+      <span class="task-text">${text}</span>
+      ${href ? `<a class="btn" href="${href}">${esc(label)}</a>` : ""}</li>`;
+  const confirmTask = !conf.confirmed && !conf.count
+    ? task("muted", "لا توجد خدمات مسجّلة في اليومية التفصيلية اليوم", "/board", "فتح اليومية")
+    : !conf.confirmed
+      ? task("warn", "<b>اليومية التفصيلية لم تُؤكَّد بعد</b> — التغييرات لا تُسجَّل في سجل التغييرات قبل التأكيد", "/board", "تأكيد اليومية")
+      : conf.pending
+        ? task("warn", `<b>توجد تعديلات بعد آخر تأكيد</b> (الساعة ${esc(hhmm(conf.at))})`, "/board", "مراجعة وتأكيد")
+        : task("ok", `اليومية مؤكدة الساعة ${esc(hhmm(conf.at))}${conf.by ? ` — ${esc(conf.by)}` : ""}`, "/board", "عرض اليومية");
+  const vac = (u.tomorrow_vacant || []).length;
+  const vacTask = vac
+    ? task("warn", `<b>${countLabel(vac, "خدمة")} شاغرة غدًا</b>`, "/board", "تعيين")
+    : task("ok", "لا توجد خدمات شاغرة غدًا", "", "");
+  const back = (u.leaves_ending_soon || []).length;
+  const backTask = back
+    ? task("muted", `${back === 1 ? "ضابط واحد يعود" : `${countLabel(back, "ضابط")} يعودون`} من الراحة خلال 3 أيام`, "/leaves", "سجل الراحات")
+    : task("muted", "لا يعود أحد من الراحة خلال 3 أيام", "", "");
+  $("#dashTasks").innerHTML = confirmTask + vacTask + backTask;
+
+  const recent = d.recent_changes || [];
+  $("#dashChanges").innerHTML = recent.length ? `<h4>آخر التغييرات <a href="/changes">عرض الكل</a></h4>
+    <ul class="change-list">${recent.map(e => `<li>
+      <time>${esc(fmtShort((e.ts || "").slice(0, 10)))} ${esc(hhmm(e.ts))}</time>
+      <span>${esc(humanizeDates(e.text || `${e.entity} ${e.action}`))}</span>
+      ${e.edited_by ? `<em>${esc(e.edited_by)}</em>` : ""}</li>`).join("")}</ul>` : "";
+
   const col = (title, rows, render) => `<section class="dash-col">
     <h4>${title} <em>${rows.length || ""}</em></h4>
     ${rows.length

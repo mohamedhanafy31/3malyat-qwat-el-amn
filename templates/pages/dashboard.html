@@ -1,40 +1,29 @@
 {% extends "base.html" %}
 
-{% block alerts %}<div id="alerts"><div class="alert-skel skel" aria-hidden="true"></div></div>{% endblock %}
+{# التنبيهات بتتعرض بعد بطاقات الأرقام مش قبلها — الأرقام هي أول حاجة
+   المستخدم بيدوّر عليها، والتنبيه ملخّص مطوي بعدده. #}
+{% block alerts %}{% endblock %}
 
 {% block content %}
 <div id="clockWarning"></div>
 <div id="restSuspension"></div>
 <div id="dashStats" class="stats">{{ skeleton("stats", 4) }}</div>
+<div id="alerts"><div class="alert-skel skel" aria-hidden="true"></div></div>
 
-{# الكرت الكبير كان بيحمل جملة واحدة ساكنة بتقول «افتح كذا من القائمة» —
-   مساحة الثلثين بتشرح التنقّل بدل ما تعمله. بقى مدخل مباشر ليوم الشغل. #}
-<div class="dash-grid">
-  <div class="dash-card">
-    <h3>تشغيل النهاردة</h3>
-    <div class="body">
-      <p class="day-line" id="dashToday"></p>
-      <div class="day-links">
-        <a href="{{ url_for('pages.board') }}">
-          <b>اليومية التفصيلية</b><small>خدمات اليوم بأقسامها</small></a>
-        <a href="{{ url_for('pages.duty') }}">
-          <b>يومية الضباط</b><small>التشغيل وجدول الإجمالي</small></a>
-        <a href="{{ url_for('pages.counts') }}">
-          <b>اعداد الخدمات</b><small>الصباحية والمسائية والطوارئ</small></a>
-      </div>
-    </div>
-  </div>
-
-  <div class="dash-card">
-    <h3>السجلات</h3>
-    <div class="body">
-      <div class="quick-links">
-        <a href="{{ url_for('pages.officers') }}"><span>سجل الضباط</span><b id="qlOfficers">—</b></a>
-        <a href="{{ url_for('pages.personnel') }}"><span>سجل الأفراد</span><b id="qlPersonnel">—</b></a>
-        <a href="{{ url_for('pages.leaves') }}"><span>الراحات والإجازات</span><b id="qlLeaves">—</b></a>
-        <a href="{{ url_for('pages.register') }}"><span>حصر تشغيل السادة الضباط</span><b>{{ icon('chevron-next') }}</b></a>
-      </div>
-    </div>
+{# «مهام اليوم» بدل كرتين: «تشغيل النهاردة» (تلات روابط وتاريخ مكرر من
+   الترويسة) و«السجلات» (نفس روابط القائمة ونفس الأرقام تالت مرة). هنا
+   اللي محتاج تصرّف فعلًا: التأكيد، الشواغر، الراجعين، وآخر التغييرات. #}
+<div class="dash-card dash-tasks">
+  <h3>مهام اليوم
+    <span class="dash-quick">
+      <a class="btn" href="{{ url_for('pages.board') }}">اليومية التفصيلية</a>
+      <a class="btn" href="{{ url_for('pages.duty') }}">يومية الضباط</a>
+      <a class="btn" href="{{ url_for('pages.counts') }}">أعداد الخدمات</a>
+    </span>
+  </h3>
+  <div class="body">
+    <ul class="task-list" id="dashTasks">{{ skeleton("rows", 3) }}</ul>
+    <div class="recent-changes" id="dashChanges"></div>
   </div>
 </div>
 

@@ -1,5 +1,9 @@
 /* سجل الراحات والإجازات */
-let LEAVES = [], PEOPLE = [], OFFICER_IDS = new Set(), LEAVE_TAB = "all";
+let LEAVES = [], PEOPLE = [], OFFICER_IDS = new Set(), LEAVE_TAB = "active";
+/* الصفحة كانت بتفتح على «الكل» مرتبة بالنوع ثم الأقدم، فأول شاشة كانت راحات
+   يونيو المنتهية؛ الجاري والقادم — اللي بيتسأل عنه فعلًا — كانوا مدفونين.
+   الافتراضي بقى الحالية والقادمة، والتبويب اللي المستخدم يختاره بيتحفظ. */
+try { LEAVE_TAB = localStorage.getItem("leavesTab") || "active"; } catch (err) {}
 
 // ── helpers ────────────────────────────────────────────────────────────────
 const personById   = id => PEOPLE.find(p => p.id === id);
@@ -152,16 +156,15 @@ const LEAVE_COLS = {
 function render() {
   renderStats();
   const today = curDate();
-  const thisMonth = today.slice(0, 7);
   const st = _sortState("leaveWrap");
 
   let rows = [...LEAVES];
 
   // ── فلترة التبويب ──
+  if (LEAVE_TAB === "active")   rows = rows.filter(l => l.end >= today);
   if (LEAVE_TAB === "current")  rows = rows.filter(l => l.start <= today && today <= l.end);
   if (LEAVE_TAB === "upcoming") rows = rows.filter(l => l.start > today);
-  if (LEAVE_TAB === "month")    rows = rows.filter(l =>
-    l.start.slice(0, 7) === thisMonth || l.end.slice(0, 7) === thisMonth);
+  if (LEAVE_TAB === "ended")    rows = rows.filter(l => l.end < today);
 
   // ── فلتر الاسم (بتطبيع عربي — «احمد» تلاقي «أحمد») ──
   const q = $("#leaveSearch").value.trim();
@@ -195,8 +198,19 @@ function render() {
     });
   }
 
-  // ── الترتيب الافتراضي: النوع → القيادة → الرتبة (يُطبّق فقط لو مفيش column sort نشط) ──
-  if (!st.col) {
+  // ── الترتيب الافتراضي بالزمن خارج «الكل»: الجارية أولًا (الأقرب رجوعًا)،
+  //    ثم القادمة (الأقرب بدايةً)؛ والمنتهية الأحدث أولًا ──
+  const byTime = !st.col && LEAVE_TAB !== "all";
+  if (byTime) {
+    const live = l => l.start <= today && today <= l.end;
+    rows.sort((a, b) => {
+      if (LEAVE_TAB === "ended") return b.end.localeCompare(a.end);
+      if (live(a) !== live(b)) return live(a) ? -1 : 1;
+      return live(a) ? a.end.localeCompare(b.end) : a.start.localeCompare(b.start);
+    });
+  }
+  // ── «الكل»: النوع → القيادة → الرتبة (يُطبّق فقط لو مفيش column sort نشط) ──
+  if (!st.col && !byTime) {
     rows.sort((a, b) => {
       const ta = leaveTypeIndex(a.type), tb = leaveTypeIndex(b.type);
       if (ta !== tb) return ta - tb;
@@ -210,8 +224,8 @@ function render() {
   }
 
   // ── بناء الجدول: فواصل النوع فقط عند الترتيب الافتراضي ──
-  const rowHtml = st.col
-    ? l => leaveRow(l, today)   // بدون grouprows عند column sort
+  const rowHtml = (st.col || byTime)
+    ? l => leaveRow(l, today)   // بدون grouprows عند column sort أو الترتيب الزمني
     : (() => {
         let lastType = null;
         return l => {
@@ -259,8 +273,22 @@ $$("[data-lv]").forEach(b => b.onclick = () => {
     x.tabIndex=selected?0:-1;
   });
   $("#leaveWrap").setAttribute("aria-labelledby",b.id);
-  LEAVE_TAB = b.dataset.lv; render();
+  LEAVE_TAB = b.dataset.lv;
+  try { localStorage.setItem("leavesTab", LEAVE_TAB); } catch (err) {}
+  render();
 });
+// التبويب المحفوظ بيتعلّم أول ما الصفحة تفتح
+(() => {
+  const saved = document.querySelector(`[data-lv="${LEAVE_TAB}"]`) || document.querySelector('[data-lv="active"]');
+  LEAVE_TAB = saved.dataset.lv;
+  $$("[data-lv]").forEach(x => {
+    const selected = x === saved;
+    x.classList.toggle("active", selected);
+    x.setAttribute("aria-selected", String(selected));
+    x.tabIndex = selected ? 0 : -1;
+  });
+  $("#leaveWrap").setAttribute("aria-labelledby", saved.id);
+})();
 $("#leaveSearch").oninput      = debounce(render);   // إعادة الرسم بعد ما الكتابة تهدى
 $("#leaveTypeFilter").onchange = render;
 $("#leaveMonthFilter").onchange = render;

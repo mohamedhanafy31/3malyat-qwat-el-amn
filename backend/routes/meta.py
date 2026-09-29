@@ -8,7 +8,7 @@ from datetime import date
 
 from flask import Blueprint, jsonify
 
-from .. import clock, day_status, rest_suspension
+from .. import changes as changes_lib, clock, confirm as confirm_lib, day_status, rest_suspension
 from ..assignments import OFFICER_STATUSES
 from ..board import BOARD_ORDER
 from ..constants import (
@@ -96,8 +96,12 @@ def bootstrap(page):
         on_rest = sum(1 for o in officers
                       if officer_status(data, o.as_dict(), today)["state"] == "resting")
         alerts = taqseera_alerts(data, today)
+        # «مهام اليوم» في الرئيسية: حالة تأكيد اليومية وآخر التغييرات — نفس
+        # المصادر اللي صفحتي اليومية وسجل التغييرات بيقروا منها
         return jsonify({"meta": meta, "alerts": alerts, "upcoming": build_upcoming(data, today),
                         "clock_warning": clock.check(today),
+                        "confirm": confirm_lib.state_of(data, today.isoformat()),
+                        "recent_changes": changes_lib.recent(data, limit=5),
                         "counts": {
                             **_counts(data),
                             "on_rest": on_rest,
