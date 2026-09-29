@@ -12,6 +12,22 @@ def test_leave_ending_within_the_horizon_is_included(client):
     data = load_data()
     out = leaves_ending_soon(data, date(2026, 1, 8))
     assert [lv["id"] for lv in out] == ["LV-001"]
+    assert out[0]["person_name"] == "أحمد محمد"
+    assert out[0]["person_role"] == "عقيد"
+
+
+def test_leave_ending_soon_does_not_mutate_stored_leave(client):
+    from backend.store import load_data
+    from backend.upcoming import leaves_ending_soon
+
+    data = load_data()
+    stored = next(lv for lv in data["leaves"] if lv["id"] == "LV-001")
+    before = stored.copy()
+
+    out = leaves_ending_soon(data, date(2026, 1, 8))
+
+    assert stored == before
+    assert out[0] is not stored
 
 
 def test_leave_ending_today_counts_as_soon(client):

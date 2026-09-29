@@ -19,8 +19,16 @@ def leaves_ending_soon(data, today, horizon=HORIZON_DAYS):
     """راحات هترجع خلال المدى — مين هيرجع قريب عشان يتخطط تشغيله."""
     today_iso = today.isoformat()
     end_of_window = (today + timedelta(days=horizon)).isoformat()
-    out = [lv for lv in data.get("leaves", [])
-           if today_iso <= lv.get("end", "") <= end_of_window]
+    people = {p["id"]: p for p in PeopleRepo(data).raw_all("officers")}
+    out = []
+    for leave in data.get("leaves", []):
+        if today_iso <= leave.get("end", "") <= end_of_window:
+            person = people.get(leave.get("person_id"), {})
+            out.append({
+                **leave,
+                "person_name": person.get("name", ""),
+                "person_role": person.get("role", ""),
+            })
     return sorted(out, key=lambda lv: lv["end"])
 
 

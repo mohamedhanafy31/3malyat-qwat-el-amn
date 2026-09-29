@@ -668,9 +668,21 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .mtable{min-width:0;width:100%;table-layout:auto}
 .mtable th{font-size:var(--t-xs);padding:6px var(--s2)}
 .mtable td{font-size:var(--t-sm);padding:6px var(--s2)}
+.mcard .mtable th,.mcard .mtable td{white-space:normal;overflow-wrap:anywhere}
 .mtable .name{white-space:normal;line-height:1.35}
+.mcard .mtable .chip{white-space:normal;overflow-wrap:anywhere}
 .mtable .num{white-space:normal}
 .mtable .actions{flex-wrap:nowrap}
+/* الظل الطرفي يظهر مع بقاء محتوى خارج مجال العرض، ويختفي عند الوصول
+   إليه بفضل طبقتي الخلفية المحليتين. */
+.mtable-wrap{max-width:100%;overflow-x:auto;
+  background:
+    linear-gradient(to right,var(--surface) 30%,transparent) left center,
+    linear-gradient(to left,var(--surface) 30%,transparent) right center,
+    radial-gradient(farthest-side at 0 50%,rgba(15,39,71,.18),transparent) left center,
+    radial-gradient(farthest-side at 100% 50%,rgba(15,39,71,.18),transparent) right center;
+  background-repeat:no-repeat;background-size:32px 100%,32px 100%,10px 100%,10px 100%;
+  background-attachment:local,local,scroll,scroll}
 
 /* ⑱ب اليومية التفصيلية — شكل «الدفتر الورقي» بالظبط: نفس التقسيمة اللي
    كانت بتتكتب بالإيد على الوورد (عمودين ثابتين، إطار مزدوج للعنوان،
@@ -1034,7 +1046,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:25px
     border-color:#999 !important;position:static}
   .table tbody tr:nth-child(even) td{background:#f6f6f6 !important}
   body{background:#fff;font-size:12px}
-  .table-scroll,.reg-scroll{overflow:visible;max-height:none}
+  .table-scroll,.reg-scroll,.mtable-wrap{overflow:visible;max-height:none;background:none}
   /* الإجماليات لازم تطبع — المتصفح بيشيل الخلفيات الغامقة فبتتحوّل
      لإطار أسود بدل ما النص الأبيض يختفي على ورق أبيض */
   .grand-total{background:#fff !important;color:#000 !important;

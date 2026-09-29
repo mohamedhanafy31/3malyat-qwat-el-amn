@@ -46,6 +46,11 @@ const fmt=d=>{
   if(v===undefined){ v=_FMT_DATE.format(new Date(d+"T00:00:00")); _fmtCache.set(d,v) }
   return v;
 };
+const fmtShort=d=>{
+  if(!d) return "-";
+  const parts=d.split("-");
+  return `${Number(parts[2])}/${Number(parts[1])}`;
+};
 const iso=d=>{const t=new Date(d);t.setHours(12);return t.toISOString().slice(0,10)};
 const addDays=(s,n)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)};
 const dayName=s=>{

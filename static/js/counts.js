@@ -27,12 +27,13 @@ function blockTotal(services, conscripts) {
 /* التسليح بيتحدد من هنا للأساسية بس — الطوارئ (متكررة أو يومية) بتاخده
    من اليومية التفصيلية أصلًا (خانة التسليح على صف الخدمة في اللوحة). */
 const WEAPON_BLOCKS = new Set(["صباحية", "ليلية"]);
+const cardTable = (head, rows) => `<div class="mtable-wrap">${mtable(head, rows)}</div>`;
 
 function editableCard(label, block, rows) {
   const showWeapon = WEAPON_BLOCKS.has(block);
   const head = ["الخدمة", "الجهة", ...(showWeapon ? ["التسليح"] : []), "عدد المجندين", "الإجراء"];
   const body = rows.length
-    ? mtable(head, rows.map(e => `
+    ? cardTable(head, rows.map(e => `
       <tr>
         <td class="name">${esc(e.name) || "<span class='muted'>—</span>"}</td>
         <td>${esc(e.party) || "<span class='muted'>—</span>"}</td>
@@ -60,7 +61,7 @@ function editableCard(label, block, rows) {
 function boardCountCard(label, rows, emptyText) {
   const locked = VIEW?.locked;
   const body = rows.length
-    ? mtable(["الخدمة", "الفترة", "الجهة", "القوام على اللوحة", "عدد المجندين"], rows.map(r => `
+    ? cardTable(["الخدمة", "الفترة", "الجهة", "القوام على اللوحة", "عدد المجندين"], rows.map(r => `
       <tr class="${r.needs_count ? "vacant" : ""}">
         <td class="name">${esc(r.name) || "<span class='muted'>بدون اسم</span>"}</td>
         <td>${esc(r.shift) || "-"}</td>

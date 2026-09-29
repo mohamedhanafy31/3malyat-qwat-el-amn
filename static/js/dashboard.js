@@ -46,7 +46,7 @@
 
   $("#dashUpcoming").innerHTML =
     col("راحات هترجع خلال ٣ أيام", u.leaves_ending_soon || [], lv =>
-      `<li><b>${esc(lv.name)}</b><span>${esc(lv.type)} — بيرجع ${fmt(lv.return_date)}</span></li>`) +
+      `<li><b>${esc(lv.person_role)} / ${esc(lv.person_name)}</b><span>${esc(lv.type)} · يعود ${esc(dayName(lv.return_date))} ${esc(fmt(lv.return_date))}</span></li>`) +
     col("فرق هتبدأ خلال ٣ أيام", u.courses_starting_soon || [], t =>
       `<li><b>${esc(t.officer_name)}</b><span>${esc(t.course_name)} — يبدأ ${fmt(t.start)}</span></li>`) +
     col("خدمات بكرة لسه شاغرة", u.tomorrow_vacant || [], w =>

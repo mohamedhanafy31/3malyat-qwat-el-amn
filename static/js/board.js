@@ -113,8 +113,8 @@ const OFFICER_VIEWS = {
   "الراحات": [["الضابط", "النوع", "من", "إلى", "العودة"], r =>
     `<tr><td class="name">${esc(nameOf()(r))}</td>
      <td><span class="chip ${r.type === "شهرية" ? "m" : r.type === "نصف شهرية" ? "h" : "w"}">${esc(r.type)}</span></td>
-     <td>${r.start ? fmt(r.start) : "-"}</td><td>${r.end ? fmt(r.end) : "-"}</td>
-     <td>${r.return_date ? fmt(r.return_date) : "-"}</td></tr>`],
+     <td>${fmtShort(r.start)}</td><td>${fmtShort(r.end)}</td>
+     <td>${fmtShort(r.return_date)}</td></tr>`],
   "التقصيرات": [["الضابط", "العمل قبل التقصيرة"], r =>
     `<tr><td class="name">${esc(nameOf()(r))}</td><td class="wrap">${esc(r.note)}</td></tr>`],
   "الخوارج": [["الضابط", "السبب", "التفاصيل"], r =>
@@ -123,14 +123,16 @@ const OFFICER_VIEWS = {
      <td class="wrap">${esc(r.note)}</td></tr>`],
 };
 
+const cardTable = (head, rows) => `<div class="mtable-wrap">${mtable(head, rows)}</div>`;
+
 function sectionCard(sec) {
   const count = sec.rows.length;
   let body;
   if (sec.type === "officers") {
     const [head, render] = OFFICER_VIEWS[sec.name];
-    body = count ? mtable(head, sec.rows.map(render)) : `<div class="mempty">لا يوجد</div>`;
+    body = count ? cardTable(head, sec.rows.map(render)) : `<div class="mempty">لا يوجد</div>`;
   } else if (sec.type === "targets") {
-    body = mtable(TARGET_HEAD, sec.rows.map(targetSlotRow));
+    body = cardTable(TARGET_HEAD, sec.rows.map(targetSlotRow));
   } else if (sec.type === "slots") {
     // الصفّين الثابتين (صباحية/ليلية بالاسم الرسمي) بأسلوب الأهداف —
     // تعيين سريع بس. أي دور تاني ضافه المشغّل بإيده لنفس القسم (`+
@@ -139,10 +141,10 @@ function sectionCard(sec) {
     // يتحط فيه هنا.
     const fixed = sec.rows.filter(r => r.slot);
     const extra = sec.rows.filter(r => !r.slot);
-    body = mtable(SLOT_HEAD, fixed.map(r => slotRow(r, sec.name)))
-      + (extra.length ? mtable(SERVICE_HEAD, extra.map(serviceRow)) : "");
+    body = cardTable(SLOT_HEAD, fixed.map(r => slotRow(r, sec.name)))
+      + (extra.length ? cardTable(SERVICE_HEAD, extra.map(serviceRow)) : "");
   } else {
-    body = sec.rows.length ? mtable(SERVICE_HEAD, sec.rows.map(serviceRow))
+    body = sec.rows.length ? cardTable(SERVICE_HEAD, sec.rows.map(serviceRow))
       : `<div class="mempty">لا توجد خدمات — اضغط «إضافة» فوق</div>`;
   }
   // الأهداف قايمة مقفولة بس — مفيش «+ إضافة» حر ليها زي الأقسام المحسوبة.
