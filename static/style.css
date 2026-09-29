@@ -172,7 +172,13 @@ button,input,select,textarea{font-family:inherit}
 .sidebar{width:var(--sidebar-w);flex:none;background:var(--surface);
   border-inline-start:1px solid var(--line);padding:var(--s3) 0 var(--s6);
   position:sticky;top:var(--topbar-h);align-self:flex-start;
-  height:calc(100vh - var(--topbar-h));overflow-y:auto}
+  height:calc(100vh - var(--topbar-h));overflow-y:auto;
+  /* ظل رفيع تحت لما يكون فيه روابط تحت حافة الشاشة؛ الطبقة المحلية بتغطيه
+     أول ما توصل للآخر */
+  background:
+    linear-gradient(to top,var(--surface) 35%,transparent) center bottom/100% 36px no-repeat local,
+    linear-gradient(to top,var(--shadow-edge),transparent) center bottom/100% 14px no-repeat scroll,
+    var(--surface)}
 .side-group{padding-bottom:var(--s2)}
 .side-group + .side-group{margin-top:var(--s2);border-top:1px solid var(--navy-50)}
 .side-title{font-size:var(--t-xs);color:var(--ink-500);
@@ -348,7 +354,24 @@ button,input,select,textarea{font-family:inherit}
    (زراير 28px جنب حقول 40px في نص الصفحات، متصلّحة لصفحتين بس بقاعدة خاصة) */
 .toolbar{display:flex;gap:var(--s2);align-items:center;padding:var(--s3) var(--s5);
   flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--surface-sunken)}
-.toolbar > .mini,.toolbar > .btn,.toolbar .viewtabs,.toolbar > a.mini{height:var(--control-h)}
+.toolbar > .mini,.toolbar > .btn,.toolbar .viewtabs,.toolbar > a.mini,
+.toolbar .tb-group > .mini,.toolbar .tb-group > .btn{height:var(--control-h)}
+/* مجموعات الشريط بتلتف كوحدة كاملة — مجموعة التنقل بين الأيام ما تتقسمش
+   على سطرين، وكل مجموعة مفصولة بخط رفيع عن اللي جنبها */
+.tb-group{display:flex;align-items:center;gap:var(--s2);flex-wrap:nowrap}
+.tb-group + .tb-group{padding-inline-start:var(--s3);border-inline-start:1px solid var(--line-strong)}
+.tb-group.tb-end{margin-inline-start:auto}
+.tb-group .date-input-display{width:176px;min-width:0}
+.tb-group:empty,.tb-group:not(:has(> :not(:empty))){display:none}
+.ls-filter-range{display:flex;align-items:center;gap:var(--s2);flex-wrap:nowrap}
+/* الموبايل: كل مجموعة بعرض الشريط وبتلتف جواها — منع اللف كان بيقص
+   «التالي» و«النهاردة» برّه الشاشة */
+@media(max-width:700px){
+  .tb-group,.ls-filter-range{flex-wrap:wrap;width:100%}
+  .tb-group + .tb-group{border-inline-start:0;padding-inline-start:0}
+  .tb-group .date-input-display{flex:1 1 150px;width:auto}
+  .tb-group.tb-end{margin-inline-start:0}
+}
 .toolbar > .muted{font-size:var(--t-sm);margin-inline-start:auto}
 
 /* ═══════════════════ ⑪ حقول الإدخال ═══════════════════ */
@@ -791,6 +814,9 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
    لوحده، من غير أي تعديل هنا. الكلاسات اتحطّت تحت `.ledger-board` عشان
    ما تأثّرش على `.mcard`/`.match-grid` في صفحات تانية (الحصر، سجل
    الضباط) بتستخدم نفس الأسماء لغرض تاني. */
+/* رأس الدفتر للورقة المطبوعة بس — على الشاشة بيكرر عنوان الصفحة حرفيًا،
+   والتاريخ بيظهر في سطر وصف الصفحة (setPageDay في core.js) */
+@media screen{.ledger-head{display:none}}
 .ledger-head{margin:var(--s4) var(--s5) 0;padding:var(--s4) var(--s5);text-align:center;
   background:var(--surface);border:3px double var(--navy-900)}
 .ledger-head h2{margin:0;font-size:var(--t-xl);color:var(--navy-950)}
@@ -1279,7 +1305,11 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 }
 @media(max-width:560px){
   .topbar .today{display:none}
-  .stats{grid-template-columns:1fr 1fr}
+  /* على الموبايل البطاقات صف واحد بيتمرر — شبكة عمودين كانت بتسيب بطاقة
+     وحيدة في آخر صف لما العدد فردي */
+  .stats{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:var(--s2);
+    padding-bottom:var(--s1);scrollbar-width:thin}
+  .stats > .stat{flex:0 0 44%;scroll-snap-align:start}
 }
 
 /* ═══════════════════ ㉖ الفِرق والدورات — كروت الفرقة ═══════════════════ */

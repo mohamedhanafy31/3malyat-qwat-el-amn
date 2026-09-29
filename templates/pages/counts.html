@@ -4,12 +4,16 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar" id="cntBar">
-    <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
-    <input type="date" id="dutyDate" class="select">
-    <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
-    <button class="mini" id="dayToday">النهاردة</button>
-    <button class="mini" id="btnModeToggle">{{ icon('edit') }} تعديل القالب الدائم</button>
-    <button class="mini hidden" id="btnReset">↺ استرجاع القالب الافتراضي لليوم ده</button>
+    <div class="tb-group" role="group" aria-label="التنقل بين الأيام">
+      <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
+      <input type="date" id="dutyDate" class="select">
+      <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
+      <button class="mini" id="dayToday">النهاردة</button>
+    </div>
+    <div class="tb-group tb-end" role="group" aria-label="القالب الدائم">
+      <button class="mini" id="btnModeToggle">{{ icon('edit') }} تعديل القالب الدائم</button>
+      <button class="mini hidden" id="btnReset">↺ استرجاع القالب الافتراضي لليوم ده</button>
+    </div>
   </div>
   <div id="cntSeedBanner" class="alert-card hidden">
     <div class="alert-head"><span class="alert-ico">ℹ</span><strong>القالب فاضي لسه</strong>

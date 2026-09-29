@@ -86,7 +86,7 @@ async function loadDayStatus() {
 async function loadDay(day) {
   const v = await api(`/api/afraad/${day}`);
   if (!v) return;
-  AF = v; DAY = day; $("#dutyDate").value = day; render();
+  AF = v; DAY = day; $("#dutyDate").value = day; setPageDay(day); render();
   loadDayStatus();
 }
 

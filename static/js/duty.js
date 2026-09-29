@@ -117,7 +117,7 @@ $("#assignForm").onsubmit = async e => {
 
 async function loadDay(day) {
   const d = await api(`/api/duty/${day}`); if (!d) return;
-  DUTY = d; render();
+  DUTY = d; setPageDay(day); render();
   renderRestStrip($("#restStrip"), day);
 }
 const shiftDay = n => { const d = addDays($("#dutyDate").value || curDate(), n); $("#dutyDate").value = d; loadDay(d) };

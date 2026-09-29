@@ -593,7 +593,7 @@ $("#btnConfirmDay").onclick = async () => {
 async function loadDay(day) {
   const b = await api(`/api/board/${day}`); if (!b) return;
   if (DAY && day !== DAY) SELECTED_ROW_ID = null;
-  BOARD = b; DAY = day; $("#dutyDate").value = day; render();
+  BOARD = b; DAY = day; $("#dutyDate").value = day; setPageDay(day); render();
   renderRestStrip($("#restStrip"), day);
   renderConfirmBadge();
   loadDayStatus();

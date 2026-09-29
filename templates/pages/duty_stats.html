@@ -19,19 +19,19 @@
 
 <!-- ── شريط فلاتر المدى ── -->
 <div class="ls-filter-bar">
-  <div class="ls-filter-title">
-    {{ icon('filter') }}
-    <span>مدى التاريخ:</span>
-  </div>
-
-  <div class="ls-filter-group">
-    <label for="dsFrom">من:</label>
-    <input type="date" id="dsFrom" class="select select-sm">
-  </div>
-
-  <div class="ls-filter-group">
-    <label for="dsTo">إلى:</label>
-    <input type="date" id="dsTo" class="select select-sm">
+  <div class="ls-filter-range" role="group" aria-label="مدى التاريخ">
+    <div class="ls-filter-title">
+      {{ icon('filter') }}
+      <span>مدى التاريخ:</span>
+    </div>
+    <div class="ls-filter-group">
+      <label for="dsFrom">من:</label>
+      <input type="date" id="dsFrom" class="select select-sm">
+    </div>
+    <div class="ls-filter-group">
+      <label for="dsTo">إلى:</label>
+      <input type="date" id="dsTo" class="select select-sm">
+    </div>
   </div>
 
   <div class="ls-filter-quick">

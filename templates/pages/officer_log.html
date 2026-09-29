@@ -14,17 +14,19 @@
       </select>
     </div>
 
-    <div class="ls-filter-title">
-      {{ icon('filter') }}
-      <span>مدى التاريخ:</span>
-    </div>
-    <div class="ls-filter-group">
-      <label for="ologFrom">من:</label>
-      <input type="date" id="ologFrom" class="select select-sm">
-    </div>
-    <div class="ls-filter-group">
-      <label for="ologTo">إلى:</label>
-      <input type="date" id="ologTo" class="select select-sm">
+    <div class="ls-filter-range" role="group" aria-label="مدى التاريخ">
+      <div class="ls-filter-title">
+        {{ icon('filter') }}
+        <span>مدى التاريخ:</span>
+      </div>
+      <div class="ls-filter-group">
+        <label for="ologFrom">من:</label>
+        <input type="date" id="ologFrom" class="select select-sm">
+      </div>
+      <div class="ls-filter-group">
+        <label for="ologTo">إلى:</label>
+        <input type="date" id="ologTo" class="select select-sm">
+      </div>
     </div>
     <div class="ls-filter-quick">
       <button type="button" class="btn btn-xs" id="ologPreset7">آخر 7 أيام</button>

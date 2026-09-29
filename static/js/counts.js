@@ -167,7 +167,7 @@ $("#cntBlocks").addEventListener("change", async e => {
 async function loadDay(day) {
   const v = await api(`/api/counts/${day}`);
   if (!v) return;
-  VIEW = v; DAY = day; MODE = "day"; $("#dutyDate").value = day; render();
+  VIEW = v; DAY = day; MODE = "day"; $("#dutyDate").value = day; setPageDay(day); render();
 }
 async function loadTemplateView() {
   const v = await api(`/api/counts/template`);

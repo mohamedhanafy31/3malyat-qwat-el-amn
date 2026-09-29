@@ -56,6 +56,13 @@ const fmtShort=d=>{
   const parts=d.split("-");
   return `${Number(parts[2])}/${Number(parts[1])}`;
 };
+/* اليوم المعروض في سطر وصف الصفحة — بدل رأس الدفتر اللي بقى للطباعة بس */
+function setPageDay(day){
+  const p=document.querySelector(".page-head .titles p");
+  if(!p||!day) return;
+  if(p.dataset.base===undefined) p.dataset.base=p.textContent;
+  p.textContent=`${dayName(day)} ${fmt(day)} — ${p.dataset.base}`;
+}
 const humanizeDates=text=>String(text??"").replace(/\b\d{4}-\d{2}-\d{2}\b/g,fmt);
 
 /* رقم موبايل مصري (11 رقم يبدأ بـ01) بيتقسّم 3-4-4 عشان يتقرا ويتملي

@@ -4,9 +4,11 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar" id="regBar">
-    <button class="mini" id="monthPrev">{{ icon('chevron-prev') }} الشهر السابق</button>
-    <input type="month" id="regMonth" class="select">
-    <button class="mini" id="monthNext">التالي {{ icon('chevron-next') }}</button>
+    <div class="tb-group" role="group" aria-label="التنقل بين الشهور">
+      <button class="mini" id="monthPrev">{{ icon('chevron-prev') }} الشهر السابق</button>
+      <input type="month" id="regMonth" class="select">
+      <button class="mini" id="monthNext">الشهر التالي {{ icon('chevron-next') }}</button>
+    </div>
     <input id="regSearch" class="search" aria-label="البحث باسم الضابط" placeholder="بحث باسم الضابط…">
     <span id="regCount" class="muted"></span>
   </div>
