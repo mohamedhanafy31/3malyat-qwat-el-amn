@@ -22,7 +22,7 @@ def test_a_day_that_already_passed_is_closed_without_anyone_closing_it(client):
 def test_the_automatic_close_blocks_edits_like_a_manual_one(client):
     r = client.post(f"/api/assignments/{PAST_DAY}", json={"name": "خدمة", "kind": "خارجية"})
     assert r.status_code == 409
-    assert "تلقائيًا" in r.get_json()["error"]
+    assert "تلقائيًا الساعة 12" in r.get_json()["error"]
 
 
 def test_today_is_still_open_at_the_end_of_its_own_day(client, frozen_today):

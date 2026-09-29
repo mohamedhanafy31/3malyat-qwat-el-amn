@@ -1,3 +1,16 @@
+@font-face{
+  font-family:"Noto Kufi Arabic";font-style:normal;font-weight:400;font-display:swap;
+  src:url("fonts/NotoKufiArabic-400.woff2") format("woff2")}
+@font-face{
+  font-family:"Noto Kufi Arabic";font-style:normal;font-weight:700;font-display:swap;
+  src:url("fonts/NotoKufiArabic-700.woff2") format("woff2")}
+@font-face{
+  font-family:"Noto Sans Arabic";font-style:normal;font-weight:400;font-display:swap;
+  src:url("fonts/NotoSansArabic-400.woff2") format("woff2")}
+@font-face{
+  font-family:"Noto Sans Arabic";font-style:normal;font-weight:700;font-display:swap;
+  src:url("fonts/NotoSansArabic-700.woff2") format("woff2")}
+
 /* ==========================================================================
    نظام إدارة القوة — إدارة قوات أمن السويس
    الهوية البصرية: «الدفتر» — اليومية الورقية الرسمية بشكل رقمي.
@@ -81,9 +94,9 @@
   --topbar-h:60px; --sidebar-w:238px;
 
   /* — الخطوط: كوفي للعناوين (صوت رسمي)، نسخ/واجهة للمتن (قراءة كثيفة) — */
-  --font-head:"Noto Kufi Arabic","Sakkal Majalla","Traditional Arabic","Segoe UI",Tahoma,sans-serif;
-  --font-body:"Segoe UI","Noto Sans Arabic","Noto Naskh Arabic","Dubai",Tahoma,Arial,sans-serif;
-  --font-num:ui-monospace,"Cascadia Mono",Consolas,"DejaVu Sans Mono","Noto Sans Arabic",monospace;
+  --font-head:"Noto Kufi Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-body:"Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-num:var(--font-body);
 
   /* سهم القوائم المنسدلة — مرة واحدة بدل ما يتكرر في ٤ أماكن */
   --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235b6678'%3E%3Cpath d='M5.5 7.5l4.5 5 4.5-5z'/%3E%3C/svg%3E");

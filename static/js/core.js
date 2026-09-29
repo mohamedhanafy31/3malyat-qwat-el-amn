@@ -37,8 +37,8 @@ const arIncludes = (haystack, needle) => normAr(haystack).includes(normAr(needle
 
    Intl جزء من المتصفح نفسه (ECMA-402) — مفيش أي طلب شبكة ولا مكتبة خارجية،
    ونفس اللي `toLocaleDateString` كان بيستخدمه أصلًا. */
-const _FMT_DATE=new Intl.DateTimeFormat("ar-EG",{day:"numeric",month:"short",year:"numeric"});
-const _FMT_WEEKDAY=new Intl.DateTimeFormat("ar-EG",{weekday:"long"});
+const _FMT_DATE=new Intl.DateTimeFormat("ar-EG-u-nu-latn",{day:"numeric",month:"short",year:"numeric"});
+const _FMT_WEEKDAY=new Intl.DateTimeFormat("ar-EG-u-nu-latn",{weekday:"long"});
 const _fmtCache=new Map(), _wdCache=new Map();
 const fmt=d=>{
   if(!d) return "-";
@@ -51,6 +51,7 @@ const fmtShort=d=>{
   const parts=d.split("-");
   return `${Number(parts[2])}/${Number(parts[1])}`;
 };
+const humanizeDates=text=>String(text??"").replace(/\b\d{4}-\d{2}-\d{2}\b/g,fmt);
 const iso=d=>{const t=new Date(d);t.setHours(12);return t.toISOString().slice(0,10)};
 const addDays=(s,n)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)};
 const dayName=s=>{
@@ -100,7 +101,7 @@ const KIND_CLS={"خارجية":"w","داخلية":"h","حراسات":"m","طبي
 
 /* ---------- الشبكة ---------- */
 function showToast(msg,bad){
-  const t=$("#toast"); t.textContent=msg; t.classList.toggle("bad",!!bad); t.classList.add("show");
+  const t=$("#toast"); t.textContent=humanizeDates(msg); t.classList.toggle("bad",!!bad); t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),2800);
 }
 async function api(url,opts){
@@ -120,7 +121,7 @@ async function api(url,opts){
     // في مكان واحد عشان كل نداء `api()` في السيستم يستفيد من غير ما كل
     // صفحة تتعامل مع الحالة دي لوحدها.
     if(out && out.needs_reason && !opts.__retro){
-      const days=(out.closed_days||[]).join("، ");
+      const days=(out.closed_days||[]).map(humanizeDates).join("، ");
       const reason=prompt(`التعديل ده بيمس يوم/أيام مقفولة (${days}) — اكتب سبب التعديل:`);
       if(reason && reason.trim()){
         return api(url,{...opts,__retro:true,
@@ -144,7 +145,7 @@ async function bootstrap(){
   if(!d) return null;
   META=d.meta||{}; COUNTS=d.counts||{};
   $("#today").textContent=new Date(curDate()+"T00:00:00")
-    .toLocaleDateString("ar-EG",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    .toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
   paintNavCounts(d);
   return d;
 }
@@ -384,7 +385,7 @@ function renderAlerts(alerts){
    قديم (leave-form.js, force.js, duty.js...) يفضل يقرا/يكتب ISO زي ما
    هو من غير أي تعديل فيه — الفرق الوحيد اللي المستخدم شايفه هو النص. */
 const AR_MONTHS=Array.from({length:12},(_,i)=>
-  new Date(2000,i,1).toLocaleDateString("ar-EG",{month:"long"}));
+  new Date(2000,i,1).toLocaleDateString("ar-EG-u-nu-latn",{month:"long"}));
 const WD_SHORT=["س","ح","ن","ث","ر","خ","ج"];   // بادئة بالسبت زي WEEKDAYS
 const _dateValueDesc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value");
 
@@ -408,7 +409,7 @@ function _dpClear(){
 }
 function _dpMonthLabel(iso){
   const [y,m]=iso.split("-").map(Number);
-  return new Date(y,m-1,1).toLocaleDateString("ar-EG",{month:"long",year:"numeric"});
+  return new Date(y,m-1,1).toLocaleDateString("ar-EG-u-nu-latn",{month:"long",year:"numeric"});
 }
 function _dpDayGrid(y,m){
   const first=new Date(y,m,1);
@@ -425,7 +426,7 @@ function _dpDayGrid(y,m){
   const heads=WD_SHORT.map(h=>`<span class="dp-wd">${h}</span>`).join("");
   return `<div class="dp-head">
       <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1">‹</button>
-      <b>${new Date(y,m,1).toLocaleDateString("ar-EG",{month:"long",year:"numeric"})}</b>
+      <b>${new Date(y,m,1).toLocaleDateString("ar-EG-u-nu-latn",{month:"long",year:"numeric"})}</b>
       <button type="button" class="dp-nav" data-action="_dpNav" data-id="1">›</button>
     </div>
     <div class="dp-grid dp-grid-day">${heads}${cells.join("")}</div>`;
@@ -440,7 +441,7 @@ function _dpMonthGrid(y){
   }).join("");
   return `<div class="dp-head">
       <button type="button" class="dp-nav" data-action="_dpNav" data-id="-1">‹</button>
-      <b>${y.toLocaleString("ar-EG",{useGrouping:false})}</b>
+      <b>${y.toLocaleString("ar-EG-u-nu-latn",{useGrouping:false})}</b>
       <button type="button" class="dp-nav" data-action="_dpNav" data-id="1">›</button>
     </div>
     <div class="dp-grid dp-grid-month">${btns}</div>`;

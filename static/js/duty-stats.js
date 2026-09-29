@@ -1,7 +1,7 @@
 /* إحصائيات تشغيل الضباط — duty-stats.js
    يحمّل /api/duty/stats ويرسم توازن وانتظام التشغيل الفعلي بـ Chart.js */
 
-Chart.defaults.font.family = "'Tajawal', 'Segoe UI', sans-serif";
+Chart.defaults.font.family = getComputedStyle(document.documentElement).getPropertyValue('--font-body').trim();
 Chart.defaults.font.size = 13;
 Chart.defaults.color = "#374151";
 Chart.defaults.animation.duration = 600;

@@ -83,7 +83,7 @@ def check_open(data, day):
     if not status.get("closed"):
         return True, None
     if status.get("auto"):
-        return False, (f"اليوم {day} اتقفل تلقائيًا الساعة ١٢ بالليل. "
+        return False, (f"اليوم {day} اتقفل تلقائيًا الساعة 12 بالليل. "
                        f"افتحه فتح استثنائي الأول لو محتاج تعدّل.")
     return False, f"اليوم {day} مقفول. افتحه فتح استثنائي الأول لو محتاج تعدّل."
 

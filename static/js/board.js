@@ -678,14 +678,14 @@ async function loadDayStatus() {
   if (!s) return;
   const badge = $("#dayLockBadge");
   if (s.closed) {
-    const why = s.auto ? "اتقفل تلقائيًا الساعة ١٢ بالليل"
+    const why = s.auto ? "اتقفل تلقائيًا الساعة 12 بالليل"
                        : `اتقفل بالإيد${s.closed_by ? " — " + s.closed_by : ""}`;
     badge.innerHTML = `<span class="chip err" title="${esc(why)}">🔒 مقفول</span>
       <button class="mini" id="btnReopenDay">فتح استثنائي</button>`;
     $("#btnReopenDay").onclick = reopenDay;
   } else if (s.reopened) {
     badge.innerHTML = `<span class="chip taq"
-        title="الفتح الاستثنائي صالح النهاردة بس — اليوم هيرجع يتقفل تلقائي الساعة ١٢">
+        title="الفتح الاستثنائي صالح النهاردة بس — اليوم هيرجع يتقفل تلقائي الساعة 12">
         🔓 مفتوح استثنائيًا النهاردة</span>`;
   } else if (s.stage === "not_open") {
     badge.innerHTML = `<span class="chip w" title="يوم جاي — لسه معدّاش عليه دوره، بس التجهيز المسبق مسموح">
@@ -695,7 +695,7 @@ async function loadDayStatus() {
   } else {
     badge.innerHTML = `<span class="chip on" title="النهاردة — مفتوح للتعديل">🟢 مفتوح</span>
       <button class="mini" id="btnCloseDay"
-      title="اليوم بيتقفل لوحده الساعة ١٢ بالليل — الزرار ده للقفل بدري">قفل اليوم بدري</button>`;
+      title="اليوم بيتقفل لوحده الساعة 12 بالليل — الزرار ده للقفل بدري">قفل اليوم بدري</button>`;
     $("#btnCloseDay").onclick = closeDay;
   }
 }

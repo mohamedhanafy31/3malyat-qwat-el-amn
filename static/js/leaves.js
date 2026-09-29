@@ -20,7 +20,7 @@ const returningWithin = (l, today, n) =>
 /** yyyy-mm → اسم الشهر بالعربي */
 const monthLabel = ym => {
   const [y, m] = ym.split("-");
-  return new Date(`${y}-${m}-15T12:00:00`).toLocaleDateString("ar-EG", { month: "long", year: "numeric" });
+  return new Date(`${y}-${m}-15T12:00:00`).toLocaleDateString("ar-EG-u-nu-latn", { month: "long", year: "numeric" });
 };
 
 /** استخراج قائمة أشهر لا تكرار من LEAVES */

@@ -38,15 +38,15 @@ function diffLine(before, after) {
   const changed = keys.filter(k => JSON.stringify(before?.[k]) !== JSON.stringify(after?.[k]));
   if (!changed.length) return "<span class='muted'>—</span>";
   return changed.map(k =>
-    `<div><b>${esc(k)}</b>: ${esc(JSON.stringify(before?.[k]))} ← ${esc(JSON.stringify(after?.[k]))}</div>`
+    `<div><b>${esc(k)}</b>: ${esc(humanizeDates(JSON.stringify(before?.[k])))} ← ${esc(humanizeDates(JSON.stringify(after?.[k])))}</div>`
   ).join("");
 }
 
 function changeRow(e) {
   // السجلات القديمة (قبل ما التسجيل يبقى بجملة جاهزة) مالهاش text — بتتعرض
   // بفرق الحقول الخام زي ما كانت
-  const body = e.text ? esc(e.text)
-    : e.entity === "day_lock" ? esc(`${ACTION_LABEL[e.action] || e.action} ${e.entity_id}`)
+  const body = e.text ? esc(humanizeDates(e.text))
+    : e.entity === "day_lock" ? esc(humanizeDates(`${ACTION_LABEL[e.action] || e.action} ${e.entity_id}`))
     : diffLine(e.before, e.after);
   return `<tr>
     <td class="wrap">${stamp(e.ts)}</td>

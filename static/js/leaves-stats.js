@@ -26,7 +26,7 @@ const PALETTE = {
 };
 
 // ── إعدادات Chart.js العامة ──────────────────────────────────
-Chart.defaults.font.family   = "'Tajawal', 'Segoe UI', sans-serif";
+Chart.defaults.font.family   = getComputedStyle(document.documentElement).getPropertyValue('--font-body').trim();
 Chart.defaults.font.size     = 13;
 Chart.defaults.color         = "#374151";
 Chart.defaults.animation.duration = 600;
@@ -41,7 +41,7 @@ const BASE_OPTS = {
 const monthLabel = ym => {
   if (!ym) return ym;
   const [y, m] = ym.split("-");
-  return new Date(`${y}-${m}-15T12:00:00`).toLocaleDateString("ar-EG", { month: "short", year: "2-digit" });
+  return new Date(`${y}-${m}-15T12:00:00`).toLocaleDateString("ar-EG-u-nu-latn", { month: "short", year: "2-digit" });
 };
 
 function buildLegend(containerId, labels, colors, values) {
