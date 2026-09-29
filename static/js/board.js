@@ -87,7 +87,7 @@ function serviceRow(row) {
     <td class="name">${esc(row.label)}
       ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}</td>
     <td class="wrap">${who}</td>
-    <td>${conChips(row.conscripts)}${row.conscript_count ? ` <span class="chip w">(${row.conscript_count})</span>` : ""}
+    <td>${conChips(row.conscripts)}${row.conscript_count ? ` <span class="chip w">${countLabel(row.conscript_count, "مجند")}</span>` : ""}
       ${!row.conscripts.length && !row.conscript_count ? "<span class='muted'>—</span>" : ""}</td>
     <td>${esc(row.weapon) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.time) || "<span class='muted'>—</span>"}</td>

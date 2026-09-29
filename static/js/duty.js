@@ -57,7 +57,7 @@ function officerRow(r) {
   const search = r.search_attached ? ` <span class="chip soon" title="تشغيل من إدارة البحث">بحث</span>` : "";
   return `<tr class="${r.later_left ? "was" : ""}">
     <td class="name">${esc(r.name)}<div class="sub">${esc(r.role)}${search} ${gone}</div></td>
-    <td class="phone-col">${esc(r.phone) || "—"}</td>
+    <td class="phone-col"><span dir="ltr">${esc(fmtPhone(r.phone)) || "—"}</span></td>
     <td class="wrap">${esc(r.post) || "<span class='muted'>—</span>"}</td>
     <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
     <td>${grp}</td>
@@ -71,7 +71,7 @@ function render() {
   renderSummary(DUTY.summary);
   const gone = DUTY.rows.filter(r => r.later_left).length;
   $("#dutyBoard").innerHTML = tableBlock(
-    ["الضابط", "التليفون", "العمل المسند إليه", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"],
+    ["الضابط", "الهاتف", "العمل المسند إليه", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"],
     sectionRows(DUTY.rows),
     `قوة اليوم: ${DUTY.rows.length} ضابط${gone ? ` — منهم ${gone} خرجوا من القوة بعد كده` : ""}`);
 }

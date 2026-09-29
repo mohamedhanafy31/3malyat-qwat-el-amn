@@ -21,8 +21,12 @@ ACTIONS.stopRestFor = (id, extra) => openStopLeave({id, ...extra}, load);
 
 function badges(p) {
   const roles = [commandOf(p.id), ...groupRolesOf(p.id)].filter(Boolean);
-  return roles.map(r => ` <span class="chip cmd">${esc(r)}</span>`).join("");
+  if (!roles.length) return "";
+  return `<div class="name-roles">${roles.map(r => `<span class="chip cmd">${esc(r)}</span>`).join("")}</div>`;
 }
+
+/* خلية الهاتف مقسّمة وبالاتجاه الصحيح للأرقام */
+const phoneCell = (p, dash) => `<td class="num"><span dir="ltr">${esc(fmtPhone(p.phone)) || dash}</span></td>`;
 
 function renderStats() {
   const onRest = LIST.active.filter(p => p.status_today?.state === "resting").length;
@@ -92,6 +96,9 @@ function renderTable() {
       weapon:    { label: "عهدة السلاح", fn: p => p.weapon_custody || "",           type: "text" },
       rest:      { label: "نظام الراحة", fn: p => p.rest_system || "—",             type: "text" },
     };
+    // عمود فاضي بالكامل بياخد مساحة من غير أي معلومة — بيظهر تاني أول ما أي صف يتملي
+    const hasWeapon = rows.some(p => (p.weapon_custody || "").trim());
+    if (!hasWeapon) delete cols.weapon;
     extraHeads = ["الهاتف", "الإجراء"];
     rowHtml = p => {
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
@@ -101,13 +108,13 @@ function renderTable() {
           {action: "openRemove", id: p.id, extra: {name: p.name}, label: "إخراج من القوة", danger: true},
         ])}`;
       return `<tr>
-        <td class="name">${esc(p.name)}${badges(p)}<div class="sub">${esc(p.role)}</div></td>
+        <td class="name">${esc(p.name)}${badges(p)}</td>
         <td><span class="badge">${esc(p.role)}</span></td>
         <td>${esc(p.code)}</td>
-        <td>${esc(p.post) || "-"}</td>
-        <td>${esc(p.weapon_custody) || "<span class='muted'>—</span>"}</td>
+        <td class="wrap">${esc(p.post) || "-"}</td>
+        ${hasWeapon ? `<td>${esc(p.weapon_custody) || "<span class='muted'>—</span>"}</td>` : ""}
         <td>${restLabel(p)}</td>
-        <td class="num">${esc(p.phone) || dash}</td>
+        ${phoneCell(p, dash)}
         <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
     };
 
@@ -129,13 +136,13 @@ function renderTable() {
           {action: "deleteRecord", id: p.id, extra: {name: p.name}, label: "حذف نهائي", danger: true},
         ])}`;
       return `<tr>
-        <td class="name">${esc(p.name)}<div class="sub">${esc(p.role)}</div></td>
+        <td class="name">${esc(p.name)}</td>
         <td><span class="badge">${esc(p.role)}</span></td>
         <td>${esc(p.code)}</td>
         <td class="wrap">${esc(p.post) || "-"}</td>
         <td>${fmt(p.join_date)}</td>
         <td>${fmt(p.leave_date)}</td>
-        <td class="num">${esc(p.phone) || dash}</td>
+        ${phoneCell(p, dash)}
         <td class="wrap">${esc(p.leave_reason) || dash}</td>
         <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
     };
@@ -160,7 +167,7 @@ function renderTable() {
         <td>${esc(p.code)}</td>
         <td class="wrap">${esc(p.post) || "-"}</td>
         <td>${fmt(p.join_date)}</td>
-        <td class="num">${esc(p.phone)}</td>
+        ${phoneCell(p, dash)}
         <td class="wrap">${esc(p.address) || "-"}</td>
         <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
     };
@@ -189,7 +196,7 @@ function renderTable() {
         <td class="wrap">${esc(p.post) || "-"}</td>
         <td>${fmt(p.join_date)}</td>
         <td>${fmt(p.leave_date)}</td>
-        <td class="num">${esc(p.phone)}</td>
+        ${phoneCell(p, dash)}
         <td class="wrap">${esc(p.address) || "-"}</td>
         <td class="wrap">${esc(p.leave_reason) || dash}</td>
         <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;

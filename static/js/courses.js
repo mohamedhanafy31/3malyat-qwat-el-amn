@@ -158,8 +158,11 @@ function render() {
     const emptyMsg = COURSES.length
       ? "مفيش فرق مطابقة للبحث أو الفلتر الحالي."
       : "مفيش فرق مسجّلة — اضغط «فرقة جديدة» فوق عشان تبدأ.";
+    // 51 فرقة كروت ورا بعض كانت صفحة طولها 6700 بكسل — الكرت أطول بكتير من
+    // صف الجدول، فبتتعرض 20 20
+    const { shown, footer } = pageSlice("coursesWrap", list, render, "", 20);
     $("#coursesWrap").innerHTML = list.length
-      ? `<div class="courses-grid">${list.map(courseCard).join("")}</div>`
+      ? `<div class="courses-grid">${shown.map(courseCard).join("")}</div>${footer}`
       : `<div class="empty">${emptyMsg}</div>`;
     return;
   }

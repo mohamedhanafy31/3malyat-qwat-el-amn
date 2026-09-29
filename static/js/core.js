@@ -57,6 +57,34 @@ const fmtShort=d=>{
   return `${Number(parts[2])}/${Number(parts[1])}`;
 };
 const humanizeDates=text=>String(text??"").replace(/\b\d{4}-\d{2}-\d{2}\b/g,fmt);
+
+/* رقم موبايل مصري (11 رقم يبدأ بـ01) بيتقسّم 3-4-4 عشان يتقرا ويتملي
+   بسهولة؛ أي صيغة تانية بتفضل زي ما اتسجّلت. */
+const fmtPhone=s=>{
+  const d=String(s??"").replace(/\s+/g,"");
+  return /^01\d{9}$/.test(d)?`${d.slice(0,3)} ${d.slice(3,7)} ${d.slice(7)}`:String(s??"");
+};
+
+/* صيغ العدد مع المعدود بالعربي: 1 «مجند واحد»، 2 «مجندان»، 3–10 جمع،
+   11–99 مفرد منصوب، و100+ بيرجع حسب آخر رقمين. */
+const AR_NOUNS={
+  "مجند":{one:"مجند واحد",two:"مجندان",few:"مجندين",many:"مجندًا",sing:"مجند"},
+  "ضابط":{one:"ضابط واحد",two:"ضابطان",few:"ضباط",many:"ضابطًا",sing:"ضابط"},
+  "فرد":{one:"فرد واحد",two:"فردان",few:"أفراد",many:"فردًا",sing:"فرد"},
+  "يوم":{one:"يوم واحد",two:"يومان",few:"أيام",many:"يومًا",sing:"يوم"},
+};
+function countLabel(n,forms){
+  const f=typeof forms==="string"?AR_NOUNS[forms]:forms;
+  n=Number(n)||0;
+  if(!f) return String(n);
+  const r=n%100;
+  if(n===1) return f.one;
+  if(n===2) return f.two;
+  if(n>=100&&r<=2) return `${n} ${f.sing}`;
+  if(r>=3&&r<=10) return `${n} ${f.few}`;
+  if(r>=11) return `${n} ${f.many}`;
+  return `${n} ${f.few}`;
+}
 const iso=d=>{const t=new Date(d);t.setHours(12);return t.toISOString().slice(0,10)};
 const addDays=(s,n)=>{const d=new Date(s+"T12:00:00");d.setDate(d.getDate()+n);return iso(d)};
 const dayName=s=>{
@@ -246,9 +274,11 @@ function mtable(head,rows){
   return `<table class="table mtable"><thead><tr>${head.map(h=>`<th${h==="الإجراء"?" class=\"col-actions\"":""}>${h}</th>`).join("")}</tr></thead>
     <tbody>${rows.join("")}</tbody></table>`;
 }
-function tableBlock(head,rows,countText,emptyText){
+function tableBlock(head,rows,countText,emptyText,cid,renderFn){
   if(!rows.length&&emptyText) return `<div class="empty">${emptyText}</div>`;
-  return `<div class="table-scroll">${mtable(head,rows)}</div><div class="count">${countText}</div>`;
+  if(!cid) return `<div class="table-scroll">${mtable(head,rows)}</div><div class="count">${countText}</div>`;
+  const {shown,footer}=pageSlice(cid,rows,renderFn,countText);
+  return `<div class="table-scroll">${mtable(head,shown)}</div>${footer}`;
 }
 
 /* ---------- توزيع النقرات (بديل onclick المضمّن) ----------
@@ -474,10 +504,77 @@ function sortableTableBlock(cid, cols, rows, rowHtml, extraHeads, countText, emp
     ...Object.entries(cols).map(([k, c]) => _sortTh(c.label, k, cid, null)),
     ...(extraHeads || []).map(h => `<th${h==="الإجراء"?' class="col-actions"':""}>${esc(h)}</th>`)
   ];
+  const { shown, footer } = pageSlice(cid, sorted, null, countText);
   const tableHtml = `<table class="table mtable"><thead><tr>${heads.join("")}</tr></thead>
-    <tbody>${sorted.map(rowHtml).join("")}</tbody></table>`;
-  return `<div class="table-scroll">${tableHtml}</div><div class="count">${countText}</div>`;
+    <tbody>${shown.map(rowHtml).join("")}</tbody></table>`;
+  return `<div class="table-scroll">${tableHtml}</div>${footer}`;
 }
+
+/* ---------- العرض التدريجي للقوايم الطويلة ----------
+   302 راحة في جدول واحد كانت صفحة طولها 17 ألف بكسل. الصفحة بتعرض 50
+   والباقي بزرار؛ الحد بيرجع لـ50 لما مجموعة الصفوف نفسها تتغيّر (بحث أو
+   فلتر أو تبويب) — مش لما الترتيب بس يتغيّر. البصمة مستقلة عن الترتيب. */
+const PAGE_SIZE=50;
+const _pageStates={}, _pageRenders={};
+function _rowsSig(rows){
+  let h=rows.length;
+  for(const r of rows){
+    const key=typeof r==="string"?r:String(r?.id??r?.ts??JSON.stringify(r));
+    let k=0;
+    for(let i=0;i<key.length;i++) k=(k*31+key.charCodeAt(i))|0;
+    h=(h+k)|0;
+  }
+  return h;
+}
+function pageSlice(cid,list,renderFn,countText,size=PAGE_SIZE){
+  if(renderFn) _pageRenders[cid]=renderFn;
+  const sig=_rowsSig(list);
+  let st=_pageStates[cid];
+  if(!st||st.sig!==sig) st=_pageStates[cid]={limit:size,size,sig,focusFrom:null};
+  const shown=list.slice(0,st.limit);
+  const total=list.length;
+  const count=shown.length<total?`يُعرض ${shown.length} من ${total}`:(countText??"");
+  const more=shown.length<total?`<div class="show-more">
+      <button type="button" class="btn" data-action="_showMore" data-id="${esc(cid)}">عرض المزيد (${Math.min(st.size,total-shown.length)})</button>
+      <button type="button" class="btn" data-action="_showMore" data-id="${esc(cid)}" data-extra='{"all":true}'>عرض الكل (${total})</button>
+    </div>`:"";
+  const footer=(count?`<div class="count">${count}</div>`:"")+more;
+  return {shown,footer};
+}
+ACTIONS._showMore=(cid,extra)=>{
+  const st=_pageStates[cid];
+  if(!st) return;
+  st.focusFrom=st.limit;
+  st.limit=extra?.all?Infinity:st.limit+st.size;
+  (_sortRenders[cid]||_pageRenders[cid])?.();
+  // التركيز بيروح لأول عنصر ظهر جديد، مش بيضيع على body بعد إعادة الرسم
+  const box=document.getElementById(cid);
+  const items=box?[...box.querySelectorAll("tbody tr:not(.grouprow), .courses-grid > *")]:[];
+  const first=items[st.focusFrom];
+  if(!first) return;
+  const target=first.querySelector("button, a[href], input, select, [tabindex]")||first;
+  if(target===first&&!first.hasAttribute("tabindex")) first.setAttribute("tabindex","-1");
+  target.focus({preventScroll:false});
+};
+
+/* الجدول اللي أعرض من مكانه بس هو اللي بيبقى حاوية تمرير أفقي (.is-wide)؛
+   غير كده بيفضل من غير overflow عشان رأسه يثبت تحت الترويسة وانت بتنزل في
+   الصفحة — أي حاوية فيها overflow بتلغي الـsticky بالنسبة للصفحة. */
+function _syncTableScroll(){
+  $$(".table-scroll").forEach(w=>{
+    w.classList.remove("is-wide");
+    w.classList.toggle("is-wide",w.scrollWidth>w.clientWidth+1);
+  });
+}
+let _tableScrollQueued=false;
+function _queueTableScroll(){
+  if(_tableScrollQueued) return;
+  _tableScrollQueued=true;
+  requestAnimationFrame(()=>{ _tableScrollQueued=false; _syncTableScroll() });
+}
+const _mainEl=document.querySelector("main");
+if(_mainEl) new MutationObserver(_queueTableScroll).observe(_mainEl,{childList:true,subtree:true});
+window.addEventListener("resize",_queueTableScroll);
 
 const _modalStack=[];
 const _sharedDialog=document.createElement("div");

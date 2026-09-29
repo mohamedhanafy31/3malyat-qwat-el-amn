@@ -17,13 +17,13 @@ function serviceCard(s) {
   const bits = [];
   if (s.has_command) {
     const who = [];
-    if (s.command_officers) who.push(`${s.command_officers} ضابط`);
-    if (s.command_individuals) who.push(`${s.command_individuals} فرد`);
+    if (s.command_officers) who.push(countLabel(s.command_officers, "ضابط"));
+    if (s.command_individuals) who.push(countLabel(s.command_individuals, "فرد"));
     bits.push(`برئاسة ${who.length ? who.join(" و") : "—"}`);
   } else {
     bits.push("من غير رئاسة");
   }
-  bits.push(`عدد المجندين ×${s.count}`);
+  bits.push(s.count ? countLabel(s.count, "مجند") : "بدون مجندين");
   if (s.weapon) bits.push(esc(s.weapon));
   const hasLocation = !!(s.location_text || s.location_images?.length);
   return `<div class="service-card">

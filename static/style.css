@@ -317,8 +317,10 @@ button,input,select,textarea{font-family:inherit}
 .settings-fold > .svc-picker{margin-bottom:var(--s4) !important}
 
 /* ═══════════════════ ⑩ اللوحة والأشرطة والتبويبات ═══════════════════ */
+/* clip مش hidden: hidden بيعمل حاوية تمرير فرؤوس الجداول اللاصقة جواها
+   كانت بتلصق في اللوحة نفسها (اللي مش بتتمرر) بدل الصفحة. */
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);
-  overflow:hidden;box-shadow:var(--shadow-sm)}
+  overflow:clip;box-shadow:var(--shadow-sm)}
 .panel-head{display:flex;justify-content:space-between;align-items:center;
   padding:var(--s4) var(--s5) 0;flex-wrap:wrap;gap:var(--s3)}
 
@@ -526,7 +528,18 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
 .linkish:hover{text-decoration:underline}
 
 /* ═══════════════════ ⑭ الجداول — كثافة الدفتر ═══════════════════ */
-.table-scroll{overflow:auto;max-height:none}
+/* بدون overflow افتراضيًا عشان الرأس يلصق تحت الترويسة وانت بتنزل في الصفحة؛
+   الجدول الأعرض من مكانه بس بياخد .is-wide (core.js) ويتمرر أفقيًا. */
+.table-scroll{overflow:visible;max-height:none}
+.table-scroll.is-wide{overflow-x:auto}
+.table-scroll:not(.is-wide) > .table > thead th{top:var(--topbar-h)}
+.show-more{display:flex;justify-content:center;gap:var(--s2);padding:var(--s3) var(--s5);
+  border-top:1px solid var(--line);background:var(--surface-sunken)}
+.show-more .btn{height:var(--control-h)}
+/* الاسم في سطر واحد، والمناصب (مدير الإدارة، طبي…) تحته بدل ما تكسره */
+.table-scroll .table td.name{white-space:nowrap}
+.name-roles{display:flex;flex-wrap:wrap;gap:var(--s1);margin-top:var(--s1)}
+.name-roles .chip{margin:0}
 .table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px}
 /* الحشو كان معرّف في .mtable/.sum/.reg43 بس — أي جدول من غيرهم كان بيطلع ملزوق */
 .table th,.table td{padding:var(--s2) var(--s3)}
