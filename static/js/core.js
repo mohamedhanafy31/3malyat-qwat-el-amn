@@ -643,8 +643,10 @@ function _cbScrollActive() {
 
 function _cbPosition() {
   const r = _cbInput.getBoundingClientRect();
-  comboPop.style.width = `${r.width}px`;
-  comboPop.style.left = `${r.left}px`;
+  const width = Math.min(Math.max(r.width, 260), window.innerWidth - 16);
+  const left = Math.min(Math.max(8, r.right - width), window.innerWidth - width - 8);
+  comboPop.style.width = `${width}px`;
+  comboPop.style.left = `${left}px`;
   // لو مفيش مكان تحت الحقل، القايمة بتطلع فوقه بدل ما تتقص
   const below = window.innerHeight - r.bottom;
   comboPop.style.maxHeight = `${Math.max(150, Math.min(280, below - 12))}px`;

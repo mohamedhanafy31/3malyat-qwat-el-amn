@@ -198,14 +198,14 @@ function drawWeekdayChart(data) {
 
 function renderTargetGapTable(rows) {
   const body = rows.length
-    ? mtable(["الهدف", "أيام التعيين", "أيام معروف فيها القائد", "أيام الفجوة", "نسبة الفجوة"], rows.map(r => `
+    ? `<div class="table-scroll">${mtable(["الهدف", "أيام التعيين", "أيام معروف فيها القائد", "أيام الفجوة", "نسبة الفجوة"], rows.map(r => `
       <tr>
         <td class="name">${esc(r.name)}</td>
         <td>${r.assigned_days}</td>
         <td>${r.commander_known_days}</td>
         <td>${r.mismatch_days}</td>
         <td>${r.mismatch_rate === null ? "<span class='muted'>—</span>" : `<b>${r.mismatch_rate}%</b>`}</td>
-      </tr>`))
+      </tr>`))}</div>`
     : `<div class="mempty">مفيش بيانات في المدى ده</div>`;
   document.getElementById("targetGapTable").innerHTML = body;
 }
