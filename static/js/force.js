@@ -11,11 +11,11 @@ const commandOf = id => COMMAND_ROLES().find(r => COMMAND[r] === id);
 const groupRolesOf = id => GROUP_ROLES().filter(r => (COMMAND_GROUPS[r] || []).includes(id));
 
 /* ضابط في راحة دلوقتي — إيقافها من هنا مباشرة (`rest-stop.js`) */
-function restStopButton(p) {
+function restStopItem(p) {
   const lv = p.status_today?.state === "resting" ? p.status_today.leave : null;
-  if (!lv?.id) return "";
-  return `<button class="mini bad" data-action="stopRestFor" data-id="${esc(lv.id)}"
-    data-extra="${dataAttr({name: p.name, type: lv.type, start: lv.start, end: lv.end})}">إيقاف الراحة</button>`;
+  if (!lv?.id) return null;
+  return {action: "stopRestFor", id: lv.id,
+    extra: {name: p.name, type: lv.type, start: lv.start, end: lv.end}, label: "إيقاف الراحة"};
 }
 ACTIONS.stopRestFor = (id, extra) => openStopLeave({id, ...extra}, load);
 
@@ -95,9 +95,11 @@ function renderTable() {
     extraHeads = ["الهاتف", "الإجراء"];
     rowHtml = p => {
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
-        <button class="mini" data-action="openLeaveFor" data-id="${esc(p.id)}">راحة</button>
-        ${restStopButton(p)}
-        <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">إخراج</button>`;
+        ${rowMenu([
+          {action: "openLeaveFor", id: p.id, label: "تسجيل راحة"},
+          restStopItem(p),
+          {action: "openRemove", id: p.id, extra: {name: p.name}, label: "إخراج من القوة", danger: true},
+        ])}`;
       return `<tr>
         <td class="name">${esc(p.name)}${badges(p)}<div class="sub">${esc(p.role)}</div></td>
         <td><span class="badge">${esc(p.role)}</span></td>
@@ -106,7 +108,7 @@ function renderTable() {
         <td>${esc(p.weapon_custody) || "<span class='muted'>—</span>"}</td>
         <td>${restLabel(p)}</td>
         <td class="num">${esc(p.phone) || dash}</td>
-        <td><div class="actions">${acts}</div></td></tr>`;
+        <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
     };
 
   } else if (IS_OFF && isArch) {
@@ -122,8 +124,10 @@ function renderTable() {
     extraHeads = ["الهاتف", "السبب", "الإجراء"];
     rowHtml = p => {
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
-        <button class="mini ok" data-action="restorePerson" data-id="${esc(p.id)}">استرجاع</button>
-        <button class="mini bad" data-action="deleteRecord" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">حذف</button>`;
+        ${rowMenu([
+          {action: "restorePerson", id: p.id, label: "استرجاع إلى القوة"},
+          {action: "deleteRecord", id: p.id, extra: {name: p.name}, label: "حذف نهائي", danger: true},
+        ])}`;
       return `<tr>
         <td class="name">${esc(p.name)}<div class="sub">${esc(p.role)}</div></td>
         <td><span class="badge">${esc(p.role)}</span></td>
@@ -133,7 +137,7 @@ function renderTable() {
         <td>${fmt(p.leave_date)}</td>
         <td class="num">${esc(p.phone) || dash}</td>
         <td class="wrap">${esc(p.leave_reason) || dash}</td>
-        <td><div class="actions">${acts}</div></td></tr>`;
+        <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
     };
 
   } else if (!IS_OFF && !isArch) {
@@ -148,7 +152,8 @@ function renderTable() {
     extraHeads = ["الهاتف", "العنوان", "الإجراء"];
     rowHtml = p => {
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
-        <button class="mini bad" data-action="openRemove" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">إخراج</button>`;
+        ${rowMenu([{action: "openRemove", id: p.id, extra: {name: p.name},
+          label: "إخراج من القوة", danger: true}])}`;
       return `<tr>
         <td class="name">${esc(p.name)}</td>
         <td><span class="badge person">${esc(p.role)}</span></td>
@@ -157,7 +162,7 @@ function renderTable() {
         <td>${fmt(p.join_date)}</td>
         <td class="num">${esc(p.phone)}</td>
         <td class="wrap">${esc(p.address) || "-"}</td>
-        <td><div class="actions">${acts}</div></td></tr>`;
+        <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
     };
 
   } else {
@@ -173,8 +178,10 @@ function renderTable() {
     extraHeads = ["الهاتف", "العنوان", "السبب", "الإجراء"];
     rowHtml = p => {
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
-        <button class="mini ok" data-action="restorePerson" data-id="${esc(p.id)}">استرجاع</button>
-        <button class="mini bad" data-action="deleteRecord" data-id="${esc(p.id)}" data-extra="${dataAttr({name: p.name})}">حذف</button>`;
+        ${rowMenu([
+          {action: "restorePerson", id: p.id, label: "استرجاع إلى القوة"},
+          {action: "deleteRecord", id: p.id, extra: {name: p.name}, label: "حذف نهائي", danger: true},
+        ])}`;
       return `<tr>
         <td class="name">${esc(p.name)}</td>
         <td><span class="badge person">${esc(p.role)}</span></td>
@@ -185,7 +192,7 @@ function renderTable() {
         <td class="num">${esc(p.phone)}</td>
         <td class="wrap">${esc(p.address) || "-"}</td>
         <td class="wrap">${esc(p.leave_reason) || dash}</td>
-        <td><div class="actions">${acts}</div></td></tr>`;
+        <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
     };
   }
 

@@ -45,7 +45,7 @@ function targetSlotRow(row) {
     <td class="name">${esc(row.label)}</td>
     <td class="wrap">${commander}</td>
     <td class="wrap">${assigned}</td>
-    <td><div class="actions">
+    <td class="col-actions"><div class="actions">
       <button class="mini${row.vacant ? " ok" : ""}" data-action="openTargetAssign"
         data-id="${esc(row.name)}" data-extra="${dataAttr({officers: row.officers})}"
       >${row.vacant ? "تعيين" : "تعديل"}</button>
@@ -64,7 +64,7 @@ function slotRow(row, sectionName) {
   return `<tr class="${row.vacant ? "vacant" : ""}">
     <td class="name">${esc(row.shift)}</td>
     <td class="wrap">${assigned}</td>
-    <td><div class="actions">
+    <td class="col-actions"><div class="actions">
       <button class="mini${row.vacant ? " ok" : ""}" data-action="openSlotAssign"
         data-id="${esc(sectionName)}"
         data-extra="${dataAttr({shift: row.shift, officers: row.officers})}"
@@ -76,7 +76,7 @@ function serviceRow(row) {
   if (row.placeholder) {
     return `<tr class="vacant"><td class="name">${esc(row.shift)}</td>
       <td colspan="5"><span class="muted">شاغرة — محتاجة تكليف</span></td>
-      <td><div class="actions"><button class="mini" data-action="openEntry"
+      <td class="col-actions"><div class="actions"><button class="mini" data-action="openEntry"
         data-extra="${dataAttr({shift: row.shift})}" aria-label="إضافة">${icon("plus")}</button></div></td></tr>`;
   }
   const who = [chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ")
@@ -92,7 +92,7 @@ function serviceRow(row) {
     <td>${esc(row.weapon) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.time) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.party) || "<span class='muted'>—</span>"}</td>
-    <td><div class="actions service-actions">
+    <td class="col-actions"><div class="actions service-actions">
       <button type="button" class="mini btn-xs move" data-action="moveEntry"
         data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
         title="حرّك لفوق" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
@@ -100,9 +100,10 @@ function serviceRow(row) {
         data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
         title="حرّك لتحت" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
       <button class="mini" data-action="openEntry" data-id="${esc(row.id)}">تعديل</button>
-      <button class="mini" data-action="duplicateEntry" data-id="${esc(row.id)}">تكرار</button>
-      <button class="mini bad" data-action="deleteEntry" data-id="${esc(row.id)}"
-        data-extra="${dataAttr({name: row.label})}">حذف</button>
+      ${rowMenu([
+        {action: "duplicateEntry", id: row.id, label: "تكرار"},
+        {action: "deleteEntry", id: row.id, extra: {name: row.label}, label: "حذف", danger: true},
+      ], {label: "إجراءات الخدمة"})}
     </div></td></tr>`;
 }
 
@@ -629,8 +630,17 @@ function stepSelection(delta) {
   selectService(rows[index].dataset.serviceId, {scroll: true, focus: true});
 }
 
-function focusAcceptsText(target) {
-  return target?.isContentEditable || !!target?.closest?.("input, textarea, select, [contenteditable]");
+function focusIsInteractive(target) {
+  return target?.isContentEditable || !!target?.closest?.(
+    'button, a[href], input, select, textarea, [contenteditable], [role="menuitem"], [role="menu"], ' +
+    '[role="option"], [role="tab"], [role="combobox"]'
+  );
+}
+
+function shortcutPopupOpen() {
+  return !rowMenuPop.classList.contains("hidden")
+    || !comboPop.classList.contains("hidden")
+    || !datePopover.classList.contains("hidden");
 }
 
 document.addEventListener("keydown", e => {
@@ -640,7 +650,8 @@ document.addEventListener("keydown", e => {
     $("#entryForm").requestSubmit();
     return;
   }
-  if ($$(".modal:not(.hidden)").length || focusAcceptsText(e.target) || e.defaultPrevented) return;
+  if ($$(".modal:not(.hidden)").length || focusIsInteractive(e.target)
+      || shortcutPopupOpen() || e.defaultPrevented) return;
 
   const moveCombo = (e.ctrlKey && e.altKey && !e.shiftKey)
     || (e.altKey && e.shiftKey && !e.ctrlKey);

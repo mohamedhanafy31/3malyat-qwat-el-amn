@@ -39,11 +39,11 @@ function editableCard(label, block, rows) {
         <td>${esc(e.party) || "<span class='muted'>—</span>"}</td>
         ${showWeapon ? `<td>${esc(e.weapon) || "<span class='muted'>—</span>"}</td>` : ""}
         <td><strong>${e.count}</strong></td>
-        <td><div class="actions">
+        <td class="col-actions"><div class="actions">
           <button class="mini" data-action="openCount" data-id="${esc(e.id)}"
             data-extra="${dataAttr({block})}">تعديل</button>
-          <button class="mini bad" data-action="deleteCount" data-id="${esc(e.id)}"
-            data-extra="${dataAttr({name: e.name})}">حذف</button>
+          ${rowMenu([{action: "deleteCount", id: e.id, extra: {name: e.name},
+            label: "حذف", danger: true}])}
         </div></td>
       </tr>`))
     : `<div class="mempty">لا توجد خدمات — اضغط «إضافة»</div>`;

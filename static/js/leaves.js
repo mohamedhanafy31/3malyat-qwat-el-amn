@@ -122,11 +122,13 @@ function leaveRow(l, today) {
     <td class="num">${days(l.start, l.end)}</td>
     <td>${stateHtml}</td>
     <td class="wrap">${esc(l.note) || "<span class='muted'>—</span>"}</td>
-    <td><div class="actions">
-      ${canStop ? `<button class="mini bad" data-action="stopLeave" data-id="${esc(l.id)}"
-        data-extra="${dataAttr({name: l.name, type: l.type, start: l.start, end: l.end})}">إيقاف</button>` : ""}
+    <td class="col-actions"><div class="actions">
       <button class="mini" data-action="openLeaveEdit" data-id="${esc(l.id)}">تعديل</button>
-      <button class="mini bad" data-action="deleteLeave" data-id="${esc(l.id)}" data-extra="${dataAttr({name: l.name})}">حذف</button>
+      ${rowMenu([
+        canStop ? {action: "stopLeave", id: l.id,
+          extra: {name: l.name, type: l.type, start: l.start, end: l.end}, label: "إيقاف الراحة"} : null,
+        {action: "deleteLeave", id: l.id, extra: {name: l.name}, label: "حذف", danger: true},
+      ])}
     </div></td></tr>`;
 }
 

@@ -45,12 +45,12 @@ function serviceCard(s) {
     <p class="service-bits">${bits.join(" · ")}</p>
     ${s.instructions ? `<p class="hint service-hint">${esc(s.instructions)}</p>` : ""}
     <div class="service-bar">
-      <button class="mini" data-action="openLocation" data-id="${esc(s.id)}"
-        ${hasLocation ? "" : "disabled"} title="${hasLocation ? "عرض موقع الخدمة" : "لا يوجد موقع مسجّل"}">${icon("pin")} الموقع</button>
+      ${hasLocation ? `<button class="mini" data-action="openLocation" data-id="${esc(s.id)}"
+        title="عرض موقع الخدمة">${icon("pin")} الموقع</button>` : ""}
       <div class="actions">
         <button class="mini" data-action="openService" data-id="${esc(s.id)}">تعديل</button>
-        <button class="mini bad" data-action="deleteService" data-id="${esc(s.id)}"
-          data-extra="${dataAttr({name: s.name})}">حذف</button>
+        ${rowMenu([{action: "deleteService", id: s.id, extra: {name: s.name},
+          label: "حذف", danger: true}], {label: "إجراءات الخدمة"})}
       </div>
     </div>
   </div>`;
@@ -375,8 +375,8 @@ function inspectionRow(weekday, entry) {
       <div class="actions">
         <button class="mini" data-action="openInspection"
           data-extra="${dataAttr({weekday})}" data-id="${esc(entry.id)}">تعديل</button>
-        <button class="mini bad" data-action="deleteInspection"
-          data-extra="${dataAttr({weekday, name: entry.name})}" data-id="${esc(entry.id)}">حذف</button>
+        ${rowMenu([{action: "deleteInspection", id: entry.id, extra: {weekday, name: entry.name},
+          label: "حذف", danger: true}], {label: "إجراءات التفتيش"})}
       </div>
     </div>
   </div>`;

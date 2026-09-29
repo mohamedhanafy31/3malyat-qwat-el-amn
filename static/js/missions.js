@@ -13,10 +13,10 @@ function missionRow(m) {
     <td class="wrap">${members}</td>
     <td>${m.start ? fmt(m.start) : "<span class='muted'>—</span>"}</td>
     <td><span class="chip ${STATUS_CLS[m.status] || "w"}">${esc(m.status)}</span></td>
-    <td><div class="actions">
+    <td class="col-actions"><div class="actions">
       <button class="mini" data-action="openMission" data-id="${esc(m.id)}">تعديل</button>
-      <button class="mini bad" data-action="deleteMission" data-id="${esc(m.id)}"
-        data-extra="${dataAttr({name: m.name})}">حذف</button>
+      ${rowMenu([{action: "deleteMission", id: m.id, extra: {name: m.name},
+        label: "حذف", danger: true}], {label: "إجراءات المأمورية"})}
     </div></td>
   </tr>`;
 }

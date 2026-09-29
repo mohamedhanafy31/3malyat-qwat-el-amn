@@ -40,8 +40,8 @@ function termRosterRow(t) {
         <div class="roster-actions">
           <button class="mini" data-action="openTerm" data-id="${esc(t.id)}"
             title="تعديل الالتحاق">تعديل</button>
-          <button class="mini bad" data-action="deleteTerm" data-id="${esc(t.id)}"
-            data-extra="${dataAttr({name: t.officer_name})}" title="حذف الالتحاق">حذف</button>
+          ${rowMenu([{action: "deleteTerm", id: t.id, extra: {name: t.officer_name},
+            label: "حذف الالتحاق", danger: true}], {label: "إجراءات الالتحاق"})}
         </div>
       </div>
     </div>
@@ -63,7 +63,7 @@ function officerRow(o) {
     <td>${o.count ? `<b>${o.count}</b>` : "<span class='muted'>0</span>"}</td>
     <td>${o.days ? `<span class="chip w">${o.days} يوم</span>` : "<span class='muted'>—</span>"}</td>
     <td class="wrap chip-cell">${chips}</td>
-    <td><div class="actions">
+    <td class="col-actions"><div class="actions">
       <button class="mini" data-action="openTerm"
         data-extra="${dataAttr({officer_id: o.id})}">${icon("plus")} فرقة</button>
     </div></td></tr>`;
@@ -98,10 +98,10 @@ function courseCard(c) {
       <button class="mini" data-action="openTerm"
         data-extra="${dataAttr({course_id: c.id})}">${icon("plus")} التحاق</button>
       <div class="actions">
-        <button class="mini" data-action="openCourse" data-id="${esc(c.id)}"
-          title="تعديل بيانات الفرقة">تعديل</button>
-        <button class="mini bad" data-action="deleteCourse" data-id="${esc(c.id)}"
-          data-extra="${dataAttr({name: c.name})}" title="حذف الفرقة">حذف</button>
+        ${rowMenu([
+          {action: "openCourse", id: c.id, label: "تعديل الفرقة"},
+          {action: "deleteCourse", id: c.id, extra: {name: c.name}, label: "حذف الفرقة", danger: true},
+        ], {label: "إجراءات الفرقة"})}
       </div>
     </div>
     ${body}</div>`;

@@ -243,7 +243,7 @@ function fillSelect(el,pairs,keep){
   if(old!==null&&pairs.some(([v])=>v===old)) el.value=old;
 }
 function mtable(head,rows){
-  return `<table class="table mtable"><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+  return `<table class="table mtable"><thead><tr>${head.map(h=>`<th${h==="الإجراء"?" class=\"col-actions\"":""}>${h}</th>`).join("")}</tr></thead>
     <tbody>${rows.join("")}</tbody></table>`;
 }
 function tableBlock(head,rows,countText,emptyText){
@@ -265,8 +265,118 @@ document.addEventListener("click",e=>{
   if(!fn) return;
   let extra={};
   if(el.dataset.extra){ try{extra=JSON.parse(el.dataset.extra)}catch(err){} }
-  fn(el.dataset.id,extra,el,e);
+  const menuItem=rowMenuPop.contains(el);
+  try{ fn(el.dataset.id,extra,el,e) }
+  finally{ if(menuItem) _rowMenuClose(false) }
 });
+
+/* ---------- قائمة إجراءات الصف المشتركة ---------- */
+function rowMenu(items,{label="إجراءات أخرى"}={}){
+  const available=(items||[]).filter(Boolean);
+  if(!available.length) return "";
+  return `<button type="button" class="row-menu-btn" aria-haspopup="menu" aria-expanded="false"
+    aria-label="${esc(label)}" aria-controls="rowMenuPopup" data-menu="${dataAttr(available)}">${icon("more-vert")}</button>`;
+}
+
+const rowMenuPop=document.createElement("div");
+rowMenuPop.id="rowMenuPopup";
+rowMenuPop.className="row-menu-pop hidden";
+rowMenuPop.setAttribute("role","menu");
+document.body.appendChild(rowMenuPop);
+let _rowMenuTrigger=null;
+
+function _rowMenuItems(){ return [...rowMenuPop.querySelectorAll('[role="menuitem"]:not([disabled])')] }
+function _rowMenuClose(restoreFocus=false){
+  if(!_rowMenuTrigger) return;
+  const trigger=_rowMenuTrigger;
+  trigger.setAttribute("aria-expanded","false");
+  rowMenuPop.classList.add("hidden");
+  _rowMenuTrigger=null;
+  if(restoreFocus&&trigger.isConnected) trigger.focus({preventScroll:true});
+}
+function _rowMenuPosition(){
+  if(!_rowMenuTrigger) return;
+  const r=_rowMenuTrigger.getBoundingClientRect();
+  const gap=4, edge=8;
+  const width=rowMenuPop.offsetWidth;
+  rowMenuPop.style.maxHeight=`${Math.max(40,window.innerHeight-edge*2)}px`;
+  const height=rowMenuPop.offsetHeight;
+  const rtl=getComputedStyle(document.documentElement).direction==="rtl";
+  const idealLeft=rtl?r.left:r.right-width;
+  rowMenuPop.style.left=`${Math.max(edge,Math.min(idealLeft,window.innerWidth-width-edge))}px`;
+  const roomBelow=window.innerHeight-r.bottom-gap-edge;
+  const roomAbove=r.top-gap-edge;
+  if(roomBelow<height&&roomAbove>roomBelow){
+    rowMenuPop.style.maxHeight=`${Math.max(40,roomAbove)}px`;
+    rowMenuPop.style.top="auto";
+    rowMenuPop.style.bottom=`${window.innerHeight-r.top+gap}px`;
+  }else{
+    rowMenuPop.style.maxHeight=`${Math.max(40,roomBelow)}px`;
+    rowMenuPop.style.bottom="auto";
+    rowMenuPop.style.top=`${Math.max(edge,r.bottom+gap)}px`;
+  }
+}
+function _rowMenuOpen(trigger,focus="first"){
+  if(_rowMenuTrigger&&_rowMenuTrigger!==trigger) _rowMenuClose(false);
+  let items=[];
+  try{ items=JSON.parse(trigger.dataset.menu||"[]") }catch(err){}
+  if(!items.length) return;
+  const normal=items.filter(item=>!item.danger);
+  const danger=items.filter(item=>item.danger);
+  const render=item=>`<button type="button" role="menuitem" class="row-menu-item${item.danger?" row-menu-danger":""}"
+    data-action="${esc(item.action)}"${item.id==null?"":` data-id="${esc(item.id)}"`}
+    ${item.extra==null?"":`data-extra="${dataAttr(item.extra)}"`} ${item.disabled?"disabled aria-disabled=\"true\"":""}>${esc(item.label)}</button>`;
+  rowMenuPop.innerHTML=`${normal.map(render).join("")}${normal.length&&danger.length?'<div class="row-menu-separator" role="separator"></div>':""}${danger.map(render).join("")}`;
+  _rowMenuTrigger=trigger;
+  trigger.setAttribute("aria-expanded","true");
+  rowMenuPop.classList.remove("hidden");
+  _rowMenuPosition();
+  if(focus){
+    const menuItems=_rowMenuItems();
+    menuItems[focus==="last"?menuItems.length-1:0]?.focus({preventScroll:true});
+  }
+}
+
+document.addEventListener("click",e=>{
+  const trigger=e.target.closest(".row-menu-btn");
+  if(trigger){
+    if(_rowMenuTrigger===trigger) _rowMenuClose(false);
+    else _rowMenuOpen(trigger,e.detail===0?"first":null);
+    return;
+  }
+  if(_rowMenuTrigger&&!e.composedPath().includes(rowMenuPop)) _rowMenuClose(false);
+});
+document.addEventListener("keydown",e=>{
+  const trigger=e.target.closest?.(".row-menu-btn");
+  if(trigger&&["Enter"," ","ArrowDown","ArrowUp"].includes(e.key)){
+    e.preventDefault();
+    _rowMenuOpen(trigger,e.key==="ArrowUp"?"last":"first");
+    return;
+  }
+  if(_rowMenuTrigger&&e.key==="Tab"){ _rowMenuClose(true); return }
+  if(!_rowMenuTrigger||!rowMenuPop.contains(e.target)) return;
+  const items=_rowMenuItems();
+  const index=items.indexOf(document.activeElement);
+  if(e.key==="Escape"){
+    e.preventDefault(); e.stopImmediatePropagation(); _rowMenuClose(true); return;
+  }
+  let next=null;
+  if(e.key==="ArrowDown") next=items[(index+1+items.length)%items.length];
+  else if(e.key==="ArrowUp") next=items[(index-1+items.length)%items.length];
+  else if(e.key==="Home") next=items[0];
+  else if(e.key==="End") next=items[items.length-1];
+  if(next){ e.preventDefault(); next.focus() }
+});
+window.addEventListener("resize",()=>_rowMenuClose(false));
+/* التمرير بيحرّك القايمة مع زرارها بدل ما يقفلها — التركيز بالكيبورد بيعمل
+   تمرير متأخر للزرار عشان يبان، فالقفل عند أي تمرير كان بيقفل القايمة لحظة
+   ما Enter يفتحها. بتتقفل بس لو الزرار نفسه خرج من الشاشة. */
+window.addEventListener("scroll",e=>{
+  if(!_rowMenuTrigger||rowMenuPop.contains(e.target)) return;
+  const r=_rowMenuTrigger.getBoundingClientRect();
+  if(!_rowMenuTrigger.isConnected||r.bottom<0||r.top>window.innerHeight) _rowMenuClose(false);
+  else _rowMenuPosition();
+},true);
 
 /* ═══════════════════════════════════════════════════════════════════
    Sortable Table — يُستخدم في الصفحات التي تحتاج ترتيب الأعمدة.
@@ -362,7 +472,7 @@ function sortableTableBlock(cid, cols, rows, rowHtml, extraHeads, countText, emp
   if (!sorted.length && emptyText) return `<div class="empty">${emptyText}</div>`;
   const heads = [
     ...Object.entries(cols).map(([k, c]) => _sortTh(c.label, k, cid, null)),
-    ...(extraHeads || []).map(h => `<th>${esc(h)}</th>`)
+    ...(extraHeads || []).map(h => `<th${h==="الإجراء"?' class="col-actions"':""}>${esc(h)}</th>`)
   ];
   const tableHtml = `<table class="table mtable"><thead><tr>${heads.join("")}</tr></thead>
     <tbody>${sorted.map(rowHtml).join("")}</tbody></table>`;
@@ -471,6 +581,7 @@ function _closeModalNow(modal){
   if(index>=0) _modalStack.splice(index,1);
   if(_cbSel&&modal.contains(_cbSel)) _cbClose();
   if(_dpInput&&modal.contains(_dpInput)) _dpClose();
+  if(_rowMenuTrigger&&modal.contains(_rowMenuTrigger)) _rowMenuClose(false);
   _syncModalState();
   if(!wasTop) return;
   if(entry?.opener?.isConnected&&!entry.opener.closest("[inert]")) entry.opener.focus({preventScroll:true});
@@ -1342,9 +1453,11 @@ document.addEventListener("keydown",e=>{
   if(e.key==="Tab"&&_modalTop()){
     const card=_modalTop().modal.querySelector(".modal-card");
     const active=document.activeElement;
-    const popup=(!_cbSel||comboPop.classList.contains("hidden")||!comboPop.contains(active))
-      ? (!_dpInput||datePopover.classList.contains("hidden")||!datePopover.contains(active)?null:datePopover)
-      : comboPop;
+    const popup=_rowMenuTrigger&&!rowMenuPop.classList.contains("hidden")&&rowMenuPop.contains(active)
+      ? rowMenuPop
+      : (!_cbSel||comboPop.classList.contains("hidden")||!comboPop.contains(active))
+        ? (!_dpInput||datePopover.classList.contains("hidden")||!datePopover.contains(active)?null:datePopover)
+        : comboPop;
     const focusable=[..._modalFocusable(card),...(popup?_modalFocusable(popup):[])];
     if(!focusable.length){ e.preventDefault(); card.focus({preventScroll:true}); return }
     const index=focusable.indexOf(active);
@@ -1356,6 +1469,7 @@ document.addEventListener("keydown",e=>{
   }
   if(e.key!=="Escape") return;
   // Esc وقت القايمة مفتوحة بيقفل القايمة بس — مش النافذة اللي هي جواها
+  if(_rowMenuTrigger){ _rowMenuClose(true); return }
   if(_cbSel){ _cbClose(); return }
   if(_dpInput){ const input=_dpInput; _dpClose(); input.focus(); return }
   if(_modalTop()){ closeModal(_modalTop().modal.id); return }
