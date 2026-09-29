@@ -7,18 +7,24 @@ const monthValue = () => $("#regMonth").value || curDate().slice(0, 7);
 
 function headRow() {
   const recorded = new Set(REG.recorded_days || []);
+  const today = curDate();
   const cols = REG.days.map(d =>
-    `<th class="d-col ${recorded.has(d) ? "" : "no-rec"}"
+    `<th class="d-col ${recorded.has(d) ? "" : "no-rec"}${d === today ? " is-today" : ""}"
+      ${d === today ? 'aria-current="date"' : ""}
       title="${dayName(d)} ${fmt(d)}${recorded.has(d) ? "" : " — لا توجد يومية"}">${dayNum(d)}</th>`).join("");
   return `<tr><th class="who-col">الضابط</th>${cols}<th class="t-col">عمل</th>
     <th class="t-col">راحة</th><th class="t-col">إجازة</th><th class="t-col">خارج</th></tr>`;
 }
 
 function officerRow(r) {
-  const cells = r.cells.map(c =>
-    `<td><button class="${cellClass(c)}" data-action="openCell"
+  const today = curDate();
+  // الرمز حرف واحد (أ/ر/ج…) — المعنى الكامل والتاريخ في التلميح واسم الزرار
+  const cells = r.cells.map(c => {
+    const full = `${c.label} — ${dayName(c.day)} ${fmt(c.day)}`;
+    return `<td${c.day === today ? ' class="is-today"' : ""}><button class="${cellClass(c)}" data-action="openCell"
       data-id="${esc(r.id)}" data-extra="${dataAttr({day: c.day})}"
-      title="${esc(c.label)}">${esc(c.code)}</button></td>`).join("");
+      title="${esc(full)}" aria-label="${esc(full)}">${esc(c.code)}</button></td>`;
+  }).join("");
   const t = r.tally.by_family;
   return `<tr>
     <td class="who-col"><a href="/register/${encodeURIComponent(r.id)}" class="who-link">
@@ -52,6 +58,8 @@ function render() {
       <tfoot>${totalsRows()}</tfoot>
     </table></div>`;
   $("#registerLegend").innerHTML = legendBox(REG.legend);
+  // عمود النهاردة بيبان على طول بدل ما يبقى برّه الشاشة في آخر الشهر
+  wrap.querySelector("th.is-today")?.scrollIntoView({block: "nearest", inline: "center"});
 }
 
 ACTIONS.openCell = (id, extra) => {
@@ -79,7 +87,7 @@ $("#regSearch").oninput = render;
 async function load() {
   const d = await bootstrap();
   if (!d) return;
-  const days = d.days || [];
-  loadMonth((days[days.length - 1] || curDate()).slice(0, 7));
+  // الشهر الحالي — مش شهر آخر يوم متسجّل (كان بيفتح على أكتوبر فاضي في آخر سبتمبر)
+  loadMonth(curDate().slice(0, 7));
 }
 load();

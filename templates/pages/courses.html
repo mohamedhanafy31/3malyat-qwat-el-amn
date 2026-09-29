@@ -28,11 +28,12 @@
       <option value="__none">بدون تصنيف</option>
     </select>
   </div>
-  <p class="hint panel-notice">
-    الالتحاق بفرقة سجل بمدى تواريخ — زي الراحة بالظبط — فالضابط بيظهر في خانة
-    «فرقة» في الخوارج طول مدتها من غير ما تتكتب في تشغيله كل يوم، وبتغطي كمان
-    الأيام اللي لسه ماتعملّهاش يومية.
-  </p>
+  <details class="info-disclosure">
+    <summary>{{ icon('alert') }} كيف تُحتسب الفرق؟</summary>
+    <p>الالتحاق بفرقة سجل بمدى تواريخ — مثل الراحة تمامًا — فيظهر الضابط في خانة
+      «فرقة» ضمن الخوارج طوال مدتها دون أن تُكتب في تشغيله كل يوم، ويغطي ذلك أيضًا
+      الأيام التي لم تُعمل لها يومية بعد.</p>
+  </details>
   <div id="coursesWrap" role="tabpanel" aria-labelledby="courseTabCourse">{{ skeleton("cards", 4) }}</div>
 </div>
 {% endblock %}

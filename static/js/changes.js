@@ -18,10 +18,13 @@ const ENTITY_LABEL = {
   day_lock: "قفل يوم", officer_state: "حالة ضابط", leave: "راحة", mission: "مأمورية",
   rest_suspension: "وقف الراحات",
 };
-const ENTITY_CLS = {
-  duty_move: "m", assignment: "w", day_confirm: "on",
-  day_lock: "taq", officer_state: "h", leave: "soon", mission: "w",
-  rest_suspension: "rest",
+/* لون شارة «العملية» بيقول معناها (نفس دلالة الألوان في style.css):
+   حذف/إلغاء أحمر، تأكيد أخضر، قفل/فتح/وقف كهرماني، والإضافة والتعديل
+   معلومة محايدة. «النوع» شارة محايدة من غير لون. */
+const ACTION_CLS = {
+  delete: "err", cancel: "err", unassign: "err",
+  confirm: "on",
+  close: "taq", reopen: "taq", suspend: "taq", lift: "taq", stop: "taq", retro: "taq",
 };
 
 /* "2026-09-16T14:30:00" -> "١٦ سبتمبر ٢٠٢٦ — 14:30" */
@@ -51,8 +54,8 @@ function changeRow(e) {
   return `<tr>
     <td class="wrap">${stamp(e.ts)}</td>
     <td>${e.day ? fmt(e.day) : "<span class='muted'>—</span>"}</td>
-    <td><span class="chip ${ENTITY_CLS[e.entity] || "w"}">${esc(ENTITY_LABEL[e.entity] || e.entity)}</span></td>
-    <td><span class="chip w">${esc(ACTION_LABEL[e.action] || e.action)}</span></td>
+    <td><span class="badge">${esc(ENTITY_LABEL[e.entity] || e.entity)}</span></td>
+    <td><span class="chip ${ACTION_CLS[e.action] || "w"}">${esc(ACTION_LABEL[e.action] || e.action)}</span></td>
     <td class="wrap">${body}</td>
     <td>${esc(e.edited_by) || "<span class='muted'>—</span>"}</td>
   </tr>`;

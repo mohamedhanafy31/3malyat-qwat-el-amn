@@ -81,6 +81,7 @@ const AR_NOUNS={
   "يوم":{one:"يوم واحد",two:"يومان",few:"أيام",many:"يومًا",sing:"يوم"},
   "خدمة":{one:"خدمة واحدة",two:"خدمتان",few:"خدمات",many:"خدمة",sing:"خدمة"},
   "خانة":{one:"خانة واحدة",two:"خانتان",few:"خانات",many:"خانة",sing:"خانة"},
+  "تعديل":{one:"تعديل واحد",two:"تعديلان",few:"تعديلات",many:"تعديلًا",sing:"تعديل"},
 };
 function countLabel(n,forms){
   const f=typeof forms==="string"?AR_NOUNS[forms]:forms;

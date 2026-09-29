@@ -900,7 +900,11 @@ tr.vacant td{background:repeating-linear-gradient(135deg,transparent,transparent
   var(--navy-50) 7px,var(--navy-50) 14px) !important}
 
 /* ═══════════════════ ⑲ دفتر 43 ═══════════════════ */
-.reg-scroll{max-height:calc(100vh - 250px)}
+/* الشبكة عريضة فلازم تبقى حاوية تمرير أفقي، والرأس اللاصق بيلصق فيها هي؛
+   فبتاخد ارتفاع الشاشة كاملة (نمط الجدول الحسابي) بدل صندوق صغير جوّه الصفحة */
+.table-scroll.reg-scroll{overflow:auto;max-height:calc(100vh - var(--topbar-h) - var(--s4))}
+.reg43 th.is-today{background:var(--gold-100);border-top:3px solid var(--gold-700);color:var(--navy-950)}
+.reg43 td.is-today{background:var(--gold-100) !important}
 .reg43{border-collapse:separate;border-spacing:0;font-size:var(--t-sm)}
 .reg43 th,.reg43 td{padding:3px var(--s1);text-align:center;white-space:nowrap}
 .reg43 thead th{position:sticky;top:0;z-index:3;background:var(--navy-100);
@@ -1030,6 +1034,25 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 @media(max-width:700px){.day-links{grid-template-columns:1fr}}
 
 .dash-wide{margin-top:var(--s4)}
+/* كشف الراحات الشهرية */
+.roster-savebar{position:sticky;bottom:0;z-index:3;display:flex;align-items:center;gap:var(--s2);
+  justify-content:flex-end;padding:var(--s3) var(--s5);background:var(--surface);
+  border-top:1px solid var(--line);box-shadow:0 -4px 12px var(--shadow-edge)}
+.roster-dirty{margin-inline-end:auto;color:var(--warn-700);font-weight:600;font-size:var(--t-cap)}
+.roster-savebar .primary:disabled{opacity:.5;cursor:not-allowed}
+.table tbody tr.needs-date td{background:var(--warn-50)}
+.roster-error:empty{display:none}
+/* الفرق */
+.unclassified-banner{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:var(--s4) var(--s5) 0;
+  padding:var(--s2) var(--s3);border:1px solid var(--warn-300);border-radius:var(--radius-card);
+  background:var(--warn-100);color:var(--warn-700);font-size:var(--t-cap)}
+.unclassified-banner > span:nth-child(2){flex:1;min-width:0}
+.unclassified-banner b{color:var(--ink-900)}
+.info-disclosure{margin:var(--s3) var(--s5) 0;font-size:var(--t-sm);color:var(--ink-700)}
+.info-disclosure summary{cursor:pointer;display:inline-flex;align-items:center;gap:var(--s1);
+  color:var(--navy-800);font-weight:600}
+.info-disclosure p{margin:var(--s2) 0 0;max-width:80ch;line-height:1.7}
+.changes-note{margin:var(--s3) var(--s5)}
 /* شريط حالة التأكيد فوق اليومية التفصيلية */
 .confirm-bar{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s5);
   border-bottom:1px solid var(--line);font-size:var(--t-cap)}

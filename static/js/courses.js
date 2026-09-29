@@ -87,7 +87,7 @@ function courseCard(c) {
       <div class="course-head-main">
         <h3 class="course-name">${esc(c.name)}</h3>
         <div class="course-meta">
-          <span class="chip ${kindChipCls(c.kind)}">${esc(c.kind || "بدون تصنيف")}</span>
+          ${c.kind ? `<span class="chip ${kindChipCls(c.kind)}">${esc(c.kind)}</span>` : ""}
           ${c.place ? `<span class="course-place">${esc(c.place)}</span>` : ""}
         </div>
       </div>
@@ -161,8 +161,16 @@ function render() {
     // 51 فرقة كروت ورا بعض كانت صفحة طولها 6700 بكسل — الكرت أطول بكتير من
     // صف الجدول، فبتتعرض 20 20
     const { shown, footer } = pageSlice("coursesWrap", list, render, "", 20);
+    // شارة «بدون تصنيف» كانت على 50 من 51 كرت — بقت تنبيه واحد فوق الكروت
+    const unclassified = COURSES.filter(c => !c.kind).length;
+    const banner = unclassified && $("#crsKindFilter").value !== "__none"
+      ? `<div class="unclassified-banner"><span class="status-dot warn" aria-hidden="true"></span>
+          <span><b>${countLabel(unclassified, {one: "فرقة واحدة", two: "فرقتان", few: "فرق", many: "فرقة", sing: "فرقة"})} بدون تصنيف</b>
+          — يلوّن التصنيف الكرت ويسهّل التصفية.</span>
+          <button type="button" class="btn" data-filter-unclassified>عرض غير المصنّفة</button></div>`
+      : "";
     $("#coursesWrap").innerHTML = list.length
-      ? `<div class="courses-grid">${shown.map(courseCard).join("")}</div>${footer}`
+      ? `${banner}<div class="courses-grid">${shown.map(courseCard).join("")}</div>${footer}`
       : emptyState(emptyMsg);
     return;
   }
@@ -317,3 +325,10 @@ async function load() {
   render();
 }
 load();
+
+document.addEventListener("click", e => {
+  if (!e.target.closest("[data-filter-unclassified]")) return;
+  const sel = $("#crsKindFilter");
+  sel.value = "__none";
+  sel.dispatchEvent(new Event("change", {bubbles: true}));
+});

@@ -7,20 +7,24 @@
 <div class="panel">
   <div class="toolbar">
     <div class="monthly-head-copy">
-      <h3 class="monthly-head-title">الراحات الشهرية ونصف الشهرية</h3>
+      <h3 class="monthly-head-title">الشهرية ونصف الشهرية</h3>
       <p class="hint monthly-head-hint">
         دخّل تاريخ بداية الراحة الجاية من كشف المديرية؛ المدة والنوع بيتحسبوا تلقائيًا.
       </p>
     </div>
-    <button class="primary" id="saveRosterBtn">حفظ الكشف</button>
   </div>
   <div id="rosterWrap">{{ skeleton("rows", 12) }}</div>
+  <div class="roster-savebar">
+    <span class="roster-dirty" id="rosterDirty" aria-live="polite"></span>
+    <button type="button" class="btn hidden" id="rosterUndo">تراجع</button>
+    <button type="button" class="primary" id="saveRosterBtn" disabled>حفظ الكشف</button>
+  </div>
 </div>
 
 <div class="panel weekly-rest-panel">
   <div class="panel-head">
     <div>
-      <h3 class="monthly-head-title">الراحات الأسبوعية</h3>
+      <h3 class="monthly-head-title">الأسبوعية</h3>
       <p class="hint monthly-head-hint">
         اليوم الثابت بيتسجّل تلقائيًا عند فتح اليومية. من هنا تقدر تضيف يوم راحة تاني من غير ما تغيّر اليوم الثابت.
       </p>

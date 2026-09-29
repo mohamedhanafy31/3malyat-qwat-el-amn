@@ -23,22 +23,24 @@ function statusChip(row) {
   if (row.status === "suspended") {
     return `<span class="chip err">موقوفة</span><div class="sub">أمر وقف من ${fmt(c.since)}</div>`;
   }
-  return `<span class="chip done">تم</span><div class="sub">محتاج تاريخ جديد</div>`;
+  return `<span class="chip soon">يحتاج تاريخًا جديدًا</span>`;
 }
 
 function rosterRow(row) {
   const prefill = row.status === "upcoming" ? row.current.start : "";
   const blocked = suspendedTypes().includes(row.rest_system);
-  return `<tr data-id="${esc(row.id)}">
+  const needsDate = !["active", "upcoming", "suspended"].includes(row.status);
+  return `<tr data-id="${esc(row.id)}"${needsDate && !blocked ? ' class="needs-date"' : ""}>
     <td class="name">${esc(row.name)}<div class="sub">${esc(row.role)}</div></td>
     <td><span class="chip ${row.rest_system === "شهرية" ? "m" : "h"}">${esc(row.rest_system)}</span></td>
     <td>${statusChip(row)}</td>
     <td>
       <input type="date" class="select roster-date" value="${esc(prefill)}"
-        data-id="${esc(row.id)}" ${blocked ? "disabled" : ""}>
+        data-id="${esc(row.id)}" data-initial="${esc(prefill)}" ${blocked ? "disabled" : ""}
+        aria-label="تاريخ الراحة الجديد — ${esc(row.name)}">
       <div class="sub roster-hint" id="hint-${esc(row.id)}"></div>
+      <div class="roster-error" id="err-${esc(row.id)}"></div>
     </td>
-    <td class="wrap roster-error" id="err-${esc(row.id)}"></td>
   </tr>`;
 }
 
@@ -59,7 +61,7 @@ function render() {
   if (!ROSTER) { wrap.innerHTML = skeleton("rows", 8); return }
   $("#suspensionBar").innerHTML = suspensionBanner(suspendedTypes());
   wrap.innerHTML = tableBlock(
-    ["الضابط", "نظام الراحة", "الحالة الحالية", "تاريخ الراحة الجديد", ""],
+    ["الضابط", "نظام الراحة", "الحالة الحالية", "تاريخ الراحة الجديد"],
     ROSTER.map(rosterRow),
     `عدد الضباط: ${ROSTER.length}`,
     "لا يوجد ضباط بنظام راحة شهري أو نصف شهري");
@@ -70,9 +72,10 @@ function render() {
   // data-action مقصورة على الضغط (زي core.js's click listener) — تغيير
   // تاريخ مش ضغطة، فلازم oninput مباشر زي lvStart في leave-form.js
   $$(".roster-date").forEach(input => {
-    input.oninput = () => updateRowHint(input.dataset.id);
+    input.oninput = () => { updateRowHint(input.dataset.id); updateDirty(); };
     updateRowHint(input.dataset.id);
   });
+  updateDirty();
 
   renderWeekly();
 }
@@ -139,6 +142,25 @@ ACTIONS.addWeeklyExtra = async (id, _extra, button) => {
   showToast("تم تسجيل الراحة الأسبوعية الإضافية");
   await load();
 };
+
+/* عدّاد التعديلات غير المحفوظة في شريط الحفظ اللاصق — الكشف طويل وزرار
+   الحفظ كان فوق بس، فمكانش في أي إشارة إن فيه حاجة لسه ما اتحفظتش */
+const dirtyInputs = () => $$(".roster-date").filter(i => !i.disabled && (i.value || "") !== (i.dataset.initial || ""));
+function updateDirty() {
+  const n = dirtyInputs().length;
+  // الصفة بتتبع العدد: تعديل واحد غير محفوظ، تعديلان غير محفوظين، تعديلات غير محفوظة
+  $("#rosterDirty").textContent = !n ? "" : n === 1 ? "تعديل واحد غير محفوظ"
+    : n === 2 ? "تعديلان غير محفوظين" : `${countLabel(n, "تعديل")} غير محفوظة`;
+  $("#rosterUndo").classList.toggle("hidden", !n);
+  $("#saveRosterBtn").disabled = !n;
+}
+$("#rosterUndo").onclick = () => {
+  dirtyInputs().forEach(i => { i.value = i.dataset.initial || ""; updateRowHint(i.dataset.id); });
+  updateDirty();
+};
+window.addEventListener("beforeunload", e => {
+  if (dirtyInputs().length) { e.preventDefault(); e.returnValue = ""; }
+});
 
 $("#saveRosterBtn").onclick = async () => {
   const entries = [];
