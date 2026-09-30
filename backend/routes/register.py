@@ -1,4 +1,6 @@
 """دفتر 43 — الشبكة الشهرية وصفحة الضابط."""
+import calendar
+
 from flask import Blueprint, jsonify
 
 from ..repo import Repos
@@ -14,7 +16,9 @@ def get_month(year, month):
         return jsonify({"error": "شهر غير صحيح."}), 400
     if not 2000 <= year <= 2100:
         return jsonify({"error": "سنة غير صحيحة."}), 400
-    return jsonify(month_register(load_data(), year, month))
+    month_days = [f"{year:04d}-{month:02d}-{day:02d}"
+                  for day in range(1, calendar.monthrange(year, month)[1] + 1)]
+    return jsonify(month_register(load_data(days=month_days), year, month))
 
 
 @bp.get("/api/register/officer/<officer_id>")

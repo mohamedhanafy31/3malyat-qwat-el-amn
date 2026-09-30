@@ -236,6 +236,46 @@ def test_a_day_with_no_record_at_all_is_not_frozen(client, frozen_today):
     assert "خدمة جديدة" in [e["name"] for e in view["basic_am"]]
 
 
+def test_template_edit_never_materialises_imported_days(client, data_file, frozen_today):
+    imported = "2023-10-01"
+    app_day = "2026-04-10"
+    data = json.loads(data_file.read_text(encoding="utf-8"))
+    data.setdefault("day_assignments", {})[imported] = [
+        {"id": "AS-0001", "name": "خدمة مستوردة", "kind": "خارجية"}]
+    data.setdefault("day_import", {})[imported] = {
+        "batch": "IMP-1", "at": "2026-09-30T12:00:00", "sources": []}
+    data.setdefault("day_assignments", {})[app_day] = [
+        {"id": "AS-0001", "name": "خدمة النظام", "kind": "خارجية"}]
+    data_file.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    frozen_today("2026-04-15")
+
+    client.post("/api/counts/template/entries",
+                json={"block": "صباحية", "name": "خدمة جديدة", "count": 5})
+
+    stored = json.loads(data_file.read_text(encoding="utf-8"))
+    assert imported not in stored.get("service_counts", {})
+    assert app_day in stored.get("service_counts", {})
+
+
+def test_template_edit_does_not_freeze_days_before_first_in_app_assignment(
+        client, data_file, frozen_today):
+    old_status_day = "2024-01-01"
+    app_day = "2026-04-10"
+    data = json.loads(data_file.read_text(encoding="utf-8"))
+    data.setdefault("day_status", {})[old_status_day] = {"closed": True}
+    data.setdefault("day_assignments", {})[app_day] = [
+        {"id": "AS-0001", "name": "خدمة النظام", "kind": "خارجية"}]
+    data_file.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    frozen_today("2026-04-15")
+
+    client.post("/api/counts/template/entries",
+                json={"block": "صباحية", "name": "خدمة جديدة", "count": 5})
+
+    stored = json.loads(data_file.read_text(encoding="utf-8"))
+    assert old_status_day not in stored.get("service_counts", {})
+    assert app_day in stored.get("service_counts", {})
+
+
 def test_each_block_carries_its_own_total_and_they_add_up(client):
     """الورقة فيها «المجموع» تحت كل قسم و«إجمالي اعداد الخدمات» تحت خالص —
     والاتنين لازم يطلعوا من نفس الأرقام مش من عدّتين مختلفتين."""

@@ -6,6 +6,8 @@
 تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
 حالة يومية هنا.
 """
+from datetime import date, timedelta
+
 from flask import Blueprint, jsonify
 
 from .. import changes
@@ -25,7 +27,8 @@ def get_duty(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    data = load_data()
+    previous = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
+    data = load_data(days=[previous, day])
     if not needs_prepare(data, day):
         return jsonify(summarise(data, day))
 

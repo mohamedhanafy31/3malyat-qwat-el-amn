@@ -7,6 +7,7 @@
 import json
 
 from backend import store
+from backend.imports import import_info, is_imported
 
 DAY = "2026-04-10"
 OTHER = "2026-04-11"
@@ -134,6 +135,32 @@ def test_a_day_with_only_an_officer_state_still_gets_a_file(client):
     blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
     assert set(blob) == {"officer_states"}
     assert store.load_data()["day_officers"][DAY]["OFF-001"]["status"] == "غياب"
+
+
+def test_import_marker_round_trips_in_the_day_file_and_empty_is_absent(data_file):
+    data = store.load_data()
+    marker = {"batch": "IMP-1", "at": "2026-09-30T12:00:00",
+              "sources": [{"type": "board", "path": "synthetic.docx", "sha1": "abc"}]}
+    data["day_import"][DAY] = marker
+    data["day_import"][OTHER] = {}
+    store.save_data(data)
+
+    assert json.loads(store.day_path(DAY).read_text(encoding="utf-8"))["import"] == marker
+    assert not store.day_path(OTHER).exists()
+    loaded = store.load_data()
+    assert is_imported(loaded, DAY)
+    assert import_info(loaded, DAY) == marker
+    assert not is_imported(loaded, OTHER)
+
+
+def test_cached_parsed_objects_are_isolated_between_reads(client):
+    _add(client, DAY)
+    first = store.load_data()
+    first["day_assignments"][DAY][0]["name"] = "تعديل لم يُحفظ"
+
+    second = store.load_data()
+
+    assert second["day_assignments"][DAY][0]["name"] == "خدمة"
 
 
 # ---------- الكاش ----------

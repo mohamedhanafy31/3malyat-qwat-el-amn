@@ -98,6 +98,19 @@ def test_entity_filter_only_returns_that_entity(client):
     assert len(entries) == 1
 
 
+def test_import_batch_is_recorded_and_filterable(client):
+    from backend import changes, store
+
+    def mutate(data):
+        changes.record(data, "import", "IMP-2026-09-30", "create",
+                       text="استيراد دفعة الأرشيف")
+
+    store.with_data(mutate)
+    entries = _entries(client, entity="import")
+    assert len(entries) == 1
+    assert entries[0]["entity_id"] == "IMP-2026-09-30"
+
+
 def test_day_filter_only_returns_that_days_entries(client):
     client.post(f"/api/assignments/{DAY}", json={"name": "خدمة", "kind": "خارجية"})
     _confirm(client)

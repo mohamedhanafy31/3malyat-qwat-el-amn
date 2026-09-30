@@ -57,7 +57,7 @@ def get_counts(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    return jsonify(counts_lib.build(load_data(), day))
+    return jsonify(counts_lib.build(load_data(days=[day]), day))
 
 
 @bp.get("/api/counts/template")

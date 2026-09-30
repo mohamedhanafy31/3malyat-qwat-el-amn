@@ -177,11 +177,23 @@ def freeze_past_days(data):
     الجاية بس.
     """
     from .day_status import today_iso
+    from .imports import is_imported
     from .repo import DayRepo
 
     today = today_iso()
+    counts_days = set(data.get("service_counts") or {})
+    app_assignment_days = {
+        day for day in (data.get("day_assignments") or {})
+        if not is_imported(data, day)
+    }
+    anchors = counts_days | app_assignment_days
+    if not anchors:
+        return
+    # ما قبل أول نسخة أعداد أو تكليف أنشأه النظام أرشيف سابق لبداية
+    # التشغيل؛ لا ننسخ قالب اليوم إلى مئات أيام الترحيل.
+    first_app_day = min(anchors)
     for day in DayRepo(data).dates():
-        if day < today:
+        if first_app_day <= day < today and not is_imported(data, day):
             for_day_entries(data, day)
 
 

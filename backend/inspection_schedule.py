@@ -107,7 +107,11 @@ def needs_seed(data, day):
     """فحص رخيص للقراءة بس — يقرر لو `seed_board_day` هيعمل حاجة فعلًا،
     عشان نقاط الـGET تتجنّب الدخول في مسار كتابة (وتسجيل في audit.log)
     لأغلب الأيام اللي اتفتحت قبل كده."""
-    if day in _seeded_days(data):
+    from . import day_status
+    from .imports import is_imported
+
+    ok, _ = day_status.check_open(data, day)
+    if not ok or is_imported(data, day) or day in _seeded_days(data):
         return False
     return bool(day_entries(data, weekday_name(day) or ""))
 
@@ -126,7 +130,11 @@ def seed_board_day(data, day):
     لو اليوم اتفتح قبل كده (حتى لو اتمسحت كل خاناته بعدين)، ملوش دخل تاني.
     الفحص هنا بيتكرر تاني (مش بس `needs_seed`) عشان يفضل صحيح حتى لو
     اتنادى مباشرة من غير مرور على `needs_seed` الأول."""
-    if day in _seeded_days(data):
+    from . import day_status
+    from .imports import is_imported
+
+    ok, _ = day_status.check_open(data, day)
+    if not ok or is_imported(data, day) or day in _seeded_days(data):
         return
     entries = day_entries(data, weekday_name(day) or "")
     if not entries:

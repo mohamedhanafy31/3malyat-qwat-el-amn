@@ -1,5 +1,8 @@
 """جدول تفتيشات زيارات الأهالي الأسبوعي — إدارة الجدول + تحطيطه التلقائي
 على اليومية التفصيلية أول ما يوم الأسبوع بتاعه يتفتح لأول مرة."""
+import json
+
+from backend import store
 from backend.utils import weekday_name
 
 SATURDAY = "2026-04-11"    # اتأكد بـ weekday_name تحت — أي تاريخ، مش مهم بالظبط
@@ -108,3 +111,49 @@ def test_a_weekday_with_no_schedule_leaves_the_board_untouched(client):
 
     b = client.get(f"/api/board/{day}").get_json()
     assert not any(s["name"] == "تفتيشات" for s in b["sections"])
+
+
+def test_opening_a_past_board_never_seeds_or_changes_its_file(client, frozen_today):
+    day = SATURDAY
+    _add(client, weekday_name(day), name="تفتيش فيصل")
+    frozen_today("2026-04-12")
+    before = json.loads(store.core_file().read_text(encoding="utf-8"))
+
+    response = client.get(f"/api/board/{day}")
+
+    assert response.status_code == 200
+    assert not store.day_path(day).exists()
+    after = json.loads(store.core_file().read_text(encoding="utf-8"))
+    assert after == before
+    assert day not in after.get("inspection_seeded_days", {})
+
+
+def test_manually_closed_future_board_never_seeds_inspections(client):
+    day = SATURDAY
+    _add(client, weekday_name(day), name="تفتيش فيصل")
+    assert client.post(f"/api/day-status/{day}/close", json={}).status_code == 201
+
+    response = client.get(f"/api/board/{day}")
+
+    assert response.status_code == 200
+    blob = json.loads(store.day_path(day).read_text(encoding="utf-8"))
+    assert "assignments" not in blob
+    core = json.loads(store.core_file().read_text(encoding="utf-8"))
+    assert day not in core.get("inspection_seeded_days", {})
+
+
+def test_imported_open_day_never_seeds_inspections(client, data_file):
+    day = SATURDAY
+    _add(client, weekday_name(day), name="تفتيش فيصل")
+    data = json.loads(data_file.read_text(encoding="utf-8"))
+    data.setdefault("day_import", {})[day] = {
+        "batch": "IMP-1", "at": "2026-09-30T12:00:00", "sources": []}
+    data_file.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+    response = client.get(f"/api/board/{day}")
+
+    assert response.status_code == 200
+    blob = json.loads(store.day_path(day).read_text(encoding="utf-8"))
+    assert "assignments" not in blob
+    assert day not in json.loads(store.core_file().read_text(encoding="utf-8")).get(
+        "inspection_seeded_days", {})

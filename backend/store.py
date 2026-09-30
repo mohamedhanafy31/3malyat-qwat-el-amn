@@ -41,6 +41,7 @@ import hashlib
 import json
 import logging
 import os
+import pickle
 import threading
 import time
 import zlib
@@ -56,7 +57,20 @@ from .repo.people import as_roster
 from .utils import sort_active
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data"
+
+
+def _initial_data_dir():
+    raw = os.environ.get("PERSONNEL_DATA_DIR", "").strip()
+    if not raw:
+        return ROOT / "data"
+    path = Path(raw)
+    if not path.is_absolute():
+        raise RuntimeError("PERSONNEL_DATA_DIR must be an absolute path")
+    return path
+
+
+DATA_DIR = _initial_data_dir()
+_ENV_DATA_DIR = DATA_DIR if os.environ.get("PERSONNEL_DATA_DIR", "").strip() else None
 LOCK = threading.Lock()
 
 CORE_NAME = "core.json"
@@ -93,6 +107,8 @@ DAY_SECTIONS = {
     # النسخة المبدئية لضباط الأهداف جاية من آخر تأكيد لليوم السابق. بنحفظ
     # المصدر والبصمة جوّه ملف اليوم عشان نعرف هل المشغّل لمسها قبل تحديثها.
     "target_defaults": "target_defaults",
+    # علامة مصدر اليوم المستورد؛ غيابها يعني أن اليوم أُنشئ داخل النظام.
+    "day_import": "import",
 }
 
 
@@ -129,8 +145,8 @@ class DataUnreadable(SchemaMismatch):
 # سجل تدقيق بسيط — مين عدّل ايه وامتى، بدون نظام حسابات أو تسجيل دخول. الاسم
 # اختياري (حقل "اسمك" في الشريط العلوي)؛ لو فاضي بيتسجل null. الملف بيدور
 # تلقائيًا (5 ميجا × 5 نسخ) عشان ما يكبرش من غير حد.
-_LOG_DIR = ROOT / "logs"
-_LOG_DIR.mkdir(exist_ok=True)
+_LOG_DIR = (DATA_DIR / "logs") if _ENV_DATA_DIR is not None else (ROOT / "logs")
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
 _audit_logger = logging.getLogger("personnel_system.audit")
 _audit_logger.setLevel(logging.INFO)
 if not _audit_logger.handlers:
@@ -271,42 +287,40 @@ def merge(core, days):
 
 # ---------- القراءة ----------
 
-_cache = {}        # {path: (mtime_ns, size, text, fingerprint)}
+_cache = {}        # {path: (mtime_ns, size, parsed, fingerprint, packed)}
 
 
 def _cached(path):
-    """-> (نص الملف، بصمته). بيتقرا من القرص بس لو اتغيّر.
+    """-> (الكائن المحلّل، بصمته، نسخته المسلسلة). يُعاد القراءة فقط
+    عند تغيّر الملف.
 
-    **النص** هو اللي بيتخزّن مش الكائن المتفكوك، وده مقصود لسببين:
-
-      * كل قارئ محتاج كائن **مستقل** يعدّل فيه بحرية. لو الكاش بيدّي
-        كائن مشترك كان لازم ننسخه نسخة عميقة في كل قراءة — وده كان
-        أغلى (34 مللي) من تحليل النص من الأول (17)، لأن النسخ العميق
-        بيسلسل ويحلّل، يعني مرورين بدل واحد.
-      * البصمة بتتحسب مرة واحدة هنا مش في كل قراءة. حسابها لكل الأيام
-        في كل طلب كان 21 مللي ثانية شغل مكرر.
-
-    الكاش آمن لأن كل القراءات والكتابات تحت `LOCK` واحد.
+    يبقى كائن الكاش ملكًا للمخزن؛ `_load_cached` يسلّم نسخة عميقة
+    للمستدعي حتى تظل دلالات `with_data` آمنة. هذا يلغي إعادة تحليل
+    نحو ألف ملف JSON في كل طلب. `pickle` هنا نسخ داخلي لكائنات موثوقة
+    حُلّلت من JSON، وليس قراءة لملف pickle خارجي.
     """
     stat = path.stat()
     key = str(path)
     hit = _cache.get(key)
     if hit and hit[0] == stat.st_mtime_ns and hit[1] == stat.st_size:
-        return hit[2], hit[3]
+        return hit[2], hit[3], hit[4]
     text = _read_text(path)
-    entry = (stat.st_mtime_ns, stat.st_size, text, _fingerprint(text))
+    parsed = _parse(text, path)
+    entry = (stat.st_mtime_ns, stat.st_size, parsed, _fingerprint(text),
+             pickle.dumps(parsed, protocol=pickle.HIGHEST_PROTOCOL))
     _cache[key] = entry
-    return entry[2], entry[3]
+    return entry[2], entry[3], entry[4]
 
 
 def _load_cached(path):
     """محتوى الملف متفكوك — كائن جديد في كل نداء."""
-    return _parse(_cached(path)[0], path)
+    return pickle.loads(_cached(path)[2])
 
 
-def _read():
+def _read(days_filter=None):
     """قراءة المجلد وتطبيع بنيته — من غير قفل، لاستخدامها جوه أي بلوك
-    ماسك الـLOCK بالفعل."""
+    ماسك الـLOCK بالفعل. `days_filter` لقراءات GET فقط؛ مسارات
+    الكتابة تطلب دائمًا اللقطة الكاملة."""
     if not core_file().exists():
         if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
             raise DataUnreadable(
@@ -322,14 +336,17 @@ def _read():
             )
         explode(json.loads(json.dumps(DEFAULT_DATA)))    # نسخة — explode بيعدّل
 
-    core_text, core_fp = _cached(core_file())
-    core = _parse(core_text, core_file())
+    _core_cached, core_fp, core_packed = _cached(core_file())
+    core = pickle.loads(core_packed)
     _check_schema(core.get("schema", 1))
 
-    days, fingerprints = {}, {"core": core_fp}
-    for path in all_day_files():
-        text, stamp = _cached(path)
-        days[path.stem] = _parse(text, path)
+    days, originals, fingerprints = {}, {}, {"core": core_fp}
+    paths = (all_day_files() if days_filter is None else
+             [day_path(day) for day in sorted(set(days_filter)) if day_path(day).exists()])
+    for path in paths:
+        parsed, stamp, packed = _cached(path)
+        originals[path.stem] = parsed
+        days[path.stem] = pickle.loads(packed)
         fingerprints[path.stem] = stamp
 
     data = merge(core, days)
@@ -351,7 +368,7 @@ def _read():
 
     # بصمات اللي اتقرا — `_write` بيقارن بيها ويكتب اللي اتغيّر بس.
     # المفتاح بيبدأ بـ`_` فما بيتخزّنش (شوف `split`).
-    data["_fp"] = fingerprints
+    data["_fp"] = {"fingerprints": fingerprints, "originals": originals}
     return data
 
 
@@ -366,7 +383,10 @@ def _write(data):
     يعني مفيش رجوع أصلًا.
     """
     data["schema"] = SCHEMA_VERSION
-    before = data.get("_fp") or {}
+    tracking = data.get("_fp") or {}
+    # قراءة بصمات الشكل القديم تبقى ممكنة لكائن حمّله اختبار أو أداة.
+    before = tracking.get("fingerprints", tracking)
+    originals = tracking.get("originals", {})
     core, days = split(data)
 
     core_text = _dumps(core)
@@ -376,6 +396,9 @@ def _write(data):
     new_fp = {"core": core_stamp}
     pending = {}
     for day, blob in days.items():
+        if day in originals and blob == originals[day]:
+            new_fp[day] = before[day]
+            continue
         text = _dumps(blob)
         stamp = _fingerprint(text)
         new_fp[day] = stamp
@@ -398,7 +421,13 @@ def _write(data):
     for day in gone:
         day_path(day).unlink(missing_ok=True)
 
-    data["_fp"] = new_fp
+    new_originals = {
+        day: originals[day] if day in originals and day not in pending
+        else _parse(text, day_path(day))
+        for day, text in ((day, pending.get(day)) for day in days)
+        if day in originals or text is not None
+    }
+    data["_fp"] = {"fingerprints": new_fp, "originals": new_originals}
     return written, removed
 
 
@@ -636,10 +665,10 @@ def acquire_process_lock():
 
 # ---------- الواجهة ----------
 
-def load_data():
-    """لقطة قراءة واحدة — تُستخدم في نقاط الـ GET اللي مالهاش أي تعديل على البيانات."""
+def load_data(days=None):
+    """لقطة GET مستقلة؛ `days` يقيّد ملفات الأيام حين يكون المدى معروفًا."""
     with LOCK:
-        return _read()
+        return _read(days)
 
 
 def save_data(data):
