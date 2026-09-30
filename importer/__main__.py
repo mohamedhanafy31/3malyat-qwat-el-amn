@@ -11,7 +11,11 @@ from pathlib import Path
 
 from .discover import VERSION as DISCOVER_VERSION
 from .discover import run_discover
+from .extract import VERSION as EXTRACT_VERSION
+from .extract import run_extract
 from .ledger import Ledger
+from .validate import VERSION as VALIDATE_VERSION
+from .validate import run_validate
 
 
 STAGES = ("discover", "extract", "validate", "normalize", "resolve", "transform", "verify", "store", "rollback", "report", "run")
@@ -78,15 +82,38 @@ def main(argv: list[str] | None = None) -> int:
         "write": args.write,
         "resume": args.resume,
     }
-    state = ledger.initialise(params, {"discover": DISCOVER_VERSION})
+    state = ledger.initialise(params, {
+        "discover": DISCOVER_VERSION,
+        "extract": EXTRACT_VERSION,
+        "validate": VALIDATE_VERSION,
+    })
     if args.stage == "discover":
         checkpoint = run_discover(archive, ledger, args.from_date, args.to_date, state)
         print(f"اكتملت مرحلة discover: {checkpoint['files']} ملف، {checkpoint['covered_dates']} تاريخًا مغطى.")
         return 0
+    if args.stage == "extract":
+        try:
+            checkpoint = run_extract(archive, ledger, args.from_date, args.to_date, state,
+                                     resume=args.resume)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        print(f"اكتملت مرحلة extract: {checkpoint['documents']} وثيقة، "
+              f"{checkpoint['records']} سجلًا، {checkpoint['errors']} أخطاء.")
+        return 0
+    if args.stage == "validate":
+        try:
+            checkpoint = run_validate(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        print(f"اكتملت مرحلة validate: {checkpoint['documents']} وثيقة، "
+              f"{checkpoint['quarantined_documents']} وثيقة معزولة.")
+        return 0
     if args.stage == "run":
         run_discover(archive, ledger, args.from_date, args.to_date, state)
-        print("المرحلة extract: not implemented yet", file=sys.stderr)
-        return 2
+        run_extract(archive, ledger, args.from_date, args.to_date, state, resume=args.resume)
+        run_validate(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        print("اكتملت المراحل discover وextract وvalidate.")
+        return 0
     print(f"المرحلة {args.stage}: not implemented yet", file=sys.stderr)
     return 2
 

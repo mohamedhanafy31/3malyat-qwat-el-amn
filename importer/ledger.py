@@ -65,8 +65,13 @@ class Ledger:
         if self.batch_file.exists():
             try:
                 previous = json.loads(self.batch_file.read_text(encoding="utf-8"))
-                if previous.get("params") == params:
+                # نسخ دليل البيانات لا يبطل نتائج المراحل السابقة.
+                stable = ("archive", "from", "to", "batch")
+                if all(previous.get("params", {}).get(key) == params.get(key) for key in stable):
                     state["stages"] = previous.get("stages", {})
+                    state["extractor_versions"] = {
+                        **previous.get("extractor_versions", {}), **extractor_versions,
+                    }
             except (OSError, json.JSONDecodeError):
                 pass
         atomic_write_json(self.batch_file, state)
@@ -82,4 +87,3 @@ class Ledger:
 
     def report_path(self, suffix: str) -> Path:
         return self.root / "reports" / f"{self.batch}-{suffix}"
-

@@ -258,7 +258,7 @@ def test_ledger_layout_and_store_ignores_import_folder(tmp_path, monkeypatch):
     assert "bad" not in store._read().get("day_assignments", {})
 
 
-def test_cli_requires_data_dir_and_unimplemented_stage_exits_two(tmp_path):
+def test_cli_requires_data_dir_and_extract_requires_discover(tmp_path):
     archive = tmp_path / "archive"
     archive.mkdir()
     missing = subprocess.run(
@@ -272,4 +272,4 @@ def test_cli_requires_data_dir_and_unimplemented_stage_exits_two(tmp_path):
         text=True, capture_output=True,
     )
     assert result.returncode == 2
-    assert "not implemented yet" in result.stderr
+    assert "discover" in result.stderr
