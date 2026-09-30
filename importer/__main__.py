@@ -14,6 +14,10 @@ from .discover import run_discover
 from .extract import VERSION as EXTRACT_VERSION
 from .extract import run_extract
 from .ledger import Ledger
+from .normalize import VERSION as NORMALIZE_VERSION
+from .normalize import run_normalize
+from .resolve import VERSION as RESOLVE_VERSION
+from .resolve import run_resolve
 from .validate import VERSION as VALIDATE_VERSION
 from .validate import run_validate
 
@@ -86,6 +90,8 @@ def main(argv: list[str] | None = None) -> int:
         "discover": DISCOVER_VERSION,
         "extract": EXTRACT_VERSION,
         "validate": VALIDATE_VERSION,
+        "normalize": NORMALIZE_VERSION,
+        "resolve": RESOLVE_VERSION,
     })
     if args.stage == "discover":
         checkpoint = run_discover(archive, ledger, args.from_date, args.to_date, state)
@@ -108,11 +114,42 @@ def main(argv: list[str] | None = None) -> int:
         print(f"اكتملت مرحلة validate: {checkpoint['documents']} وثيقة، "
               f"{checkpoint['quarantined_documents']} وثيقة معزولة.")
         return 0
+    if args.stage == "normalize":
+        try:
+            checkpoint = run_normalize(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        print(f"اكتملت مرحلة normalize: {checkpoint['records']} سجلًا، "
+              f"{checkpoint['flagged_records']} سجلًا يحمل إشارة مراجعة.")
+        return 0
+    if args.stage == "resolve":
+        try:
+            checkpoint = run_resolve(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        officers, personnel = checkpoint["officers"], checkpoint["personnel"]
+        print("اكتملت مرحلة resolve: "
+              f"الضباط {officers['clusters']} تجمعًا "
+              f"({officers['matched_existing']} مطابق، {officers['new']} جديد، {officers['review']} مراجعة)؛ "
+              f"الأفراد {personnel['clusters']} تجمعًا "
+              f"({personnel['matched_existing']} مطابق، {personnel['new']} جديد، {personnel['review']} مراجعة).")
+        fuzzy = checkpoint.get("fuzzy_merges", {})
+        remaining = checkpoint.get("remaining_candidates", {})
+        print("الدمج الاستدلالي: "
+              f"{fuzzy.get('officers', 0)} للضباط، {fuzzy.get('personnel', 0)} للأفراد؛ "
+              f"المرشحات المتبقية {remaining.get('officers', 0)} و"
+              f"{remaining.get('personnel', 0)}؛ التجمعات الهالكة {checkpoint.get('junk_clusters', 0)}.")
+        if checkpoint.get("self_check_errors"):
+            print(f"أخطاء الفحص الذاتي: {checkpoint['self_check_errors']} "
+                  "(راجع تقرير resolve-self-check.json).")
+        return 0
     if args.stage == "run":
         run_discover(archive, ledger, args.from_date, args.to_date, state)
         run_extract(archive, ledger, args.from_date, args.to_date, state, resume=args.resume)
         run_validate(ledger, state, args.from_date, args.to_date, resume=args.resume)
-        print("اكتملت المراحل discover وextract وvalidate.")
+        run_normalize(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        run_resolve(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        print("اكتملت المراحل discover وextract وvalidate وnormalize وresolve.")
         return 0
     print(f"المرحلة {args.stage}: not implemented yet", file=sys.stderr)
     return 2
