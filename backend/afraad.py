@@ -17,6 +17,8 @@ import re
 from .assignments import peek_day
 from .board import ASSIGNMENT_SECTIONS, _people_index, _row
 from .constants import SECTION_OCCASIONAL
+from .dated import afraad_basic_on
+from .repo import PeopleRepo
 
 # نفس أسماء وترتيب الخدمات الأساسية الـ22 في `22-6-2026 افراد.docx`
 # بالظبط — قايمة مقفولة، مش حرة زي دليل الخدمات العام. «كمين 109» في
@@ -47,8 +49,6 @@ BASIC_SERVICE_NAMES = [
     "كمين شرق النفق المستحدث",
 ]
 BASIC_SERVICES = [{"id": f"AFB-{i:02d}", "name": name} for i, name in enumerate(BASIC_SERVICE_NAMES, 1)]
-_BASIC_IDS = {e["id"] for e in BASIC_SERVICES}
-
 
 def _overrides(data, day):
     return data.setdefault("day_afraad", {}).setdefault(day, {})
@@ -59,27 +59,43 @@ def basic_rows(data, day):
     التليفون/القوام/التسليح/الانتظام) بتيجي من نسخة اليوم ده بس."""
     overrides = (data.get("day_afraad") or {}).get(day) or {}
     rows = []
-    for entry in BASIC_SERVICES:
+    for entry in afraad_basic_on(data, day):
         ov = overrides.get(entry["id"], {})
+        morning = {"name": ov.get("morning_name", ""), "phone": ov.get("morning_phone", "")}
+        night = {"name": ov.get("night_name", ""), "phone": ov.get("night_phone", "")}
+        if ov.get("morning_person_id"):
+            morning["person_id"] = ov["morning_person_id"]
+        if ov.get("night_person_id"):
+            night["person_id"] = ov["night_person_id"]
         rows.append({
             "id": entry["id"], "name": entry["name"],
             "count": ov.get("count", ""), "weapon": ov.get("weapon", ""),
-            "morning": {"name": ov.get("morning_name", ""), "phone": ov.get("morning_phone", "")},
-            "night": {"name": ov.get("night_name", ""), "phone": ov.get("night_phone", "")},
+            "morning": morning, "night": night,
             "schedule": ov.get("schedule", ""),
         })
     return rows
 
 
 _EDITABLE_FIELDS = ("morning_name", "morning_phone", "night_name", "night_phone",
-                    "count", "weapon", "schedule")
+                    "morning_person_id", "night_person_id", "count", "weapon", "schedule")
 
 
 def set_basic_entry(data, day, entry_id, payload):
     """بيحفظ تفاصيل خدمة أساسية ليوم واحد — بترجع (entry, error, status)."""
-    if entry_id not in _BASIC_IDS:
+    if entry_id not in {e["id"] for e in afraad_basic_on(data, day)}:
         return None, "هذه الخدمة ليست من الخدمات الأساسية الثابتة.", 404
     ov = _overrides(data, day).setdefault(entry_id, {})
+    people = PeopleRepo(data)
+    for shift in ("morning", "night"):
+        id_key, name_key = f"{shift}_person_id", f"{shift}_name"
+        if id_key in payload:
+            person_id = str(payload[id_key] or "").strip()
+            raw, category, _bucket = people.locate(person_id) if person_id else (None, None, None)
+            if person_id and (raw is None or category != "personnel"):
+                return None, "معرّف الفرد غير موجود.", 400
+        elif name_key in payload and str(payload[name_key] or "").strip() != ov.get(name_key, ""):
+            # تغيير النص يلغي الرابط القديم حتى لا ينسب اسمًا جديدًا لشخص آخر.
+            ov.pop(id_key, None)
     for key in _EDITABLE_FIELDS:
         if key in payload:
             ov[key] = str(payload[key] or "").strip()[:200]

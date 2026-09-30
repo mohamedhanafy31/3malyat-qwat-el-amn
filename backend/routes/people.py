@@ -8,11 +8,12 @@ from ..constants import (
     PERSONNEL_FAMILIES,
 )
 from .. import changes, day_status, retro
+from ..dated import command_on, record_command_change
 from ..references import cascade_delete
 from ..repo import Repos
 from ..people import (
-    HISTORY_FIELDS, cleanup_outside_window, record_change, service_window_conflicts,
-    valid_rest,
+    HISTORY_FIELDS, PERSONNEL_HISTORY_FIELDS, cleanup_outside_window, record_change,
+    effective, service_window_conflicts, valid_rest,
 )
 from ..store import AbortRequest, with_data
 from ..utils import (
@@ -40,17 +41,22 @@ def set_command():
 
     def mutate(data):
         repos = Repos(data)
+        changed = {}
+        current = command_on(data, day_status.today_iso())
         for role, officer_id in payload.items():
             if role not in COMMAND_ROLES:
                 raise AbortRequest((jsonify({"error": f"منصب غير معروف: {role}"}), 400))
             officer_id = str(officer_id or "").strip() or None
             if officer_id:
                 _require_active_officer(repos, officer_id)
-                clash = repos.config.role_of(officer_id)
+                clash = next((r for r, oid in current.items() if oid == officer_id), None)
                 if clash and clash != role:
                     raise AbortRequest((jsonify({
                         "error": f"يتولى هذا الضابط «{clash}» بالفعل."}), 409))
-            repos.config.assign_command(role, officer_id)
+            current[role] = officer_id
+            changed[role] = officer_id
+        if changed:
+            record_command_change(data, day_status.today_iso(), command=changed)
         repos.people.sort("officers")   # قيادة الإدارة أعلى اتنين في الترتيب
         return jsonify(repos.config.command())
 
@@ -67,6 +73,7 @@ def set_command_groups():
 
     def mutate(data):
         repos = Repos(data)
+        changed = {}
         for role, officer_ids in payload.items():
             if role not in GROUP_ROLES:
                 raise AbortRequest((jsonify({"error": f"منصب غير معروف: {role}"}), 400))
@@ -79,7 +86,9 @@ def set_command_groups():
                     continue
                 _require_active_officer(repos, officer_id)
                 clean_ids.append(officer_id)
-            repos.config.assign_group(role, clean_ids)
+            changed[role] = clean_ids
+        if changed:
+            record_command_change(data, day_status.today_iso(), groups=changed)
         return jsonify(repos.config.groups())
 
     return with_data(mutate)
@@ -206,20 +215,24 @@ def edit_person(person_id):
             raise AbortRequest((jsonify({"error": "رقم الهاتف غير صحيح."}), 400))
 
         errors = []
-        valid_rest(payload, errors, current=person)
+        effective_from = canonical_day(
+            str(payload.get("effective_from", "")).strip() or day_status.today_iso())
+        current_for_rest = person
+        if category == "officers" and effective_from:
+            current_for_rest = {**person, **effective(person, effective_from)}
+        valid_rest(payload, errors, current=current_for_rest)
         if errors:
             raise AbortRequest((jsonify({"error": errors[0]}), 400))
 
         # الرتبة/المنصب/القسم/جهة التشغيل بتتسجّل بتاريخ سريان بدل ما
         # تتكتب فوق الماضي — عشان إعادة توليد يوم قديم تطبع بياناته هو
         historic = {}
-        for key in HISTORY_FIELDS:
+        history_fields = HISTORY_FIELDS if category == "officers" else PERSONNEL_HISTORY_FIELDS
+        for key in history_fields:
             if key in payload:
                 historic[key] = (bool(payload[key]) if key == "search_attached"
                                  else str(payload[key]).strip())
-        if historic and category == "officers":
-            effective_from = canonical_day(
-                str(payload.get("effective_from", "")).strip() or date.today().isoformat())
+        if historic:
             if not effective_from:
                 raise AbortRequest((jsonify({"error": "تاريخ السريان غير صحيح."}), 400))
 
@@ -230,7 +243,7 @@ def edit_person(person_id):
             reason = retro.require_reason(closed)
 
             before = {k: person.get(k) for k in historic}
-            record_change(person, effective_from, historic)
+            record_change(person, effective_from, historic, history_fields)
             if closed:
                 retro.log_retro(data, "person", person_id, closed, reason,
                                before=before, after=dict(historic),
@@ -239,7 +252,7 @@ def edit_person(person_id):
                                     f"{'، '.join(closed)}")
 
         for key in EDITABLE:
-            if key in payload and not (historic and key in historic and category == "officers"):
+            if key in payload and not (historic and key in historic):
                 person[key] = str(payload[key]).strip()
 
         if bucket == "archive" and "leave_date" in payload:

@@ -15,6 +15,7 @@
 """
 from ..models import ACTIVE, ARCHIVED, Individual, Officer, of_category
 from ..utils import command_priority_map, rank_key
+from ..people import effective
 
 CATEGORIES = ("officers", "personnel")
 
@@ -130,8 +131,8 @@ class PeopleRepo:
                if not ((p.get("join_date") or "") > day
                        or ((p.get("leave_date") or "") and day > p["leave_date"]))]
         if category == "officers":
-            priority = command_priority_map(self.data)
-            out.sort(key=lambda p: rank_key(p, priority))
+            priority = command_priority_map(self.data, day)
+            out.sort(key=lambda p: rank_key({**p, **effective(p, day)}, priority))
         return out
 
     def on_force(self, day, category="officers"):
@@ -142,8 +143,8 @@ class PeopleRepo:
         """
         people = [p for p in self.all(category) if p.on_force(day)]
         if category == "officers":
-            priority = command_priority_map(self.data)
-            people.sort(key=lambda p: rank_key(p.as_dict(), priority))
+            priority = command_priority_map(self.data, day)
+            people.sort(key=lambda p: rank_key({**p.as_dict(), **p.effective(day)}, priority))
         return people
 
     def ids_on_force(self, day, category="officers"):

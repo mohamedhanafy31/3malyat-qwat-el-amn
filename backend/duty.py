@@ -16,6 +16,7 @@
 from .assignments import assignments_of, officer_state
 from .courses import by_id as courses_by_id, term_on
 from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SHIFTS
+from .dated import groups_on
 from .leaves import leave_on
 from .people import effective, officers_on
 
@@ -135,7 +136,7 @@ def summarise(data, day):
         # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في
         # قايمة «الصافي» بالاسم في كل مرة.
         kinds = [(it["kind"], it["shift"]) for it in items if it["counted"]]
-        medical = (o["id"] in ((data.get("command_groups") or {}).get(ROLE_MEDICAL) or [])
+        medical = (o["id"] in (groups_on(data, day).get(ROLE_MEDICAL) or [])
                    or any(k == "طبية" for k, _ in kinds))
 
         group, sub = _bucket(kinds, leave, state, medical,
@@ -151,6 +152,7 @@ def summarise(data, day):
             "id": o["id"], "name": o.get("name", ""), "phone": o.get("phone", ""),
             "role": eff["role"], "post": eff["post"], "section": eff["section"],
             "search_attached": eff["search_attached"],
+            "rest_system": eff["rest_system"], "rest_day": eff["rest_day"],
             "group": group, "bucket": sub,
             "services": items,
             "taqseera": bool(state.get("taqseera")),

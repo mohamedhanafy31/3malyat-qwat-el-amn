@@ -94,13 +94,17 @@ def category_for(person_type):
     return "officers" if person_type == "officer" else "personnel"
 
 
-def command_priority_map(data):
+def command_priority_map(data, day=None):
     """{officer_id: ترتيبه بين مناصب القيادة} — مدير الإدارة أولًا ثم وكيله.
 
     «طبي» و«بحث» (`command_groups`) مش هنا عن قصد — منصبين جماعيين
     مالهمش أثر على ترتيب أي قايمة ضباط، عكس مدير/وكيل الإدارة."""
     priority = {}
-    command = (data or {}).get("command") or {}
+    if day:
+        from .dated import command_on
+        command = command_on(data or {}, day)
+    else:
+        command = (data or {}).get("command") or {}
     for i, role in enumerate(COMMAND_ROLES):
         officer_id = command.get(role)
         if officer_id:
@@ -162,4 +166,3 @@ def resolve_recorded_range(data, filters, default_range_days=30):
     if date_from > date_to:
         date_from, date_to = date_to, date_from
     return date_from, date_to, recorded
-

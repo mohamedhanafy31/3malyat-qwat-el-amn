@@ -1,5 +1,5 @@
 """إدارة القوة — البحث عن شخص، ترتيبها، وقواعد الراحة الأساسية."""
-from .constants import REST_SYSTEMS, SECTION_FORCE, WEEKDAYS
+from .constants import DATED_FIELDS, REST_SYSTEMS, SECTION_FORCE, WEEKDAYS
 
 
 def effective(person, day):
@@ -13,12 +13,16 @@ def effective(person, day):
     للقيم الحالية لو مفيش تاريخ مسجّل.
     """
     person = person or {}
+    officer = not str(person.get("id") or "").startswith("IND-")
     current = {
         "role": person.get("role", ""),
         "post": person.get("post", ""),
-        "section": person.get("section", "") or SECTION_FORCE,
-        "search_attached": bool(person.get("search_attached")),
     }
+    if officer:
+        current.update({"section": person.get("section", "") or SECTION_FORCE,
+                        "search_attached": bool(person.get("search_attached")),
+                        "rest_system": person.get("rest_system", ""),
+                        "rest_day": person.get("rest_day", "")})
     history = person.get("history") or []
     if not history:
         return current
@@ -29,10 +33,11 @@ def effective(person, day):
     return {key: latest.get(key, current[key]) for key in current}
 
 
-HISTORY_FIELDS = ("role", "post", "section", "search_attached")
+HISTORY_FIELDS = tuple(DATED_FIELDS)
+PERSONNEL_HISTORY_FIELDS = ("role", "post")
 
 
-def record_change(person, effective_from, changes):
+def record_change(person, effective_from, changes, fields=None):
     """يسجّل تغيير في الرتبة/المنصب/القسم/جهة التشغيل بتاريخ سريان.
 
     الترقية أو حركة الضباط بتغيّر الرتبة والمنصب، وتخزين قيمة واحدة كان
@@ -42,17 +47,21 @@ def record_change(person, effective_from, changes):
     القيم الحالية على الضابط بتفضل مرآة لآخر سجل، عشان أي كود بيقرا
     person["role"] مباشرةً يفضل شغّال.
     """
+    fields = tuple(fields or (HISTORY_FIELDS if str(person.get("id") or "").startswith("OFF-")
+                              else PERSONNEL_HISTORY_FIELDS))
     history = person.setdefault("history", [])
     if not history:
         # أول سجل بيبدأ من تاريخ انضمامه، مش من تاريخ التعديل — القيم
         # القديمة كانت سارية من الأول
-        history.append({"from": person.get("join_date", effective_from),
+        history.append({"from": min(person.get("join_date") or effective_from, effective_from),
                         **{f: person.get(f, False if f == "search_attached" else "")
-                           for f in HISTORY_FIELDS}})
+                           for f in fields}})
 
     latest = max(history, key=lambda h: h.get("from") or "")
-    merged = {**{f: latest.get(f) for f in HISTORY_FIELDS}, **changes}
-    if all(merged[f] == latest.get(f) for f in HISTORY_FIELDS):
+    merged = {**{f: latest.get(f, person.get(f, False if f == "search_attached" else ""))
+                 for f in fields}, **changes}
+    if all(merged[f] == latest.get(f, person.get(f, False if f == "search_attached" else ""))
+           for f in fields):
         return                                  # مفيش تغيير فعلي
 
     same_day = next((h for h in history if h.get("from") == effective_from), None)
@@ -63,7 +72,7 @@ def record_change(person, effective_from, changes):
     history.sort(key=lambda h: h.get("from") or "")
 
     newest = history[-1]
-    for field in HISTORY_FIELDS:
+    for field in fields:
         person[field] = newest[field]
 
 
@@ -98,10 +107,12 @@ def valid_rest(payload, errors, current=None):
     `current` هو سجل الشخص وقت التعديل — لازم عشان طلب بيغيّر
     `rest_system` لوحده من غير `rest_day` يتقاس على اليوم المسجّل فعلًا.
     """
-    system = str(payload.get("rest_system", "")).strip()
+    if "rest_system" not in payload and "rest_day" not in payload:
+        return
+    system = str(payload.get("rest_system", (current or {}).get("rest_system", ""))).strip()
     if system and system not in REST_SYSTEMS:
         errors.append("نظام الراحة غير صحيح.")
-    day = str(payload.get("rest_day", "")).strip()
+    day = str(payload.get("rest_day", (current or {}).get("rest_day", ""))).strip()
     if day and day not in WEEKDAYS:
         errors.append("يوم الراحة غير صحيح.")
     if system and system != "أسبوعية":
@@ -110,8 +121,7 @@ def valid_rest(payload, errors, current=None):
         # راحة أسبوعية من غير يوم محدد بتعطّل حساب الراحة الجاية بالكامل:
         # next_rest_start مابتلاقيش يوم تبني عليه، فالضابط عمره ما بيطلع
         # في تنبيه التقصيرة ولا بيتحسب في الالتزام — وكل ده في صمت.
-        effective_day = day or str((current or {}).get("rest_day", "")).strip()
-        if not effective_day:
+        if not day:
             errors.append("يجب تحديد يوم في الأسبوع للراحة الأسبوعية.")
 
 

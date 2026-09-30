@@ -13,6 +13,7 @@ from .courses import term_on
 from .leaves import leave_on
 from .repo import PeopleRepo
 from .rest_suspension import is_suspended_on
+from .people import effective
 
 # WEEKDAYS بيبدأ بالسبت؛ date.weekday() بيبدأ بالاثنين (0=اثنين .. 6=أحد)
 _WEEKDAY_INDEX = {name: i for i, name in enumerate(WEEKDAYS)}
@@ -53,13 +54,14 @@ def next_rest_start(data, officer, today):
     بيانات حقيقية اتكتبت بإيد حد مش تخمين دوري.
     """
     today_iso = today.isoformat()
+    rest = effective(officer, today_iso)
     upcoming = [
         {"start": lv["start"], "type": lv["type"], "weekly": False}
         for lv in data["leaves"]
         if lv.get("person_id") == officer["id"] and lv["start"] > today_iso
     ]
-    if officer.get("rest_system") == "أسبوعية" and officer.get("rest_day"):
-        weekly = next_weekday(officer["rest_day"], today)
+    if rest.get("rest_system") == "أسبوعية" and rest.get("rest_day"):
+        weekly = next_weekday(rest["rest_day"], today)
         # الراحة الأسبوعية موقوفة بأمر وقف ساري يوم الراحة ده — مفيش تخمين
         # دوري (ولا تنبيه تقصيرة) لحد ما الراحات تتفتح.
         if weekly and not is_suspended_on(data, "أسبوعية", weekly.isoformat()):

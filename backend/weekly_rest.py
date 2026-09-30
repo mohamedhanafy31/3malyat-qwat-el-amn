@@ -6,6 +6,7 @@ from .models import ACTIVE, Leave
 from .repo import Repos
 from .rest_suspension import is_suspended_on
 from .utils import weekday_name
+from .people import effective
 
 KIND = "أسبوعية"
 ORIGIN = "auto_weekly"
@@ -23,7 +24,8 @@ def _candidates(data, day):
     weekday = weekday_name(day)
     return [o for o in people.on_force(day, "officers")
             if o.status == ACTIVE and o.id in active_ids
-            and o.rest_system == KIND and o.rest_day == weekday]
+            and o.effective(day).get("rest_system") == KIND
+            and o.effective(day).get("rest_day") == weekday]
 
 
 def needs_seed(data, day):
@@ -63,7 +65,7 @@ def seed_day(data, day):
         added = repos.leaves.add(Leave.from_dict(leave))
         changes.record(
             data, "leave", leave["id"], "create", after=dict(leave), day=day,
-            text=f"تسجيل تلقائي لراحة {officer.name} الأسبوعية يوم {officer.rest_day}",
+            text=f"تسجيل تلقائي لراحة {officer.name} الأسبوعية يوم {effective(officer.as_dict(), day)['rest_day']}",
         )
         created.append(repos.leaves.named(added))
     return created

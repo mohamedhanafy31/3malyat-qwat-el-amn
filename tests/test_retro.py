@@ -106,7 +106,9 @@ def test_course_term_over_a_closed_day_needs_a_reason(client, frozen_today):
 
 def test_monthly_roster_over_a_closed_day_needs_one_reason_for_the_batch(client, frozen_today):
     frozen_today(TODAY)
-    client.patch("/api/person/OFF-001", json={"rest_system": "شهرية"})
+    client.patch("/api/person/OFF-001",
+                 json={"rest_system": "شهرية", "effective_from": CLOSED_DAY},
+                 headers={"X-Retro-Reason": "تصحيح كشف نظام الراحة"})
     r = client.post("/api/leaves/monthly", json={
         "entries": [{"officer_id": "OFF-001", "start": CLOSED_DAY}]})
     assert r.status_code == 409

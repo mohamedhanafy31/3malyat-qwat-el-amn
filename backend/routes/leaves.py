@@ -8,6 +8,7 @@ from ..constants import REST_DURATIONS
 from ..leaves import MONTHLY_REST_SYSTEMS, build_leave, overlapping, validate_weekly_extra
 from ..leaves import stats as leaves_stats_data
 from ..models import Leave
+from ..people import effective
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload, parse_date
@@ -147,14 +148,15 @@ def add_monthly_roster():
             officer_id = str(entry.get("officer_id", "")).strip()
             start = str(entry.get("start", "")).strip()
             person = repos.people.find_in(officer_id, "officers")
-            if not person or person.rest_system not in MONTHLY_REST_SYSTEMS:
+            system = effective(person.as_dict(), start).get("rest_system") if person else ""
+            if not person or system not in MONTHLY_REST_SYSTEMS:
                 continue
             start_date = parse_date(start)
             if not start_date:
                 continue
-            end = (start_date + timedelta(days=REST_DURATIONS[person.rest_system] - 1)).isoformat()
+            end = (start_date + timedelta(days=REST_DURATIONS[system] - 1)).isoformat()
             # صف هيترفض بسبب وقف الراحات مايستاهلش يطلب سبب تعديل بأثر رجعي
-            if rest_suspension.blocking(data, {"person_id": officer_id, "type": person.rest_system,
+            if rest_suspension.blocking(data, {"person_id": officer_id, "type": system,
                                                "start": start, "end": end}):
                 continue
             ranges.append((start, end))
@@ -172,7 +174,7 @@ def add_monthly_roster():
             if not person:
                 errors.append({"officer_id": officer_id, "error": "ضابط غير موجود."})
                 continue
-            system = person.rest_system
+            system = effective(person.as_dict(), start).get("rest_system")
             if system not in MONTHLY_REST_SYSTEMS:
                 errors.append({"officer_id": officer_id,
                                "error": "نظام راحة الضابط ليس شهريًا ولا نصف شهري."})

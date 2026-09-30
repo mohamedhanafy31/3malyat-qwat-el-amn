@@ -11,7 +11,7 @@ from collections import defaultdict
 from datetime import date
 
 from .board import target_rows_for_day
-from .constants import TARGET_NAMES
+from .dated import targets_on
 from .duty import summarise
 from .utils import days_between, resolve_recorded_range
 
@@ -38,8 +38,7 @@ def stats(data, filters):
         return entry
 
     by_weekday = {w: {"services": 0, "net": 0, "days": 0} for w in WEEKDAY_BY_INDEX}
-    target_gap = {name: {"assigned_days": 0, "commander_known_days": 0, "mismatch_days": 0}
-                  for name in TARGET_NAMES}
+    target_gap = {}
 
     for day in days:
         result = summarise(data, day)
@@ -65,8 +64,10 @@ def stats(data, filters):
                     entry["night"] += 1
 
         for row in target_rows_for_day(data, day):
-            if row["name"] not in target_gap:
+            if row["name"] not in targets_on(data, day):
                 continue
+            target_gap.setdefault(row["name"], {
+                "assigned_days": 0, "commander_known_days": 0, "mismatch_days": 0})
             if not row["officers"]:
                 continue
             gap = target_gap[row["name"]]

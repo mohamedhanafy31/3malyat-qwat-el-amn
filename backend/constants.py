@@ -160,7 +160,7 @@ EDITABLE = ["name", "role", "code", "phone", "join_date", "post",
 
 # الحقول المؤرَّخة على الضابط — بتتسجّل في history بتاريخ سريان بدل ما
 # تتكتب فوق الماضي، عشان الأيام القديمة تتطبع ببياناتها هي
-DATED_FIELDS = ["role", "post", "section", "search_attached"]
+DATED_FIELDS = ["role", "post", "section", "search_attached", "rest_system", "rest_day"]
 
 # مستويات تنبيهات اليوم (checks.day_warnings) — مش كلهم بنفس الخطورة.
 # «ازدحام» ثبت إنه شغل عادي في الأرشيف (20/8: خدمتين في نفس الفترة مقصودين)

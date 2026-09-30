@@ -32,6 +32,8 @@ class OfficerHistory(Model):
     post: str = ""
     section: str = ""
     search_attached: bool = False
+    rest_system: str = ""
+    rest_day: str = ""
 
     # ---- "from" مفتاح محجوز، فالتحويل بيتظبط بالإيد ----
 
@@ -52,6 +54,10 @@ class OfficerHistory(Model):
         valid_date(errors, self.from_, "تاريخ سريان التغيير غير صحيح.", required=True)
         one_of(errors, self.role, OFFICER_ROLES, "الرتبة غير صحيحة.")
         one_of(errors, self.section, OFFICER_SECTIONS, "قسم الضابط غير صحيح.")
+        one_of(errors, self.rest_system, REST_SYSTEMS, "نظام الراحة غير صحيح.")
+        one_of(errors, self.rest_day, WEEKDAYS, "يوم الراحة غير صحيح.")
+        if text(self.rest_system) == "أسبوعية" and not text(self.rest_day):
+            errors.append("يجب تحديد يوم في الأسبوع للراحة الأسبوعية.")
 
 
 @dataclass
@@ -123,7 +129,8 @@ class Officer(Person):
         """الرتبة/المنصب/القسم/جهة التشغيل زي ما كانوا في اليوم ده."""
         current = {"role": self.role, "post": self.post,
                    "section": self.section or OFFICER_SECTIONS[0],
-                   "search_attached": bool(self.search_attached)}
+                   "search_attached": bool(self.search_attached),
+                   "rest_system": self.rest_system, "rest_day": self.rest_day}
         if not self.history:
             return current
         applicable = [h for h in self.history if (h.get("from") or "") <= day]
@@ -138,6 +145,7 @@ class Individual(Person):
     """الفرد — «ف-###». مالوش قسم ولا نظام راحة ولا تاريخ مؤرَّخ."""
     address: str = ""
     other_phones: list = field(default_factory=list)
+    history: list = field(default_factory=list)
 
     ID_PREFIX = "IND"
     CATEGORY = "personnel"
@@ -154,6 +162,14 @@ class Individual(Person):
             if not _phone_ok(extra):
                 errors.append("رقم هاتف إضافي غير صحيح.")
                 break
+
+    def effective(self, day):
+        current = {"role": self.role, "post": self.post}
+        if not self.history:
+            return current
+        applicable = [h for h in self.history if (h.get("from") or "") <= day]
+        latest = max(applicable or self.history, key=lambda h: h.get("from") or "")
+        return {key: latest.get(key, value) for key, value in current.items()}
 
 
 def _phone_ok(value):

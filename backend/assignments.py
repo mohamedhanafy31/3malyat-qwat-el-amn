@@ -35,6 +35,7 @@ from .constants import (
     TARGETS_FIRST,
 )
 from .utils import too_long
+from .dated import targets_on
 
 # القسم على اللوحة حر — أي اسم المشغّل يكتبه بيبقى قسم مستقل (لليوم ده بس،
 # `backend/board.py` هو اللي بيفسّره). الأسماء الأربعة دي استثناء: هي عناوين
@@ -47,8 +48,6 @@ RESERVED_SECTIONS = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTIO
 # والتصنيف ثابتين مش اختيار المشغّل، فالتحقق هنا بيفرضهم حتى لو حد نادى
 # المسار العام (`/api/assignments`) بدل مسار الأهداف المخصّص
 # (`/api/board/<day>/target/<name>`).
-_TARGET_ROW_NAMES = {TARGETS_FIRST, *TARGET_NAMES}
-
 # حالات الضابط اللي مش تكليف بخدمة. «مرضي» و«فرقة» و«طارئة» كانوا ناقصين،
 # فكانت خاناتهم في جدول الإجمالي مستحيل يوصلها رقم صح رغم إنهم في الوورد
 # 16 و30 مرة على التوالي.
@@ -287,7 +286,7 @@ def apply_assignment(data, day, row, payload):
             row[key] = str(payload[key]).strip()
 
     if row.get("section") == SECTION_TARGETS:
-        if row.get("name") not in _TARGET_ROW_NAMES:
+        if row.get("name") not in set(targets_on(data, day)):
             return None, f"«{row.get('name')}» ليس من الأهداف الثابتة — قائمة الأهداف مغلقة.", 400
         row["kind"] = "حراسات"
         row["shift"] = ""

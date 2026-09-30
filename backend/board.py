@@ -28,6 +28,7 @@ from .constants import (
     TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL,
 )
 from .duty import summarise
+from .dated import groups_on, targets_on
 from .people import effective
 from .text import norm
 
@@ -184,9 +185,9 @@ def copy_section_rows(data, day, section, source_day, ids):
     return {"added": len(added), "skipped": skipped, "rows": added}, None, None
 
 
-def target_row_names():
+def target_row_names(data=None, day=None):
     """كل أسماء صفوف الأهداف بترتيبها الثابت — «مشرف الأهداف» أولًا."""
-    return [TARGETS_FIRST, *TARGET_NAMES]
+    return targets_on(data, day) if data is not None and day else [TARGETS_FIRST, *TARGET_NAMES]
 
 
 def _people_index(data):
@@ -225,7 +226,7 @@ def _roster(data, day):
     from .repo import PeopleRepo, Repos
 
     repo = PeopleRepo(data)
-    medical_ids = set(Repos(data).config.group(ROLE_MEDICAL))
+    medical_ids = set(groups_on(data, day).get(ROLE_MEDICAL) or [])
 
     def slim(person):
         role = person.effective(day)["role"] if hasattr(person, "effective") else person.role
@@ -332,7 +333,7 @@ def _blank_target(name, day, officers):
     }
 
 
-def _target_slots(rows, officers, day):
+def _target_slots(rows, officers, day, data=None):
     """صف ثابت لكل هدف من الثمانية (مشرف الأهداف + سبعة أهداف)، بترتيب
     ثابت، بيظهر كل يوم حتى لو محدش لسه عيّن حد فيه — عكس باقي الأقسام،
     الأهداف قايمة مغلقة مالهاش «+ إضافة» حر.
@@ -349,7 +350,7 @@ def _target_slots(rows, officers, day):
         else:
             by_name[r["name"]] = r
     out = []
-    for name in target_row_names():
+    for name in target_row_names(data, day):
         row = by_name.pop(name, None)
         if row:
             row["commander"] = _target_commanders(officers, name, day)
@@ -372,7 +373,7 @@ def target_rows_for_day(data, day):
     people = _people_index(data)
     rows = [_row(a, people, day) for a in peek_day(data, day)
             if a.get("section") == SECTION_TARGETS]
-    return _target_slots(rows, _officers_on_force(data, day), day)
+    return _target_slots(rows, _officers_on_force(data, day), day, data)
 
 
 def set_target_officers(data, day, name, officer_ids):
@@ -390,7 +391,7 @@ def set_target_officers(data, day, name, officer_ids):
     """
     from .assignments import blank, clean_people, for_day, new_id
 
-    if name not in target_row_names():
+    if name not in target_row_names(data, day):
         return None, f"«{name}» ليس من الأهداف الثابتة — قائمة الأهداف مغلقة.", 400
 
     ids, err, status = clean_people(data, day, officer_ids, "officers")
@@ -583,7 +584,7 @@ def build_board(data, day):
 
     people = _people_index(data)
     states = officer_states(data, day)
-    medical_ids = set(Repos(data).config.group(ROLE_MEDICAL))
+    medical_ids = set(groups_on(data, day).get(ROLE_MEDICAL) or [])
 
     by_section = {name: [] for name in ASSIGNMENT_SECTIONS}
     for source_order, a in enumerate(peek_day(data, day)):
@@ -604,7 +605,7 @@ def build_board(data, day):
     target_commanders = [o for o in _officers_on_force(data, day)
                          if o["id"] not in medical_ids]
     by_section[SECTION_TARGETS] = _target_slots(
-        by_section[SECTION_TARGETS], target_commanders, day)
+        by_section[SECTION_TARGETS], target_commanders, day, data)
 
     full = summarise(data, day)
     rests, taqseeras, outsiders, admin_work = [], [], [], []

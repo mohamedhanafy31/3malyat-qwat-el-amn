@@ -66,8 +66,8 @@ def day_warnings(data, day, rows):
         # الراحة فعليًا (`rest_status.next_rest_start`)، فالتنبيه ده
         # تذكير يسجّلها بدل ما تفضل تنبيه تقصيرة/راحة يطلع لوحده صامت.
         officer = raw_officers.get(row["id"]) or {}
-        if (officer.get("rest_system") == "أسبوعية" and officer.get("rest_day")
-                and is_weekly_rest_weekday(officer["rest_day"], day) and not row["leave"]
+        if (row.get("rest_system") == "أسبوعية" and row.get("rest_day")
+                and is_weekly_rest_weekday(row["rest_day"], day) and not row["leave"]
                 # الفرقة سبب مقصود لعدم تسجيل الراحة الأسبوعية في اليوم ده
                 and not row["course"]
                 # الراحة الأسبوعية موقوفة بأمر — مفيش راحة مستحقة تتسجّل أصلًا
@@ -75,7 +75,7 @@ def day_warnings(data, day, rows):
             out.append(_tag({
                 "kind": "راحة أسبوعية غير مسجلة",
                 "officer_id": row["id"],
-                "text": f'اليوم هو يوم الراحة الأسبوعية لـ{name} ({officer["rest_day"]})، '
+                "text": f'اليوم هو يوم الراحة الأسبوعية لـ{name} ({row["rest_day"]})، '
                         "ولم تُسجَّل له راحة بعد",
             }))
 

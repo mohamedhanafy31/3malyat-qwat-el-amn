@@ -4,11 +4,10 @@ from datetime import date, timedelta
 from . import day_status
 from .assignments import officer_states, peek_day
 from .constants import ROLE_MEDICAL, SECTION_TARGETS, TARGET_NAMES, TARGETS_FIRST
+from .dated import groups_on, targets_on
 from .leaves import leave_on
 from .repo import PeopleRepo
 
-
-TARGETS = [TARGETS_FIRST, *TARGET_NAMES]
 
 
 def _previous(day):
@@ -34,9 +33,9 @@ def _target_rows(data, day):
             if row.get("section") == SECTION_TARGETS]
 
 
-def _target_map(rows):
+def _target_map(rows, targets):
     """خريطة التعيين فقط؛ باقي حقول صف الهدف ثابتة ومش قرار يومي."""
-    out = {name: [] for name in TARGETS}
+    out = {name: [] for name in targets}
     unknown = {}
     for row in rows:
         name = row.get("name", "")
@@ -69,13 +68,14 @@ def needs_seed(data, day):
 
 def _eligible_map(data, day, confirmed_rows):
     on_force = PeopleRepo(data).ids_on_force(day, "officers")
-    medical = set(((data.get("command_groups") or {}).get(ROLE_MEDICAL) or []))
+    targets = targets_on(data, day)
+    medical = set(groups_on(data, day).get(ROLE_MEDICAL) or [])
     states = officer_states(data, day)
     copied = _target_map(
-        row for row in confirmed_rows if row.get("section") == SECTION_TARGETS)
+        (row for row in confirmed_rows if row.get("section") == SECTION_TARGETS), targets)
 
     result = {}
-    for name in TARGETS:
+    for name in targets:
         result[name] = [
             officer_id for officer_id in copied[name]
             if officer_id in on_force
@@ -92,7 +92,7 @@ def _apply(data, day, source_day, entry):
     from .board import set_target_officers
 
     targets = _eligible_map(data, day, entry.get("rows") or [])
-    for name in TARGETS:
+    for name in targets_on(data, day):
         _row, error, _status = set_target_officers(data, day, name, targets[name])
         if error:
             # البذر مساعدة مش شرط لفتح اليوم. لقطة قديمة أو مكتوبة بإيد
@@ -141,7 +141,7 @@ def refresh_after_confirmation(data, source_day):
     if marker:
         if marker.get("source_day") != source_day or marker.get("modified"):
             return None
-        if _target_map(rows) != marker.get("targets"):
+        if _target_map(rows, targets_on(data, day)) != marker.get("targets"):
             # تثبيت المعلومة يمنع أي تأكيد لاحق من لمس يوم عرفنا بالفعل
             # إن المشغّل عدّل أهدافه، حتى لو فضّاها كلها بعد كده.
             marker["modified"] = True
@@ -169,6 +169,6 @@ def untouched_seed(data, day):
     marker = _marker(data, day)
     if not marker or marker.get("modified"):
         return None
-    if _target_map(_target_rows(data, day)) != marker.get("targets"):
+    if _target_map(_target_rows(data, day), targets_on(data, day)) != marker.get("targets"):
         return None
     return marker

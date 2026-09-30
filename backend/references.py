@@ -73,6 +73,12 @@ def person_references(data):
         for pid in states:
             yield f"day_officers[{day}]", "officer", pid
 
+    for day, entries in (data.get("day_afraad") or {}).items():
+        for entry_id, entry in (entries or {}).items():
+            for key in ("morning_person_id", "night_person_id"):
+                if entry.get(key):
+                    yield f"day_afraad[{day}][{entry_id}].{key}", "individual", entry[key]
+
     for role, pid in (data.get("command") or {}).items():
         if pid:
             yield f"command[{role}]", "officer", pid
@@ -86,6 +92,15 @@ def person_references(data):
     for role, ids in (data.get("command_groups") or {}).items():
         for pid in ids or []:
             yield f"command_groups[{role}]", "officer", pid
+
+    for entry in data.get("command_history") or []:
+        stamp = entry.get("from")
+        for role, pid in (entry.get("command") or {}).items():
+            if pid:
+                yield f"command_history[{stamp}].command[{role}]", "officer", pid
+        for role, ids in (entry.get("groups") or {}).items():
+            for pid in ids or []:
+                yield f"command_history[{stamp}].groups[{role}]", "officer", pid
 
     for entry in (data.get("counts_template") or {}).get("entries") or []:
         if entry.get("service_id"):
@@ -117,6 +132,9 @@ PERSON_REFERENCES = [
 
     ("day_officers.<key>", CASCADE,
      lambda repos, pid, cat: repos.days.drop_officer_states(pid)),
+
+    ("day_afraad.*.morning_person_id / night_person_id", SET_NULL,
+     lambda repos, pid, cat: _detach_afraad_links(repos, pid)),
 
     ("command.<value>", SET_NULL,
      lambda repos, pid, cat: repos.config.clear_command(pid)),
@@ -152,6 +170,17 @@ def _detach_suspension_snapshots(repos, person_id):
         if len(kept) != len(snaps):
             order["cancelled_leaves"] = kept
             touched += len(snaps) - len(kept)
+    return touched
+
+
+def _detach_afraad_links(repos, person_id):
+    touched = 0
+    for entries in (repos.data.get("day_afraad") or {}).values():
+        for entry in (entries or {}).values():
+            for key in ("morning_person_id", "night_person_id"):
+                if entry.get(key) == person_id:
+                    entry.pop(key, None)
+                    touched += 1
     return touched
 
 

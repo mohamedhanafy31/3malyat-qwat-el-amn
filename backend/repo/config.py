@@ -35,6 +35,10 @@ class ConfigRepo:
         for role, holder in self.command().items():
             if holder == officer_id:
                 self.data["command"][role] = None
+        for entry in self.data.get("command_history") or []:
+            for role, holder in (entry.get("command") or {}).items():
+                if holder == officer_id:
+                    entry["command"][role] = None
 
     # ---------- قيادة الإدارة — مناصب جماعية (طبي/بحث) ----------
 
@@ -65,6 +69,11 @@ class ConfigRepo:
             if officer_id in ids:
                 self.data["command_groups"][role] = [i for i in ids if i != officer_id]
                 removed += 1
+        for entry in self.data.get("command_history") or []:
+            for role, ids in (entry.get("groups") or {}).items():
+                if officer_id in (ids or []):
+                    entry["groups"][role] = [i for i in ids if i != officer_id]
+                    removed += 1
         return removed
 
     # ---------- وسوم الخدمات ----------

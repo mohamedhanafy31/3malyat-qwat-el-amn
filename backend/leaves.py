@@ -105,12 +105,14 @@ def monthly_roster(data, today):
     today_iso = today.isoformat()
     out = []
     from .repo import PeopleRepo
+    from .people import effective
     from .rest_suspension import suspended_types
 
     suspended = suspended_types(data)
 
     for o in PeopleRepo(data).bucket("officers", "active"):
-        system = o.get("rest_system", "")
+        eff = effective(o, today_iso)
+        system = eff.get("rest_system", "")
         if system not in MONTHLY_REST_SYSTEMS:
             continue
         candidates = [lv for lv in leaves_of(data, o["id"]) if lv.get("type") == system]
@@ -125,7 +127,7 @@ def monthly_roster(data, today):
         if status == "due" and system in suspended:
             order = suspended[system]
             status, info = "suspended", {"since": order.get("started_on"), "id": order.get("id")}
-        out.append({"id": o["id"], "name": o.get("name", ""), "role": o.get("role", ""),
+        out.append({"id": o["id"], "name": o.get("name", ""), "role": eff.get("role", ""),
                     "rest_system": system, "status": status, "current": info})
     return out
 
@@ -138,14 +140,16 @@ def weekly_roster(data, today):
     """
     from .repo import PeopleRepo
     from .rest_status import is_weekly_rest_weekday, next_weekday
+    from .people import effective
 
     today_iso = today.isoformat()
     out = []
     for officer in PeopleRepo(data).active("officers"):
-        if officer.rest_system != "أسبوعية" or not officer.rest_day:
+        eff = effective(officer.as_dict(), today_iso)
+        if eff["rest_system"] != "أسبوعية" or not eff["rest_day"]:
             continue
-        fixed = today if is_weekly_rest_weekday(officer.rest_day, today_iso) \
-            else next_weekday(officer.rest_day, today)
+        fixed = today if is_weekly_rest_weekday(eff["rest_day"], today_iso) \
+            else next_weekday(eff["rest_day"], today)
         upcoming = [
             {k: lv.get(k, "") for k in ("id", "start", "end", "origin")}
             for lv in leaves_of(data, officer.id)
@@ -153,8 +157,8 @@ def weekly_roster(data, today):
         ]
         upcoming.sort(key=lambda lv: (lv["start"], lv["id"]))
         out.append({
-            "id": officer.id, "name": officer.name, "role": officer.role,
-            "rest_day": officer.rest_day,
+            "id": officer.id, "name": officer.name, "role": eff["role"],
+            "rest_day": eff["rest_day"],
             "next_fixed": fixed.isoformat() if fixed else "",
             "upcoming": upcoming,
         })
@@ -169,13 +173,15 @@ def validate_weekly_extra(data, leave, today):
     from .rest_status import is_weekly_rest_weekday
 
     officer = PeopleRepo(data).find_in(leave.get("person_id"), "officers")
-    if not officer or officer.archived or officer.rest_system != "أسبوعية":
+    from .people import effective
+    eff = effective(officer.as_dict(), leave.get("start", today)) if officer else {}
+    if not officer or officer.archived or eff.get("rest_system") != "أسبوعية":
         return "الراحة الإضافية متاحة فقط لضابط على القوة بنظام راحة أسبوعية."
     if leave.get("type") != "أسبوعية" or leave.get("start") != leave.get("end"):
         return "يجب أن تكون الراحة الأسبوعية الإضافية يومًا واحدًا."
     if leave.get("start", "") < today:
         return "يجب أن تكون الراحة الأسبوعية الإضافية اليوم أو في تاريخ لاحق."
-    if is_weekly_rest_weekday(officer.rest_day, leave["start"]):
+    if is_weekly_rest_weekday(eff.get("rest_day"), leave["start"]):
         return "اليوم المختار هو يوم الراحة الأسبوعية الثابتة؛ اختر يومًا إضافيًا مختلفًا."
     return None
 

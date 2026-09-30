@@ -327,6 +327,8 @@ function openPerson(id) {
   $("#fPhone").value = p?.phone || "";
   $("#fJoin").value = p?.join_date || curDate();
   $("#fPost").value = p?.post || "";
+  $("#fEffectiveFrom").value = curDate();
+  $("#effectiveWrap").classList.toggle("hidden", !p);
   $("#fWeaponCustody").value = p?.weapon_custody || "";
   $("#fAddress").value = p?.address || "";
   if (p?.role) fillSelect($("#role"),
@@ -346,6 +348,7 @@ $("#personForm").onsubmit = async e => {
   const id = $("#personId").value, isOff = $("#type").value === "officer";
   const body = {name: $("#fName").value, role: $("#role").value, code: $("#fCode").value,
     phone: $("#fPhone").value, join_date: $("#fJoin").value, post: $("#fPost").value};
+  if (id) body.effective_from = $("#fEffectiveFrom").value;
   if (isOff) {
     body.rest_system = $("#fRestSystem").value;
     body.rest_day = $("#fRestSystem").value === "أسبوعية" ? $("#fRestDay").value : "";
