@@ -319,8 +319,18 @@ def test_stage_outputs_bom_csv_decisions_override_and_proposed_map(tmp_path):
     with decision_path.open("w", encoding="utf-8-sig", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=rows[0])
         writer.writeheader(); writer.writerows(rows)
+    personnel_decision = ledger.root / "decisions" / "personnel.csv"
+    personnel_rows = list(csv.DictReader(personnel_decision.open(encoding="utf-8-sig")))
+    personnel_rows[0]["status"] = "تجاهل"
+    with personnel_decision.open("w", encoding="utf-8-sig", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=personnel_rows[0])
+        writer.writeheader(); writer.writerows(personnel_rows)
     second = run_resolve(ledger, state)
     review = list(csv.DictReader((ledger.root / "review" / "officers.csv").open(encoding="utf-8-sig")))
     assert review[0]["proposed_id"] == "OFF-999"
     assert second["officers"]["clusters"] == 1
+    assert second["personnel"]["clusters"] == 0
+    assert second["personnel"]["unresolved_observations"] == 1
+    proposed = json.loads((ledger.root / "staging" / "batch" / "id_map.proposed.json").read_text())
+    assert proposed["personnel"] == {}
     assert (ledger.root / "staging" / "batch" / "id_map.proposed.json").exists()

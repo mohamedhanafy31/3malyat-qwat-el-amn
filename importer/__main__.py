@@ -9,6 +9,8 @@ import re
 import sys
 from pathlib import Path
 
+from .aliases import VERSION as ALIASES_VERSION
+from .aliases import run_aliases
 from .discover import VERSION as DISCOVER_VERSION
 from .discover import run_discover
 from .extract import VERSION as EXTRACT_VERSION
@@ -22,7 +24,7 @@ from .validate import VERSION as VALIDATE_VERSION
 from .validate import run_validate
 
 
-STAGES = ("discover", "extract", "validate", "normalize", "resolve", "transform", "verify", "store", "rollback", "report", "run")
+STAGES = ("discover", "extract", "validate", "normalize", "resolve", "aliases", "transform", "verify", "store", "rollback", "report", "run")
 DEFAULT_START = dt.date(2023, 10, 1)
 DEFAULT_END = dt.date(2026, 9, 29)
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -92,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
         "validate": VALIDATE_VERSION,
         "normalize": NORMALIZE_VERSION,
         "resolve": RESOLVE_VERSION,
+        "aliases": ALIASES_VERSION,
     })
     if args.stage == "discover":
         checkpoint = run_discover(archive, ledger, args.from_date, args.to_date, state)
@@ -143,13 +146,24 @@ def main(argv: list[str] | None = None) -> int:
             print(f"أخطاء الفحص الذاتي: {checkpoint['self_check_errors']} "
                   "(راجع تقرير resolve-self-check.json).")
         return 0
+    if args.stage == "aliases":
+        try:
+            checkpoint = run_aliases(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        coverage = checkpoint["coverage"]["overall"]
+        print(f"اكتملت مرحلة aliases: {checkpoint['distinct_keys']} مفتاحًا، "
+              f"تغطية عالية+متوسطة {coverage['high_medium_percent']}%، "
+              f"{checkpoint['events']} يوم/عنوان حدث.")
+        return 0
     if args.stage == "run":
         run_discover(archive, ledger, args.from_date, args.to_date, state)
         run_extract(archive, ledger, args.from_date, args.to_date, state, resume=args.resume)
         run_validate(ledger, state, args.from_date, args.to_date, resume=args.resume)
         run_normalize(ledger, state, args.from_date, args.to_date, resume=args.resume)
         run_resolve(ledger, state, args.from_date, args.to_date, resume=args.resume)
-        print("اكتملت المراحل discover وextract وvalidate وnormalize وresolve.")
+        run_aliases(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        print("اكتملت المراحل discover وextract وvalidate وnormalize وresolve وaliases.")
         return 0
     print(f"المرحلة {args.stage}: not implemented yet", file=sys.stderr)
     return 2

@@ -19,7 +19,7 @@ from .normalize import normalize_phones, normalize_seniority
 from .textnorm import clean_text, norm_name
 
 
-VERSION = "3"
+VERSION = "4"
 _ANCHOR_ROLE = "snapshot"
 _OFFICER_PRESENCE_ROLES = {"roster", "ref_officers"}
 _PERSONNEL_PRESENCE_ROLES = {"afraad", "ref_personnel", "duty_list", "board"}
@@ -948,12 +948,31 @@ def run_resolve(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
 
     officer_details = details_for(officer_result, "officer", officer_decisions)
     personnel_details = details_for(personnel_result, "personnel", personnel_decisions)
-    _write_csv(review_dir / "officers.csv", _REVIEW_FIELDS, officer_details)
-    _write_csv(review_dir / "personnel.csv", _REVIEW_FIELDS, personnel_details)
+    ignored_officers = {index for index, row in enumerate(officer_details) if row["status"] == "تجاهل"}
+    ignored_personnel = {index for index, row in enumerate(personnel_details) if row["status"] == "تجاهل"}
+
+    def drop_ignored(result: Resolution, ignored: set[int], kind: str) -> None:
+        for index in ignored:
+            for item in result.groups[index]:
+                if item.role == _ANCHOR_ROLE:
+                    continue
+                result.mapping.pop(item.key, None)
+                result.unresolved.append({
+                    "identity_type": kind, "observation_key": item.key, "date": item.date,
+                    "name": item.name, "source_text": item.source_text,
+                    "reason": "ignored_by_reviewer", "candidate_roots": [],
+                })
+
+    drop_ignored(officer_result, ignored_officers, "officer")
+    drop_ignored(personnel_result, ignored_personnel, "personnel")
+    active_officers = [row for index, row in enumerate(officer_details) if index not in ignored_officers]
+    active_personnel = [row for index, row in enumerate(personnel_details) if index not in ignored_personnel]
+    _write_csv(review_dir / "officers.csv", _REVIEW_FIELDS, active_officers)
+    _write_csv(review_dir / "personnel.csv", _REVIEW_FIELDS, active_personnel)
     _write_current_decisions(decisions_dir / "officers.csv", officer_details, officer_decisions)
     _write_current_decisions(decisions_dir / "personnel.csv", personnel_details, personnel_decisions)
-    atomic_write_jsonl(output, ([{"identity_type": "officer", **row} for row in officer_details] +
-                                [{"identity_type": "personnel", **row} for row in personnel_details]))
+    atomic_write_jsonl(output, ([{"identity_type": "officer", **row} for row in active_officers] +
+                                [{"identity_type": "personnel", **row} for row in active_personnel]))
     atomic_write_jsonl(ledger.staging_path("resolve-unresolved"),
                        [*officer_result.unresolved, *personnel_result.unresolved])
     proposed = {
@@ -1018,8 +1037,8 @@ def run_resolve(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
                 "unresolved_observations": len(unresolved)}
     reference_counts = {kind: sum(len(rows) for rows in values.values()) for kind, values in reference.items()}
     checkpoint = {
-        "officers": metrics(officer_details, officer_result.unresolved),
-        "personnel": metrics(personnel_details, personnel_result.unresolved),
+        "officers": metrics(active_officers, officer_result.unresolved),
+        "personnel": metrics(active_personnel, personnel_result.unresolved),
         "reference_mismatches": reference_counts,
         "self_check_errors": sum(len(values) for values in self_check.values()),
         "fuzzy_merges": {kind: sum(row["rule"] == "fuzzy_no_cooccurrence" for row in rows)
