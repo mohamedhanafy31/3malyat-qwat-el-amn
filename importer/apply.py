@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import copy
+import datetime as dt
 import re
 from typing import Any
 
@@ -320,25 +321,60 @@ def apply_core(data: dict[str, Any], delta: dict[str, Any], assigned: dict[str, 
     from backend.utils import sort_active
     sort_active(data, "officers")
     sort_active(data, "personnel")
-    stats["command_versions"] = _apply_command(data, remap(delta.get("command_history") or [], assigned), system_start)
+    stats["command_versions"] = _apply_command(data, remap(delta.get("command_history") or [], assigned), system_start,
+                                               set(imported or ()), set(kept or ()))
     stats["reference_versions"] = _apply_references(data, delta.get("reference_lists") or {}, system_start,
                                                     set(imported or ()), set(kept or ()))
     return {"stats": stats, "review": review}
 
 
-def _apply_command(data: dict[str, Any], versions: list[dict[str, Any]], system_start: str) -> int:
+def _apply_command(data: dict[str, Any], versions: list[dict[str, Any]], system_start: str,
+                   imported: set[str] | None = None, kept: set[str] | None = None) -> int:
+    """القيادة المؤرخة على خط زمني (زي القوائم): اليوم المستورد بياخد مدير/وكيل يوميته، واليوم المتساب
+    بيفضل على قيادته الحالية، والقيادة الحالية آخر نسخة. نسخة «من أول يوم» اللي بذرتها الهجرة 015
+    ما بتغطّيش الأيام المستوردة (ممكن تبدأ من يوم قديم اتفتح بالغلط)."""
+    from backend.dated import _entry_on
     if not versions:
         return 0
-    history = data.setdefault("command_history", [])
-    if not history:
-        # قيم النظام الحالية سارية من أول يوم فيه — قبل ما يتحط قدامها أي نسخة أقدم
-        history.append({"from": system_start, "command": copy.deepcopy(data.get("command") or {}),
-                        "groups": copy.deepcopy(data.get("command_groups") or {})})
-    first = min(entry.get("from") or "" for entry in history)
-    added = [version for version in versions if version["from"] < first]
-    history.extend(copy.deepcopy(added))
-    history.sort(key=lambda entry: entry.get("from") or "")
-    return len(added)
+    imported, kept = set(imported or ()), set(kept or ())
+    existing = sorted((e for e in data.get("command_history") or [] if isinstance(e, dict)),
+                      key=lambda e: e.get("from") or "")
+    if not existing:
+        existing = [{"from": system_start, "command": copy.deepcopy(data.get("command") or {}),
+                     "groups": copy.deepcopy(data.get("command_groups") or {})}]
+    archive = sorted(versions, key=lambda e: e["from"])
+    if not imported:
+        imported = {v["from"] for v in archive}
+
+    def value(entry):
+        return {"command": copy.deepcopy(entry.get("command") or {}), "groups": copy.deepcopy(entry.get("groups") or {})}
+
+    def current(day):
+        entry = _entry_on(existing, day)
+        return value(entry) if entry and (existing[0].get("from") or "") <= day else None
+
+    timeline = sorted(imported | {day for day in kept if day >= min(imported)})
+    history = [copy.deepcopy(e) for e in existing if (e.get("from") or "") < timeline[0]]
+    last = None
+    for day in timeline:
+        if day in imported:
+            entry = _entry_on(archive, day)
+            val = value(entry) if entry and entry["from"] <= day else current(day)
+        else:
+            val = current(day)
+        if val is None or val == last:
+            continue
+        history.append({"from": day, **val})
+        last = val
+    after = (dt.date.fromisoformat(timeline[-1]) + dt.timedelta(days=1)).isoformat()
+    tail = [copy.deepcopy(e) for e in existing if (e.get("from") or "") > timeline[-1]]
+    now = current(after)
+    if now is not None and now != last and not (tail and tail[0]["from"] == after):
+        history.append({"from": after, **now})
+    history.extend(tail)
+    changed = history != data.get("command_history")
+    data["command_history"] = history
+    return len(history) if changed else 0
 
 
 def _apply_references(data: dict[str, Any], lists: dict[str, Any], system_start: str,

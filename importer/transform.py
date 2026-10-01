@@ -1277,9 +1277,10 @@ def core_delta(observations: dict[str, dict[str, Any]], core: dict[str, Any]) ->
         for officer_id, obs in sorted(day.get("officers", {}).items()):
             per_officer[officer_id].append((date, obs))
             post = norm(obs.get("post") or "")
-            if any(norm(key) in post for key in _DIRECTOR_POST) and not command["مدير الإدارة"]:
+            flat = post.replace(" ", "")  # «و كيل الإدارة» مكتوبة بمسافة في يوميات 2024
+            if any(norm(key).replace(" ", "") in flat for key in _DIRECTOR_POST) and not command["مدير الإدارة"]:
                 command["مدير الإدارة"] = officer_id
-            elif any(norm(key) in post for key in _DEPUTY_POST) and not command["وكيل الإدارة"]:
+            elif any(norm(key).replace(" ", "") in flat for key in _DEPUTY_POST) and not command["وكيل الإدارة"]:
                 command["وكيل الإدارة"] = officer_id
             if obs.get("qualifier") or any(norm(key) in post for key in _MEDICAL_POST):
                 groups["طبي"].append(officer_id)

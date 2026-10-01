@@ -123,3 +123,17 @@ def test_leave_is_cut_on_imported_duty_days():
     assert sorted((lv["start"], lv["end"]) for lv in data["leaves"]) == [("2026-09-17", "2026-09-18"), ("2026-09-20", "2026-09-22")]
     assert review[0]["service_days"] == ["2026-09-16", "2026-09-19"]
     assert cut_leaves_on_duty(data, days) == []
+
+
+def test_command_follows_each_imported_day_even_after_an_early_seed():
+    from importer.apply import _apply_command
+    from backend.dated import command_on
+    data = {"command": {"مدير الإدارة": "OFF-2"}, "command_groups": {},
+            "command_history": [{"from": "2025-03-18", "command": {"مدير الإدارة": "OFF-2"}, "groups": {}}]}
+    versions = [{"from": "2024-01-01", "command": {"مدير الإدارة": "OFF-9"}, "groups": {}},
+                {"from": "2026-06-01", "command": {"مدير الإدارة": "OFF-2"}, "groups": {}}]
+    _apply_command(data, versions, "2026-06-01", imported={"2024-01-01", "2025-04-08", "2026-06-01"},
+                   kept={"2025-03-18", "2026-10-01"})
+    assert command_on(data, "2025-04-08")["مدير الإدارة"] == "OFF-9"
+    assert command_on(data, "2025-03-18")["مدير الإدارة"] == "OFF-2"
+    assert command_on(data, "2026-10-01")["مدير الإدارة"] == "OFF-2"
