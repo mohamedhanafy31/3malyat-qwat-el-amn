@@ -12,7 +12,7 @@ bp = Blueprint("missions", __name__)
 
 @bp.get("/api/missions")
 def list_missions():
-    data = load_data()
+    data = load_data(())
     status = request.args.get("status", "").strip()
     entries = missions_lib.missions(data)
     if status:
@@ -41,7 +41,7 @@ def add_mission():
         changes.record(data, "mission", mission["id"], "create", after=dict(mission))
         return jsonify(missions_lib.with_member_names(data, mission)), 201
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.patch("/api/missions/<mission_id>")
@@ -60,7 +60,7 @@ def edit_mission(mission_id):
         changes.record(data, "mission", mission_id, "update", before=before, after=dict(mission))
         return jsonify(missions_lib.with_member_names(data, mission))
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.delete("/api/missions/<mission_id>")
@@ -74,4 +74,4 @@ def delete_mission(mission_id):
         changes.record(data, "mission", mission_id, "delete", before=mission.as_dict())
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, ())

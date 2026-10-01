@@ -47,7 +47,7 @@ def add_leave():
             retro.log_retro(data, "leave", leave["id"], closed, reason, after=dict(leave))
         return jsonify(leaves.named(added)), 201
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)
 
 
 @bp.patch("/api/leaves/<leave_id>")
@@ -85,7 +85,7 @@ def edit_leave(leave_id):
             retro.log_retro(data, "leave", leave_id, closed, reason, before=current, after=dict(leave))
         return jsonify(leaves.named(updated))
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)
 
 
 @bp.delete("/api/leaves/<leave_id>")
@@ -105,7 +105,7 @@ def delete_leave(leave_id):
             retro.log_retro(data, "leave", leave_id, closed, reason, before=removed.as_dict())
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)
 
 
 @bp.post("/api/leaves/<leave_id>/stop")
@@ -120,7 +120,7 @@ def stop_leave(leave_id):
                                             today=day_status.today_iso())
         return jsonify(result)
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)
 
 
 @bp.post("/api/leaves/monthly")
@@ -209,12 +209,12 @@ def add_monthly_roster():
 
         return jsonify({"created": created, "errors": errors})
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)
 
 
 @bp.get("/api/leaves/stats")
 def leaves_stats():
-    data = load_data()
+    data = load_data(())
     filters = {
         "month_from": request.args.get("month_from", "").strip(),
         "month_to": request.args.get("month_to", "").strip(),

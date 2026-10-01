@@ -144,6 +144,18 @@ def days_between(start, end):
     return out
 
 
+def around(day, *offsets):
+    """أيام حوالين `day` بالإزاحات دي (0 = اليوم نفسه) — لنطاق قراءة مسار."""
+    base = date.fromisoformat(day)
+    out = []
+    for offset in offsets:
+        try:
+            out.append((base + timedelta(days=offset)).isoformat())
+        except OverflowError:                 # أول/آخر يوم في التقويم
+            continue
+    return out
+
+
 def resolve_recorded_range(data, filters, default_range_days=30):
     """(date_from, date_to, recorded) بصورتهم المعيارية — افتراضي آخر
     `default_range_days` يوم فيهم يومية فعلًا لو الفلتر فاضي.
@@ -156,7 +168,21 @@ def resolve_recorded_range(data, filters, default_range_days=30):
     مسجّلة بس من غير تكليف لسه لازم تتحسب، فـ`day_officers` باقي في
     التعريف — بس مش القفل/التأكيد/العدّ.
     """
-    recorded = sorted(set(data.get("day_assignments") or {}) | set(data.get("day_officers") or {}))
+    from .store import recorded_days
+    return _resolve_range(recorded_days(data), filters, default_range_days)
+
+
+def recorded_range_scope(filters, default_range_days=30):
+    """نطاق قراءة (`store.load_data`) للمدى اللي `resolve_recorded_range`
+    هتحسبه: الأيام المسجّلة فعلًا جوّه المدى بس، من فهرس الأيام."""
+    def scope(view):
+        recorded = view.index.recorded()
+        date_from, date_to, _ = _resolve_range(recorded, filters, default_range_days)
+        return recorded_between(recorded, date_from, date_to)
+    return scope
+
+
+def _resolve_range(recorded, filters, default_range_days):
     date_from = canonical_day(filters.get("date_from", ""))
     date_to = canonical_day(filters.get("date_to", ""))
     if not date_to:

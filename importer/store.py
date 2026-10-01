@@ -204,7 +204,7 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
         counts[action] = counts.get(action, 0) + 1
     if write:
         _lock()
-    data = store.load_data()
+    data = store.load_data(store.ALL_DAYS)       # الاستيراد بيبني الأرشيف كله
     built = build_dataset(ledger, skip=skip, data=data)
     core, days = store.split(data)
     changed = _changed_files(ledger.data_dir, core, days)

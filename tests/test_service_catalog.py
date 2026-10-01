@@ -305,7 +305,7 @@ def test_a_failed_save_removes_the_just_uploaded_file(client, monkeypatch):
     r = client.post("/api/service-catalog/entries", json={"name": "خدمة"})
     entry_id = r.get_json()["id"]
 
-    def boom(fn):
+    def boom(fn, *_scope):
         raise RuntimeError("قرص ممتلئ (محاكاة)")
 
     monkeypatch.setattr(routes_catalog, "with_data", boom)

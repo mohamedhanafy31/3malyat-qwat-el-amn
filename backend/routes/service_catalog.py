@@ -14,7 +14,7 @@ bp = Blueprint("service_catalog", __name__)
 
 @bp.get("/api/service-catalog")
 def list_catalog():
-    data = load_data()
+    data = load_data(())
     entries = sorted(catalog_lib.catalog(data), key=lambda e: e.get("order", 0))
     return jsonify({
         "entries": entries,
@@ -34,7 +34,7 @@ def seed_catalog():
         entries = catalog_lib.seed_from_counts_template(data)
         return jsonify({"entries": entries}), 201
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.post("/api/service-catalog/entries")
@@ -54,7 +54,7 @@ def add_entry():
         entries.append(entry)
         return jsonify(entry), 201
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.patch("/api/service-catalog/entries/<entry_id>")
@@ -71,7 +71,7 @@ def edit_entry(entry_id):
             raise AbortRequest((jsonify({"error": err}), 400))
         return jsonify(entry)
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.delete("/api/service-catalog/entries/<entry_id>")
@@ -87,7 +87,7 @@ def delete_entry(entry_id):
         entries.remove(entry)
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.post("/api/service-catalog/entries/<entry_id>/images")
@@ -124,7 +124,7 @@ def upload_image(entry_id):
     # ملف يتيم من غير أي مرجع ليه. الاسم فيه UUID عشوائي فمفيش داعي نقلق
     # من تعارض أسماء لو حد رفع تاني في نفس اللحظة.
     try:
-        result = with_data(mutate)
+        result = with_data(mutate, ())
     except Exception:
         target.unlink(missing_ok=True)
         raise
@@ -145,7 +145,7 @@ def delete_image(entry_id, filename):
             raise AbortRequest((jsonify({"error": "الصورة غير موجودة."}), 404))
         return jsonify(entry)
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.get("/uploads/service-catalog/<filename>")

@@ -13,7 +13,7 @@ bp = Blueprint("inspection_schedule", __name__)
 
 @bp.get("/api/inspection-schedule")
 def get_schedule():
-    data = load_data()
+    data = load_data(())
     return jsonify({"weekdays": WEEKDAYS, "schedule": sched_lib.schedule(data)})
 
 
@@ -27,7 +27,7 @@ def add_entry(weekday):
             raise AbortRequest((jsonify({"error": err}), 400))
         return jsonify(entry), 201
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.patch("/api/inspection-schedule/<weekday>/<entry_id>")
@@ -41,7 +41,7 @@ def edit_entry(weekday, entry_id):
             raise AbortRequest((jsonify({"error": err}), status))
         return jsonify(entry)
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.delete("/api/inspection-schedule/<weekday>/<entry_id>")
@@ -51,4 +51,4 @@ def delete_entry(weekday, entry_id):
             raise AbortRequest((jsonify({"error": "هذا التفتيش غير موجود."}), 404))
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, ())

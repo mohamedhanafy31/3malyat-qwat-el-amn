@@ -14,7 +14,7 @@ def get_day_status(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    return jsonify(day_status_lib.status_of(load_data(), day))
+    return jsonify(day_status_lib.status_of(load_data([day]), day))
 
 
 @bp.post("/api/day-status/<day>/close")
@@ -33,7 +33,7 @@ def close_day(day):
                        text=f"قفل يوم {day}" + (f" — {closed_by}" if closed_by else ""))
         return jsonify(entry), 201
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.post("/api/day-status/<day>/reopen")
@@ -58,4 +58,4 @@ def reopen_day(day):
                        text=f"فتح استثنائي ليوم {day} — السبب: {reason}")
         return jsonify(entry)
 
-    return with_data(mutate)
+    return with_data(mutate, [day])

@@ -45,14 +45,16 @@ import pickle
 import threading
 import time
 import zlib
+from collections import OrderedDict
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import NamedTuple
 from urllib.parse import unquote
 
 from flask import request
 
-from .constants import DEFAULT_DATA
+from .constants import DEFAULT_DATA, SECTION_OCCASIONAL
 from .repo.people import as_roster
 from .utils import sort_active
 
@@ -253,8 +255,8 @@ def all_day_files():
 
 
 def day_names():
-    """تواريخ ملفات الأيام الموجودة، مرتبة — من غير قراءة محتواها."""
-    return sorted(p.stem for p in all_day_files())
+    """تواريخ ملفات الأيام الموجودة، مرتبة — من الفهرس، من غير قراءة محتواها."""
+    return _ensure_index().days()
 
 
 def split(data):
@@ -290,72 +292,356 @@ def merge(core, days):
     return data
 
 
+# ---------- نطاق القراءة ----------
+#
+# كل مسار بيعلن الأيام اللي محتاجها: قايمة أيام صريحة، أو دالة بتاخد
+# `ScopeView` (القوة + فهرس الأيام) وترجّع القايمة. القراءة والمقارنة
+# والكتابة بتلمس `core.json` والأيام دي بس. `ALL_DAYS` (الأرشيف كله)
+# للعمليات الصريحة بس: النسخ الاحتياطي والهجرات والاستيراد والتصدير الشامل.
+
+class OutOfScope(RuntimeError):
+    """كود لمس يوم ليه بيانات على القرص من غير ما المسار يعلنه في نطاقه.
+
+    خطأ برمجي مش خطأ مستخدم: الرجوع بيوم فاضي كان هيعرض بيانات ناقصة،
+    والكتابة عليه كانت هتمسح الملف الحقيقي.
+    """
+
+
+class _AllDays:
+    def __repr__(self):
+        return "ALL_DAYS"
+
+
+ALL_DAYS = _AllDays()
+
+
+class ScopeView:
+    """اللي دالة النطاق تقدر تشوفه قبل تحميل أي يوم: القوة والفهرس."""
+
+    def __init__(self, data, index):
+        self.data = data
+        self.index = index
+
+
+class _ScopedSection(dict):
+    """قسم يومي متحمّل جزئيًا. الوصول بالمفتاح ليوم مش في النطاق وعنده
+    القسم ده على القرص بيرمي `OutOfScope` بدل ما يرجّع فاضي في صمت.
+
+    القسم دايمًا «مش فاضي» في الشرط (`__bool__`) عشان `data.get(k) or {}`
+    مايستبدلوش بقاموس عادي من غير حراسة.
+    """
+    __slots__ = ("_key", "_guard")
+
+    def __init__(self, key, values, guard):
+        super().__init__(values)
+        self._key = key
+        self._guard = guard
+
+    def _check(self, day):
+        if not dict.__contains__(self, day):
+            self._guard(self._key, day)
+
+    def __getitem__(self, day):
+        self._check(day)
+        return dict.__getitem__(self, day)
+
+    def get(self, day, default=None):
+        self._check(day)
+        return dict.get(self, day, default)
+
+    def __contains__(self, day):
+        self._check(day)
+        return dict.__contains__(self, day)
+
+    def setdefault(self, day, default=None):
+        self._check(day)
+        return dict.setdefault(self, day, default)
+
+    def __setitem__(self, day, value):
+        self._check(day)
+        dict.__setitem__(self, day, value)
+
+    def pop(self, day, *default):
+        self._check(day)
+        return dict.pop(self, day, *default)
+
+    def __delitem__(self, day):
+        self._check(day)
+        dict.__delitem__(self, day)
+
+    def __bool__(self):
+        return True
+
+
+def _guard_for(index, loaded):
+    def guard(key, day):
+        if day not in loaded and isinstance(day, str) and index.has(day, key):
+            raise OutOfScope(f"اليوم {day} ({key}) خارج نطاق القراءة المعلن لهذا المسار.")
+    return guard
+
+
+# ---------- فهرس الأيام ----------
+#
+# في الذاكرة بس، ومبني من الملفات نفسها: أي عملية جديدة بتعيد بناءه من
+# القرص أول ما تحتاجه. لكل يوم: بصمة الملف (mtime، الحجم)، الأقسام اللي
+# فيه، أسماء أقسام صفوف اللوحة بترتيب ظهورها، والأشخاص المذكورين فيه.
+# الكتابة بتحدّثه مع الملف نفسه؛ وأي ملف اتغيّر من برّه (بصمة مختلفة) أو
+# اتضاف أو اتشال بيتصلّح عند أول استخدام.
+
+class _DayMeta(NamedTuple):
+    sig: tuple
+    sections: frozenset
+    board_sections: tuple
+    people: frozenset
+
+
+def _board_names(rows):
+    names = []
+    for row in rows if isinstance(rows, list) else ():
+        if not isinstance(row, dict):
+            continue
+        name = str(row.get("section") or SECTION_OCCASIONAL).strip()
+        if name not in names:
+            names.append(name)
+    return tuple(names)
+
+
+def _ids(value):
+    return [v for v in value if isinstance(v, str)] if isinstance(value, list) else []
+
+
+def _day_meta(sig, blob):
+    sections = frozenset(key for key, name in DAY_SECTIONS.items() if blob.get(name))
+    people = set()
+    rows = blob.get("assignments")
+    for row in rows if isinstance(rows, list) else ():
+        if isinstance(row, dict):
+            people.update(_ids(row.get("officer_ids")))
+            people.update(_ids(row.get("personnel_ids")))
+    states = blob.get("officer_states")
+    if isinstance(states, dict):
+        people.update(k for k in states if isinstance(k, str))
+    afraad = blob.get("afraad_basic")
+    for entry in (afraad.values() if isinstance(afraad, dict) else ()):
+        if isinstance(entry, dict):
+            people.update(entry[k] for k in ("morning_person_id", "night_person_id")
+                          if isinstance(entry.get(k), str) and entry.get(k))
+    return _DayMeta(sig, sections, _board_names(rows), frozenset(people))
+
+
+class DayIndex:
+    """لقطة ثابتة من الفهرس — مابتتغيّرش بعد ما تتسلّم."""
+
+    def __init__(self, entries):
+        self._entries = entries
+
+    def __contains__(self, day):
+        return day in self._entries
+
+    def __len__(self):
+        return len(self._entries)
+
+    def days(self):
+        return sorted(self._entries)
+
+    def has(self, day, key):
+        meta = self._entries.get(day)
+        return meta is not None and key in meta.sections
+
+    def days_with(self, *keys, start=None, end=None):
+        """الأيام اللي فيها أي قسم من `keys` (أو أي يوم لو مفيش)، بين
+        `start` و`end` شاملهم لو اتحددوا."""
+        wanted = set(keys)
+        return sorted(
+            day for day, meta in self._entries.items()
+            if (not wanted or meta.sections & wanted)
+            and (start is None or day >= start) and (end is None or day <= end))
+
+    def recorded(self):
+        """أيام الشغل الفعلي: تكليف أو حالة ضابط (`utils.resolve_recorded_range`)."""
+        return self.days_with("day_assignments", "day_officers")
+
+    def recorded_between(self, date_from, date_to):
+        if date_from > date_to:
+            date_from, date_to = date_to, date_from
+        return self.days_with("day_assignments", "day_officers",
+                              start=date_from, end=date_to)
+
+    def person_days(self, person_id):
+        return sorted(d for d, meta in self._entries.items() if person_id in meta.people)
+
+    def board_sections(self):
+        """[(يوم, أسماء أقسام صفوفه)] لكل يوم فيه تكليفات، بالتاريخ."""
+        return [(d, self._entries[d].board_sections) for d in sorted(self._entries)
+                if self._entries[d].board_sections]
+
+
+_STATE_LOCK = threading.RLock()     # الكاش والفهرس — مستقل عن LOCK بتاع المعاملة
+_index_state = {"dir": None, "entries": None}
+INDEX_STATS = {"rebuilds": 0, "repairs": 0}
+
+
+def _forget_index():
+    with _STATE_LOCK:
+        _index_state.update(dir=None, entries=None)
+
+
+def _file_sig(path):
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        return None
+    return (stat.st_mtime_ns, stat.st_size)
+
+
+def _meta_from_file(path, cache=True):
+    entry, blob = _load(path, cache=cache)
+    return _day_meta(entry.sig, blob)
+
+
+def _ensure_index():
+    """الفهرس الحالي — بيتبني لو مش موجود وبيتصلّح لو أي ملف اتغيّر."""
+    with _STATE_LOCK:
+        root = str(DATA_DIR)
+        entries = _index_state["entries"] if _index_state["dir"] == root else None
+        files = {p.stem: p for p in all_day_files()}
+        if entries is None:
+            # البناء الكامل مايملاش الكاش — الأيام المستخدمة فعلًا هي اللي تستاهل الذاكرة
+            entries = {day: _meta_from_file(path, cache=False)
+                       for day, path in sorted(files.items())}
+            _index_state.update(dir=root, entries=entries)
+            INDEX_STATS["rebuilds"] += 1
+            return DayIndex(entries)
+        fresh = None
+        for day in entries.keys() - files.keys():
+            fresh = fresh if fresh is not None else dict(entries)
+            fresh.pop(day, None)
+        for day, path in files.items():
+            meta = entries.get(day)
+            if meta is not None and meta.sig == _file_sig(path):
+                continue
+            fresh = fresh if fresh is not None else dict(entries)
+            fresh[day] = _meta_from_file(path)
+        if fresh is not None:
+            _index_state["entries"] = fresh
+            INDEX_STATS["repairs"] += 1
+        return DayIndex(_index_state["entries"])
+
+
+def _index_put(day, meta):
+    """تحديث يوم واحد في الفهرس (نسخة جديدة — اللقطات المسلّمة ما تتغيّرش)."""
+    with _STATE_LOCK:
+        if _index_state["dir"] != str(DATA_DIR) or _index_state["entries"] is None:
+            return
+        fresh = dict(_index_state["entries"])
+        if meta is None:
+            fresh.pop(day, None)
+        else:
+            fresh[day] = meta
+        _index_state["entries"] = fresh
+
+
+def day_index():
+    """لقطة من فهرس الأيام الحالي."""
+    return _ensure_index()
+
+
+# ---------- الكاش ----------
+#
+# نسخة واحدة مسلسلة (pickle) لكل ملف، مش الكائن المحلّل: كل قراءة بتفكّ
+# كائن جديد، فمفيش إشارة مشتركة ممكن تتعدّل برّه معاملة. `core.json` في
+# خانة لوحده؛ الأيام في LRU سقفه `DAY_CACHE_SIZE`. `pickle` هنا نسخ داخلي
+# لكائنات موثوقة حُلّلت من JSON، وليس قراءة لملف pickle خارجي.
+
+DAY_CACHE_SIZE = 128
+
+
+class _Entry(NamedTuple):
+    sig: tuple
+    fingerprint: str
+    packed: bytes
+
+
+class _FileCache:
+    def __init__(self, limit):
+        self.limit = limit
+        self.core = None              # (المسار, _Entry)
+        self.days = OrderedDict()     # {المسار: _Entry} — الأقدم استخدامًا أولًا
+        self.evictions = 0
+
+    def get(self, key, core):
+        if core:
+            return self.core[1] if self.core and self.core[0] == key else None
+        hit = self.days.get(key)
+        if hit is not None:
+            self.days.move_to_end(key)
+        return hit
+
+    def put(self, key, entry, core):
+        if core:
+            self.core = (key, entry)
+            return
+        self.days[key] = entry
+        self.days.move_to_end(key)
+        while len(self.days) > self.limit:
+            self.days.popitem(last=False)
+            self.evictions += 1
+
+    def drop(self, key):
+        self.days.pop(key, None)
+
+    def clear(self):
+        """ينسى كل اللي في الذاكرة — الكاش والفهرس."""
+        with _STATE_LOCK:
+            self.days.clear()
+            self.core = None
+            _forget_index()
+
+
+_cache = _FileCache(DAY_CACHE_SIZE)
+
+
+def _pack(value):
+    return pickle.dumps(value, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def _load_entry(path, core=False, cache=True):
+    """-> (_Entry, كائن محلّل جديد أو None لو جه من الكاش). بيعيد القراءة
+    بس لما الملف يتغيّر. `cache=False` بيقرا من غير ما يزحم كاش الأيام
+    (النسخ الاحتياطي وبناء الفهرس)."""
+    with _STATE_LOCK:
+        stat = path.stat()
+        sig = (stat.st_mtime_ns, stat.st_size)
+        key = str(path)
+        hit = _cache.get(key, core)
+        if hit is not None and hit.sig == sig:
+            return hit, None
+        text = _read_text(path)
+        parsed = _parse(text, path)
+        entry = _Entry(sig, _fingerprint(text), _pack(parsed))
+        if cache or core:
+            _cache.put(key, entry, core)
+        return entry, parsed
+
+
+def _load(path, core=False, cache=True):
+    """-> (_Entry, محتوى الملف كائن جديد مش متشارك مع الكاش)."""
+    entry, parsed = _load_entry(path, core=core, cache=cache)
+    return entry, (parsed if parsed is not None else pickle.loads(entry.packed))
+
+
+def _remember(path, text, core=False):
+    """بعد كتابة ملف: يحطّه في الكاش بنسخته الجديدة. -> (_Entry, محتواه)."""
+    parsed = _parse(text, path)
+    entry = _Entry(_file_sig(path), _fingerprint(text), _pack(parsed))
+    with _STATE_LOCK:
+        _cache.put(str(path), entry, core)
+    return entry, parsed
+
+
 # ---------- القراءة ----------
 
-_cache = {}        # {path: (mtime_ns, size, parsed, fingerprint, packed)}
-
-
-def _cached(path):
-    """-> (الكائن المحلّل، بصمته، نسخته المسلسلة). يُعاد القراءة فقط
-    عند تغيّر الملف.
-
-    يبقى كائن الكاش ملكًا للمخزن؛ `_load_cached` يسلّم نسخة عميقة
-    للمستدعي حتى تظل دلالات `with_data` آمنة. هذا يلغي إعادة تحليل
-    نحو ألف ملف JSON في كل طلب. `pickle` هنا نسخ داخلي لكائنات موثوقة
-    حُلّلت من JSON، وليس قراءة لملف pickle خارجي.
-    """
-    stat = path.stat()
-    key = str(path)
-    hit = _cache.get(key)
-    if hit and hit[0] == stat.st_mtime_ns and hit[1] == stat.st_size:
-        return hit[2], hit[3], hit[4]
-    text = _read_text(path)
-    parsed = _parse(text, path)
-    entry = (stat.st_mtime_ns, stat.st_size, parsed, _fingerprint(text),
-             pickle.dumps(parsed, protocol=pickle.HIGHEST_PROTOCOL))
-    _cache[key] = entry
-    return entry[2], entry[3], entry[4]
-
-
-def _load_cached(path):
-    """محتوى الملف متفكوك — كائن جديد في كل نداء."""
-    return pickle.loads(_cached(path)[2])
-
-
-def _read(days_filter=None):
-    """قراءة المجلد وتطبيع بنيته — من غير قفل، لاستخدامها جوه أي بلوك
-    ماسك الـLOCK بالفعل. `days_filter` لقراءات GET فقط؛ مسارات
-    الكتابة تطلب دائمًا اللقطة الكاملة."""
-    if not core_file().exists():
-        if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
-            raise DataUnreadable(
-                f"مجلد البيانات «{DATA_DIR.name}» موجود، لكنه لا يحتوي على {CORE_NAME}. "
-                f"استعد نسخة من {BACKUP_DIR_NAME}/."
-            )
-        legacy = ROOT / "data.json"
-        if legacy.exists():
-            raise SchemaMismatch(
-                f"لا تزال البيانات في الملف القديم الواحد «{legacy.name}». "
-                f"شغّل migrations/010_split_data_files.py لتفكيكه في مجلد "
-                f"«{DATA_DIR.name}/» (ينشئ نسخة احتياطية قبل الكتابة)."
-            )
-        explode(json.loads(json.dumps(DEFAULT_DATA)))    # نسخة — explode بيعدّل
-
-    _core_cached, core_fp, core_packed = _cached(core_file())
-    core = pickle.loads(core_packed)
-    _check_schema(core.get("schema", 1))
-
-    days, originals, fingerprints = {}, {}, {"core": core_fp}
-    paths = (all_day_files() if days_filter is None else
-             [day_path(day) for day in sorted(set(days_filter)) if day_path(day).exists()])
-    for path in paths:
-        parsed, stamp, packed = _cached(path)
-        originals[path.stem] = parsed
-        days[path.stem] = pickle.loads(packed)
-        fingerprints[path.stem] = stamp
-
-    data = merge(core, days)
-
+def _normalise(data):
     for cat in ("officers", "personnel"):
         data[cat] = as_roster(data.get(cat))
         sort_active(data, cat)
@@ -371,10 +657,118 @@ def _read(days_filter=None):
         groups.setdefault(role, [])
     data.setdefault("id_seq", {})      # عدّادات الأرقام — شوف reserve_id()
 
-    # بصمات اللي اتقرا — `_write` بيقارن بيها ويكتب اللي اتغيّر بس.
+
+def _resolve_scope(days, view):
+    if callable(days) and days is not ALL_DAYS:
+        days = days(view)
+    if days is ALL_DAYS:
+        return None
+    if days is None or isinstance(days, (str, bytes)) or not hasattr(days, "__iter__"):
+        raise TypeError("نطاق الأيام لازم يكون قايمة أيام صريحة أو دالة أو ALL_DAYS، "
+                        f"مش {days!r}.")
+    return frozenset(str(day) for day in days if day)
+
+
+def _read(days=ALL_DAYS):
+    """قراءة `core.json` والأيام اللي في النطاق بس — من غير قفل، لاستخدامها
+    جوه أي بلوك ماسك الـLOCK بالفعل.
+
+    `days`: قايمة أيام، أو دالة `(ScopeView) -> أيام`، أو `ALL_DAYS`.
+    الأقسام اليومية في النتيجة فيها أيام النطاق بس، ومحروسة ضد أي يوم
+    برّاه (`_ScopedSection`).
+    """
+    if not core_file().exists():
+        if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
+            raise DataUnreadable(
+                f"مجلد البيانات «{DATA_DIR.name}» موجود، لكنه لا يحتوي على {CORE_NAME}. "
+                f"استعد نسخة من {BACKUP_DIR_NAME}/."
+            )
+        legacy = ROOT / "data.json"
+        if legacy.exists():
+            raise SchemaMismatch(
+                f"لا تزال البيانات في الملف القديم الواحد «{legacy.name}». "
+                f"شغّل migrations/010_split_data_files.py لتفكيكه في مجلد "
+                f"«{DATA_DIR.name}/» (ينشئ نسخة احتياطية قبل الكتابة)."
+            )
+        explode(json.loads(json.dumps(DEFAULT_DATA)))    # نسخة — explode بيعدّل
+
+    core_entry, core = _load(core_file(), core=True)
+    _check_schema(core.get("schema", 1))
+    data = merge(core, {})
+    _normalise(data)
+
+    index = _ensure_index()
+    scope = _resolve_scope(days, ScopeView(data, index))
+    wanted = index.days() if scope is None else sorted(d for d in scope if d in index)
+
+    originals, fingerprints = {}, {"core": core_entry.fingerprint}
+    for day in wanted:
+        entry, blob = _load(day_path(day))
+        originals[day] = entry.packed
+        fingerprints[day] = entry.fingerprint
+        for key, name in DAY_SECTIONS.items():
+            if blob.get(name):
+                data[key][day] = blob[name]
+
+    if scope is not None:
+        guard = _guard_for(index, scope)
+        for key in DAY_SECTIONS:
+            data[key] = _ScopedSection(key, data[key], guard)
+
+    # بصمات اللي اتقرا ونطاقه — `_write` بيقارن بيها ويكتب اللي اتغيّر بس.
     # المفتاح بيبدأ بـ`_` فما بيتخزّنش (شوف `split`).
-    data["_fp"] = {"fingerprints": fingerprints, "originals": originals}
+    data["_fp"] = {"fingerprints": fingerprints, "originals": originals,
+                   "scope": scope, "index": index}
     return data
+
+
+# ---------- أسئلة على الأرشيف من غير تحميله ----------
+#
+# الأسئلة اللي إجابتها محتاجة كل الأيام («آخر يوم فيه تكليف»، «أقسام
+# اللوحة المستخدمة قبل كده») بتتجاوب من الأيام المحمّلة لأيام النطاق، ومن
+# الفهرس للباقي. بيانات من غير `_fp` (تجميع كامل) بتتجاوب منها هي بس.
+
+def _tracking(data):
+    fp = data.get("_fp") or {}
+    return fp.get("scope"), fp.get("index")
+
+
+def known_days(data, *keys):
+    """الأيام اللي فيها أي قسم من `keys`، مرتبة."""
+    scope, index = _tracking(data)
+    out = {day for key in keys for day, value in dict.items(data.get(key) or {}) if value}
+    if scope is not None and index is not None:
+        out.update(day for day in index.days_with(*keys) if day not in scope)
+    return sorted(out)
+
+
+def recorded_days(data):
+    """أيام الشغل الفعلي (تكليف أو حالة ضابط) — من غير تحميلها."""
+    return known_days(data, "day_assignments", "day_officers")
+
+
+def board_section_days(data):
+    """[(يوم, أسماء أقسام صفوفه بترتيب ظهورها)] لكل يوم فيه تكليفات."""
+    scope, index = _tracking(data)
+    out = {}
+    if scope is not None and index is not None:
+        out.update((day, names) for day, names in index.board_sections() if day not in scope)
+    for day, rows in dict.items(data.get("day_assignments") or {}):
+        names = _board_names(rows)
+        if names:
+            out[day] = names
+    return sorted(out.items())
+
+
+def require_person_days(data, person_id):
+    """يتأكد إن كل يوم مذكور فيه الشخص ده محمّل — قبل أي تنظيف بيلف على
+    الأيام المحمّلة على إنها كل الأيام."""
+    scope, index = _tracking(data)
+    if scope is None or index is None:
+        return
+    missing = [day for day in index.person_days(person_id) if day not in scope]
+    if missing:
+        raise OutOfScope(f"أيام مذكور فيها {person_id} خارج النطاق المعلن: {', '.join(missing)}")
 
 
 # ---------- الكتابة ----------
@@ -386,12 +780,16 @@ def _write(data):
     (وهي بتقرا القرص، يعني بتلقط الحالة **قبل** التعديل)، وبعدين نكتب.
     لو الكتابة سبقت النسخة كانت النسخة هتبقى صورة من الوضع الجديد —
     يعني مفيش رجوع أصلًا.
+
+    القراءة الجزئية بتقارن أيام نطاقها بس؛ يوم برّا النطاق ليه ملف على
+    القرص مايتكتبش فوقه أبدًا (`OutOfScope`) قبل ما أي ملف يتلمس.
     """
     data["schema"] = SCHEMA_VERSION
     tracking = data.get("_fp") or {}
     # قراءة بصمات الشكل القديم تبقى ممكنة لكائن حمّله اختبار أو أداة.
     before = tracking.get("fingerprints", tracking)
     originals = tracking.get("originals", {})
+    scope = tracking.get("scope")
     core, days = split(data)
 
     core_text = _dumps(core)
@@ -401,7 +799,9 @@ def _write(data):
     new_fp = {"core": core_stamp}
     pending = {}
     for day, blob in days.items():
-        if day in originals and blob == originals[day]:
+        if scope is not None and day not in scope and day_path(day).exists():
+            raise OutOfScope(f"محاولة كتابة اليوم {day} من غير ما يكون في نطاق المعاملة.")
+        if day in originals and _pack(blob) == originals[day]:
             new_fp[day] = before[day]
             continue
         text = _dumps(blob)
@@ -419,20 +819,31 @@ def _write(data):
     if written or removed:
         _snapshot(core_changed=core_changed)
 
-    if core_changed:
-        _write_atomic(core_file(), core_text)
-    for day, text in pending.items():
-        _write_atomic(day_path(day), text)
-    for day in gone:
-        day_path(day).unlink(missing_ok=True)
+    new_originals = {day: originals[day] for day in days
+                     if day in originals and day not in pending}
+    try:
+        if core_changed:
+            _write_atomic(core_file(), core_text)
+            _remember(core_file(), core_text, core=True)
+        for day, text in pending.items():
+            path = day_path(day)
+            _write_atomic(path, text)
+            entry, blob = _remember(path, text)
+            new_originals[day] = entry.packed
+            _index_put(day, _day_meta(entry.sig, blob))
+        for day in gone:
+            path = day_path(day)
+            path.unlink(missing_ok=True)
+            with _STATE_LOCK:
+                _cache.drop(str(path))
+            _index_put(day, None)
+    except BaseException:
+        _forget_index()                  # كتابة وقعت في النص — يتبني من القرص تاني
+        raise
 
-    new_originals = {
-        day: originals[day] if day in originals and day not in pending
-        else _parse(text, day_path(day))
-        for day, text in ((day, pending.get(day)) for day in days)
-        if day in originals or text is not None
-    }
-    data["_fp"] = {"fingerprints": new_fp, "originals": new_originals}
+    index = _ensure_index() if scope is not None else tracking.get("index")
+    data["_fp"] = {"fingerprints": new_fp, "originals": new_originals,
+                   "scope": scope, "index": index}
     return written, removed
 
 
@@ -486,8 +897,9 @@ def snapshot_now():
 
 def assemble():
     """كل البيانات في dict واحد — للنسخ الاحتياطية وأدوات الفحص."""
-    return merge(_load_cached(core_file()),
-                 {p.stem: _load_cached(p) for p in all_day_files()})
+    # قراءة كاملة من غير ما تطرد أيام الشغل من الكاش
+    return merge(_load(core_file(), core=True)[1],
+                 {p.stem: _load(p, cache=False)[1] for p in all_day_files()})
 
 
 def explode(data):
@@ -673,8 +1085,13 @@ def acquire_process_lock():
 
 # ---------- الواجهة ----------
 
-def load_data(days=None):
-    """لقطة GET مستقلة؛ `days` يقيّد ملفات الأيام حين يكون المدى معروفًا."""
+def load_data(days=ALL_DAYS):
+    """لقطة قراءة مستقلة لـ`core.json` + الأيام اللي في `days` بس.
+
+    `days`: قايمة أيام، أو دالة `(ScopeView) -> أيام`، أو `ALL_DAYS`.
+    الافتراضي (الأرشيف كله) للأدوات والاستيراد والاختبارات بس — كل مسار
+    HTTP بيعلن نطاقه صريح (`tests/test_scoped_storage.py` بيتأكد من ده).
+    """
     with LOCK:
         return _read(days)
 
@@ -692,14 +1109,16 @@ class AbortRequest(Exception):
         self.response = response
 
 
-def with_data(fn):
+def with_data(fn, days=ALL_DAYS):
     """يشغّل fn(data) تحت نفس القفل من التحميل للحفظ كوحدة واحدة ذرية — بيمنع
     فقد تعديل لو جه طلبين في نفس الوقت (كل الوقت السابق كان القفل بيحمي القراءة
     بس، فطلبين ممكن كل واحد يحمّل نسخة، يعدّل، والتاني يمسح تعديل الأول من غير
     قصد). fn بتعدّل data في مكانها وترجّع قيمة استجابة Flask؛ الحفظ بيحصل بس لو
-    fn رجعت عادي — ارمي AbortRequest(response) من جواها للرجوع بخطأ من غير حفظ."""
+    fn رجعت عادي — ارمي AbortRequest(response) من جواها للرجوع بخطأ من غير حفظ.
+
+    `days` نطاق المعاملة (زي `load_data`): بتقرا وتقارن وتكتب الأيام دي بس."""
     with LOCK:
-        data = _read()
+        data = _read(days)
         try:
             result = fn(data)
         except AbortRequest as exc:

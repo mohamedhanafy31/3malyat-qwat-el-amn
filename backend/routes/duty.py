@@ -6,8 +6,6 @@
 تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
 حالة يومية هنا.
 """
-from datetime import date, timedelta
-
 from flask import Blueprint, jsonify
 
 from .. import changes
@@ -17,7 +15,7 @@ from ..duty import summarise
 from ..day_open import needs_prepare, prepare
 from ..people import officers_on
 from ..store import AbortRequest, load_data, with_data
-from ..utils import MAX_LEN, canonical_day, json_payload
+from ..utils import MAX_LEN, around, canonical_day, json_payload
 
 bp = Blueprint("duty", __name__)
 
@@ -27,8 +25,8 @@ def get_duty(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    previous = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
-    data = load_data(days=[previous, day])
+    scope = around(day, -1, 0)
+    data = load_data(scope)
     if not needs_prepare(data, day):
         return jsonify(summarise(data, day))
 
@@ -36,7 +34,7 @@ def get_duty(day):
         prepare(data, day)
         return jsonify(summarise(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, scope)
 
 
 @bp.put("/api/duty/<day>/<person_id>")
@@ -77,7 +75,7 @@ def set_state(day, person_id):
                            before=before, after=dict(after), reason=f"يوم {day}")
         return jsonify(summarise(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.delete("/api/duty/<day>/<person_id>")
@@ -99,4 +97,4 @@ def clear_state(day, person_id):
                            before=before, reason=f"يوم {day}")
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, [day])

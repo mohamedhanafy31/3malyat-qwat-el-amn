@@ -2,8 +2,8 @@
 from flask import Blueprint, jsonify, request
 
 from .. import duty_stats as duty_stats_lib
-from ..store import day_names, load_data
-from ..utils import range_filters, recorded_between
+from ..store import load_data
+from ..utils import range_filters, recorded_range_scope
 
 bp = Blueprint("duty_stats", __name__)
 
@@ -13,9 +13,6 @@ def get_duty_stats():
     filters, error = range_filters(request.args)
     if error:
         return jsonify({"error": error}), 400
-    scoped = None
-    if filters["date_from"] and filters["date_to"]:
-        # أسماء ملفات الأيام الموجودة بس — مش كل يوم في التقويم بين الحدين
-        scoped = recorded_between(day_names(), filters["date_from"], filters["date_to"])
-    data = load_data(days=scoped)
+    # الأيام المسجّلة فعلًا جوّه المدى بس (الافتراضي آخر 30 يوم مسجّل)
+    data = load_data(recorded_range_scope(filters))
     return jsonify(duty_stats_lib.stats(data, filters))

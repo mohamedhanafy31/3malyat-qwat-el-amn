@@ -70,17 +70,19 @@ _SECTION_COPY_DEFAULTS = {
 
 
 def section_names(data):
-    """اقتراحات أقسام الخدمات من كل الأيام المحمّلة.
+    """اقتراحات أقسام الخدمات من كل الأيام المسجّلة.
 
     الرسمية الحرة ثابتة في الأول، وبعدها المخصّصة حسب أحدث يوم استُخدمت
-    فيه. اللفة واحدة على ``day_assignments`` مهما كان عدد الأيام.
+    فيه. الأيام المحمّلة بتتقرا من ``day_assignments``، والباقي من فهرس
+    أقسام اللوحة في المخزن — من غير تحميل الأرشيف.
     """
+    from .store import board_section_days
+
     latest = {}
     first_seen = {}
     seen_seq = 0
-    for day, rows in (data.get("day_assignments") or {}).items():
-        for row in rows:
-            name = str(row.get("section") or SECTION_OCCASIONAL).strip()
+    for day, names in board_section_days(data):
+        for name in names:
             if not name or name in FREE_SERVICE_SECTIONS or name in NON_FREE_SECTIONS:
                 continue
             if name not in first_seen:
@@ -106,25 +108,33 @@ def _copyable_row(row):
     return out
 
 
-def section_history(data, day, section):
-    """آخر يوم آخر فيه صفوف للقسم: الأسبق أولًا، وإلا أحدث يوم آخر."""
+def section_source(board_sections, day, section):
+    """يوم المصدر لقسم من [(يوم, أسماء أقسامه)]: الأسبق أولًا، وإلا أحدث يوم آخر."""
     section = str(section or "").strip()
     if not section or section in NON_FREE_SECTIONS:
-        return {"section": section, "source_day": None, "rows": []}
-
+        return None
     earlier_day = None
     other_day = None
-    by_day = data.get("day_assignments") or {}
-    for candidate_day, rows in by_day.items():
-        if candidate_day == day or not any(str(r.get("section") or SECTION_OCCASIONAL).strip() == section
-                                           for r in rows):
+    for candidate_day, names in board_sections:
+        if candidate_day == day or section not in names:
             continue
         if candidate_day < day and (earlier_day is None or candidate_day > earlier_day):
             earlier_day = candidate_day
         if other_day is None or candidate_day > other_day:
             other_day = candidate_day
+    return earlier_day or other_day
 
-    source_day = earlier_day or other_day
+
+def section_history(data, day, section):
+    """آخر يوم آخر فيه صفوف للقسم: الأسبق أولًا، وإلا أحدث يوم آخر."""
+    from .store import board_section_days
+
+    section = str(section or "").strip()
+    if not section or section in NON_FREE_SECTIONS:
+        return {"section": section, "source_day": None, "rows": []}
+
+    source_day = section_source(board_section_days(data), day, section)
+    by_day = data.get("day_assignments") or {}
     rows = [] if not source_day else [
         _copyable_row(row) for row in by_day[source_day]
         if str(row.get("section") or SECTION_OCCASIONAL).strip() == section

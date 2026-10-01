@@ -23,6 +23,14 @@ from ..utils import (
 bp = Blueprint("people", __name__)
 
 
+def _person_scope(person_id):
+    """نطاق مسار بيفحص/ينضّف مراجع شخص في اليوميات: الأيام المذكور فيها
+    (من فهرس الأيام) + أيام القفل الصريح لفحص الأثر الرجعي."""
+    def scope(view):
+        return sorted({*view.index.person_days(person_id), *retro.status_scope(view)})
+    return scope
+
+
 def _require_active_officer(repos, officer_id):
     """ضابط موجود وعلى القوة — بيرمي 404/400 من غير ما يكمّل."""
     raw, category, bucket = repos.people.locate(officer_id)
@@ -60,7 +68,7 @@ def set_command():
         repos.people.sort("officers")   # قيادة الإدارة أعلى اتنين في الترتيب
         return jsonify(repos.config.command())
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.patch("/api/command-groups")
@@ -91,7 +99,7 @@ def set_command_groups():
             record_command_change(data, day_status.today_iso(), groups=changed)
         return jsonify(repos.config.groups())
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.post("/api/person")
@@ -159,7 +167,7 @@ def add_person():
         repos.people.add_raw(category, person)
         return jsonify(person), 201
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.patch("/api/person/<person_id>")
@@ -283,7 +291,7 @@ def edit_person(person_id):
             Repos(data).people.sort(category)   # الرتبة أو الاسم ممكن يتغيّر
         return jsonify(person)
 
-    return with_data(mutate)
+    return with_data(mutate, _person_scope(person_id))
 
 
 @bp.post("/api/person/<person_id>/remove")
@@ -341,7 +349,7 @@ def remove_person(person_id):
                            reason=reason)
         return jsonify({**found, "cleanup": report} if report else found)
 
-    return with_data(mutate)
+    return with_data(mutate, _person_scope(person_id))
 
 
 @bp.post("/api/person/<person_id>/restore")
@@ -392,7 +400,7 @@ def restore_person(person_id):
         # فالسجل القديم بيفضل ظاهر وكامل.
         return jsonify(restored), 201
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.delete("/api/person/<person_id>")
@@ -434,4 +442,4 @@ def delete_archive_record(person_id):
                                 f"أو عدة أيام مغلقة: {'، '.join(closed)}")
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, _person_scope(person_id))

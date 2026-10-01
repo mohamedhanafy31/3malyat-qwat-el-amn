@@ -20,7 +20,7 @@ from ..assignments import (
     apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day, vacant_twin,
 )
 from ..board import (
-    ASSIGNMENT_SECTIONS, build_board, copy_section_rows, section_history,
+    ASSIGNMENT_SECTIONS, build_board, copy_section_rows, section_history, section_source,
     move_assignment, place_assignment_after, set_slot_officers, set_target_officers,
 )
 from ..board_export import build_docx
@@ -29,7 +29,7 @@ from ..duty import summarise
 from ..day_open import needs_prepare, prepare
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
-from ..utils import canonical_day, json_payload, too_long
+from ..utils import around, canonical_day, json_payload, too_long
 
 bp = Blueprint("board", __name__)
 
@@ -40,7 +40,9 @@ def get_board(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
 
-    data = load_data()
+    # فتح اليوم بيبذر الأهداف من تأكيد اليوم السابق
+    scope = around(day, -1, 0)
+    data = load_data(scope)
     # أول ما اليوم ده يتفتح لأول مرة، تفتيشات يوم الأسبوع بتاعه (لو
     # معرّفة) بتتحط عليه تلقائيًا — بعد كده خانات عادية زي أي خانة تانية.
     # الفحص هنا بس عشان أغلب الأيام (اتفتحت قبل كده) تفضل عرض بحت من غير
@@ -52,7 +54,7 @@ def get_board(day):
         prepare(data, day, include_inspections=True)
         return jsonify(build_board(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, scope)
 
 
 @bp.get("/api/board/<day>/section-history")
@@ -67,7 +69,11 @@ def get_section_history(day):
     length_error = too_long({"section": section}, "section")
     if length_error:
         return jsonify({"error": length_error}), 400
-    return jsonify(section_history(load_data(), day, section))
+    # اليوم ده + يوم المصدر اللي فهرس أقسام اللوحة بيشاور عليه
+    def scope(view):
+        return [day, *filter(None, [section_source(view.index.board_sections(), day, section)])]
+
+    return jsonify(section_history(load_data(scope), day, section))
 
 
 @bp.post("/api/board/<day>/section-copy")
@@ -95,7 +101,7 @@ def copy_section(day):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(result), 201
 
-    return with_data(mutate)
+    return with_data(mutate, [day, source_day])
 
 
 @bp.get("/api/board/<day>/export.docx")
@@ -106,7 +112,7 @@ def export_board_docx(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    board = build_board(load_data(), day)
+    board = build_board(load_data(around(day, -1, 0)), day)
     buf = build_docx(board)
     return send_file(buf, as_attachment=True, download_name=f"اليومية التفصيلية {day}.docx",
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
@@ -147,7 +153,7 @@ def add_assignment(day):
         place_assignment_after(data, day, row["id"], payload.get("after_id"))
         return jsonify(row), 201
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.patch("/api/assignments/<day>/<assignment_id>")
@@ -173,7 +179,7 @@ def edit_assignment(day, assignment_id):
             raise AbortRequest((jsonify({"error": clash}), 409))
         return jsonify(row)
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.delete("/api/assignments/<day>/<assignment_id>")
@@ -190,7 +196,7 @@ def delete_assignment(day, assignment_id):
             raise AbortRequest((jsonify({"error": "التكليف غير موجود."}), 404))
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.post("/api/assignments/<day>/<assignment_id>/move")
@@ -212,7 +218,7 @@ def move_assignment_row(day, assignment_id):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(build_board(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.get("/api/assignments/<day>")
@@ -220,7 +226,7 @@ def list_assignments(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    data = load_data()
+    data = load_data([day])
     return jsonify({"date": day, "assignments": peek_day(data, day),
                     "sections": ASSIGNMENT_SECTIONS,
                     "summary": summarise(data, day)["summary"]})
@@ -248,7 +254,7 @@ def set_target(day, name):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(build_board(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.put("/api/board/<day>/slot/<section>/<shift>")
@@ -272,7 +278,7 @@ def set_slot(day, section, shift):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(build_board(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.get("/api/board/<day>/confirm")
@@ -280,7 +286,7 @@ def get_confirm(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    return jsonify(confirm_lib.state_of(load_data(), day))
+    return jsonify(confirm_lib.state_of(load_data([day]), day))
 
 
 @bp.post("/api/board/<day>/confirm")
@@ -318,7 +324,12 @@ def confirm_day(day):
                        text=note, day=day, ts=summary["at"])
         return jsonify(summary), 201
 
-    return with_data(mutate)
+    # اليوم، واليوم التالي (بذر أهدافه من التأكيد ده)، واللقطات القديمة
+    # اللي هتتشال من `day_confirm`
+    def scope(view):
+        return [*around(day, 1), *confirm_lib.snapshot_scope(view.index, day)]
+
+    return with_data(mutate, scope)
 
 
 @bp.delete("/api/assignments/<day>")
@@ -341,4 +352,4 @@ def clear_day(day):
         days.save(loaded)
         return jsonify({"ok": True, "deleted": count, "states_cleared": clear_states})
 
-    return with_data(mutate)
+    return with_data(mutate, [day])

@@ -8,7 +8,7 @@
         repo = LeaveRepo(data)
         repo.add(leave)
         return jsonify(...)
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)   # نطاق الأيام صريح دايمًا
 
 ## العقد: النموذج نسخة منفصلة
 

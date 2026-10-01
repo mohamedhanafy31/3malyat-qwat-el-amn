@@ -4,7 +4,7 @@
 والأفراد والراحات) في كل تحميل صفحة وكل ريفرش — حتى لو الصفحة محتاجة
 حاجة صغيرة منهم. دلوقتي كل صفحة ليها bootstrap مخصوص.
 """
-from datetime import date
+from datetime import date, timedelta
 
 from flask import Blueprint, jsonify
 
@@ -19,7 +19,7 @@ from ..constants import (
 from ..leaves import monthly_roster, weekly_roster
 from ..rest_status import officer_status, taqseera_alerts
 from ..repo import Repos
-from ..store import load_data
+from ..store import ALL_DAYS, load_data
 from ..upcoming import build as build_upcoming
 
 bp = Blueprint("meta", __name__)
@@ -87,8 +87,14 @@ def _days_payload(data, meta):
 @bp.get("/api/bootstrap/<page>")
 def bootstrap(page):
     """بيرجّع بالظبط اللي الصفحة دي محتاجاه، ولا حاجة زيادة."""
-    data = load_data()
     today = date.today()
+    # الرئيسية وصفحة الضباط بيقروا حالة النهاردة وبكرة (التنبيهات، القادم،
+    # تأكيد اليومية)؛ باقي الصفحات القوة + قايمة الأيام (من الفهرس) بس.
+    scope = ()
+    if page in ("dashboard", "officers"):
+        scope = {today.isoformat(), (today + timedelta(days=1)).isoformat(),
+                 day_status.today_iso()}
+    data = load_data(scope)
     meta = _meta(data)
 
     if page == "dashboard":
@@ -217,8 +223,11 @@ def bootstrap(page):
 @bp.get("/api/data")
 def get_data():
     """النداء الشامل القديم — متسيب للتوافق وللسكربتات، والصفحات بقت
-    بتستخدم /api/bootstrap/<page> بدله."""
-    data = load_data()
+    بتستخدم /api/bootstrap/<page> بدله.
+
+    تصدير شامل صريح: الأقسام اليومية غير التكليفات/الحالات بترجع لكل
+    الأيام، فالنداء ده بيقرا الأرشيف كله (`ALL_DAYS`) عن قصد."""
+    data = load_data(ALL_DAYS)
     repos = Repos(data)
     # نسخة جديدة بدل ما يعدّل اللقطة المحمّلة في مكانها. اليوميات بتتشال
     # وبيتحط مكانها قايمة التواريخ بس — ده كان الغرض من النداء ده أصلًا.

@@ -10,7 +10,7 @@ bp = Blueprint("changes", __name__)
 
 @bp.get("/api/changes")
 def get_changes():
-    data = load_data()
+    data = load_data(())
     try:
         limit = min(int(request.args.get("limit", 200) or 200), 1000)
     except ValueError:
