@@ -26,7 +26,7 @@ from typing import Any, Iterable
 from backend.afraad import BASIC_SERVICES
 from backend.constants import (
     SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL,
-    SECTION_SECURITY, SECTION_SUBCAMP, SECTION_TARGETS, TARGETS_FIRST,
+    RANK_ORDER, SECTION_SECURITY, SECTION_SUBCAMP, SECTION_TARGETS, TARGETS_FIRST,
 )
 from backend.text import norm
 
@@ -34,6 +34,7 @@ from .aliases import (
     _canonical_board_section, _event_title, _instruction_phrase, _non_service_phrase,
     build_vocabulary, propose_alias, service_key,
 )
+from .apply import grade_family
 from .ledger import Ledger, atomic_write_json, atomic_write_jsonl
 from .textnorm import clean_text
 
@@ -41,6 +42,8 @@ VERSION = "2"
 PROTECTED = {"2026-09-01", "2026-09-02"}
 BOARD_START = "2024-10-30"
 
+CANONICAL_ORDER = {SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT,
+                   SECTION_SECURITY, SECTION_ADMIN_WORK, "الراحات", "التقصيرات", "الخوارج"}
 ROLE_SLOTS = {
     SECTION_SUBCAMP: "نوبتجي المعسكر الفرعي",
     SECTION_GREAT: "ضابط عظيم الإدارة",
@@ -218,6 +221,20 @@ def _party(values: Iterable[str]) -> str:
                  and not re.search(r"\d{7,}", clean_text(value))), "")
 
 
+# أنواع وحدات بتتكتب جنب «وحدة» في خانة القوام (مش تسليح ولا فئة زيادة)
+_UNIT_TYPES = {"رياضي", "فض", "وحدة فض", "خفيفة", "حفظ نظام", "طلبة"}
+_TIME_RAW_RE = re.compile(r"(?<!\d)\d{1,2}(?:\s*[:.]\s*\d{1,2})?\s*[صمظ](?!\w)")
+
+
+def _time_text(record: dict[str, Any]) -> str:
+    """الساعة بكتابة الوثيقة («10 م» مش «10م») — نفس قاعدة normalize_time."""
+    for text in (record.get("label") or "", *(record.get("cells") or [])):
+        match = _TIME_RAW_RE.search(text)
+        if match:
+            return clean_text(match.group())
+    return _first(record["time"])
+
+
 def _person_label(label: str) -> bool:
     # بدون تشكيل بس — norm بيشيل «/» و«.» اللي بيفرقوا «ا.ش/ فلان» عن اسم خدمة
     flat = re.sub(r"[\u064b-\u0652]", "", clean_text(label))
@@ -332,6 +349,33 @@ class Context:
         key = f"{record['i']}:{record['date']}:{record['role']}:{record['table']}:{record['row']}"
         return self.officer_ids.get(key, "")
 
+    def personnel_match(self, person: dict[str, Any]) -> str:
+        """اسم فرد مختصر («م.ش/ السيد احمد») = أول كلمات اسم فرد واحد بس في النظام بنفس عائلة الدرجة."""
+        if not hasattr(self, "_personnel_index"):
+            # أفراد النظام + تجمعات الأرشيف اللي اتحسمت (NEW-IND): اسم مختصر بيطابق فرد قديم مش في
+            # النظام وفرد في النظام بيبقى ملتبس وما بيتربطش
+            self._personnel_index = [(item["id"], _tokens(item.get("name", "")), grade_family(item.get("role", "")))
+                                     for item in self.core.get("personnel", [])]
+            resolve_path = self.ledger.staging_path("resolve") if getattr(self, "ledger", None) else None
+            known = {pid for pid, _, _ in self._personnel_index}
+            if resolve_path is not None and resolve_path.exists():
+                for line in resolve_path.read_text(encoding="utf-8").splitlines():
+                    cluster = json.loads(line) if line.strip() else {}
+                    pid = cluster.get("proposed_id") or ""
+                    if cluster.get("identity_type") != "personnel" or not pid or pid in known:
+                        continue
+                    grade = (cluster.get("ranks_grades") or "").split(" (")[0]
+                    for name in (cluster.get("names_seen") or "").split(" ; "):
+                        if len(_tokens(name)) >= 3:
+                            self._personnel_index.append((pid, _tokens(name), grade_family(grade)))
+        tokens = _tokens(person.get("name", ""))
+        if len(tokens) < 2:
+            return ""
+        family = grade_family(person.get("rank", ""))
+        hits = {pid for pid, names, own in self._personnel_index
+                if names[:len(tokens)] == tokens and (not family or not own or family == own)}
+        return hits.pop() if len(hits) == 1 else ""
+
     def people_of(self, record: dict[str, Any]) -> list[tuple[dict[str, Any], str]]:
         result = []
         base = f"{record['i']}:{record['date']}:{record['role']}:{record['table']}:{record['row']}"
@@ -402,6 +446,7 @@ class DayBuilder:
                                     "source": self._src(record, "roster")})
                 continue
             self.roster_names.append((officer_id, _tokens(_RANK_PREFIX_RE.sub("", officer.get("name", "")))))
+            self.provenance.setdefault("roster", []).append(officer_id)
             state: dict[str, Any] = {}
             if officer.get("note"):
                 state["note"] = officer["note"]
@@ -452,10 +497,19 @@ class DayBuilder:
         for person, identifier in self.ctx.people_of(record):
             if not identifier and person["kind"] == "officer":
                 identifier = self._roster_match(person.get("name", ""))
+            elif not identifier:
+                identifier = self.ctx.personnel_match(person)
+                if identifier:
+                    self.review.append({"date": self.date, "type": "personnel_prefix_match", "id": identifier,
+                                        "raw": f"{person.get('rank', '')}/ {person.get('name', '')}"})
             if identifier:
                 target = row["officer_ids"] if person["kind"] == "officer" else row["personnel_ids"]
                 if identifier not in target:
                     target.append(identifier)
+                if person["kind"] == "officer":
+                    # ظهور على اللوحة/الكشوف — بيمد مدى الخدمة حتى لو مش في يومية الضباط
+                    self.observations.setdefault("officer_refs", {}).setdefault(identifier, {
+                        "name": person.get("name", ""), "rank": person.get("rank", "")})
                 if person["kind"] != "officer":
                     self.observations["personnel"].setdefault(identifier, {
                         "grade": person.get("rank", ""), "name": person.get("name", ""),
@@ -466,8 +520,9 @@ class DayBuilder:
             # المطبّع ما لقاش أشخاص (رتبة ملزوقة في الاسم) — مطابقة مباشرة مع يومية اليوم
             for part in re.split(r"\s*\+\s*", manning_text):
                 identifier = self._roster_match(part) if _RANK_PREFIX_RE.match(part) else ""
-                if identifier and identifier not in row["officer_ids"]:
-                    row["officer_ids"].append(identifier)
+                if identifier:
+                    if identifier not in row["officer_ids"]:
+                        row["officer_ids"].append(identifier)
                 elif _RANK_PREFIX_RE.match(part):
                     unresolved.append(part)
         if unresolved and manning_text and manning_text not in row["note"]:
@@ -475,12 +530,33 @@ class DayBuilder:
             row["note"] = clean_text(f"{row['note']} {manning_text}")
 
     def _conscripts_into(self, row: dict[str, Any], record: dict[str, Any]) -> None:
+        """«فرد» = فرد من القوة (القائم بالخدمة) مش مجند، و«وحدة (7 مجند)» = وحدة حجمها 7 مش فئتين."""
         conscripts = record.get("conscripts") or {}
-        values = [entry for entry in conscripts.get("value") or [] if entry.get("class") != "سائق"]
-        if values and not row["conscripts"]:
-            row["conscripts"] = [{"class": entry.get("class", ""), "count": int(entry.get("count") or 0)}
-                                 for entry in values]
-        total = int(conscripts.get("conscript_count") or 0)
+        sizes = [int(value) for value in re.findall(r"\(\s*(\d+)\s*مج", conscripts.get("raw") or "")]
+        entries: list[dict[str, Any]] = []
+        for entry in conscripts.get("value") or []:
+            kind, count = entry.get("class", ""), int(entry.get("count") or 0)
+            if kind in {"فرد", "سائق"}:
+                continue
+            if kind == "مج" and count in sizes and entries:
+                entries[-1]["size"] = count
+                sizes.remove(count)
+                continue
+            same = next((entry for entry in entries if entry["class"] == kind and "size" not in entry), None)
+            if same is not None and kind not in _UNIT_TYPES and kind != "وحدة":
+                same["count"] += count  # «+ مج ... فرد + مج» = مجندين اتنين من نفس الفئة
+                continue
+            entries.append({"class": kind, "count": count})
+        unit = next((entry for entry in entries if entry["class"] == "وحدة"), None)
+        typed = [entry for entry in entries if entry["class"] in _UNIT_TYPES and entry["count"] == 1]
+        if unit is not None and len(typed) == 1:
+            # «وحدة (10 مجند رياضي)» = وحدة واحدة نوعها رياضي، مش وحدتين
+            if "size" in unit:
+                typed[0]["size"] = unit["size"]
+            entries.remove(unit)
+        if entries and not row["conscripts"]:
+            row["conscripts"] = [{"class": entry["class"], "count": entry["count"]} for entry in entries]
+        total = sum(entry.get("size", entry["count"]) for entry in entries)
         if total and total <= 500 and not row["conscript_count"]:
             row["conscript_count"] = total
 
@@ -515,13 +591,15 @@ class DayBuilder:
                                 "raw": f"{label} | {record['manning']}", "path": record["path"]})
             return []
         shifts = [value for value in record["shift"] if value in _SHIFT_WORDS] or [""]
-        time = _first(record["time"])
+        time = _time_text(record)
         made = []
         for shift in shifts:
             if not shift and section not in {SECTION_BASIC}:
                 shift = _shift_from_time(time) or "صباحية"
+            weapon = " + ".join(token for token in (record.get("weapon") or "").split(" + ")
+                                 if token and token not in _UNIT_TYPES)
             row = self._new_row(name, section, kind=kind, shift=shift, counts_in_summary=counted,
-                                time=time, party=_party(record["party"]), weapon=record.get("weapon") or "")
+                                time=time, party=_party(record["party"]), weapon=weapon)
             self._people_into(row, record, record["manning"])
             self._conscripts_into(row, record)
             self.provenance["assignments"][str(len(self.rows) - 1)] = self._src(record, rule, f"{label} | {record['manning']}")
@@ -548,6 +626,7 @@ class DayBuilder:
             return False
         events = self.ctx.events.get(self.date, [])
         halves: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        heading: dict[str, tuple[str, str]] = {}
         for record in board:
             halves[int(record.get("half") or 0)].append(record)
         for half in sorted(halves):
@@ -571,6 +650,11 @@ class DayBuilder:
                     section = self._section_for_label(label, events)
                     previous_slot = None
                     previous_label = ""
+                    if section not in CANONICAL_ORDER:
+                        # «مباراة ... باستاد الجيش 2:30م»: ساعة الحدث ومكانه لكل صفوفه
+                        time = _time_text(record)
+                        place = _party(re.sub(_TIME_RAW_RE, "", value) for value in record["party"])
+                        heading[section] = (time, place)
                     continue
                 if section in COMPUTED_SECTIONS or not label:
                     continue
@@ -590,8 +674,15 @@ class DayBuilder:
                     continue
                 if _non_service_phrase(key) or _instruction_phrase(key):
                     continue
-                if self._service_row(label, section, record, "board_row"):
+                made = self._service_row(label, section, record, "board_row")
+                if made:
                     previous_label = label
+                    time, place = heading.get(section, ("", ""))
+                    for row in made:
+                        row["time"] = row["time"] or time
+                        row["party"] = row["party"] or place
+                        if time and not row["shift"]:
+                            row["shift"] = _shift_from_time(time)
         return True
 
     def derived_assignments(self) -> None:
@@ -686,7 +777,7 @@ class DayBuilder:
             if not name:
                 continue
             key = service_key(name, self.ctx.vocabulary)
-            time = _first(record["time"])
+            time = _time_text(record)
             candidates = _nearest(index, key)
             row = _pick(candidates, time)
             if row is None:
@@ -817,25 +908,32 @@ class DayBuilder:
                 row["time"] = re.sub(r"\s+", "", pick)
             if not row["weapon"] and entry.get("weapon"):
                 row["weapon"] = entry["weapon"]
+            if not row["conscripts"]:
+                # «1 مج فض (2 مجند ) صبح + 1 سائق 1 مج فض (2 مجند ) ليل»: عدد مجندي الفترة دي
+                text = entry.get("count") or ""
+                by_shift = {("صباحية" if word == "صبح" else "ليلية"): int(number) for number, word in
+                            re.findall(r"\(\s*(\d+)\s*مج\w*\s*\)\s*(صبح|ليل)", text)}
+                sizes = re.findall(r"\(\s*(\d+)\s*مج", text)
+                size = by_shift.get(row["shift"]) or (int(sizes[0]) if len(sizes) == 1 else 0)
+                if size:
+                    row["conscripts"] = [{"class": "مج", "count": size}]
 
     def counts_enrichment(self, counts: dict[str, Any] | None) -> None:
-        """عدد مجندي الطوارئ من «اعداد الخدمات» — نفس مصدر الهجرة 005 للأيام الحالية."""
+        """عدد المجندين من «اعداد الخدمات» — نفس مصدر الهجرة 005 للأيام الحالية: الطوارئ من قسم
+        «طوارئ»، والخدمات الأساسية من قسم فترتها (صباحية/ليلية)."""
         if not counts:
             return
-        index: dict[str, int] = {}
+        index: dict[str, dict[str, int]] = defaultdict(dict)
         for entry in counts["entries"]:
-            if entry["block"] == "طوارئ":
-                index.setdefault(service_key(entry["name"], self.ctx.vocabulary), entry["count"])
-        if not index:
-            return
-        lookup = {key: [key] for key in index}
+            index[entry["block"]].setdefault(service_key(entry["name"], self.ctx.vocabulary), entry["count"])
+        lookups = {block: {key: [key] for key in values} for block, values in index.items()}
         for row in self.rows:
-            if row["section"] in {SECTION_BASIC, SECTION_TARGETS, *ROLE_SLOTS}:
+            if row["section"] in {SECTION_TARGETS, *ROLE_SLOTS}:
                 continue
-            key = service_key(row["name"], self.ctx.vocabulary)
-            match = _nearest(lookup, key)
+            block = row["shift"] if row["section"] == SECTION_BASIC else "طوارئ"
+            match = _nearest(lookups.get(block, {}), service_key(row["name"], self.ctx.vocabulary))
             if match:
-                row["conscript_count"] = index[match[0]]
+                row["conscript_count"] = index[block][match[0]]
 
     def event_documents(self) -> None:
         """أيام قبل اللوحة: خطة انتشار/مباراة بتاريخ اليوم ومش متروكة بتتحول لقسم حدث."""
@@ -870,10 +968,45 @@ class DayBuilder:
                 self._people_into(row, record, "")
                 self.provenance["assignments"][str(len(self.rows) - 1)] = self._src(record, f"{role}_document")
 
+    def merge_duplicates(self) -> None:
+        """النظام بيمنع نفس الشخص على نفس الخدمة والفترة مرتين — الصفين بيتدمجوا في الأول،
+        والساعة/الجهة المختلفة بتتحفظ في الملاحظة."""
+        kept: list[dict[str, Any]] = []
+        provenance: dict[str, Any] = {}
+        for index, row in enumerate(self.rows):
+            people = set(row["officer_ids"]) | set(row["personnel_ids"])
+            # نفس مقارنة checks.duplicate_of: الاسم بعد التطبيع ونفس الفترة، أيًا كان القسم
+            twin = next((other for other in kept if norm(other["name"]) == norm(row["name"])
+                         and other["shift"] == row["shift"]
+                         and people & (set(other["officer_ids"]) | set(other["personnel_ids"]))), None)
+            source = self.provenance["assignments"].get(str(index))
+            if twin is None:
+                if source is not None:
+                    provenance[str(len(kept))] = source
+                kept.append(row)
+                continue
+            for field in ("officer_ids", "personnel_ids"):
+                twin[field].extend(pid for pid in row[field] if pid not in twin[field])
+            extra = [value for value in (row["time"], row["party"], row["note"]) if value and value not in
+                     (twin["time"], twin["party"]) and value not in twin["note"]]
+            if extra:
+                twin["note"] = clean_text(f"{twin['note']} {' | '.join(extra)}")
+            twin["conscript_count"] = max(twin["conscript_count"], row["conscript_count"])
+            position = kept.index(twin)
+            merged = provenance.setdefault(str(position), {})
+            merged.setdefault("merged", []).append(source or {})
+            self.review.append({"date": self.date, "type": "duplicate_rows_merged", "section": row["section"],
+                                "name": row["name"], "shift": row["shift"]})
+        self.rows = kept
+        self.provenance["assignments"] = provenance
+
     def settle_shifts(self) -> None:
         """كل خدمة غير الأهداف لازم لها وردية؛ من الساعة لو موجودة، وإلا الافتراضي بعلامة مراجعة."""
         for index, row in enumerate(self.rows):
-            if row["section"] == SECTION_TARGETS or row["shift"] in _SHIFT_WORDS:
+            if row["section"] == SECTION_TARGETS or row["kind"] == "حراسات":
+                row["shift"] = "" if row["kind"] == "حراسات" else row["shift"]
+                continue
+            if row["shift"] in _SHIFT_WORDS:
                 continue
             source = self.provenance["assignments"].setdefault(str(index), {})
             row["shift"] = _shift_from_time(row["time"])
@@ -896,11 +1029,13 @@ class DayBuilder:
         counts = self.counts()
         self.counts_enrichment(counts)
         self.settle_shifts()
+        self.merge_duplicates()
         # ترتيب الأقسام زي اليومين المرجعيين
         order = {SECTION_BASIC: 0, SECTION_OCCASIONAL: 1, SECTION_SUBCAMP: 3, SECTION_GREAT: 4,
                  SECTION_SECURITY: 5, SECTION_TARGETS: 6}
         indexed = list(enumerate(self.rows))
-        indexed.sort(key=lambda pair: (order.get(pair[1]["section"], 2), pair[0]))
+        # أقسام الأحداث (مباراة/خطة انتشار) بعد الأهداف — زي «مباراة ش قرية عامر» في 2-9-2026
+        indexed.sort(key=lambda pair: (order.get(pair[1]["section"], 7), pair[0]))
         assignments = []
         provenance = {}
         for position, (old, row) in enumerate(indexed, 1):
@@ -977,12 +1112,31 @@ def _shifts_in(text: str) -> list[str]:
 
 # ---------- التغييرات على البيانات الأساسية (مرور على المدى كله) ----------
 
-def _history_entries(days: list[tuple[str, dict[str, Any]]]) -> list[dict[str, Any]]:
+def _history_entries(days: list[tuple[str, dict[str, Any]]],
+                     blips: list[dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    """سجل التاريخ من ملاحظات اليومية. رتبة مش معروفة (صف متلخبط) بتاخد اللي قبلها، والتغيير اللي
+    بيستمر يومية واحدة ويرجع زي ما كان بيتعامل كخطأ كتابة — بيتسجل للمراجعة ومش بيبقى تاريخ."""
+    states = []
+    last_rank = ""
+    for date, obs in days:
+        rank = obs.get("rank") or ""
+        if rank not in RANK_ORDER:
+            rank = last_rank
+        last_rank = rank or last_rank
+        states.append((date, (rank, obs.get("post") or "", obs.get("section") or "", obs.get("rest_system") or "",
+                              obs.get("rest_day") or "", bool(obs.get("search_attached")))))
+    kept: list[tuple[str, tuple[Any, ...]]] = []
+    for index, (date, state) in enumerate(states):
+        before = kept[-1][1] if kept else None
+        after = states[index + 1][1] if index + 1 < len(states) else None
+        if before is not None and state != before and after == before:
+            if blips is not None:
+                blips.append({"date": date, "state": list(state), "kept": list(before)})
+            continue
+        kept.append((date, state))
     entries: list[dict[str, Any]] = []
     previous = None
-    for date, obs in days:
-        state = (obs.get("rank") or "", obs.get("post") or "", obs.get("section") or "",
-                 obs.get("rest_system") or "", obs.get("rest_day") or "", bool(obs.get("search_attached")))
+    for date, state in kept:
         if state != previous:
             entries.append({"from": date, "role": state[0], "post": state[1], "section": state[2],
                             "rest_system": state[3], "rest_day": state[4], "search_attached": state[5]})
@@ -990,9 +1144,13 @@ def _history_entries(days: list[tuple[str, dict[str, Any]]]) -> list[dict[str, A
     return entries
 
 
-def _stitch_leaves(per_person: dict[str, list[tuple[str, dict[str, Any], str]]]) -> list[dict[str, Any]]:
+def _stitch_leaves(per_person: dict[str, list[tuple[str, dict[str, Any], str]]],
+                   working: dict[str, set[str]] | None = None) -> list[dict[str, Any]]:
+    """فترات الراحة من ملاحظات اليومية. العدّاد «(k/n)» بيفترض n يوم كاملة، لكن يومية يوم فيها
+    الضابط شغال من غير راحة دليل مباشر لليوم ده — الفترة بتتقطع عنده."""
     leaves: list[dict[str, Any]] = []
     for person_id, items in sorted(per_person.items()):
+        busy = (working or {}).get(person_id, set())
         intervals: list[dict[str, Any]] = []
         for date, leave, note in sorted(items, key=lambda value: value[0]):
             kind = leave.get("type") or ""
@@ -1005,9 +1163,28 @@ def _stitch_leaves(per_person: dict[str, list[tuple[str, dict[str, Any], str]]])
                 continue
             intervals.append({"person_id": person_id, "type": kind, "start": start, "end": end, "source": note})
         for interval in intervals:
-            interval["return_date"] = _next_day(interval["end"])
-            leaves.append(interval)
+            for part in _split_on(interval, busy):
+                part["return_date"] = _next_day(part["end"])
+                leaves.append(part)
     return leaves
+
+
+def _split_on(interval: dict[str, Any], busy: set[str]) -> list[dict[str, Any]]:
+    parts, current = [], None
+    day = interval["start"]
+    while day <= interval["end"]:
+        if day in busy:
+            if current:
+                parts.append(current)
+                current = None
+        elif current is None:
+            current = {**interval, "start": day, "end": day}
+        else:
+            current["end"] = day
+        day = _next_day(day)
+    if current:
+        parts.append(current)
+    return parts
 
 
 def _next_day(value: str) -> str:
@@ -1018,8 +1195,10 @@ def core_delta(observations: dict[str, dict[str, Any]], core: dict[str, Any]) ->
     officers_by_id = {person["id"]: person for person in core.get("officers", [])}
     personnel_by_id = {person["id"]: person for person in core.get("personnel", [])}
     per_officer: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
+    per_ref: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
     per_person: dict[str, list[tuple[str, dict[str, Any]]]] = defaultdict(list)
     leaves_evidence: dict[str, list[tuple[str, dict[str, Any], str]]] = defaultdict(list)
+    working: dict[str, set[str]] = defaultdict(set)
     command_days: list[tuple[str, dict[str, Any]]] = []
     for date in sorted(observations):
         day = observations[date]
@@ -1038,14 +1217,27 @@ def core_delta(observations: dict[str, dict[str, Any]], core: dict[str, Any]) ->
                 groups["بحث"].append(officer_id)
             for leave in obs.get("leaves") or []:
                 leaves_evidence[officer_id].append((date, leave, obs.get("note", "")))
+            if not obs.get("leaves"):
+                working[officer_id].add(date)
+        for officer_id, ref in sorted(day.get("officer_refs", {}).items()):
+            if officer_id not in day.get("officers", {}):
+                per_ref[officer_id].append((date, ref))
         for person_id, obs in sorted(day.get("personnel", {}).items()):
             per_person[person_id].append((date, obs))
         if day.get("officers"):
             command_days.append((date, {"command": command, "groups": groups}))
 
     officers = []
+    # يومية الضباط هي المرجع لمدى الخدمة («أصل القوة» في الوورد = اللي في اليومية). الظهور على
+    # اللوحة بره المدى ده ما بيمدّهوش — STORE بيفك الربط ويحط الاسم في ملاحظة الصف.
+    ref_names = {officer_id: Counter(ref.get("name") for _, ref in refs if ref.get("name")).most_common(1)[0][0]
+                 for officer_id, refs in per_ref.items() if any(ref.get("name") for _, ref in refs)}
+    blips: dict[str, list[dict[str, Any]]] = {}
     for officer_id, days in sorted(per_officer.items()):
-        history = _history_entries(days)
+        officer_blips: list[dict[str, Any]] = []
+        history = _history_entries(days, officer_blips)
+        if officer_blips:
+            blips[officer_id] = officer_blips
         names = Counter(obs.get("name") for _, obs in days if obs.get("name"))
         codes = Counter(obs.get("code") for _, obs in days if obs.get("code"))
         entry = {"id": officer_id, "first_seen": days[0][0], "last_seen": days[-1][0], "days": len(days),
@@ -1081,7 +1273,7 @@ def core_delta(observations: dict[str, dict[str, Any]], core: dict[str, Any]) ->
         if signature != previous:
             command_history.append({"from": date, **value})
             previous = signature
-    leaves = _stitch_leaves(leaves_evidence)
+    leaves = _stitch_leaves(leaves_evidence, working)
     existing_keys = {(leave.get("person_id"), leave.get("type"), leave.get("start")) for leave in core.get("leaves", [])}
     by_person = defaultdict(list)
     for leave in core.get("leaves", []):
@@ -1096,53 +1288,36 @@ def core_delta(observations: dict[str, dict[str, Any]], core: dict[str, Any]) ->
                    if not (other.get("end", "") < leave["start"] or other.get("start", "") > leave["end"])]
         leave_ops.append({"op": "review_overlap" if overlap else "add", **leave,
                           "overlaps": [other.get("id") for other in overlap]})
-    return {"officers": officers, "personnel": personnel, "command_history": command_history, "leaves": leave_ops}
+    return {"officers": officers, "personnel": personnel, "command_history": command_history, "leaves": leave_ops,
+            "ref_names": ref_names, "history_blips": blips}
 
 
 def reference_versions(days: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
-    """نسخ شهرية للقوائم المؤرخة: اللي ظهر في نص أيام الشهر على الأقل، بترتيب أول ظهور."""
+    """نسخ مؤرخة للقوائم: نسخة جديدة كل ما قائمة اليوم (بترتيبها) تختلف عن اللي قبلها، فكل
+    خدمة أساسية وكل هدف موجود في وثيقة اليوم بيظهر في يومه — ولا حاجة بتستخبى."""
     known = {row["name"]: row["id"] for row in BASIC_SERVICES}
     next_number = len(BASIC_SERVICES) + 1
     afraad_versions: list[dict[str, Any]] = []
     target_versions: list[dict[str, Any]] = []
-    by_month: dict[str, list[str]] = defaultdict(list)
     for date in sorted(days):
-        by_month[date[:7]].append(date)
-    for month, dates in sorted(by_month.items()):
-        basic_counter: Counter[str] = Counter()
-        target_counter: Counter[str] = Counter()
-        first_seen: dict[str, tuple[str, int]] = {}
-        for date in dates:
-            day = days[date]
-            for position, name in enumerate(day.get("afraad_basic", {})):
-                basic_counter[name] += 1
-                first_seen.setdefault(name, (date, position))
-            for row in day.get("assignments", []):
-                if row["section"] == SECTION_TARGETS:
-                    target_counter[row["name"]] += 1
-                    first_seen.setdefault(row["name"], (date, 1000))
-        threshold = max(1, len(dates) // 2)
-        names = sorted((name for name, count in basic_counter.items() if count >= threshold), key=lambda n: first_seen[n])
-        items = []
+        day = days[date]
+        names = list(day.get("afraad_basic", {}))
         for name in names:
             if name not in known:
                 known[name] = f"AFB-{next_number:02d}"
                 next_number += 1
-            items.append({"id": known[name], "name": name})
+        items = [{"id": known[name], "name": name} for name in names]
         if items and (not afraad_versions or afraad_versions[-1]["items"] != items):
-            afraad_versions.append({"from": dates[0], "items": items})
-        targets = sorted((name for name, count in target_counter.items() if count >= threshold), key=lambda n: first_seen[n])
+            afraad_versions.append({"from": date, "items": items})
+        targets = []
+        for row in day.get("assignments", []):
+            if row["section"] == SECTION_TARGETS and row["name"] not in targets:
+                targets.append(row["name"])
         if TARGETS_FIRST in targets:
             targets.remove(TARGETS_FIRST)
             targets.insert(0, TARGETS_FIRST)
         if targets and (not target_versions or target_versions[-1]["names"] != targets):
-            target_versions.append({"from": dates[0], "names": targets})
-    # الخدمة اللي ظهرت أيام قليلة مش في أي نسخة، لكن بياناتها في اليوم ما بتضيعش
-    for date in sorted(days):
-        for name in days[date].get("afraad_basic", {}):
-            if name not in known:
-                known[name] = f"AFB-{next_number:02d}"
-                next_number += 1
+            target_versions.append({"from": date, "names": targets})
     return {"afraad_basic": afraad_versions, "targets": target_versions, "afraad_ids": known}
 
 

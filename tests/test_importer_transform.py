@@ -52,6 +52,9 @@ class FakeCtx:
     def officer_of_row(self, record):
         return self.officers.get(record["i"], "")
 
+    def personnel_match(self, person):
+        return ""
+
     def people_of(self, record):
         return [(person, self.people.get((record["i"], index), "")) for index, person in enumerate(record["people"])]
 
@@ -128,7 +131,7 @@ def test_core_delta_history_command_and_leave_stitching():
                                 "end": "2025-01-02", "source": "راحة", "return_date": "2025-01-03", "overlaps": []}]
 
 
-def test_reference_versions_are_monthly_and_stable():
+def test_reference_versions_collapse_identical_days():
     days = {f"2025-01-{d:02d}": {"afraad_basic": {"خط الغاز": {}, "جديدة": {}}, "assignments": []} for d in range(1, 11)}
     versions = reference_versions(days)
     assert len(versions["afraad_basic"]) == 1
@@ -137,11 +140,12 @@ def test_reference_versions_are_monthly_and_stable():
     assert versions["afraad_ids"]["جديدة"].startswith("AFB-")
 
 
-def test_reference_versions_keep_ids_for_rare_basic_services():
+def test_reference_versions_follow_each_day_list_so_nothing_is_hidden():
     days = {f"2025-01-{d:02d}": {"afraad_basic": {"خط الغاز": {}}, "assignments": []} for d in range(1, 11)}
     days["2025-01-05"]["afraad_basic"]["خدمة يوم واحد"] = {}
     versions = reference_versions(days)
-    assert [item["name"] for item in versions["afraad_basic"][0]["items"]] == ["خط الغاز"]
+    assert [(v["from"], [item["name"] for item in v["items"]]) for v in versions["afraad_basic"]] == [
+        ("2025-01-01", ["خط الغاز"]), ("2025-01-05", ["خط الغاز", "خدمة يوم واحد"]), ("2025-01-06", ["خط الغاز"])]
     assert versions["afraad_ids"]["خدمة يوم واحد"].startswith("AFB-")
 
 
@@ -158,3 +162,78 @@ def test_board_shift_only_row_continues_service_and_person_label_is_not_a_sectio
     assert ("الخدمات الطارئة", "ارتكاز المثلث صبح", "صباحية") in rows
     assert ("الخدمات الطارئة", "ارتكاز المثلث ليل", "ليلية") in rows
     assert ("الخدمات الطارئة", "مأمورية إمداد", "صباحية") in rows
+
+
+def test_history_ignores_unknown_ranks_and_one_day_blips():
+    from importer.transform import _history_entries
+    obs = lambda rank, post="رئيس مباحث": {"rank": rank, "post": post, "section": "القوة"}
+    days = [("2025-08-01", obs("نقيب")), ("2025-08-02", obs("مقدم كريم ناجي رييس قسم")),
+            ("2025-08-03", obs("رائد")), ("2025-08-04", obs("نقيب")), ("2025-08-05", obs("رائد")),
+            ("2025-08-06", obs("رائد"))]
+    blips = []
+    entries = _history_entries(days, blips)
+    assert [(entry["from"], entry["role"]) for entry in entries] == [("2025-08-01", "نقيب"), ("2025-08-05", "رائد")]
+    assert [blip["date"] for blip in blips] == ["2025-08-03"]
+
+
+def test_conscripts_drop_the_individual_and_read_unit_size():
+    builder = DayBuilder("2026-09-02", [], FakeCtx())
+    row = builder._new_row("الباب الرئيسي للاستاد", "مباراة")
+    record = {"conscripts": {"raw": "فرد + وحدة (7 مجند)", "value": [
+        {"class": "فرد", "count": 1}, {"class": "وحدة", "count": 1}, {"class": "مج", "count": 7}]}}
+    builder._conscripts_into(row, record)
+    assert row["conscripts"] == [{"class": "وحدة", "count": 1}] and row["conscript_count"] == 7
+    other = builder._new_row("ترحيلة", "الخدمات الطارئة")
+    builder._conscripts_into(other, {"conscripts": {"raw": "فرد + مج", "value": [
+        {"class": "فرد", "count": 1}, {"class": "مج", "count": 1}]}})
+    assert other["conscripts"] == [{"class": "مج", "count": 1}] and other["conscript_count"] == 1
+
+
+def test_time_keeps_document_spelling():
+    from importer.transform import _time_text
+    assert _time_text({"label": "حملة امن وطنى 10 م", "cells": [], "time": ["10م"]}) == "10 م"
+    assert _time_text({"label": "ترحيلة", "cells": ["", "2:30م"], "time": ["2:30م"]}) == "2:30م"
+
+
+def test_personnel_prefix_match_requires_a_unique_compatible_person():
+    from importer.transform import Context
+    ctx = Context.__new__(Context)
+    ctx.core = {"personnel": [{"id": "IND-1", "name": "السيد احمد محمد حسن", "role": "معاون شرطة ثالث"},
+                              {"id": "IND-2", "name": "محمد علي حسن", "role": "أمين شرطة ثان"},
+                              {"id": "IND-3", "name": "محمد علي سيد", "role": "أمين شرطة أول"}]}
+    assert ctx.personnel_match({"name": "السيد احمد", "rank": "م.ش"}) == "IND-1"
+    assert ctx.personnel_match({"name": "السيد احمد", "rank": "ا.ش"}) == ""
+    assert ctx.personnel_match({"name": "محمد علي", "rank": "ا.ش"}) == ""
+
+
+def test_conscripts_merge_same_class_and_typed_unit():
+    builder = DayBuilder("2026-09-02", [], FakeCtx())
+    row = builder._new_row("مأمورية", "الخدمات الطارئة")
+    builder._conscripts_into(row, {"conscripts": {"raw": "مقدم/ ضابط + مج فرد + مج", "value": [
+        {"class": "مج", "count": 1}, {"class": "فرد", "count": 1}, {"class": "مج", "count": 1}]}})
+    assert row["conscripts"] == [{"class": "مج", "count": 2}] and row["conscript_count"] == 2
+    unit = builder._new_row("تأمين المقصورة", "مباراة")
+    builder._conscripts_into(unit, {"conscripts": {"raw": "وحدة (10مجند رياضي)", "value": [
+        {"class": "وحدة", "count": 1}, {"class": "مج", "count": 10}, {"class": "رياضي", "count": 1}]}})
+    assert unit["conscripts"] == [{"class": "رياضي", "count": 1}] and unit["conscript_count"] == 10
+
+
+def test_event_heading_time_and_place_reach_its_rows():
+    records = [
+        _rec(1, "board", "board_label", label="مباراة قرية عامر باستاد الجيش 2:30م", time=["2:30م"],
+             party=["استاد الجيش 2:30م"]),
+        _rec(2, "board", "board_row", label="تأمين ارض الملعب", manning="وحدة"),
+    ]
+    ctx = FakeCtx()
+    ctx.events["2025-01-05"] = ["مباراة قرية عامر"]
+    day = DayBuilder("2025-01-05", records, ctx).build("B", "B")
+    row = day["assignments"][0]
+    assert (row["section"], row["time"], row["party"]) == ("مباراة قرية عامر", "2:30م", "استاد الجيش")
+
+
+def test_already_linked_leader_is_not_copied_to_the_note():
+    builder = DayBuilder("2026-09-02", [], FakeCtx())
+    builder.roster_names = [("OFF-42", ["ماركو", "ماجد", "حنا"])]
+    row = builder._new_row("تأمين المقصورة", "مباراة", officer_ids=["OFF-42"])
+    builder._people_into(row, _rec(9, "afraad", "afraad_emergency_row"), "م.اول/ ماركو ماجد")
+    assert row["officer_ids"] == ["OFF-42"] and row["note"] == ""

@@ -13,6 +13,10 @@ from .aliases import VERSION as ALIASES_VERSION
 from .aliases import run_aliases
 from .transform import VERSION as TRANSFORM_VERSION
 from .transform import run_transform
+from .verify import DEFAULT_THRESHOLD
+from .verify import VERSION as VERIFY_VERSION
+from .verify import run_verify
+from .golden import run_golden
 from .discover import VERSION as DISCOVER_VERSION
 from .discover import run_discover
 from .extract import VERSION as EXTRACT_VERSION
@@ -26,7 +30,8 @@ from .validate import VERSION as VALIDATE_VERSION
 from .validate import run_validate
 
 
-STAGES = ("discover", "extract", "validate", "normalize", "resolve", "aliases", "transform", "verify", "store", "rollback", "report", "run")
+STAGES = ("discover", "extract", "validate", "normalize", "resolve", "aliases", "transform", "verify", "golden",
+          "store", "rollback", "diff", "report", "run")
 DEFAULT_START = dt.date(2023, 10, 1)
 DEFAULT_END = dt.date(2026, 9, 29)
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -56,6 +61,7 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--batch", type=_batch_id)
     result.add_argument("--write", action="store_true", help="السماح لمرحلة store بالكتابة")
     result.add_argument("--resume", action="store_true")
+    result.add_argument("--threshold", type=int, default=DEFAULT_THRESHOLD, help="أقل درجة يوم يتخزن (verify)")
     result.add_argument("--i-know", action="store_true", help="السماح صراحة باستخدام data/ الخاصة بالمستودع")
     return result
 
@@ -98,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         "resolve": RESOLVE_VERSION,
         "aliases": ALIASES_VERSION,
         "transform": TRANSFORM_VERSION,
+        "verify": VERIFY_VERSION,
     })
     if args.stage == "discover":
         checkpoint = run_discover(archive, ledger, args.from_date, args.to_date, state)
@@ -166,6 +173,18 @@ def main(argv: list[str] | None = None) -> int:
             cli.error(str(exc))
         print(f"اكتملت مرحلة transform: {checkpoint['days']} يومًا ({checkpoint['derived_days']} مشتق)، "
               f"{checkpoint['rows']} تكليفًا، {checkpoint['officer_states']} حالة ضابط.")
+        return 0
+    if args.stage == "verify":
+        checkpoint = run_verify(ledger, state, threshold=args.threshold)
+        print(f"اكتملت مرحلة verify: {checkpoint['days']} يومًا، متوسط الدرجة {checkpoint['mean_score']}، "
+              f"{checkpoint['quarantined']} يومًا معزولًا (الحد {checkpoint['threshold']}).")
+        return 0
+    if args.stage == "golden":
+        summary = run_golden(ledger, state)
+        for date, match in sorted((k, v) for k, v in summary.items() if k != "unclassified"):
+            print(f"{date}: الصفوف {match['rows_present']}%، الحقول {match['fields']}%، حالات الضباط {match['states']}%، "
+                  f"ترتيب الأقسام {'مطابق' if match['section_order'] else 'مختلف'}")
+        print(f"فروق غير مصنفة: {summary['unclassified']} — التقرير في import/reports/golden.md")
         return 0
     if args.stage == "run":
         run_discover(archive, ledger, args.from_date, args.to_date, state)

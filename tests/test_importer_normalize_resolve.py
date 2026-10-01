@@ -370,3 +370,25 @@ def test_identity_decisions_for_vanished_clusters_are_kept(tmp_path):
         rows = list(csv.DictReader(stream))
     assert [row["cluster_key"] for row in rows] == ["officer:جديد:2024-01-02", "officer:قديم:2024-01-01"]
     assert rows[1]["status"] == "تجاهل"
+
+
+def test_leave_counter_is_day_k_of_n_not_a_date():
+    import datetime as dt
+    from importer.normalize import parse_leave
+    leave = parse_leave("راحة شهرية ( 4 / 7 )", dt.date(2023, 10, 5))
+    assert (leave["type"], leave["start"], leave["end"], leave["return_date"]) == (
+        "شهرية", "2023-10-02", "2023-10-08", "2023-10-09")
+    dated = parse_leave("أجازه دورية (2/10) من 4/9 الي 13/9", dt.date(2025, 9, 5))
+    assert (dated["start"], dated["end"]) == ("2025-09-04", "2025-09-13")
+    other = parse_leave("اجازه زواج (9/15)", dt.date(2024, 6, 15))
+    assert (other["type"], other["start"], other["end"]) == ("راحة", "2024-06-07", "2024-06-21")
+
+
+def test_post_duty_rest_is_neither_a_leave_nor_a_service():
+    import datetime as dt
+    from importer.normalize import normalize_officer_daily, parse_leave
+    assert parse_leave("راحة خدمة", dt.date(2023, 10, 2)) is None
+    daily = normalize_officer_daily("راحة خدمة + تقصيرة", dt.date(2023, 10, 2))
+    assert daily["taqseera"] and daily["leaves"] == [] and daily["services"] == []
+    alone = normalize_officer_daily("راحة خدمة", dt.date(2023, 10, 2))
+    assert [(leave["type"], leave["start"]) for leave in alone["leaves"]] == [("راحة", "2023-10-02")]

@@ -16,7 +16,7 @@ from .ledger import Ledger, atomic_write_jsonl
 from .textnorm import clean_text, norm, norm_name
 
 
-VERSION = "1"
+VERSION = "2"
 _DASHES = {"", "-", "--", "---", "—", "ـ", "ــ", "ـــ"}
 _RANKS = sorted(RANK_ORDER, key=len, reverse=True)
 _GRADE_MARKER = re.compile(
@@ -217,21 +217,35 @@ def _leave_type(text: str) -> str | None:
     for needle, kind in rules:
         if needle in flat:
             return kind
-    return "راحة" if "راح" in flat else None
+    # «اجازة زواج/دورية/عيد» مالهاش نوع خاص في النظام: النوع العام «راحة» والنص الأصلي بيتحفظ في source
+    return "راحة" if "راح" in flat or "اجاز" in flat else None
+
+
+# «راحة خدمة» = راحة بعد خدمة ليلية، مش راحة من سجل الراحات — الوورد بيعدها تقصيرة في جدول الإجمالي
+_SERVICE_REST_RE = re.compile(r"راحه\s*(?:بعد\s*)?(?:ال)?خدمه")
 
 
 def parse_leave(raw: str | None, on_day: dt.date) -> dict[str, Any] | None:
     text = clean_text(raw)
+    if _SERVICE_REST_RE.search(norm(text)):
+        return None
     kind = _leave_type(text)
     if not kind or kind not in LEAVE_TYPES:
         return None
     counter = None
-    match_counter = re.search(r"\((\d+)\s*/\s*(\d+)\)", text)
+    match_counter = re.search(r"\(\s*(\d+)\s*/\s*(\d+)\s*\)", text)
     if match_counter:
         counter = {"current": int(match_counter.group(1)), "total": int(match_counter.group(2))}
+    # «(4/7)» عدّاد (اليوم 4 من 7) مش تاريخ 4 يوليو — بيتشال قبل قراءة التواريخ
+    date_text = text.replace(match_counter.group(0), " ") if match_counter else text
     dates = [_year_date(int(d), int(m), int(y) if y else None, on_day)
-             for d, m, y in _DATE.findall(text)]
+             for d, m, y in _DATE.findall(date_text)]
     dates = [value for value in dates if value]
+    if not dates and counter and 1 <= counter["current"] <= counter["total"] <= 120:
+        start = on_day - dt.timedelta(days=counter["current"] - 1)
+        end = start + dt.timedelta(days=counter["total"] - 1)
+        return {"raw": text, "type": kind, "start": start.isoformat(), "end": end.isoformat(),
+                "return_date": (end + dt.timedelta(days=1)).isoformat(), "counter": counter}
     start = dates[0] if dates else on_day
     second = dates[1] if len(dates) > 1 else None
     flat = norm(text)
@@ -261,8 +275,15 @@ def normalize_officer_daily(raw: str | None, on_day: dt.date, post: str = "") ->
     if status not in OFFICER_STATUSES:
         status = ""
     leaves = [leave for part in parts if (leave := parse_leave(part, on_day))]
+    if "تقصير" not in flat:
+        # «راحة خدمة» لوحدها الوورد بيعدها راحة؛ مع «+ تقصيرة» بيعدها تقصيرة (فمفيش راحة)
+        for part in parts:
+            if _SERVICE_REST_RE.search(norm(part)):
+                leaves.append({"raw": part, "type": "راحة", "start": on_day.isoformat(), "end": on_day.isoformat(),
+                               "return_date": (on_day + dt.timedelta(days=1)).isoformat(), "counter": None})
     leave_parts = {leave["raw"] for leave in leaves}
     service_parts = [part for part in parts if part not in leave_parts and "تقصير" not in norm(part)
+                     and not _SERVICE_REST_RE.search(norm(part))
                      and not any(norm(key) in norm(part) for key in OFFICER_STATUSES)]
     return _value(text, text, parts=parts, taqseera="تقصير" in flat, status=status,
                   leaves=leaves, services=service_parts)
