@@ -127,6 +127,54 @@ def test_restore_removes_days_that_did_not_exist_yet(client, data_file):
     assert not store.day_path("2026-05-20").exists()
 
 
+@pytest.mark.parametrize("name", [
+    "../data/core.json", "../../app.py", "/etc/passwd", "data-unknown.json.gz", "",
+    ".", "..", None,
+])
+def test_restore_accepts_only_names_from_the_backup_inventory(client, data_file, name):
+    """الاسم بيتقارن بقايمة النسخ نفسها — مسار نسبي/مطلق أو اسم مش في
+    القايمة بيترفض قبل أي قراءة أو كتابة."""
+    client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
+    before = data_file.read_bytes()
+    with pytest.raises(store.DataUnreadable):
+        store.restore_backup(name)
+    assert data_file.read_bytes() == before
+
+
+def test_restore_rejects_a_traversal_to_a_backup_shaped_file(client, data_file):
+    """ملف بشكل نسخة سليمة بس **برّه** مجلد النسخ — `backups/../x` كان
+    بيعدّي من `exists()`."""
+    client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
+    good = store._backup_files()[0]
+    outside = store.backup_dir().parent / "data-20200103-000000-000000.json.gz"
+    outside.write_bytes(good.read_bytes())
+
+    before = data_file.read_bytes()
+    with pytest.raises(store.DataUnreadable):
+        store.restore_backup(f"../{outside.name}")
+    assert data_file.read_bytes() == before
+
+
+def test_restore_rejects_a_directory_named_like_a_backup(client, data_file):
+    store.backup_dir().mkdir(parents=True, exist_ok=True)
+    (store.backup_dir() / "data-20200104-000000-000000.json").mkdir()
+    before = data_file.read_bytes()
+    with pytest.raises(store.DataUnreadable):
+        store.restore_backup("data-20200104-000000-000000.json")
+    assert data_file.read_bytes() == before
+
+
+def test_restore_still_accepts_a_legacy_uncompressed_backup(client, data_file):
+    client.post("/api/assignments/2026-04-10", json={"name": "قديم", "kind": "خارجية"})
+    legacy = store.backup_dir() / "data-20200101-000000-000000.json"
+    legacy.write_text(data_file.read_text(encoding="utf-8"), encoding="utf-8")
+
+    client.post("/api/assignments/2026-04-10", json={"name": "جديد", "kind": "خارجية"})
+    store.restore_backup(legacy.name)
+    rows = json.loads(data_file.read_text(encoding="utf-8"))["day_assignments"]["2026-04-10"]
+    assert [r["name"] for r in rows] == ["قديم"]
+
+
 def test_write_stamps_schema_version(client, data_file):
     client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
     assert json.loads(data_file.read_text(encoding="utf-8"))["schema"] == store.SCHEMA_VERSION

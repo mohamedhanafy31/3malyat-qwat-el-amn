@@ -13,7 +13,7 @@ from datetime import date
 from .board import target_rows_for_day
 from .dated import targets_on
 from .duty import summarise
-from .utils import days_between, resolve_recorded_range
+from .utils import recorded_between, resolve_recorded_range
 
 # ترتيب بيطابق date.weekday() (الاثنين=0 ... الأحد=6)
 WEEKDAY_BY_INDEX = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
@@ -23,8 +23,7 @@ def stats(data, filters):
     """إحصائيات التشغيل للمدى المطلوب. بترجع كل حاجة معروضة فعلًا في
     الصفحة — نفس المبدأ المتبع في `leaves.py::stats()`."""
     date_from, date_to, recorded = resolve_recorded_range(data, filters)
-    days = [d for d in days_between(date.fromisoformat(date_from), date.fromisoformat(date_to))
-            if d in recorded]
+    days = recorded_between(recorded, date_from, date_to)
 
     by_officer = {}      # id -> {name, role, load: {kind: n}, net_days, total_days,
                           #        morning, night, taqseera}

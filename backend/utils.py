@@ -1,4 +1,5 @@
 """أدوات عامة صغيرة مستخدمة في أكتر من مكان."""
+from bisect import bisect_left, bisect_right
 from datetime import date, timedelta
 
 from flask import request
@@ -50,7 +51,7 @@ def canonical_day(value):
 # (لصق صفحة كاملة في خانة الاسم) ومن تضخيم ملف البيانات.
 MAX_LEN = {"name": 120, "code": 40, "phone": 30, "post": 200,
            "address": 200, "note": 500, "reason": 200, "section": 60,
-           "weapon_custody": 60}
+           "weapon_custody": 60, "weapon": 120, "time": 60, "party": 120}
 
 
 def too_long(payload, field):
@@ -162,7 +163,35 @@ def resolve_recorded_range(data, filters, default_range_days=30):
         date_to = recorded[-1] if recorded else date.today().isoformat()
     if not date_from:
         end = date.fromisoformat(date_to)
-        date_from = (end - timedelta(days=default_range_days - 1)).isoformat()
+        try:
+            date_from = (end - timedelta(days=default_range_days - 1)).isoformat()
+        except OverflowError:                 # date_to في أول أيام سنة 1
+            date_from = date.min.isoformat()
     if date_from > date_to:
         date_from, date_to = date_to, date_from
     return date_from, date_to, recorded
+
+
+def range_filters(args):
+    """-> (filters, error) من باراميترات date_from/date_to في الطلب.
+
+    التاريخ الفاضي مسموح (المدى الافتراضي)؛ التاريخ الموجود ومش صالح
+    بيرجّع رسالة خطأ بدل ما يتجاهل بصمت ويعرض مدى غير اللي اتطلب."""
+    filters = {}
+    for key, label in (("date_from", "البداية"), ("date_to", "النهاية")):
+        raw = str(args.get(key, "") or "").strip()
+        if raw and not canonical_day(raw):
+            return None, f"تاريخ {label} غير صحيح."
+        filters[key] = canonical_day(raw) if raw else ""
+    return filters, None
+
+
+def recorded_between(recorded, date_from, date_to):
+    """الأيام المسجّلة بين الحدين (شاملهم) من قايمة `recorded` المرتبة.
+
+    بحث ثنائي على النص المعياري YYYY-MM-DD (ترتيبه النصي = ترتيبه الزمني)
+    بدل ما نلف على كل يوم في التقويم — مدى زي 0001-01-01..9999-12-31 كان
+    بيبني ٣.٦ مليون تاريخ عشان يلاقي كام يوم مسجّل بس."""
+    if date_from > date_to:
+        date_from, date_to = date_to, date_from
+    return recorded[bisect_left(recorded, date_from):bisect_right(recorded, date_to)]

@@ -252,6 +252,11 @@ def all_day_files():
     return sorted(days_dir().glob("*/*/*.json"), key=lambda p: p.stem)
 
 
+def day_names():
+    """تواريخ ملفات الأيام الموجودة، مرتبة — من غير قراءة محتواها."""
+    return sorted(p.stem for p in all_day_files())
+
+
 def split(data):
     """-> (core, {يوم: محتوى ملفه}) — عكس `merge()` بالظبط.
 
@@ -577,8 +582,11 @@ def restore_backup(name):
     بيتحقق إن النسخة تتقري وتتفهم **قبل** ما يلمس البيانات الشغالة، وبياخد
     لقطة من الوضع الحالي الأول عشان الاستعادة نفسها تبقى قابلة للتراجع.
     """
-    path = backup_dir() / name
-    if not path.exists():
+    # الاسم لازم يطابق حرفيًا ملف في قايمة النسخ نفسها — مش مسار يتركّب.
+    # «../data/core.json» أو مجلد اسمه data-x.json كانوا بيعدّوا من `exists()`.
+    inventory = {p.name: p for p in _backup_files() if p.is_file()}
+    path = inventory.get(name) if isinstance(name, str) else None
+    if path is None:
         raise DataUnreadable(f"لا توجد نسخة بالاسم «{name}».")
     data = read_backup(path)              # بيرمي قبل أي كتابة لو تالفة
     _check_schema(data.get("schema", 1))  # ومش بنرجّع بنية الكود مايفهمهاش

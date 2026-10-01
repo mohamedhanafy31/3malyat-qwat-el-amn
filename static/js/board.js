@@ -245,7 +245,7 @@ $("#matchBoard").addEventListener("click", e => {
 function conRow(c) {
   return `<div class="req-row">
     <input class="con-class" placeholder="الفئة (قتالية/فض/حفظ نظام/رياضي)" value="${esc(c.class || "")}">
-    <input class="con-count" type="number" min="0" placeholder="العدد" value="${c.count || ""}">
+    <input class="con-count" type="number" min="0" max="9999" step="1" placeholder="العدد" value="${c.count || ""}">
     <button type="button" class="mini bad" data-action="removeConRow">حذف</button>
   </div>`;
 }
@@ -483,6 +483,24 @@ $("#enKind").addEventListener("change", () => syncShiftOptions());
 $("#enSection").addEventListener("input", () => queueSectionHistory(true));
 $("#enSection").addEventListener("change", () => queueSectionHistory(true));
 
+// خانة شاغرة مطابقة لخانة شاغرة موجودة (اسم/قسم/تصنيف/فترة) غالبًا ضغطة
+// حفظ اتكررت — السيرفر بيرجّع 409 `possible_duplicate`، فنسأل مرة واحدة
+// ونعيد الطلب بـ`allow_duplicate` لو التكرار مقصود فعلًا.
+async function addService(body) {
+  let twin = null;
+  const out = await api(`/api/assignments/${DAY}`, {...jsonReq("POST", body), onError: b => {
+    if (b && b.code === "possible_duplicate") { twin = b; return true; }
+    return false;
+  }});
+  if (out || !twin) return out;
+  if (!(await confirmDialog({
+    title: "خانة مكررة؟",
+    body: `توجد بالفعل خانة شاغرة «${body.name}» بنفس القسم والتصنيف والفترة في يومية ${fmt(DAY)}. هل تريد إضافة خانة أخرى مطابقة؟`,
+    confirmLabel: "إضافة على أي حال",
+  }))) return null;
+  return api(`/api/assignments/${DAY}`, jsonReq("POST", {...body, allow_duplicate: true}));
+}
+
 $("#entryForm").onsubmit = async e => {
   e.preventDefault();
   const conscripts = $$("#conRows .req-row").map(r => ({
@@ -507,7 +525,7 @@ $("#entryForm").onsubmit = async e => {
   if (!id && ENTRY_AFTER_ID) body.after_id = ENTRY_AFTER_ID;
   const out = id
     ? await api(`/api/assignments/${DAY}/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
-    : await api(`/api/assignments/${DAY}`, jsonReq("POST", body));
+    : await addService(body);
   if (!out) return;
   SELECTED_ROW_ID = out.id;
   closeModal("entryModal", true); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");

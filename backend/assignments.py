@@ -34,6 +34,7 @@ from .constants import (
     SECTION_TAQSEERA, SECTION_TARGETS, SERVICE_KINDS, SHIFTS, TARGET_NAMES,
     TARGETS_FIRST,
 )
+from .text import norm
 from .utils import too_long
 from .dated import targets_on
 
@@ -141,21 +142,49 @@ def clean_kind(kind):
     return kind if kind in SERVICE_KINDS else ""
 
 
+# أي عدد مجندين (إجمالي أو لفئة) — رقم صحيح من 0 لـ9999. قبل كده القيمة
+# الغلط أو السالبة كانت بتتحوّل صفر بصمت، فالمشغّل يفتكر إنه سجّل عدد
+# وهو اتمسح.
+MAX_CONSCRIPTS = 9999
+COUNT_ERROR = f"عدد المجندين لازم يكون رقمًا صحيحًا من 0 إلى {MAX_CONSCRIPTS}."
+
+
+def parse_count(value):
+    """-> العدد كـint، أو None لو مش رقم صحيح في المدى. الفاضي = صفر."""
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return 0
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        count = value
+    elif isinstance(value, float) and value.is_integer():
+        count = int(value)
+    elif isinstance(value, str) and value.strip().isdecimal():
+        count = int(value.strip())
+    else:
+        return None
+    return count if 0 <= count <= MAX_CONSCRIPTS else None
+
+
 def clean_conscripts(raw):
-    """[{class, count}] — قوام المجندين بالفئة (قتالية/فض/حفظ نظام/رياضي)."""
+    """[{class, count}] — قوام المجندين بالفئة (قتالية/فض/حفظ نظام/رياضي).
+    بترجع (القايمة, error) — error=None لو تمام."""
+    if raw is None:
+        return [], None
+    if not isinstance(raw, list):
+        return None, "قوام المجندين غير صحيح."
     out = []
-    for item in (raw or []):
+    for item in raw:
         if not isinstance(item, dict):
             continue
         cls = str(item.get("class", "")).strip()
-        try:
-            count = int(item.get("count", 0))
-        except (TypeError, ValueError):
-            count = 0
+        count = parse_count(item.get("count", 0))
+        if count is None:
+            return None, COUNT_ERROR
         if not cls and count <= 0:
             continue
-        out.append({"class": cls, "count": max(count, 0)})
-    return out
+        out.append({"class": cls, "count": count})
+    return out, None
 
 
 def blank(assignment_id, name, section, **over):
@@ -206,9 +235,13 @@ def clean_people(data, day, ids, want):
     from .people import find_person
     from .repo import PeopleRepo
 
+    if ids is None:
+        ids = []
+    if not isinstance(ids, list):
+        return None, "قائمة الأشخاص غير صحيحة.", 400
     out = []
     on_force = {p["id"] for p in PeopleRepo(data).raw_on_force(day, want)}
-    for pid in ids or []:
+    for pid in ids:
         pid = str(pid).strip()
         if not pid or pid in out:
             continue
@@ -242,6 +275,28 @@ def guard_duplicate(data, day, row, ignore_id):
     return None
 
 
+def vacant_twin(data, day, row):
+    """-> id خانة شاغرة موجودة بنفس الاسم (بعد التطبيع) والقسم والتصنيف
+    والفترة، لو `row` نفسها شاغرة — أو None.
+
+    مش منع: خانتين شاغرتين متطابقتين ممكن تكونوا مقصودين (دوريتين بنفس
+    الاسم)، بس الأغلب ضغطة «حفظ» اتكررت. فالإضافة بتسأل الأول
+    (`allow_duplicate`) بدل ما ترفض أو تقبل بصمت."""
+    if row.get("officer_ids") or row.get("personnel_ids"):
+        return None
+    key = (norm(row.get("name", "")), norm(row.get("section", "")),
+           row.get("kind") or "", row.get("shift") or "")
+    for other in peek_day(data, day):
+        if other.get("id") == row.get("id"):
+            continue
+        if other.get("officer_ids") or other.get("personnel_ids"):
+            continue
+        if (norm(other.get("name", "")), norm(other.get("section", "")),
+                other.get("kind") or "", other.get("shift") or "") == key:
+            return other.get("id")
+    return None
+
+
 def apply_assignment(data, day, row, payload):
     """بيطبّق حقول الطلب على صف التكليف. بترجع (row, error, status) —
     لو error مش None يبقى row=None."""
@@ -249,6 +304,9 @@ def apply_assignment(data, day, row, payload):
         name = str(payload["name"]).strip()
         if not name:
             return None, "اسم الخدمة مطلوب.", 400
+        err = too_long(payload, "name")
+        if err:
+            return None, err, 400
         row["name"] = name
     if "kind" in payload:
         row["kind"] = clean_kind(payload["kind"])
@@ -275,14 +333,20 @@ def apply_assignment(data, day, row, payload):
             return None, err, status
         row["personnel_ids"] = ids
     if "conscripts" in payload:
-        row["conscripts"] = clean_conscripts(payload["conscripts"])
+        conscripts, err = clean_conscripts(payload["conscripts"])
+        if err:
+            return None, err, 400
+        row["conscripts"] = conscripts
     if "conscript_count" in payload:
-        try:
-            row["conscript_count"] = max(0, int(payload["conscript_count"]))
-        except (TypeError, ValueError):
-            row["conscript_count"] = 0
+        count = parse_count(payload["conscript_count"])
+        if count is None:
+            return None, COUNT_ERROR, 400
+        row["conscript_count"] = count
     for key in ("weapon", "time", "party", "note"):
         if key in payload:
+            err = too_long(payload, key)
+            if err:
+                return None, err, 400
             row[key] = str(payload[key]).strip()
 
     if row.get("section") == SECTION_TARGETS:

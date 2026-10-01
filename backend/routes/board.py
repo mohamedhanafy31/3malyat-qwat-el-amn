@@ -16,7 +16,9 @@ from .. import changes
 from .. import confirm as confirm_lib
 from .. import day_status
 from .. import target_defaults
-from ..assignments import apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day
+from ..assignments import (
+    apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day, vacant_twin,
+)
 from ..board import (
     ASSIGNMENT_SECTIONS, build_board, copy_section_rows, section_history,
     move_assignment, place_assignment_after, set_slot_officers, set_target_officers,
@@ -136,6 +138,11 @@ def add_assignment(day):
         clash = guard_duplicate(data, day, row, ignore_id=None)
         if clash:
             raise AbortRequest((jsonify({"error": clash}), 409))
+        twin = None if payload.get("allow_duplicate") is True else vacant_twin(data, day, row)
+        if twin:
+            raise AbortRequest((jsonify({
+                "error": "توجد خانة شاغرة بنفس الاسم والقسم والتصنيف والفترة في هذا اليوم.",
+                "code": "possible_duplicate", "existing_id": twin}), 409))
         entries.append(row)
         place_assignment_after(data, day, row["id"], payload.get("after_id"))
         return jsonify(row), 201

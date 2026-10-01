@@ -1444,6 +1444,9 @@ function upgradeSelects(root) {
     // ده الحقول بتطلع أعرض من القوايم اللي حلّت محلها وبتزحلق أزرار الشريط لسطر تاني.
     inp.size = 1;
     inp.className = `${sel.className} combo-input`.trim();
+    // الحقل الحر بياخد حد الطول من الـ<select> (data-maxlength) — الـselect
+    // نفسه مالوش maxlength.
+    if (allowCustom && sel.dataset.maxlength) inp.maxLength = Number(sel.dataset.maxlength);
     inp.setAttribute("role", "combobox");
     inp.setAttribute("aria-expanded", "false");
     inp.setAttribute("aria-autocomplete", "list");

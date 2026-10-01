@@ -140,3 +140,46 @@ def test_by_weekday_bucket_matches_the_real_calendar(client):
     by_weekday = {w["weekday"]: w for w in d["by_weekday"]}
     assert by_weekday["الجمعة"]["services"] == 1
     assert by_weekday["السبت"]["services"] == 1
+
+
+def test_invalid_supplied_dates_return_a_structured_400(client):
+    """تاريخ موجود ومش صالح كان بيتجاهل بصمت ويعرض المدى الافتراضي —
+    المستخدم يشوف أرقام لمدى غير اللي طلبه."""
+    for query in ("date_from=2026-13-01&date_to=2026-04-11",
+                  "date_from=2026-04-10&date_to=nope",
+                  "date_from=garbage"):
+        r = client.get(f"/api/duty/stats?{query}")
+        assert r.status_code == 400, query
+        assert r.get_json()["error"]
+
+
+def test_historical_bounds_are_accepted_and_only_recorded_days_count(client):
+    _add(client, day=DAY, officer_ids=["OFF-001"])
+    d = _stats(client, "2000-01-01", "2030-12-31")
+    assert d["date_from"] == "2000-01-01" and d["date_to"] == "2030-12-31"
+    assert d["days_count"] == 1
+
+
+def test_extreme_range_never_walks_the_calendar(client, monkeypatch):
+    """0001-01-01..9999-12-31 = ٣.٦ مليون يوم — لازم الشغل يبقى على قد
+    الأيام المسجّلة بس، مش على قد طول المدى."""
+    import time
+    from backend import utils
+
+    def boom(*_a, **_k):
+        raise AssertionError("days_between اتنده على مدى التقرير")
+    monkeypatch.setattr(utils, "days_between", boom)
+
+    _add(client, day=DAY, officer_ids=["OFF-001"])
+    _add(client, day=DAY2, officer_ids=["OFF-001"], shift="ليلية")
+    started = time.perf_counter()
+    d = _stats(client, "0001-01-01", "9999-12-31")
+    assert time.perf_counter() - started < 2
+    assert d["days_count"] == 2
+
+
+def test_reversed_bounds_still_select_the_recorded_days(client):
+    _add(client, day=DAY, officer_ids=["OFF-001"])
+    d = _stats(client, DAY2, DAY)
+    assert (d["date_from"], d["date_to"]) == (DAY, DAY2)
+    assert d["days_count"] == 1

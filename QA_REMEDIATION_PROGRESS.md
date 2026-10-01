@@ -4,7 +4,7 @@ Baseline: `459fbf3` on `qa/remediation`; `822 passed in 13.28s`.
 
 | Batch | Findings | Status | Claude session | Commit | Gates / review |
 |---|---|---|---|---|---|
-| 1. Backend guardrails | QA-06, QA-11, QA-18, QA-19, QA-29 | queued | — | — | — |
+| 1. Backend guardrails | QA-06, QA-11, QA-18, QA-19, QA-29 | accepted | `0cc1ed20-b22c-465a-b215-67b867a8361f` | pending | targeted 111 passed; full 877 passed; JS syntax passed; existing-test edits reviewed, no weakened assertions |
 | 2. Scoped storage transactions | QA-01, QA-02, QA-15 | queued | — | — | — |
 | 3. Crash durability and process locking | QA-07, QA-26, QA-28 | queued | — | — | — |
 | 4. Backups, audit history, attachments | QA-03, QA-04, QA-16, QA-17, QA-27 | queued | — | — | — |
@@ -22,4 +22,4 @@ Baseline: `459fbf3` on `qa/remediation`; `822 passed in 13.28s`.
 
 ## Needs review
 
-- None yet.
+- Batch 1 browser confirmation path was not exercised; automated API and JS syntax gates passed.
