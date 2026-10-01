@@ -34,7 +34,7 @@ _TRAILING_FRAGMENT_RE = re.compile(
 )
 _NON_NAME_TOKENS = {
     "تقصيره", "وحده", "بعدد", "عدد", "ضروره", "متابعه", "اعمال", "بالزي", "الميري",
-    "للاشتراك", "بالمبادره", "فتره", "صباحيه", "ليليه", "عمل", "راحه",
+    "للاشتراك", "بالمبادره", "لرئاسه", "برئاسه", "رئاسه", "لرئاسة", "برئاسة", "رئاسة", "لرياسه", "برياسه", "رياسه", "الخدمات", "فتره", "صباحيه", "ليليه", "عمل", "راحه",
     "شارع",
 }
 _TOKEN_VARIANTS = {
@@ -357,8 +357,14 @@ def _rank_score(weak: Observation, group: list[Observation]) -> int | None:
     return 1 if distance <= 1 else None
 
 
+def _strip_article(token: str) -> str:
+    # «الجاويش» و«جاويش» نفس اللقب — أداة التعريف مش جزء من هوية الاسم
+    return token[2:] if token.startswith("ال") and len(token) > 4 else token
+
+
 def _weak_name_score(weak_key: str, strong_key: str) -> int | None:
-    weak, strong = _tokens(weak_key), _tokens(strong_key)
+    weak = [_strip_article(token) for token in _tokens(weak_key)]
+    strong = [_strip_article(token) for token in _tokens(strong_key)]
     if not weak or not strong or _edit_distance(weak[0], strong[0]) > 1:
         return None
     index = 0
@@ -656,6 +662,43 @@ def _resolve_strong(observations: list[Observation], anchors: list[Observation],
                 "candidate_roots": hits,
             })
 
+    # يومية الضباط هي المرجع الأساسي لوجود الضابط: اسم مختصر في صف يومية
+    # مالوش أي مرشح (زي «هشام عيسي» مدير الإدارة 2023) يبقى شخص قائم بذاته —
+    # بالمطابقة الحرفية للاسم بس، من غير أي ربط بتجمع تاني
+    roster_only: dict[str, int] = {}
+    still_unresolved: list[dict[str, Any]] = []
+    weak_by_key = {item.key: item for item in weak}
+    pending = [weak_by_key.get(entry["observation_key"]) for entry in unresolved]
+    roster_dates: dict[str, set[str]] = defaultdict(set)
+    for item in pending:
+        if kind == "officer" and item is not None and item.role == "roster" and item.name_key:
+            roster_dates[item.name_key].add(item.date)
+    # التزامن المانع هنا = نفس يومية الضباط بس؛ ظهور الاسم في كشف قديم مكرر
+    # لنفس اليوم مش دليل على شخصين مختلفين
+    root_dates = {root: {value.date for value in group if value.role == "roster"}
+                  for root, group in root_groups.items()}
+
+    def attach_target(name_key: str) -> int:
+        # تجمع واحد متوافق في الاسم وما بيظهرش أبدًا في نفس يوم الاسم ده
+        # (زي «هشام عيسي» ← «هشام احمد عيسي» بعدين)؛ غير كده شخص مستقل
+        hits = [root for root in sorted(group_names)
+                if any(_weak_name_score(name_key, name) is not None for name in group_names[root])
+                and not (root_dates.get(root, set()) & roster_dates[name_key])]
+        if len(hits) == 1:
+            return hits[0]
+        return roster_only.setdefault(name_key, -(len(roster_only) + 1))
+
+    targets: dict[str, int] = {}
+    for entry, item in zip(unresolved, pending):
+        if (kind == "officer" and item is not None and item.role == "roster" and item.name_key
+                and entry["reason"] == "no_candidate_for_weak_name"):
+            root = targets.setdefault(item.name_key, attach_target(item.name_key))
+            root_groups.setdefault(root, []).append(item)
+            weak_assignment[item.key] = root
+        else:
+            still_unresolved.append(entry)
+    unresolved = still_unresolved
+
     ordered_roots = sorted(root_groups, key=lambda root: (
         min((item.date for item in root_groups[root] if item.date and item.role != _ANCHOR_ROLE),
             default="9999-12-31"),
@@ -674,7 +717,7 @@ def _resolve_strong(observations: list[Observation], anchors: list[Observation],
             seen_merge_events.add(signature)
 
     remaining_candidates: list[dict[str, Any]] = []
-    final_roots = sorted(root_groups)
+    final_roots = sorted(root for root in root_groups if root in members)
     for position, root in enumerate(final_roots):
         left = root_groups[root]
         left_meta = _group_metadata(nodes, members[root], kind)

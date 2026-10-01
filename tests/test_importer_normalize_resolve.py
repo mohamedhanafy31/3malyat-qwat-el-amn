@@ -334,3 +334,26 @@ def test_stage_outputs_bom_csv_decisions_override_and_proposed_map(tmp_path):
     proposed = json.loads((ledger.root / "staging" / "batch" / "id_map.proposed.json").read_text())
     assert proposed["personnel"] == {}
     assert (ledger.root / "staging" / "batch" / "id_map.proposed.json").exists()
+
+
+def test_short_roster_name_without_candidate_becomes_its_own_officer():
+    # «هشام عيسي» مكتوب مختصرًا في يومية الضباط ومالوش مرشح — شخص مستقل، بينما
+    # الاسم المختصر على اللوحة من غير مرشح يفضل غير محسوم
+    values = [
+        _obs("r1", "officer", "2023-10-01", "هشام عيسي", rank_grade="عميد"),
+        _obs("r2", "officer", "2023-10-02", "هشام عيسي", rank_grade="عميد"),
+        _obs("b1", "officer", "2023-10-02", "سامح فؤاد", role="board", rank_grade="رائد"),
+    ]
+    clusters, mapping = cluster_officers(values)
+    assert mapping["r1"] == mapping["r2"]
+    assert "b1" not in mapping
+
+
+def test_short_roster_name_attaches_to_single_compatible_identity_ignoring_article():
+    values = [
+        _obs("a", "officer", "2024-08-01", "طارق عادل جاويش", rank_grade="عميد"),
+        _obs("b", "officer", "2024-08-02", "طارق عادل جاويش", rank_grade="عميد"),
+        _obs("c", "officer", "2024-07-31", "طارق الجاويش", rank_grade="عميد"),
+    ]
+    clusters, mapping = cluster_officers(values)
+    assert mapping["c"] == mapping["a"] == mapping["b"]
