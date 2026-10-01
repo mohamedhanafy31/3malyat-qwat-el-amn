@@ -32,7 +32,7 @@ from backend.text import norm
 
 from .aliases import (
     _canonical_board_section, _event_title, _instruction_phrase, _non_service_phrase,
-    build_vocabulary, propose_alias, service_key,
+    build_vocabulary, propose_alias, role_sections, service_key,
 )
 from .apply import grade_family
 from .ledger import Ledger, atomic_write_json, atomic_write_jsonl
@@ -60,7 +60,7 @@ _DEFAULT_SHIFT = "صباحية"  # نفس DEFAULT_SHIFT في backend/duty.py
 _SHIFT_TOKEN = r"(?:فتر[ةه]\s*)?(?:صباحي[ةه]|ليلي[ةه]|مسائي[ةه]|مسايي[ةه]|صباح|صبح|ليل[ةه]?)"
 _ONLY_SHIFT_RE = re.compile(rf"^(?:{_SHIFT_TOKEN}|[+/\s]|\bو)+$")
 # خلية فيها فرد (درجة + / أو رقم تليفون) مش اسم خدمة
-_PERSON_LABEL_RE = re.compile(r"^\s*(?:م\s*\.?\s*ش|[اأ]\s*\.?\s*ش|رقيب|عريف|مساعد)\s*[/\\.]|01\d{9}")
+_PERSON_LABEL_RE = re.compile(r"^\s*(?:م\s*\.?\s*ش|[اأ]\s*\.?\s*ش|رقيب|عريف|مساعد|مندوب|مراقب|شرطي|[اأ]مين|معاون)(?:\s*شرط[ةه])?(?:\s+(?:اول|أول|ثان|ثاني|ثالث|ممتاز))*\s*[/\\.]|01\d{9}")
 _LETTERS_RE = re.compile(r"[\u0621-\u064a]")
 _MEDICAL_POST = ("الخدمات الطبيه", "الخدمات الطبية", "العياده", "العيادة")
 _SEARCH_POST = ("اداره البحث", "ادارة البحث", "إدارة البحث", "ادارة الب")
@@ -517,14 +517,25 @@ class DayBuilder:
             else:
                 unresolved.append(person.get("name", ""))
         if not record["people"] and manning_text:
-            # المطبّع ما لقاش أشخاص (رتبة ملزوقة في الاسم) — مطابقة مباشرة مع يومية اليوم
+            # المطبّع ما لقاش أشخاص (رتبة ملزوقة في الاسم، أو وثيقة مش متطبّعة) — مطابقة مباشرة
             for part in re.split(r"\s*\+\s*", manning_text):
-                identifier = self._roster_match(part) if _RANK_PREFIX_RE.match(part) else ""
-                if identifier:
-                    if identifier not in row["officer_ids"]:
-                        row["officer_ids"].append(identifier)
-                elif _RANK_PREFIX_RE.match(part):
-                    unresolved.append(part)
+                if _RANK_PREFIX_RE.match(part):
+                    identifier = self._roster_match(part)
+                    if identifier:
+                        if identifier not in row["officer_ids"]:
+                            row["officer_ids"].append(identifier)
+                    else:
+                        unresolved.append(part)
+                elif _person_label(part):
+                    grade, _, name = part.partition("/")
+                    identifier = self.ctx.personnel_match({"name": clean_text(name), "rank": clean_text(grade)})
+                    if identifier:
+                        if identifier not in row["personnel_ids"]:
+                            row["personnel_ids"].append(identifier)
+                        self.review.append({"date": self.date, "type": "personnel_prefix_match", "id": identifier,
+                                            "raw": part})
+                    else:
+                        unresolved.append(part)
         if unresolved and manning_text and manning_text not in row["note"]:
             # الاسم اللي ما اتحسمش ما بيضيعش — بيفضل نصه في الملاحظة
             row["note"] = clean_text(f"{row['note']} {manning_text}")
@@ -705,6 +716,15 @@ class DayBuilder:
                     self._derived_row(grouped, record, part, officer_id, section, name, kind, counted, shifts)
                     continue
                 if _non_service_phrase(part_key) or _instruction_phrase(part_key):
+                    continue
+                roles = role_sections(part_key)
+                if roles:
+                    # «ضابط عظيم وأمن الإدارة» = الكتلتين؛ الكتلة من كلمات العبارة مش من أقرب خدمة بالاسم
+                    shifts = _shifts_in(part) or [""]
+                    for section in roles:
+                        self._derived_row(grouped, record, part, officer_id, section, ROLE_SLOTS[section], "داخلية",
+                                          section != SECTION_SUBCAMP, shifts)
+                    last = (roles[0], ROLE_SLOTS[roles[0]], "داخلية", roles[0] != SECTION_SUBCAMP)
                     continue
                 if re.search(r"بهدف", part_key) or part_key.startswith("مشرف الاهداف"):
                     name = self.ctx.target_name(re.sub(r"^.*?بهدف\s*", "", part)) or (
@@ -962,15 +982,37 @@ class DayBuilder:
                 name, kind, counted = self.ctx.service_name(alias)
                 if not name:
                     continue
-                time = _first(record["time"])
+                time = _time_text(record)
                 row = self._new_row(name, title, kind=kind, time=time, shift=_shift_from_time(time) or "صباحية",
-                                    counts_in_summary=counted, note=" | ".join(cells[1:]))
-                self._people_into(row, record, "")
+                                    counts_in_summary=counted)
+                self._document_cells_into(row, record, cells[1:])
                 self.provenance["assignments"][str(len(self.rows) - 1)] = self._src(record, f"{role}_document")
+
+    def _document_cells_into(self, row: dict[str, Any], record: dict[str, Any], cells: list[str]) -> None:
+        """صف «خطة الانتشار/المباراة»: الرئاسة | الموبايل | قوام الخدمة | التسليح | الانتظام — بالمحتوى مش بالترتيب."""
+        leader = next((cell for cell in cells if _person_label(cell) and "/" in cell), "")
+        self._people_into(row, record, leader)
+        strength = next((cell for cell in cells if re.search(r"\d+\s*مج", cell)), "")
+        if strength:
+            row["conscript_count"] = min(int(re.search(r"\d+", strength).group()), 500)
+        unit_cell = next((cell for cell in cells if cell not in {leader, strength} and _LETTERS_RE.search(cell)
+                          and not re.search(r"01\d{9}", cell) and not _TIME_RAW_RE.fullmatch(cell.strip())), "")
+        flat = norm(unit_cell)
+        if "وحد" in flat:
+            row["conscripts"] = [{"class": "وحدة فض" if "فض" in flat else "وحدة", "count": 1}]
+        elif row["conscript_count"]:
+            row["conscripts"] = [{"class": "مج", "count": row["conscript_count"]}]
+        row["weapon"] = clean_text(unit_cell)
 
     def merge_duplicates(self) -> None:
         """النظام بيمنع نفس الشخص على نفس الخدمة والفترة مرتين — الصفين بيتدمجوا في الأول،
-        والساعة/الجهة المختلفة بتتحفظ في الملاحظة."""
+        والساعة/الجهة المختلفة بتتحفظ في الملاحظة. بيتكرر لحد ما يثبت: الدمج بيوسّع أشخاص الصف
+        فممكن يبقى بيشارك صف تاني كان اتساب في نفس الجولة."""
+        while self._merge_pass():
+            pass
+
+    def _merge_pass(self) -> bool:
+        merged_any = False
         kept: list[dict[str, Any]] = []
         provenance: dict[str, Any] = {}
         for index, row in enumerate(self.rows):
@@ -987,6 +1029,11 @@ class DayBuilder:
                 continue
             for field in ("officer_ids", "personnel_ids"):
                 twin[field].extend(pid for pid in row[field] if pid not in twin[field])
+            for field in ("time", "party", "weapon", "conscripts"):
+                if not twin[field] and row[field]:
+                    twin[field] = row[field]  # الصف التاني أكمل — بياناته بتكمّل الأول مش بتروح للملاحظة
+            if twin["section"] == SECTION_OCCASIONAL and row["section"] not in CANONICAL_ORDER:
+                twin["section"] = row["section"]  # خدمة الحدث مكانها قسم الحدث (زي مباراة 2-9-2026)
             extra = [value for value in (row["time"], row["party"], row["note"]) if value and value not in
                      (twin["time"], twin["party"]) and value not in twin["note"]]
             if extra:
@@ -997,8 +1044,10 @@ class DayBuilder:
             merged.setdefault("merged", []).append(source or {})
             self.review.append({"date": self.date, "type": "duplicate_rows_merged", "section": row["section"],
                                 "name": row["name"], "shift": row["shift"]})
+            merged_any = True
         self.rows = kept
         self.provenance["assignments"] = provenance
+        return merged_any
 
     def settle_shifts(self) -> None:
         """كل خدمة غير الأهداف لازم لها وردية؛ من الساعة لو موجودة، وإلا الافتراضي بعلامة مراجعة."""
@@ -1101,7 +1150,8 @@ def _tokens(value: str) -> list[str]:
 
 
 def _shifts_in(text: str) -> list[str]:
-    flat = norm(text)
+    # «من 9 م حتى 9 ص» ساعات مش ورديات — بتتشال قبل البحث عن كلمة الوردية
+    flat = _TIME_RAW_RE.sub(" ", norm(text))
     result = []
     if re.search(r"صباح|صبح|(?:^|\s)ص(?:\s|$)", flat):
         result.append("صباحية")

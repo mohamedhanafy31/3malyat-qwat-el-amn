@@ -45,9 +45,12 @@ def grade_family(raw: str) -> str:
 
 
 def natural_key(category: str, entry: dict[str, Any]) -> str:
+    """مفتاح ثابت بين التشغيلات (ترقيم NEW-* ممكن يتغير). الاسم لوحده ممكن يتكرر لشخصين مختلفين
+    (اتنين «محمد مصطفي» بتليفونين)، فبيتضاف أول ظهور وأول تليفون."""
     if category == "officers" and entry.get("code"):
         return f"code:{entry['code']}"
-    return f"name:{norm(entry.get('name') or '')}"
+    phones = entry.get("phones") or []
+    return f"name:{norm(entry.get('name') or '')}|from:{entry.get('first_seen', '')}|phone:{phones[0] if phones else ''}"
 
 
 def assign_ids(data: dict[str, Any], delta: dict[str, Any], id_map: dict[str, Any]) -> dict[str, str]:

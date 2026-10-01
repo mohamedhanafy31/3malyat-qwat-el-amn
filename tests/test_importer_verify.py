@@ -104,3 +104,11 @@ def test_golden_compare_reports_presence_fields_and_order():
     result = compare_day(reference, candidate)
     assert result["missing"] == ["ب · حدث · صباحية"] and result["match"]["states"] == 100.0
     assert [diff["field"] for diff in result["field_diffs"]] == ["time"]
+
+
+def test_same_named_new_people_get_different_ids():
+    delta = {"officers": [], "personnel": [
+        {"id": "NEW-IND-095", "name": "محمد مصطفي", "first_seen": "2023-12-10", "phones": ["01208882744"]},
+        {"id": "NEW-IND-096", "name": "محمد مصطفي", "first_seen": "2023-12-13", "phones": ["01000307287"]}]}
+    assigned = assign_ids({"officers": [], "personnel": []}, delta, {})
+    assert assigned["NEW-IND-095"] != assigned["NEW-IND-096"]

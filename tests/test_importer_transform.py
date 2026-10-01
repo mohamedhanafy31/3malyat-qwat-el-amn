@@ -237,3 +237,48 @@ def test_already_linked_leader_is_not_copied_to_the_note():
     row = builder._new_row("تأمين المقصورة", "مباراة", officer_ids=["OFF-42"])
     builder._people_into(row, _rec(9, "afraad", "afraad_emergency_row"), "م.اول/ ماركو ماجد")
     assert row["officer_ids"] == ["OFF-42"] and row["note"] == ""
+
+
+def test_duplicate_merge_repeats_until_stable():
+    builder = DayBuilder("2025-11-22", [], FakeCtx())
+    builder._new_row("ترحيلة بدر", "مباراة", shift="صباحية", personnel_ids=["IND-125"])
+    builder._new_row("ترحيلة بدر", "مباراة", shift="صباحية", personnel_ids=["IND-060"])
+    builder._new_row("ترحيلة بدر", "الخدمات الطارئة", shift="صباحية", personnel_ids=["IND-125", "IND-060"])
+    builder.merge_duplicates()
+    assert [row["personnel_ids"] for row in builder.rows] == [["IND-125", "IND-060"]]
+
+
+def test_times_are_not_read_as_shift_words():
+    from importer.transform import _shifts_in
+    assert _shifts_in("منوب الادارة فترة ليلية من 9 م حتى 9 ص") == ["ليلية"]
+    assert _shifts_in("ارتكاز محكمة صباحية + ليلية") == ["صباحية", "ليلية"]
+
+
+def test_deployment_plan_cells_fill_leader_strength_and_weapon():
+    builder = DayBuilder("2023-10-31", [], FakeCtx())
+    from importer.transform import _tokens
+    builder.roster_names = [("OFF-9", _tokens("عبد الرحمن احمد نور الدين"))]
+    row = builder._new_row("ارتكاز ابو العزايم", "خطة الانتشار")
+    record = _rec(5, "deployment", "deployment_row")
+    builder._document_cells_into(row, record, ["نقيب/ عبدالرحمن نورالدين", "01011797802", "13 مجند", "وحدة فض", "8 ص"])
+    assert row["officer_ids"] == ["OFF-9"] and row["conscript_count"] == 13
+    assert row["conscripts"] == [{"class": "وحدة فض", "count": 1}] and row["weapon"] == "وحدة فض" and row["note"] == ""
+
+
+def test_merge_keeps_the_richer_row_details_and_the_event_section():
+    builder = DayBuilder("2023-10-31", [], FakeCtx())
+    builder._new_row("ارتكاز المثلث", "الخدمات الطارئة", shift="صباحية", officer_ids=["OFF-9"])
+    builder._new_row("ارتكاز المثلث", "خطة الانتشار", shift="صباحية", officer_ids=["OFF-9"], time="8 ص",
+                     weapon="مج فض", conscripts=[{"class": "مج", "count": 3}], conscript_count=3)
+    builder.merge_duplicates()
+    [row] = builder.rows
+    assert (row["section"], row["time"], row["weapon"], row["conscript_count"]) == ("خطة الانتشار", "8 ص", "مج فض", 3)
+    assert row["note"] == ""
+
+
+def test_deployment_leader_with_full_grade_is_not_taken_as_weapon():
+    builder = DayBuilder("2023-10-31", [], FakeCtx())
+    row = builder._new_row("ارتكاز الحرفيين", "خطة الانتشار")
+    builder._document_cells_into(row, _rec(6, "deployment", "deployment_row"),
+                                 ["مندوب/ جمال الكويس", "01155539914", "3 مجند", "مايك فض (د + خ + ف+ ك)", "8 ص"])
+    assert row["weapon"] == "مايك فض (د + خ + ف+ ك)" and row["note"] == "مندوب/ جمال الكويس"

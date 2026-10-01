@@ -59,6 +59,27 @@ EVENT_RE = re.compile(
 )
 INSTRUCTION_RE = re.compile(r"^\s*\d+\s*(?:مجند|مج|فرد).*حفظ\s+نظام.*(?:لتامين|لتأمين)")
 _ROLE_SECTIONS = {SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY}
+ROLE_SLOT_NAMES = {SECTION_SUBCAMP: "نوبتجي المعسكر الفرعي", SECTION_GREAT: "ضابط عظيم الإدارة",
+                   SECTION_SECURITY: "ضابط أمن الإدارة"}
+_CAMP_RE = re.compile(r"(?:مع[سك][سك]ر|مسعكر)\s*(?:ال)?فرعي")
+_SECURITY_RE = re.compile(r"(?:منوب|ضابط)\s+(?:ال)?امن(?!\s+وطني)|(?:^|\s|و)\s*(?:ال)?(?:امن|تامين)\s+(?:ال)?اداره")
+_GREAT_RE = re.compile(r"ضابط\s+عظيم|منوب\s+(?:ال)?اداره")
+
+
+def role_sections(flat: str) -> list[str]:
+    """كتل الأدوار الثابتة من كلمات العبارة نفسها، مش من أقرب خدمة بالاسم:
+    «نوبتجي/منوب/ضابط … المعسكر الفرعي» → المعسكر الفرعي؛ «منوب/ضابط الأمن» → ضابط الأمن بالإدارة؛
+    «ضابط عظيم الإدارة» → ضابط عظيم الإدارة؛ «ضابط عظيم وأمن/وتأمين الإدارة» → الكتلتين (زي لوحة 2-9-2026).
+    «منوب الإدارة» → ضابط عظيم الإدارة: استنتاج من تقابل «ضابط عظيم الإدارة صباحية / منوب الإدارة ليلية»
+    في يوميات 2023 — مُعلَّم في التقرير كنقطة يأكدها المستخدم."""
+    if _CAMP_RE.search(flat):
+        return [SECTION_SUBCAMP] if re.search(r"نوبتجي|منوب|ضابط", flat) else []
+    sections = []
+    if _GREAT_RE.search(flat):
+        sections.append(SECTION_GREAT)
+    if _SECURITY_RE.search(flat):
+        sections.append(SECTION_SECURITY)
+    return sections
 
 
 @dataclass
@@ -360,7 +381,11 @@ def propose_alias(phrase: str, vocabulary: list[VocabularyItem]) -> dict[str, An
         item = VocabularyItem(clean_text(core_service_name(phrase)), "خارجية", SECTION_OCCASIONAL)
         confidence = "low"
     flat = norm(phrase)
-    if flat == "عمل" or any(norm(pattern) in flat for pattern in ADMIN_PATTERNS) or \
+    roles = role_sections(flat) if flat != "عمل" else []
+    if roles:
+        item = VocabularyItem(ROLE_SLOT_NAMES[roles[0]], "داخلية", roles[0], roles[0] != SECTION_SUBCAMP, "role_slot")
+        confidence = "high" if confidence == "high" else "medium"
+    elif flat == "عمل" or any(norm(pattern) in flat for pattern in ADMIN_PATTERNS) or \
             ("تشغيل من خلال" in flat and "اداره" in flat and "بحث" in flat) or \
             flat in {"اداره بحث", "اداره ال0بحث"} or \
             ("عياده" in flat and "عمل" in flat):

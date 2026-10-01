@@ -97,3 +97,17 @@ def test_event_decision_is_rebound_when_its_generated_title_changes():
     _rebind_event_decisions(events, decisions)
     row = decisions[("2026-09-02", "مباراة قرية عامر و الرباط")]
     assert row["override title"] == "مباراة ش قرية عامر" and "أعيد ربطه" in row["note"]
+
+
+def test_role_blocks_come_from_the_phrase_words():
+    from backend.constants import SECTION_GREAT, SECTION_SECURITY, SECTION_SUBCAMP
+    from backend.text import norm
+    from importer.aliases import role_sections
+    cases = {
+        "منوب امن فترة ليلية": [SECTION_SECURITY],
+        "ضابط عظيم الإدارة فترة صباحية من 9ص وحتي 9م": [SECTION_GREAT],
+        "ضابط عظيم وامن الادارة فترة ليلية": [SECTION_GREAT, SECTION_SECURITY],
+        "نوبتجى المعسكر الفرعى صبح": [SECTION_SUBCAMP],
+        "عمل بالمعسكر الفرعي": [], "إدارة البحث": [], "حملة امن وطني": [],
+    }
+    assert {text: role_sections(norm(text)) for text in cases} == cases
