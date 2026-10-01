@@ -85,13 +85,14 @@ def transformed_days(ledger: Ledger) -> dict[str, dict[str, Any]]:
 
 
 def build_dataset(ledger: Ledger, days: dict[str, dict[str, Any]] | None = None,
-                  skip: set[str] | None = None) -> dict[str, Any]:
+                  skip: set[str] | None = None, data: dict[str, Any] | None = None) -> dict[str, Any]:
     """-> {data, assigned, applied, existing, days, ...}. ما بيكتبش أي حاجة.
 
-    `skip`: أيام معزولة ما بتتستوردش (بتفضل زي ما هي في الهدف). STORE بيستخدم نفس الدالة."""
-    core = _load_json(ledger.data_dir / "core.json", {})
+    `skip`: أيام ما بتتستوردش (بتفضل زي ما هي في الهدف). `data`: نسخة محمّلة بـstore.load_data
+    (STORE بيبعتها عشان الحفظ يكتب اللي اتغيّر بس) — وإلا بتتقرا من الملفات."""
     existing = load_target_days(ledger.data_dir)
-    data = merge(core, existing)
+    if data is None:
+        data = merge(_load_json(ledger.data_dir / "core.json", {}), existing)
     before = copy.deepcopy({key: data.get(key) for key in ("officers", "personnel")})
     delta = _load_json(ledger.root / "staging" / ledger.batch / "transform" / "core_delta.json", {})
     id_map = copy.deepcopy(_load_json(ledger.root / "id_map.json", {}))

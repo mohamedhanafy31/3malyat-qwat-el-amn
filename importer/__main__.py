@@ -17,6 +17,7 @@ from .verify import DEFAULT_THRESHOLD
 from .verify import VERSION as VERIFY_VERSION
 from .verify import run_verify
 from .golden import run_golden
+from .store import StoreRefused, run_diff, run_report, run_rollback, run_store
 from .discover import VERSION as DISCOVER_VERSION
 from .discover import run_discover
 from .extract import VERSION as EXTRACT_VERSION
@@ -59,7 +60,9 @@ def parser() -> argparse.ArgumentParser:
     result.add_argument("--from", dest="from_date", type=_iso_date, default=DEFAULT_START)
     result.add_argument("--to", dest="to_date", type=_iso_date, default=DEFAULT_END)
     result.add_argument("--batch", type=_batch_id)
-    result.add_argument("--write", action="store_true", help="السماح لمرحلة store بالكتابة")
+    result.add_argument("--write", action="store_true", help="السماح لمرحلة store/rollback بالكتابة")
+    result.add_argument("--replace-existing", action="store_true",
+                        help="استبدال أيام النظام اللي ليها موافقة في decisions/replace.csv")
     result.add_argument("--resume", action="store_true")
     result.add_argument("--threshold", type=int, default=DEFAULT_THRESHOLD, help="أقل درجة يوم يتخزن (verify)")
     result.add_argument("--i-know", action="store_true", help="السماح صراحة باستخدام data/ الخاصة بالمستودع")
@@ -186,6 +189,28 @@ def main(argv: list[str] | None = None) -> int:
                   f"ترتيب الأقسام {'مطابق' if match['section_order'] else 'مختلف'}")
         print(f"فروق غير مصنفة: {summary['unclassified']} — التقرير في import/reports/golden.md")
         return 0
+    if args.stage in {"store", "rollback"}:
+        try:
+            if args.stage == "store":
+                result = run_store(ledger, state, write=args.write, replace_existing=args.replace_existing,
+                                   resume=args.resume)
+                print(f"STORE ({'كتابة' if args.write else 'عرض بس'}): الأيام {result['plan']}، "
+                      f"ملفات هتتغيّر {result['files_to_write']}. {result.get('result', '')}")
+                print(f"الخطة: import/reports/{ledger.batch}-store-plan.md")
+            else:
+                result = run_rollback(ledger, state, write=args.write)
+                print(f"ROLLBACK ({'كتابة' if args.write else 'عرض بس'}): {result['files']} ملف"
+                      + (f"، اختلاف بصمة: {result['mismatches']}" if result.get("mismatches") else ""))
+        except StoreRefused as exc:
+            cli.error(str(exc))
+        return 0
+    if args.stage == "diff":
+        result = run_diff(ledger, state)
+        print(f"تقارير الفرق: {result['days']} يوم في {result['folder']}")
+        return 0
+    if args.stage == "report":
+        print(f"التقرير: {run_report(ledger, state)}")
+        return 0
     if args.stage == "run":
         run_discover(archive, ledger, args.from_date, args.to_date, state)
         run_extract(archive, ledger, args.from_date, args.to_date, state, resume=args.resume)
@@ -193,7 +218,16 @@ def main(argv: list[str] | None = None) -> int:
         run_normalize(ledger, state, args.from_date, args.to_date, resume=args.resume)
         run_resolve(ledger, state, args.from_date, args.to_date, resume=args.resume)
         run_aliases(ledger, state, args.from_date, args.to_date, resume=args.resume)
-        print("اكتملت المراحل discover وextract وvalidate وnormalize وresolve وaliases.")
+        run_transform(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        verified = run_verify(ledger, state, threshold=args.threshold)
+        run_diff(ledger, state)
+        try:
+            stored = run_store(ledger, state, write=args.write, replace_existing=args.replace_existing,
+                               resume=args.resume)
+        except StoreRefused as exc:
+            cli.error(str(exc))
+        print(f"اكتملت كل المراحل: verify متوسط {verified['mean_score']}، معزول {verified['quarantined']}؛ "
+              f"STORE {stored['plan']} — {stored.get('result', 'عرض بس')}. التقرير: {run_report(ledger, state)}")
         return 0
     print(f"المرحلة {args.stage}: not implemented yet", file=sys.stderr)
     return 2

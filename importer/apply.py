@@ -271,6 +271,10 @@ def apply_core(data: dict[str, Any], delta: dict[str, Any], assigned: dict[str, 
         taken.add(key)
         stats["leaves_added"] += 1
 
+    # نفس ترتيب القراءة في store._read — من غيره إعادة التحميل بتعيد ترتيب القايمة والكتابة التانية ما تبقاش صفر
+    from backend.utils import sort_active
+    sort_active(data, "officers")
+    sort_active(data, "personnel")
     stats["command_versions"] = _apply_command(data, remap(delta.get("command_history") or [], assigned), system_start)
     stats["reference_versions"] = _apply_references(data, delta.get("reference_lists") or {}, system_start,
                                                     set(imported or ()), set(kept or ()))
@@ -278,6 +282,8 @@ def apply_core(data: dict[str, Any], delta: dict[str, Any], assigned: dict[str, 
 
 
 def _apply_command(data: dict[str, Any], versions: list[dict[str, Any]], system_start: str) -> int:
+    if not versions:
+        return 0
     history = data.setdefault("command_history", [])
     if not history:
         # قيم النظام الحالية سارية من أول يوم فيه — قبل ما يتحط قدامها أي نسخة أقدم
@@ -296,11 +302,13 @@ def _apply_references(data: dict[str, Any], lists: dict[str, Any], system_start:
     المرجعيين وأيام النظام اللي مش بتتستبدل) بيفضل على قائمته الفعلية الحالية، والقائمة الحالية
     بتفضل آخر نسخة — فالاستيراد ما يغيّرش إعدادات النهاردة."""
     from backend.dated import _entry_on
-    reference = data.setdefault("reference_lists", {})
+    reference = data.get("reference_lists") or {}
     defaults = {"targets": ("names", [TARGETS_FIRST, *TARGET_NAMES]),
                 "afraad_basic": ("items", copy.deepcopy(BASIC_SERVICES))}
     changed = 0
     for key, (field, default) in defaults.items():
+        if not (lists.get(key) or reference.get(key)):
+            continue  # لا نسخ مستوردة ولا نسخ في النظام — القائمة الافتراضية بتفضل زي ما هي
         existing = sorted((entry for entry in reference.get(key) or [] if isinstance(entry, dict)),
                           key=lambda entry: entry.get("from") or "")
         if not existing:
@@ -336,7 +344,7 @@ def _apply_references(data: dict[str, Any], lists: dict[str, Any], system_start:
             versions = existing
         if versions != (reference.get(key) or []):
             changed += len(versions)
-        reference[key] = versions
+        data.setdefault("reference_lists", reference)[key] = versions
     return changed
 
 
