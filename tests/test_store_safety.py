@@ -24,7 +24,7 @@ def test_write_snapshots_previous_version(client, data_file):
 
     backups = store._backup_files()
     assert len(backups) == 1, "لازم تتعمل نسخة واحدة قبل الكتابة"
-    assert backups[0].name.endswith(".json.gz"), "النسخ مضغوطة"
+    assert backups[0].name.endswith(".zip"), "النسخ مضغوطة"
     assert store.read_backup(backups[0]) == before, "النسخة لازم تكون الحالة السابقة بالظبط"
 
 
@@ -32,6 +32,18 @@ def test_backup_is_much_smaller_than_the_live_data(client, data_file):
     """الضغط هو سبب التغيير — لازم يكون فرق حقيقي مش شكلي."""
     client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
     assert store._backup_files()[0].stat().st_size < data_file.size()
+
+
+def test_zip_backup_contains_uploads_and_restores_them(client):
+    uploads = store.DATA_DIR / "uploads" / "service-catalog"
+    uploads.mkdir(parents=True)
+    (uploads / "photo.bin").write_bytes(b"attachment")
+    client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
+    backup = store._backup_files()[0]
+    assert backup.suffix == ".zip"
+    (uploads / "photo.bin").unlink()
+    store.restore_backup(backup.name)
+    assert (uploads / "photo.bin").read_bytes() == b"attachment"
 
 
 def test_live_data_is_never_compressed(client, data_file):
@@ -61,13 +73,12 @@ def test_day_only_edits_do_not_snapshot_on_every_write(client, data_file):
     assert len(store._backup_files()) == 1, "خمس تعديلات يوم = نسخة واحدة"
 
 
-def test_changing_the_force_always_snapshots(client, data_file):
-    """القوة والراحات مالهاش مصدر تاني تترجع منه، فأي تغيير فيها بياخد
-    نسخة فورًا مهما كان وقت آخر واحدة."""
+def test_changing_the_force_is_throttled_like_every_other_automatic_backup(client, data_file):
+    """كل النسخ التلقائية، بما فيها تغييرات القوة، ملتزمة بنافذة التهدئة."""
     for i in range(3):
         client.post("/api/leaves", json={"person_id": "OFF-002", "type": "أسبوعية",
                                           "start": f"2026-02-0{i+1}", "end": f"2026-02-0{i+1}"})
-    assert len(store._backup_files()) == 3
+    assert len(store._backup_files()) == 1
 
 
 def test_legacy_uncompressed_backups_still_readable(client, data_file):

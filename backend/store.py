@@ -42,9 +42,11 @@ import json
 import logging
 import os
 import pickle
+import shutil
 import threading
 import time
 import zlib
+import zipfile
 from collections import OrderedDict
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
@@ -830,6 +832,7 @@ def _write(data):
     core_text = _dumps(core)
     core_stamp = _fingerprint(core_text)
     core_changed = core_stamp != before.get("core")
+    change_log_text = _change_log_text(core.get("change_log"))
 
     new_fp = {"core": core_stamp}
     pending = {}
@@ -855,6 +858,7 @@ def _write(data):
         operations = []
         if core_changed:
             operations.append({"action": "replace", "target": CORE_NAME, "text": core_text})
+            operations.append({"action": "replace", "target": CHANGE_LOG_NAME, "text": change_log_text})
         operations.extend({"action": "replace", "target": str(day_path(day).relative_to(DATA_DIR)),
                            "text": text} for day, text in pending.items())
         operations.extend({"action": "delete", "target": str(day_path(day).relative_to(DATA_DIR))}
@@ -868,6 +872,7 @@ def _write(data):
         if core_changed:
             _write_atomic(core_file(), core_text)
             _remember(core_file(), core_text, core=True)
+            _write_atomic(DATA_DIR / CHANGE_LOG_NAME, change_log_text)
         for day, text in pending.items():
             path = day_path(day)
             _write_atomic(path, text)
@@ -914,10 +919,9 @@ def _snapshot(core_changed):
     الراحات بياخد نسخة فورًا لأنها بيانات مالهاش مصدر تاني، وتغيير في
     اليوميات بس بياخد نسخة كل `BACKUP_MIN_GAP` ثانية على الأكثر.
     """
-    if not core_changed:
-        age = _last_backup_age()
-        if age is not None and age < BACKUP_MIN_GAP:
-            return
+    age = _last_backup_age()
+    if age is not None and age < BACKUP_MIN_GAP:
+        return
     snapshot_now()
 
 
@@ -929,13 +933,18 @@ def snapshot_now():
         target = backup_dir()
         target.mkdir(exist_ok=True)
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        final = target / f"data-{stamp}.json.gz"
+        final = target / f"data-{stamp}.zip"
         part = final.with_suffix(".part")
-        with gzip.open(part, "wt", encoding="utf-8", compresslevel=6) as fh:
-            fh.write(_dumps(assemble()))
-        os.replace(part, final)                     # ذرّي على ويندوز و لينكس
-        for f in _backup_files()[:-BACKUP_KEEP]:
-            f.unlink(missing_ok=True)
+        with zipfile.ZipFile(part, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
+            zf.writestr("data.json", _dumps(assemble()))
+            uploads = DATA_DIR / "uploads"
+            if uploads.exists():
+                for source in uploads.rglob("*"):
+                    if source.is_file():
+                        zf.write(source, source.relative_to(DATA_DIR).as_posix())
+        _replace(part, final)
+        _fsync_dir(target)
+        _prune_backups()
         return final
     except OSError:
         return None    # النسخ الاحتياطي أمان إضافي — فشله ما يمنعش الحفظ
@@ -979,8 +988,27 @@ def _backup_files():
     if not target.exists():
         return []
     return sorted(
-        [p for p in target.glob("data-*.json*") if p.suffix in (".json", ".gz")],
+        [p for p in target.glob("data-*") if p.suffix in (".json", ".gz", ".zip")],
         key=lambda p: p.name)
+
+
+def _prune_backups():
+    files = _backup_files()
+    keep = set(files[-min(10, BACKUP_KEEP):])
+    now = datetime.now().timestamp()
+    for path in reversed(files[:-min(10, BACKUP_KEEP)]):
+        age = now - path.stat().st_mtime
+        if age <= 24 * 3600:
+            bucket = path.stat().st_mtime // 3600
+            if not any(p.stat().st_mtime // 3600 == bucket for p in keep):
+                keep.add(path)
+        elif age <= 30 * 86400:
+            bucket = path.stat().st_mtime // 86400
+            if not any(p.stat().st_mtime // 86400 == bucket for p in keep):
+                keep.add(path)
+    for path in files:
+        if path not in keep:
+            path.unlink(missing_ok=True)
 
 
 def read_backup(path):
@@ -991,7 +1019,10 @@ def read_backup(path):
     """
     path = Path(path)
     try:
-        if path.suffix == ".gz":
+        if path.suffix == ".zip":
+            with zipfile.ZipFile(path) as zf:
+                raw = zf.read("data.json").decode("utf-8")
+        elif path.suffix == ".gz":
             with gzip.open(path, "rt", encoding="utf-8") as fh:
                 raw = fh.read()
         else:
@@ -1048,9 +1079,29 @@ def restore_backup(name):
         raise DataUnreadable(f"لا توجد نسخة بالاسم «{name}».")
     data = read_backup(path)              # بيرمي قبل أي كتابة لو تالفة
     _check_schema(data.get("schema", 1))  # ومش بنرجّع بنية الكود مايفهمهاش
+    zip_members = []
+    if path.suffix == ".zip":
+        with zipfile.ZipFile(path) as zf:
+            uploads_root = (DATA_DIR / "uploads").resolve()
+            for member in zf.infolist():
+                if member.filename == "data.json" or member.is_dir():
+                    continue
+                if not member.filename.startswith("uploads/"):
+                    raise DataUnreadable("الأرشيف يحتوي ملفًا خارج data.json أو uploads/.")
+                target = (DATA_DIR / member.filename).resolve()
+                if uploads_root not in target.parents:
+                    raise DataUnreadable("الأرشيف يحتوي مسار مرفق غير آمن.")
+                zip_members.append(member)
     with LOCK:
         snapshot_now()                    # لقطة للوضع الحالي قبل الاستبدال
         explode(data)
+        if path.suffix == ".zip":
+            with zipfile.ZipFile(path) as zf:
+                for member in zip_members:
+                    target = (DATA_DIR / member.filename).resolve()
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as source, open(target, "wb") as dest:
+                        shutil.copyfileobj(source, dest)
     return data
 
 
@@ -1058,6 +1109,7 @@ def restore_backup(name):
 
 LOCK_FILE_NAME = ".lock"
 JOURNAL_NAME = ".transaction-journal.json"
+CHANGE_LOG_NAME = "logs/change_log.jsonl"
 _PROCESS_LOCK_FD = None
 
 
@@ -1088,6 +1140,10 @@ def _clear_journal():
     except FileNotFoundError:
         return
     _fsync_dir(DATA_DIR)
+
+
+def _change_log_text(entries):
+    return "".join(json.dumps(entry, ensure_ascii=False) + "\n" for entry in (entries or []))
 
 
 def recover_journal():
