@@ -851,6 +851,10 @@ def _write_current_decisions(path: Path, details: list[dict[str, Any]],
         old = prior.get(detail["cluster_key"], {})
         rows.append({"cluster_key": detail["cluster_key"], "chosen_id": old.get("chosen_id", ""),
                      "status": old.get("status", ""), "note": old.get("note", "")})
+    # قرار المراجع على تجمّع اختفى من التشغيلة دي ما بيتمسحش — بيفضل في آخر الملف للتدقيق
+    current = {detail["cluster_key"] for detail in details}
+    rows.extend({field: row.get(field, "") for field in _DECISION_FIELDS}
+                for key, row in sorted(prior.items()) if key not in current)
     _write_csv(path, _DECISION_FIELDS, rows)
 
 

@@ -357,3 +357,16 @@ def test_short_roster_name_attaches_to_single_compatible_identity_ignoring_artic
     ]
     clusters, mapping = cluster_officers(values)
     assert mapping["c"] == mapping["a"] == mapping["b"]
+
+
+def test_identity_decisions_for_vanished_clusters_are_kept(tmp_path):
+    import csv
+    from importer.resolve import _write_current_decisions
+    path = tmp_path / "officers.csv"
+    prior = {"officer:قديم:2024-01-01": {"cluster_key": "officer:قديم:2024-01-01", "chosen_id": "",
+                                        "status": "تجاهل", "note": "قرار سابق"}}
+    _write_current_decisions(path, [{"cluster_key": "officer:جديد:2024-01-02"}], prior)
+    with path.open(encoding="utf-8-sig", newline="") as stream:
+        rows = list(csv.DictReader(stream))
+    assert [row["cluster_key"] for row in rows] == ["officer:جديد:2024-01-02", "officer:قديم:2024-01-01"]
+    assert rows[1]["status"] == "تجاهل"

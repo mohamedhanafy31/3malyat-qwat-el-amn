@@ -11,6 +11,8 @@ from pathlib import Path
 
 from .aliases import VERSION as ALIASES_VERSION
 from .aliases import run_aliases
+from .transform import VERSION as TRANSFORM_VERSION
+from .transform import run_transform
 from .discover import VERSION as DISCOVER_VERSION
 from .discover import run_discover
 from .extract import VERSION as EXTRACT_VERSION
@@ -95,6 +97,7 @@ def main(argv: list[str] | None = None) -> int:
         "normalize": NORMALIZE_VERSION,
         "resolve": RESOLVE_VERSION,
         "aliases": ALIASES_VERSION,
+        "transform": TRANSFORM_VERSION,
     })
     if args.stage == "discover":
         checkpoint = run_discover(archive, ledger, args.from_date, args.to_date, state)
@@ -155,6 +158,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"اكتملت مرحلة aliases: {checkpoint['distinct_keys']} مفتاحًا، "
               f"تغطية عالية+متوسطة {coverage['high_medium_percent']}%، "
               f"{checkpoint['events']} يوم/عنوان حدث.")
+        return 0
+    if args.stage == "transform":
+        try:
+            checkpoint = run_transform(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        print(f"اكتملت مرحلة transform: {checkpoint['days']} يومًا ({checkpoint['derived_days']} مشتق)، "
+              f"{checkpoint['rows']} تكليفًا، {checkpoint['officer_states']} حالة ضابط.")
         return 0
     if args.stage == "run":
         run_discover(archive, ledger, args.from_date, args.to_date, state)

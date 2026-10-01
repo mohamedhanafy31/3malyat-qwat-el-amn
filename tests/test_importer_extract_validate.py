@@ -123,6 +123,21 @@ def test_board_splits_two_halves_and_preserves_order(tmp_path):
     ]
 
 
+def test_board_header_without_article_and_spanning_cell_stay_in_one_half():
+    from importer.extract import Cell, DocxData, Table, _extract_board
+    rows = (
+        (Cell("خدمات أساسية", (0, 1, 2)), Cell("الأهداف", (3, 4))),
+        (Cell("خدمة أولى", (0,)), Cell("رائد/ ضابط تجريبي", (1, 2)), Cell("هدف أول", (3,)), Cell("فرد", (4,))),
+    )
+    data = DocxData((), (), (Table(rows),), "x", ("",))
+    records = _extract_board({"path": "b.docx", "date": "2025-11-10", "role": "board"}, data)
+    header = next(record for record in records if record["record_type"] == "header")
+    assert header["half_starts"] == [0, 3] and header["known_section"]
+    pairs = [(record["half"], record["label"], record["manning"]) for record in records
+             if record["record_type"] == "board_row"]
+    assert pairs == [(0, "خدمة أولى", "رائد/ ضابط تجريبي"), (1, "هدف أول", "فرد")]
+
+
 def test_afraad_merged_shift_is_reassigned_by_content(tmp_path):
     path = tmp_path / "afraad.docx"
     _docx(path, ["يوم الأربعاء الموافق 2-9-2026م"], [[

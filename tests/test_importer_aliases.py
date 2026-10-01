@@ -87,3 +87,13 @@ def test_generic_event_title_is_not_snapped_to_a_specific_known_section():
     from importer.aliases import _event_title
     assert _event_title("خدمات المباراه", {"مباراة ش قرية عامر"}) == "مباراة"
     assert _event_title("مباراة قرية عامر", {"مباراة ش قرية عامر"}) == "مباراة ش قرية عامر"
+
+
+def test_event_decision_is_rebound_when_its_generated_title_changes():
+    from importer.aliases import _rebind_event_decisions
+    events = [{"date": "2026-09-02", "event title": "مباراة قرية عامر و الرباط"}]
+    decisions = {("2026-09-02", "مباراة قرية عامر"): {"date": "2026-09-02", "event title": "مباراة قرية عامر",
+                                                       "action": "", "override title": "مباراة ش قرية عامر", "note": ""}}
+    _rebind_event_decisions(events, decisions)
+    row = decisions[("2026-09-02", "مباراة قرية عامر و الرباط")]
+    assert row["override title"] == "مباراة ش قرية عامر" and "أعيد ربطه" in row["note"]

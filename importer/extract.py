@@ -16,7 +16,7 @@ from .ledger import Ledger, atomic_write_jsonl
 from .textnorm import dates_in_text, norm, strip_format_marks, weekday_in_text
 
 
-VERSION = "1"
+VERSION = "2"
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 HEADER_ALIASES = {
     "م": "م", "الرتبه": "الرتبة", "رقم الاقدميه": "رقم الأقدمية",
@@ -272,19 +272,21 @@ def _extract_old_officer(doc: dict[str, Any], data: DocxData) -> list[dict[str, 
     return records
 
 
+# «خدمات أساسية» من غير «ال» في لوحات 2024-2026
+_BASIC_HEADERS = ("خدمات الاساسيه", "خدمات اساسيه")
+
+
 def _extract_board(doc: dict[str, Any], data: DocxData) -> list[dict[str, Any]]:
     records = _title_records(doc, data)
     for ti, table in enumerate(data.tables):
         if not table.rows:
             continue
         header_index = next((ri for ri, row in enumerate(table.rows) if
-                             any(value in norm(" ".join(c.text for c in row))
-                                 for value in ("الخدمات الاساسيه", "الخدمات اساسيه")) and
+                             any(value in norm(" ".join(c.text for c in row)) for value in _BASIC_HEADERS) and
                              "الاهداف" in norm(" ".join(c.text for c in row))), 0)
         header = table.rows[header_index]
         starts = sorted({cell.columns[0] for cell in header
-                         if any(signature in norm(cell.text)
-                                for signature in ("الخدمات الاساسيه", "الخدمات اساسيه", "الاهداف"))})
+                         if any(signature in norm(cell.text) for signature in (*_BASIC_HEADERS, "الاهداف"))})
         known_header = len(starts) >= 2
         if len(starts) < 2:
             max_column = max((column for row in table.rows for cell in row for column in cell.columns), default=3)
@@ -295,7 +297,8 @@ def _extract_board(doc: dict[str, Any], data: DocxData) -> list[dict[str, Any]]:
         for half_index, start in enumerate(starts):
             end = starts[half_index + 1] if half_index + 1 < len(starts) else 10**6
             for ri, row in enumerate(table.rows[header_index + 1:], header_index + 1):
-                cells = tuple(cell for cell in row if any(start <= c < end for c in cell.columns))
+                # الخلية العابرة للحد (gridSpan) بتتبع النص اللي فيه مركزها — مش النصين
+                cells = tuple(cell for cell in row if start <= (cell.columns[0] + cell.columns[-1]) / 2 < end)
                 nonempty = [cell.text for cell in cells if cell.text.strip()]
                 if not nonempty:
                     continue

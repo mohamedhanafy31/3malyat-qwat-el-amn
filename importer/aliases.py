@@ -182,6 +182,11 @@ def _csv_read(path: Path, key_fields: tuple[str, ...]) -> dict[tuple[str, ...], 
                 if all(row.get(key) for key in key_fields)}
 
 
+def _filled(row: dict[str, str], key_fields: tuple[str, ...]) -> bool:
+    """قرار فيه حاجة اتكتبت فعلًا (مش صف فاضي متولّد)."""
+    return any(value and key not in key_fields for key, value in row.items() if key)
+
+
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     with path.open(encoding="utf-8") as stream:
         return [json.loads(line) for line in stream if line.strip()]
@@ -223,6 +228,24 @@ def _legacy_catalog_safe() -> list[tuple[str, str, list[str], bool]]:
             result.append((name, kind, aliases, standing))
         return result
     return []
+
+
+def _rebind_event_decisions(events: list[dict[str, Any]], decisions: dict[tuple[str, ...], dict[str, str]]) -> None:
+    """عنوان الحدث المتولّد ممكن يتغير لما الاستخراج يتحسن. لو في اليوم قرار واحد بس مالوش حدث
+    وحدث واحد بس مالوش قرار، القرار بيتنقل له (مع ملاحظة) بدل ما يضيع."""
+    by_date: dict[str, list[dict[str, Any]]] = {}
+    for event in events:
+        by_date.setdefault(event["date"], []).append(event)
+    for date, items in by_date.items():
+        titles = {event["event title"] for event in items}
+        orphans = [key for key, row in decisions.items()
+                   if key[0] == date and key[1] not in titles and _filled(row, ("date", "event title"))]
+        unbound = [event for event in items if (date, event["event title"]) not in decisions]
+        if len(orphans) == 1 and len(unbound) == 1:
+            row = dict(decisions.pop(orphans[0]))
+            row["event title"] = unbound[0]["event title"]
+            row["note"] = f"{row.get('note') or ''} [أعيد ربطه من «{orphans[0][1]}»]".strip()
+            decisions[(date, row["event title"])] = row
 
 
 def build_vocabulary(data_dir: Path, records: list[dict[str, Any]] | None = None) -> list[VocabularyItem]:
@@ -615,11 +638,15 @@ def run_aliases(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
                "counts_in_summary": decision.get("counts_in_summary") or str(proposal["counts_in_summary"]).lower()}
         rows.append(row)
     _csv_write(review_dir / "aliases.csv", REVIEW_FIELDS, rows)
+    # قرار المراجع ما بيضيعش لو مفتاحه اختفى من التشغيلة دي — بيفضل في آخر الملف
+    current_keys = {(row["key"],) for row in rows}
+    orphans = [row for key, row in sorted(decisions.items()) if key not in current_keys and _filled(row, ("key",))]
     _csv_write(decisions_dir / "aliases.csv", DECISION_FIELDS,
-               [{"key": row["key"], **decisions.get((row["key"],), {})} for row in rows])
+               [{"key": row["key"], **decisions.get((row["key"],), {})} for row in rows] + orphans)
     special_sections = {item.section for item in vocabulary if item.section not in CANONICAL_SECTIONS}
     events = detect_events(records, validations, special_sections)
     event_decisions = _csv_read(decisions_dir / "events.csv", ("date", "event title"))
+    _rebind_event_decisions(events, event_decisions)
     final_events = []
     for event in events:
         decision = event_decisions.get((event["date"], event["event title"]), {})
@@ -629,9 +656,12 @@ def run_aliases(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
             event["event title"] = decision["override title"]
         final_events.append(event)
     _csv_write(review_dir / "events.csv", EVENT_FIELDS, final_events)
+    current_events = {(event["date"], event["event title"]) for event in events}
+    event_orphans = [row for key, row in sorted(event_decisions.items())
+                     if key not in current_events and _filled(row, ("date", "event title"))]
     _csv_write(decisions_dir / "events.csv", EVENT_DECISION_FIELDS,
                [{"date": event["date"], "event title": event["event title"],
-                 **event_decisions.get((event["date"], event["event title"]), {})} for event in events])
+                 **event_decisions.get((event["date"], event["event title"]), {})} for event in events] + event_orphans)
     atomic_write_jsonl(ledger.staging_path("alias-notes"), notes)
     coverage = _coverage(rows, phrases)
     low = [{"key": row["key"], "count": row["count"], "examples": row["examples"]}
