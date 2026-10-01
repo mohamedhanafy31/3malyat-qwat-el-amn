@@ -282,3 +282,21 @@ def test_deployment_leader_with_full_grade_is_not_taken_as_weapon():
     builder._document_cells_into(row, _rec(6, "deployment", "deployment_row"),
                                  ["مندوب/ جمال الكويس", "01155539914", "3 مجند", "مايك فض (د + خ + ف+ ك)", "8 ص"])
     assert row["weapon"] == "مايك فض (د + خ + ف+ ك)" and row["note"] == "مندوب/ جمال الكويس"
+
+
+def _roster(i, oid, note):
+    return _rec(i, "roster", "roster_row", officer={"name": f"ضابط {oid}", "rank": "رائد", "qualifier": "", "code": "",
+                "post": "", "note": note, "taqseera": False, "status": "", "leaves": [], "services": [note],
+                "rest_system": "", "rest_day": ""})
+
+
+def test_manob_al_idara_follows_the_user_rule():
+    from backend.constants import SECTION_GREAT, SECTION_SECURITY
+    ctx = FakeCtx(officers={1: "OFF-1", 2: "OFF-2", 3: "OFF-3"})
+    both = [_roster(1, "OFF-1", "ضابط عظيم الإدارة فترة صباحية"), _roster(2, "OFF-2", "ضابط امن الادارة فترة صباحية"),
+            _roster(3, "OFF-3", "منوب الادارة فترة ليلية")]
+    day = DayBuilder("2023-10-05", both, ctx).build("B", "B")
+    assert [r["section"] for r in day["assignments"] if r["officer_ids"] == ["OFF-3"]] == [SECTION_SECURITY]
+    alone = [_roster(1, "OFF-1", "ضابط عظيم الإدارة فترة صباحية"), _roster(3, "OFF-3", "منوب الادارة فترة ليلية")]
+    day = DayBuilder("2023-10-05", alone, ctx).build("B", "B")
+    assert [r["section"] for r in day["assignments"] if r["officer_ids"] == ["OFF-3"]] == [SECTION_GREAT]

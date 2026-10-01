@@ -696,9 +696,24 @@ class DayBuilder:
                             row["shift"] = _shift_from_time(time)
         return True
 
+    def _manob_section(self) -> str:
+        """«منوب الإدارة» (قاعدة المستخدم): لو في نفس اليوم ضابط تاني على «ضابط عظيم» وضابط على «ضابط أمن»
+        يبقى المنوب منوب أمن الإدارة (كتلة الأمن)، وإلا يبقى هو ضابط عظيم الإدارة."""
+        great = security = False
+        for record in self._roster_rows():
+            for part in (record.get("officer") or {}).get("services") or []:
+                key = norm(part)
+                if re.search(r"منوب\s+(?:ال)?اداره", key):
+                    continue
+                roles = role_sections(key)
+                great = great or SECTION_GREAT in roles
+                security = security or SECTION_SECURITY in roles
+        return SECTION_SECURITY if great and security else SECTION_GREAT
+
     def derived_assignments(self) -> None:
         self.derived = True
         grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
+        manob = self._manob_section()
         for record in self._roster_rows():
             officer_id = self.ctx.officer_of_row(record)
             officer = record.get("officer") or {}
@@ -718,6 +733,8 @@ class DayBuilder:
                 if _non_service_phrase(part_key) or _instruction_phrase(part_key):
                     continue
                 roles = role_sections(part_key)
+                if roles and re.search(r"منوب\s+(?:ال)?اداره", part_key):
+                    roles = [manob]
                 if roles:
                     # «ضابط عظيم وأمن الإدارة» = الكتلتين؛ الكتلة من كلمات العبارة مش من أقرب خدمة بالاسم
                     shifts = _shifts_in(part) or [""]
