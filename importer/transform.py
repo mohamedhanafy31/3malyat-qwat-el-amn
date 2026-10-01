@@ -576,8 +576,9 @@ class DayBuilder:
         if section == SECTION_TARGETS:
             name = self.ctx.target_name(label) or (TARGETS_FIRST if "مشرف" in norm(label) else "")
             if not name:
-                alias = self.ctx.alias(label)
-                name = alias["canonical"]
+                # خدمة مكتوبة تحت «الأهداف» ومش هدف معروف (ترحيلة/حملة…) — مكانها الطوارئ
+                self.review.append({"date": self.date, "type": "not_a_target_moved", "raw": label})
+                return self._service_row(label, SECTION_OCCASIONAL, record, rule)
             row = self._new_row(name, SECTION_TARGETS, kind="حراسات", shift="")
             self._people_into(row, record, record["manning"])
             roster = self.target_officers.get(name, [])
@@ -1096,6 +1097,8 @@ class DayBuilder:
         self.counts_enrichment(counts)
         self.settle_shifts()
         self.merge_duplicates()
+        # الضابط اللي عليه خدمة محسوبة في اليوم ده شغال فعلًا — الراحة بتتقطع عنده
+        self.observations["assigned"] = sorted({oid for row in self.rows for oid in row["officer_ids"]})
         # ترتيب الأقسام زي اليومين المرجعيين
         order = {SECTION_BASIC: 0, SECTION_OCCASIONAL: 1, SECTION_SUBCAMP: 3, SECTION_GREAT: 4,
                  SECTION_SECURITY: 5, SECTION_TARGETS: 6}
@@ -1291,6 +1294,8 @@ def core_delta(observations: dict[str, dict[str, Any]], core: dict[str, Any]) ->
                 per_ref[officer_id].append((date, ref))
         for person_id, obs in sorted(day.get("personnel", {}).items()):
             per_person[person_id].append((date, obs))
+        for officer_id in day.get("assigned") or []:
+            working[officer_id].add(date)
         if day.get("officers"):
             command_days.append((date, {"command": command, "groups": groups}))
 

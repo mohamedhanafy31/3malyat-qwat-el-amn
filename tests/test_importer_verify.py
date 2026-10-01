@@ -112,3 +112,14 @@ def test_same_named_new_people_get_different_ids():
         {"id": "NEW-IND-096", "name": "محمد مصطفي", "first_seen": "2023-12-13", "phones": ["01000307287"]}]}
     assigned = assign_ids({"officers": [], "personnel": []}, delta, {})
     assert assigned["NEW-IND-095"] != assigned["NEW-IND-096"]
+
+
+def test_leave_is_cut_on_imported_duty_days():
+    from importer.apply import cut_leaves_on_duty
+    data = {"leaves": [{"id": "LV-001", "person_id": "OFF-1", "type": "شهرية", "start": "2026-09-16", "end": "2026-09-22"}]}
+    days = {"2026-09-16": {"assignments": [{"officer_ids": ["OFF-1"]}]},
+            "2026-09-19": {"assignments": [{"officer_ids": ["OFF-1"]}]}}
+    review = cut_leaves_on_duty(data, days)
+    assert sorted((lv["start"], lv["end"]) for lv in data["leaves"]) == [("2026-09-17", "2026-09-18"), ("2026-09-20", "2026-09-22")]
+    assert review[0]["service_days"] == ["2026-09-16", "2026-09-19"]
+    assert cut_leaves_on_duty(data, days) == []

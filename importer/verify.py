@@ -37,7 +37,7 @@ from backend.store import DAY_SECTIONS, merge
 from backend.text import norm
 from backend.checks import duplicate_of
 
-from .apply import apply_core, assign_ids, remap_day, system_start_of, unlink_off_force
+from .apply import apply_core, assign_ids, cut_leaves_on_duty, remap_day, system_start_of, unlink_off_force
 from .ledger import Ledger, atomic_write_bytes, atomic_write_json
 from .transform import PROTECTED
 
@@ -115,6 +115,7 @@ def build_dataset(ledger: Ledger, days: dict[str, dict[str, Any]] | None = None,
             data.setdefault(key, {}).pop(date, None)
             if remapped[date].get(name):
                 data[key][date] = remapped[date][name]
+    applied["review"].extend(cut_leaves_on_duty(data, remapped))
     return {"data": data, "assigned": assigned, "applied": applied, "existing": existing, "days": remapped,
             "id_map": id_map, "delta": delta, "before": before, "imported": imported, "kept": kept}
 

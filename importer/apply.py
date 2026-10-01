@@ -118,6 +118,48 @@ def unlink_off_force(day: dict[str, Any], date: str, on_force: dict[str, set[str
     return review
 
 
+def cut_leaves_on_duty(data: dict[str, Any], days: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
+    """قاعدة المستخدم: الضابط اللي عليه خدمة في يوم مستورد ماكانش في راحة يومها — الراحة بتتقص/تتقسم
+    حوالين أيام الخدمة (حتى راحات النظام الموجودة)، والراحة اللي كل أيامها شغل بتتشال. كل تعديل له عنصر مراجعة."""
+    busy: dict[str, set[str]] = {}
+    for date, blob in days.items():
+        for row in blob.get("assignments") or []:
+            for pid in row.get("officer_ids") or []:
+                busy.setdefault(pid, set()).add(date)
+    if not busy:
+        return []
+    review = []
+    leaves = data.setdefault("leaves", [])
+    for leave in list(leaves):
+        dates = busy.get(leave.get("person_id"))
+        if not dates or not leave.get("start") or not leave.get("end"):
+            continue
+        hits = sorted(day for day in dates if leave["start"] <= day <= leave["end"])
+        if not hits:
+            continue
+        runs, current, day = [], None, leave["start"]
+        while day <= leave["end"]:
+            if day in dates:
+                current = None
+            elif current is None:
+                current = [day, day]
+                runs.append(current)
+            else:
+                current[1] = day
+            day = _next(day)
+        before = copy.deepcopy(leave)
+        if not runs:
+            leaves.remove(leave)
+        else:
+            leave["start"], leave["end"], leave["return_date"] = runs[0][0], runs[0][1], _next(runs[0][1])
+            for start, end in runs[1:]:
+                leaves.append({**{k: v for k, v in before.items() if k != "id"}, "start": start, "end": end,
+                               "return_date": _next(end), "id": reserve_id(data, "LV", leaves)})
+        review.append({"type": "leave_cut_by_service", "person_id": before.get("person_id"), "before": before,
+                       "service_days": hits, "after": [list(run) for run in runs]})
+    return review
+
+
 def _next_code(people: list[dict[str, Any]], prefix: str) -> str:
     numbers = [int(match.group(1)) for person in people
                if (match := re.fullmatch(rf"{prefix}-(\d+)", str(person.get("code") or "")))]
@@ -368,4 +410,4 @@ def system_start_of(days: dict[str, dict[str, Any]]) -> str:
 
 
 __all__ = ["GRADE_FAMILY", "apply_core", "assign_ids", "grade_family", "natural_key", "remap_day", "system_start_of",
-           "unlink_off_force"]
+           "unlink_off_force", "cut_leaves_on_duty"]

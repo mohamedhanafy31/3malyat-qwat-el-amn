@@ -300,3 +300,21 @@ def test_manob_al_idara_follows_the_user_rule():
     alone = [_roster(1, "OFF-1", "ضابط عظيم الإدارة فترة صباحية"), _roster(3, "OFF-3", "منوب الادارة فترة ليلية")]
     day = DayBuilder("2023-10-05", alone, ctx).build("B", "B")
     assert [r["section"] for r in day["assignments"] if r["officer_ids"] == ["OFF-3"]] == [SECTION_GREAT]
+
+
+def test_unknown_name_under_targets_moves_to_emergency():
+    records = [_rec(1, "board", "board_label", half=1, label="الأهداف"),
+               _rec(2, "board", "board_row", half=1, label="ترحيلة الجيزة", manning="فرد")]
+    day = DayBuilder("2025-01-05", records, FakeCtx()).build("B", "B")
+    assert [(r["section"], r["name"]) for r in day["assignments"]] == [("الخدمات الطارئة", "ترحيلة الجيزة")]
+
+
+def test_assigned_day_cuts_the_leave():
+    from importer.transform import core_delta
+    obs = lambda leaves: {"rank": "رائد", "post": "", "section": "القوة", "leaves": leaves, "note": "", "name": "ضابط"}
+    leave = {"type": "نصف شهرية", "start": "2026-09-26", "end": "2026-09-28"}
+    observations = {"2026-09-26": {"officers": {"OFF-1": obs([leave])}, "personnel": {}},
+                    "2026-09-27": {"officers": {}, "personnel": {}, "assigned": ["OFF-1"]},
+                    "2026-09-28": {"officers": {}, "personnel": {}}}
+    leaves = [(op["start"], op["end"]) for op in core_delta(observations, {"leaves": []})["leaves"]]
+    assert leaves == [("2026-09-26", "2026-09-26"), ("2026-09-28", "2026-09-28")]
