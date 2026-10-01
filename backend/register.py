@@ -187,6 +187,8 @@ def month_register(data, year, month):
 
     rows = []
     last_recorded = max(recorded) if recorded else None
+    from .day_status import today_iso
+    today = today_iso()
     for officer in officers:
         cells = []
         for day in days:
@@ -197,7 +199,8 @@ def month_register(data, year, month):
             # في يوم من غير يومية، «صافي» معناها إننا مانعرفش حاجة عنه —
             # مش إنه كان بالإدارة. أما الراحة والفرقة فسجلات بمدى تواريخ
             # وبتفضل صحيحة سواء اتعملت يومية أو لأ.
-            if day not in recorded and row["group"] == "صافي":
+            # ولا يوم لسه ما جاش: خانة مسجّلة مقدّمًا (صف أو اتنين) ما تخليش كل الضباط «عمل بالإدارة»
+            if (day not in recorded or day > today) and row["group"] == "صافي":
                 cells.append(_flat(NO_RECORD, day))
                 continue
             cells.append(_cell(row, day))
@@ -241,6 +244,8 @@ def officer_register(data, officer_id, days=None):
         days = sorted(days)
     per_day = _day_rows(data, days)
 
+    from .day_status import today_iso
+    today = today_iso()
     person = None
     cells = []
     for day in days:
@@ -248,6 +253,8 @@ def officer_register(data, officer_id, days=None):
         if not row:
             continue                      # مكانش على القوة — مالوش سطر في دفتره
         person = row
+        if day > today and row["group"] == "صافي":
+            continue                      # يوم لسه ما جاش ومالوش فيه خدمة — مش «عمل بالإدارة»
         cells.append(_cell(row, day))
 
     months = {}

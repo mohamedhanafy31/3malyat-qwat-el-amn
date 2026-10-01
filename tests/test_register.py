@@ -251,3 +251,14 @@ def test_every_leave_type_resolves_to_rest_or_leave_symbol(client):
         assert r.status_code == 201, (kind, r.get_json())
         code = _cell(_month(client, 2026, 6), "OFF-001", day)["code"]
         assert code in ("ر", "ج", "م", "ف"), (kind, code)
+
+
+def test_future_day_with_a_preset_row_is_not_admin_work_for_everyone(client, frozen_today):
+    """يوم لسه ما جاش وفيه صف مسجّل مقدّمًا: اللي عليه الخدمة بيظهر، والباقي «·» مش «عمل بالإدارة»."""
+    _add(client, officer_ids=["OFF-002"])
+    frozen_today("2026-04-09")
+    reg = _month(client)
+    assert _cell(reg, "OFF-002", DAY)["code"] == "أ"
+    assert _cell(reg, "OFF-001", DAY)["family"] == "بدون سجل"
+    frozen_today("2026-04-10")
+    assert _cell(_month(client), "OFF-001", DAY)["family"] == "عمل"
