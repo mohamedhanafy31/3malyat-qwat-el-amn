@@ -219,13 +219,48 @@ def _parse(raw, path):
     return data
 
 
+def _fsync_file(fd, path):
+    """`fsync` لملف مفتوح. `path` للتشخيص والاختبارات بس."""
+    os.fsync(fd)
+
+
+def _fsync_dir(path):
+    """`fsync` لمجلد عشان إنشاء/استبدال/مسح ملف جوّاه يبقى ثابت على القرص.
+    ويندوز مابيدعمش فتح مجلد للمزامنة (و`os.replace` هناك بيكتب البيانات
+    الوصفية بنفسه)، وبعض أنظمة الملفات بترفضه — الاتنين بيتخطّوا بهدوء."""
+    if os.name == "nt":
+        return
+    try:
+        fd = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
+def _replace(src, dst):
+    """`os.replace` باسم في الموديول — نقطة حقن أعطال في الاختبارات."""
+    os.replace(src, dst)
+
+
 def _write_atomic(path, text):
-    """كتابة ذرّية: ملف `.tmp` جنبه وبعدين استبدال — فلو الجهاز اتقفل في
-    النص مايتسابش ملف نص-مكتوب مكان البيانات."""
+    """كتابة ذرّية ومتزامنة: ملف `.tmp` جنبه، `fsync`، استبدال، و`fsync`
+    للمجلد — فلو الجهاز اتقفل في النص مايتسابش ملف نص-مكتوب مكان البيانات.
+
+    البايتات UTF-8 بالظبط (من غير تحويل سطور ويندوز) عشان بصمة sha256
+    في دفتر المعاملات تطابق اللي على القرص حرفيًا."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(text, encoding="utf-8")
-    os.replace(tmp, path)
+    tmp = path.with_name(path.name + ".tmp")
+    with open(tmp, "wb") as fh:
+        fh.write(text.encode("utf-8"))
+        fh.flush()
+        _fsync_file(fh.fileno(), tmp)
+    _replace(tmp, path)
+    _fsync_dir(path.parent)
 
 
 def _check_schema(found):
@@ -817,6 +852,14 @@ def _write(data):
     written = ([CORE_NAME] if core_changed else []) + [f"{d}.json" for d in pending]
     removed = [f"{d}.json" for d in gone]
     if written or removed:
+        operations = []
+        if core_changed:
+            operations.append({"action": "replace", "target": CORE_NAME, "text": core_text})
+        operations.extend({"action": "replace", "target": str(day_path(day).relative_to(DATA_DIR)),
+                           "text": text} for day, text in pending.items())
+        operations.extend({"action": "delete", "target": str(day_path(day).relative_to(DATA_DIR))}
+                           for day in gone)
+        _write_journal(operations)
         _snapshot(core_changed=core_changed)
 
     new_originals = {day: originals[day] for day in days
@@ -840,6 +883,9 @@ def _write(data):
     except BaseException:
         _forget_index()                  # كتابة وقعت في النص — يتبني من القرص تاني
         raise
+    else:
+        if written or removed:
+            _clear_journal()
 
     index = _ensure_index() if scope is not None else tracking.get("index")
     data["_fp"] = {"fingerprints": new_fp, "originals": new_originals,
@@ -1011,27 +1057,62 @@ def restore_backup(name):
 # ---------- قفل العملية الواحدة ----------
 
 LOCK_FILE_NAME = ".lock"
+JOURNAL_NAME = ".transaction-journal.json"
+_PROCESS_LOCK_FD = None
 
 
-def _pid_alive(pid):
-    """في المصنع كل مرة — مفيش مكتبة زيادة (`psutil`) عشان النظام يفضل
-    يشتغل أوفلاين بالمكتبات الأساسية بس (`requirements.txt`)."""
-    if os.name == "nt":
-        import ctypes
-        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-        handle = ctypes.windll.kernel32.OpenProcess(
-            PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
-        if handle:
-            ctypes.windll.kernel32.CloseHandle(handle)
-            return True
+def _journal_path():
+    return DATA_DIR / JOURNAL_NAME
+
+
+def _fsync_parent(path):
+    _fsync_dir(path.parent)
+
+
+def _write_journal(operations):
+    """Persist the complete intended transaction before touching targets."""
+    path = _journal_path()
+    payload = _dumps({"version": 1, "operations": operations})
+    tmp = path.with_name(path.name + ".tmp")
+    with open(tmp, "wb") as fh:
+        fh.write(payload.encode("utf-8"))
+        fh.flush()
+        _fsync_file(fh.fileno(), tmp)
+    _replace(tmp, path)
+    _fsync_dir(path.parent)
+
+
+def _clear_journal():
+    try:
+        _journal_path().unlink()
+    except FileNotFoundError:
+        return
+    _fsync_dir(DATA_DIR)
+
+
+def recover_journal():
+    """Idempotently roll forward an interrupted transaction, if present."""
+    path = _journal_path()
+    if not path.exists():
         return False
     try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except OSError:
-        return True   # موجودة بس مش لينا صلاحية عليها — نادر هنا (نفس المستخدم غالبًا)
-    return True
+        payload = json.loads(_read_text(path))
+        operations = payload["operations"]
+        if payload.get("version") != 1 or not isinstance(operations, list):
+            raise ValueError("invalid transaction journal")
+        for op in operations:
+            target = DATA_DIR / op["target"]
+            if op["action"] == "delete":
+                target.unlink(missing_ok=True)
+                _fsync_dir(target.parent)
+            elif op["action"] == "replace":
+                _write_atomic(target, op["text"])
+            else:
+                raise ValueError("unknown transaction operation")
+        _clear_journal()
+        return True
+    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise DataUnreadable(f"دفتر المعاملة تالف: {exc}") from exc
 
 
 def acquire_process_lock():
@@ -1045,42 +1126,55 @@ def acquire_process_lock():
     نفس المشكلة اللي `with_data()` بيحلّها جوّه العملية الواحدة، بس هنا
     بين عمليتين مختلفتين تمامًا.
 
-    الملف بيحمل رقم العملية (PID)، فلو قفلة عالقة من قفل غير نضيف (قطع
-    كهربا، Task Manager، أو `preview_stop` بتاع بيئة التطوير) بيتحقق إن
-    العملية اللي كتبته لسه شغّالة فعلًا قبل ما يرفض — وإلا كان السيستم
-    مش هيشتغل تاني أبدًا لحد ما حد يمسح الملف بإيده.
+    الملف يحمل PID للتشخيص فقط؛ الملكية الفعلية للقفل يحتفظ بها نظام
+    التشغيل على واصف الملف، ولذلك يحرره تلقائيًا عند انهيار العملية.
 
     لازم تتنادى بس لما السيرفر فعلًا بيشتغل (`if __name__ == "__main__"`
     في `app.py`/`serve.py`)، مش وقت `import app` — الاختبارات بتعمل
     `import` للملف من غير ما تشغّل سيرفر حقيقي."""
-    lock_path = DATA_DIR / LOCK_FILE_NAME
+    global _PROCESS_LOCK_FD
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-    def _try_create():
-        return os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-
+    lock_path = DATA_DIR / LOCK_FILE_NAME
+    fd = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
     try:
-        fd = _try_create()
-    except FileExistsError:
-        stale = True
-        try:
-            stale = not _pid_alive(int(lock_path.read_text().strip()))
-        except (OSError, ValueError):
-            pass       # ملف فاضي أو تالف — يتعامل معاه كقفلة عالقة
-        if not stale:
-            raise SystemExit(
-                f"\n[X] النظام قيد التشغيل بالفعل من عملية أخرى على مجلد data/ نفسه.\n"
-                f"\n"
-                f"    أغلق النسخة الأخرى أولًا، ثم حاول مجددًا.\n"
-            )
-        lock_path.unlink(missing_ok=True)     # قفلة عالقة من عملية ماتت — بتتشال وتتحاول تاني
-        fd = _try_create()
-
+        if os.name == "nt":
+            import msvcrt
+            os.lseek(fd, 0, os.SEEK_SET)
+            os.write(fd, b"0")
+            os.lseek(fd, 0, os.SEEK_SET)
+            msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (BlockingIOError, OSError) as exc:
+        os.close(fd)
+        raise SystemExit(
+            "\n[X] النظام قيد التشغيل بالفعل من عملية أخرى على مجلد data/ نفسه.\n"
+            "\n    أغلق النسخة الأخرى أولًا، ثم حاول مجددًا.\n"
+        ) from exc
+    _PROCESS_LOCK_FD = fd
+    os.ftruncate(fd, 0)
     os.write(fd, str(os.getpid()).encode())
-    os.close(fd)
+    os.fsync(fd)
+    recover_journal()
 
     import atexit
-    atexit.register(lambda: lock_path.unlink(missing_ok=True))
+    def release():
+        global _PROCESS_LOCK_FD
+        if _PROCESS_LOCK_FD is None:
+            return
+        try:
+            if os.name == "nt":
+                import msvcrt
+                os.lseek(_PROCESS_LOCK_FD, 0, os.SEEK_SET)
+                msvcrt.locking(_PROCESS_LOCK_FD, msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(_PROCESS_LOCK_FD, fcntl.LOCK_UN)
+        finally:
+            os.close(_PROCESS_LOCK_FD)
+            _PROCESS_LOCK_FD = None
+    atexit.register(release)
 
 
 # ---------- الواجهة ----------
@@ -1093,6 +1187,7 @@ def load_data(days=ALL_DAYS):
     HTTP بيعلن نطاقه صريح (`tests/test_scoped_storage.py` بيتأكد من ده).
     """
     with LOCK:
+        recover_journal()
         return _read(days)
 
 
@@ -1100,6 +1195,7 @@ def save_data(data):
     """حفظ مباشر بقفل خاص بيه. لو بتعدّل بيانات محمّلة برّه with_data() فالمفروض
     تستخدم with_data() بدالها عشان تضمن إن حد تاني ما يقرأش/يكتبش في النص."""
     with LOCK:
+        recover_journal()
         _write(data)
 
 
@@ -1118,6 +1214,7 @@ def with_data(fn, days=ALL_DAYS):
 
     `days` نطاق المعاملة (زي `load_data`): بتقرا وتقارن وتكتب الأيام دي بس."""
     with LOCK:
+        recover_journal()
         data = _read(days)
         try:
             result = fn(data)

@@ -6,7 +6,7 @@ Baseline: `459fbf3` on `qa/remediation`; `822 passed in 13.28s`.
 |---|---|---|---|---|---|
 | 1. Backend guardrails | QA-06, QA-11, QA-18, QA-19, QA-29 | accepted | `0cc1ed20-b22c-465a-b215-67b867a8361f` | pending | targeted 111 passed; full 877 passed; JS syntax passed; existing-test edits reviewed, no weakened assertions |
 | 2. Scoped storage transactions | QA-01, QA-02, QA-15 | accepted | `958839d2-6204-44bb-ab7d-4139adba12cc` (resumed after turn cap) | pending | focused 75 passed; full 898 passed; diff-check clean; route-scope scan and LRU/index tests passed |
-| 3. Crash durability and process locking | QA-07, QA-26, QA-28 | queued | — | — | — |
+| 3. Crash durability and process locking | QA-07, QA-26, QA-28 | accepted | direct implementation after Claude quota block | pending | journal recovery/import crash tests passed; OS lock tests passed; full 900 passed; diff-check clean |
 | 4. Backups, audit history, attachments | QA-03, QA-04, QA-16, QA-17, QA-27 | queued | — | — | — |
 | 5. Pure GET and stale-write protection | QA-05, QA-10 | queued | — | — | — |
 | 6. Request and workflow reliability | QA-08, QA-09, QA-12, QA-13, QA-30 | queued | — | — | — |
@@ -23,3 +23,4 @@ Baseline: `459fbf3` on `qa/remediation`; `822 passed in 13.28s`.
 ## Needs review
 
 - Batch 1 browser confirmation path was not exercised; automated API and JS syntax gates passed.
+- Batch 3 Windows-specific `msvcrt` path is covered by guarded implementation but not executable on this Linux host.

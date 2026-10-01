@@ -196,6 +196,10 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
     problems = check_migrations(ledger.data_dir)
     if problems:
         raise StoreRefused("هجرات 013/014 لسه ما اتطبقتش على الهدف: " + "؛ ".join(problems[:5]))
+    if write and resume:
+        # A recovered store journal may already have applied the intended files;
+        # continue far enough to write the importer completion record.
+        store.recover_journal()
     planned = plan(ledger, replace_existing=replace_existing)
     actions = planned["plan"]
     skip = {date for date, (action, _) in actions.items() if action == "skip"}
@@ -212,7 +216,7 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
               "plan": counts, "files_to_write": len(changed), "applied": built["applied"]["stats"],
               "skipped": {date: reason for date, (action, reason) in actions.items() if action == "skip"}}
     _write_plan(ledger, actions, changed, report)
-    if not write or not changed:
+    if not write or (not changed and not resume):
         if write:
             report["result"] = "لا تغيير — الدفعة مكتوبة بالفعل"
         ledger.mark_stage(state, "store", "complete" if write else "dry-run",

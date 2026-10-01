@@ -259,9 +259,12 @@ def test_a_stale_lock_from_a_dead_process_is_recovered_automatically(client, dat
     lock_path.unlink(missing_ok=True)
 
 
-def test_a_lock_from_a_still_running_process_is_respected(client, data_file):
+def test_orphaned_pid_text_does_not_block_os_lock_recovery(client, data_file):
     lock_path = store.DATA_DIR / store.LOCK_FILE_NAME
-    lock_path.write_text(str(os.getpid()), encoding="utf-8")   # الاختبار نفسه لسه شغّال
-    with pytest.raises(SystemExit):
-        store.acquire_process_lock()
+    lock_path.write_text(str(os.getpid()), encoding="utf-8")
+    # The bytes are only diagnostic; ownership is the kernel-held lock.
+    store.acquire_process_lock()
+    fd = store._PROCESS_LOCK_FD
+    os.close(fd)
+    store._PROCESS_LOCK_FD = None
     lock_path.unlink(missing_ok=True)
