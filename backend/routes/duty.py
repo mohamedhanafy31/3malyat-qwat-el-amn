@@ -14,7 +14,7 @@ from ..assignments import OFFICER_STATUSES, officer_state, set_officer_state
 from ..duty import summarise
 from ..day_open import needs_prepare, prepare
 from ..people import officers_on
-from ..store import AbortRequest, load_data, with_data
+from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import MAX_LEN, around, canonical_day, json_payload
 
 bp = Blueprint("duty", __name__)
@@ -28,12 +28,14 @@ def get_duty(day):
     scope = around(day, -1, 0)
     data = load_data(scope)
     if not needs_prepare(data, day):
-        return jsonify(summarise(data, day))
-
+        payload = summarise(data, day)
+        payload.update(revision=revision(data, [day]), preparation_pending=False)
+        return jsonify(payload)
     def mutate(data):
         prepare(data, day)
-        return jsonify(summarise(data, day))
-
+        payload = summarise(data, day)
+        payload.update(revision=revision(data, [day]), preparation_pending=False)
+        return jsonify(payload)
     return with_data(mutate, scope)
 
 
@@ -53,6 +55,11 @@ def set_state(day, person_id):
         return jsonify({"error": f"الملاحظة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
 
     def mutate(data):
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
+        prepare(data, day)
         ok, lock_err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": lock_err}), 409))

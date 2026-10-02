@@ -28,7 +28,7 @@ from ..constants import SECTION_OCCASIONAL, SERVICE_KINDS
 from ..duty import summarise
 from ..day_open import needs_prepare, prepare
 from ..repo import Repos
-from ..store import AbortRequest, load_data, with_data
+from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import around, canonical_day, json_payload, too_long
 
 bp = Blueprint("board", __name__)
@@ -40,20 +40,17 @@ def get_board(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
 
-    # فتح اليوم بيبذر الأهداف من تأكيد اليوم السابق
     scope = around(day, -1, 0)
     data = load_data(scope)
-    # أول ما اليوم ده يتفتح لأول مرة، تفتيشات يوم الأسبوع بتاعه (لو
-    # معرّفة) بتتحط عليه تلقائيًا — بعد كده خانات عادية زي أي خانة تانية.
-    # الفحص هنا بس عشان أغلب الأيام (اتفتحت قبل كده) تفضل عرض بحت من غير
-    # ما تعدّي على مسار كتابة (وتتسجّل في audit.log) من غير أي داعي.
     if not needs_prepare(data, day, include_inspections=True):
-        return jsonify(build_board(data, day))
-
+        payload = build_board(data, day)
+        payload.update(revision=revision(data, [day]), preparation_pending=False)
+        return jsonify(payload)
     def mutate(data):
         prepare(data, day, include_inspections=True)
-        return jsonify(build_board(data, day))
-
+        payload = build_board(data, day)
+        payload.update(revision=revision(data, [day]), preparation_pending=False)
+        return jsonify(payload)
     return with_data(mutate, scope)
 
 
@@ -92,6 +89,11 @@ def copy_section(day):
         return jsonify({"error": length_error}), 400
 
     def mutate(data):
+        prepare(data, day, include_inspections=True)
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
         ok, err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": err}), 409))
@@ -132,6 +134,11 @@ def add_assignment(day):
         return jsonify({"error": "تصنيف الخدمة غير صحيح."}), 400
 
     def mutate(data):
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
+        prepare(data, day, include_inspections=True)
         ok, err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": err}), 409))
@@ -153,7 +160,7 @@ def add_assignment(day):
         place_assignment_after(data, day, row["id"], payload.get("after_id"))
         return jsonify(row), 201
 
-    return with_data(mutate, [day])
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.patch("/api/assignments/<day>/<assignment_id>")
@@ -164,6 +171,11 @@ def edit_assignment(day, assignment_id):
     payload = json_payload()
 
     def mutate(data):
+        prepare(data, day, include_inspections=True)
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
         ok, lock_err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": lock_err}), 409))

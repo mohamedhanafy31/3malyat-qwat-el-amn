@@ -313,6 +313,23 @@ def split(data):
     return core, days
 
 
+def revision(data, days=None):
+    """Stable optimistic-concurrency token for the loaded scope."""
+    core, day_map = split(data)
+    if days is not None:
+        wanted = set(days)
+        day_map = {day: value for day, value in day_map.items() if day in wanted}
+    return _fingerprint(_dumps({"core": core, "days": day_map}))
+
+
+def stale_revision(data, supplied, days=None):
+    """Return the current token when a supplied UI token is stale."""
+    if supplied in (None, ""):
+        return None
+    current = revision(data, days)
+    return current if str(supplied) != current else None
+
+
 def merge(core, days):
     """core + ملفات الأيام -> نفس الشكل القديم في الذاكرة.
 
