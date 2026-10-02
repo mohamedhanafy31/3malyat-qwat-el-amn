@@ -141,7 +141,7 @@ const PERSONNEL_ROLES=[
 
 /* ---------- الحالة المشتركة ---------- */
 let META={}, COUNTS={};
-const curDate=()=>META.today||new Date().toISOString().slice(0,10);
+const curDate=()=>META.today||(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`})();
 const REST_SYSTEMS=()=>META.rest_systems||["أسبوعية","نصف شهرية","شهرية","—"];
 const WEEKDAYS=()=>META.weekdays||[];
 const LEAVE_TYPES=()=>META.leave_types||[];
@@ -199,9 +199,21 @@ async function api(url,opts){
     // ترويسة HTTP لازم تبقى ISO-8859-1 بس — تشفير عشان الاسم غالبًا عربي
     opts.headers={...(opts.headers||{}),"X-Edited-By":encodeURIComponent(editedBy)};
   }
-  let r;
-  try{ r=await fetch(url,opts) }
-  catch(e){ showToast("تعذر الاتصال بالخادم",true); return null }
+  let r, timer, controller;
+  const mutation=!!(opts.method&&opts.method!=="GET");
+  try{
+    controller=new AbortController();
+    const prior=opts.signal;
+    opts.signal=prior||controller.signal;
+    timer=setTimeout(()=>controller.abort(),30000);
+    r=await fetch(url,opts);
+  }
+  catch(e){
+    if(e?.name==="AbortError") showToast(mutation?"انتهت مهلة الحفظ؛ حالة الحفظ غير معروفة، راجع اليومية قبل إعادة المحاولة.":"انتهت مهلة الطلب",true);
+    else showToast("تعذر الاتصال بالخادم",true);
+    return null
+  }
+  finally{ if(timer) clearTimeout(timer) }
   let out={}; try{out=await r.json()}catch(e){}
   if(!r.ok){
     // التعديل بيمس يوم/أيام مقفولة (راحة أو فرقة بتاريخ فات مثلًا) —
@@ -1680,8 +1692,8 @@ document.addEventListener("keydown",e=>{
    عشان يتسجل في سجل التدقيق من غير أي نظام حسابات أو تسجيل دخول. */
 const editedByEl=$("#editedBy");
 if(editedByEl){
-  editedByEl.value=localStorage.getItem("editedBy")||"";
-  editedByEl.addEventListener("input",()=>localStorage.setItem("editedBy",editedByEl.value.trim()));
+  try{ editedByEl.value=localStorage.getItem("editedBy")||"" }catch(_err){ editedByEl.value="" }
+  editedByEl.addEventListener("input",()=>{try{localStorage.setItem("editedBy",editedByEl.value.trim())}catch(_err){}});
 }
 
 /* ═══════════════ الموبايل: شيت التصفية، كروت الجداول، وتلميح التمرير ═══════════════ */

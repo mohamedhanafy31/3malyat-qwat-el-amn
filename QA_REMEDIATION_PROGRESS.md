@@ -9,8 +9,8 @@ Baseline: `459fbf3` on `qa/remediation`; `822 passed in 13.28s`.
 | 3. Crash durability and process locking | QA-07, QA-26, QA-28 | accepted | direct implementation after Claude quota block | pending | journal recovery/import crash tests passed; OS lock tests passed; full 900 passed; diff-check clean |
 | 4. Backups, audit history, attachments | QA-03, QA-04, QA-16, QA-17, QA-27 | accepted | direct implementation after Claude quota block | pending | full 901 passed; ZIP attachment round-trip, throttling, retention, legacy restore, and corrupt archive gates passed |
 | 5. Pure GET and stale-write protection | QA-05, QA-10 | partial | direct implementation | pending | scoped revision tokens/stale 409 paths added; preparation remains write-on-first-GET for compatibility and needs final UI migration |
-| 6. Request and workflow reliability | QA-08, QA-09, QA-12, QA-13, QA-30 | queued | — | — | — |
-| 7. Frontend performance, UX, accessibility | QA-14, QA-20–QA-25 | queued | — | — | — |
+| 6. Request and workflow reliability | QA-08, QA-09, QA-12, QA-13, QA-30 | partial | direct implementation | pending | 30s fetch timeout/unknown mutation state and JSON 413/500 incident responses added; full 901 passed |
+| 7. Frontend performance, UX, accessibility | QA-14, QA-20–QA-25 | partial | direct implementation | pending | local-date generation, cached asset stamps, and guarded localStorage writes added; JS syntax and full 901 passed |
 | 8. Final coherence and storage decision | all | queued | — | — | — |
 
 ## Queue constraints

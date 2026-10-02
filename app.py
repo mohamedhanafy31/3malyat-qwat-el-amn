@@ -1,6 +1,8 @@
 import os
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
+import uuid
 
 from backend.routes import register_routes
 from backend.store import SchemaMismatch, acquire_process_lock
@@ -16,6 +18,7 @@ app.json.ensure_ascii = False
 # نفسها محدودة بـ8MB (`service_catalog.MAX_IMAGE_BYTES`)، والسقف هنا أعلى
 # شوية لأي هامش بروتوكول.
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024
+_STATIC_STAMPS = {}
 
 register_routes(app)
 
@@ -29,7 +32,7 @@ def _bust_static_cache(endpoint, values):
     if endpoint == "static" and "filename" in values:
         path = os.path.join(app.static_folder, values["filename"])
         try:
-            values["v"] = int(os.path.getmtime(path))
+            values["v"] = _STATIC_STAMPS.setdefault(values["filename"], int(os.path.getmtime(path)))
         except OSError:
             pass
 
@@ -38,6 +41,22 @@ def _bust_static_cache(endpoint, values):
 def _schema_mismatch(exc):
     """ملف بيانات ببنية مختلفة — رسالة واضحة بدل 500 صامت."""
     return jsonify({"error": str(exc)}), 503
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def _too_large(exc):
+    return jsonify({"error": "حجم الطلب أكبر من الحد المسموح.", "code": "payload_too_large"}), 413
+
+
+@app.errorhandler(Exception)
+def _unexpected(exc):
+    if isinstance(exc, HTTPException):
+        return exc
+    if app.testing:
+        raise exc
+    incident = uuid.uuid4().hex[:12]
+    app.logger.exception("Unhandled incident %s", incident)
+    return jsonify({"error": "حدث خطأ داخلي.", "incident": incident}), 500
 
 
 if __name__ == "__main__":
