@@ -2,6 +2,7 @@
 chcp 65001 > NUL
 title نظام إدارة القوة - التشغيل
 cd /d "%~dp0"
+set "ROOT=%~dp0"
 
 REM ============================================================
 REM  التشغيل اليومي فقط.
@@ -59,9 +60,9 @@ start "" /b cmd /c "timeout /t 2 >nul & start "" http://127.0.0.1:%PORT%"
 REM waitress لو متوفرة (أثبت للتشغيل الطويل)، وإلا سيرفر Flask العادي
 "%PY%" -c "import waitress" >nul 2>&1
 if %errorlevel%==0 (
-    "%PY%" serve.py
+    "%PY%" "%ROOT%serve.py"
 ) else (
-    "%PY%" app.py
+    "%PY%" "%ROOT%app.py"
 )
 
 echo.

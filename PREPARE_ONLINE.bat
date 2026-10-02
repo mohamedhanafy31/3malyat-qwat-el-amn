@@ -80,6 +80,11 @@ echo [OK] بايثون المحمولة جاهزة في runtime\
 echo.
 
 :summary
+if exist "runtime\python.exe" (
+    echo [*] بيثبّت التبعيات وبيجهّز مسار المشروع داخل Python Embedded...
+    runtime\python.exe tools\offline_env.py install --target "runtime\Lib\site-packages"
+    if %errorlevel% neq 0 goto :failed
+)
 echo ========================================================
 echo  خلص التجهيز.
 echo.
@@ -97,3 +102,11 @@ echo عدد الحزم الجاهزة: %NWHL%
 if exist "runtime\python.exe" (echo نسخة بايثون المحمولة: موجودة) else (echo نسخة بايثون المحمولة: مش موجودة - الجهاز هيحتاج Python متثبّت)
 echo.
 pause
+exit /b 0
+
+:failed
+echo.
+echo [X] فشل تجهيز Python Embedded أو التبعيات.
+echo     راجع الاتصال والحزم ثم أعد تشغيل PREPARE_ONLINE.bat.
+pause
+exit /b 1

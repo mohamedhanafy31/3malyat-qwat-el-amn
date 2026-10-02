@@ -16,6 +16,7 @@
 كل الأوامر دي مالهاش أي اتصال بالشبكة — لا تنزيل ولا فحص تحديثات.
 """
 import argparse
+import os
 import shutil
 import site
 import sys
@@ -46,8 +47,9 @@ def default_target():
 def _enable_site_packages():
     """نسخة بايثون المحمولة بتقفل site-packages افتراضيًا في ملف `._pth`.
 
-    بتشيل التعليق من `import site` وبتضيف سطر `Lib\\site-packages` لو ناقص،
-    وإلا الحزم المفكوكة مش هتتشاف أصلًا. بيرجّع True لو غيّر حاجة.
+    بتشيل التعليق من `import site` وبتضيف جذر المشروع (`..`) و
+    `Lib\\site-packages` لو ناقصين. ده ضروري لنسخة Python Embedded لأن
+    ملف `._pth` بيعطّل إضافة مجلد السكربت تلقائيًا. بيرجّع True لو غيّر حاجة.
     """
     pth_files = list(Path(sys.prefix).glob("python*._pth"))
     if not pth_files:
@@ -60,6 +62,10 @@ def _enable_site_packages():
                  for l in lines]
         if not any(l.strip() == "import site" for l in lines):
             lines.append("import site")
+        changed = True
+    project_entry = os.path.relpath(ROOT, Path(sys.prefix)).replace("/", "\\")
+    if project_entry not in {line.strip().replace("/", "\\") for line in lines}:
+        lines.insert(0, project_entry)
         changed = True
     if not any(l.strip().lower().replace("/", "\\") == "lib\\site-packages" for l in lines):
         lines.insert(max(0, len(lines) - 1), r"Lib\site-packages")
