@@ -13,6 +13,7 @@ from .. import changes
 from .. import day_status
 from ..assignments import OFFICER_STATUSES, officer_state, set_officer_state
 from ..duty import summarise
+from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..people import officers_on
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
@@ -78,7 +79,10 @@ def set_state(day, person_id):
         if before != dict(after):
             changes.record(data, "officer_state", person_id, "update",
                            before=before, after=dict(after), reason=f"يوم {day}")
-        return jsonify(summarise(data, day))
+        result = summarise(data, day)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
     return with_data(mutate, around(day, -1, 0))
 
@@ -100,6 +104,8 @@ def clear_state(day, person_id):
         if before:
             changes.record(data, "officer_state", person_id, "delete",
                            before=before, reason=f"يوم {day}")
-        return jsonify({"ok": True})
+        result = {"ok": True, "daily": build_daily_view(data, day)}
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
     return with_data(mutate, [day])

@@ -27,6 +27,7 @@ from ..board import (
 from ..board_export import build_docx
 from ..constants import SECTION_OCCASIONAL, SERVICE_KINDS
 from ..duty import summarise
+from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..repo import Repos
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
@@ -156,7 +157,10 @@ def add_assignment(day):
                 "code": "possible_duplicate", "existing_id": twin}), 409))
         entries.append(row)
         place_assignment_after(data, day, row["id"], payload.get("after_id"))
-        return jsonify(row), 201
+        result = dict(row)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result), 201
 
     return with_data(mutate, around(day, -1, 0))
 
@@ -187,7 +191,10 @@ def edit_assignment(day, assignment_id):
         clash = guard_duplicate(data, day, row, ignore_id=row["id"])
         if clash:
             raise AbortRequest((jsonify({"error": clash}), 409))
-        return jsonify(row)
+        result = dict(row)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
     return with_data(mutate, [day])
 
@@ -204,7 +211,9 @@ def delete_assignment(day, assignment_id):
             raise AbortRequest((jsonify({"error": lock_err}), 409))
         if not Repos(data).days.remove_assignment(day, assignment_id):
             raise AbortRequest((jsonify({"error": "التكليف غير موجود."}), 404))
-        return jsonify({"ok": True})
+        result = {"ok": True, "daily": build_daily_view(data, day)}
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
     return with_data(mutate, [day])
 
