@@ -64,7 +64,7 @@ function changeRow(e) {
 
 function render() {
   $("#changesWrap").innerHTML = tableBlock(
-    ["وقت التسجيل", "اليومية", "النوع", "العملية", "التغيير", "المُعدِّل"],
+    ["وقت التأكيد", "اليومية", "النوع", "العملية", "التغيير", "المُعدِّل"],
     ENTRIES.map(changeRow), `عدد السجلات: ${ENTRIES.length}`,
     {title: "لا توجد تغييرات مسجّلة", hint: "تُسجَّل تغييرات اليومية التفصيلية بعد الضغط على «تأكيد اليومية»."},
     "changesWrap", render);
@@ -73,9 +73,11 @@ function render() {
 async function loadEntries() {
   const q = new URLSearchParams();
   const entity = $("#chgEntityFilter").value;
-  const day = $("#chgDayFilter").value;
+  const fromDay = $("#chgFromDay").value;
+  const toDay = $("#chgToDay").value;
   if (entity) q.set("entity", entity);
-  if (day) q.set("day", day);
+  if (fromDay) q.set("from_day", fromDay);
+  if (toDay) q.set("to_day", toDay);
   const d = await api(`/api/changes${q.toString() ? "?" + q : ""}`);
   if (!d) return;
   ENTRIES = d.entries;
@@ -83,8 +85,13 @@ async function loadEntries() {
 }
 
 $("#chgEntityFilter").onchange = loadEntries;
-$("#chgDayFilter").onchange = loadEntries;
-$("#chgClearDay").onclick = () => { $("#chgDayFilter").value = ""; loadEntries() };
+$("#chgFromDay").onchange = loadEntries;
+$("#chgToDay").onchange = loadEntries;
+$("#chgClearDay").onclick = () => {
+  $("#chgFromDay").value = "";
+  $("#chgToDay").value = "";
+  loadEntries();
+};
 
 async function load() {
   const d = await bootstrap();

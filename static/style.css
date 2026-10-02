@@ -1076,6 +1076,8 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
   color:var(--navy-800);font-weight:600}
 .info-disclosure p{margin:var(--s2) 0 0;max-width:80ch;line-height:1.7}
 .changes-note{margin:var(--s3) var(--s5)}
+.change-range-field{display:inline-flex;align-items:center;gap:var(--s1);font-size:var(--t-xs);color:var(--ink-500);font-weight:700}
+.change-range-field .select{min-width:145px}
 /* شريط حالة التأكيد فوق اليومية التفصيلية */
 .confirm-bar{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) var(--s5);
   border-bottom:1px solid var(--line);font-size:var(--t-cap)}

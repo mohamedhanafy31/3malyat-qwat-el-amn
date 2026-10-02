@@ -5,8 +5,8 @@
 <div class="panel">
   <div class="toolbar">
     <select id="chgEntityFilter" class="select" aria-label="تصفية حسب الكيان">
-      <option value="">كل الأنواع</option>
-      <option value="duty_move">حركة الضباط والأفراد (كان ← أصبح)</option>
+      <option value="duty_move" selected>تشغيل الضباط — انتقالات الخدمات</option>
+      <option value="">كل سجلات النظام</option>
       <option value="assignment">الخدمات (إضافة/تعديل/حذف)</option>
       <option value="day_confirm">تأكيد اليوميات</option>
       <option value="day_lock">إغلاق وفتح الأيام</option>
@@ -16,12 +16,18 @@
       <option value="mission">المأموريات</option>
       <option value="import">استيراد الأرشيف</option>
     </select>
-    <input type="date" id="chgDayFilter" class="select" aria-label="تصفية حسب يومية معيّنة">
+    <label class="change-range-field">من
+      <input type="date" id="chgFromDay" class="select" aria-label="من يوم">
+    </label>
+    <label class="change-range-field">إلى
+      <input type="date" id="chgToDay" class="select" aria-label="إلى يوم">
+    </label>
     <button class="mini" id="chgClearDay">كل الأيام</button>
   </div>
   <p class="hint panel-notice changes-note">
-    تُسجَّل تغييرات اليومية التفصيلية عند <b>تأكيد اليومية</b> لا عند الحفظ —
-    لذا يمثّل الوقت في العمود الأول لحظة التأكيد.
+    هذا هو سجل تشغيل الضباط: كل سطر يوضح انتقال الضابط من خدمة إلى أخرى بين
+    نقطتي تأكيد. اختر مدى الأيام لعرض التغييرات التي حدثت فيها فقط؛ وقت السطر
+    هو وقت التأكيد، وليس وقت الحفظ.
   </p>
   <div id="changesWrap" data-mobile-cards>{{ skeleton("rows", 10) }}</div>
 </div>
