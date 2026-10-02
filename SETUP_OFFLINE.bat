@@ -70,13 +70,13 @@ if not exist "venv\Scripts\python.exe" (
 
 echo [*] بيثبّت الحزم من wheels\ ^(--no-index = ممنوع أي اتصال^)...
 echo.
-venv\Scripts\python.exe -m pip install --no-index --find-links=wheels -q flask
+venv\Scripts\python.exe -m pip install --no-index --find-links=wheels -q flask waitress python-docx
 if %errorlevel% neq 0 (
     echo [!] pip مانفعش — بيجرّب الفكّ المباشر بدله...
     venv\Scripts\python.exe tools\offline_env.py install
     if %errorlevel% neq 0 goto :failed
 ) else (
-    venv\Scripts\python.exe -m pip install --no-index --find-links=wheels -q waitress 2>nul
+    rem كل التبعيات المطلوبة (بما فيها تصدير Word) اتثبتت بالفعل في السطر السابق.
 )
 
 :done

@@ -28,7 +28,7 @@ if not defined PY (
 )
 
 REM --- 2) التأكد إن الحزم موجودة — من غير أي تثبيت ---
-"%PY%" -c "import flask" >nul 2>&1
+"%PY%" -c "import flask, docx" >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
     echo [X] حزم التشغيل ناقصة في البيئة.

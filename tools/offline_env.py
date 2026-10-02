@@ -28,7 +28,7 @@ WHEELS = ROOT / "wheels"
 
 # الحزم اللي لازم تكون موجودة عشان السيستم يشتغل. waitress اختيارية —
 # بتخلي التشغيل أثبت، وسيرفر Flask العادي شغّال من غيرها.
-REQUIRED = ["flask", "werkzeug", "jinja2", "markupsafe", "itsdangerous", "click"]
+REQUIRED = ["flask", "werkzeug", "jinja2", "markupsafe", "itsdangerous", "click", "docx"]
 OPTIONAL = ["waitress", "blinker", "colorama"]
 
 

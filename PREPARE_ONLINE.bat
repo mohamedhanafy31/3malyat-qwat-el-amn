@@ -39,7 +39,7 @@ echo [*] بينزّل حزم Flask ومعتمداته لويندوز 64-bit / Py
 if not exist "wheels" mkdir wheels
 %SYSPY% -m pip download --only-binary=:all: --platform win_amd64 ^
     --python-version 3.11 --implementation cp ^
-    --dest wheels flask waitress
+    --dest wheels flask waitress python-docx
 if %errorlevel% neq 0 (
     echo [X] فشل تنزيل الحزم. اتأكد من الاتصال بالإنترنت.
     pause
