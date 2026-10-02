@@ -77,6 +77,17 @@ def approvals(ledger: Ledger) -> set[str]:
             if (row.get("approve") or "").strip().lower() in _YES}
 
 
+def partial_source_dates(ledger: Ledger) -> set[str]:
+    """Dates missing an authoritative roster or personnel source."""
+    path = ledger.report_path("manifest.csv")
+    if not path.exists():
+        return set()
+    with path.open(encoding="utf-8-sig", newline="") as stream:
+        return {row["date"] for row in csv.DictReader(stream)
+                if row.get("date") and (not (row.get("roster") or "").strip()
+                                         or not (row.get("afraad") or "").strip())}
+
+
 def quarantined(ledger: Ledger) -> set[str]:
     path = ledger.root / "quarantine" / f"{ledger.batch}-verify.json"
     return set((json.loads(path.read_text(encoding="utf-8")).get("days") or {}) if path.exists() else {})
@@ -90,11 +101,14 @@ def plan(ledger: Ledger, *, replace_existing: bool = False) -> dict[str, Any]:
     target = load_target_days(ledger.data_dir)
     held = quarantined(ledger)
     approved = approvals(ledger)
+    partial = partial_source_dates(ledger)
     result: dict[str, tuple[str, str]] = {}
     for date in sorted(days):
         current = target.get(date)
         if date in PROTECTED:
             result[date] = ("skip", "يوم مرجعي محمي")
+        elif date in partial:
+            result[date] = ("skip", "مصدر جزئي — محتاج مراجعة")
         elif date in held:
             result[date] = ("skip", "معزول في verify")
         elif current is None:
@@ -110,10 +124,12 @@ def plan(ledger: Ledger, *, replace_existing: bool = False) -> dict[str, Any]:
     return {"days": days, "plan": result}
 
 
-def check_migrations(data_dir: Path) -> list[str]:
+def check_migrations(data_dir: Path, dates: set[str] | None = None) -> list[str]:
     """013/014 لازم يكونوا اتطبقوا: مفيش «medical» في حالات الضباط ولا label_override/tags على التكليفات."""
     problems = []
     for date, blob in load_target_days(data_dir).items():
+        if dates is not None and date not in dates:
+            continue
         if any("medical" in state for state in (blob.get("officer_states") or {}).values()):
             problems.append(f"{date}: medical (هجرة 013)")
         if any("label_override" in row or "tags" in row for row in blob.get("assignments") or []):
@@ -193,11 +209,13 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
     verify_state = (state.get("stages") or {}).get("verify") or {}
     if verify_state.get("status") != "complete":
         raise StoreRefused("لازم verify يكتمل للدفعة الأول")
-    problems = check_migrations(ledger.data_dir)
-    if problems:
-        raise StoreRefused("هجرات 013/014 لسه ما اتطبقتش على الهدف: " + "؛ ".join(problems[:5]))
     planned = plan(ledger, replace_existing=replace_existing)
     actions = planned["plan"]
+    write_dates = {date for date, (action, _) in actions.items()
+                   if action in {"write", "update", "replace"}}
+    problems = check_migrations(ledger.data_dir, write_dates)
+    if problems:
+        raise StoreRefused("هجرات 013/014 لسه ما اتطبقتش على الهدف: " + "؛ ".join(problems[:5]))
     skip = {date for date, (action, _) in actions.items() if action == "skip"}
     counts: dict[str, int] = {}
     for action, _ in actions.values():

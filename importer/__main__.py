@@ -11,6 +11,8 @@ from pathlib import Path
 
 from .aliases import VERSION as ALIASES_VERSION
 from .aliases import run_aliases
+from .audit import VERSION as AUDIT_VERSION
+from .audit import run_audit
 from .transform import VERSION as TRANSFORM_VERSION
 from .transform import run_transform
 from .verify import DEFAULT_THRESHOLD
@@ -31,7 +33,7 @@ from .validate import VERSION as VALIDATE_VERSION
 from .validate import run_validate
 
 
-STAGES = ("discover", "extract", "validate", "normalize", "resolve", "aliases", "transform", "verify", "golden",
+STAGES = ("discover", "extract", "validate", "normalize", "resolve", "aliases", "transform", "verify", "audit", "golden",
           "store", "rollback", "diff", "report", "run")
 DEFAULT_START = dt.date(2023, 10, 1)
 DEFAULT_END = dt.date(2026, 9, 29)
@@ -108,6 +110,7 @@ def main(argv: list[str] | None = None) -> int:
         "aliases": ALIASES_VERSION,
         "transform": TRANSFORM_VERSION,
         "verify": VERIFY_VERSION,
+        "audit": AUDIT_VERSION,
     })
     if args.stage == "discover":
         checkpoint = run_discover(archive, ledger, args.from_date, args.to_date, state)
@@ -182,6 +185,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"اكتملت مرحلة verify: {checkpoint['days']} يومًا، متوسط الدرجة {checkpoint['mean_score']}، "
               f"{checkpoint['quarantined']} يومًا معزولًا (الحد {checkpoint['threshold']}).")
         return 0
+    if args.stage == "audit":
+        try:
+            checkpoint = run_audit(ledger, args.from_date, args.to_date, state)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        print(f"اكتملت مرحلة audit: {checkpoint['days']} يومًا، التقرير {checkpoint['csv']}")
+        return 0
     if args.stage == "golden":
         summary = run_golden(ledger, state)
         for date, match in sorted((k, v) for k, v in summary.items() if k != "unclassified"):
@@ -220,6 +230,7 @@ def main(argv: list[str] | None = None) -> int:
         run_aliases(ledger, state, args.from_date, args.to_date, resume=args.resume)
         run_transform(ledger, state, args.from_date, args.to_date, resume=args.resume)
         verified = run_verify(ledger, state, threshold=args.threshold)
+        run_audit(ledger, args.from_date, args.to_date, state)
         run_diff(ledger, state)
         try:
             stored = run_store(ledger, state, write=args.write, replace_existing=args.replace_existing,

@@ -1,0 +1,596 @@
+{
+  "batch": "roster-gap-20261002",
+  "extractor_versions": {
+    "aliases": "1",
+    "audit": "1",
+    "discover": "1",
+    "extract": "2",
+    "normalize": "2",
+    "resolve": "4",
+    "transform": "2",
+    "validate": "1",
+    "verify": "1"
+  },
+  "params": {
+    "archive": "/media/hanafy/aa9ee400-c081-4d3b-b831-a2a8c83c9f4410/personal/سيستم المعسكر",
+    "batch": "roster-gap-20261002",
+    "data_dir": "/tmp/roster-gap-fill/data",
+    "from": "2023-10-01",
+    "resume": false,
+    "to": "2026-09-29",
+    "write": false
+  },
+  "stages": {
+    "aliases": {
+      "checkpoint": {
+        "coverage": {
+          "overall": {
+            "high": 73844,
+            "high_medium_percent": 90.38,
+            "low": 13056,
+            "medium": 48865,
+            "total": 135765
+          },
+          "per_source": {
+            "afraad_basic": {
+              "high": 25543,
+              "high_medium_percent": 100.0,
+              "low": 0,
+              "medium": 0,
+              "total": 25543
+            },
+            "afraad_emergency": {
+              "high": 5274,
+              "high_medium_percent": 87.46,
+              "low": 1708,
+              "medium": 6640,
+              "total": 13622
+            },
+            "board": {
+              "high": 10543,
+              "high_medium_percent": 93.34,
+              "low": 1213,
+              "medium": 6446,
+              "total": 18202
+            },
+            "command_order": {
+              "high": 1628,
+              "high_medium_percent": 87.71,
+              "low": 669,
+              "medium": 3147,
+              "total": 5444
+            },
+            "counts": {
+              "high": 3883,
+              "high_medium_percent": 84.07,
+              "low": 1555,
+              "medium": 4325,
+              "total": 9763
+            },
+            "counts_leader": {
+              "high": 6458,
+              "high_medium_percent": 86.96,
+              "low": 1981,
+              "medium": 6749,
+              "total": 15188
+            },
+            "duty_list": {
+              "high": 2370,
+              "high_medium_percent": 68.45,
+              "low": 4041,
+              "medium": 6397,
+              "total": 12808
+            },
+            "roster": {
+              "high": 18145,
+              "high_medium_percent": 94.63,
+              "low": 1889,
+              "medium": 15161,
+              "total": 35195
+            }
+          },
+          "per_year": {
+            "2023": {
+              "high": 3821,
+              "high_medium_percent": 92.23,
+              "low": 475,
+              "medium": 1815,
+              "total": 6111
+            },
+            "2024": {
+              "high": 19270,
+              "high_medium_percent": 91.16,
+              "low": 3036,
+              "medium": 12037,
+              "total": 34343
+            },
+            "2025": {
+              "high": 27593,
+              "high_medium_percent": 89.49,
+              "low": 5412,
+              "medium": 18509,
+              "total": 51514
+            },
+            "2026": {
+              "high": 23160,
+              "high_medium_percent": 90.56,
+              "low": 4133,
+              "medium": 16504,
+              "total": 43797
+            }
+          }
+        },
+        "distinct_keys": 7892,
+        "event_days_per_year": {
+          "2023": 62,
+          "2024": 72,
+          "2025": 114,
+          "2026": 101
+        },
+        "events": 402,
+        "notes": 1397,
+        "reference_exact_failures": [
+          "مباراة قرية عامر و الرباط الانوار باستاد الجيش"
+        ],
+        "top_40_low": [
+          {
+            "count": 1863,
+            "examples": "مشرف الكول مكبر ليل \"مقدم / وليد عصمت\" ; مشرف الكول مكبر ليل \"مقدم/ وليد عصمت\" ; مشرف الكول مكبر ليل \"مقدم / محمود الجرزاوى\" ; مشرف الكول مكبر صبح : \" عقيد / محمد ماهر شاكر \" ; مشرف الكول مكبر ليل : \" عقيد / تامر محمد عادل \"",
+            "key": "مشرف كول مكبر"
+          },
+          {
+            "count": 462,
+            "examples": "المخابرات",
+            "key": "مخابرات"
+          },
+          {
+            "count": 394,
+            "examples": "محافظة ; المحافظة ; المحافظة صبح ; محافظة صبح ; المحافظه",
+            "key": "محافظه"
+          },
+          {
+            "count": 386,
+            "examples": "مبنى المخابرات الحربيه",
+            "key": "مبني مخابرات حربيه"
+          },
+          {
+            "count": 379,
+            "examples": "اسفل ك109",
+            "key": "اسفل ك109"
+          },
+          {
+            "count": 379,
+            "examples": "اعلي ك109",
+            "key": "اعلي ك109"
+          },
+          {
+            "count": 278,
+            "examples": "المنطقة الحرة ليل ; منطقة حرة فترة ليلية ; المنطقة الحرة فترة ليلية ; المنطقة الحرة فترة ليلية : \" مقدم / حسام رضوان \" ; المنطقة الحره فتره ليليه",
+            "key": "منطقه حره"
+          },
+          {
+            "count": 224,
+            "examples": "قول ممشى بور توفيق",
+            "key": "قول ممشي بور توفيق"
+          },
+          {
+            "count": 223,
+            "examples": "مستشفى السويس العام",
+            "key": "مستشفي سويس عام"
+          },
+          {
+            "count": 213,
+            "examples": "مايك وتشكيل فيصل",
+            "key": "مايك وتشكيل فيصل"
+          },
+          {
+            "count": 180,
+            "examples": "تشغيل من شئون الخدمة ; تشغيل من شئون الخدمه ; تشغيل من شئون الخددمة",
+            "key": "تشكيل من شيون خدمه"
+          },
+          {
+            "count": 175,
+            "examples": "العيادة العلاجية بالمعسكر",
+            "key": "عياده علاجيه معسكر"
+          },
+          {
+            "count": 163,
+            "examples": "قول ممشى بور توفيق (السويس)",
+            "key": "قول ممشي بور توفيق سويس"
+          },
+          {
+            "count": 163,
+            "examples": "المركبات (المركبات)",
+            "key": "مركبات مركبات"
+          },
+          {
+            "count": 163,
+            "examples": "مستشفى السويس العام (السويس)",
+            "key": "مستشفي سويس عام سويس"
+          },
+          {
+            "count": 118,
+            "examples": "منوب عمليات ; منوب العمليات فتره صباحية ; منوب العمليات فتره ليلية ; منوب العمليات فترة صباحية ; منوب العمليات فترة ليلية",
+            "key": "منوب عمليات"
+          },
+          {
+            "count": 115,
+            "examples": "ارتكاز المنطقة الحرة فترة ليلية ; ارتكاز المنطقة الحرة ; ارتكاز المنطقه الحره ليل ; ارتكاز المنطفة الحرة ليل ; ارتكاز المنطقه الحرة فترة ليلية",
+            "key": "ارتكاز منطقه حره"
+          },
+          {
+            "count": 92,
+            "examples": "شاطئ السادات ; شاطئ السادات 9ص ; شاطئ السادات 9ص \"توصيل\" ; شاطى السادات ; شاطئ السادات 6 ص",
+            "key": "شاطي سادات"
+          },
+          {
+            "count": 77,
+            "examples": "ملعب النوبة ; ملعب (النوبة) ; ملعب النوبة \"2 مجند\" ; ملعب النوبة \"2مجند\" ; ملعب النوبه",
+            "key": "ملعب نوبه"
+          },
+          {
+            "count": 75,
+            "examples": "شاطئ ضي القمر ; شاطئ ضي القمر 9ص ; شاطئ ضي القمر9ص \"توصيل\" ; شاطي ضي القمر ; شاطئ ضى القمر",
+            "key": "شاطي ضي قمر"
+          },
+          {
+            "count": 74,
+            "examples": "كنيسة الانبا انطونيوس ; كنيسة الانبا انطونيوس 5ص ; كنيسه الانبا انطونيوس ; كنيسة الانبا انطونيوس 5م ; كنيسة الأنبا انطونيوس 5م",
+            "key": "كنيسه انبا انطونيوس"
+          },
+          {
+            "count": 70,
+            "examples": "العوايد ; العوايد \"مج فض\" \"رقيب/ عادل احمد سالم\" ; العوايد \"مج فض\" \"أ.ش / جمال حسن\"",
+            "key": "عوايد"
+          },
+          {
+            "count": 67,
+            "examples": "العياده العلاجيه بالمعسكر – تفرغ دراسي",
+            "key": "عياده علاجيه معسكر تفرغ دراسي"
+          },
+          {
+            "count": 61,
+            "examples": "ملعب الجبلايات ; ملعب (الجبلايات) ; ملعب الجبلايات \"2 مجند\" ; ملعب الجبلايات 11ص ; ملعب الجبلايات \"دائره قسم شرطه الجناين\" \"2مجند\"",
+            "key": "ملعب جبلايات"
+          },
+          {
+            "count": 58,
+            "examples": "شاطئ جينكو ; شاطى جينكو ; شاطئ جينكو 6 ص ; شاطئ جينكو 7 ص ; شاطئ جينكو \" نقيب / عبدالرحمن الازرق\"",
+            "key": "شاطي جينكو"
+          },
+          {
+            "count": 58,
+            "examples": "وحدة الموقف الاقليمي ; وحدة الموقف الأقليمي ; وحدة الموقف الاقليمي 7ص ; وحده الموقف الاقليمي ; وحدة الموقف الاقليمى",
+            "key": "وحده موقف اقليمي"
+          },
+          {
+            "count": 54,
+            "examples": "كنيسة الايمان (الاربعين)",
+            "key": "كنيسه ايمان اربعين"
+          },
+          {
+            "count": 54,
+            "examples": "ملعب ش الجبلايات ; ملعب ش الجبلايات \"2مجند\" ; ملعب ش الجبلايات \"3مجند\" ; ملعب ش الجبلايات \"2 مجند\" ; ملعب ش الجبلايات \"دائره قسم الجناين\" \"2 مجند\"",
+            "key": "ملعب ش جبلايات"
+          },
+          {
+            "count": 51,
+            "examples": "ملعب ش المثلث ; ملعب ش المثلث \"2مجند\" ; ملعب ش المثلث \"2 مجند\" ; ملعب ش المثلث \"3مجند\" ; ملعب ش المثلث \"دائره قسم الاربعين\"",
+            "key": "ملعب ش مثلث"
+          },
+          {
+            "count": 48,
+            "examples": "ملعب ش السلام ; ملعب ش السلام \"2مجند\" ; ملعب ش السلام \"2 مجند\" ; ملعب م.ش السلام ; ملعب م ش السلام \"3 مجند\"",
+            "key": "ملعب ش سلامه"
+          },
+          {
+            "count": 48,
+            "examples": "وحدة الموقف القديم ; وحده الموقف القديم ; وحدة الموقف القديم 7ص ; وحدة الموقف القديم \"8ص\"",
+            "key": "وحده موقف قديم"
+          },
+          {
+            "count": 46,
+            "examples": "الاجازات والراحات ; الأجازات والراحات",
+            "key": "اجابات والراحات"
+          },
+          {
+            "count": 46,
+            "examples": "الموقف القديم",
+            "key": "موقف قديم"
+          },
+          {
+            "count": 43,
+            "examples": "السيد العميد / طارق محمد عادل المرور الميدانى على خدمات قوات الامن ومفاجاة وتوعية القوات",
+            "key": "سيد عميد طارق محمد عادل مرور ميدان علي خدمات قوات امن ومفاجاه وتوعيه قوات"
+          },
+          {
+            "count": 39,
+            "examples": "منطقة حرة فترة ليلة ; المنطقه الحره فتره ليله",
+            "key": "منطقه حره فتره ليله"
+          },
+          {
+            "count": 36,
+            "examples": "الاجازات والرحات",
+            "key": "اجابات والرحات"
+          },
+          {
+            "count": 36,
+            "examples": "تأمين مدرسة الشهيد النقيب/ محمد عمرو الطاهر ; تأمين مدرسة الشهيد النقيب/ محمد عمرو الطاهر 8ص",
+            "key": "تامين مدرسه شهيده نقيب محمد عمرو طاهر"
+          },
+          {
+            "count": 36,
+            "examples": "السيد العميد / طارق جاويش المتابعة الاشرافيه الميدانية علي جميع خدمات اداره قوات الامن",
+            "key": "سيد عميد طارق جاويش متابعه اشرافيه ميدانيه علي جميع خدمات اداره قوات امن"
+          },
+          {
+            "count": 36,
+            "examples": "عدد 2 وحدة فض برئاستهم",
+            "key": "عدد 2 وحده فض برياستهم"
+          },
+          {
+            "count": 36,
+            "examples": "قسم الأربعين القطاع الأول",
+            "key": "قسم اربعين قطاع اول"
+          }
+        ],
+        "version": "1"
+      },
+      "status": "complete"
+    },
+    "audit": {
+      "checkpoint": {
+        "csv": "/tmp/roster-gap-fill/data/import/reports/roster-gap-20261002-audit.csv",
+        "days": 1095
+      },
+      "status": "complete"
+    },
+    "discover": {
+      "checkpoint": {
+        "covered_dates": 1092,
+        "files": 18296,
+        "folder_dates": 1091,
+        "folders": 1100,
+        "missing_dates": [
+          "2023-12-24",
+          "2024-02-04",
+          "2025-07-10"
+        ],
+        "recovered_dates": [
+          "2024-08-31"
+        ]
+      },
+      "status": "complete"
+    },
+    "extract": {
+      "checkpoint": {
+        "documents": 6725,
+        "errors": 0,
+        "records": 303953,
+        "version": "2"
+      },
+      "status": "complete"
+    },
+    "normalize": {
+      "checkpoint": {
+        "flagged_records": 44263,
+        "records": 303953,
+        "version": "2"
+      },
+      "status": "complete"
+    },
+    "resolve": {
+      "checkpoint": {
+        "fuzzy_merges": {
+          "officers": 18,
+          "personnel": 22
+        },
+        "junk_clusters": 0,
+        "officers": {
+          "clusters": 111,
+          "matched_existing": 49,
+          "new": 62,
+          "review": 11,
+          "unresolved_observations": 724
+        },
+        "personnel": {
+          "clusters": 272,
+          "matched_existing": 199,
+          "new": 72,
+          "review": 75,
+          "unresolved_observations": 2667
+        },
+        "reference_mismatches": {
+          "officers": 0,
+          "personnel": 0
+        },
+        "remaining_candidates": {
+          "officers": 0,
+          "personnel": 10
+        },
+        "reported_merges": {
+          "officers": 113,
+          "personnel": 612
+        },
+        "self_check_errors": 0,
+        "version": "4"
+      },
+      "status": "complete"
+    },
+    "store": {
+      "checkpoint": {
+        "files_written": 988,
+        "plan": {
+          "skip": 105,
+          "write": 987
+        }
+      },
+      "status": "complete"
+    },
+    "transform": {
+      "checkpoint": {
+        "afraad_entries": 24878,
+        "afraad_versions": 41,
+        "command_history": 30,
+        "counts_days": 300,
+        "days": 1092,
+        "derived_days": 404,
+        "leaves": {
+          "add": 3284,
+          "keep": 257,
+          "review_overlap": 13
+        },
+        "officer_states": 39934,
+        "officers": 99,
+        "personnel": 217,
+        "protected": 2,
+        "review": {
+          "duplicate_rows_merged": 657,
+          "not_a_target_moved": 114,
+          "personnel_prefix_match": 1622,
+          "shift_defaulted": 2232,
+          "target_officer_from_roster": 54,
+          "unresolved_roster_officer": 142
+        },
+        "rows": 37538,
+        "target_versions": 334,
+        "version": "2"
+      },
+      "status": "complete"
+    },
+    "validate": {
+      "checkpoint": {
+        "document_verdicts": {
+          "ok": 5035,
+          "quarantine": 863,
+          "warn": 827
+        },
+        "documents": 6725,
+        "quarantine_by_role": {
+          "afraad": 13,
+          "board": 2,
+          "command_order": 26,
+          "counts": 7,
+          "counts_leader": 263,
+          "deployment": 223,
+          "duty_list": 12,
+          "match": 92,
+          "old_officer_sheet": 77,
+          "ref_officers": 4,
+          "ref_personnel": 138,
+          "roster": 6
+        },
+        "quarantined_documents": 863,
+        "records": 303953,
+        "roster_rows_by_layout": {
+          "roster_temporary_variant": {
+            "days": 8,
+            "max": 34,
+            "median": 33.0,
+            "min": 32
+          },
+          "roster_v1_basic": {
+            "days": 5,
+            "max": 40,
+            "median": 38,
+            "min": 38
+          },
+          "roster_v1_corrupt_header": {
+            "days": 303,
+            "max": 40,
+            "median": 39,
+            "min": 34
+          },
+          "roster_v2_seniority": {
+            "days": 142,
+            "max": 41,
+            "median": 40.0,
+            "min": 39
+          },
+          "roster_v3_notes": {
+            "days": 1,
+            "max": 38,
+            "median": 38,
+            "min": 38
+          },
+          "roster_v3_signature": {
+            "days": 1,
+            "max": 36,
+            "median": 36,
+            "min": 36
+          },
+          "roster_v3_signature_notes": {
+            "days": 1,
+            "max": 25,
+            "median": 25,
+            "min": 25
+          },
+          "roster_v4_rest": {
+            "days": 629,
+            "max": 40,
+            "median": 33,
+            "min": 21
+          }
+        },
+        "top_reason_codes": [
+          [
+            "stale",
+            1550
+          ],
+          [
+            "title_date_mismatch",
+            842
+          ],
+          [
+            "title_date_adjacent",
+            44
+          ],
+          [
+            "weekday_mismatch",
+            31
+          ],
+          [
+            "title_date_differs_content_unique",
+            15
+          ],
+          [
+            "title_typo",
+            3
+          ],
+          [
+            "copy_of_other_day:2024-08-30",
+            2
+          ],
+          [
+            "copy_of_other_day:2025-06-24",
+            2
+          ],
+          [
+            "copy_of_other_day:2023-10-14",
+            1
+          ],
+          [
+            "copy_of_other_day:2023-10-23",
+            1
+          ]
+        ],
+        "version": "1"
+      },
+      "status": "complete"
+    },
+    "verify": {
+      "checkpoint": {
+        "days": 1090,
+        "leave_issues": {
+          "تداخل مع راحة أخرى لنفس الشخص": 20
+        },
+        "mean_score": 96.4,
+        "people_issues": 0,
+        "quarantined": 0,
+        "threshold": 60,
+        "version": "1"
+      },
+      "status": "complete"
+    }
+  }
+}
