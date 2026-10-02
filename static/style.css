@@ -1087,6 +1087,36 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .confirm-bar .primary{flex:none}
 .mini.ok.is-urgent{background:var(--navy-900);border-color:var(--navy-900);color:var(--on-dark)}
 @media(max-width:700px){.confirm-bar{flex-wrap:wrap}.confirm-bar .primary{width:100%}}
+.bulk-confirm-btn{color:var(--navy-800);border-color:var(--navy-200);background:var(--navy-50)}
+.bulk-confirm-btn:hover{background:var(--navy-100);border-color:var(--navy-500)}
+.service-name-cell{position:relative;padding-right:43px !important;min-width:150px}
+.service-rail{position:absolute;right:5px;top:50%;translate:0 -50%;display:grid;
+  grid-template-columns:repeat(2,27px);gap:2px;opacity:0;transform:translateX(3px);
+  transition:opacity .12s,transform .12s;z-index:1}
+.service-rail .mini{width:27px;height:25px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.service-rail .duplicate-action{grid-column:1 / -1;width:56px}
+.service-row:hover .service-rail,
+.service-row:focus-within .service-rail,
+.service-row.is-selected .service-rail{opacity:1;transform:none}
+.service-actions .icon-action{width:30px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.service-actions .icon-action .ico{width:14px;height:14px}
+@media (prefers-reduced-motion:reduce){
+  .service-rail{transition:none}
+}
+@media (hover:none){.service-rail{opacity:1;transform:none}}
+
+/* لوحة جانبية قابلة للفتح فوق الصفحة: المحتوى يظل ثابتًا خلفها، والحجاب
+   يمنع أي نقرة أو كتابة غير مقصودة أثناء التصفح. */
+@media(min-width:861px){
+  .shell{display:block}
+  .sidebar{position:fixed;right:0;left:auto;top:var(--topbar-h);bottom:0;z-index:21;
+    transform:translateX(100%);transition:transform .2s ease;
+    box-shadow:-8px 0 24px var(--shadow-edge);width:min(86vw,var(--sidebar-w))}
+  .sidebar.open{transform:none}
+  .topbar .burger{display:flex;align-items:center;justify-content:center}
+}
+body.sidebar-open{overflow:hidden}
+.topbar .burger{position:relative;z-index:22}
 /* شريط أرقام يومية الضباط */
 .duty-summary-slot{min-height:132px}
 .duty-strip{display:flex;flex-wrap:wrap;gap:var(--s2);padding:var(--s4) var(--s5) var(--s2)}

@@ -79,8 +79,21 @@ function serviceRow(row) {
   const selected = row.id === SELECTED_ROW_ID;
   return `<tr class="service-row${row.vacant ? " vacant" : ""}${selected ? " is-selected" : ""}"
     data-service-id="${esc(row.id)}" tabindex="-1" aria-selected="${selected}">
-    <td class="name">${esc(row.label)}
-      ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}</td>
+    <td class="name service-name-cell">
+      <span class="service-label">${esc(row.label)}</span>
+      ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}
+      <div class="service-rail" aria-label="ترتيب وتكرار الخدمة">
+        <button type="button" class="mini btn-xs move" data-action="moveEntry"
+          data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
+          title="حرّك إلى أعلى" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
+        <button type="button" class="mini btn-xs move" data-action="moveEntry"
+          data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
+          title="حرّك إلى أسفل" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
+        <button class="mini btn-xs duplicate-action" data-action="duplicateEntry"
+          data-id="${esc(row.id)}" title="تكرار الخدمة دون الأشخاص"
+          aria-label="تكرار الخدمة دون الأشخاص">${icon("copy")}</button>
+      </div>
+    </td>
     <td class="wrap">${who}</td>
     <td>${conChips(row.conscripts)}${row.conscript_count ? ` <span class="chip w">${countLabel(row.conscript_count, "مجند")}</span>` : ""}
       ${!row.conscripts.length && !row.conscript_count ? "<span class='muted'>—</span>" : ""}</td>
@@ -88,15 +101,9 @@ function serviceRow(row) {
     <td>${esc(row.time) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.party) || "<span class='muted'>—</span>"}</td>
     <td class="col-actions"><div class="actions service-actions">
-      <button type="button" class="mini btn-xs move" data-action="moveEntry"
-        data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
-        title="حرّك إلى أعلى" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
-      <button type="button" class="mini btn-xs move" data-action="moveEntry"
-        data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
-        title="حرّك إلى أسفل" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
-      <button class="mini" data-action="openEntry" data-id="${esc(row.id)}">تعديل</button>
+      <button class="mini icon-action" data-action="openEntry" data-id="${esc(row.id)}"
+        title="تعديل الخدمة" aria-label="تعديل الخدمة">${icon("edit")}</button>
       ${rowMenu([
-        {action: "duplicateEntry", id: row.id, label: "تكرار"},
         {action: "deleteEntry", id: row.id, extra: {name: row.label}, label: "حذف", danger: true},
       ], {label: "إجراءات الخدمة"})}
     </div></td></tr>`;
@@ -648,6 +655,24 @@ $("#btnConfirmDay").onclick = async () => {
             : "تم تأكيد اليومية — دون تغييرات");
   loadDay(DAY);
 };
+
+async function confirmAllUnconfirmed() {
+  const list = await api("/api/board/unconfirmed");
+  if (!list || !list.count) { showToast("كل اليوميات المسجلة مؤكدة بالفعل"); return; }
+  const days = list.days.map(x => x.day);
+  if (!(await confirmDialog({
+    title: "تأكيد اليوميات غير المؤكدة",
+    body: "سيتم تأكيد " + countLabel(days.length, "يومية") + " مسجلة. هذا الإجراء يثبت اللقطات الحالية في سجل التغييرات، ويمكن أن يشمل أيامًا سابقة.",
+    confirmLabel: "تأكيد الكل",
+  }))) return;
+  const by = ($("#editedBy")?.value || "").trim();
+  const out = await api("/api/board/confirm-unconfirmed", jsonReq("POST", {days, confirmed_by: by}));
+  if (!out) return;
+  SESSION_EDITS = false;
+  showToast("تم تأكيد " + countLabel(out.count || 0, "يومية"));
+  await loadDay(DAY);
+}
+$("#btnConfirmAll").onclick = confirmAllUnconfirmed;
 
 /* ---------- تنقّل الأيام ---------- */
 async function loadDay(day) {

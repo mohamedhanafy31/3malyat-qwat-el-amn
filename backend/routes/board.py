@@ -30,7 +30,7 @@ from ..duty import summarise
 from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..repo import Repos
-from ..store import AbortRequest, load_data, revision, stale_revision, with_data
+from ..store import ALL_DAYS, AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import around, canonical_day, json_payload, too_long
 
 bp = Blueprint("board", __name__)
@@ -306,6 +306,57 @@ def get_confirm(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     return jsonify(confirm_lib.state_of(load_data([day]), day))
+
+
+@bp.get("/api/board/unconfirmed")
+def unconfirmed_days():
+    """List recorded daily rosters that have not been confirmed yet."""
+    data = load_data(ALL_DAYS)
+    days = []
+    for day in Repos(data).days.assignment_dates():
+        state = confirm_lib.state_of(data, day)
+        if not state.get("confirmed") or state.get("pending"):
+            days.append({"day": day, **state})
+    return jsonify({"days": days, "count": len(days)})
+
+
+@bp.post("/api/board/confirm-unconfirmed")
+def confirm_unconfirmed_days():
+    """Confirm every requested recorded roster that is still unconfirmed.
+
+    This explicit archive operation may include historical days that are
+    auto-closed; confirmation records an audit snapshot without changing the
+    roster itself.
+    """
+    payload = json_payload()
+    by = str(payload.get("confirmed_by", "")).strip()
+    requested = payload.get("days")
+    if requested is not None and not isinstance(requested, list):
+        return jsonify({"error": "قائمة الأيام يجب أن تكون قائمة."}), 400
+
+    def mutate(data):
+        available = set(Repos(data).days.assignment_dates())
+        candidates = sorted(available if requested is None else
+                            {str(day).strip() for day in requested if str(day).strip()})
+        summaries = []
+        for day in candidates:
+            if day not in available:
+                continue
+            state = confirm_lib.state_of(data, day)
+            if state.get("confirmed") and not state.get("pending"):
+                continue
+            summary, events = confirm_lib.confirm_day(data, day, by)
+            target_defaults.refresh_after_confirmation(data, day)
+            for ev in events:
+                changes.record(data, ev["entity"], ev["entity_id"], ev["action"],
+                               before=ev["before"], after=ev["after"], text=ev["text"],
+                               day=day, ts=summary["at"])
+            changes.record(data, "day_confirm", day, "confirm", after=dict(summary),
+                           text=f"تأكيد جماعي ليومية {day}", day=day, ts=summary["at"])
+            summaries.append(summary)
+        return jsonify({"confirmed": summaries, "count": len(summaries)})
+
+    return with_data(mutate, ALL_DAYS)
 
 
 @bp.post("/api/board/<day>/confirm")

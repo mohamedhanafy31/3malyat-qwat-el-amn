@@ -154,3 +154,27 @@ def test_the_board_carries_the_confirmation_state_so_the_page_needs_one_call(cli
     _add(client, "تدخل سريع")
     board = client.get(f"/api/board/{DAY}").get_json()
     assert board["confirm"]["pending"] is True
+
+
+def test_bulk_confirmation_lists_and_confirms_every_pending_roster(client):
+    days = ("2026-04-10", "2026-04-11")
+    for day in days:
+        _add(client, "خدمة", day=day)
+
+    pending = client.get("/api/board/unconfirmed").get_json()
+    assert pending["count"] == 2
+    assert [row["day"] for row in pending["days"]] == list(days)
+
+    result = client.post("/api/board/confirm-unconfirmed", json={
+        "days": list(days), "confirmed_by": "المراجع",
+    }).get_json()
+    assert result["count"] == 2
+    assert client.get("/api/board/unconfirmed").get_json()["count"] == 0
+    for day in days:
+        state = client.get(f"/api/board/{day}/confirm").get_json()
+        assert state["confirmed"] is True and state["by"] == "المراجع"
+
+
+def test_bulk_confirmation_rejects_a_non_list_day_selection(client):
+    response = client.post("/api/board/confirm-unconfirmed", json={"days": DAY})
+    assert response.status_code == 400

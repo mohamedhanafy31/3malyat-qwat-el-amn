@@ -1680,11 +1680,19 @@ window.addEventListener("resize", () => { if (_cbSel) _cbPosition() });
    أو اختيار قسم بيقفلها، والزرار بيقول حالته لقارئ الشاشة. */
 const sidebarEl=$("#sidebar"), scrimEl=$("#scrim"), burgerEl=$("#burgerBtn");
 function setSidebar(open){
+  const focusWasInside=sidebarEl.contains(document.activeElement);
   sidebarEl.classList.toggle("open",open);
+  sidebarEl.toggleAttribute("inert",!open);
+  sidebarEl.setAttribute("aria-hidden",String(!open));
   scrimEl.classList.toggle("open",open);
+  document.body.classList.toggle("sidebar-open",open);
+  document.querySelector("main")?.toggleAttribute("inert",open);
   burgerEl.setAttribute("aria-expanded",String(open));
   burgerEl.setAttribute("aria-label",open?"إغلاق القائمة":"فتح القائمة");
+  if(open) (sidebarEl.querySelector(".navbtn.active")||sidebarEl.querySelector(".navbtn"))?.focus();
+  else if(focusWasInside) burgerEl.focus();
 }
+setSidebar(false);
 burgerEl.onclick=()=>setSidebar(!sidebarEl.classList.contains("open"));
 scrimEl.onclick=()=>setSidebar(false);
 sidebarEl.addEventListener("click",e=>{ if(e.target.closest(".navbtn")) setSidebar(false) });
