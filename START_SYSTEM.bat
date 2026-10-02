@@ -1,70 +1,43 @@
 @echo off
-chcp 65001 > NUL
-title نظام إدارة القوة - التشغيل
-cd /d "%~dp0"
+setlocal EnableExtensions
+chcp 65001 >nul 2>&1
 set "ROOT=%~dp0"
+cd /d "%ROOT%"
+call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "start-system"
 
-REM ============================================================
-REM  التشغيل اليومي فقط.
-REM  الملف ده **مابيثبّتش أي حاجة** ومابيتصلش بالإنترنت خالص:
-REM    - مفيش pip
-REM    - مفيش winget
-REM    - مفيش تنزيل
-REM  تجهيز الجهاز بيتعمل مرة واحدة بس من SETUP_OFFLINE.bat
-REM ============================================================
-
-REM --- 1) اختيار مفسّر بايثون: المحمول أولًا، وبعده البيئة الافتراضية ---
+call "%ROOT%tools\deploy_console.bat" step "[1/4] Checking runtime..."
 set "PY="
-if exist "runtime\python.exe"        set "PY=runtime\python.exe"
-if not defined PY if exist "venv\Scripts\python.exe" set "PY=venv\Scripts\python.exe"
+if exist "%ROOT%runtime\python.exe" set "PY=%ROOT%runtime\python.exe"
+if not defined PY if exist "%ROOT%venv\Scripts\python.exe" set "PY=%ROOT%venv\Scripts\python.exe"
+if not defined PY goto not_ready
+call "%ROOT%tools\deploy_console.bat" ok "Runtime found."
 
-if not defined PY (
-    echo.
-    echo [X] بيئة التشغيل مش متجهّزة على الجهاز ده.
-    echo.
-    echo     شغّل الملف ده مرة واحدة بس:  SETUP_OFFLINE.bat
-    echo.
-    pause
-    exit /b 1
-)
+call "%ROOT%tools\deploy_console.bat" step "[2/4] Checking application dependencies..."
+"%PY%" -c "import flask, docx" >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 goto not_ready
+call "%ROOT%tools\deploy_console.bat" ok "Dependencies found."
 
-REM --- 2) التأكد إن الحزم موجودة — من غير أي تثبيت ---
-"%PY%" -c "import flask, docx" >nul 2>&1
-if %errorlevel% neq 0 (
-    echo.
-    echo [X] حزم التشغيل ناقصة في البيئة.
-    echo.
-    echo     شغّل:  SETUP_OFFLINE.bat
-    echo.
-    pause
-    exit /b 1
-)
-
-REM --- 3) التشغيل ---
 if not defined PORT set "PORT=5000"
-
-echo ========================================================
-echo   نظام إدارة القوة - إدارة قـوات أمن السويس
-echo ========================================================
-echo.
-echo   الرابط : http://127.0.0.1:%PORT%
-echo   للإيقاف: اقفل الشاشة دي أو اضغط Ctrl+C
-echo.
-echo   (السيستم بيشتغل محليًا بالكامل - مفيش أي اتصال بالإنترنت)
-echo ========================================================
-echo.
-
-REM فتح المتصفح بعد ثانيتين، من غير أي أدوات خارجية
+call "%ROOT%tools\deploy_console.bat" step "[3/4] Starting local server on port %PORT%..."
 start "" /b cmd /c "timeout /t 2 >nul & start "" http://127.0.0.1:%PORT%"
-
-REM waitress لو متوفرة (أثبت للتشغيل الطويل)، وإلا سيرفر Flask العادي
-"%PY%" -c "import waitress" >nul 2>&1
-if %errorlevel%==0 (
-    "%PY%" "%ROOT%serve.py"
+"%PY%" -c "import waitress" >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 (
+    call "%ROOT%tools\deploy_console.bat" warn "Waitress is unavailable; using Flask fallback."
+    "%PY%" "%ROOT%app.py" >>"%DEPLOY_LOG%" 2>&1
 ) else (
-    "%PY%" "%ROOT%app.py"
+    "%PY%" "%ROOT%serve.py" >>"%DEPLOY_LOG%" 2>&1
 )
+if errorlevel 1 goto failed
 
-echo.
-echo تم إيقاف السيستم.
-pause
+call "%ROOT%tools\deploy_console.bat" ok "Server stopped cleanly."
+endlocal
+exit /b 0
+
+:not_ready
+call "%ROOT%tools\deploy_console.bat" error "Runtime is not ready. Run SETUP_OFFLINE.bat first."
+endlocal
+exit /b 1
+:failed
+call "%ROOT%tools\deploy_console.bat" error "Server stopped with an error. See logs\start-system.log."
+endlocal
+exit /b 1

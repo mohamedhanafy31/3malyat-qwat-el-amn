@@ -1,75 +1,75 @@
 @echo off
-chcp 65001 > NUL
-title النسخ الاحتياطية - عرض واستعادة
-cd /d "%~dp0"
-
-REM لا إنترنت ولا تثبيت — قراءة واستعادة النسخ المحلية بس.
+setlocal EnableExtensions
+chcp 65001 >nul 2>&1
+set "ROOT=%~dp0"
+cd /d "%ROOT%"
+call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "backups"
 
 set "PY="
-if exist "runtime\python.exe"        set "PY=runtime\python.exe"
-if not defined PY if exist "venv\Scripts\python.exe" set "PY=venv\Scripts\python.exe"
-
-if not defined PY (
-    echo.
-    echo [X] بيئة التشغيل مش متجهّزة. شغّل SETUP_OFFLINE.bat الأول.
-    echo.
-    pause
-    exit /b 1
-)
+if exist "%ROOT%runtime\python.exe" set "PY=%ROOT%runtime\python.exe"
+if not defined PY if exist "%ROOT%venv\Scripts\python.exe" set "PY=%ROOT%venv\Scripts\python.exe"
+if not defined PY goto not_ready
 
 :menu
 cls
-echo ========================================================
-echo            النسخ الاحتياطية لنظام إدارة القوة
-echo ========================================================
+call "%ROOT%tools\deploy_console.bat" info "Backup Manager"
 echo.
-echo   [1] عرض كل النسخ وحالتها
-echo   [2] فحص سلامة كل النسخ
-echo   [3] استعادة أحدث نسخة سليمة
-echo   [4] استعادة نسخة باسمها
-echo   [5] خروج
+echo   [1] List backups
+echo   [2] Verify backups
+echo   [3] Restore latest valid backup
+echo   [4] Restore a named backup
+echo   [5] Exit
 echo.
 set "choice="
-set /p choice="اختار رقم: "
+set /p "choice=Select an option: "
+if "%choice%"=="1" goto list
+if "%choice%"=="2" goto verify
+if "%choice%"=="3" goto latest
+if "%choice%"=="4" goto named
+if "%choice%"=="5" goto done
+goto menu
 
-if "%choice%"=="1" goto :do_list
-if "%choice%"=="2" goto :do_verify
-if "%choice%"=="3" goto :do_latest
-if "%choice%"=="4" goto :do_named
-if "%choice%"=="5" exit /b 0
-goto :menu
-
-:do_list
-"%PY%" tools\backup.py list
+:list
+call "%ROOT%tools\deploy_console.bat" step "Listing backups..."
+"%PY%" "%ROOT%tools\backup.py" list --english >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 (call "%ROOT%tools\deploy_console.bat" error "Backup listing failed.") else (call "%ROOT%tools\deploy_console.bat" ok "Backup list written to logs\backups.log.")
 pause
-goto :menu
+goto menu
 
-:do_verify
-"%PY%" tools\backup.py verify
+:verify
+call "%ROOT%tools\deploy_console.bat" step "Verifying backups..."
+"%PY%" "%ROOT%tools\backup.py" verify --english >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 (call "%ROOT%tools\deploy_console.bat" error "One or more backups are invalid. See logs\backups.log.") else (call "%ROOT%tools\deploy_console.bat" ok "All backups are valid.")
 pause
-goto :menu
+goto menu
 
-:do_latest
-echo.
-echo [!] اقفل شاشة تشغيل السيستم قبل الاستعادة.
-echo.
-"%PY%" tools\backup.py restore --latest
+:latest
+call "%ROOT%tools\deploy_console.bat" warn "Stop the application before restoring data."
+set "confirm="
+set /p "confirm=Type RESTORE to continue: "
+if /i not "%confirm%"=="RESTORE" (call "%ROOT%tools\deploy_console.bat" warn "Restore cancelled." & pause & goto menu)
+"%PY%" "%ROOT%tools\backup.py" restore --latest --yes --english >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 (call "%ROOT%tools\deploy_console.bat" error "Restore failed. See logs\backups.log.") else (call "%ROOT%tools\deploy_console.bat" ok "Latest valid backup restored.")
 pause
-goto :menu
+goto menu
 
-REM ملحوظة: الاستعادة بالاسم متعملة كـlabel مش جوّه بلوك if(...)
-REM لأن %bname% جوّه بلوك بتتقري وقت تحليل السطر — يعني قبل ما المستخدم
-REM يكتب حاجة أصلًا، فبتوصل فاضية دايمًا.
-:do_named
-echo.
-"%PY%" tools\backup.py list
-echo.
+:named
 set "bname="
-set /p bname="اكتب اسم النسخة بالكامل: "
-if not defined bname goto :menu
-echo.
-echo [!] اقفل شاشة تشغيل السيستم قبل الاستعادة.
-echo.
-"%PY%" tools\backup.py restore "%bname%"
+set /p "bname=Enter the exact backup filename: "
+if not defined bname goto menu
+call "%ROOT%tools\deploy_console.bat" warn "Stop the application before restoring data."
+set "confirm="
+set /p "confirm=Type RESTORE to continue: "
+if /i not "%confirm%"=="RESTORE" (call "%ROOT%tools\deploy_console.bat" warn "Restore cancelled." & pause & goto menu)
+"%PY%" "%ROOT%tools\backup.py" restore "%bname%" --yes --english >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 (call "%ROOT%tools\deploy_console.bat" error "Restore failed. See logs\backups.log.") else (call "%ROOT%tools\deploy_console.bat" ok "Backup restored.")
 pause
-goto :menu
+goto menu
+
+:not_ready
+call "%ROOT%tools\deploy_console.bat" error "Runtime is not ready. Run SETUP_OFFLINE.bat first."
+endlocal
+exit /b 1
+:done
+endlocal
+exit /b 0
