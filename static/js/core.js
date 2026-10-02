@@ -192,6 +192,7 @@ function showToast(msg,bad){
   item.addEventListener("focusout",resume);
   resume();
 }
+const _inflightGets=new Map();
 async function api(url,opts){
   opts=opts||{};
   const editedBy=($("#editedBy")?.value||"").trim();
@@ -202,7 +203,9 @@ async function api(url,opts){
   let r, timer, controller;
   const mutation=!!(opts.method&&opts.method!=="GET");
   try{
+    if(!mutation && _inflightGets.has(url)) _inflightGets.get(url).abort();
     controller=new AbortController();
+    if(!mutation) _inflightGets.set(url,controller);
     const prior=opts.signal;
     opts.signal=prior||controller.signal;
     timer=setTimeout(()=>controller.abort(),30000);
@@ -213,7 +216,7 @@ async function api(url,opts){
     else showToast("تعذر الاتصال بالخادم",true);
     return null
   }
-  finally{ if(timer) clearTimeout(timer) }
+  finally{ if(timer) clearTimeout(timer); if(!mutation&&_inflightGets.get(url)===controller)_inflightGets.delete(url) }
   let out={}; try{out=await r.json()}catch(e){}
   if(!r.ok){
     // التعديل بيمس يوم/أيام مقفولة (راحة أو فرقة بتاريخ فات مثلًا) —
@@ -248,6 +251,18 @@ async function api(url,opts){
   return out;
 }
 const jsonReq=(method,body)=>({method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+
+document.addEventListener("submit",e=>{
+  const form=e.target, button=e.submitter||form.querySelector("button[type=submit]");
+  if(!button||button.dataset.submitLocked==="1") return;
+  button.dataset.submitLocked="1"; button.disabled=true;
+  setTimeout(()=>{button.disabled=false;delete button.dataset.submitLocked},32000);
+});
+document.addEventListener("api:mutated",()=>{
+  document.querySelectorAll('[data-submit-locked="1"]').forEach(button=>{
+    button.disabled=false; delete button.dataset.submitLocked;
+  });
+});
 
 /** بيحمّل شريحة الصفحة الحالية بس — مش الداتا كلها. */
 async function bootstrap(){

@@ -6,6 +6,7 @@
 تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
 حالة يومية هنا.
 """
+from copy import deepcopy
 from flask import Blueprint, jsonify
 
 from .. import changes
@@ -27,16 +28,13 @@ def get_duty(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     scope = around(day, -1, 0)
     data = load_data(scope)
-    if not needs_prepare(data, day):
-        payload = summarise(data, day)
-        payload.update(revision=revision(data, [day]), preparation_pending=False)
-        return jsonify(payload)
-    def mutate(data):
-        prepare(data, day)
-        payload = summarise(data, day)
-        payload.update(revision=revision(data, [day]), preparation_pending=False)
-        return jsonify(payload)
-    return with_data(mutate, scope)
+    pending = needs_prepare(data, day)
+    preview = deepcopy(data)
+    if pending:
+        prepare(preview, day)
+    payload = summarise(preview, day)
+    payload.update(revision=revision(data, [day]), preparation_pending=pending)
+    return jsonify(payload)
 
 
 @bp.put("/api/duty/<day>/<person_id>")
@@ -82,7 +80,7 @@ def set_state(day, person_id):
                            before=before, after=dict(after), reason=f"يوم {day}")
         return jsonify(summarise(data, day))
 
-    return with_data(mutate, [day])
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.delete("/api/duty/<day>/<person_id>")

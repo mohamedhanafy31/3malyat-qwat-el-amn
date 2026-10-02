@@ -65,6 +65,8 @@ def test_opening_uses_the_latest_confirmed_targets_only(client, data_file):
     assert _assigned(board, "سوميد") == ["OFF-002"]
     assert _target_section(board)["seeded_from"] == SOURCE
 
+    client.post(f"/api/assignments/{DAY}", json={"name": "أول تعديل", "kind": "خارجية"})
+
     saved = _saved(data_file)
     marker = saved["target_defaults"][DAY]
     assert marker["source_day"] == SOURCE
@@ -104,6 +106,7 @@ def test_rejected_ids_in_an_old_snapshot_leave_only_that_target_vacant(
     board = response.get_json()
     assert _assigned(board, "سوميد") == []
     assert _assigned(board, "عيون موسي") == ["OFF-002"]
+    client.post(f"/api/assignments/{DAY}", json={"name": "أول تعديل", "kind": "خارجية"})
     assert _saved(data_file)["target_defaults"][DAY]["targets"]["سوميد"] == []
 
 
@@ -164,6 +167,7 @@ def test_reconfirmation_updates_untouched_defaults_but_never_modified_ones(
     second = _confirm(client, SOURCE)
     board = client.get(f"/api/board/{DAY}").get_json()
     assert _assigned(board, "سوميد") == ["OFF-002"]
+    client.post(f"/api/assignments/{DAY}", json={"name": "أول تعديل", "kind": "خارجية"})
     assert _saved(data_file)["target_defaults"][DAY]["confirmed_at"] == second["at"]
 
     _set_target(client, DAY, "سوميد", ["OFF-001"])

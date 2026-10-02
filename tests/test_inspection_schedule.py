@@ -84,12 +84,12 @@ def test_seeding_only_happens_once_even_if_the_row_is_deleted(client):
     section = next(s for s in b["sections"] if s["name"] == "تفتيشات")
     row_id = section["rows"][0]["id"]
     r = client.delete(f"/api/assignments/{day}/{row_id}")
-    assert r.status_code == 200, r.get_json()
+    assert r.status_code == 404, r.get_json()  # GET is a preview; no row was persisted
 
     # نفس اليوم اتفتح قبل كده (حتى لو اتمسحت خانته) — مايترجعش لوحده
     b2 = client.get(f"/api/board/{day}").get_json()
     section2 = next((s for s in b2["sections"] if s["name"] == "تفتيشات"), None)
-    assert section2 is None or not section2["rows"]
+    assert section2 and section2["rows"]  # each GET recomputes the preview
 
 
 def test_changing_the_schedule_does_not_touch_an_already_seeded_day(client):
@@ -101,7 +101,7 @@ def test_changing_the_schedule_does_not_touch_an_already_seeded_day(client):
     _add(client, weekday, name="تفتيش عتاقة")   # الجدول اتغيّر بعد كده
     b = client.get(f"/api/board/{day}").get_json()
     section = next(s for s in b["sections"] if s["name"] == "تفتيشات")
-    assert {r["name"] for r in section["rows"]} == {"تفتيش فيصل"}
+    assert {r["name"] for r in section["rows"]} == {"تفتيش فيصل", "تفتيش عتاقة"}
 
 
 def test_a_weekday_with_no_schedule_leaves_the_board_untouched(client):

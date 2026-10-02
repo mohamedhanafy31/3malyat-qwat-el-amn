@@ -10,6 +10,7 @@
 اليومية بس (`backend/confirm.py`)، عشان السجل يبقى فيه القرارات
 المعتمدة مش المسوّدات.
 """
+from copy import deepcopy
 from flask import Blueprint, jsonify, request, send_file
 
 from .. import changes
@@ -42,16 +43,13 @@ def get_board(day):
 
     scope = around(day, -1, 0)
     data = load_data(scope)
-    if not needs_prepare(data, day, include_inspections=True):
-        payload = build_board(data, day)
-        payload.update(revision=revision(data, [day]), preparation_pending=False)
-        return jsonify(payload)
-    def mutate(data):
-        prepare(data, day, include_inspections=True)
-        payload = build_board(data, day)
-        payload.update(revision=revision(data, [day]), preparation_pending=False)
-        return jsonify(payload)
-    return with_data(mutate, scope)
+    pending = needs_prepare(data, day, include_inspections=True)
+    preview = deepcopy(data)
+    if pending:
+        prepare(preview, day, include_inspections=True)
+    payload = build_board(preview, day)
+    payload.update(revision=revision(data, [day]), preparation_pending=pending)
+    return jsonify(payload)
 
 
 @bp.get("/api/board/<day>/section-history")
