@@ -38,11 +38,10 @@ class DayRepo:
         return (self.data.get(key) or {}).get(day, default)
 
     def dates(self):
-        """كل يوم فيه أي بيانات — من أي مفتاح من الخمسة."""
-        seen = set()
-        for key in (ASSIGNMENTS, OFFICER_STATES, STATUS, COUNTS, CONFIRM):
-            seen |= set(self.data.get(key) or {})
-        return sorted(seen)
+        """كل يوم فيه أي بيانات — من أي مفتاح من الخمسة. الأيام اللي برّه
+        نطاق القراءة بتيجي من فهرس المخزن من غير تحميلها."""
+        from ..store import known_days
+        return known_days(self.data, ASSIGNMENTS, OFFICER_STATES, STATUS, COUNTS, CONFIRM)
 
     def assignment_dates(self):
         """الأيام اللي فيها تكليفات مسجّلة بس.
@@ -51,7 +50,8 @@ class DayRepo:
         يوم فيه يومية، ويوم فيه حالة ضابط واحدة أو قفل من غير أي تكليف
         **مش** يوم شغل — ضمّه كان هيخلي «آخر يوم» يقع على يوم فاضي.
         """
-        return sorted(self.data.get(ASSIGNMENTS) or {})
+        from ..store import known_days
+        return known_days(self.data, ASSIGNMENTS)
 
     # ---------- قراءة جزئية (للعرض السريع) ----------
 
@@ -182,6 +182,8 @@ class DayRepo:
     def detach_person(self, person_id, key):
         """يشيل شخص من كل التكليفات في كل الأيام. `key` إما
         `officer_ids` أو `personnel_ids`. بيرجّع عدد الصفوف المتأثرة."""
+        from ..store import require_person_days
+        require_person_days(self.data, person_id)
         touched = 0
         for rows in (self.data.get(ASSIGNMENTS) or {}).values():
             for raw in rows:
@@ -193,6 +195,8 @@ class DayRepo:
 
     def drop_officer_states(self, officer_id):
         """يشيل حالات ضابط من كل الأيام، وبيشيل اليوم لو فضي بعدها."""
+        from ..store import require_person_days
+        require_person_days(self.data, officer_id)
         store = self.data.get(OFFICER_STATES) or {}
         touched = 0
         for day in list(store):
@@ -211,6 +215,8 @@ class DayRepo:
 
     def assignment_days_of(self, person_id, keys):
         """كل الأيام اللي الشخص متكلّف فيها بخدمة (أي `key` من `keys`)."""
+        from ..store import require_person_days
+        require_person_days(self.data, person_id)
         out = []
         for day, rows in (self.data.get(ASSIGNMENTS) or {}).items():
             if any(person_id in (row.get(k) or []) for row in rows for k in keys):
@@ -219,6 +225,8 @@ class DayRepo:
 
     def officer_state_days_of(self, officer_id):
         """كل الأيام اللي عليها حالة مسجّلة (تقصيرة/حالة/ملاحظة/طبية) لضابط."""
+        from ..store import require_person_days
+        require_person_days(self.data, officer_id)
         return sorted(day for day, states in (self.data.get(OFFICER_STATES) or {}).items()
                       if officer_id in states)
 

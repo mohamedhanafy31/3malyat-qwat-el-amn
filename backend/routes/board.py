@@ -10,24 +10,28 @@
 اليومية بس (`backend/confirm.py`)، عشان السجل يبقى فيه القرارات
 المعتمدة مش المسوّدات.
 """
+from copy import deepcopy
 from flask import Blueprint, jsonify, request, send_file
 
 from .. import changes
 from .. import confirm as confirm_lib
 from .. import day_status
 from .. import target_defaults
-from ..assignments import apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day
+from ..assignments import (
+    apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day, vacant_twin,
+)
 from ..board import (
-    ASSIGNMENT_SECTIONS, build_board, copy_section_rows, section_history,
+    ASSIGNMENT_SECTIONS, build_board, copy_section_rows, section_history, section_source,
     move_assignment, place_assignment_after, set_slot_officers, set_target_officers,
 )
 from ..board_export import build_docx
 from ..constants import SECTION_OCCASIONAL, SERVICE_KINDS
 from ..duty import summarise
+from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..repo import Repos
-from ..store import AbortRequest, load_data, with_data
-from ..utils import canonical_day, json_payload, too_long
+from ..store import ALL_DAYS, AbortRequest, load_data, revision, stale_revision, with_data
+from ..utils import around, canonical_day, json_payload, too_long
 
 bp = Blueprint("board", __name__)
 
@@ -38,19 +42,15 @@ def get_board(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
 
-    data = load_data()
-    # أول ما اليوم ده يتفتح لأول مرة، تفتيشات يوم الأسبوع بتاعه (لو
-    # معرّفة) بتتحط عليه تلقائيًا — بعد كده خانات عادية زي أي خانة تانية.
-    # الفحص هنا بس عشان أغلب الأيام (اتفتحت قبل كده) تفضل عرض بحت من غير
-    # ما تعدّي على مسار كتابة (وتتسجّل في audit.log) من غير أي داعي.
-    if not needs_prepare(data, day, include_inspections=True):
-        return jsonify(build_board(data, day))
-
-    def mutate(data):
-        prepare(data, day, include_inspections=True)
-        return jsonify(build_board(data, day))
-
-    return with_data(mutate)
+    scope = around(day, -1, 0)
+    data = load_data(scope)
+    pending = needs_prepare(data, day, include_inspections=True)
+    preview = deepcopy(data)
+    if pending:
+        prepare(preview, day, include_inspections=True)
+    payload = build_board(preview, day)
+    payload.update(revision=revision(data, [day]), preparation_pending=pending)
+    return jsonify(payload)
 
 
 @bp.get("/api/board/<day>/section-history")
@@ -65,7 +65,11 @@ def get_section_history(day):
     length_error = too_long({"section": section}, "section")
     if length_error:
         return jsonify({"error": length_error}), 400
-    return jsonify(section_history(load_data(), day, section))
+    # اليوم ده + يوم المصدر اللي فهرس أقسام اللوحة بيشاور عليه
+    def scope(view):
+        return [day, *filter(None, [section_source(view.index.board_sections(), day, section)])]
+
+    return jsonify(section_history(load_data(scope), day, section))
 
 
 @bp.post("/api/board/<day>/section-copy")
@@ -84,6 +88,11 @@ def copy_section(day):
         return jsonify({"error": length_error}), 400
 
     def mutate(data):
+        prepare(data, day, include_inspections=True)
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
         ok, err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": err}), 409))
@@ -93,7 +102,7 @@ def copy_section(day):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(result), 201
 
-    return with_data(mutate)
+    return with_data(mutate, [day, source_day])
 
 
 @bp.get("/api/board/<day>/export.docx")
@@ -104,7 +113,7 @@ def export_board_docx(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    board = build_board(load_data(), day)
+    board = build_board(load_data(around(day, -1, 0)), day)
     buf = build_docx(board)
     return send_file(buf, as_attachment=True, download_name=f"اليومية التفصيلية {day}.docx",
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
@@ -124,6 +133,11 @@ def add_assignment(day):
         return jsonify({"error": "تصنيف الخدمة غير صحيح."}), 400
 
     def mutate(data):
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
+        prepare(data, day, include_inspections=True)
         ok, err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": err}), 409))
@@ -136,11 +150,19 @@ def add_assignment(day):
         clash = guard_duplicate(data, day, row, ignore_id=None)
         if clash:
             raise AbortRequest((jsonify({"error": clash}), 409))
+        twin = None if payload.get("allow_duplicate") is True else vacant_twin(data, day, row)
+        if twin:
+            raise AbortRequest((jsonify({
+                "error": "توجد خانة شاغرة بنفس الاسم والقسم والتصنيف والفترة في هذا اليوم.",
+                "code": "possible_duplicate", "existing_id": twin}), 409))
         entries.append(row)
         place_assignment_after(data, day, row["id"], payload.get("after_id"))
-        return jsonify(row), 201
+        result = dict(row)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result), 201
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.patch("/api/assignments/<day>/<assignment_id>")
@@ -151,6 +173,11 @@ def edit_assignment(day, assignment_id):
     payload = json_payload()
 
     def mutate(data):
+        prepare(data, day, include_inspections=True)
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
         ok, lock_err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": lock_err}), 409))
@@ -164,9 +191,12 @@ def edit_assignment(day, assignment_id):
         clash = guard_duplicate(data, day, row, ignore_id=row["id"])
         if clash:
             raise AbortRequest((jsonify({"error": clash}), 409))
-        return jsonify(row)
+        result = dict(row)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.delete("/api/assignments/<day>/<assignment_id>")
@@ -181,9 +211,11 @@ def delete_assignment(day, assignment_id):
             raise AbortRequest((jsonify({"error": lock_err}), 409))
         if not Repos(data).days.remove_assignment(day, assignment_id):
             raise AbortRequest((jsonify({"error": "التكليف غير موجود."}), 404))
-        return jsonify({"ok": True})
+        result = {"ok": True, "daily": build_daily_view(data, day)}
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.post("/api/assignments/<day>/<assignment_id>/move")
@@ -205,7 +237,7 @@ def move_assignment_row(day, assignment_id):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(build_board(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.get("/api/assignments/<day>")
@@ -213,7 +245,7 @@ def list_assignments(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    data = load_data()
+    data = load_data([day])
     return jsonify({"date": day, "assignments": peek_day(data, day),
                     "sections": ASSIGNMENT_SECTIONS,
                     "summary": summarise(data, day)["summary"]})
@@ -241,7 +273,7 @@ def set_target(day, name):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(build_board(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.put("/api/board/<day>/slot/<section>/<shift>")
@@ -265,7 +297,7 @@ def set_slot(day, section, shift):
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(build_board(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.get("/api/board/<day>/confirm")
@@ -273,7 +305,58 @@ def get_confirm(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    return jsonify(confirm_lib.state_of(load_data(), day))
+    return jsonify(confirm_lib.state_of(load_data([day]), day))
+
+
+@bp.get("/api/board/unconfirmed")
+def unconfirmed_days():
+    """List recorded daily rosters that have not been confirmed yet."""
+    data = load_data(ALL_DAYS)
+    days = []
+    for day in Repos(data).days.assignment_dates():
+        state = confirm_lib.state_of(data, day)
+        if not state.get("confirmed") or state.get("pending"):
+            days.append({"day": day, **state})
+    return jsonify({"days": days, "count": len(days)})
+
+
+@bp.post("/api/board/confirm-unconfirmed")
+def confirm_unconfirmed_days():
+    """Confirm every requested recorded roster that is still unconfirmed.
+
+    This explicit archive operation may include historical days that are
+    auto-closed; confirmation records an audit snapshot without changing the
+    roster itself.
+    """
+    payload = json_payload()
+    by = str(payload.get("confirmed_by", "")).strip()
+    requested = payload.get("days")
+    if requested is not None and not isinstance(requested, list):
+        return jsonify({"error": "قائمة الأيام يجب أن تكون قائمة."}), 400
+
+    def mutate(data):
+        available = set(Repos(data).days.assignment_dates())
+        candidates = sorted(available if requested is None else
+                            {str(day).strip() for day in requested if str(day).strip()})
+        summaries = []
+        for day in candidates:
+            if day not in available:
+                continue
+            state = confirm_lib.state_of(data, day)
+            if state.get("confirmed") and not state.get("pending"):
+                continue
+            summary, events = confirm_lib.confirm_day(data, day, by)
+            target_defaults.refresh_after_confirmation(data, day)
+            for ev in events:
+                changes.record(data, ev["entity"], ev["entity_id"], ev["action"],
+                               before=ev["before"], after=ev["after"], text=ev["text"],
+                               day=day, ts=summary["at"])
+            changes.record(data, "day_confirm", day, "confirm", after=dict(summary),
+                           text=f"تأكيد جماعي ليومية {day}", day=day, ts=summary["at"])
+            summaries.append(summary)
+        return jsonify({"confirmed": summaries, "count": len(summaries)})
+
+    return with_data(mutate, ALL_DAYS)
 
 
 @bp.post("/api/board/<day>/confirm")
@@ -311,7 +394,12 @@ def confirm_day(day):
                        text=note, day=day, ts=summary["at"])
         return jsonify(summary), 201
 
-    return with_data(mutate)
+    # اليوم، واليوم التالي (بذر أهدافه من التأكيد ده)، واللقطات القديمة
+    # اللي هتتشال من `day_confirm`
+    def scope(view):
+        return [*around(day, 1), *confirm_lib.snapshot_scope(view.index, day)]
+
+    return with_data(mutate, scope)
 
 
 @bp.delete("/api/assignments/<day>")
@@ -334,4 +422,4 @@ def clear_day(day):
         days.save(loaded)
         return jsonify({"ok": True, "deleted": count, "states_cleared": clear_states})
 
-    return with_data(mutate)
+    return with_data(mutate, [day])

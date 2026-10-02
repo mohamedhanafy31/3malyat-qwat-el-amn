@@ -6,18 +6,18 @@
 تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
 حالة يومية هنا.
 """
-from datetime import date, timedelta
-
+from copy import deepcopy
 from flask import Blueprint, jsonify
 
 from .. import changes
 from .. import day_status
 from ..assignments import OFFICER_STATUSES, officer_state, set_officer_state
 from ..duty import summarise
+from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..people import officers_on
-from ..store import AbortRequest, load_data, with_data
-from ..utils import MAX_LEN, canonical_day, json_payload
+from ..store import AbortRequest, load_data, revision, stale_revision, with_data
+from ..utils import MAX_LEN, around, canonical_day, json_payload
 
 bp = Blueprint("duty", __name__)
 
@@ -27,16 +27,15 @@ def get_duty(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    previous = (date.fromisoformat(day) - timedelta(days=1)).isoformat()
-    data = load_data(days=[previous, day])
-    if not needs_prepare(data, day):
-        return jsonify(summarise(data, day))
-
-    def mutate(data):
-        prepare(data, day)
-        return jsonify(summarise(data, day))
-
-    return with_data(mutate)
+    scope = around(day, -1, 0)
+    data = load_data(scope)
+    pending = needs_prepare(data, day)
+    preview = deepcopy(data)
+    if pending:
+        prepare(preview, day)
+    payload = summarise(preview, day)
+    payload.update(revision=revision(data, [day]), preparation_pending=pending)
+    return jsonify(payload)
 
 
 @bp.put("/api/duty/<day>/<person_id>")
@@ -55,6 +54,11 @@ def set_state(day, person_id):
         return jsonify({"error": f"الملاحظة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
 
     def mutate(data):
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
+        prepare(data, day)
         ok, lock_err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": lock_err}), 409))
@@ -75,9 +79,12 @@ def set_state(day, person_id):
         if before != dict(after):
             changes.record(data, "officer_state", person_id, "update",
                            before=before, after=dict(after), reason=f"يوم {day}")
-        return jsonify(summarise(data, day))
+        result = summarise(data, day)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
-    return with_data(mutate)
+    return with_data(mutate, around(day, -1, 0))
 
 
 @bp.delete("/api/duty/<day>/<person_id>")
@@ -97,6 +104,8 @@ def clear_state(day, person_id):
         if before:
             changes.record(data, "officer_state", person_id, "delete",
                            before=before, reason=f"يوم {day}")
-        return jsonify({"ok": True})
+        result = {"ok": True, "daily": build_daily_view(data, day)}
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
 
-    return with_data(mutate)
+    return with_data(mutate, [day])

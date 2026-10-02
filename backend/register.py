@@ -238,8 +238,8 @@ def month_register(data, year, month):
 def officer_register(data, officer_id, days=None):
     """صفحة ضابط واحد: كل يوم مسجّل في الأرشيف + الحصر الكامل."""
     if days is None:
-        days = sorted(set(data.get("day_assignments") or {})
-                      | set(data.get("day_officers") or {}))
+        from .store import recorded_days
+        days = recorded_days(data)
     else:
         days = sorted(days)
     per_day = _day_rows(data, days)

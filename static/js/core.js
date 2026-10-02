@@ -141,7 +141,7 @@ const PERSONNEL_ROLES=[
 
 /* ---------- الحالة المشتركة ---------- */
 let META={}, COUNTS={};
-const curDate=()=>META.today||new Date().toISOString().slice(0,10);
+const curDate=()=>META.today||(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`})();
 const REST_SYSTEMS=()=>META.rest_systems||["أسبوعية","نصف شهرية","شهرية","—"];
 const WEEKDAYS=()=>META.weekdays||[];
 const LEAVE_TYPES=()=>META.leave_types||[];
@@ -192,6 +192,7 @@ function showToast(msg,bad){
   item.addEventListener("focusout",resume);
   resume();
 }
+const _inflightGets=new Map();
 async function api(url,opts){
   opts=opts||{};
   const editedBy=($("#editedBy")?.value||"").trim();
@@ -199,9 +200,23 @@ async function api(url,opts){
     // ترويسة HTTP لازم تبقى ISO-8859-1 بس — تشفير عشان الاسم غالبًا عربي
     opts.headers={...(opts.headers||{}),"X-Edited-By":encodeURIComponent(editedBy)};
   }
-  let r;
-  try{ r=await fetch(url,opts) }
-  catch(e){ showToast("تعذر الاتصال بالخادم",true); return null }
+  let r, timer, controller;
+  const mutation=!!(opts.method&&opts.method!=="GET");
+  try{
+    if(!mutation && _inflightGets.has(url)) _inflightGets.get(url).abort();
+    controller=new AbortController();
+    if(!mutation) _inflightGets.set(url,controller);
+    const prior=opts.signal;
+    opts.signal=prior||controller.signal;
+    timer=setTimeout(()=>controller.abort(),30000);
+    r=await fetch(url,opts);
+  }
+  catch(e){
+    if(e?.name==="AbortError") showToast(mutation?"انتهت مهلة الحفظ؛ حالة الحفظ غير معروفة، راجع اليومية قبل إعادة المحاولة.":"انتهت مهلة الطلب",true);
+    else showToast("تعذر الاتصال بالخادم",true);
+    return null
+  }
+  finally{ if(timer) clearTimeout(timer); if(!mutation&&_inflightGets.get(url)===controller)_inflightGets.delete(url) }
   let out={}; try{out=await r.json()}catch(e){}
   if(!r.ok){
     // التعديل بيمس يوم/أيام مقفولة (راحة أو فرقة بتاريخ فات مثلًا) —
@@ -236,6 +251,18 @@ async function api(url,opts){
   return out;
 }
 const jsonReq=(method,body)=>({method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+
+document.addEventListener("submit",e=>{
+  const form=e.target, button=e.submitter||form.querySelector("button[type=submit]");
+  if(!button||button.dataset.submitLocked==="1") return;
+  button.dataset.submitLocked="1"; button.disabled=true;
+  setTimeout(()=>{button.disabled=false;delete button.dataset.submitLocked},32000);
+});
+document.addEventListener("api:mutated",()=>{
+  document.querySelectorAll('[data-submit-locked="1"]').forEach(button=>{
+    button.disabled=false; delete button.dataset.submitLocked;
+  });
+});
 
 /** بيحمّل شريحة الصفحة الحالية بس — مش الداتا كلها. */
 async function bootstrap(){
@@ -1176,6 +1203,18 @@ comboPop.addEventListener("mousedown", e => e.preventDefault());
 
 let _cbSel = null, _cbInput = null, _cbOpts = [], _cbIdx = -1, _cbMulti = false;
 let _cbSeq = 0;
+const _cbTimers = new WeakMap();
+
+function _cbScheduleRender(sel, query) {
+  const old = _cbTimers.get(sel);
+  if (old) clearTimeout(old);
+  _cbTimers.set(sel, setTimeout(() => {
+    _cbTimers.delete(sel);
+    if (_cbSel !== sel) return;
+    _cbRender(query);
+    _cbPosition();
+  }, 100));
+}
 
 const _cbLabel = sel => sel.options[sel.selectedIndex]?.textContent ?? "";
 
@@ -1230,7 +1269,10 @@ function _cbRender(q) {
   const exact = typed && all.some(o => o.value.trim() === typed || o.text.trim() === typed);
   const custom = allowCustom && typed && !exact
     ? [{custom: true, text: typed, value: typed}] : [];
-  _cbOpts = [...custom, ...(q ? all.filter(o => arIncludes(o.text, q)) : all)];
+  const matches = q ? all.filter(o => arIncludes(o.text, q)) : all;
+  const available = [...custom, ...matches];
+  const hiddenCount = Math.max(0, available.length - 100);
+  _cbOpts = available.slice(0, 100);
   comboPop.toggleAttribute("aria-multiselectable", _cbMulti);
   if (!_cbOpts.length) {
     comboPop.innerHTML = `<div class="combo-empty">لا يوجد خيار مطابق لـ«${esc(q)}»</div>`;
@@ -1241,13 +1283,16 @@ function _cbRender(q) {
   if (_cbIdx >= _cbOpts.length) _cbIdx = _cbOpts.length - 1;
   const cur = _selValueDesc.get.call(_cbSel);
   const chosen = o => !o.custom && (_cbMulti ? opts[o.i].selected : o.value === cur);
+  const more = hiddenCount
+    ? `<div class="combo-more" role="status">يُعرض أول 100 من ${available.length} نتيجة. اكتب كلمات أكثر لتضييق البحث.</div>`
+    : "";
   comboPop.innerHTML = `<ul class="combo-list" role="presentation">${_cbOpts.map((o, n) => {
     const on = chosen(o);
     return `<li id="${_cbSel._comboId}-option-${n}" role="option" aria-selected="${on}" data-action="_cbPick" data-id="${n}"
       class="combo-opt${o.custom ? " custom" : ""}${on ? " sel" : ""}${n === _cbIdx ? " active" : ""}"
       >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? icon("check") : ""}</span>` : ""}${o.custom
         ? `${icon("plus")} قسم جديد: «${esc(o.text)}»` : esc(o.text)}</li>`;
-  }).join("")}</ul>`;
+  }).join("")}</ul>${more}`;
   const active=comboPop.querySelector(".combo-opt.active");
   if(active) _cbInput.setAttribute("aria-activedescendant",active.id);
   else _cbInput.removeAttribute("aria-activedescendant");
@@ -1396,7 +1441,7 @@ function _upgradeMulti(sel) {
   });
   inp.addEventListener("input", () => {
     if (_cbSel !== sel) _cbOpen(sel);
-    _cbIdx = 0; _cbRender(inp.value); _cbPosition();
+    _cbIdx = 0; _cbScheduleRender(sel, inp.value);
   });
   inp.addEventListener("keydown", e => {
     const open = _cbSel === sel;
@@ -1444,6 +1489,9 @@ function upgradeSelects(root) {
     // ده الحقول بتطلع أعرض من القوايم اللي حلّت محلها وبتزحلق أزرار الشريط لسطر تاني.
     inp.size = 1;
     inp.className = `${sel.className} combo-input`.trim();
+    // الحقل الحر بياخد حد الطول من الـ<select> (data-maxlength) — الـselect
+    // نفسه مالوش maxlength.
+    if (allowCustom && sel.dataset.maxlength) inp.maxLength = Number(sel.dataset.maxlength);
     inp.setAttribute("role", "combobox");
     inp.setAttribute("aria-expanded", "false");
     inp.setAttribute("aria-autocomplete", "list");
@@ -1480,8 +1528,7 @@ function upgradeSelects(root) {
       if (allowCustom) sel._comboCustomDraft = query;
       if (_cbSel !== sel) _cbOpen(sel, query);
       _cbIdx = 0;
-      _cbRender(query);
-      _cbPosition();
+      _cbScheduleRender(sel, query);
       if (allowCustom) sel.dispatchEvent(new Event("input", {bubbles: true}));
     });
     inp.addEventListener("keydown", e => {
@@ -1633,11 +1680,19 @@ window.addEventListener("resize", () => { if (_cbSel) _cbPosition() });
    أو اختيار قسم بيقفلها، والزرار بيقول حالته لقارئ الشاشة. */
 const sidebarEl=$("#sidebar"), scrimEl=$("#scrim"), burgerEl=$("#burgerBtn");
 function setSidebar(open){
+  const focusWasInside=sidebarEl.contains(document.activeElement);
   sidebarEl.classList.toggle("open",open);
+  sidebarEl.toggleAttribute("inert",!open);
+  sidebarEl.setAttribute("aria-hidden",String(!open));
   scrimEl.classList.toggle("open",open);
+  document.body.classList.toggle("sidebar-open",open);
+  document.querySelector("main")?.toggleAttribute("inert",open);
   burgerEl.setAttribute("aria-expanded",String(open));
   burgerEl.setAttribute("aria-label",open?"إغلاق القائمة":"فتح القائمة");
+  if(open) (sidebarEl.querySelector(".navbtn.active")||sidebarEl.querySelector(".navbtn"))?.focus();
+  else if(focusWasInside) burgerEl.focus();
 }
+setSidebar(false);
 burgerEl.onclick=()=>setSidebar(!sidebarEl.classList.contains("open"));
 scrimEl.onclick=()=>setSidebar(false);
 sidebarEl.addEventListener("click",e=>{ if(e.target.closest(".navbtn")) setSidebar(false) });
@@ -1677,8 +1732,8 @@ document.addEventListener("keydown",e=>{
    عشان يتسجل في سجل التدقيق من غير أي نظام حسابات أو تسجيل دخول. */
 const editedByEl=$("#editedBy");
 if(editedByEl){
-  editedByEl.value=localStorage.getItem("editedBy")||"";
-  editedByEl.addEventListener("input",()=>localStorage.setItem("editedBy",editedByEl.value.trim()));
+  try{ editedByEl.value=localStorage.getItem("editedBy")||"" }catch(_err){ editedByEl.value="" }
+  editedByEl.addEventListener("input",()=>{try{localStorage.setItem("editedBy",editedByEl.value.trim())}catch(_err){}});
 }
 
 /* ═══════════════ الموبايل: شيت التصفية، كروت الجداول، وتلميح التمرير ═══════════════ */

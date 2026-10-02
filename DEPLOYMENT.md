@@ -93,3 +93,21 @@ BACKUPS.bat
   runtime\python.exe tools\offline_env.py verify --strict
   ```
   (`--strict` بيمنع أي اتصال شبكة أثناء الفحص، فلو فيه أي محاولة هتفشل بصوت عالي)
+# Recovery and performance notes
+
+Writes use a transaction journal (`.transaction-journal.json`) in the data
+directory. It is fsynced before replacements; startup rolls an incomplete
+journal forward idempotently. The `.lock` file is held with `fcntl` on Linux
+and `msvcrt` on Windows, so the operating system releases it after a crash.
+
+Automatic backups are throttled to one per 120 seconds and stored as ZIP
+archives containing `data.json` and `uploads/`. Legacy `.json` and `.json.gz`
+archives remain readable. Keep the original archive when testing recovery.
+
+Run the isolated storage benchmark with:
+
+    python tools/benchmark_storage.py --days 1097 --runs 30
+
+The final release gates are cold start <=8s, API/page p95 <=1.5s, save p95
+<=750ms, RSS <=750MiB, and growth <=100MiB over eight hours. Windows forced
+power-loss and target HDD measurements still require the target VM/machine.

@@ -29,6 +29,14 @@ def closed_days_in(data, start, end):
     return [d for d in days_between(s, e) if day_status.is_closed(data, d)]
 
 
+def status_scope(view):
+    """نطاق قراءة لمسار ممكن يسأل `closed_days_in`: الأيام اللي ليها
+    سجل قفل/فتح صريح (`day_status`) بس — مش الأرشيف. اليوم من غيرها
+    حالته محسوبة من التاريخ لوحده (`day_status.status_of`)، فمش محتاج
+    يتحمّل، وعدد الأيام دي صغير (قفل بدري أو فتح استثنائي بإيد المشغّل)."""
+    return view.index.days_with("day_status")
+
+
 def _reason_header():
     """نفس منطق `changes._edited_by()` بالظبط — ترويسة HTTP بتتشفّر لأنها
     غالبًا عربي."""

@@ -209,6 +209,10 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
     verify_state = (state.get("stages") or {}).get("verify") or {}
     if verify_state.get("status") != "complete":
         raise StoreRefused("لازم verify يكتمل للدفعة الأول")
+    if write and resume:
+        # A recovered store journal may already have applied the intended files;
+        # continue far enough to write the importer completion record.
+        store.recover_journal()
     planned = plan(ledger, replace_existing=replace_existing)
     actions = planned["plan"]
     write_dates = {date for date, (action, _) in actions.items()
@@ -222,7 +226,7 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
         counts[action] = counts.get(action, 0) + 1
     if write:
         _lock()
-    data = store.load_data()
+    data = store.load_data(store.ALL_DAYS)       # الاستيراد بيبني الأرشيف كله
     built = build_dataset(ledger, skip=skip, data=data)
     core, days = store.split(data)
     changed = _changed_files(ledger.data_dir, core, days)
@@ -230,7 +234,7 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
               "plan": counts, "files_to_write": len(changed), "applied": built["applied"]["stats"],
               "skipped": {date: reason for date, (action, reason) in actions.items() if action == "skip"}}
     _write_plan(ledger, actions, changed, report)
-    if not write or not changed:
+    if not write or (not changed and not resume):
         if write:
             report["result"] = "لا تغيير — الدفعة مكتوبة بالفعل"
         ledger.mark_stage(state, "store", "complete" if write else "dry-run",

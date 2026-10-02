@@ -9,7 +9,7 @@ from datetime import date
 
 from .duty import summarise
 from .people import find_person
-from .utils import days_between, resolve_recorded_range
+from .utils import recorded_between, resolve_recorded_range
 
 WEEKDAY_BY_INDEX = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
 
@@ -21,8 +21,7 @@ def build(data, officer_id, filters):
         return None
 
     date_from, date_to, recorded = resolve_recorded_range(data, filters)
-    days = [d for d in days_between(date.fromisoformat(date_from), date.fromisoformat(date_to))
-            if d in recorded]
+    days = recorded_between(recorded, date_from, date_to)
 
     rows = []
     for day in days:

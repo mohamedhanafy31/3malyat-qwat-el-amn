@@ -85,3 +85,33 @@ def test_bootstrap_officer_index_excludes_archived_officers(client):
     ids = {o["id"] for o in d.get_json()["officer_index"]}
     assert "OFF-001" in ids
     assert "OFF-002" not in ids
+
+
+def test_invalid_supplied_dates_return_a_structured_400(client):
+    for query in ("date_from=2026-02-30&date_to=2026-04-11",
+                  "date_from=2026-04-10&date_to=x"):
+        r = client.get(f"/api/officer-log/OFF-001?{query}")
+        assert r.status_code == 400, query
+        assert r.get_json()["error"]
+
+
+def test_extreme_range_lists_only_recorded_days(client, monkeypatch):
+    import time
+    from backend import utils
+
+    def boom(*_a, **_k):
+        raise AssertionError("days_between اتنده على مدى التقرير")
+    monkeypatch.setattr(utils, "days_between", boom)
+
+    _add(client, day=DAY, officer_ids=["OFF-001"])
+    started = time.perf_counter()
+    d = _log(client, "OFF-001", "0001-01-01", "9999-12-31")
+    assert time.perf_counter() - started < 2
+    assert [r["date"] for r in d["rows"]] == [DAY]
+
+
+def test_historical_bounds_outside_the_recorded_days_are_valid(client):
+    _add(client, day=DAY, officer_ids=["OFF-001"])
+    d = _log(client, "OFF-001", "1990-01-01", "1990-12-31")
+    assert d["rows"] == []
+    assert (d["date_from"], d["date_to"]) == ("1990-01-01", "1990-12-31")

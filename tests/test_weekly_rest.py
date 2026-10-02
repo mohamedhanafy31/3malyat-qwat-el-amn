@@ -29,6 +29,7 @@ def _suspend_weekly(client, frozen_today, today="2026-04-01"):
 def test_board_first_open_registers_the_fixed_weekly_rest(client, data_file):
     response = client.get(f"/api/board/{SATURDAY}")
     assert response.status_code == 200
+    client.post(f"/api/assignments/{SATURDAY}", json={"name": "أول تعديل", "kind": "خارجية"})
 
     leave = _weekly(data_file, SATURDAY)[0]
     assert leave["start"] == leave["end"] == SATURDAY
@@ -45,6 +46,7 @@ def test_board_first_open_registers_the_fixed_weekly_rest(client, data_file):
 def test_duty_first_open_registers_the_fixed_weekly_rest(client, data_file):
     response = client.get(f"/api/duty/{NEXT_SATURDAY}")
     assert response.status_code == 200
+    client.post(f"/api/assignments/{NEXT_SATURDAY}", json={"name": "أول تعديل", "kind": "خارجية"})
     assert _weekly(data_file, NEXT_SATURDAY)[0]["origin"] == "auto_weekly"
     row = next(r for r in response.get_json()["rows"] if r["id"] == "OFF-001")
     assert row["leave"]["start"] == NEXT_SATURDAY
@@ -72,6 +74,9 @@ def test_active_officer_outside_his_service_window_is_skipped(client, data_file)
     future_id = response.get_json()["id"]
 
     client.get(f"/api/board/{SATURDAY}")
+    client.post(f"/api/assignments/{SATURDAY}", json={"name": "أول تعديل", "kind": "خارجية"})
+    client.post(f"/api/assignments/{SATURDAY}", json={"name": "أول تعديل", "kind": "خارجية"})
+    client.post(f"/api/assignments/{SATURDAY}", json={"name": "أول تعديل", "kind": "خارجية"})
     assert not any(lv.get("person_id") == future_id and lv.get("start") == SATURDAY
                    for lv in _saved(data_file)["leaves"])
 
@@ -80,6 +85,7 @@ def test_suspension_existing_leave_and_course_each_skip_auto_rest(
         client, data_file, frozen_today):
     _suspend_weekly(client, frozen_today)
     client.get(f"/api/board/{SATURDAY}")
+    client.post(f"/api/assignments/{SATURDAY}", json={"name": "أول تعديل", "kind": "خارجية"})
     assert not _weekly(data_file, SATURDAY)
     assert _saved(data_file)["weekly_rest_seeded_days"][SATURDAY] is True
 
@@ -105,6 +111,7 @@ def test_suspension_existing_leave_and_course_each_skip_auto_rest(
 
 def test_deleted_auto_rest_is_not_recreated(client, data_file):
     client.get(f"/api/board/{SATURDAY}")
+    client.post(f"/api/assignments/{SATURDAY}", json={"name": "أول تعديل", "kind": "خارجية"})
     leave_id = _weekly(data_file, SATURDAY)[0]["id"]
     assert client.delete(f"/api/leaves/{leave_id}").status_code == 200
     assert not _weekly(data_file, SATURDAY)
@@ -134,6 +141,7 @@ def test_extra_weekly_rest_is_future_only_and_coexists_with_auto(
     assert extra.get_json()["origin"] == "weekly_extra"
 
     client.get(f"/api/board/{SATURDAY}")
+    client.post(f"/api/assignments/{SATURDAY}", json={"name": "تعديل بعد العرض", "kind": "خارجية"})
     origins = {(lv["start"], lv.get("origin")) for lv in _weekly(data_file)
                if lv["start"] >= "2026-04-06"}
     assert (extra_day, "weekly_extra") in origins

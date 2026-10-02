@@ -98,8 +98,19 @@ def _stable(value):
 def _save_snapshot(data, day, rows, at, by):
     store = confirms(data)
     store[day] = {"at": at, "by": by, "rows": copy.deepcopy(rows)}
-    for old in sorted(store)[:-MAX_SNAPSHOT_DAYS]:
+    from .store import known_days
+    for old in _trimmed(known_days(data, "day_confirm"), day):
         store.pop(old, None)
+
+
+def _trimmed(confirmed_days, day):
+    return sorted({*confirmed_days, day})[:-MAX_SNAPSHOT_DAYS]
+
+
+def snapshot_scope(index, day):
+    """الأيام اللي تأكيد `day` ممكن يلمسها في `day_confirm`: اليوم نفسه
+    واللقطات الأقدم اللي هتتشال عشان يفضل آخر `MAX_SNAPSHOT_DAYS` بس."""
+    return [day, *_trimmed(index.days_with("day_confirm"), day)]
 
 
 # ---------- صياغة النصوص ----------

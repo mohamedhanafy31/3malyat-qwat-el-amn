@@ -16,14 +16,17 @@ def get_month(year, month):
         return jsonify({"error": "شهر غير صحيح."}), 400
     if not 2000 <= year <= 2100:
         return jsonify({"error": "سنة غير صحيحة."}), 400
-    month_days = [f"{year:04d}-{month:02d}-{day:02d}"
-                  for day in range(1, calendar.monthrange(year, month)[1] + 1)]
-    return jsonify(month_register(load_data(days=month_days), year, month))
+    first = f"{year:04d}-{month:02d}-01"
+    last = f"{year:04d}-{month:02d}-{calendar.monthrange(year, month)[1]:02d}"
+    # أيام الشهر المسجّلة فعلًا بس — الباقي «بدون سجل» من غير تحميل
+    data = load_data(lambda view: view.index.recorded_between(first, last))
+    return jsonify(month_register(data, year, month))
 
 
 @bp.get("/api/register/officer/<officer_id>")
 def get_officer(officer_id):
-    data = load_data()
+    # صفحة الضابط بتعرض كل يوم مسجّل في الأرشيف — الأيام المسجّلة بس
+    data = load_data(lambda view: view.index.recorded())
     person, category, _ = Repos(data).people.locate(officer_id)
     if not person or category != "officers":
         return jsonify({"error": "الضابط غير موجود."}), 404

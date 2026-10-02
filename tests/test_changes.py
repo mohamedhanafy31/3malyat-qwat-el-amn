@@ -76,6 +76,22 @@ def test_clearing_an_empty_state_records_nothing(client):
     assert _entries(client, entity="officer_state", entity_id="OFF-001") == []
 
 
+def test_roster_changes_can_be_filtered_by_confirmation_day_range(client):
+    for day, name in (("2026-04-10", "خدمة أ"), ("2026-04-11", "خدمة ب")):
+        row = client.post(f"/api/assignments/{day}", json={
+            "name": name, "kind": "خارجية", "officer_ids": ["OFF-001"],
+        }).get_json()
+        client.post(f"/api/board/{day}/confirm", json={})
+        client.patch(f"/api/assignments/{day}/{row['id']}", json={"officer_ids": []})
+        client.post(f"/api/board/{day}/confirm", json={})
+
+    response = client.get("/api/changes", query_string={
+        "entity": "duty_move", "from_day": "2026-04-11", "to_day": "2026-04-11",
+    }).get_json()["entries"]
+    assert response and {entry["day"] for entry in response} == {"2026-04-11"}
+    assert all(entry["entity"] == "duty_move" for entry in response)
+
+
 def test_leave_lifecycle_is_recorded(client):
     r = client.post("/api/leaves", json={
         "person_id": "OFF-002", "type": "أسبوعية", "start": "2026-02-01", "end": "2026-02-01"})

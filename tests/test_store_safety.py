@@ -24,7 +24,7 @@ def test_write_snapshots_previous_version(client, data_file):
 
     backups = store._backup_files()
     assert len(backups) == 1, "لازم تتعمل نسخة واحدة قبل الكتابة"
-    assert backups[0].name.endswith(".json.gz"), "النسخ مضغوطة"
+    assert backups[0].name.endswith(".zip"), "النسخ مضغوطة"
     assert store.read_backup(backups[0]) == before, "النسخة لازم تكون الحالة السابقة بالظبط"
 
 
@@ -32,6 +32,18 @@ def test_backup_is_much_smaller_than_the_live_data(client, data_file):
     """الضغط هو سبب التغيير — لازم يكون فرق حقيقي مش شكلي."""
     client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
     assert store._backup_files()[0].stat().st_size < data_file.size()
+
+
+def test_zip_backup_contains_uploads_and_restores_them(client):
+    uploads = store.DATA_DIR / "uploads" / "service-catalog"
+    uploads.mkdir(parents=True)
+    (uploads / "photo.bin").write_bytes(b"attachment")
+    client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
+    backup = store._backup_files()[0]
+    assert backup.suffix == ".zip"
+    (uploads / "photo.bin").unlink()
+    store.restore_backup(backup.name)
+    assert (uploads / "photo.bin").read_bytes() == b"attachment"
 
 
 def test_live_data_is_never_compressed(client, data_file):
@@ -61,13 +73,12 @@ def test_day_only_edits_do_not_snapshot_on_every_write(client, data_file):
     assert len(store._backup_files()) == 1, "خمس تعديلات يوم = نسخة واحدة"
 
 
-def test_changing_the_force_always_snapshots(client, data_file):
-    """القوة والراحات مالهاش مصدر تاني تترجع منه، فأي تغيير فيها بياخد
-    نسخة فورًا مهما كان وقت آخر واحدة."""
+def test_changing_the_force_is_throttled_like_every_other_automatic_backup(client, data_file):
+    """كل النسخ التلقائية، بما فيها تغييرات القوة، ملتزمة بنافذة التهدئة."""
     for i in range(3):
         client.post("/api/leaves", json={"person_id": "OFF-002", "type": "أسبوعية",
                                           "start": f"2026-02-0{i+1}", "end": f"2026-02-0{i+1}"})
-    assert len(store._backup_files()) == 3
+    assert len(store._backup_files()) == 1
 
 
 def test_legacy_uncompressed_backups_still_readable(client, data_file):
@@ -125,6 +136,54 @@ def test_restore_removes_days_that_did_not_exist_yet(client, data_file):
 
     store.restore_backup(marker)
     assert not store.day_path("2026-05-20").exists()
+
+
+@pytest.mark.parametrize("name", [
+    "../data/core.json", "../../app.py", "/etc/passwd", "data-unknown.json.gz", "",
+    ".", "..", None,
+])
+def test_restore_accepts_only_names_from_the_backup_inventory(client, data_file, name):
+    """الاسم بيتقارن بقايمة النسخ نفسها — مسار نسبي/مطلق أو اسم مش في
+    القايمة بيترفض قبل أي قراءة أو كتابة."""
+    client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
+    before = data_file.read_bytes()
+    with pytest.raises(store.DataUnreadable):
+        store.restore_backup(name)
+    assert data_file.read_bytes() == before
+
+
+def test_restore_rejects_a_traversal_to_a_backup_shaped_file(client, data_file):
+    """ملف بشكل نسخة سليمة بس **برّه** مجلد النسخ — `backups/../x` كان
+    بيعدّي من `exists()`."""
+    client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
+    good = store._backup_files()[0]
+    outside = store.backup_dir().parent / "data-20200103-000000-000000.json.gz"
+    outside.write_bytes(good.read_bytes())
+
+    before = data_file.read_bytes()
+    with pytest.raises(store.DataUnreadable):
+        store.restore_backup(f"../{outside.name}")
+    assert data_file.read_bytes() == before
+
+
+def test_restore_rejects_a_directory_named_like_a_backup(client, data_file):
+    store.backup_dir().mkdir(parents=True, exist_ok=True)
+    (store.backup_dir() / "data-20200104-000000-000000.json").mkdir()
+    before = data_file.read_bytes()
+    with pytest.raises(store.DataUnreadable):
+        store.restore_backup("data-20200104-000000-000000.json")
+    assert data_file.read_bytes() == before
+
+
+def test_restore_still_accepts_a_legacy_uncompressed_backup(client, data_file):
+    client.post("/api/assignments/2026-04-10", json={"name": "قديم", "kind": "خارجية"})
+    legacy = store.backup_dir() / "data-20200101-000000-000000.json"
+    legacy.write_text(data_file.read_text(encoding="utf-8"), encoding="utf-8")
+
+    client.post("/api/assignments/2026-04-10", json={"name": "جديد", "kind": "خارجية"})
+    store.restore_backup(legacy.name)
+    rows = json.loads(data_file.read_text(encoding="utf-8"))["day_assignments"]["2026-04-10"]
+    assert [r["name"] for r in rows] == ["قديم"]
 
 
 def test_write_stamps_schema_version(client, data_file):
@@ -211,9 +270,12 @@ def test_a_stale_lock_from_a_dead_process_is_recovered_automatically(client, dat
     lock_path.unlink(missing_ok=True)
 
 
-def test_a_lock_from_a_still_running_process_is_respected(client, data_file):
+def test_orphaned_pid_text_does_not_block_os_lock_recovery(client, data_file):
     lock_path = store.DATA_DIR / store.LOCK_FILE_NAME
-    lock_path.write_text(str(os.getpid()), encoding="utf-8")   # الاختبار نفسه لسه شغّال
-    with pytest.raises(SystemExit):
-        store.acquire_process_lock()
+    lock_path.write_text(str(os.getpid()), encoding="utf-8")
+    # The bytes are only diagnostic; ownership is the kernel-held lock.
+    store.acquire_process_lock()
+    fd = store._PROCESS_LOCK_FD
+    os.close(fd)
+    store._PROCESS_LOCK_FD = None
     lock_path.unlink(missing_ok=True)

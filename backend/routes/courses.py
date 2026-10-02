@@ -17,7 +17,7 @@ bp = Blueprint("courses", __name__)
 def list_courses():
     """العرضين مع بعض: تجميع بالفرقة وتجميع بالضابط — نفس البيانات
     بمدخلين مختلفين، فنداء واحد يكفي والتبديل بينهم من غير تحميل."""
-    data = load_data()
+    data = load_data(())
     return jsonify({"courses": summary(data), "officers": by_officer(data)})
 
 
@@ -34,7 +34,7 @@ def add_course():
         courses(data).append(course)
         return jsonify(course), 201
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.patch("/api/courses/<course_id>")
@@ -55,7 +55,7 @@ def edit_course(course_id):
         current.update(merged)
         return jsonify(current)
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 @bp.delete("/api/courses/<course_id>")
@@ -70,7 +70,7 @@ def delete_course(course_id):
             raise AbortRequest((jsonify({"error": "الفرقة غير موجودة."}), 404))
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, ())
 
 
 # ---------- التحاق ضابط بفرقة ----------
@@ -97,7 +97,7 @@ def add_term():
             retro.log_retro(data, "course_term", term["id"], closed, reason, after=dict(term))
         return jsonify(term), 201
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)
 
 
 @bp.patch("/api/course-terms/<term_id>")
@@ -127,7 +127,7 @@ def edit_term(term_id):
                            before=before, after=dict(current))
         return jsonify(current)
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)
 
 
 @bp.delete("/api/course-terms/<term_id>")
@@ -145,4 +145,4 @@ def delete_term(term_id):
             retro.log_retro(data, "course_term", term_id, closed, reason, before=found.as_dict())
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, retro.status_scope)

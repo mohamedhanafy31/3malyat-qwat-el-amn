@@ -57,12 +57,12 @@ def get_counts(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    return jsonify(counts_lib.build(load_data(days=[day]), day))
+    return jsonify(counts_lib.build(load_data([day]), day))
 
 
 @bp.get("/api/counts/template")
 def get_template():
-    data = load_data()
+    data = load_data(())
     return jsonify({
         "entries": counts_lib.peek_template(data),
         "seeded": counts_lib.is_seeded(data),
@@ -80,7 +80,7 @@ def seed_template():
         entries = counts_lib.seed_template(data)
         return jsonify({"entries": entries}), 201
 
-    return with_data(mutate)
+    return with_data(mutate, counts_lib.freeze_scope)
 
 
 @bp.post("/api/counts/template/entries")
@@ -100,7 +100,7 @@ def add_template_entry():
         entries.append(fields)
         return jsonify(fields), 201
 
-    return with_data(mutate)
+    return with_data(mutate, counts_lib.freeze_scope)
 
 
 @bp.patch("/api/counts/template/entries/<entry_id>")
@@ -121,7 +121,7 @@ def edit_template_entry(entry_id):
         entry.update(fields)
         return jsonify(entry)
 
-    return with_data(mutate)
+    return with_data(mutate, counts_lib.freeze_scope)
 
 
 @bp.delete("/api/counts/template/entries/<entry_id>")
@@ -135,7 +135,7 @@ def delete_template_entry(entry_id):
         config.save_template(kept)
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, counts_lib.freeze_scope)
 
 
 @bp.post("/api/counts/<day>/entries")
@@ -156,7 +156,7 @@ def add_day_entry(day):
         entries.append(fields)
         return jsonify(fields), 201
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.patch("/api/counts/<day>/entries/<entry_id>")
@@ -180,7 +180,7 @@ def edit_day_entry(day, entry_id):
         entry.update(fields)
         return jsonify(entry)
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.delete("/api/counts/<day>/entries/<entry_id>")
@@ -200,7 +200,7 @@ def delete_day_entry(day, entry_id):
         entries[:] = kept
         return jsonify({"ok": True})
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.patch("/api/counts/<day>/board/<assignment_id>")
@@ -224,7 +224,7 @@ def set_board_count(day, assignment_id):
             raise AbortRequest((jsonify({"error": err}), 404))
         return jsonify(counts_lib.build(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, [day])
 
 
 @bp.post("/api/counts/<day>/reset")
@@ -240,4 +240,4 @@ def reset_day(day):
         Repos(data).days.reset_counts(day)
         return jsonify(counts_lib.build(data, day))
 
-    return with_data(mutate)
+    return with_data(mutate, [day])

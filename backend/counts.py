@@ -176,25 +176,40 @@ def freeze_past_days(data):
     أكّده بالفعل. بعد التجميد، تعديل القالب بيأثر على النهاردة والأيام
     الجاية بس.
     """
-    from .day_status import today_iso
     from .imports import is_imported
-    from .repo import DayRepo
+    from .store import known_days
+
+    for day in _days_to_freeze(lambda *keys: known_days(data, *keys)):
+        if not is_imported(data, day):
+            for_day_entries(data, day)
+
+
+def freeze_scope(view):
+    """نطاق القراءة لمسار بيعدّل القالب: الأيام اللي `freeze_past_days`
+    هتكتب لها نسخة — من فهرس الأيام، من غير تحميل الأرشيف."""
+    return _days_to_freeze(view.index.days_with)
+
+
+def _days_to_freeze(days_with):
+    """الأيام الفايتة اللي لسه على القالب. `days_with(*keys)` بترجّع
+    الأيام المرتبة اللي فيها أي قسم من الأقسام دي."""
+    from .day_status import today_iso
 
     today = today_iso()
-    counts_days = set(data.get("service_counts") or {})
-    app_assignment_days = {
-        day for day in (data.get("day_assignments") or {})
-        if not is_imported(data, day)
-    }
+    imported = set(days_with("day_import"))
+    counts_days = set(days_with("service_counts"))
+    app_assignment_days = {day for day in days_with("day_assignments") if day not in imported}
     anchors = counts_days | app_assignment_days
     if not anchors:
-        return
+        return []
     # ما قبل أول نسخة أعداد أو تكليف أنشأه النظام أرشيف سابق لبداية
     # التشغيل؛ لا ننسخ قالب اليوم إلى مئات أيام الترحيل.
     first_app_day = min(anchors)
-    for day in DayRepo(data).dates():
-        if first_app_day <= day < today and not is_imported(data, day):
-            for_day_entries(data, day)
+    # يوم عنده نسخة محفوظة مابيتغيّرش (`for_day_entries`) — مش محتاج يتحمّل
+    return [day for day in days_with("day_assignments", "day_officers", "day_status",
+                                     "service_counts", "day_confirm")
+            if first_app_day <= day < today and day not in imported
+            and day not in counts_days]
 
 
 def strength_text(row):

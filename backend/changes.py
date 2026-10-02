@@ -85,8 +85,9 @@ def record(data, entity, entity_id, action, before=None, after=None, reason="",
         del entries[:overflow]
 
 
-def recent(data, limit=200, entity=None, entity_id=None, day=None):
-    """أحدث التغييرات أولًا، قابلة للتصفية بالكيان أو بسجل بعينه أو باليوم."""
+def recent(data, limit=200, entity=None, entity_id=None, day=None,
+           from_day=None, to_day=None):
+    """أحدث التغييرات أولًا، مع تصفية كيان أو سجل أو يوم/مدى أيام."""
     entries = log(data)
     out = entries
     if entity:
@@ -95,4 +96,8 @@ def recent(data, limit=200, entity=None, entity_id=None, day=None):
         out = [e for e in out if e["entity_id"] == entity_id]
     if day:
         out = [e for e in out if e.get("day") == day]
+    if from_day:
+        out = [e for e in out if (e.get("day") or "") >= from_day]
+    if to_day:
+        out = [e for e in out if (e.get("day") or "") <= to_day]
     return list(reversed(out))[:limit]

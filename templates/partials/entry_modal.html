@@ -11,13 +11,13 @@
         <div class="field-legend">الخدمة</div>
         <div class="grid">
           <label><span class="label-text">اسم الخدمة <span class="req" aria-hidden="true">*</span></span>
-            <input id="enName" required placeholder="اكتب اسم الخدمة">
+            <input id="enName" required maxlength="120" placeholder="اكتب اسم الخدمة">
           </label>
           <label><span class="label-text">التصنيف <span class="req" aria-hidden="true">*</span></span> <small>تظهر خانته في جدول الإجمالي</small>
             <select id="enKind" required></select>
           </label>
           <label>القسم على اللوحة <small>اختر قسمًا مستخدمًا من قبل، أو اكتب اسم قسم جديد</small>
-            <select id="enSection" data-combo-custom aria-label="القسم على اللوحة"></select>
+            <select id="enSection" data-combo-custom data-maxlength="60" aria-label="القسم على اللوحة"></select>
           </label>
           <fieldset id="enShiftWrap" class="seg-field">
             <legend>الفترة</legend>
@@ -55,7 +55,7 @@
         <button type="button" class="mini" id="addConRow">{{ icon('plus') }} إضافة فئة</button>
         <label class="field-label-spaced">عدد المجندين
           <small>لأي خدمة غير أساسية (طارئة أو قسم مخصّص) — يظهر في صفحة أعداد الخدمات تلقائيًا</small>
-          <input id="enConCount" type="number" min="0">
+          <input id="enConCount" type="number" min="0" max="9999" step="1">
         </label>
       </div>
 
@@ -63,19 +63,19 @@
         <div class="field-legend">تفاصيل الخدمة</div>
         <div class="grid">
           <label>التسليح <small>آلي / دونك / خرطوش / فض / فيدرال / كلبش</small>
-            <input id="enWeapon">
+            <input id="enWeapon" maxlength="120">
           </label>
           <label>الانتظام <small>8ص / 8م / 11ص حتى الانتهاء</small>
-            <input id="enTime">
+            <input id="enTime" maxlength="60">
           </label>
           <label>الجهة <small>عتاقة / الجناين / فيصل / الأربعين</small>
-            <input id="enParty">
+            <input id="enParty" maxlength="120">
           </label>
         </div>
       </div>
 
       <label>ملاحظات
-        <input id="enNote">
+        <input id="enNote" maxlength="500">
       </label>
       <span class="shortcut-save-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> للحفظ</span>
       <div class="actions modal-foot">

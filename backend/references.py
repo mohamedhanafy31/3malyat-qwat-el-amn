@@ -174,6 +174,8 @@ def _detach_suspension_snapshots(repos, person_id):
 
 
 def _detach_afraad_links(repos, person_id):
+    from .store import require_person_days
+    require_person_days(repos.data, person_id)
     touched = 0
     for entries in (repos.data.get("day_afraad") or {}).values():
         for entry in (entries or {}).values():

@@ -2,8 +2,20 @@
    اسم الخدمة حر بيكتبه المشغّل على الخانة نفسها، والتصنيف (خارجية/داخلية/
    حراسات/طبية) بيتحدد معاه — مفيش كتالوج منفصل يتربط بيه. */
 let BOARD = null, DAY = null;
+const BOARD_DAY_KEY = "board:last-selected-day";
 let SECTION_HISTORY = null, SECTION_HISTORY_TIMER = null, SECTION_HISTORY_SEQ = 0;
 let SELECTED_ROW_ID = null, MOVING_ROW = false, ENTRY_AFTER_ID = null;
+
+function savedBoardDay() {
+  try {
+    const value = localStorage.getItem(BOARD_DAY_KEY) || "";
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
+  } catch (_) { return ""; }
+}
+
+function rememberBoardDay(day) {
+  try { localStorage.setItem(BOARD_DAY_KEY, day); } catch (_) {}
+}
 
 /* زرار «Word» العام (export.js) بيلف أي صفحة كـHTML متلبّس .doc — هنا
    لازم يبقى ملف Word حقيقي بنفس شكل الورقة الرسمية (نفس التقسيمة
@@ -79,8 +91,21 @@ function serviceRow(row) {
   const selected = row.id === SELECTED_ROW_ID;
   return `<tr class="service-row${row.vacant ? " vacant" : ""}${selected ? " is-selected" : ""}"
     data-service-id="${esc(row.id)}" tabindex="-1" aria-selected="${selected}">
-    <td class="name">${esc(row.label)}
-      ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}</td>
+    <td class="name service-name-cell">
+      <span class="service-label">${esc(row.label)}</span>
+      ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}
+      <div class="service-rail" aria-label="ترتيب وتكرار الخدمة">
+        <button type="button" class="mini btn-xs move" data-action="moveEntry"
+          data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
+          title="حرّك إلى أعلى" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
+        <button type="button" class="mini btn-xs move" data-action="moveEntry"
+          data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
+          title="حرّك إلى أسفل" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
+        <button class="mini btn-xs duplicate-action" data-action="duplicateEntry"
+          data-id="${esc(row.id)}" title="تكرار الخدمة دون الأشخاص"
+          aria-label="تكرار الخدمة دون الأشخاص">${icon("copy")}</button>
+      </div>
+    </td>
     <td class="wrap">${who}</td>
     <td>${conChips(row.conscripts)}${row.conscript_count ? ` <span class="chip w">${countLabel(row.conscript_count, "مجند")}</span>` : ""}
       ${!row.conscripts.length && !row.conscript_count ? "<span class='muted'>—</span>" : ""}</td>
@@ -88,15 +113,9 @@ function serviceRow(row) {
     <td>${esc(row.time) || "<span class='muted'>—</span>"}</td>
     <td>${esc(row.party) || "<span class='muted'>—</span>"}</td>
     <td class="col-actions"><div class="actions service-actions">
-      <button type="button" class="mini btn-xs move" data-action="moveEntry"
-        data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
-        title="حرّك إلى أعلى" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
-      <button type="button" class="mini btn-xs move" data-action="moveEntry"
-        data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
-        title="حرّك إلى أسفل" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
-      <button class="mini" data-action="openEntry" data-id="${esc(row.id)}">تعديل</button>
+      <button class="mini icon-action" data-action="openEntry" data-id="${esc(row.id)}"
+        title="تعديل الخدمة" aria-label="تعديل الخدمة">${icon("edit")}</button>
       ${rowMenu([
-        {action: "duplicateEntry", id: row.id, label: "تكرار"},
         {action: "deleteEntry", id: row.id, extra: {name: row.label}, label: "حذف", danger: true},
       ], {label: "إجراءات الخدمة"})}
     </div></td></tr>`;
@@ -245,7 +264,7 @@ $("#matchBoard").addEventListener("click", e => {
 function conRow(c) {
   return `<div class="req-row">
     <input class="con-class" placeholder="الفئة (قتالية/فض/حفظ نظام/رياضي)" value="${esc(c.class || "")}">
-    <input class="con-count" type="number" min="0" placeholder="العدد" value="${c.count || ""}">
+    <input class="con-count" type="number" min="0" max="9999" step="1" placeholder="العدد" value="${c.count || ""}">
     <button type="button" class="mini bad" data-action="removeConRow">حذف</button>
   </div>`;
 }
@@ -483,6 +502,24 @@ $("#enKind").addEventListener("change", () => syncShiftOptions());
 $("#enSection").addEventListener("input", () => queueSectionHistory(true));
 $("#enSection").addEventListener("change", () => queueSectionHistory(true));
 
+// خانة شاغرة مطابقة لخانة شاغرة موجودة (اسم/قسم/تصنيف/فترة) غالبًا ضغطة
+// حفظ اتكررت — السيرفر بيرجّع 409 `possible_duplicate`، فنسأل مرة واحدة
+// ونعيد الطلب بـ`allow_duplicate` لو التكرار مقصود فعلًا.
+async function addService(body) {
+  let twin = null;
+  const out = await api(`/api/assignments/${DAY}`, {...jsonReq("POST", body), onError: b => {
+    if (b && b.code === "possible_duplicate") { twin = b; return true; }
+    return false;
+  }});
+  if (out || !twin) return out;
+  if (!(await confirmDialog({
+    title: "خانة مكررة؟",
+    body: `توجد بالفعل خانة شاغرة «${body.name}» بنفس القسم والتصنيف والفترة في يومية ${fmt(DAY)}. هل تريد إضافة خانة أخرى مطابقة؟`,
+    confirmLabel: "إضافة على أي حال",
+  }))) return null;
+  return api(`/api/assignments/${DAY}`, jsonReq("POST", {...body, allow_duplicate: true}));
+}
+
 $("#entryForm").onsubmit = async e => {
   e.preventDefault();
   const conscripts = $$("#conRows .req-row").map(r => ({
@@ -507,7 +544,7 @@ $("#entryForm").onsubmit = async e => {
   if (!id && ENTRY_AFTER_ID) body.after_id = ENTRY_AFTER_ID;
   const out = id
     ? await api(`/api/assignments/${DAY}/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
-    : await api(`/api/assignments/${DAY}`, jsonReq("POST", body));
+    : await addService(body);
   if (!out) return;
   SELECTED_ROW_ID = out.id;
   closeModal("entryModal", true); showToast(id ? "تم حفظ التعديلات" : "تمت الإضافة");
@@ -631,11 +668,29 @@ $("#btnConfirmDay").onclick = async () => {
   loadDay(DAY);
 };
 
+async function confirmAllUnconfirmed() {
+  const list = await api("/api/board/unconfirmed");
+  if (!list || !list.count) { showToast("كل اليوميات المسجلة مؤكدة بالفعل"); return; }
+  const days = list.days.map(x => x.day);
+  if (!(await confirmDialog({
+    title: "تأكيد اليوميات غير المؤكدة",
+    body: "سيتم تأكيد " + countLabel(days.length, "يومية") + " مسجلة. هذا الإجراء يثبت اللقطات الحالية في سجل التغييرات، ويمكن أن يشمل أيامًا سابقة.",
+    confirmLabel: "تأكيد الكل",
+  }))) return;
+  const by = ($("#editedBy")?.value || "").trim();
+  const out = await api("/api/board/confirm-unconfirmed", jsonReq("POST", {days, confirmed_by: by}));
+  if (!out) return;
+  SESSION_EDITS = false;
+  showToast("تم تأكيد " + countLabel(out.count || 0, "يومية"));
+  await loadDay(DAY);
+}
+$("#btnConfirmAll").onclick = confirmAllUnconfirmed;
+
 /* ---------- تنقّل الأيام ---------- */
 async function loadDay(day) {
   const b = await api(`/api/board/${day}`); if (!b) return;
   if (DAY && day !== DAY) SELECTED_ROW_ID = null;
-  BOARD = b; DAY = day; $("#dutyDate").value = day; setPageDay(day); render();
+  BOARD = b; DAY = day; rememberBoardDay(day); $("#dutyDate").value = day; setPageDay(day); render();
   renderRestStrip($("#restStrip"), day);
   renderConfirmBadge();
   loadDayStatus();
@@ -808,6 +863,8 @@ async function load() {
   const d = await bootstrap();
   if (!d) return;
   const days = d.days || [];
-  loadDay(days.includes(curDate()) ? curDate() : (days[days.length - 1] || curDate()));
+  const saved = savedBoardDay();
+  const initial = saved || (days.includes(curDate()) ? curDate() : (days[days.length - 1] || curDate()));
+  loadDay(initial);
 }
 load();
