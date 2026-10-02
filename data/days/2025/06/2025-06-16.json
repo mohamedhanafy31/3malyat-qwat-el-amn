@@ -1,0 +1,21 @@
+{
+  "assignments": [
+    {
+      "id": "AS-0001",
+      "section": "تفتيشات",
+      "name": "تفتيش فيصل",
+      "kind": "خارجية",
+      "shift": "",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [],
+      "conscript_count": 5,
+      "weapon": "دونك",
+      "time": "",
+      "party": "",
+      "counts_in_summary": true,
+      "note": ""
+    }
+  ],
+  "assignment_seq": 1
+}

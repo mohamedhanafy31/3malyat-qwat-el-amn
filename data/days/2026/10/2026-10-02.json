@@ -1,0 +1,46 @@
+{
+  "assignments": [
+    {
+      "id": "AS-0001",
+      "section": "خدمات انتشار الجمعة",
+      "name": "ارتكاز سينيما ريسانس",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [
+        {
+          "class": "وحدة فض",
+          "count": 1
+        }
+      ],
+      "conscript_count": 20,
+      "weapon": "فض",
+      "time": "11ص",
+      "party": "سينيما ريسانس بميدان اسماعيل يس",
+      "counts_in_summary": true,
+      "note": "",
+      "pos": 1
+    },
+    {
+      "id": "AS-0002",
+      "section": "خدمات انتشار الجمعة",
+      "name": "الخضر",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [
+        "OFF-041"
+      ],
+      "personnel_ids": [],
+      "conscripts": [],
+      "conscript_count": 0,
+      "weapon": "",
+      "time": "",
+      "party": "",
+      "counts_in_summary": true,
+      "note": "",
+      "pos": 0
+    }
+  ],
+  "assignment_seq": 2
+}

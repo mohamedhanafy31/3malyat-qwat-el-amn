@@ -1,0 +1,132 @@
+{
+  "assignments": [
+    {
+      "id": "AS-0002",
+      "section": "ضابط عظيم وأمن المعسكر الفرعي",
+      "name": "نوبتجي المعسكر الفرعي",
+      "kind": "داخلية",
+      "shift": "صباحية",
+      "officer_ids": [
+        "OFF-038"
+      ],
+      "personnel_ids": [],
+      "conscripts": [],
+      "conscript_count": 0,
+      "weapon": "",
+      "time": "",
+      "party": "",
+      "counts_in_summary": false,
+      "note": ""
+    },
+    {
+      "id": "AS-0003",
+      "section": "ضابط عظيم وأمن المعسكر الفرعي",
+      "name": "نوبتجي المعسكر الفرعي",
+      "kind": "داخلية",
+      "shift": "ليلية",
+      "officer_ids": [
+        "OFF-038"
+      ],
+      "personnel_ids": [],
+      "conscripts": [],
+      "conscript_count": 0,
+      "weapon": "",
+      "time": "",
+      "party": "",
+      "counts_in_summary": false,
+      "note": ""
+    },
+    {
+      "id": "AS-0006",
+      "section": "الخدمات أساسية",
+      "name": "التدخل السريع",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 2
+        }
+      ],
+      "conscript_count": 4,
+      "weapon": "آلي",
+      "time": "8ص",
+      "party": "قوات الأمن",
+      "counts_in_summary": true,
+      "note": ""
+    },
+    {
+      "id": "AS-0007",
+      "section": "الخدمات أساسية",
+      "name": "التدخل السريع",
+      "kind": "خارجية",
+      "shift": "ليلية",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 2
+        }
+      ],
+      "conscript_count": 4,
+      "weapon": "آلي",
+      "time": "8ص",
+      "party": "قوات الأمن",
+      "counts_in_summary": true,
+      "note": ""
+    }
+  ],
+  "confirm": {
+    "at": "2026-09-26T04:15:13",
+    "by": "",
+    "rows": [
+      {
+        "id": "AS-0002",
+        "section": "ضابط عظيم وأمن المعسكر الفرعي",
+        "name": "نوبتجي المعسكر الفرعي",
+        "kind": "داخلية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-038"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": false,
+        "note": ""
+      },
+      {
+        "id": "AS-0003",
+        "section": "ضابط عظيم وأمن المعسكر الفرعي",
+        "name": "نوبتجي المعسكر الفرعي",
+        "kind": "داخلية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-038"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": false,
+        "note": ""
+      }
+    ]
+  },
+  "status": {
+    "closed": false,
+    "reopened_on": "2026-09-26",
+    "reopened_at": "2026-09-26T04:15:10",
+    "reopened_by": "",
+    "reason": "تيست"
+  },
+  "assignment_seq": 7
+}

@@ -11,6 +11,11 @@ backups/
 # backend/clock.py)
 data/.lock
 data/.clock_seen
+
+# استيراد الأرشيف: ملفات وسيطة ضخمة وتقارير تشغيلية مؤقتة، وليست بيانات التطبيق
+data/import/
+claude_test/
+data.json
 import_archive/catalog_seed.json
 import_archive/import_diff.md
 
