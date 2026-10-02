@@ -13,13 +13,12 @@ if not defined PY goto not_ready
 :menu
 cls
 call "%ROOT%tools\deploy_console.bat" info "Backup Manager"
-echo.
-echo   [1] List backups
-echo   [2] Verify backups
-echo   [3] Restore latest valid backup
-echo   [4] Restore a named backup
-echo   [5] Exit
-echo.
+call "%ROOT%tools\deploy_console.bat" info "[1] List backups"
+call "%ROOT%tools\deploy_console.bat" info "[2] Verify backups"
+call "%ROOT%tools\deploy_console.bat" info "[3] Restore latest valid backup"
+call "%ROOT%tools\deploy_console.bat" info "[4] Restore a named backup"
+call "%ROOT%tools\deploy_console.bat" info "[5] Exit"
+call "%ROOT%tools\deploy_console.bat" info "Awaiting selection."
 set "choice="
 set /p "choice=Select an option: "
 if "%choice%"=="1" goto list
