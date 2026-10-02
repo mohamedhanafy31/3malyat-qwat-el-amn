@@ -11,7 +11,7 @@ Baseline: `459fbf3` on `qa/remediation`; `822 passed in 13.28s`.
 | 5. Pure GET and stale-write protection | QA-05, QA-10 | partial | direct implementation | pending | scoped revision tokens/stale 409 paths added; preparation remains write-on-first-GET for compatibility and needs final UI migration |
 | 6. Request and workflow reliability | QA-08, QA-09, QA-12, QA-13, QA-30 | partial | direct implementation | pending | 30s fetch timeout/unknown mutation state and JSON 413/500 incident responses added; full 901 passed |
 | 7. Frontend performance, UX, accessibility | QA-14, QA-20–QA-25 | partial | direct implementation | pending | local-date generation, cached asset stamps, and guarded localStorage writes added; JS syntax and full 901 passed |
-| 8. Final coherence and storage decision | all | queued | — | — | — |
+| 8. Final coherence and storage decision | all | partial | direct implementation | pending | benchmark harness added; isolated 1/30-day p95 smoke passed; Windows/HDD, browser 18-screen, 8-hour RSS, and power-loss validation remain target-environment work |
 
 ## Queue constraints
 
@@ -24,3 +24,4 @@ Baseline: `459fbf3` on `qa/remediation`; `822 passed in 13.28s`.
 
 - Batch 1 browser confirmation path was not exercised; automated API and JS syntax gates passed.
 - Batch 3 Windows-specific `msvcrt` path is covered by guarded implementation but not executable on this Linux host.
+- Batch 5 pure GET conversion and Batch 6/7 broader UI workflow/accessibility work remain incomplete; release status stays NO-GO pending target validation.
