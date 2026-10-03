@@ -202,6 +202,38 @@ def _section_blocks(sec):
     return out
 
 
+def _word_rows(sec, *, left=False):
+    """Rows in the five-column roster template.
+
+    The printed roster reserves two columns on the right for basic/target
+    services and three on the left for emergency/prison/status details.
+    Keeping the shape here (rather than exporting the web cards) makes the
+    downloaded document match the operational Word form.
+    """
+    name, sec_type = sec["name"], sec["type"]
+    rows = list(sec.get("rows") or [])
+    result = [(True, name, None, None)]
+    for row in rows:
+        if left:
+            if sec_type in {"officers", "admin"}:
+                result.append((False, row.get("status_type") or row.get("reason") or name,
+                               _who(row) or _people_text(row.get("officers")),
+                               row.get("detail") or _officer_desc(name, row)))
+            else:
+                result.append((False, row.get("label") or row.get("name") or "—",
+                               _people_text(row.get("officers")), _service_desc(row)))
+        elif sec_type in {"officers", "admin"}:
+            result.append((False, _who(row) or "—", _officer_desc(name, row), None))
+        elif sec_type == "targets":
+            result.append((False, row.get("label") or row.get("name") or "—",
+                           _people_text(row.get("officers")) or _people_text(row.get("commander")), None))
+        else:
+            result.append((False, row.get("label") or row.get("name") or "—", _service_desc(row), None))
+    if len(result) == 1:
+        result.append((False, "لا يوجد", None, None))
+    return result
+
+
 def build_docx(board):
     """`board` هو نفسه مخرج `build_board(data, day)` — نفس الـJSON اللي
     الواجهة بترسمه بالظبط. جدول واحد بعمودين مستقلين (يمين/شمال) بدل
@@ -240,32 +272,37 @@ def build_docx(board):
 
     right_rows, left_rows = [], []
     for sec in right:
-        right_rows.extend(_section_blocks(sec))
+        right_rows.extend(_word_rows(sec))
     for sec in left:
-        left_rows.extend(_section_blocks(sec))
+        left_rows.extend(_word_rows(sec, left=True))
 
     total = max(len(right_rows), len(left_rows), 1)
-    tbl = document.add_table(rows=total, cols=4)
+    # Official roster template: two right columns + three left columns.
+    tbl = document.add_table(rows=total, cols=5)
     tbl.style = "Table Grid"
     tbl.autofit = False
     _rtl_table(tbl)
-    widths = [Cm(6), Cm(4), Cm(6), Cm(4)]
+    widths = [Cm(4.2), Cm(3.8), Cm(3.5), Cm(3.5), Cm(3.6)]
     for col, w in zip(tbl.columns, widths):
         col.width = w
 
     for i in range(total):
         cells = tbl.rows[i].cells
-        for cells_pair, seq in ((cells[0:2], right_rows), (cells[2:4], left_rows)):
+        for cells_pair, seq in ((cells[0:2], right_rows), (cells[2:5], left_rows)):
             if i >= len(seq):
                 continue
-            is_header, a, b = seq[i]
+            is_header, a, b, c = seq[i]
             if is_header:
-                merged = cells_pair[0].merge(cells_pair[1])
+                merged = cells_pair[0]
+                for extra in cells_pair[1:]:
+                    merged = merged.merge(extra)
                 _shade(merged, HEADER_FILL)
                 _cell_text(merged, a, bold=True, size=12, center=True)
             else:
                 _cell_text(cells_pair[0], a, bold=True, size=10.5)
                 _cell_text(cells_pair[1], b, size=10.5)
+                if len(cells_pair) == 3:
+                    _cell_text(cells_pair[2], c, size=10.5)
 
     buf = BytesIO()
     document.save(buf)
