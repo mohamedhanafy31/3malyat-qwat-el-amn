@@ -115,9 +115,9 @@ function serviceRow(row) {
     <td class="col-actions"><div class="actions service-actions">
       <button class="mini icon-action" data-action="openEntry" data-id="${esc(row.id)}"
         title="تعديل الخدمة" aria-label="تعديل الخدمة">${icon("edit")}</button>
-      ${rowMenu([
-        {action: "deleteEntry", id: row.id, extra: {name: row.label}, label: "حذف", danger: true},
-      ], {label: "إجراءات الخدمة"})}
+      <button type="button" class="mini icon-action danger" data-action="deleteEntry"
+        data-id="${esc(row.id)}" data-extra="${dataAttr({name: row.label})}"
+        title="حذف الخدمة" aria-label="حذف الخدمة">${icon("trash")}</button>
     </div></td></tr>`;
 }
 
