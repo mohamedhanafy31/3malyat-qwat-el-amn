@@ -2,16 +2,21 @@
 {% block export %}xlsx print{% endblock %}
 
 {% block content %}
-<div class="panel">
-  <div class="toolbar" id="regBar">
+<div class="panel register-panel">
+  <div class="toolbar register-toolbar" id="regBar">
     <div class="tb-group" role="group" aria-label="التنقل بين الشهور">
       <button class="mini" id="monthPrev">{{ icon('chevron-prev') }} الشهر السابق</button>
-      <input type="month" id="regMonth" class="select">
+      <label class="register-period">
+        <span>الفترة</span>
+        <input type="month" id="regMonth" class="select"
+               aria-label="اختيار الشهر والسنة" title="اختيار الشهر والسنة فقط">
+      </label>
       <button class="mini" id="monthNext">الشهر التالي {{ icon('chevron-next') }}</button>
     </div>
     <input id="regSearch" class="search" aria-label="البحث باسم الضابط" placeholder="بحث باسم الضابط…">
-    <span id="regCount" class="muted"></span>
+    <span id="regCount" class="muted" aria-live="polite"></span>
   </div>
+  <p class="register-hint">اختر الشهر والسنة فقط لعرض حصر التشغيل، ثم مرّر الجدول أفقيًا لمراجعة أيام الشهر.</p>
   <div id="registerWrap"></div>
   <div id="registerLegend"></div>
 </div>

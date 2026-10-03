@@ -4,6 +4,7 @@ let REG = null;
 
 const dayNum = iso => Number(iso.slice(8, 10));
 const monthValue = () => $("#regMonth").value || curDate().slice(0, 7);
+const monthIsValid = value => /^\d{4}-(0[1-9]|1[0-2])$/.test(value || "");
 
 function headRow() {
   const recorded = new Set(REG.recorded_days || []);
@@ -51,8 +52,9 @@ function render() {
   const q = $("#regSearch").value.trim();
   const rows = q ? REG.rows.filter(r => r.name.includes(q)) : REG.rows;
   $("#regCount").textContent = `${countLabel(rows.length, "ضابط")} · ${countLabel(REG.days.length, "يوم")}`;
-  wrap.innerHTML = `<div class="table-scroll reg-scroll">
+  wrap.innerHTML = `<div class="table-scroll reg-scroll" tabindex="0" aria-label="جدول حصر تشغيل الضباط">
     <table class="table reg43">
+      <caption class="sr-only">حصر تشغيل الضباط لشهر ${esc(monthValue())}</caption>
       <thead>${headRow()}</thead>
       <tbody>${rows.map(officerRow).join("")}</tbody>
       <tfoot>${totalsRows()}</tfoot>
@@ -69,6 +71,7 @@ ACTIONS.openCell = (id, extra) => {
 };
 
 async function loadMonth(value) {
+  if (!monthIsValid(value)) return;
   const [y, m] = value.split("-");
   const d = await api(`/api/register/${Number(y)}/${Number(m)}`);
   if (!d) return;

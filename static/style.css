@@ -905,6 +905,17 @@ tr.vacant td{background:repeating-linear-gradient(135deg,transparent,transparent
 /* الشبكة عريضة فلازم تبقى حاوية تمرير أفقي، والرأس اللاصق بيلصق فيها هي؛
    فبتاخد ارتفاع الشاشة كاملة (نمط الجدول الحسابي) بدل صندوق صغير جوّه الصفحة */
 .table-scroll.reg-scroll{overflow:auto;max-height:calc(100vh - var(--topbar-h) - var(--s4))}
+.register-panel{overflow:visible}
+.register-toolbar{padding-block:var(--s4);gap:var(--s3)}
+.register-toolbar .tb-group{flex:0 0 auto}
+.register-period{display:inline-flex;align-items:center;gap:var(--s1);padding-inline:var(--s1);
+  color:var(--ink-500);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
+.register-period .date-input-display{width:148px;text-align:center;font-weight:700;color:var(--navy-950)}
+.register-hint{margin:0;padding:var(--s2) var(--s5);border-bottom:1px solid var(--line);
+  background:var(--navy-50);color:var(--ink-600);font-size:var(--t-xs)}
+.register-panel .reg-scroll{scrollbar-width:thin;overscroll-behavior:contain}
+.register-panel .reg-scroll:focus-visible{outline:2px solid var(--gold-600);outline-offset:-2px}
+.reg43{min-width:max-content}
 .reg43 th.is-today{background:var(--gold-100);border-top:3px solid var(--gold-700);color:var(--navy-950)}
 .reg43 td.is-today{background:var(--gold-100) !important}
 .reg43{border-collapse:separate;border-spacing:0;font-size:var(--t-sm)}
@@ -1131,6 +1142,12 @@ body.sidebar-open{overflow:hidden}
 .sum-group.single b{font-size:var(--t-lg);color:var(--navy-950);font-variant-numeric:tabular-nums}
 .sum-group.key{border-color:var(--navy-800);border-top:3px solid var(--navy-800)}
 @media(max-width:700px){
+  .register-toolbar .tb-group{width:100%}
+  .register-toolbar .search{order:2}
+  .register-toolbar .muted{order:3;margin-inline-start:0}
+  .register-period{flex:1;justify-content:center}
+  .register-hint{padding-inline:var(--s4)}
+  .reg43 .who-col{min-width:160px}
   .duty-strip{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity}
   .sum-group{flex:none;scroll-snap-align:start}
 }
