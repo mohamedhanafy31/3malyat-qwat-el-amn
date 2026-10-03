@@ -1102,15 +1102,15 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 @media(max-width:700px){.confirm-bar{flex-wrap:wrap}.confirm-bar .primary{width:100%}}
 .bulk-confirm-btn{color:var(--navy-800);border-color:var(--navy-200);background:var(--navy-50)}
 .bulk-confirm-btn:hover{background:var(--navy-100);border-color:var(--navy-500)}
-.service-name-cell{position:relative;padding-right:43px !important;min-width:150px}
+.service-name-cell{position:relative;padding-right:38px !important;min-width:150px}
 .service-rail{position:absolute;right:5px;top:50%;translate:0 -50%;display:grid;
-  grid-template-columns:repeat(2,27px);gap:2px;opacity:0;transform:translateX(3px);
+  grid-template-columns:repeat(2,24px);gap:2px;opacity:0;transform:translateX(3px);
   transition:opacity .12s,transform .12s;z-index:1}
-.service-rail .mini{width:27px;height:25px;padding:0;display:inline-flex;align-items:center;justify-content:center}
-.service-rail .duplicate-action{grid-column:1 / -1;width:56px}
+.service-rail .mini{width:24px;height:23px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.service-rail .duplicate-action{grid-column:1 / -1;width:50px}
 .service-row:hover .service-rail,
 .service-rail:has(:focus-visible){opacity:1;transform:none}
-.service-actions .icon-action{width:30px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.service-actions .icon-action,.service-actions .row-menu-btn{width:28px;height:28px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .service-actions .icon-action .ico{width:14px;height:14px}
 @media (prefers-reduced-motion:reduce){
   .service-rail{transition:none}
