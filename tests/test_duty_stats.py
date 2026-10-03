@@ -101,7 +101,9 @@ def test_target_gap_detects_a_target_covered_by_someone_other_than_its_commander
     d = _stats(client, DAY, DAY)
     gap = next(g for g in d["target_gap"] if g["name"] == "سوميد")
     assert gap == {"name": "سوميد", "assigned_days": 1, "commander_known_days": 1,
-                   "mismatch_days": 1, "mismatch_rate": 100.0}
+                   "mismatch_days": 1, "mismatch_rate": 100.0,
+                   "commander_days": 0, "other_days": 1, "total_days": 1,
+                   "gap_days": 1, "gap_rate": 100.0}
 
 
 def test_target_gap_is_not_a_mismatch_when_the_commander_covers_it_himself(client):
@@ -116,6 +118,74 @@ def test_target_gap_is_not_a_mismatch_when_the_commander_covers_it_himself(clien
     gap = next(g for g in d["target_gap"] if g["name"] == "سوميد")
     assert gap["mismatch_days"] == 0
     assert gap["mismatch_rate"] == 0.0
+    assert (gap["commander_days"], gap["other_days"], gap["total_days"],
+            gap["gap_days"], gap["gap_rate"]) == (1, 0, 1, 0, 0.0)
+
+
+def _make_sumed_commander(client):
+    r = client.patch("/api/person/OFF-001",
+                     json={"post": "قائد هدف سوميد", "effective_from": "2020-01-01"})
+    assert r.status_code == 200, r.get_json()
+
+
+def _assign_sumed(client, day, ids):
+    r = client.put(f"/api/board/{day}/target/سوميد", json={"officer_ids": ids})
+    assert r.status_code == 200, r.get_json()
+
+
+def _sumed_gap(client, date_from=DAY, date_to=DAY2):
+    d = _stats(client, date_from, date_to)
+    return next(g for g in d["target_gap"] if g["name"] == "سوميد")
+
+
+def test_target_gap_commander_with_taqseera_is_not_a_commander_day(client):
+    """القائد معيّن بس عنده تقصيرة ومن غير بديل — اليوم بيدخل في الإجمالي
+    والفجوة، بس مش «يوم قائد» ولا «يوم غير القائد»."""
+    _make_sumed_commander(client)
+    _assign_sumed(client, DAY, ["OFF-001"])
+    r = client.put(f"/api/duty/{DAY}/OFF-001", json={"taqseera": True})
+    assert r.status_code == 200, r.get_json()
+
+    gap = _sumed_gap(client, DAY, DAY)
+    assert (gap["commander_days"], gap["other_days"], gap["total_days"],
+            gap["gap_days"], gap["gap_rate"]) == (0, 0, 1, 1, 100.0)
+    assert gap["mismatch_days"] == gap["gap_days"]
+    assert gap["mismatch_rate"] == gap["gap_rate"]
+
+
+def test_target_gap_commander_with_taqseera_and_a_replacement_is_an_other_day(client):
+    _make_sumed_commander(client)
+    _assign_sumed(client, DAY, ["OFF-001", "OFF-002"])
+    r = client.put(f"/api/duty/{DAY}/OFF-001", json={"taqseera": True})
+    assert r.status_code == 200, r.get_json()
+
+    gap = _sumed_gap(client, DAY, DAY)
+    assert (gap["commander_days"], gap["other_days"], gap["total_days"],
+            gap["gap_days"]) == (0, 1, 1, 1)
+
+
+def test_target_gap_commander_with_a_second_officer_is_a_commander_day(client):
+    """القائد موجود بنفسه ومعاه ضابط تاني — يوم قائد (مش فجوة)، وفي نفس
+    الوقت فيه تعيين لغير القائد."""
+    _make_sumed_commander(client)
+    _assign_sumed(client, DAY, ["OFF-001", "OFF-002"])
+
+    gap = _sumed_gap(client, DAY, DAY)
+    assert (gap["commander_days"], gap["other_days"], gap["total_days"],
+            gap["gap_days"], gap["gap_rate"]) == (1, 1, 1, 0, 0.0)
+
+
+def test_target_gap_totals_and_rate_across_several_days(client):
+    """يومين: يوم القائد بنفسه ويوم غيره — الإجمالي ٢، الفرق ١، النسبة ٥٠٪."""
+    _make_sumed_commander(client)
+    _assign_sumed(client, DAY, ["OFF-001"])
+    _assign_sumed(client, DAY2, ["OFF-002"])
+
+    gap = _sumed_gap(client)
+    assert (gap["commander_days"], gap["other_days"], gap["total_days"],
+            gap["gap_days"], gap["gap_rate"]) == (1, 1, 2, 1, 50.0)
+    assert gap["gap_days"] == gap["total_days"] - gap["commander_days"]
+    assert (gap["assigned_days"], gap["mismatch_days"], gap["mismatch_rate"]) == (2, 1, 50.0)
 
 
 def test_target_gap_has_no_rate_when_no_commander_is_registered_at_all(client):
@@ -129,6 +199,8 @@ def test_target_gap_has_no_rate_when_no_commander_is_registered_at_all(client):
     assert gap["assigned_days"] == 1
     assert gap["commander_known_days"] == 0
     assert gap["mismatch_rate"] is None
+    assert gap["gap_rate"] is None
+    assert (gap["commander_days"], gap["other_days"], gap["total_days"]) == (0, 1, 1)
 
 
 def test_by_weekday_bucket_matches_the_real_calendar(client):

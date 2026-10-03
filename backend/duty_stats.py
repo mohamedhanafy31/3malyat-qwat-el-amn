@@ -62,22 +62,29 @@ def stats(data, filters):
                 elif svc["shift"] == "ليلية":
                     entry["night"] += 1
 
+        # القائد المعيّن وعنده تقصيرة النهاردة مايتحسبش «القائد غطّى الهدف»
+        taqseera_ids = {r["id"] for r in rows if r["taqseera"]}
         for row in target_rows_for_day(data, day):
             if row["name"] not in targets_on(data, day):
                 continue
             target_gap.setdefault(row["name"], {
-                "assigned_days": 0, "commander_known_days": 0, "mismatch_days": 0})
+                "total_days": 0, "commander_known_days": 0,
+                "commander_days": 0, "other_days": 0})
             if not row["officers"]:
                 continue
             gap = target_gap[row["name"]]
-            gap["assigned_days"] += 1
-            commander_ids = {c["id"] for c in row["commander"]}
-            if not commander_ids:
-                continue
-            gap["commander_known_days"] += 1
+            gap["total_days"] += 1
             assigned_ids = {o["id"] for o in row["officers"]}
-            if not (assigned_ids & commander_ids):
-                gap["mismatch_days"] += 1
+            commander_ids = {c["id"] for c in row["commander"]}
+            effective_commanders = (assigned_ids & commander_ids) - taqseera_ids
+            if commander_ids:
+                gap["commander_known_days"] += 1
+            if effective_commanders:
+                gap["commander_days"] += 1
+            # يوم «غير القائد» = فيه ضابط معيّن فعلًا (مش القائد ومالوش
+            # تقصيرة). قائد بتقصيرة من غير بديل بيدخل في الفجوة بس مش هنا.
+            if assigned_ids - effective_commanders - taqseera_ids:
+                gap["other_days"] += 1
 
     by_officer_load = []
     net_rate = []
@@ -101,14 +108,25 @@ def stats(data, filters):
     shift_balance.sort(key=lambda x: abs(x["morning"] - x["night"]), reverse=True)
     taqseera_count.sort(key=lambda x: x["count"], reverse=True)
 
-    target_gap_list = [{
-        "name": name,
-        "assigned_days": g["assigned_days"],
-        "commander_known_days": g["commander_known_days"],
-        "mismatch_days": g["mismatch_days"],
-        "mismatch_rate": (round(g["mismatch_days"] / g["commander_known_days"] * 100, 1)
-                          if g["commander_known_days"] else None),
-    } for name, g in target_gap.items()]
+    target_gap_list = []
+    for name, g in target_gap.items():
+        gap_days = g["total_days"] - g["commander_days"]
+        # مفيش قائد رسمي معروف في أي يوم = مفيش حد نقارن بيه، فالنسبة None مش ١٠٠٪
+        gap_rate = (round(gap_days / g["total_days"] * 100, 1)
+                    if g["commander_known_days"] else None)
+        target_gap_list.append({
+            "name": name,
+            "commander_days": g["commander_days"],
+            "other_days": g["other_days"],
+            "total_days": g["total_days"],
+            "gap_days": gap_days,
+            "gap_rate": gap_rate,
+            "commander_known_days": g["commander_known_days"],
+            # أسماء قديمة محفوظة للتوافق — نفس القيم الجديدة
+            "assigned_days": g["total_days"],
+            "mismatch_days": gap_days,
+            "mismatch_rate": gap_rate,
+        })
 
     return {
         "date_from": date_from, "date_to": date_to,

@@ -156,15 +156,16 @@ function drawWeekdayChart(data) {
 
 function renderTargetGapTable(rows) {
   const body = rows.length
-    ? `<div class="table-scroll gap-table">${mtable(["الهدف", "أيام التعيين", "أيام معروف فيها القائد", "أيام الفجوة", "نسبة الفجوة (%)"], rows.map(r => {
+    ? `<div class="table-scroll gap-table">${mtable(["الهدف", "أيام القائد الرسمي", "أيام غير القائد", "إجمالي أيام التعيين", "الفرق (الإجمالي − القائد)", "نسبة غياب القائد (%)"], rows.map(r => {
       // الفجوة الكبيرة هي اللي محتاجة نظرة: 50% فأكثر أحمر، 25–49% كهرماني
-      const rate = r.mismatch_rate;
+      const rate = r.gap_rate;
       const cls = rate === null ? "" : rate >= 50 ? "err" : rate >= 25 ? "taq" : "done";
       return `<tr>
         <td class="name">${esc(r.name)}</td>
-        <td class="n">${r.assigned_days}</td>
-        <td class="n">${r.commander_known_days}</td>
-        <td class="n">${r.mismatch_days}</td>
+        <td class="n">${r.commander_days}</td>
+        <td class="n">${r.other_days}</td>
+        <td class="n">${r.total_days}</td>
+        <td class="n">${r.gap_days}</td>
         <td class="n">${rate === null ? "<span class='muted'>—</span>" : `<span class="chip ${cls}">${rate}%</span>`}</td>
       </tr>`;
     }))}</div>`
