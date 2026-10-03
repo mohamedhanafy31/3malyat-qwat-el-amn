@@ -54,6 +54,7 @@ SECTION_TARGETS = "الأهداف"
 SECTION_SUBCAMP = "ضابط عظيم وأمن المعسكر الفرعي"
 SECTION_GREAT = "ضابط عظيم الإدارة"
 SECTION_SECURITY = "ضابط الأمن بالإدارة"
+SECTION_PRISON = "خدمات سجن قوات الأمن"
 
 # قسم تفتيشات زيارات الأهالي — مش من الستة الرسمية ولا مسجّل في
 # `ASSIGNMENT_SECTIONS`؛ قسم حر زي أي قسم مخصّص المشغّل يكتبه بإيده
@@ -62,7 +63,7 @@ SECTION_SECURITY = "ضابط الأمن بالإدارة"
 SECTION_INSPECTIONS = "تفتيشات"
 
 SERVICE_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS,
-                    SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
+                    SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY, SECTION_PRISON]
 
 # «مشرف الأهداف» أول صف في قسم الأهداف في كل يوم من الـ101، والسبعة اللي
 # بعده قايمة مغلقة — مستخرجة من 764 صف في الأرشيف، كل اسم ظهر بين 86

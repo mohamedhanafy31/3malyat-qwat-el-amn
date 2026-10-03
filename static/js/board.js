@@ -138,6 +138,55 @@ const OFFICER_VIEWS = {
      <td class="wrap">${esc(r.note)}</td></tr>`],
 };
 
+const OUTSIDER_HEAD = ["الضابط", "الحالة", "التفاصيل"];
+const ADMIN_HEAD = ["الضابط", "العمل"];
+
+function adminRow(row) {
+  if (row.fixedSection) {
+    const assigned = row.officers?.length ? chips(row.officers, "m") : `<span class="muted">لم يُعيَّن أحد</span>`;
+    return `<tr class="${row.vacant ? "vacant" : ""}">
+      <td class="name">${esc(row.shift)} — ${esc(row.fixedLabel)}</td>
+      <td class="wrap">${assigned}
+        <button class="mini${row.vacant ? " ok" : ""}" data-action="openSlotAssign"
+          data-id="${esc(row.fixedSection)}" data-extra="${dataAttr({shift: row.shift, officers: row.officers || []})}">
+          ${row.vacant ? "تعيين" : "تعديل"}</button>
+      </td></tr>`;
+  }
+  return `<tr><td class="name">${esc(nameOf()(row))}</td><td class="wrap">${esc(row.text) || "—"}</td></tr>`;
+}
+
+function outsiderRow(row) {
+  return `<tr><td class="name">${esc(nameOf()(row))}</td>
+    <td><span class="chip ${row.status_type === "راحة" ? "m" : row.status_type === "تقصيرة" ? "h" : "taq"}">${esc(row.status_type || "خارج")}</span></td>
+    <td class="wrap">${esc(row.detail) || "—"}</td></tr>`;
+}
+
+function presentationSections(sections) {
+  const byName = new Map(sections.map(section => [section.name, section]));
+  const admin = byName.get("عمل بالإدارة") || {name: "عمل بالإدارة", type: "admin", rows: []};
+  const adminRows = [...(admin.rows || [])];
+  for (const name of ["ضابط عظيم الإدارة", "ضابط الأمن بالإدارة"]) {
+    const source = byName.get(name);
+    for (const row of source?.rows || []) {
+      adminRows.push({...row, fixedSection: name, fixedLabel: source.name});
+    }
+  }
+  const outsiderRows = [];
+  for (const name of ["الراحات", "التقصيرات", "الخوارج"]) {
+    const source = byName.get(name);
+    for (const row of source?.rows || []) {
+      const statusType = name === "الراحات" ? "راحة" : name === "التقصيرات" ? "تقصيرة" : (row.reason || "خارج");
+      const detail = name === "الراحات"
+        ? `${row.type || "راحة"}${row.start || row.end ? ` (${fmtShort(row.start)} — ${fmtShort(row.end)})` : ""}`
+        : (row.note || row.reason || "");
+      outsiderRows.push({...row, status_type: statusType, detail});
+    }
+  }
+  return sections.filter(section => !["عمل بالإدارة", "ضابط عظيم الإدارة", "ضابط الأمن بالإدارة", "الراحات", "التقصيرات", "الخوارج"].includes(section.name))
+    .concat([{name: "عمل بالإدارة", type: "admin", rows: adminRows},
+             {name: "الخوارج", type: "outsiders", rows: outsiderRows}]);
+}
+
 const cardTable = (head, rows) => `<div class="mtable-wrap">${mtable(head, rows)}</div>`;
 
 function sectionCard(sec) {
@@ -146,6 +195,10 @@ function sectionCard(sec) {
   if (sec.type === "officers") {
     const [head, render] = OFFICER_VIEWS[sec.name];
     body = count ? cardTable(head, sec.rows.map(render)) : emptyState({compact: true, title: "لا يوجد أحد في هذا القسم"});
+  } else if (sec.type === "admin") {
+    body = count ? cardTable(ADMIN_HEAD, sec.rows.map(adminRow)) : emptyState({compact: true, title: "لا يوجد أحد في هذا القسم"});
+  } else if (sec.type === "outsiders") {
+    body = count ? cardTable(OUTSIDER_HEAD, sec.rows.map(outsiderRow)) : emptyState({compact: true, title: "لا يوجد أحد في هذا القسم"});
   } else if (sec.type === "targets") {
     body = cardTable(TARGET_HEAD, sec.rows.map(targetSlotRow));
   } else if (sec.type === "slots") {
@@ -164,7 +217,7 @@ function sectionCard(sec) {
   }
   // الأهداف قايمة مقفولة بس — مفيش «+ إضافة» حر ليها زي الأقسام المحسوبة.
   // الكتل الثابتة عندها الصفّين الثابتين + إمكانية إضافة دور تاني حر.
-  const addBtn = ["officers", "targets"].includes(sec.type) ? "" :
+  const addBtn = ["officers", "targets", "admin", "outsiders"].includes(sec.type) ? "" :
     `<button class="mini on-dark" data-action="openEntry"
       data-extra="${dataAttr({section: sec.name})}">${icon("plus")} إضافة</button>`;
   const seededNote = sec.type === "targets" && sec.seeded_from
@@ -205,20 +258,17 @@ function warningsCard(list) {
 const RIGHT_COLUMN_SECTIONS = ["الخدمات أساسية", "الخدمات الطارئة", "عمل بالإدارة"];
 
 function splitColumns(sections) {
-  const right = [], left = [];
-  for (const s of sections) {
-    const inRight = RIGHT_COLUMN_SECTIONS.includes(s.name)
-      || (s.type === "services" && !RIGHT_COLUMN_SECTIONS.includes(s.name));
-    (inRight ? right : left).push(s);
-  }
-  return [right, left];
+  const rightNames = ["الخدمات أساسية", "الأهداف", "ضابط عظيم وأمن المعسكر الفرعي", "عمل بالإدارة"];
+  const leftNames = ["الخدمات الطارئة", "خدمات سجن قوات الأمن", "الخوارج"];
+  return [rightNames.map(name => sections.find(section => section.name === name)).filter(Boolean),
+    leftNames.map(name => sections.find(section => section.name === name)).filter(Boolean)];
 }
 
 function render() {
   const wrap = $("#matchBoard");
   if (!BOARD) { wrap.innerHTML = skeleton("cards", 4); return }
   if (SELECTED_ROW_ID && !findRow(SELECTED_ROW_ID)) SELECTED_ROW_ID = null;
-  const [right, left] = splitColumns(BOARD.sections);
+  const [right, left] = splitColumns(presentationSections(BOARD.sections));
   wrap.innerHTML = `
     <div class="ledger-board">
       <div class="ledger-head">

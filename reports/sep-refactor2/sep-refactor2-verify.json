@@ -1,0 +1,304 @@
+{
+  "core": {
+    "applied": {
+      "command_versions": 46,
+      "history_added": 0,
+      "leaves_added": 0,
+      "leaves_skipped": 31,
+      "officers_created": 0,
+      "officers_extended": 35,
+      "personnel_created": 1,
+      "personnel_extended": 73,
+      "reference_versions": 404
+    },
+    "leave_issues": {},
+    "people_issues": [],
+    "preexisting_issues": [
+      {
+        "errors": [
+          "يجب تحديد يوم في الأسبوع للراحة الأسبوعية."
+        ],
+        "id": "OFF-002",
+        "name": "أحمد سمير محمد حمدي عباس"
+      },
+      {
+        "errors": [
+          "يجب تحديد يوم في الأسبوع للراحة الأسبوعية."
+        ],
+        "id": "OFF-019",
+        "name": "كريم عمرو محمد كمال علام"
+      },
+      {
+        "errors": [
+          "يجب تحديد يوم في الأسبوع للراحة الأسبوعية."
+        ],
+        "id": "OFF-025",
+        "name": "محمد عبد الحميد فتحى نعامة"
+      },
+      {
+        "errors": [
+          "يجب تحديد يوم في الأسبوع للراحة الأسبوعية."
+        ],
+        "id": "OFF-027",
+        "name": "محمد فؤاد وحيد فؤاد السعيد قاسم"
+      },
+      {
+        "errors": [
+          "الرتبة غير صحيحة."
+        ],
+        "id": "OFF-033",
+        "name": "محمود عبد الله محمود محمد"
+      }
+    ],
+    "review": [
+      {
+        "archive": [
+          "أمين شرطة"
+        ],
+        "id": "IND-016",
+        "system": "مساعد شرطة ثالث",
+        "type": "personnel_grade_differs"
+      },
+      {
+        "archive": [
+          "أمين شرطة",
+          "معاون شرطة"
+        ],
+        "id": "IND-034",
+        "system": "معاون شرطة ثالث",
+        "type": "personnel_grade_differs"
+      },
+      {
+        "archive": [
+          "أمين شرطة",
+          "رقيب شرطة"
+        ],
+        "id": "IND-130",
+        "system": "رقيب شرطة",
+        "type": "personnel_grade_differs"
+      },
+      {
+        "archive": [
+          "أمين شرطة"
+        ],
+        "id": "IND-133",
+        "system": "مساعد شرطة أول",
+        "type": "personnel_grade_differs"
+      },
+      {
+        "archive": [
+          "أمين شرطة"
+        ],
+        "id": "IND-189",
+        "system": "مساعد شرطة أول",
+        "type": "personnel_grade_differs"
+      },
+      {
+        "id": "IND-271",
+        "last_seen": "2026-09-27",
+        "name": "محمد السيد عبدالنعيم",
+        "type": "new_personnel_in_system_era"
+      },
+      {
+        "date": "2026-09-26",
+        "ids": [
+          "NEW-OFF-036"
+        ],
+        "name": "ضابط مباحث السجن العسكري",
+        "row": "AS-0033",
+        "type": "ref_outside_force"
+      },
+      {
+        "date": "2026-09-26",
+        "ids": [
+          "NEW-OFF-035"
+        ],
+        "name": "ضابط مباحث السجن العسكري",
+        "row": "AS-0034",
+        "type": "ref_outside_force"
+      },
+      {
+        "date": "2026-09-27",
+        "ids": [
+          "NEW-OFF-036"
+        ],
+        "name": "ضابط مباحث السجن العسكري",
+        "row": "AS-0030",
+        "type": "ref_outside_force"
+      },
+      {
+        "date": "2026-09-27",
+        "ids": [
+          "NEW-OFF-035"
+        ],
+        "name": "ضابط مباحث السجن العسكري",
+        "row": "AS-0031",
+        "type": "ref_outside_force"
+      },
+      {
+        "after": [
+          [
+            "2026-09-24",
+            "2026-09-29"
+          ]
+        ],
+        "before": {
+          "end": "2026-09-29",
+          "id": "LV-278",
+          "note": "تقصيرة 22/9",
+          "person_id": "OFF-042",
+          "return_date": "2026-09-30",
+          "source": "الراحات الشهرية والنصف شهرية 2026",
+          "start": "2026-09-23",
+          "type": "شهرية"
+        },
+        "person_id": "OFF-042",
+        "service_days": [
+          "2026-09-23"
+        ],
+        "type": "leave_cut_by_service"
+      },
+      {
+        "after": [
+          [
+            "2026-09-23",
+            "2026-09-23"
+          ],
+          [
+            "2026-09-25",
+            "2026-09-29"
+          ]
+        ],
+        "before": {
+          "end": "2026-09-29",
+          "id": "LV-277",
+          "note": "تقصيرة 22/9",
+          "person_id": "OFF-031",
+          "return_date": "2026-09-30",
+          "source": "الراحات الشهرية والنصف شهرية 2026",
+          "start": "2026-09-23",
+          "type": "شهرية"
+        },
+        "person_id": "OFF-031",
+        "service_days": [
+          "2026-09-24"
+        ],
+        "type": "leave_cut_by_service"
+      },
+      {
+        "after": [],
+        "before": {
+          "end": "2026-09-28",
+          "id": "LV-296",
+          "note": "",
+          "person_id": "OFF-013",
+          "return_date": "2026-09-29",
+          "source": "",
+          "start": "2026-09-26",
+          "type": "نصف شهرية"
+        },
+        "person_id": "OFF-013",
+        "service_days": [
+          "2026-09-26",
+          "2026-09-27",
+          "2026-09-28"
+        ],
+        "type": "leave_cut_by_service"
+      },
+      {
+        "after": [],
+        "before": {
+          "end": "2026-09-28",
+          "id": "LV-306",
+          "note": "",
+          "origin": "auto_weekly",
+          "person_id": "OFF-038",
+          "return_date": "2026-09-29",
+          "source": "",
+          "start": "2026-09-28",
+          "type": "أسبوعية"
+        },
+        "person_id": "OFF-038",
+        "service_days": [
+          "2026-09-28"
+        ],
+        "type": "leave_cut_by_service"
+      }
+    ]
+  },
+  "days": 9,
+  "leave_issues": {},
+  "mean_score": 88.1,
+  "people_issues": 0,
+  "quarantined": 0,
+  "summary_agreement": {
+    "new": {
+      "أصل القوة": [
+        7,
+        9
+      ],
+      "حراسات": [
+        7,
+        9
+      ],
+      "خارجية/بحث": [
+        0,
+        9
+      ],
+      "خارجية/صباحية": [
+        3,
+        9
+      ],
+      "خارجية/ليلية": [
+        2,
+        9
+      ],
+      "خوارج/انتداب": [
+        9,
+        9
+      ],
+      "خوارج/تقصيرة": [
+        1,
+        9
+      ],
+      "خوارج/راحة": [
+        2,
+        9
+      ],
+      "خوارج/غياب": [
+        9,
+        9
+      ],
+      "خوارج/فرقة": [
+        6,
+        9
+      ],
+      "خوارج/مرضي": [
+        9,
+        9
+      ],
+      "داخلية/صباحية": [
+        1,
+        9
+      ],
+      "داخلية/ليلية": [
+        1,
+        9
+      ],
+      "صافي": [
+        0,
+        9
+      ],
+      "طبية/راحة": [
+        8,
+        9
+      ],
+      "طبية/موجود": [
+        8,
+        9
+      ]
+    }
+  },
+  "threshold": 60,
+  "version": "1"
+}

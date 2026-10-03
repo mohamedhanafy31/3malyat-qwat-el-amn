@@ -21,7 +21,7 @@ from ..assignments import (
     apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day, vacant_twin,
 )
 from ..board import (
-    ASSIGNMENT_SECTIONS, build_board, copy_section_rows, section_history, section_source,
+    ASSIGNMENT_SECTIONS, build_board, canonical_section_name, copy_section_rows, section_history, section_source,
     move_assignment, place_assignment_after, set_slot_officers, set_target_officers,
 )
 from ..board_export import build_docx
@@ -59,7 +59,7 @@ def get_section_history(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    section = str(request.args.get("section", "")).strip()
+    section = canonical_section_name(request.args.get("section", "").strip())
     if not section:
         return jsonify({"error": "اسم القسم مطلوب."}), 400
     length_error = too_long({"section": section}, "section")
@@ -79,7 +79,7 @@ def copy_section(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     payload = json_payload()
-    section = str(payload.get("section", "")).strip()
+    section = canonical_section_name(payload.get("section", "").strip())
     source_day = canonical_day(payload.get("source_day"))
     if not source_day:
         return jsonify({"error": "تاريخ يوم المصدر غير صحيح."}), 400
@@ -142,7 +142,7 @@ def add_assignment(day):
         if not ok:
             raise AbortRequest((jsonify({"error": err}), 409))
         entries = for_day(data, day)
-        section = str(payload.get("section", "")).strip() or SECTION_OCCASIONAL
+        section = canonical_section_name(payload.get("section", "").strip()) or SECTION_OCCASIONAL
         row = blank(new_id(data, day, entries), name, section, kind=kind)
         row, err, status = apply_assignment(data, day, row, payload)
         if err:

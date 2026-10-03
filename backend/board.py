@@ -23,7 +23,7 @@ from .checks import day_warnings
 from .confirm import state_of as confirm_state
 from .constants import (
     BOARD_ROTATIONS, SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT,
-    SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_RESTS, SECTION_SECURITY,
+    SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY,
     SECTION_SUBCAMP, SECTION_TAQSEERA, SECTION_TARGETS, SHIFTS, SUBCAMP_SERVICES,
     TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL,
 )
@@ -32,8 +32,7 @@ from .dated import groups_on, targets_on
 from .people import effective
 from .text import norm
 
-# الترتيب زي الوورد. العمود اليمين: أساسية → طارئة → عمل بالإدارة،
-# والشمال: الأهداف → الراحات → التقصيرات → الخوارج → الكتل الثلاثة.
+# ترتيب API القديم محفوظ للتوافق؛ ترتيب العرض الجديد موجود في layout_columns.
 BOARD_ORDER = [
     SECTION_BASIC, SECTION_OCCASIONAL, SECTION_ADMIN_WORK, SECTION_TARGETS,
     SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
@@ -42,7 +41,7 @@ BOARD_ORDER = [
 
 # الأقسام اللي فيها خدمات مخزّنة (الباقي محسوب من حالة الضباط)
 ASSIGNMENT_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS,
-                       SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
+                       SECTION_PRISON, SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
 
 # الكتل اللي ليها صفّان ثابتان (صباحية/ليلية) بيتطبعوا حتى لو فاضيين
 FIXED_SLOT_SECTIONS = [SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
@@ -50,7 +49,7 @@ FIXED_SLOT_SECTIONS = [SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
 # الأقسام الحرة اللي المشغّل يضيف جواها خدمات من مودال الخانة العام. الأهداف
 # والكتل الثابتة ليهم واجهاتهم المقفولة، والأقسام المحسوبة مالهاش صفوف خدمات
 # محفوظة أصلًا؛ عشان كده ماينفعش يظهروا كاقتراح لإضافة خانة حرة.
-FREE_SERVICE_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL]
+FREE_SERVICE_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL, SECTION_PRISON]
 NON_FREE_SECTIONS = {
     SECTION_TARGETS, *FIXED_SLOT_SECTIONS,
     SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
@@ -81,8 +80,12 @@ def section_names(data):
     latest = {}
     first_seen = {}
     seen_seq = 0
+    prison_seen = False
     for day, names in board_section_days(data):
-        for name in names:
+        for raw_name in names:
+            name = canonical_section_name(raw_name)
+            if name == SECTION_PRISON and day >= "2026-09-26":
+                prison_seen = True
             if not name or name in FREE_SERVICE_SECTIONS or name in NON_FREE_SECTIONS:
                 continue
             if name not in first_seen:
@@ -92,7 +95,29 @@ def section_names(data):
                 latest[name] = day
 
     custom = sorted(latest, key=lambda name: (latest[name], -first_seen[name]), reverse=True)
-    return [*FREE_SERVICE_SECTIONS, *custom]
+    # The prison block became an official suggestion only with the Word
+    # template introduced on 26 Sep 2026; do not leak it into older boards.
+    official = [SECTION_BASIC, SECTION_OCCASIONAL]
+    if prison_seen:
+        official.append(SECTION_PRISON)
+    return [*official, *custom]
+
+
+SECTION_ALIASES = {
+    "خدمات السجن": SECTION_PRISON,
+    "خدمات سجن قوات الامن": SECTION_PRISON,
+    "خدمات سجن قوات الأمن": SECTION_PRISON,
+    "فرد تأمين فترة ليلة": SECTION_PRISON,
+    "فرد تأمين فترة ليلية": SECTION_PRISON,
+    "فرد تامين فتره ليله": SECTION_PRISON,
+    "فرد تامين فتره ليليه": SECTION_PRISON,
+}
+
+
+def canonical_section_name(value):
+    """Return the supported display name for historical prison-section aliases."""
+    raw = str(value or "").strip()
+    return SECTION_ALIASES.get(raw, raw)
 
 
 def _copyable_row(row):
@@ -116,6 +141,7 @@ def section_source(board_sections, day, section):
     earlier_day = None
     other_day = None
     for candidate_day, names in board_sections:
+        names = [canonical_section_name(value) for value in names]
         if candidate_day == day or section not in names:
             continue
         if candidate_day < day and (earlier_day is None or candidate_day > earlier_day):
@@ -259,7 +285,7 @@ def _row(assignment, people, day):
         "id": assignment["id"],
         "name": assignment.get("name", ""),
         "kind": assignment.get("kind", ""),
-        "section": assignment.get("section", ""),
+        "section": canonical_section_name(assignment.get("section", "")),
         "label": label(assignment, with_shift=assignment.get("section") == SECTION_BASIC),
         "shift": assignment.get("shift", ""),
         "officers": officers,
@@ -521,7 +547,7 @@ def _display_key(row, source_order):
 def _visible_list_ids(data, day, stored):
     """معرّفات القايمة اللي الصف بيتعرض جواها فعلًا على اللوحة."""
     board = build_board(data, day)
-    section_name = stored.get("section") or SECTION_OCCASIONAL
+    section_name = canonical_section_name(stored.get("section") or SECTION_OCCASIONAL)
     section = next((item for item in board["sections"] if item["name"] == section_name), None)
     if not section or section["type"] not in ("services", "slots"):
         return None
@@ -598,7 +624,7 @@ def build_board(data, day):
 
     by_section = {name: [] for name in ASSIGNMENT_SECTIONS}
     for source_order, a in enumerate(peek_day(data, day)):
-        section = a.get("section") or SECTION_OCCASIONAL
+        section = canonical_section_name(a.get("section") or SECTION_OCCASIONAL)
         row = _row(a, people, day)
         row["_source_order"] = source_order
         by_section.setdefault(section, []).append(row)
@@ -676,7 +702,12 @@ def build_board(data, day):
     for name in extra:
         sections.append({"name": name, "type": "services", "rows": by_section[name]})
 
-    return {"date": day, "sections": sections, "states": states,
+    layout_version = "word-2026-09-26" if day >= "2026-09-26" else "word-legacy"
+    return {"date": day, "layout_version": layout_version,
+            "layout_columns": {
+                "right": [SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_ADMIN_WORK],
+                "left": [SECTION_OCCASIONAL, SECTION_PRISON, SECTION_OUTSIDERS],
+            }, "sections": sections,
             "confirm": confirm_state(data, day),
             "roster": _roster(data, day),
             # الرسمية الحرة الأول، وبعدها كل اسم مخصّص ظهر في أي يوم حسب

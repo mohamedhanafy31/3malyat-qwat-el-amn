@@ -310,6 +310,19 @@ def test_section_names_offered_for_autocomplete_include_official_and_used_custom
     assert "خدمات مباراة المصري" in other_names
 
 
+def test_word_layout_exposes_columns_and_canonical_prison_section(client):
+    row = _add(client, day="2026-09-26", name="تأمين السجن", section="خدمات السجن",
+               officer_ids=["OFF-002"])
+    assert row.status_code == 201, row.get_json()
+    board = client.get("/api/board/2026-09-26").get_json()
+    assert board["layout_version"] == "word-2026-09-26"
+    assert board["layout_columns"]["right"] == ["الخدمات أساسية", "الأهداف",
+                                                     "ضابط عظيم وأمن المعسكر الفرعي", "عمل بالإدارة"]
+    assert board["layout_columns"]["left"] == ["الخدمات الطارئة", "خدمات سجن قوات الأمن", "الخوارج"]
+    prison = next(section for section in board["sections"] if section["name"] == "خدمات سجن قوات الأمن")
+    assert prison["rows"][0]["name"] == "تأمين السجن"
+
+
 def test_naming_a_section_after_a_computed_one_is_rejected_on_edit_too(client):
     row = _add(client, section="خدمات مباراة المصري").get_json()
     r = client.patch(f"/api/assignments/{DAY}/{row['id']}", json={"section": "الخوارج"})

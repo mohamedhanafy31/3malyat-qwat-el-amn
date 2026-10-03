@@ -25,7 +25,7 @@ from typing import Any, Iterable
 
 from backend.afraad import BASIC_SERVICES
 from backend.constants import (
-    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL,
+    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_PRISON,
     RANK_ORDER, SECTION_SECURITY, SECTION_SUBCAMP, SECTION_TARGETS, TARGETS_FIRST,
 )
 from backend.text import norm
@@ -42,7 +42,7 @@ VERSION = "2"
 PROTECTED = {"2026-09-01", "2026-09-02"}
 BOARD_START = "2024-10-30"
 
-CANONICAL_ORDER = {SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT,
+CANONICAL_ORDER = {SECTION_BASIC, SECTION_OCCASIONAL, SECTION_PRISON, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT,
                    SECTION_SECURITY, SECTION_ADMIN_WORK, "الراحات", "التقصيرات", "الخوارج"}
 ROLE_SLOTS = {
     SECTION_SUBCAMP: "نوبتجي المعسكر الفرعي",
@@ -1138,6 +1138,13 @@ def _display_section(key: str) -> str:
         return SECTION_GREAT
     if "ضابطالامن" in flat or "ضابطامن" in flat:
         return SECTION_SECURITY
+    if "خدماتسجن" in flat or "السجن" in flat and "خدمات" in flat:
+        return SECTION_PRISON
+    # بعض قوالب Word القديمة تسمّي صف أفراد تأمين السجن بعنوان الفترة
+    # («فرد تأمين فترة ليلة») بدل عنوان القسم. اعتبره جزءًا من قسم السجن
+    # حتى لا يظهر كقسم مستقل في اليومية الجديدة.
+    if "فردتامين" in flat and ("فتره" in flat or "السجن" in flat):
+        return SECTION_PRISON
     if "اساسي" in flat:
         return SECTION_BASIC
     if "طوار" in flat or "طاري" in flat:

@@ -15,7 +15,7 @@ from typing import Any, Iterable
 
 from backend.afraad import BASIC_SERVICES
 from backend.constants import (
-    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL,
+    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_PRISON,
     SECTION_SECURITY, SECTION_SUBCAMP, SECTION_TARGETS,
 )
 from backend.dated import afraad_basic_on, targets_on
@@ -38,7 +38,7 @@ EVENT_FIELDS = ["date", "event title", "source", "member rows"]
 EVENT_DECISION_FIELDS = ["date", "event title", "action", "override title", "note"]
 
 CANONICAL_SECTIONS = {
-    SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS, SECTION_SUBCAMP,
+    SECTION_BASIC, SECTION_OCCASIONAL, SECTION_PRISON, SECTION_TARGETS, SECTION_SUBCAMP,
     SECTION_GREAT, SECTION_SECURITY, SECTION_ADMIN_WORK,
     "الخدمات الأساسية", "الطوارئ", "خدمات الطوارئ", "عمل بالادارة",
     "الراحات", "الراحات والاجازات", "التقصيرة", "التقصيره", "الخوارج",
@@ -503,6 +503,10 @@ def _canonical_board_section(value: str) -> str:
     if value in {norm(section) for section in CANONICAL_SECTIONS}:
         return value
     rules = (("خدمات اساسي", SECTION_BASIC), ("خدمات الطواري", SECTION_OCCASIONAL),
+             ("خدمات سجن قوات الامن", SECTION_PRISON), ("خدمات السجن", SECTION_PRISON),
+             ("فرد تأمين فترة ليلة", SECTION_PRISON),
+             ("فرد تامين فتره ليله", SECTION_PRISON),
+             ("فرد تامين فتره ليليه", SECTION_PRISON),
              ("الطواري", SECTION_OCCASIONAL), ("الاهداف", SECTION_TARGETS),
              ("معسكر فرعي", SECTION_SUBCAMP), ("ضابط عظيم", SECTION_GREAT),
              ("ضابط الامن", SECTION_SECURITY), ("ضابط امن", SECTION_SECURITY))

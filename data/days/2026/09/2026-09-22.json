@@ -75,7 +75,7 @@
       "counts_in_summary": true,
       "id": "AS-0004",
       "kind": "خارجية",
-      "name": "من البوابة حتي المدرجات",
+      "name": "بلاغات فيصل من 12 حتي",
       "note": "",
       "officer_ids": [
         "OFF-045"
@@ -1257,18 +1257,10 @@
     "AFB-17": {
       "count": "1 مج قتالي (2 مجند ) صبح",
       "morning_name": "م.ش/ احمد محمد احمد",
-      "morning_person_id": "IND-050",
+      "morning_person_id": "IND-148",
       "morning_phone": "01284133995",
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
-    },
-    "AFB-19": {
-      "count": "ميك فض (3 مجند)",
-      "morning_name": "م.ش/ محسوب احمد ابراهيم",
-      "morning_person_id": "IND-048",
-      "morning_phone": "01092013936",
-      "schedule": "11 ص حتى الانتهاء",
-      "weapon": "مايك فض"
     },
     "AFB-20": {
       "count": "",
@@ -1326,14 +1318,6 @@
       "weapon": ""
     },
     "AFB-26": {
-      "count": "1 مج قتالي ( 1 مجند ) صبح",
-      "morning_name": "ا.ش/ محمد عبدالهادي على",
-      "morning_person_id": "IND-003",
-      "morning_phone": "01009806341",
-      "schedule": "8 ص فترة صباحة",
-      "weapon": "الى"
-    },
-    "AFB-34": {
       "count": "(2 مجند ) صبح \" ادارة الطرق\" (2 مجند ) ليل\" ادارة الطرق\"",
       "morning_name": "م.ش/ ابراهيم محمد أحمد النسر",
       "morning_person_id": "IND-064",
@@ -1344,7 +1328,15 @@
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
     },
-    "AFB-46": {
+    "AFB-27": {
+      "count": "1 مج قتالي ( 1 مجند ) صبح",
+      "morning_name": "ا.ش/ محمد عبدالهادي على",
+      "morning_person_id": "IND-003",
+      "morning_phone": "01009806341",
+      "schedule": "8 ص فترة صباحة",
+      "weapon": "الى"
+    },
+    "AFB-28": {
       "count": "1 مج قتالي ( 1 مجند ) صبح",
       "morning_name": "ا.ش/ سامي عبدالمنعم",
       "morning_person_id": "IND-055",
@@ -1352,18 +1344,26 @@
       "schedule": "8 ص فترة صباحة",
       "weapon": "الى"
     },
-    "AFB-49": {
+    "AFB-29": {
       "count": "1 مج قتالي (2 مجند ) صبح 1 مج قتالي (2 مجند ) ليل",
       "morning_name": "م.ش/ عماد عبدالهادي",
       "morning_person_id": "IND-035",
       "morning_phone": "01090622103",
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
+    },
+    "AFB-30": {
+      "count": "ميك فض (3 مجند)",
+      "morning_name": "م.ش/ محسوب احمد ابراهيم",
+      "morning_person_id": "IND-048",
+      "morning_phone": "01092013936",
+      "schedule": "11 ص حتى الانتهاء",
+      "weapon": "مايك فض"
     }
   },
   "import": {
-    "at": "archive-full",
-    "batch": "archive-full",
+    "at": "sep-refactor2",
+    "batch": "sep-refactor2",
     "derived": false,
     "sources": [
       {
