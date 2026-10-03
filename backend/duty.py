@@ -111,6 +111,53 @@ def _bucket(kinds, leave, state, medical, search_attached, course=None):
     return ("صافي", None)
 
 
+def officer_row(data, day, o, course_names=None):
+    """صف ضابط واحد في يومية اليوم — نفس صف `summarise` بالظبط."""
+    if course_names is None:
+        course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
+    eff = effective(o, day)
+    state = officer_state(data, day, o["id"])
+    leave = leave_on(data, o["id"], day)
+    term = term_on(data, o["id"], day)
+
+    items = []
+    for a in assignments_of(data, day, o["id"]):
+        items.append({"assignment_id": a["id"], "name": a.get("name", ""),
+                      "kind": a.get("kind") or "خارجية", "shift": a.get("shift", ""),
+                      "section": a.get("section", ""),
+                      "counted": a.get("counts_in_summary", True)})
+    # خدمات المعسكر الفرعي بتظهر على اللوحة لكن مابتحرّكش الضابط من
+    # «الصافي» في جدول الإجمالي — قوة المعسكر الفرعي مالهاش خانة في
+    # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في
+    # قايمة «الصافي» بالاسم في كل مرة.
+    kinds = [(it["kind"], it["shift"]) for it in items if it["counted"]]
+    medical = (o["id"] in (groups_on(data, day).get(ROLE_MEDICAL) or [])
+               or any(k == "طبية" for k, _ in kinds))
+
+    group, sub = _bucket(kinds, leave, state, medical,
+                         eff["search_attached"], term)
+    return {
+        "id": o["id"], "name": o.get("name", ""), "phone": o.get("phone", ""),
+        "role": eff["role"], "post": eff["post"], "section": eff["section"],
+        "search_attached": eff["search_attached"],
+        "rest_system": eff["rest_system"], "rest_day": eff["rest_day"],
+        "group": group, "bucket": sub,
+        "services": items,
+        "taqseera": bool(state.get("taqseera")),
+        "status": state.get("status", ""),
+        "leave": ({"id": leave.get("id"), "type": leave["type"], "start": leave["start"],
+                   "end": leave["end"],
+                   "return_date": leave["return_date"]} if leave else None),
+        "note": state.get("note", ""),
+        "course": ({"id": term["id"], "course_id": term["course_id"],
+                    "name": course_names.get(term["course_id"], ""),
+                    "start": term["start"], "end": term["end"]}
+                   if term else None),
+        # كان بالقوة يومها لكنه خرج بعد كده — للتوضيح في اليوميات القديمة
+        "later_left": o.get("leave_date", "") or None,
+    }
+
+
 def summarise(data, day):
     """يومية الضباط كاملة: صف لكل ضابط كان على القوة + جدول الإجمالي."""
     officers = officers_on(data, day)
@@ -120,54 +167,15 @@ def summarise(data, day):
     net_names, rows = [], []
 
     for o in officers:
-        eff = effective(o, day)
-        state = officer_state(data, day, o["id"])
-        leave = leave_on(data, o["id"], day)
-        term = term_on(data, o["id"], day)
-
-        items = []
-        for a in assignments_of(data, day, o["id"]):
-            items.append({"assignment_id": a["id"], "name": a.get("name", ""),
-                          "kind": a.get("kind") or "خارجية", "shift": a.get("shift", ""),
-                          "section": a.get("section", ""),
-                          "counted": a.get("counts_in_summary", True)})
-        # خدمات المعسكر الفرعي بتظهر على اللوحة لكن مابتحرّكش الضابط من
-        # «الصافي» في جدول الإجمالي — قوة المعسكر الفرعي مالهاش خانة في
-        # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في
-        # قايمة «الصافي» بالاسم في كل مرة.
-        kinds = [(it["kind"], it["shift"]) for it in items if it["counted"]]
-        medical = (o["id"] in (groups_on(data, day).get(ROLE_MEDICAL) or [])
-                   or any(k == "طبية" for k, _ in kinds))
-
-        group, sub = _bucket(kinds, leave, state, medical,
-                             eff["search_attached"], term)
+        row = officer_row(data, day, o, course_names)
+        group, sub = row["group"], row["bucket"]
         if sub is None:
             s[group] += 1
             if group == "صافي":
-                net_names.append(f'{eff["role"]}/ {o.get("name", "")}')
+                net_names.append(f'{row["role"]}/ {o.get("name", "")}')
         else:
             s[group][sub] += 1
-
-        rows.append({
-            "id": o["id"], "name": o.get("name", ""), "phone": o.get("phone", ""),
-            "role": eff["role"], "post": eff["post"], "section": eff["section"],
-            "search_attached": eff["search_attached"],
-            "rest_system": eff["rest_system"], "rest_day": eff["rest_day"],
-            "group": group, "bucket": sub,
-            "services": items,
-            "taqseera": bool(state.get("taqseera")),
-            "status": state.get("status", ""),
-            "leave": ({"id": leave.get("id"), "type": leave["type"], "start": leave["start"],
-                       "end": leave["end"],
-                       "return_date": leave["return_date"]} if leave else None),
-            "note": state.get("note", ""),
-            "course": ({"id": term["id"], "course_id": term["course_id"],
-                        "name": course_names.get(term["course_id"], ""),
-                        "start": term["start"], "end": term["end"]}
-                       if term else None),
-            # كان بالقوة يومها لكنه خرج بعد كده — للتوضيح في اليوميات القديمة
-            "later_left": o.get("leave_date", "") or None,
-        })
+        rows.append(row)
 
     counted = (sum(s["خارجية"].values()) + sum(s["داخلية"].values())
                + sum(s["طبية"].values()) + sum(s["خوارج"].values())

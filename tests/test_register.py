@@ -262,3 +262,46 @@ def test_future_day_with_a_preset_row_is_not_admin_work_for_everyone(client, fro
     assert _cell(reg, "OFF-001", DAY)["family"] == "بدون سجل"
     frozen_today("2026-04-10")
     assert _cell(_month(client), "OFF-001", DAY)["family"] == "عمل"
+
+
+def test_officer_page_loads_only_days_mentioning_the_officer(client, frozen_today, monkeypatch):
+    """صفحة الضابط بتحمّل ملفات الأيام المذكور فيها بس (فهرس الأيام)، ومع
+    ذلك بتغطي كل يوم مسجّل: «صافي» في يوم مالوش فيه سطر، والراحة من core."""
+    import json
+
+    from backend import store
+    from backend.duty import summarise
+    from backend.register import _cell as cell_of
+    from backend.routes import register as route
+
+    assert _add(client, officer_ids=["OFF-002"]).status_code == 201           # مذكور
+    assert _add(client, day="2026-04-11", officer_ids=["OFF-001"]).status_code == 201  # صافي
+    assert _add(client, day="2026-04-12", officer_ids=["OFF-001"]).status_code == 201
+    assert client.post("/api/leaves", json={                                   # راحة من core
+        "person_id": "OFF-002", "type": "إجازة مصيف",
+        "start": "2026-04-12", "end": "2026-04-12"}).status_code == 201
+    assert _add(client, day="2026-05-02", officer_ids=["OFF-001"]).status_code == 201
+    assert client.put("/api/duty/2026-05-02/OFF-002",                          # حالة بس
+                      json={"status": "غياب"}).status_code == 200
+    frozen_today("2030-01-01")                       # كل الأيام فاتت — «صافي» بيتعد
+
+    scopes = []
+
+    def spy(days):
+        data = store.load_data(days)
+        scopes.append(sorted(k for k in data["_fp"]["fingerprints"] if k != "core"))
+        return data
+    monkeypatch.setattr(route, "load_data", spy)
+
+    out = client.get("/api/register/officer/OFF-002").get_json()
+    assert scopes == [["2026-04-10", "2026-05-02"]]
+
+    # نفس النتيجة اللي كانت بتطلع من يومية القوة كاملة على الأرشيف كله
+    full = store.load_data(store.ALL_DAYS)
+    expected = [cell_of(r, d) for d in store.recorded_days(full)
+                for r in summarise(full, d)["rows"] if r["id"] == "OFF-002"]
+    assert out["cells"] == json.loads(json.dumps(expected))
+    assert [c["code"] for c in out["cells"]] == ["أ", "أ", "ج", "غ"]
+    assert [m["month"] for m in out["months"]] == ["2026-04", "2026-05"]
+    assert out["tally"]["days"] == 4
+    assert out["officer"]["id"] == "OFF-002" and out["officer"]["name"] == "محمود علي"

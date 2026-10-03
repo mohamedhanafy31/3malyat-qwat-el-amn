@@ -53,8 +53,11 @@ ACTIONS.openCell = (id, extra) => {
 };
 
 async function load() {
-  await bootstrap();
-  const d = await api(`/api/register/officer/${encodeURIComponent(OFFICER_ID)}`);
+  // الطلبين مستقلين — بالتوازي بدل ما الدفتر يستنى الـbootstrap
+  const [, d] = await Promise.all([
+    bootstrap(),
+    api(`/api/register/officer/${encodeURIComponent(OFFICER_ID)}`),
+  ]);
   if (!d) return;
   OFF = d; render();
 }

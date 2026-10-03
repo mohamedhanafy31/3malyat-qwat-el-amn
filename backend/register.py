@@ -12,7 +12,8 @@ import calendar
 import logging
 from datetime import date
 
-from .duty import summarise
+from .courses import by_id as courses_by_id
+from .duty import officer_row, summarise
 from .people import officers_on
 
 logger = logging.getLogger(__name__)
@@ -242,16 +243,28 @@ def officer_register(data, officer_id, days=None):
         days = recorded_days(data)
     else:
         days = sorted(days)
-    per_day = _day_rows(data, days)
+
+    # صف الضابط ده بس في كل يوم — مش يومية القوة كلها. الأيام اللي مش
+    # متحمّلة (المسار بيحمّل الأيام المذكور فيها الضابط بس، من فهرس الأيام)
+    # مافيهاش تكليف ولا حالة ليه، فبتتقري فاضية بدل حراسة النطاق؛ والراحة
+    # والفرقة والقيادة من core.json زي ما هي.
+    from .repo import PeopleRepo
+    view = {**data,
+            "day_assignments": dict(dict.items(data.get("day_assignments") or {})),
+            "day_officers": dict(dict.items(data.get("day_officers") or {}))}
+    officer = next((o for o in PeopleRepo(data).raw_all("officers")
+                    if o.get("id") == officer_id), None)
+    course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
 
     from .day_status import today_iso
     today = today_iso()
     person = None
     cells = []
     for day in days:
-        row = per_day[day].get(officer_id)
-        if not row:
+        if officer is None or (officer.get("join_date") or "") > day or (
+                (officer.get("leave_date") or "") and day > officer["leave_date"]):
             continue                      # مكانش على القوة — مالوش سطر في دفتره
+        row = officer_row(view, day, officer, course_names)
         person = row
         if day > today and row["group"] == "صافي":
             continue                      # يوم لسه ما جاش ومالوش فيه خدمة — مش «عمل بالإدارة»

@@ -25,8 +25,10 @@ def get_month(year, month):
 
 @bp.get("/api/register/officer/<officer_id>")
 def get_officer(officer_id):
-    # صفحة الضابط بتعرض كل يوم مسجّل في الأرشيف — الأيام المسجّلة بس
-    data = load_data(lambda view: view.index.recorded())
+    # صفحة الضابط بتعرض كل يوم مسجّل في الأرشيف، لكن بتحمّل بس الأيام
+    # المذكور فيها الضابط (من الفهرس) — الباقي مالوش فيه تكليف ولا حالة،
+    # وقايمة الأيام المسجّلة نفسها بتيجي من الفهرس (`store.recorded_days`).
+    data = load_data(lambda view: view.index.person_days(officer_id))
     person, category, _ = Repos(data).people.locate(officer_id)
     if not person or category != "officers":
         return jsonify({"error": "الضابط غير موجود."}), 404
