@@ -920,7 +920,7 @@ tr.vacant td{background:repeating-linear-gradient(135deg,transparent,transparent
 .reg43 td.is-today{background:var(--gold-100) !important}
 .reg43{border-collapse:separate;border-spacing:0;font-size:var(--t-sm)}
 .reg43 th,.reg43 td{padding:3px var(--s1);text-align:center;white-space:nowrap}
-.reg43 thead th{position:sticky;top:0;z-index:3;background:var(--navy-100);
+.reg43 thead th{position:sticky;top:var(--topbar-h);z-index:3;background:var(--navy-100);
   color:var(--navy-950);border-color:var(--line)}
 .reg43 .who-col{position:sticky;inset-inline-start:0;z-index:2;background:var(--surface);
   text-align:start;min-width:190px;padding-inline:var(--s3);box-shadow:1px 0 0 var(--line)}
