@@ -21,6 +21,12 @@ def test_new_officer_can_be_added_to_a_new_section_and_section_is_suggested(clie
     assert "قسم العمليات الجديد" in meta["officer_sections"]
 
 
+def test_new_medical_officer_can_be_added_directly_to_outsiders(client):
+    created = _officer(client, "الخوارج", name="طبيب خارجية", code="9002", post="طبيب")
+    assert created.status_code == 201, created.get_json()
+    assert created.get_json()["section"] == "الخوارج"
+
+
 def test_unknown_section_requires_explicit_new_section_flag(client):
     response = _officer(client, "قسم غير معتمد")
     assert response.status_code == 400
