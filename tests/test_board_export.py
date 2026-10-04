@@ -3,6 +3,7 @@
 import io
 
 from docx import Document
+from backend import store
 
 DAY = "2026-04-10"
 
@@ -50,3 +51,18 @@ def test_export_filename_carries_the_day(client):
     r = client.get(f"/api/board/{DAY}/export.docx")
     disposition = r.headers.get("Content-Disposition", "")
     assert DAY in disposition
+
+
+def test_export_returns_preserved_authoritative_roster_byte_for_byte(client):
+    path = store.board_source_doc_path(DAY)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    source = Document()
+    source.add_paragraph("النص الأصلي كما ورد في اليومية")
+    source.add_table(rows=2, cols=5).cell(0, 0).text = "الخدمات الأساسية"
+    source.save(path)
+
+    expected = path.read_bytes()
+    response = client.get(f"/api/board/{DAY}/export.docx")
+
+    assert response.status_code == 200
+    assert response.data == expected

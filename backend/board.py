@@ -286,7 +286,9 @@ def _row(assignment, people, day):
         "name": assignment.get("name", ""),
         "kind": assignment.get("kind", ""),
         "section": canonical_section_name(assignment.get("section", "")),
-        "label": label(assignment, with_shift=assignment.get("section") == SECTION_BASIC),
+        "label": assignment.get("source_label") or label(
+            assignment, with_shift=assignment.get("section") == SECTION_BASIC),
+        "source_manning": assignment.get("source_manning", ""),
         "shift": assignment.get("shift", ""),
         "officers": officers,
         "personnel": personnel,

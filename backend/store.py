@@ -79,6 +79,7 @@ LOCK = threading.Lock()
 
 CORE_NAME = "core.json"
 DAYS_NAME = "days"
+SOURCE_DOCS_NAME = "source_docs"
 
 # نسخة بنية البيانات. أي هجرة بتغيّر الشكل بترفع الرقم ده، والتطبيق بيرفض
 # يشتغل على بيانات برقم مختلف بدل ما يقرأها غلط في صمت.
@@ -122,6 +123,11 @@ def core_file():
 
 def days_dir():
     return DATA_DIR / DAYS_NAME
+
+
+def board_source_doc_path(day: str) -> Path:
+    """Preserved authoritative Word roster used for lossless export."""
+    return DATA_DIR / SOURCE_DOCS_NAME / "board" / f"{day}.docx"
 
 
 def day_path(day):

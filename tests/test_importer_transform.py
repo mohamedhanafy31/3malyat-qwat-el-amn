@@ -1,8 +1,12 @@
 from collections import defaultdict
 
-from backend.constants import SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_SUBCAMP, SECTION_TARGETS
+from backend.constants import (
+    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL,
+    SECTION_OUTSIDERS, SECTION_RESTS, SECTION_SUBCAMP, SECTION_TARGETS,
+)
 from importer.transform import (
-    DayBuilder, _count_int, _display_section, _party, _pick, _shift_from_time, _strip_shift_word,
+    DayBuilder, _computed_section, _count_int, _display_section, _party, _pick,
+    _shift_from_time, _strip_shift_word,
     core_delta, reference_versions,
 )
 
@@ -22,6 +26,12 @@ def test_section_display_names_and_shift_words():
     assert _display_section("ضابط عظيم الاداره") == SECTION_GREAT
     assert _display_section("الخدمات اساسيه") == SECTION_BASIC
     assert _strip_shift_word("ارتكاز بتروجيت ليل") == "ارتكاز بتروجيت"
+
+
+def test_computed_word_headings_keep_their_real_sections():
+    assert _computed_section("الخوارج") == SECTION_OUTSIDERS
+    assert _computed_section("الراحات") == SECTION_RESTS
+    assert _computed_section("عمل بالاداره") == SECTION_ADMIN_WORK
 
 
 def test_count_and_party_reject_phone_numbers():

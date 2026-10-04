@@ -15,6 +15,8 @@
       "personnel_ids": [],
       "section": "الخدمات أساسية",
       "shift": "صباحية",
+      "source_label": "تدخل سريع صبح",
+      "source_manning": "نقيب/عبدالرحمن طارق",
       "time": "12ظ",
       "weapon": ""
     },
@@ -33,6 +35,8 @@
       "personnel_ids": [],
       "section": "الخدمات أساسية",
       "shift": "ليلية",
+      "source_label": "تدخل سريع ليل",
+      "source_manning": "مقدم/عبدالرحمن الحسيني",
       "time": "",
       "weapon": ""
     },
@@ -51,6 +55,8 @@
       "personnel_ids": [],
       "section": "الخدمات أساسية",
       "shift": "ليلية",
+      "source_label": "المنطقة الحره ليل",
+      "source_manning": "مقدم/حسام رضوان",
       "time": "",
       "weapon": ""
     },
@@ -69,6 +75,8 @@
       "personnel_ids": [],
       "section": "الخدمات أساسية",
       "shift": "صباحية",
+      "source_label": "قنصلية صبح",
+      "source_manning": "نقيب/ محمد عبدالعزيز",
       "time": "8ص",
       "weapon": ""
     },
@@ -87,6 +95,8 @@
       "personnel_ids": [],
       "section": "الخدمات أساسية",
       "shift": "صباحية",
+      "source_label": "بتروجيت صبح",
+      "source_manning": "م.اول / أحمد فوزي",
       "time": "8ص",
       "weapon": ""
     },
@@ -105,6 +115,8 @@
       "personnel_ids": [],
       "section": "ضابط عظيم وأمن المعسكر الفرعي",
       "shift": "صباحية",
+      "source_label": "فترة صباحية",
+      "source_manning": "عقيد/ اسماعيل محمد",
       "time": "",
       "weapon": ""
     },
@@ -123,6 +135,8 @@
       "personnel_ids": [],
       "section": "ضابط عظيم وأمن المعسكر الفرعي",
       "shift": "ليلية",
+      "source_label": "فترة ليلية",
+      "source_manning": "",
       "time": "",
       "weapon": ""
     },
@@ -141,6 +155,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "مشرف الأهداف",
+      "source_manning": "المقدم/ السعيد عبده",
       "time": "",
       "weapon": ""
     },
@@ -159,6 +175,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "سوميد",
+      "source_manning": "رائد/محمد ذكي",
       "time": "",
       "weapon": ""
     },
@@ -177,6 +195,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "السخنة",
+      "source_manning": "م.أول/ منتصر بهاء",
       "time": "",
       "weapon": ""
     },
@@ -195,6 +215,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "كهرباء عتاقة",
+      "source_manning": "رائد/خالد خلف",
       "time": "",
       "weapon": ""
     },
@@ -213,6 +235,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "أنابيب البترول",
+      "source_manning": "م.اول/عمر خالد",
       "time": "",
       "weapon": ""
     },
@@ -231,6 +255,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "مصر للبترول",
+      "source_manning": "نقيب/ محمد عاطف",
       "time": "",
       "weapon": ""
     },
@@ -249,6 +275,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "عيون موسي",
+      "source_manning": "رائد/جمال امين",
       "time": "",
       "weapon": ""
     },
@@ -267,6 +295,8 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
+      "source_label": "هلة المحجر",
+      "source_manning": "رائد/ احمد السمان",
       "time": "",
       "weapon": ""
     }

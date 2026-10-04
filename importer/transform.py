@@ -25,8 +25,9 @@ from typing import Any, Iterable
 
 from backend.afraad import BASIC_SERVICES
 from backend.constants import (
-    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_PRISON,
-    RANK_ORDER, SECTION_SECURITY, SECTION_SUBCAMP, SECTION_TARGETS, TARGETS_FIRST,
+    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_OUTSIDERS,
+    SECTION_PRISON, SECTION_RESTS, SECTION_TAQSEERA, RANK_ORDER, SECTION_SECURITY,
+    SECTION_SUBCAMP, SECTION_TARGETS, TARGETS_FIRST,
 )
 from backend.text import norm
 
@@ -50,7 +51,7 @@ ROLE_SLOTS = {
     SECTION_SECURITY: "ضابط أمن الإدارة",
 }
 # أقسام اللوحة اللي بتتحسب من حالة الضباط — مش بتتخزن كتكليفات
-COMPUTED_SECTIONS = {SECTION_ADMIN_WORK, "الراحات", "التقصيرات", "الخوارج"}
+COMPUTED_SECTIONS = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
 _COMPUTED_KEYS = ("الراحات", "التقصير", "الخوارج", "خوارج", "عمل بالاداره", "عمل بالادارة")
 STATUS_VALUES = {"انتداب", "غياب", "مرضي", "فرقة", "طارئة"}
 _STATUS_ALIASES = {"فرقه": "فرقة", "طارئه": "طارئة", "اجازة طارئة": "طارئة", "اجازه طارئه": "طارئة",
@@ -172,6 +173,23 @@ def _first(values: Iterable[str]) -> str:
 def _is_computed(label_key: str) -> bool:
     flat = label_key.replace(" ", "")
     return any(key.replace(" ", "") in flat for key in _COMPUTED_KEYS)
+
+
+def _computed_section(label_key: str) -> str:
+    """Map a Word heading to its real computed section.
+
+    Previously every computed heading, including «الخوارج», was treated as
+    «عمل بالإدارة».  Rows following a status subheading could consequently
+    leak back into emergency services through alias resolution.
+    """
+    flat = label_key.replace(" ", "")
+    if "خوارج" in flat:
+        return SECTION_OUTSIDERS
+    if "تقصير" in flat:
+        return SECTION_TAQSEERA
+    if "راح" in flat:
+        return SECTION_RESTS
+    return SECTION_ADMIN_WORK
 
 
 def _edit_distance(left: str, right: str) -> int:
@@ -579,7 +597,9 @@ class DayBuilder:
                 # خدمة مكتوبة تحت «الأهداف» ومش هدف معروف (ترحيلة/حملة…) — مكانها الطوارئ
                 self.review.append({"date": self.date, "type": "not_a_target_moved", "raw": label})
                 return self._service_row(label, SECTION_OCCASIONAL, record, rule)
-            row = self._new_row(name, SECTION_TARGETS, kind="حراسات", shift="")
+            row = self._new_row(name, SECTION_TARGETS, kind="حراسات", shift="",
+                                source_label=clean_text(label),
+                                source_manning=clean_text(record.get("manning", "")))
             self._people_into(row, record, record["manning"])
             roster = self.target_officers.get(name, [])
             if len(set(roster)) == 1 and row["officer_ids"] != roster[:1]:
@@ -590,6 +610,11 @@ class DayBuilder:
                 row["officer_ids"] = roster[:1]
             self.provenance["assignments"][str(len(self.rows) - 1)] = self._src(record, rule, f"{label} | {record['manning']}")
             return [row]
+        # Status subheadings belong to the consolidated outsiders block, not
+        # the emergency-service list.  Treating «إجازات» as a service was the
+        # source of a visibly wrong row on 25 Sep 2026.
+        if _status(label) or norm(label) in {"اجازات", "اجازه", "اجازة", "راحات", "راحه", "راحة"}:
+            return []
         if _person_label(label) or not _LETTERS_RE.search(label):
             self.review.append({"date": self.date, "type": "not_a_service_label", "section": section,
                                 "raw": f"{label} | {record['manning']}", "path": record["path"]})
@@ -611,7 +636,9 @@ class DayBuilder:
             weapon = " + ".join(token for token in (record.get("weapon") or "").split(" + ")
                                  if token and token not in _UNIT_TYPES)
             row = self._new_row(name, section, kind=kind, shift=shift, counts_in_summary=counted,
-                                time=time, party=_party(record["party"]), weapon=weapon)
+                                time=time, party=_party(record["party"]), weapon=weapon,
+                                source_label=clean_text(label),
+                                source_manning=clean_text(record.get("manning", "")))
             self._people_into(row, record, record["manning"])
             self._conscripts_into(row, record)
             self.provenance["assignments"][str(len(self.rows) - 1)] = self._src(record, rule, f"{label} | {record['manning']}")
@@ -621,7 +648,7 @@ class DayBuilder:
     def _section_for_label(self, label: str, events: list[str]) -> str:
         key = norm(label)
         if _is_computed(key):
-            return SECTION_ADMIN_WORK
+            return _computed_section(key)
         display = _display_section(key)
         if display:
             return display
@@ -673,7 +700,9 @@ class DayBuilder:
                 if section in ROLE_SLOTS:
                     shift = "ليلية" if "ليل" in key or "مسائ" in key else "صباحية"
                     row = self._new_row(ROLE_SLOTS[section], section, kind="داخلية", shift=shift,
-                                        counts_in_summary=ROLE_SLOTS[section] != "نوبتجي المعسكر الفرعي")
+                                        counts_in_summary=ROLE_SLOTS[section] != "نوبتجي المعسكر الفرعي",
+                                        source_label=clean_text(label),
+                                        source_manning=clean_text(record.get("manning", "")))
                     self._people_into(row, record, record["manning"])
                     if not row["officer_ids"] and not record["manning"] and previous_slot and previous_slot["officer_ids"]:
                         # خلية الفترة الليلية مدموجة رأسيًا مع الصباحية = نفس الضابط
@@ -784,6 +813,7 @@ class DayBuilder:
                 row["officer_ids"].append(officer_id)
 
     def emergency_enrichment(self) -> None:
+        has_authoritative_board = bool(self._of("board", "board_row", "board_label"))
         index: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in self.rows:
             if row["section"] not in ROLE_SLOTS and row["section"] != SECTION_TARGETS:
@@ -819,6 +849,11 @@ class DayBuilder:
             candidates = _nearest(index, key)
             row = _pick(candidates, time)
             if row is None:
+                # A board DOCX is authoritative for which rows exist.  The
+                # personnel sheet may enrich a matching row, but must not add
+                # services absent from the official daily board.
+                if has_authoritative_board:
+                    continue
                 row = self._new_row(name, SECTION_OCCASIONAL, kind=kind, counts_in_summary=counted,
                                     shift=_shift_from_time(time) or "صباحية")
                 index[key].append(row)

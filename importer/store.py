@@ -230,6 +230,11 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
     built = build_dataset(ledger, skip=skip, data=data)
     core, days = store.split(data)
     changed = _changed_files(ledger.data_dir, core, days)
+    source_docs = _board_source_docs(ledger, state, write_dates, built["days"])
+    for name, source in source_docs.items():
+        target = ledger.data_dir / name
+        if _sha(target) != _sha(source):
+            changed.append(name)
     report = {"batch": ledger.batch, "at": datetime.now().isoformat(timespec="seconds"), "write": write,
               "plan": counts, "files_to_write": len(changed), "applied": built["applied"]["stats"],
               "skipped": {date: reason for date, (action, reason) in actions.items() if action == "skip"}}
@@ -257,6 +262,8 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
                         f"{built['applied']['stats']['leaves_added']} راحة",
                    after={"plan": counts, "applied": built["applied"]["stats"]})
     store.save_data(data)
+    for name, source in source_docs.items():
+        atomic_write_bytes(ledger.data_dir / name, source.read_bytes())
     files = [{"path": name, "sha256": _sha(ledger.data_dir / name)} for name in changed]
     record = {"batch": ledger.batch, "at": report["at"], "snapshot": str(snapshot) if snapshot else "",
               "preimage": str(preimage), "written": files, "plan": counts,
@@ -279,6 +286,34 @@ def _changed_files(data_dir: Path, core: dict[str, Any], days: dict[str, dict[st
         if _load(path) != blob:
             out.append(str(path.relative_to(data_dir)))
     return out
+
+
+def _board_source_docs(ledger: Ledger, state: dict[str, Any], dates: set[str],
+                       days: dict[str, dict[str, Any]]) -> dict[str, Path]:
+    """Resolve verified board DOCX sources into stable, portable data paths.
+
+    Source paths recorded by transform are relative to the archive root.  The
+    containment check prevents a malformed manifest from copying files from
+    outside that explicitly selected archive.
+    """
+    raw_root = ((state.get("params") or {}).get("archive") or "").strip()
+    if not raw_root:
+        return {}
+    archive = Path(raw_root).resolve()
+    result: dict[str, Path] = {}
+    for date in sorted(dates):
+        sources = ((days.get(date) or {}).get("import") or {}).get("sources") or []
+        board = next((item for item in sources if item.get("type") == "board" and item.get("path")), None)
+        if not board:
+            continue
+        source = (archive / board["path"]).resolve()
+        try:
+            source.relative_to(archive)
+        except ValueError:
+            continue
+        if source.is_file() and source.suffix.lower() == ".docx":
+            result[f"source_docs/board/{date}.docx"] = source
+    return result
 
 
 def _load(path: Path) -> dict[str, Any]:

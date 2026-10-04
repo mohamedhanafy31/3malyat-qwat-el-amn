@@ -30,7 +30,7 @@ from ..duty import summarise
 from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..repo import Repos
-from ..store import ALL_DAYS, AbortRequest, load_data, revision, stale_revision, with_data
+from ..store import ALL_DAYS, AbortRequest, board_source_doc_path, load_data, revision, stale_revision, with_data
 from ..utils import around, canonical_day, json_payload, too_long
 
 bp = Blueprint("board", __name__)
@@ -113,6 +113,14 @@ def export_board_docx(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
+    # Historical imports preserve the authoritative board document. Returning
+    # it directly is the only lossless way to retain merged cells, free-form
+    # wording and per-day column variations from the operational roster.
+    source_doc = board_source_doc_path(day)
+    if source_doc.is_file():
+        return send_file(source_doc, as_attachment=True,
+                         download_name=f"اليومية التفصيلية {day}.docx",
+                         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
     board = build_board(load_data(around(day, -1, 0)), day)
     buf = build_docx(board)
     return send_file(buf, as_attachment=True, download_name=f"اليومية التفصيلية {day}.docx",

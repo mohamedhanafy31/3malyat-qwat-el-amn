@@ -45,9 +45,10 @@ function targetSlotRow(row) {
   const commander = row.commander?.length
     ? chips(row.commander, "h")
     : `<span class="muted">لم يُحدَّد بعد من صفحة بيانات الضابط</span>`;
-  const assigned = row.officers.length
-    ? chips(row.officers, "m")
-    : `<span class="muted">لم يُعيَّن أحد</span>`;
+  const assigned = row.source_manning
+    ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
+    : (row.officers.length ? chips(row.officers, "m")
+      : `<span class="muted">لم يُعيَّن أحد</span>`);
   return `<tr class="${row.vacant ? "vacant" : ""}">
     <td class="name">${esc(row.label)}</td>
     <td class="wrap">${commander}</td>
@@ -65,9 +66,10 @@ function targetSlotRow(row) {
 const SLOT_HEAD = ["الخدمة", "القائم بها", "الإجراء"];
 
 function slotRow(row, sectionName) {
-  const assigned = row.officers.length
-    ? chips(row.officers, "m")
-    : `<span class="muted">لم يُعيَّن أحد</span>`;
+  const assigned = row.source_manning
+    ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
+    : (row.officers.length ? chips(row.officers, "m")
+      : `<span class="muted">لم يُعيَّن أحد</span>`);
   return `<tr class="${row.vacant ? "vacant" : ""}">
     <td class="name">${esc(row.shift)}</td>
     <td class="wrap">${assigned}</td>
@@ -86,8 +88,10 @@ function serviceRow(row) {
       <td class="col-actions"><div class="actions"><button class="mini" data-action="openEntry"
         data-extra="${dataAttr({shift: row.shift})}" aria-label="إضافة">${icon("plus")}</button></div></td></tr>`;
   }
-  const who = [chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ")
-    || `<span class='muted'>—</span>`;
+  const who = row.source_manning
+    ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
+    : ([chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ")
+      || `<span class='muted'>—</span>`);
   const selected = row.id === SELECTED_ROW_ID;
   return `<tr class="service-row${row.vacant ? " vacant" : ""}${selected ? " is-selected" : ""}"
     data-service-id="${esc(row.id)}" tabindex="-1" aria-selected="${selected}">
