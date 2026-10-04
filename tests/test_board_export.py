@@ -66,3 +66,23 @@ def test_export_returns_preserved_authoritative_roster_byte_for_byte(client):
 
     assert response.status_code == 200
     assert response.data == expected
+
+
+def test_generated_roster_uses_word_strength_columns_without_service_details(client):
+    for payload in (
+        {"name": "خدمة أساسية اختبار", "section": "الخدمات أساسية", "kind": "خارجية",
+         "shift": "صباحية", "officer_ids": ["OFF-001"], "weapon": "آلي", "time": "8ص"},
+        {"name": "خدمة طارئة اختبار", "section": "الخدمات الطارئة", "kind": "خارجية",
+         "shift": "صباحية", "officer_ids": ["OFF-002"], "weapon": "آلي", "time": "12ظ",
+         "conscript_count": 2},
+    ):
+        assert client.post(f"/api/assignments/{DAY}", json=payload).status_code == 201
+    table = _download(client).tables[0]
+    basic = next(row for row in table.rows if row.cells[0].text.strip() == "خدمة أساسية اختبار صبح")
+    emergency = next(row for row in table.rows if row.cells[2].text.strip() == "خدمة طارئة اختبار")
+
+    assert "آلي" not in basic.cells[1].text
+    assert "8ص" not in basic.cells[1].text
+    assert emergency.cells[3].text.strip() == "—"
+    assert "12" not in emergency.cells[4].text
+    assert "آلي" not in emergency.cells[4].text

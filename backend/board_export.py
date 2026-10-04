@@ -125,6 +125,36 @@ def _service_desc(row):
     return " + ".join(bits) if bits else "شاغرة"
 
 
+def _basic_assignee(row):
+    """The basic-services Word column contains the officer only."""
+    officers = _people_text(row.get("officers"))
+    if officers:
+        return officers
+    source = (row.get("source_manning") or "").strip()
+    # A source string containing a rank/name is still an officer assignment;
+    # pure strength text ("2 فرد + 2 مج") belongs only in emergency services.
+    if "/" in source and not any(token in source for token in ("فرد", "مج")):
+        return source
+    return "—"
+
+
+def _compact_manning(row):
+    """Word's emergency column: personnel strength, without service details."""
+    source = (row.get("source_manning") or "").strip()
+    if source and not ("/" in source and not any(token in source for token in ("فرد", "مج"))):
+        return source
+    bits = []
+    if row.get("officers"):
+        bits.append(_people_text(row.get("officers")))
+    for conscript in row.get("conscripts") or []:
+        cls = conscript.get("class") or "مج"
+        count = conscript.get("count")
+        bits.append(f"{count}{cls}" if count else cls)
+    if row.get("conscript_count") and not row.get("conscripts"):
+        bits.append(f"{row['conscript_count']}مج")
+    return " + ".join(filter(None, bits)) or "—"
+
+
 def _officer_desc(section_name, row):
     if section_name == SECTION_ADMIN_WORK:
         if row.get("fixedSection"):
@@ -221,14 +251,19 @@ def _word_rows(sec, *, left=False):
                                row.get("detail") or _officer_desc(name, row)))
             else:
                 result.append((False, row.get("label") or row.get("name") or "—",
-                               _people_text(row.get("officers")), _service_desc(row)))
+                               "—", _compact_manning(row)))
         elif sec_type in {"officers", "admin"}:
             result.append((False, _who(row) or "—", _officer_desc(name, row), None))
         elif sec_type == "targets":
             result.append((False, row.get("label") or row.get("name") or "—",
                            _people_text(row.get("officers")) or _people_text(row.get("commander")), None))
         else:
-            result.append((False, row.get("label") or row.get("name") or "—", _service_desc(row), None))
+            if left:
+                result.append((False, row.get("label") or row.get("name") or "—", "—",
+                               _compact_manning(row)))
+            else:
+                result.append((False, row.get("label") or row.get("name") or "—",
+                               _basic_assignee(row), None))
     if len(result) == 1:
         result.append((False, "لا يوجد", None, None))
     return result
