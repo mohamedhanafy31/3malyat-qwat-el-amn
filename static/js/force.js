@@ -399,8 +399,11 @@ $("#personForm").onsubmit = async e => {
     body.rest_system = $("#fRestSystem").value;
     body.rest_day = $("#fRestSystem").value === "أسبوعية" ? $("#fRestDay").value : "";
     body.weapon_custody = $("#fWeaponCustody").value.trim();
-    const custom = $("#fSection").value === "__new__";
-    body.section = custom ? $("#fNewSection").value.trim() : $("#fSection").value;
+    const sectionSelect = $("#fSection");
+    const custom = sectionSelect?.value === "__new__";
+    // توافق مع نسخة HTML قديمة لم يكن فيها اختيار القسم بعد.
+    body.section = custom ? ($("#fNewSection")?.value || "").trim()
+      : (sectionSelect?.value || "القوة");
     if (custom) body.new_section = true;
   } else body.address = $("#fAddress").value;
   if (!$("#archiveFields").classList.contains("hidden")) {
