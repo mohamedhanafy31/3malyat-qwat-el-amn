@@ -328,11 +328,12 @@ function updateRoles() {
   $("#restSysWrap").classList.toggle("hidden", !isOff);
   $("#restDayWrap").classList.toggle("hidden", !isOff);
   $("#addressWrap").classList.toggle("hidden", isOff);
-  $("#officerSectionWrap").classList.toggle("hidden", !isOff);
+  $("#officerSectionWrap")?.classList.toggle("hidden", !isOff);
   toggleRestDay();
 }
 
 function updateOfficerSection() {
+  if (!$("#fSection")) return;
   const custom = $("#fSection").value === "__new__";
   $("#fNewSection").classList.toggle("hidden", !custom);
   $("#newSectionHint").classList.toggle("hidden", !custom);
@@ -340,6 +341,7 @@ function updateOfficerSection() {
 }
 
 function fillOfficerSections(selected) {
+  if (!$("#fSection")) return;
   const options = (META.officer_sections || ["القوة", "الحراسات المشددة", "الخوارج"])
     .map(x => [x, x]);
   fillSelect($("#fSection"), [["القوة", "القوة"], ...options.filter(x => x[0] !== "القوة"),
@@ -502,7 +504,9 @@ if ($("#statusFilter")) $("#statusFilter").onchange = render;
 $("#addBtn").onclick = () => openPerson(null);
 $("#type").onchange = updateRoles;
 $("#fRestSystem").onchange = toggleRestDay;
-$("#fSection").onchange = updateOfficerSection;
+// بعض نسخ القالب القديمة/المخزنة مؤقتًا قد لا تحتوي حقل القسم بعد؛ لا
+// ينبغي أن يمنع ذلك بقية صفحة القوة من التحميل.
+if ($("#fSection")) $("#fSection").onchange = updateOfficerSection;
 
 async function load() {
   const d = await bootstrap();
