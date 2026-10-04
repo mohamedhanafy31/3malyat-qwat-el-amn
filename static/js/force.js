@@ -77,6 +77,29 @@ function filterRows(rows) {
   return rows;
 }
 
+function officerSectionLabel(section) {
+  const value = String(section || "القوة").trim() || "القوة";
+  return value === "الحراسات المشددة" ? "الحراسات" : value;
+}
+
+function groupedOfficerRows(rows) {
+  const order = META.officer_sections || ["القوة", "الحراسات المشددة", "الخوارج"];
+  const out = [], used = new Set();
+  for (const section of order) {
+    const mine = rows.filter(p => (p.section || "القوة") === section);
+    if (!mine.length) continue;
+    used.add(section);
+    out.push({_sectionHeader: officerSectionLabel(section), section: section});
+    out.push(...mine);
+  }
+  for (const section of [...new Set(rows.map(p => p.section || "القوة"))]) {
+    if (used.has(section)) continue;
+    out.push({_sectionHeader: officerSectionLabel(section), section});
+    out.push(...rows.filter(p => (p.section || "القوة") === section));
+  }
+  return out;
+}
+
 function renderTable() {
   const isArch = BUCKET === "archive";
   const rows   = filterRows(LIST[BUCKET]);
@@ -101,6 +124,7 @@ function renderTable() {
     if (!hasWeapon) delete cols.weapon;
     extraHeads = ["الهاتف", "الإجراء"];
     rowHtml = p => {
+      if (p._sectionHeader) return `<tr class="section-row officer-section-row"><td colspan="${Object.keys(cols).length + extraHeads.length}">${esc(p._sectionHeader)} <span class="section-count">${rows.filter(x => (x.section || "القوة") === p.section).length}</span></td></tr>`;
       const acts = `<button class="mini" data-action="openPerson" data-id="${esc(p.id)}">تعديل</button>
         ${rowMenu([
           {action: "openLeaveFor", id: p.id, label: "تسجيل راحة"},
@@ -209,8 +233,9 @@ function renderTable() {
     _sortStates[cid] = { col: null, dir: 0, _ctx: ctxKey };
   }
 
+  const grouped = IS_OFF && !isArch && !_sortState(cid).col ? groupedOfficerRows(rows) : rows;
   $("#tableWrap").innerHTML = sortableTableBlock(
-    cid, cols, rows, rowHtml, extraHeads,
+    cid, cols, grouped, rowHtml, extraHeads,
     `عدد النتائج: ${rows.length}`, {title: IS_OFF ? "لا يوجد ضباط" : "لا يوجد أفراد"}, renderTable
   );
 }
@@ -303,7 +328,25 @@ function updateRoles() {
   $("#restSysWrap").classList.toggle("hidden", !isOff);
   $("#restDayWrap").classList.toggle("hidden", !isOff);
   $("#addressWrap").classList.toggle("hidden", isOff);
+  $("#officerSectionWrap").classList.toggle("hidden", !isOff);
   toggleRestDay();
+}
+
+function updateOfficerSection() {
+  const custom = $("#fSection").value === "__new__";
+  $("#fNewSection").classList.toggle("hidden", !custom);
+  $("#newSectionHint").classList.toggle("hidden", !custom);
+  if (custom) $("#fNewSection").focus();
+}
+
+function fillOfficerSections(selected) {
+  const options = (META.officer_sections || ["القوة", "الحراسات المشددة", "الخوارج"])
+    .map(x => [x, x]);
+  fillSelect($("#fSection"), [["القوة", "القوة"], ...options.filter(x => x[0] !== "القوة"),
+    ["__new__", "+ إضافة قسم جديد"]]);
+  $("#fSection").value = selected && options.some(x => x[0] === selected) ? selected : (selected || "القوة");
+  $("#fNewSection").value = selected && !options.some(x => x[0] === selected) ? selected : "";
+  updateOfficerSection();
 }
 function toggleRestDay() {
   $("#restDayWrap").classList.toggle("hidden",
@@ -327,6 +370,7 @@ function openPerson(id) {
   $("#fPhone").value = p?.phone || "";
   $("#fJoin").value = p?.join_date || curDate();
   $("#fPost").value = p?.post || "";
+  fillOfficerSections(p?.section || "القوة");
   $("#fEffectiveFrom").value = curDate();
   $("#effectiveWrap").classList.toggle("hidden", !p);
   $("#fWeaponCustody").value = p?.weapon_custody || "";
@@ -353,6 +397,9 @@ $("#personForm").onsubmit = async e => {
     body.rest_system = $("#fRestSystem").value;
     body.rest_day = $("#fRestSystem").value === "أسبوعية" ? $("#fRestDay").value : "";
     body.weapon_custody = $("#fWeaponCustody").value.trim();
+    const custom = $("#fSection").value === "__new__";
+    body.section = custom ? $("#fNewSection").value.trim() : $("#fSection").value;
+    if (custom) body.new_section = true;
   } else body.address = $("#fAddress").value;
   if (!$("#archiveFields").classList.contains("hidden")) {
     body.leave_date = $("#fLeaveDate").value; body.leave_reason = $("#fLeaveReason").value;
@@ -455,6 +502,7 @@ if ($("#statusFilter")) $("#statusFilter").onchange = render;
 $("#addBtn").onclick = () => openPerson(null);
 $("#type").onchange = updateRoles;
 $("#fRestSystem").onchange = toggleRestDay;
+$("#fSection").onchange = updateOfficerSection;
 
 async function load() {
   const d = await bootstrap();

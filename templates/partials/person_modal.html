@@ -31,6 +31,12 @@
         <label id="postWrap">العمل المسند
           <input name="post" id="fPost">
         </label>
+        <label id="officerSectionWrap" class="hidden">قسم اليومية
+          <select name="section" id="fSection"></select>
+          <input name="new_section" id="fNewSection" class="hidden" maxlength="60"
+                 placeholder="اكتب اسم القسم الجديد">
+          <small id="newSectionHint" class="muted hidden">سيظهر القسم ضمن الأقسام المقترحة لاحقًا.</small>
+        </label>
         <label id="effectiveWrap">تاريخ سريان الرتبة / العمل / الراحة
           <input type="date" name="effective_from" id="fEffectiveFrom">
         </label>

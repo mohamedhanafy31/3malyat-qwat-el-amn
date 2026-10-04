@@ -23,6 +23,17 @@ from ..utils import (
 bp = Blueprint("people", __name__)
 
 
+def _known_officer_sections(data):
+    """الأقسام القياسية وأي أقسام حرة محفوظة في سجلات الضباط."""
+    known = set(OFFICER_SECTIONS)
+    for person_obj in Repos(data).people.all("officers"):
+        person = person_obj.as_dict()
+        known.add(str(person.get("section", "") or "").strip())
+        known.update(str(h.get("section", "") or "").strip()
+                     for h in (person.get("history") or []))
+    return {value for value in known if value}
+
+
 def _person_scope(person_id):
     """نطاق مسار بيفحص/ينضّف مراجع شخص في اليوميات: الأيام المذكور فيها
     (من فهرس الأيام) + أيام القفل الصريح لفحص الأثر الرجعي."""
@@ -119,12 +130,15 @@ def add_person():
         payload["role"] = str(payload.get("role", "")).strip() or "ضابط"
         if payload["role"] not in OFFICER_ROLES:
             return jsonify({"error": "رتبة الضابط غير صحيحة."}), 400
+        payload["section"] = str(payload.get("section", "القوة")).strip() or "القوة"
+        if len(payload["section"]) > MAX_LEN["section"]:
+            return jsonify({"error": "قسم الضابط أطول من الحد المسموح (60 حرفًا)."}), 400
 
     join_date = canonical_day(payload["join_date"])
     if not join_date:
         return jsonify({"error": "تاريخ الانضمام غير صحيح."}), 400
 
-    bad_length = check_lengths(payload, ("name", "code", "phone", "post", "address"))
+    bad_length = check_lengths(payload, ("name", "code", "phone", "post", "address", "section"))
     if bad_length:
         return jsonify({"error": bad_length}), 400
     if not valid_phone(payload["phone"]):
@@ -139,6 +153,9 @@ def add_person():
     code = str(payload["code"]).strip()
 
     def mutate(data):
+        if person_type == "officer" and payload["section"] not in _known_officer_sections(data):
+            if not payload.get("new_section"):
+                raise AbortRequest((jsonify({"error": "القسم غير معروف. اختر «قسم جديد» لتسجيله."}), 400))
         # Code must be unique among active members.
         repos = Repos(data)
         if repos.people.code_taken(category, code):
@@ -155,6 +172,7 @@ def add_person():
             # كانت بتخلي المقارنة تطلع بالعكس والضابط يختفي من اليوميات
             "join_date": join_date,
             "post": str(payload.get("post", "")).strip(),
+            "section": payload.get("section", "القوة") if category == "officers" else "",
             "status": "active"
         }
         if category == "officers":
@@ -212,11 +230,14 @@ def edit_person(person_id):
             if str(payload["role"]).strip() not in OFFICER_ROLES:
                 raise AbortRequest((jsonify({"error": "رتبة الضابط غير صحيحة."}), 400))
         if "section" in payload and category == "officers":
-            if str(payload["section"]).strip() not in OFFICER_SECTIONS:
-                raise AbortRequest((jsonify({"error": "قسم اليومية غير صحيح."}), 400))
+            section = str(payload["section"]).strip()
+            if not section or len(section) > MAX_LEN["section"]:
+                raise AbortRequest((jsonify({"error": "قسم الضابط غير صحيح أو أطول من الحد المسموح."}), 400))
+            if section not in _known_officer_sections(data) and not payload.get("new_section"):
+                raise AbortRequest((jsonify({"error": "القسم غير معروف. اختر «قسم جديد» لتسجيله."}), 400))
 
         bad_length = check_lengths(payload, ("name", "code", "phone", "post",
-                                             "address", "leave_reason", "weapon_custody"))
+                                             "address", "leave_reason", "weapon_custody", "section"))
         if bad_length:
             raise AbortRequest((jsonify({"error": bad_length}), 400))
         if "phone" in payload and not valid_phone(payload["phone"]):

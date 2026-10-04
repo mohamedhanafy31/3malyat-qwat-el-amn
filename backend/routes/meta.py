@@ -38,7 +38,7 @@ def _meta(data):
         "service_sections": SERVICE_SECTIONS,
         "service_documents": SERVICE_DOCUMENTS,
         "officer_statuses": OFFICER_STATUSES,
-        "officer_sections": OFFICER_SECTIONS,
+        "officer_sections": _officer_sections(data),
         "command_roles": COMMAND_ROLES,
         "command": Repos(data).config.command(),
         "group_roles": GROUP_ROLES,
@@ -65,6 +65,20 @@ def _slim(people, rest=False):
 def _officers_with_status(data, today):
     return [{**o.as_dict(), "status_today": officer_status(data, o.as_dict(), today)}
             for o in Repos(data).people.active("officers")]
+
+
+def _officer_sections(data):
+    """الأقسام الرسمية بالإضافة لأي قسم حر سبق استخدامه."""
+    seen = list(OFFICER_SECTIONS)
+    for person_obj in Repos(data).people.all("officers"):
+        person = person_obj.as_dict()
+        values = [person.get("section", "")]
+        values += [h.get("section", "") for h in (person.get("history") or [])]
+        for value in values:
+            value = str(value or "").strip()
+            if value and value not in seen:
+                seen.append(value)
+    return seen
 
 
 def _counts(data):
