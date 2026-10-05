@@ -28,7 +28,10 @@ call "%ROOT%tools\deploy_console.bat" ok "Application and database are ready."
 call "%ROOT%tools\deploy_console.bat" step "[4/5] Starting production server..."
 "%PY%" -c "import urllib.request; urllib.request.urlopen('%URL%', timeout=1)" >nul 2>&1
 if not errorlevel 1 goto healthy
-start "Camp Management System" /min cmd /d /c ""%PY%" "%ROOT%serve.py" >>"%ROOT%logs\server-console.log" 2>&1"
+set "PYW=%PY%"
+if exist "%ROOT%runtime\pythonw.exe" set "PYW=%ROOT%runtime\pythonw.exe"
+if exist "%ROOT%venv\Scripts\pythonw.exe" set "PYW=%ROOT%venv\Scripts\pythonw.exe"
+start "" /b "%PYW%" "%ROOT%serve.py" >>"%ROOT%logs\server-console.log" 2>&1
 set /a WAIT=0
 :wait_server
 timeout /t 1 /nobreak >nul

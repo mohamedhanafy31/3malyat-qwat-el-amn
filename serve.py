@@ -48,13 +48,15 @@ def _configure_logging():
                                   backupCount=5, encoding="utf-8")
     handler.setFormatter(logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s %(message)s"))
-    console = logging.StreamHandler(sys.stdout)
-    console.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
     root = logging.getLogger()
     root.setLevel(logging.INFO)
     root.handlers.clear()
     root.addHandler(handler)
-    root.addHandler(console)
+    # pythonw.exe has no console and may expose stdout as None.
+    if sys.stdout is not None:
+        console = logging.StreamHandler(sys.stdout)
+        console.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        root.addHandler(console)
     logging.getLogger("waitress").setLevel(logging.INFO)
     return logging.getLogger("personnel-system")
 
