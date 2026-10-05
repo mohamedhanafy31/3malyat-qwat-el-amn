@@ -110,8 +110,13 @@ def test_export_returns_a_real_docx_file(client):
     assert r.status_code == 200
     assert r.mimetype == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     doc = Document(io.BytesIO(r.data))
+    assert len(doc.tables) == 1
+    assert len(doc.tables[0].columns) == 14
+    assert any("10/4/2026" in paragraph.text for paragraph in doc.paragraphs)
     text = "\n".join(p.text for t in doc.tables for row in t.rows for c in row.cells
                      for p in c.paragraphs)
+    text = text.replace("ـ", "")
     assert "مدرعة المديرية" in text
+    assert "كمين شرق النفق المستحدث" in text
     assert "تسفير الأربعين" in text
     assert "الخدمات الطارئة" in text

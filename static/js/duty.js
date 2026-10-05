@@ -3,6 +3,8 @@
    حالة الضابط بس: تقصيرة / انتداب / غياب / مرضي / فرقة / طارئة / ملاحظة. */
 let DUTY = null;
 
+window.exportDocxUrl = () => DUTY ? `/api/duty/${DUTY.date}/export.docx` : null;
+
 function renderSummary(s) {
   const cell = v => `<td>${v}</td>`;
   const x = s["خارجية"], dl = s["داخلية"], tb = s["طبية"], kh = s["خوارج"];

@@ -7,12 +7,13 @@
 حالة يومية هنا.
 """
 from copy import deepcopy
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, send_file
 
 from .. import changes
 from .. import day_status
 from ..assignments import OFFICER_STATUSES, officer_state, set_officer_state
 from ..duty import summarise
+from ..duty_export import build_docx
 from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..people import officers_on
@@ -36,6 +37,20 @@ def get_duty(day):
     payload = summarise(preview, day)
     payload.update(revision=revision(data, [day]), preparation_pending=pending)
     return jsonify(payload)
+
+
+@bp.get("/api/duty/<day>/export.docx")
+def export_duty_docx(day):
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    data = load_data(around(day, -1, 0))
+    preview = deepcopy(data)
+    if needs_prepare(data, day):
+        prepare(preview, day)
+    buf = build_docx(summarise(preview, day))
+    return send_file(buf, as_attachment=True, download_name=f"يومية الضباط {day}.docx",
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 @bp.put("/api/duty/<day>/<person_id>")

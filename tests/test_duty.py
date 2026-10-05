@@ -4,6 +4,10 @@
 للإجمالي وحالة الضابط بس. التكليفات نفسها في test_projections.py.
 """
 
+import io
+
+from docx import Document
+
 
 def test_balance_invariant_with_no_duties(client):
     r = client.get("/api/duty/2026-03-01")
@@ -41,6 +45,29 @@ def test_bad_date_is_refused(client):
     assert client.get("/api/duty/مش-تاريخ").status_code == 400
 
 
+def test_export_returns_the_approved_officer_roster_docx(client):
+    response = client.get("/api/duty/2026-03-01/export.docx")
+    assert response.status_code == 200
+    assert response.mimetype == (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    assert "2026-03-01" in response.headers["Content-Disposition"]
+
+    document = Document(io.BytesIO(response.data))
+    assert len(document.tables) == 2
+    assert len(document.tables[0].columns) == 7
+    title = "\n".join(paragraph.text for paragraph in document.paragraphs)
+    table_text = "\n".join(cell.text for table in document.tables
+                           for row in table.rows for cell in row.cells)
+    table_text = table_text.replace("ـ", "")
+    assert "1/3/2026" in title
+    assert "العمل المسند" in table_text
+    assert "الحراسات المشددة" in table_text
+
+
+def test_export_rejects_an_invalid_day(client):
+    assert client.get("/api/duty/not-a-day/export.docx").status_code == 400
+
+
 def test_clear_officer_state_delete_endpoint(client):
     # Set state
     client.put("/api/duty/2026-03-01/OFF-001", json={"status": "انتداب", "note": "تست"})
@@ -71,4 +98,3 @@ def test_clear_assignments_day_delete_endpoint(client):
 def _row(client, officer_id, day="2026-03-01"):
     d = client.get(f"/api/duty/{day}").get_json()
     return next(r for r in d["rows"] if r["id"] == officer_id)
-
