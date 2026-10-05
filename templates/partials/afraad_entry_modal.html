@@ -5,15 +5,18 @@
     <h2 id="afEntryTitle">تعديل الخدمة</h2>
     <form id="afEntryForm" novalidate>
       <input type="hidden" id="afEntryId">
+      <input type="hidden" id="afMorningPersonId">
+      <input type="hidden" id="afNightPersonId">
+      <datalist id="afPersonnelList"></datalist>
       <div class="grid">
         <label>القائم بها صباحًا
-          <input id="afMorningName">
+          <input id="afMorningName" list="afPersonnelList" autocomplete="off">
         </label>
         <label>هاتف الصباحية
           <input id="afMorningPhone">
         </label>
         <label>القائم بها ليلًا
-          <input id="afNightName">
+          <input id="afNightName" list="afPersonnelList" autocomplete="off">
         </label>
         <label>هاتف الليلية
           <input id="afNightPhone">

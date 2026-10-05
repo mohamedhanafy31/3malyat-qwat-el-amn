@@ -5,6 +5,7 @@
    اليومية التفصيلية مرتبة بمعاد الانتظام — نفس منطق `board.js`/
    `counts.js` بس بعرض «الدفتر الورقي» زي `/board`. */
 let AF = null, DAY = null;
+let PERSONNEL_VALUES = new Map();
 
 /* زرار «Word» العام (export.js) بيلف الـHTML الظاهر — هنا لازم يبقى
    ملف Word حقيقي بنفس شكل ورقة «افراد» الحقيقية، فبيتولّد من السيرفر
@@ -17,11 +18,13 @@ function personCell(p) {
 }
 
 function basicRow(r) {
+  const inherited = r.inherited_fields?.length
+    ? `<div class="sub">موروث من ${fmt(r.inherited_from)}</div>` : "";
   return `<tr>
     <td class="name">${esc(r.name)}</td>
     <td>${personCell(r.morning)}</td>
     <td>${personCell(r.night)}</td>
-    <td>${r.count || "<span class='muted'>—</span>"}</td>
+    <td>${esc(r.count) || "<span class='muted'>—</span>"}${inherited}</td>
     <td>${esc(r.weapon) || "<span class='muted'>—</span>"}</td>
     <td>${esc(r.schedule) || "<span class='muted'>—</span>"}</td>
     <td><div class="actions"><button class="mini" data-action="openAfEntry"
@@ -80,6 +83,33 @@ function render() {
     </div>`;
 }
 
+function personnelLabel(person) {
+  return [person.role, person.name].filter(Boolean).join("/ ");
+}
+
+function preparePersonnelChoices() {
+  PERSONNEL_VALUES = new Map();
+  const options = [];
+  for (const person of AF?.personnel || []) {
+    const label = personnelLabel(person);
+    PERSONNEL_VALUES.set(label, person);
+    PERSONNEL_VALUES.set(person.name, person);
+    options.push(`<option value="${esc(label)}">${esc(person.phone || "")}</option>`);
+  }
+  $("#afPersonnelList").innerHTML = options.join("");
+}
+
+function syncPersonnel(shift) {
+  const name = $(`#af${shift}Name`);
+  const phone = $(`#af${shift}Phone`);
+  const personId = $(`#af${shift}PersonId`);
+  const person = PERSONNEL_VALUES.get(name.value.trim());
+  personId.value = person?.id || "";
+  if (person) phone.value = person.phone || "";
+  else if (!name.value.trim() || personId.dataset.lastName !== name.value.trim()) phone.value = "";
+  personId.dataset.lastName = name.value.trim();
+}
+
 async function loadDayStatus() {
   const s = await api(`/api/day-status/${DAY}`);
   if (!s) return;
@@ -97,6 +127,7 @@ async function loadDay(day) {
   const v = await api(`/api/afraad/${day}`);
   if (!v) return;
   AF = v; DAY = day; $("#dutyDate").value = day; setPageDay(day); render();
+  preparePersonnelChoices();
   loadDayStatus();
 }
 
@@ -111,6 +142,8 @@ function openAfEntry(id) {
   if (!row) return;
   $("#afEntryId").value = id;
   $("#afEntryTitle").textContent = row.name;
+  $("#afMorningPersonId").value = row.morning.person_id || "";
+  $("#afNightPersonId").value = row.night.person_id || "";
   $("#afMorningName").value = row.morning.name || "";
   $("#afMorningPhone").value = row.morning.phone || "";
   $("#afNightName").value = row.night.name || "";
@@ -118,17 +151,26 @@ function openAfEntry(id) {
   $("#afCount").value = row.count || "";
   $("#afWeapon").value = row.weapon || "";
   $("#afSchedule").value = row.schedule || "";
+  $("#afMorningPersonId").dataset.lastName = $("#afMorningName").value.trim();
+  $("#afNightPersonId").dataset.lastName = $("#afNightName").value.trim();
   openModal("afEntryModal");
 }
 ACTIONS.openAfEntry = id => openAfEntry(id);
+
+for (const shift of ["Morning", "Night"]) {
+  $(`#af${shift}Name`).addEventListener("input", () => syncPersonnel(shift));
+  $(`#af${shift}Name`).addEventListener("change", () => syncPersonnel(shift));
+}
 
 $("#afEntryForm").onsubmit = async e => {
   e.preventDefault();
   const id = $("#afEntryId").value;
   const body = {
     morning_name: $("#afMorningName").value.trim(),
+    morning_person_id: $("#afMorningPersonId").value,
     morning_phone: $("#afMorningPhone").value.trim(),
     night_name: $("#afNightName").value.trim(),
+    night_person_id: $("#afNightPersonId").value,
     night_phone: $("#afNightPhone").value.trim(),
     count: $("#afCount").value.trim(),
     weapon: $("#afWeapon").value.trim(),

@@ -339,6 +339,11 @@ def _extract_afraad(doc: dict[str, Any], data: DocxData) -> list[dict[str, Any]]
         header_index = next((ri for ri, row in enumerate(table.rows) if
                              "الخدمه الصباحيه" in norm(" ".join(c.text for c in row)) and
                              "الخدمه الليليه" in norm(" ".join(c.text for c in row))), None)
+        # Some 2025 files store emergency services in table 1 and the basic
+        # roster in table 2. Emergency state belongs to a table, not to every
+        # table that follows it in the document.
+        if header_index is not None:
+            emergency = False
         for ri, row in enumerate(table.rows):
             joined = norm(" ".join(cell.text for cell in row))
             if ri == header_index:

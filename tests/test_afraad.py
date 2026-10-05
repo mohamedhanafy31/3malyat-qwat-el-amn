@@ -48,6 +48,50 @@ def test_setting_a_basic_entry_is_scoped_to_one_day(client):
     assert other_row["morning"] == {"name": "", "phone": ""}
 
 
+def test_new_day_inherits_only_strength_weapon_and_schedule(client):
+    client.put(f"/api/afraad/{DAY}/basic/{FIRST_ID}", json={
+        "morning_name": "فرد اليوم السابق", "morning_phone": "0100",
+        "count": "2 مجند", "weapon": "آلي + كلبش", "schedule": "8ص / 8م"})
+
+    following = client.get("/api/afraad/2026-04-11").get_json()
+    row = next(item for item in following["basic"] if item["id"] == FIRST_ID)
+    assert row["count"] == "2 مجند"
+    assert row["weapon"] == "آلي + كلبش"
+    assert row["schedule"] == "8ص / 8م"
+    assert row["morning"] == {"name": "", "phone": ""}
+    assert row["inherited_from"] == DAY
+    assert set(row["inherited_fields"]) == {"count", "weapon", "schedule"}
+
+    changed = client.put(f"/api/afraad/2026-04-11/basic/{FIRST_ID}",
+                         json={"count": "3 مجند", "weapon": "", "schedule": "9ص"})
+    assert changed.status_code == 200
+    row = next(item for item in changed.get_json()["basic"] if item["id"] == FIRST_ID)
+    assert (row["count"], row["weapon"], row["schedule"]) == ("3 مجند", "", "9ص")
+    assert row["inherited_fields"] == []
+
+
+def test_linked_personnel_phone_is_filled_from_force_record(client):
+    person = client.post("/api/person", json={
+        "type": "personnel", "name": "فرد تجريبي", "code": "901",
+        "phone": "01012345678", "join_date": "2020-01-01", "role": "أمين شرطة",
+    }).get_json()
+    response = client.put(f"/api/afraad/{DAY}/basic/{FIRST_ID}", json={
+        "morning_person_id": person["id"], "morning_name": "أمين شرطة/ فرد تجريبي",
+        "morning_phone": "00000000000",
+    })
+    assert response.status_code == 200, response.get_json()
+    row = next(item for item in response.get_json()["basic"] if item["id"] == FIRST_ID)
+    assert row["morning"]["person_id"] == person["id"]
+    assert row["morning"]["phone"] == "01012345678"
+    assert any(item["id"] == person["id"] and item["phone"] == "01012345678"
+               for item in response.get_json()["personnel"])
+
+    client.patch(f"/api/person/{person['id']}", json={"phone": "01112345678"})
+    refreshed = client.get(f"/api/afraad/{DAY}").get_json()
+    row = next(item for item in refreshed["basic"] if item["id"] == FIRST_ID)
+    assert row["morning"]["phone"] == "01112345678"
+
+
 def test_setting_an_entry_outside_the_fixed_list_404s(client):
     r = client.put(f"/api/afraad/{DAY}/basic/AFB-99", json={"morning_name": "x"})
     assert r.status_code == 404

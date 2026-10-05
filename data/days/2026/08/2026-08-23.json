@@ -872,5 +872,210 @@
     "OFF-032": {
       "note": "عمل"
     }
+  },
+  "afraad_basic": {
+    "AFB-01": {
+      "count": "(1مجند) صبح + 1 سائق (1مجند) ليل +1 سائق",
+      "schedule": "8 ص / 8 م",
+      "weapon": "خرطوش+كلبش"
+    },
+    "AFB-02": {
+      "count": "2 مج قتالية ( 1مجند )+ 1سائق صبح 2 مج قتالية ( 1 مجند ) + 1 سائق ليل",
+      "morning_name": "ا.ش/ عبدالحميد فريد فهمي موسي",
+      "morning_person_id": "IND-005",
+      "morning_phone": "01151585036",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الي + كلبش"
+    },
+    "AFB-04": {
+      "count": "1 مج ( 2 مجند ) صبح + 1سائق 1 مج ( 1 مجند ) ليل + 1 سائق",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الي+ فيدرال"
+    },
+    "AFB-05": {
+      "count": "1 مج قتالي (3 مجند) صبح + 1 سائق 1 مج قتالي (3مجند ) ليل + 1 سائق",
+      "morning_name": "م.ش/ احمد عبدالعال علي حسين",
+      "morning_person_id": "IND-025",
+      "morning_phone": "01009645703",
+      "night_name": "ا.ش/ محمد عبد الهادي علي",
+      "night_person_id": "IND-003",
+      "night_phone": "01009806341",
+      "schedule": "8 ص / 8 م",
+      "weapon": "آلي + كلبش"
+    },
+    "AFB-06": {
+      "count": "1 مج قتالي (1 مجند ) صبح + 1 سائق 1 مج قتالي (1 مجند ) ليل + 1 سائق",
+      "morning_name": "رقيب/ رفعت السيد",
+      "morning_person_id": "IND-130",
+      "morning_phone": "01013989763",
+      "night_name": "م.ش/ محمد عطية سالم",
+      "night_person_id": "IND-042",
+      "night_phone": "01016357811",
+      "schedule": "8 ص / 8 م",
+      "weapon": "آلي + كلبش"
+    },
+    "AFB-07": {
+      "count": "(4 مجند) صبح قسم عتاقة (4 مجند) ليل قسم عتاقة",
+      "morning_name": "ا.ش/ عبده حنيدق محمد",
+      "morning_person_id": "IND-010",
+      "morning_phone": "01157798848",
+      "night_name": "ا.ش/ وحيد عبدربه ابو الفتوح",
+      "night_person_id": "IND-059",
+      "night_phone": "01020562130",
+      "schedule": "8 ص / 8 م",
+      "weapon": "ألي"
+    },
+    "AFB-10": {
+      "count": "1مج قتالي (1 مجند) صبح+سائق 1 مج قتالي (1 مجند) ليل+سائق",
+      "morning_name": "ا.ش/ رضا عبدالله عبد الفتاح",
+      "morning_person_id": "IND-001",
+      "morning_phone": "01009567460",
+      "night_name": "م.ش/ محسوب احمد ابراهيم",
+      "night_person_id": "IND-048",
+      "night_phone": "01092013936",
+      "schedule": "8 ص / 8 م",
+      "weapon": "آلي + كلبش"
+    },
+    "AFB-11": {
+      "count": "1مج قتالي (5 مجند) صبح +1 سائق 1 مج قتالي (5 مجند) ليل + 1سائق",
+      "morning_name": "ا.ش/ جمال صالح قرني",
+      "morning_person_id": "IND-008",
+      "morning_phone": "01154482370",
+      "schedule": "8 ص / 8 م",
+      "weapon": "آلي + كلبش"
+    },
+    "AFB-12": {
+      "count": "1 مج قتالي (3 مجند ) صبح 1 مج قتالي (3 مجند ) ليل",
+      "morning_name": "م.ش/ محمود ايمن محمد امام",
+      "morning_person_id": "IND-029",
+      "morning_phone": "01125386932",
+      "night_name": "م.ش/ احمد اليماني امين عبدة",
+      "night_person_id": "IND-026",
+      "night_phone": "01211585213",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الى"
+    },
+    "AFB-13": {
+      "count": "1 مج قتالي(3 مجند) صبح +1سائق 1 مج قتالي (3 مجند) ليل + 1 سائق",
+      "morning_name": "م.ش/ صابر حسين اسماعيل",
+      "morning_person_id": "IND-028",
+      "morning_phone": "01024502026",
+      "night_name": "م.ش/ احمد ايمن محمد امام",
+      "night_person_id": "IND-027",
+      "night_phone": "01096323117",
+      "schedule": "8 ص / 8 م",
+      "weapon": "آلي + كلبش"
+    },
+    "AFB-17": {
+      "count": "1 مج قتالي (2 مجند ) صبح",
+      "morning_name": "م.ش/ علي جمال صابر محمد",
+      "morning_person_id": "IND-046",
+      "morning_phone": "01018035331",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الى"
+    },
+    "AFB-19": {
+      "count": "ميك فض (3 مجند)",
+      "morning_name": "م.ش/ اسلام وجيه عبد الحميد",
+      "morning_person_id": "IND-051",
+      "morning_phone": "01140904681",
+      "schedule": "11 ص حتى الانتهاء",
+      "weapon": "مايك فض"
+    },
+    "AFB-20": {
+      "count": "",
+      "morning_name": "م.ش/ عبدالفتاح علي عبد الفتاح",
+      "morning_person_id": "IND-060",
+      "morning_phone": "01016819448",
+      "night_name": "م.ش/ عبدالفتاح علي عبد الفتاح",
+      "night_person_id": "IND-060",
+      "night_phone": "01016819448",
+      "schedule": "",
+      "weapon": ""
+    },
+    "AFB-21": {
+      "count": "1 مج قتالي (2مجند) صبح + 1سائق 1 مج قتالي (2 مجند) ليل + 1 سائق",
+      "morning_name": "ا.ش/ الشحات ابراهيم ابراهيم",
+      "morning_person_id": "IND-007",
+      "morning_phone": "01012402009",
+      "night_name": "ا.ش/ رجب عبدالحميد",
+      "night_person_id": "IND-114",
+      "night_phone": "01015408638",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الي + كلبش"
+    },
+    "AFB-22": {
+      "count": "1 مج قتالي(2 مجند) صبح +1 سائق 1 مج قتالي (2 مجند) ليل + 1 سائق",
+      "morning_name": "م.ش/ محمد السيد احمد سمكة",
+      "morning_person_id": "IND-032",
+      "morning_phone": "01200678309",
+      "night_name": "م.ش/ السيد علي السيد",
+      "night_person_id": "IND-033",
+      "night_phone": "01003696246",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الي + كلبش"
+    },
+    "AFB-23": {
+      "count": "1 مج فض (2 مجند ) صبح + 1 سائق 1 مج فض (2 مجند ) ليل + 1 سائق",
+      "morning_name": "م.ش/ محمد حمادة حسن احمد",
+      "morning_person_id": "IND-052",
+      "morning_phone": "01036143573",
+      "night_name": "م.ش/ احمد عاطف",
+      "night_person_id": "IND-110",
+      "night_phone": "01147198213",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الي + كلبش"
+    },
+    "AFB-24": {
+      "count": "1 مج قتالي ( 5 مجند ) صبح+1 سائق 1 مج قتالي ( 5 مجند ) ليل + 1 سائق",
+      "morning_name": "م.ش/ محمد صبحي متولي",
+      "morning_person_id": "IND-044",
+      "morning_phone": "01070650614",
+      "night_name": "م.ش/ محمد صبحي متولي",
+      "night_person_id": "IND-044",
+      "night_phone": "01070650614",
+      "schedule": "8 ص / 8 م",
+      "weapon": "آلي + كلبش"
+    },
+    "AFB-25": {
+      "count": "",
+      "morning_name": "ا.ش/ عبدالرؤوف محمد السيد ماضي",
+      "morning_person_id": "IND-016",
+      "morning_phone": "01098090512",
+      "schedule": "",
+      "weapon": ""
+    },
+    "AFB-26": {
+      "count": "1 مج قتالي ( 1 مجند ) صبح",
+      "morning_name": "ا.ش/ محمد سعيد محمد",
+      "morning_person_id": "IND-184",
+      "morning_phone": "01093600445",
+      "schedule": "8 ص فترة صباحة",
+      "weapon": "الى"
+    },
+    "AFB-34": {
+      "count": "(2 مجند ) صبح \" ادارة الطرق\" (2 مجند ) ليل\" ادارة الطرق\"",
+      "morning_name": "م.ش/ ابراهيم محمد أحمد النسر",
+      "morning_person_id": "IND-064",
+      "morning_phone": "01064188375",
+      "night_name": "م.ش/ ابراهيم محمد أحمد النسر",
+      "night_person_id": "IND-064",
+      "night_phone": "01064188375",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الى"
+    },
+    "AFB-46": {
+      "count": "1 مج قتالي ( 1 مجند ) صبح",
+      "morning_name": "ا.ش/ سامي عبدالمنعم ابو احمد",
+      "morning_person_id": "IND-055",
+      "morning_phone": "01019264343",
+      "schedule": "8 ص فترة صباحة",
+      "weapon": "الى"
+    },
+    "AFB-49": {
+      "count": "1 مج قتالي (2 مجند ) صبح 1 مج قتالي (2 مجند ) ليل",
+      "schedule": "8 ص / 8 م",
+      "weapon": "الى"
+    }
   }
 }

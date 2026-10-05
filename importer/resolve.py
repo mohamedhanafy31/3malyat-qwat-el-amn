@@ -864,7 +864,9 @@ def _expected_ids(day: dict[str, Any], kind: str) -> set[str]:
         result.update(identifier for row in day.get("assignments", []) for identifier in row.get("officer_ids", []))
         return result
     result = {identifier for row in day.get("assignments", []) for identifier in row.get("personnel_ids", [])}
-    for row in day.get("afraad_basic", []):
+    afraad = day.get("afraad_basic") or {}
+    rows = afraad.values() if isinstance(afraad, dict) else afraad
+    for row in rows:
         result.update(value for key, value in row.items() if key.endswith("_person_id") and value)
     return result
 

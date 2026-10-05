@@ -158,6 +158,20 @@ def test_afraad_merged_shift_is_reassigned_by_content(tmp_path):
     assert emergency["emergency"] is True
 
 
+def test_afraad_basic_table_after_separate_emergency_table(tmp_path):
+    path = tmp_path / "afraad-split.docx"
+    _docx(path, ["يوم الأحد الموافق 9-11-2025م"], [
+        [["الخدمات الطارئة", "", "", "", ""],
+         ["مأمورية", "م.ش/ فرد طوارئ", "2 مجند", "آلي", "9ص"]],
+        [["الخدمة", "الخدمة الصباحية", "الخدمة الليلية", "قوام الخدمة", "التسليح", "الانتظام"],
+         ["بوابة", "م.ش/ فرد صبح", "م.ش/ فرد ليل", "2 مجند", "آلي", "8ص / 8م"]],
+    ])
+    records = extract_document(tmp_path, _meta(path, "afraad"))
+    basic = [record for record in records if record["record_type"] == "afraad_basic_row"]
+    assert len(basic) == 1
+    assert basic[0]["aligned"]["قوام الخدمة"] == "2 مجند"
+
+
 def test_duty_list_era_a_paragraphs_and_supervisor(tmp_path):
     path = tmp_path / "duty-a.docx"
     _docx(path, ["8ص", "بوابة: فرد تجريبي", "مشرف الخدمات : ضابط تجريبي"])

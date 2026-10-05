@@ -19,6 +19,7 @@ from .board import ASSIGNMENT_SECTIONS, _people_index, _row
 from .constants import SECTION_OCCASIONAL
 from .dated import afraad_basic_on
 from .repo import PeopleRepo
+from .text import norm_name
 
 # نفس أسماء وترتيب الخدمات الأساسية الـ22 في `22-6-2026 افراد.docx`
 # بالظبط — قايمة مقفولة، مش حرة زي دليل الخدمات العام. «كمين 109» في
@@ -54,24 +55,52 @@ def _overrides(data, day):
     return data.setdefault("day_afraad", {}).setdefault(day, {})
 
 
+_CARRY_FIELDS = ("count", "weapon", "schedule")
+
+
+def _previous_overrides(data, day):
+    previous = [value for value in (data.get("day_afraad") or {}) if value < day]
+    if not previous:
+        return "", {}
+    source_day = max(previous)
+    return source_day, (data.get("day_afraad") or {}).get(source_day) or {}
+
+
+def _slot(data, values, shift):
+    person_id = values.get(f"{shift}_person_id", "")
+    phone = values.get(f"{shift}_phone", "")
+    if person_id:
+        raw, category, _bucket = PeopleRepo(data).locate(person_id)
+        if raw is not None and category == "personnel":
+            # رقم سجل الفرد هو مصدر الحقيقة؛ تعديل الرقم في صفحة القوة
+            # ينعكس فورًا على كل اليوميات المرتبطة به.
+            phone = raw.get("phone") or phone
+    result = {"name": values.get(f"{shift}_name", ""), "phone": phone}
+    if person_id:
+        result["person_id"] = person_id
+    return result
+
+
 def basic_rows(data, day):
     """صفوف الخدمات الأساسية الـ22 الثابتة — كل حاجة فيها (القائم بها/
     التليفون/القوام/التسليح/الانتظام) بتيجي من نسخة اليوم ده بس."""
     overrides = (data.get("day_afraad") or {}).get(day) or {}
+    previous_day, previous = _previous_overrides(data, day)
     rows = []
     for entry in afraad_basic_on(data, day):
         ov = overrides.get(entry["id"], {})
-        morning = {"name": ov.get("morning_name", ""), "phone": ov.get("morning_phone", "")}
-        night = {"name": ov.get("night_name", ""), "phone": ov.get("night_phone", "")}
-        if ov.get("morning_person_id"):
-            morning["person_id"] = ov["morning_person_id"]
-        if ov.get("night_person_id"):
-            night["person_id"] = ov["night_person_id"]
+        old = previous.get(entry["id"], {})
+        inherited = [field for field in _CARRY_FIELDS if field not in ov and old.get(field)]
+        morning = _slot(data, ov, "morning")
+        night = _slot(data, ov, "night")
         rows.append({
             "id": entry["id"], "name": entry["name"],
-            "count": ov.get("count", ""), "weapon": ov.get("weapon", ""),
+            "count": ov.get("count", old.get("count", "")),
+            "weapon": ov.get("weapon", old.get("weapon", "")),
             "morning": morning, "night": night,
-            "schedule": ov.get("schedule", ""),
+            "schedule": ov.get("schedule", old.get("schedule", "")),
+            "inherited_from": previous_day if inherited else "",
+            "inherited_fields": inherited,
         })
     return rows
 
@@ -86,16 +115,28 @@ def set_basic_entry(data, day, entry_id, payload):
         return None, "هذه الخدمة ليست من الخدمات الأساسية الثابتة.", 404
     ov = _overrides(data, day).setdefault(entry_id, {})
     people = PeopleRepo(data)
+    payload = dict(payload)
     for shift in ("morning", "night"):
-        id_key, name_key = f"{shift}_person_id", f"{shift}_name"
+        id_key, name_key, phone_key = (f"{shift}_person_id", f"{shift}_name",
+                                       f"{shift}_phone")
         if id_key in payload:
             person_id = str(payload[id_key] or "").strip()
             raw, category, _bucket = people.locate(person_id) if person_id else (None, None, None)
             if person_id and (raw is None or category != "personnel"):
                 return None, "معرّف الفرد غير موجود.", 400
+            if person_id:
+                payload[name_key] = (str(payload.get(name_key) or "").strip()
+                                     or f"{raw.get('role', '')}/ {raw.get('name', '')}".strip("/ "))
+                payload[phone_key] = raw.get("phone") or ""
         elif name_key in payload and str(payload[name_key] or "").strip() != ov.get(name_key, ""):
             # تغيير النص يلغي الرابط القديم حتى لا ينسب اسمًا جديدًا لشخص آخر.
             ov.pop(id_key, None)
+            typed = str(payload[name_key] or "").split("/")[-1].strip()
+            matches = [person for person in people.on_force(day, "personnel")
+                       if norm_name(person.name) == norm_name(typed)] if typed else []
+            if len(matches) == 1:
+                payload[id_key] = matches[0].id
+                payload[phone_key] = matches[0].phone or ""
     for key in _EDITABLE_FIELDS:
         if key in payload:
             ov[key] = str(payload[key] or "").strip()[:200]
@@ -136,4 +177,10 @@ def occasional_rows(data, day):
 
 
 def build_afraad(data, day):
-    return {"date": day, "basic": basic_rows(data, day), "occasional": occasional_rows(data, day)}
+    personnel = []
+    for person in PeopleRepo(data).on_force(day, "personnel"):
+        role = person.effective(day).get("role") or person.role
+        personnel.append({"id": person.id, "name": person.name, "role": role,
+                          "phone": person.phone})
+    return {"date": day, "basic": basic_rows(data, day),
+            "occasional": occasional_rows(data, day), "personnel": personnel}

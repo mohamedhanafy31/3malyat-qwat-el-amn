@@ -22,7 +22,10 @@ from importer.normalize import (
     parse_leave,
     run_normalize,
 )
-from importer.resolve import Observation, cluster_officers, cluster_personnel, collect_observations, run_resolve
+from importer.resolve import (
+    Observation, _expected_ids, cluster_officers, cluster_personnel, collect_observations,
+    run_resolve,
+)
 
 
 @pytest.mark.parametrize(("raw", "expected", "qualifier"), [
@@ -288,6 +291,14 @@ def test_shared_phone_does_not_merge_incompatible_full_names():
     clusters, mapping = cluster_personnel(values)
     assert len(clusters) == 2
     assert mapping["a"] != mapping["b"]
+
+
+def test_reference_ids_read_split_storage_afraad_mapping():
+    day = {"assignments": [], "afraad_basic": {
+        "AFB-01": {"morning_person_id": "IND-001", "night_person_id": "IND-002"},
+        "AFB-02": {"morning_name": "نص بلا رابط"},
+    }}
+    assert _expected_ids(day, "personnel") == {"IND-001", "IND-002"}
 
 
 def test_stage_outputs_bom_csv_decisions_override_and_proposed_map(tmp_path):
