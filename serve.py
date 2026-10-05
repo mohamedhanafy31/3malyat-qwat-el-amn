@@ -10,6 +10,8 @@ waitress بتتجهّز مع باقي الحزم في SETUP_OFFLINE.bat — مف
 التشغيل اليدوي: python serve.py   (أو: PORT=5050 python serve.py)
 """
 import errno
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 import sys
 import time
@@ -33,7 +35,28 @@ except ImportError:
 from app import app
 from backend.store import acquire_process_lock
 
+HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "5000"))
+THREADS = max(2, int(os.environ.get("WAITRESS_THREADS", "8")))
+
+
+def _configure_logging():
+    """إخراج موحد للكونسول وملف دوّار بدل فقدان أخطاء التشغيل."""
+    log_dir = PROJECT_ROOT / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    handler = RotatingFileHandler(log_dir / "server.log", maxBytes=5 * 1024 * 1024,
+                                  backupCount=5, encoding="utf-8")
+    handler.setFormatter(logging.Formatter(
+        "%(asctime)s %(levelname)s %(name)s %(message)s"))
+    console = logging.StreamHandler(sys.stdout)
+    console.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.handlers.clear()
+    root.addHandler(handler)
+    root.addHandler(console)
+    logging.getLogger("waitress").setLevel(logging.INFO)
+    return logging.getLogger("personnel-system")
 
 # «المنفذ مستخدم بالفعل» رقمه بيختلف حسب النظام:
 #   لينكس   : errno.EADDRINUSE = 98
@@ -76,15 +99,18 @@ def _port_conflict_message():
 
 
 if __name__ == "__main__":
+    logger = _configure_logging()
     acquire_process_lock()
-    print(f"Personnel System (waitress) starting on http://127.0.0.1:{PORT} ...")
+    logger.info("Starting production server on http://%s:%s (threads=%s)",
+                HOST, PORT, THREADS)
     while True:
         try:
-            serve(app, host="127.0.0.1", port=PORT)
+            serve(app, host=HOST, port=PORT, threads=THREADS,
+                  channel_timeout=120, asyncore_use_poll=True)
             break  # serve() ما بترجعش إلا لو السيرفر اتقفل عمدًا
         except Exception as exc:
             # تعارض المنفذ حالة نهائية — خروج نضيف برسالة، من غير إعادة محاولة
             if _is_port_in_use(exc):
                 raise SystemExit(_port_conflict_message())
-            print(f"السيرفر وقع ({exc}) — بيعيد التشغيل خلال 3 ثواني...")
+            logger.exception("Server stopped unexpectedly; retrying in 3 seconds")
             time.sleep(3)
