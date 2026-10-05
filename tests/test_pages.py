@@ -13,6 +13,13 @@ def test_each_page_renders_with_its_own_marker(client, page):
     assert f'data-page="{page}"' in r.get_data(as_text=True)
 
 
+def test_every_page_contains_the_global_process_loader(client):
+    html = client.get("/officers").get_data(as_text=True)
+    assert 'id="processLoader"' in html
+    assert 'id="processLoaderText"' in html
+    assert "جاري التحميل" in html
+
+
 @pytest.mark.parametrize("page", PAGES)
 def test_bootstrap_returns_meta_for_every_page(client, page):
     d = client.get(f"/api/bootstrap/{page}").get_json()

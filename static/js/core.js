@@ -193,6 +193,51 @@ function showToast(msg,bad){
   resume();
 }
 const _inflightGets=new Map();
+
+/* ---------- مؤشر العمليات العام ----------
+   القراءة السريعة تعرض شارة هادئة بعد مهلة قصيرة لتفادي الوميض. عمليات
+   الكتابة تحجب النقر حتى تنتهي، لأن إعادة الضغط أثناء الحفظ قد تكرر الطلب. */
+const _processRequests=new Map();
+let _processSeq=0,_processShowTimer=null,_processShownAt=0,_processHideTimer=null;
+function _processLabel(method){
+  return ({POST:"جاري الإضافة…",PUT:"جاري حفظ التعديلات…",
+    PATCH:"جاري حفظ التعديلات…",DELETE:"جاري الحذف…"})[method]||"جاري التحميل…";
+}
+function _paintProcessLoader(){
+  const box=$("#processLoader"); if(!box) return;
+  const items=[..._processRequests.values()];
+  if(!items.length){
+    if(_processShowTimer){clearTimeout(_processShowTimer);_processShowTimer=null}
+    const hide=()=>{box.classList.add("hidden");box.setAttribute("aria-hidden","true");
+      box.classList.remove("is-blocking");document.body.classList.remove("process-busy");
+      document.body.removeAttribute("aria-busy")};
+    const left=Math.max(0,280-(performance.now()-_processShownAt));
+    clearTimeout(_processHideTimer);_processHideTimer=setTimeout(hide,left);
+    return;
+  }
+  clearTimeout(_processHideTimer);
+  const mutation=items.find(x=>x.mutation);
+  const show=()=>{
+    if(!_processRequests.size)return;
+    const current=[..._processRequests.values()];
+    const blocking=current.find(x=>x.mutation);
+    $("#processLoaderText").textContent=blocking?.label||current[current.length-1]?.label||"جاري التحميل…";
+    box.classList.toggle("is-blocking",!!blocking);
+    document.body.classList.toggle("process-busy",!!blocking);
+    document.body.setAttribute("aria-busy","true");
+    box.classList.remove("hidden");box.setAttribute("aria-hidden","false");
+    _processShownAt=performance.now();_processShowTimer=null;
+  };
+  if(!box.classList.contains("hidden"))show();
+  else if(!_processShowTimer)_processShowTimer=setTimeout(show,mutation?80:180);
+}
+function _beginProcess(method,label){
+  const token=++_processSeq,mutation=method!=="GET";
+  _processRequests.set(token,{mutation,label:label||_processLabel(method)});
+  _paintProcessLoader();return token;
+}
+function _endProcess(token){_processRequests.delete(token);_paintProcessLoader()}
+
 async function api(url,opts){
   opts=opts||{};
   const editedBy=($("#editedBy")?.value||"").trim();
@@ -202,6 +247,8 @@ async function api(url,opts){
   }
   let r, timer, controller;
   const mutation=!!(opts.method&&opts.method!=="GET");
+  const method=String(opts.method||"GET").toUpperCase();
+  const processToken=opts.noLoader?null:_beginProcess(method,opts.loadingLabel);
   try{
     if(!mutation && _inflightGets.has(url)) _inflightGets.get(url).abort();
     controller=new AbortController();
@@ -216,7 +263,11 @@ async function api(url,opts){
     else showToast("تعذر الاتصال بالخادم",true);
     return null
   }
-  finally{ if(timer) clearTimeout(timer); if(!mutation&&_inflightGets.get(url)===controller)_inflightGets.delete(url) }
+  finally{
+    if(timer) clearTimeout(timer);
+    if(!mutation&&_inflightGets.get(url)===controller)_inflightGets.delete(url);
+    if(processToken!==null)_endProcess(processToken);
+  }
   let out={}; try{out=await r.json()}catch(e){}
   if(!r.ok){
     // التعديل بيمس يوم/أيام مقفولة (راحة أو فرقة بتاريخ فات مثلًا) —

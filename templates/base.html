@@ -175,6 +175,12 @@
 
 {% block modals %}{% endblock %}
 
+<div class="process-loader hidden" id="processLoader" aria-hidden="true">
+  <div class="process-loader-card" role="status" aria-live="polite">
+    <span class="process-loader-mark" aria-hidden="true"></span>
+    <span class="process-loader-text" id="processLoaderText">جاري التحميل…</span>
+  </div>
+</div>
 <div class="toast" id="toast" aria-label="التنبيهات"></div>
 <script src="{{ url_for('static', filename='js/core.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
