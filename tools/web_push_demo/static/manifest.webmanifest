@@ -1,0 +1,10 @@
+{
+  "name": "اختبار إشعارات اليومية",
+  "short_name": "إشعار اليومية",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#edf2f7",
+  "theme_color": "#0b2447",
+  "lang": "ar",
+  "dir": "rtl"
+}

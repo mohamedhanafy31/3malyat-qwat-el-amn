@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b2447">
+  <link rel="manifest" href="/static/manifest.webmanifest">
+  <title>اختبار إشعارات اليومية</title>
+  <style>
+    :root{font-family:system-ui,"Segoe UI",Tahoma,sans-serif;color:#10213b;background:#edf2f7}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;box-sizing:border-box}
+    main{width:min(560px,100%);background:#fff;border:1px solid #cbd7e6;border-radius:18px;padding:28px;box-shadow:0 18px 50px #17375e22}
+    h1{font-size:1.55rem;margin:0 0 8px;color:#0b2447}p{line-height:1.8;margin:8px 0;color:#51617a}
+    .badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:#e7eef7;font-weight:700;font-size:.86rem}
+    button{width:100%;border:0;border-radius:10px;padding:13px 18px;margin-top:18px;background:#0b4c8c;color:#fff;font:inherit;font-weight:800;cursor:pointer}
+    button:disabled{opacity:.55;cursor:wait}.status{margin-top:16px;padding:12px;border-radius:10px;background:#f1f5f9;color:#334155;min-height:24px}.ok{background:#e8f8ef;color:#17643a}.bad{background:#fff0f0;color:#9b1c1c}
+    .ios{display:none;margin-top:16px;padding:12px;border:1px solid #e8c978;background:#fff9e8;border-radius:10px;color:#6a5010}
+    small{display:block;margin-top:18px;color:#718096;line-height:1.7}
+  </style>
+</head>
+<body>
+  <main>
+    <span class="badge">نموذج معزول — بدون بيانات تشغيل</span>
+    <h1>اختبار إشعارات اليومية</h1>
+    <p>اضغط الزر واسمح بالإشعارات. بعد نجاح الاشتراك سنرسل رسالة اختبار من الكمبيوتر.</p>
+    <div class="ios" id="iosHelp">على iPhone: افتح الصفحة في Safari، اختر «مشاركة ← إضافة إلى الشاشة الرئيسية»، ثم افتح التطبيق من الشاشة الرئيسية واضغط الاشتراك.</div>
+    <button type="button" id="subscribe">تفعيل إشعارات الاختبار</button>
+    <div class="status" id="status" role="status" aria-live="polite">في انتظار الاشتراك…</div>
+    <small>هذا الاختبار يحفظ مفتاح اشتراك المتصفح فقط داخل مجلد مؤقت على الكمبيوتر. يمكنك إلغاء الإذن من إعدادات المتصفح في أي وقت.</small>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
