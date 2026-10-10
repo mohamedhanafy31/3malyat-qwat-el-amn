@@ -140,3 +140,14 @@ Run the isolated storage benchmark with:
 The final release gates are cold start <=8s, API/page p95 <=1.5s, save p95
 <=750ms, RSS <=750MiB, and growth <=100MiB over eight hours. Windows forced
 power-loss and target HDD measurements still require the target VM/machine.
+
+---
+
+## الحسابات وأول تشغيل (طبقة الدخول)
+
+- أول مرة: افتح `http://127.0.0.1:5000` **من نفس الجهاز** وأنشئ أول مدير من صفحة
+  الإعداد، أو شغّل `python tools/create_admin.py --username admin` (بيسأل عن كلمة المرور).
+- الحسابات في `data/users.json` ومفتاح الجلسة في `data/secret_key`. الملفان
+  **مش** في النسخ الاحتياطية ولا في git — انسخهم يدويًا مع أي نقل للنظام، وإلا
+  هيطلب إنشاء أول مدير من جديد وتتسجّل خروج كل الجلسات.
+- لو `HOST=0.0.0.0`: الاتصال HTTP من غير تشفير؛ استخدم شبكة داخلية خلف جدار ناري.
