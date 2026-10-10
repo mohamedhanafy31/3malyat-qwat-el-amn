@@ -24,20 +24,15 @@ def test_setup_is_loopback_only_and_bootstraps_session(anon_client):
     assert anon_client.post("/api/auth/setup", json={}).status_code == 403
 
 
-def test_login_logout_and_throttle(anon_client):
+def test_login_logout_and_no_attempt_limit(anon_client):
+    """مفيش حد لعدد المحاولات الفاشلة — الدخول الصح لازم ينجح بعد أي عدد منها."""
     users.create("login_user", "مستخدم الدخول", "officer", "password-123", "اختبار")
-    for _ in range(5):
+    for _ in range(12):
         response = anon_client.post("/api/auth/login", json={
             "role": "admin", "username": "LOGIN_USER", "password": "wrong"})
         assert response.status_code == 401
     assert anon_client.post("/api/auth/login", json={
-        "role": "officer", "username": "login_user", "password": "password-123"}).status_code == 429
-
-    # عنوان IP مختلف له عدّاد مستقل.
-    response = anon_client.post("/api/auth/login", json={
-        "role": "officer", "username": "LOGIN_USER", "password": "password-123"},
-                                environ_base={"REMOTE_ADDR": "127.0.0.2"})
-    assert response.status_code == 200
+        "role": "officer", "username": "login_user", "password": "password-123"}).status_code == 200
     assert anon_client.post("/api/auth/logout").get_json() == {"ok": True}
     assert anon_client.get("/api/auth/me").status_code == 401
 

@@ -15,7 +15,6 @@ from backend import day_status            # noqa: E402
 from backend import store                 # noqa: E402
 from backend.auth import users            # noqa: E402
 from backend.auth.security import secret_key  # noqa: E402
-from backend.routes.auth import reset_throttle  # noqa: E402
 from flask.testing import FlaskClient      # noqa: E402
 
 # أيام الاختبارات كلها في 2026، والأيام اللي فاتت بتتقفل تلقائيًا
@@ -159,11 +158,6 @@ def _client_for(role=None):
             sess["session_version"] = int(user.get("session_version", 0))
             sess.permanent = True
     return client
-
-
-@pytest.fixture(autouse=True)
-def _reset_login_throttle():
-    reset_throttle()
 
 
 @pytest.fixture

@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // On 401, 400 role_required, 429, or other error
+        // On 401, 400 role_required, or other error
         const serverError = data.error || "بيانات الدخول غير صحيحة";
         showError(errBox, serverError);
         if (data.code === "role_required" || res.status === 400) {

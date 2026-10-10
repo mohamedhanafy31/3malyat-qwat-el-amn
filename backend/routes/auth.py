@@ -1,7 +1,4 @@
 """صفحات ونداءات الدخول والإعداد الأول."""
-import threading
-import time
-
 from flask import Blueprint, jsonify, redirect, render_template, request, session
 
 from ..auth import capabilities, current_user
@@ -10,31 +7,11 @@ from ..auth.audit_log import emit
 from ..auth.roles import ROLE_LABELS
 
 bp = Blueprint("auth", __name__)
-_FAILURES = {}
-_THROTTLE_LOCK = threading.Lock()
-
-
-def reset_throttle():
-    with _THROTTLE_LOCK:
-        _FAILURES.clear()
-
 
 def _safe_next(value):
     value = str(value or "")
     return value if (value.startswith("/") and not value.startswith("//")
                      and "\\" not in value and not any(ord(ch) < 32 for ch in value)) else "/"
-
-
-def _failure_key(username):
-    return (str(username or "").strip().casefold(), request.remote_addr or "")
-
-
-def _throttled(key):
-    now = time.monotonic()
-    with _THROTTLE_LOCK:
-        recent = [stamp for stamp in _FAILURES.get(key, []) if now - stamp < 300]
-        _FAILURES[key] = recent
-        return len(recent) >= 5
 
 
 @bp.get("/login")
@@ -61,11 +38,6 @@ def login():
     role = body.get("role")
     if not isinstance(role, str) or role not in ROLE_LABELS:
         return jsonify(error="اختر نوع المستخدم.", code="role_required"), 400
-    key = _failure_key(username)
-    if _throttled(key):
-        emit("login_failed", status=429, username=username, role=role,
-             detail="محاولات كثيرة")
-        return jsonify(error="محاولات كثيرة. حاول بعد خمس دقائق.", code="too_many_attempts"), 429
     user = users.by_username(username)
     if not user:
         detail = "حساب غير موجود"
@@ -78,12 +50,8 @@ def login():
     else:
         detail = None
     if detail:
-        with _THROTTLE_LOCK:
-            _FAILURES.setdefault(key, []).append(time.monotonic())
         emit("login_failed", status=401, username=username, role=role, detail=detail)
         return jsonify(error="بيانات الدخول غير صحيحة.", code="invalid_credentials"), 401
-    with _THROTTLE_LOCK:
-        _FAILURES.pop(key, None)
     session.clear()
     session["user_id"] = user["id"]
     session["session_version"] = int(user.get("session_version", 0))
