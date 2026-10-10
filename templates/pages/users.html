@@ -1,2 +1,41 @@
-{# stub — replaced by frontend #}
-{% extends "base.html" %}{% block content %}إدارة الحسابات{% endblock %}
+{% extends "base.html" %}
+
+{% block page_actions %}
+<button type="button" class="primary" id="btnAddUser">
+  {{ icon('plus') }} إضافة حساب
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <input type="search" id="userSearch" class="search" placeholder="بحث باسم المستخدم أو الاسم الظاهر..." aria-label="بحث في الحسابات">
+    <select id="userRoleFilter" class="select" aria-label="تصفية حسب نوع الحساب">
+      <option value="" selected>كل أنواع الحسابات</option>
+      <option value="admin">ادمن (مدير)</option>
+      <option value="officer">ضابط</option>
+      <option value="individual">فرد</option>
+      <option value="conscript">مجند</option>
+    </select>
+    <select id="userStatusFilter" class="select" aria-label="تصفية حسب الحالة">
+      <option value="" selected>كل الحالات</option>
+      <option value="active">نشط فقط</option>
+      <option value="disabled">موقوف فقط</option>
+    </select>
+  </div>
+
+  <p class="hint panel-notice users-note">
+    إدارة صلاحيات الوصول للنظام: إنشاء حسابات الضباط والأفراد والمجندين والمديرين، وتعيين كلمات المرور وإيقاف الحسابات.
+  </p>
+
+  <div id="usersWrap" data-mobile-cards>{{ skeleton("rows", 6) }}</div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% include "partials/user_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+{% endblock %}

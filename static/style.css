@@ -162,12 +162,36 @@ button,input,select,textarea{font-family:inherit}
 .topbar .burger{display:none;background:none;border:1px solid var(--border-on-dark);color:var(--on-dark);
   border-radius:var(--radius-sm);width:36px;height:36px;cursor:pointer;font-size:var(--t-lg);flex:none}
 .topbar .burger:hover{background:var(--navy-800)}
-.editor-tag{flex:none}
-.editor-input{border:1px solid var(--border-on-dark);background:var(--navy-900);color:var(--on-dark);
-  border-radius:var(--radius-sm);padding:0 var(--s3);font:inherit;font-size:var(--t-cap);
-  width:158px;height:var(--control-h-sm)}
-.editor-input::placeholder{color:var(--on-dark-placeholder)}
-@media(max-width:980px){.editor-tag{display:none}}
+/* شريحة المستخدم وقائمة الحساب في الترويسة */
+.user-chip-wrap{position:relative;flex:none}
+.user-chip-btn{display:inline-flex;align-items:center;gap:var(--s2);height:var(--control-h-sm);
+  padding:0 var(--s2);background:var(--navy-900);color:var(--on-dark);
+  border:1px solid var(--border-on-dark);border-radius:var(--radius-sm);cursor:pointer;
+  font:inherit;font-size:var(--t-cap);transition:background .15s ease}
+.user-chip-btn:hover,.user-chip-btn[aria-expanded="true"]{background:var(--navy-800)}
+.user-avatar{width:22px;height:22px;border-radius:50%;background:var(--gold-700);color:var(--on-dark);
+  display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-xs);font-weight:700;flex:none}
+.user-chip-meta{display:inline-flex;align-items:baseline;gap:var(--s1)}
+.user-chip-name{font-weight:700;white-space:nowrap}
+.user-role-label{font-size:var(--t-xs);color:var(--on-dark-muted);white-space:nowrap}
+.user-chip-caret{width:16px;height:16px;fill:var(--on-dark-soft);flex:none}
+.user-popover{position:absolute;top:calc(100% + var(--s1));inset-inline-end:0;
+  min-width:210px;background:var(--surface);color:var(--ink-900);border:1px solid var(--line);
+  border-radius:var(--radius-card);box-shadow:var(--shadow-pop);z-index:35;padding:var(--s2) 0}
+.user-popover-header{padding:var(--s2) var(--s4) var(--s3);border-bottom:1px solid var(--line)}
+.user-popover-name{font-weight:700;font-size:var(--t-base);color:var(--navy-900)}
+.user-popover-sub{font-size:var(--t-xs);color:var(--ink-500);display:flex;align-items:center;gap:var(--s2);margin-top:var(--s1)}
+.user-popover-username{direction:ltr;unicode-bidi:embed}
+.user-popover-divider{height:1px;background:var(--line);margin:var(--s1) 0}
+.user-popover-item{display:flex;align-items:center;gap:var(--s2);width:100%;padding:var(--s2) var(--s4);
+  font:inherit;font-size:var(--t-cap);color:var(--ink-700);text-decoration:none;
+  background:none;border:none;cursor:pointer;text-align:start;box-sizing:border-box}
+.user-popover-item:hover,.user-popover-item:focus{background:var(--navy-50);color:var(--navy-900);outline:none}
+.user-popover-item .ico{width:16px;height:16px;flex:none}
+.user-popover-logout{color:var(--bad-700)}
+.user-popover-logout:hover,.user-popover-logout:focus{background:var(--bad-100);color:var(--bad-800)}
+@media(max-width:700px){.user-role-label{display:none}}
+@media(max-width:480px){.user-chip-name{max-width:110px;overflow:hidden;text-overflow:ellipsis}}
 
 /* ═══════════════════ ④ الهيكل: قائمة جانبية + محتوى ═══════════════════ */
 .shell{display:flex;min-height:calc(100vh - var(--topbar-h));overflow-x:clip}
@@ -1808,3 +1832,78 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
    كان بيظهر بعد الكروت ويزقها لتحت */
 #inspectionScheduleBar:empty{min-height:52px}
 @media(max-width:700px){#inspectionScheduleBar:empty{min-height:73px}}
+
+/* ═══════════════════ ㉒ منظومة المصادقة والرقابة وإدارة الحسابات ═══════════════════ */
+
+/* بطاقات المصادقة المنفصلة (تسجيل الدخول / الإعداد / تغيير كلمة المرور) */
+.auth-body{min-height:100vh;background:var(--paper);display:flex;align-items:center;
+  justify-content:center;margin:0;padding:var(--s4);box-sizing:border-box}
+.auth-wrap{width:100%;max-width:440px;margin:0 auto}
+.auth-card{background:var(--surface);border:1px solid var(--line);
+  border-top:4px solid var(--gold-700);border-radius:var(--radius-card);
+  padding:var(--s6) var(--s6) var(--s5);box-shadow:var(--shadow-pop);box-sizing:border-box}
+.auth-header{text-align:center;margin-bottom:var(--s5)}
+.auth-crest{width:56px;height:56px;margin:0 auto var(--s3);border:2px solid var(--gold-600);
+  border-radius:50%;background:var(--navy-900);display:flex;align-items:center;justify-content:center}
+.auth-crest svg{width:32px;height:32px;fill:var(--gold-100)}
+.auth-title{font-family:var(--font-head);font-size:var(--t-xl);color:var(--navy-900);margin:0 0 var(--s1);line-height:1.3}
+.auth-sub{font-size:var(--t-sm);color:var(--ink-500);margin:0}
+.auth-form{display:flex;flex-direction:column;gap:var(--s4)}
+.auth-field{display:flex;flex-direction:column;gap:var(--s1)}
+.auth-field label{font-size:var(--t-sm);font-weight:700;color:var(--ink-700)}
+.auth-input{width:100%;height:var(--control-h);border:1px solid var(--border-control);
+  border-radius:var(--radius-control);padding:0 var(--s3);font:inherit;font-size:var(--t-base);
+  background:var(--surface);color:var(--ink-900);box-sizing:border-box;transition:border-color .15s ease}
+.auth-input:focus{border-color:var(--navy-600);outline:2px solid var(--navy-200)}
+.auth-input[disabled]{background:var(--navy-50);color:var(--ink-500);cursor:not-allowed}
+.password-wrap{position:relative;display:flex;align-items:center}
+.password-wrap .auth-input{padding-inline-end:44px}
+.btn-toggle-pwd{position:absolute;inset-inline-end:4px;width:34px;height:34px;background:none;
+  border:none;cursor:pointer;color:var(--ink-400);display:flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-control);padding:0;transition:color .15s ease,background .15s ease}
+.btn-toggle-pwd:hover{color:var(--ink-700);background:var(--navy-50)}
+.btn-toggle-pwd svg{width:20px;height:20px;fill:currentColor}
+.auth-submit-btn{width:100%;height:var(--control-h);font-size:var(--t-md);font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:var(--s2)}
+.auth-extra-actions{text-align:center;margin-top:var(--s2)}
+.auth-logout-btn{color:var(--bad-700)}
+
+/* لافتة الخطأ والرسائل العامة */
+.alert-banner{padding:var(--s3) var(--s4);border-radius:var(--radius-control);font-size:var(--t-sm);
+  margin-bottom:var(--s4);line-height:1.4}
+.alert-banner-danger{background:var(--bad-100);border:1px solid var(--bad-300);color:var(--bad-900)}
+.field-hint{margin:0;font-size:var(--t-xs);color:var(--ink-400)}
+
+/* مؤشر الانتظار الدوار */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid currentColor;
+  border-top-color:transparent;border-radius:50%;animation:auth-spin .6s linear infinite;flex:none}
+@keyframes auth-spin{to{transform:rotate(360deg)}}
+
+/* شارات الرتب والصلاحيات */
+.role-badge{display:inline-flex;align-items:center;font-size:var(--t-xs);font-weight:700;
+  padding:2px var(--s2);border-radius:var(--radius-pill);border:1px solid transparent;white-space:nowrap}
+.role-badge-sm{font-size:11px;padding:1px 6px}
+.role-badge.role-admin{background:var(--plum-100);color:var(--plum-700);border-color:var(--plum-300)}
+.role-badge.role-officer{background:var(--info-100);color:var(--info-700);border-color:var(--info-300)}
+.role-badge.role-individual{background:var(--cat-2-bg);color:var(--cat-2);border-color:var(--cat-2)}
+.role-badge.role-conscript{background:var(--navy-50);color:var(--navy-800);border-color:var(--navy-200)}
+
+/* صفحة 403 غير مصرح */
+.forbidden-panel{display:flex;align-items:center;justify-content:center;min-height:380px;text-align:center}
+.forbidden-card{max-width:440px;padding:var(--s6) var(--s4);display:flex;flex-direction:column;align-items:center}
+.forbidden-icon{width:64px;height:64px;margin-bottom:var(--s4);color:var(--bad-600)}
+.forbidden-icon svg{width:64px;height:64px;fill:currentColor}
+.forbidden-card h2{margin:0 0 var(--s2);color:var(--navy-900);font-size:var(--t-xl)}
+.forbidden-actions{margin-top:var(--s5)}
+
+/* تفاصيل سجل النشاط */
+.audit-toolbar{flex-wrap:wrap}
+.audit-user-cell{display:flex;flex-direction:column;gap:2px}
+.audit-user-name{font-weight:700;color:var(--navy-900)}
+.audit-user-meta{display:flex;align-items:center;gap:var(--s2);font-size:var(--t-xs)}
+.audit-details-cell{display:flex;flex-direction:column;gap:3px}
+.audit-method-path{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:var(--t-xs)}
+.audit-method-path code{background:var(--navy-50);padding:1px 5px;border-radius:3px;border:1px solid var(--line)}
+.audit-ip{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:var(--t-sm);color:var(--ink-700)}
+.audit-load-more{display:flex;justify-content:center;padding:var(--s4) 0}
+.user-reset-info{margin-bottom:var(--s4);padding:var(--s3);background:var(--navy-50);border-radius:var(--radius-control);font-size:var(--t-sm)}

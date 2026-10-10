@@ -57,13 +57,18 @@
     : task("muted", `لا يعود أحد من الراحة خلال ${countLabel(3, "يوم")}`, "", "");
   $("#dashTasks").innerHTML = confirmTask + vacTask + backTask;
 
-  const recent = d.recent_changes || [];
-  $("#dashChanges").innerHTML = recent.length ? `<h4>آخر التغييرات <a href="/changes">عرض الكل</a></h4>
-    <ul class="change-list">${recent.map(e => `<li>
-      <time>${esc(fmtShort((e.ts || "").slice(0, 10)))} ${esc(hhmm(e.ts))}</time>
-      <span>${esc(humanizeDates(e.text || `${e.entity} ${e.action}`))}</span>
-      ${e.edited_by ? `<em>${esc(e.edited_by)}</em>` : ""}</li>`).join("")}</ul>`
-    : `<p class="recent-empty">لا توجد تغييرات حديثة.</p>`;
+  if (d.recent_changes !== undefined) {
+    const recent = d.recent_changes || [];
+    $("#dashChanges").innerHTML = recent.length ? `<h4>آخر التغييرات <a href="/changes">عرض الكل</a></h4>
+      <ul class="change-list">${recent.map(e => `<li>
+        <time>${esc(fmtShort((e.ts || "").slice(0, 10)))} ${esc(hhmm(e.ts))}</time>
+        <span>${esc(humanizeDates(e.text || `${e.entity} ${e.action}`))}</span>
+        ${e.edited_by ? `<em>${esc(e.edited_by)}</em>` : ""}</li>`).join("")}</ul>`
+      : `<p class="recent-empty">لا توجد تغييرات حديثة.</p>`;
+  } else {
+    $("#dashChanges").innerHTML = "";
+    $("#dashChanges").classList.add("hidden");
+  }
 
   const col = (title, rows, render) => `<section class="dash-col">
     <h4>${title} <em>${rows.length || ""}</em></h4>
