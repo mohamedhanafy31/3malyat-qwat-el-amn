@@ -713,8 +713,7 @@ $("#btnConfirmDay").onclick = async () => {
     body: `هل تريد تأكيد يومية ${fmt(DAY)}؟ سيتم تسجيل التغييرات الحالية في سجل التغييرات.${extra}`,
     confirmLabel: "تأكيد اليومية",
   }))) return;
-  const by = ($("#editedBy")?.value || "").trim();
-  const out = await api(`/api/board/${DAY}/confirm`, jsonReq("POST", {confirmed_by: by}));
+  const out = await api(`/api/board/${DAY}/confirm`, jsonReq("POST", {}));
   if (!out) return;
   showToast(out.first ? "تم تأكيد اليومية لأول مرة"
             : out.changes ? `تم تأكيد اليومية — سُجِّل ${countLabel(out.changes, "تغيير")}`
@@ -731,8 +730,7 @@ async function confirmAllUnconfirmed() {
     body: "سيتم تأكيد " + countLabel(days.length, "يومية") + " مسجلة. هذا الإجراء يثبت اللقطات الحالية في سجل التغييرات، ويمكن أن يشمل أيامًا سابقة.",
     confirmLabel: "تأكيد الكل",
   }))) return;
-  const by = ($("#editedBy")?.value || "").trim();
-  const out = await api("/api/board/confirm-unconfirmed", jsonReq("POST", {days, confirmed_by: by}));
+  const out = await api("/api/board/confirm-unconfirmed", jsonReq("POST", {days}));
   if (!out) return;
   SESSION_EDITS = false;
   showToast("تم تأكيد " + countLabel(out.count || 0, "يومية"));
@@ -869,8 +867,7 @@ async function closeDay() {
     confirmLabel: "إغلاق اليوم",
     danger: true,
   }))) return;
-  const name = ($("#editedBy")?.value || "").trim();
-  if (!(await api(`/api/day-status/${DAY}/close`, jsonReq("POST", {closed_by: name})))) return;
+  if (!(await api(`/api/day-status/${DAY}/close`, jsonReq("POST", {})))) return;
   showToast("أُغلق اليوم"); loadDayStatus();
 }
 async function reopenDay() {
@@ -881,8 +878,7 @@ async function reopenDay() {
     confirmLabel: "فتح اليوم",
   });
   if (!reason) return;
-  const by = ($("#editedBy")?.value || "").trim();
-  if (!(await api(`/api/day-status/${DAY}/reopen`, jsonReq("POST", {reason, reopened_by: by})))) return;
+  if (!(await api(`/api/day-status/${DAY}/reopen`, jsonReq("POST", {reason})))) return;
   showToast("فُتح اليوم — حتى نهاية اليوم"); loadDayStatus();
 }
 

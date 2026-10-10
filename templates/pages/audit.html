@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block page_actions %}
+<a class="btn" href="{{ url_for('pages.changes') }}">سجل التغييرات</a>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar audit-toolbar">
+    <input type="search" id="auditSearch" class="search" placeholder="بحث بالوصف أو المسار أو اسم المستخدم أو IP" aria-label="بحث في سجل النشاط">
+    <select id="auditUser" class="select" aria-label="تصفية حسب المستخدم">
+      <option value="" selected>كل المستخدمين</option>
+    </select>
+    <select id="auditEvent" class="select" aria-label="تصفية حسب نوع الحدث">
+      <option value="" selected>كل الأحداث</option>
+    </select>
+    <label class="change-range-field">من
+      <input type="date" id="auditFrom" class="select" aria-label="من تاريخ">
+    </label>
+    <label class="change-range-field">إلى
+      <input type="date" id="auditTo" class="select" aria-label="إلى تاريخ">
+    </label>
+    <button type="button" class="mini" id="auditClearFilters">إعادة ضبط</button>
+  </div>
+
+  <p class="hint panel-notice audit-note">
+    سجل النشاط العام: يرصد عمليات تسجيل الدخول والخروج ومحاولات الوصول المرفوضة وجميع عمليات التعديل بالوقت والمستخدم وعنوان IP.
+  </p>
+
+  <div id="auditWrap" data-mobile-cards>{{ skeleton("rows", 10) }}</div>
+
+  <div id="auditLoadMoreWrap" class="audit-load-more hidden">
+    <button type="button" class="btn" id="auditLoadMoreBtn">تحميل المزيد</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/audit.js') }}"></script>
+{% endblock %}

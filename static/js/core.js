@@ -240,14 +240,12 @@ function _endProcess(token){_processRequests.delete(token);_paintProcessLoader()
 
 async function api(url,opts){
   opts=opts||{};
-  const editedBy=($("#editedBy")?.value||"").trim();
-  if(editedBy && opts.method && opts.method!=="GET"){
-    // ترويسة HTTP لازم تبقى ISO-8859-1 بس — تشفير عشان الاسم غالبًا عربي
-    opts.headers={...(opts.headers||{}),"X-Edited-By":encodeURIComponent(editedBy)};
+  const method=String(opts.method||"GET").toUpperCase();
+  const mutation=method!=="GET";
+  if(mutation){
+    opts.headers={...(opts.headers||{}),"X-Requested-With":"fetch"};
   }
   let r, timer, controller;
-  const mutation=!!(opts.method&&opts.method!=="GET");
-  const method=String(opts.method||"GET").toUpperCase();
   const processToken=opts.noLoader?null:_beginProcess(method,opts.loadingLabel);
   try{
     if(!mutation && _inflightGets.has(url)) _inflightGets.get(url).abort();
@@ -270,6 +268,19 @@ async function api(url,opts){
   }
   let out={}; try{out=await r.json()}catch(e){}
   if(!r.ok){
+    if(r.status===401){
+      location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
+      return null;
+    }
+    if(r.status===403&&out?.code==="password_change_required"){
+      location.href='/change-password';
+      return null;
+    }
+    if(r.status===403){
+      if(opts.onError&&opts.onError(out,r.status)) return null;
+      showToast("ليس لديك صلاحية لهذا الإجراء",true);
+      return null;
+    }
     // التعديل بيمس يوم/أيام مقفولة (راحة أو فرقة بتاريخ فات مثلًا) —
     // مسموح بس محتاج سبب مكتوب (backend/retro.py). بنسأل هنا مرة واحدة
     // في مكان واحد عشان كل نداء `api()` في السيستم يستفيد من غير ما كل
@@ -301,7 +312,7 @@ async function api(url,opts){
     document.dispatchEvent(new CustomEvent("api:mutated",{detail:{url,method:opts.method}}));
   return out;
 }
-const jsonReq=(method,body)=>({method,headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+const jsonReq=(method,body)=>({method,headers:{"Content-Type":"application/json","X-Requested-With":"fetch"},body:JSON.stringify(body)});
 
 document.addEventListener("submit",e=>{
   const form=e.target, button=e.submitter||form.querySelector("button[type=submit]");
@@ -1772,6 +1783,8 @@ document.addEventListener("keydown",e=>{
   }
   if(e.key!=="Escape") return;
   // Esc وقت القايمة مفتوحة بيقفل القايمة بس — مش النافذة اللي هي جواها
+  const _um=$("#userMenu");
+  if(_um&&!_um.classList.contains("hidden")){ _userMenuClose(true); return }
   if(_rowMenuTrigger){ _rowMenuClose(true); return }
   if(_cbSel){ _cbClose(); return }
   if(_dpInput){ const input=_dpInput; _dpClose(); input.focus(); return }
@@ -1779,13 +1792,48 @@ document.addEventListener("keydown",e=>{
   setSidebar(false);
 });
 
-/* اسم من قام بالتعديل — بيتحفظ محليًا وبيتبعت مع أي طلب تعديل كـheader،
-   عشان يتسجل في سجل التدقيق من غير أي نظام حسابات أو تسجيل دخول. */
-const editedByEl=$("#editedBy");
-if(editedByEl){
-  try{ editedByEl.value=localStorage.getItem("editedBy")||"" }catch(_err){ editedByEl.value="" }
-  editedByEl.addEventListener("input",()=>{try{localStorage.setItem("editedBy",editedByEl.value.trim())}catch(_err){}});
+/* ═══════════════ قائمة المستخدم وتسجيل الخروج ═══════════════ */
+function _userMenuClose(restoreFocus=false){
+  const chipBtn=$("#userChipBtn");
+  const menu=$("#userMenu");
+  if(!menu||menu.classList.contains("hidden")) return;
+  menu.classList.add("hidden");
+  chipBtn?.setAttribute("aria-expanded","false");
+  if(restoreFocus) chipBtn?.focus();
 }
+function _userMenuToggle(){
+  const chipBtn=$("#userChipBtn");
+  const menu=$("#userMenu");
+  if(!menu) return;
+  const willOpen=menu.classList.contains("hidden");
+  if(willOpen){
+    menu.classList.remove("hidden");
+    chipBtn?.setAttribute("aria-expanded","true");
+    const first=menu.querySelector("a,button");
+    first?.focus();
+  } else {
+    _userMenuClose();
+  }
+}
+
+document.addEventListener("click",async e=>{
+  const chipBtn=e.target.closest("#userChipBtn");
+  if(chipBtn){
+    e.stopPropagation();
+    _userMenuToggle();
+    return;
+  }
+  const logoutBtn=e.target.closest("#logoutBtn");
+  if(logoutBtn){
+    e.preventDefault();
+    try{ await api("/api/auth/logout",{method:"POST"}); }catch(_){}
+    location.href="/login";
+    return;
+  }
+  if(!e.target.closest("#userChipWrap")){
+    _userMenuClose();
+  }
+});
 
 /* ═══════════════ الموبايل: شيت التصفية، كروت الجداول، وتلميح التمرير ═══════════════ */
 

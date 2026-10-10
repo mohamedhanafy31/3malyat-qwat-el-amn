@@ -28,11 +28,36 @@
     <h1>مكتب العمليات وشؤون الضباط</h1>
     <p class="sub">إدارة قـوات أمن السويس</p>
   </div>
-  <div class="editor-tag">
-    <label for="editedBy" class="sr-only">اسمك — يُسجَّل مع أي تعديل تُجريه، اختياري</label>
-    <input id="editedBy" class="editor-input" placeholder="اسمك (اختياري)"
-           title="يُسجَّل مع أي تعديل تُجريه في سجل التدقيق — اختياري">
+  {% if current_user %}
+  <div class="user-chip-wrap" id="userChipWrap">
+    <button type="button" class="user-chip-btn" id="userChipBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu" title="حساب {{ current_user.display_name }}">
+      <span class="user-avatar" aria-hidden="true">{{ current_user.display_name[:1] }}</span>
+      <span class="user-chip-meta">
+        <span class="user-chip-name">{{ current_user.display_name }}</span>
+        <span class="user-role-label">{{ current_user.role_label }}</span>
+      </span>
+      <svg class="user-chip-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5z"/></svg>
+    </button>
+    <div class="user-popover hidden" id="userMenu" role="menu" aria-label="خيارات الحساب">
+      <div class="user-popover-header">
+        <div class="user-popover-name">{{ current_user.display_name }}</div>
+        <div class="user-popover-sub">
+          <span class="user-popover-username">@{{ current_user.username }}</span>
+          <span class="role-badge role-badge-sm role-{{ current_user.role }}">{{ current_user.role_label }}</span>
+        </div>
+      </div>
+      <div class="user-popover-divider" role="separator"></div>
+      <a class="user-popover-item" href="/change-password" role="menuitem">
+        {{ icon('lock') }}
+        <span>تغيير كلمة المرور</span>
+      </a>
+      <button type="button" class="user-popover-item user-popover-logout" id="logoutBtn" role="menuitem">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+        <span>تسجيل الخروج</span>
+      </button>
+    </div>
   </div>
+  {% endif %}
   <div class="today" id="today"></div>
 </header>
 
@@ -141,12 +166,32 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
         <span>سجل خدمات الضابط</span>
       </a>
+    </div>
+
+    {% if can('view_logs') or can('manage_users') %}
+    <div class="side-group">
+      <div class="side-title">الرقابة</div>
+      {% if can('view_logs') %}
+      <a class="navbtn {{ 'active' if page == 'audit' }}" href="{{ url_for('pages.audit') }}"
+         {{ 'aria-current=page' if page == 'audit' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        <span>سجل النشاط</span>
+      </a>
       <a class="navbtn {{ 'active' if page == 'changes' }}" href="{{ url_for('pages.changes') }}"
          {{ 'aria-current=page' if page == 'changes' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3a9 9 0 1 0 8.94 10h-2.02A7 7 0 1 1 13 5v4l5-4.5L13 0v3Z"/></svg>
         <span>سجل التغييرات</span>
       </a>
+      {% endif %}
+      {% if can('manage_users') %}
+      <a class="navbtn {{ 'active' if page == 'users' }}" href="{{ url_for('pages.users') }}"
+         {{ 'aria-current=page' if page == 'users' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-4-4 4 4 0 0 0 4 4ZM8 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm0 2c-2.7 0-8 1.3-8 4v3h9.5v-2.8c0-1.4.7-2.6 1.8-3.6C10.4 13.3 9 13 8 13Zm8 0c-.4 0-.9 0-1.4.1 1.5 1.1 2.4 2.6 2.4 4.3V20h7v-3c0-2.7-5.3-4-8-4Z"/></svg>
+        <span>إدارة الحسابات</span>
+      </a>
+      {% endif %}
     </div>
+    {% endif %}
 
     <div class="side-group">
       <div class="side-title">الإعدادات</div>

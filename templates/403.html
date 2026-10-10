@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel forbidden-panel">
+  <div class="forbidden-card" role="alert">
+    <div class="forbidden-icon" aria-hidden="true">
+      {{ icon('block') }}
+    </div>
+    <h2>غير مصرّح لك بدخول هذه الصفحة</h2>
+    <p class="muted">ليس لديك الصلاحية الكافية للوصول إلى هذا القسم من النظام أو تنفيذ هذا الإجراء.</p>
+    <div class="forbidden-actions">
+      <a class="primary" href="/">العودة إلى الرئيسية</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
