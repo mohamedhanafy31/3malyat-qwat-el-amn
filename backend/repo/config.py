@@ -149,12 +149,6 @@ class ChangeRepo(Repo):
 
 
 def _edited_by():
-    """اسم المشغّل من ترويسة X-Edited-By. الفرونت بيبعته مشفّر
-    (`encodeURIComponent`) لأن ترويسة HTTP لازم تبقى ISO-8859-1 بس،
-    والاسم هنا غالبًا عربي."""
-    from urllib.parse import unquote
-    try:
-        from flask import request
-        return unquote(request.headers.get("X-Edited-By", "")).strip()
-    except RuntimeError:
-        return ""          # نداء بره سياق طلب HTTP
+    """اسم صاحب الجلسة، أو النظام للمهام اللي شغالة من غير طلب."""
+    from ..auth import current_actor
+    return current_actor()["display_name"]

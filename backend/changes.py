@@ -17,7 +17,6 @@ change_log_archive.jsonl` (سطر JSON لكل تغيير) قبل الحذف — 
 """
 import json
 from datetime import datetime
-from urllib.parse import unquote
 
 from .store import reserve_id
 
@@ -29,13 +28,9 @@ def log(data):
 
 
 def _edited_by():
-    """اسم المشغّل من ترويسة X-Edited-By — نفس منطق store._log_audit()
-    بالظبط، لأن الاتنين بيقروا نفس الترويسة في نفس سياق الطلب."""
-    try:
-        from flask import request
-        return unquote(request.headers.get("X-Edited-By", "")).strip()
-    except RuntimeError:
-        return ""
+    """اسم صاحب الجلسة، أو النظام للمهام اللي شغالة من غير طلب."""
+    from .auth import current_actor
+    return current_actor()["display_name"]
 
 
 def _archive_path():

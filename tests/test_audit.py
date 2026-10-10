@@ -1,18 +1,15 @@
 from urllib.parse import quote
 
 
-def test_arabic_edited_by_header_does_not_break_request(client):
-    """المتصفح لازم يبعت X-Edited-By مشفّر (encodeURIComponent) لأن ترويسة HTTP
-    لازم تبقى ISO-8859-1 بس — عربي خام كان بيكسر fetch() نفسه في الفرونت إند
-    قبل ما الطلب يتبعت أصلًا (اكتشفناها لايف: أي تعديل كان بيفشل بصمت لو حقل
-    "اسمك" فيه نص عربي، يعني كل الوقت عمليًا)."""
+def test_forged_edited_by_header_does_not_break_request(client):
+    """الترويسة القديمة لو وصلت من عميل قديم تتجاهلها الخدمة."""
     r = client.post("/api/assignments/2026-04-10",
                      json={"name": "خدمة تدقيق", "kind": "خارجية"},
                      headers={"X-Edited-By": quote("اختبار المراجعة")})
     assert r.status_code == 201
 
 
-def test_audit_log_records_decoded_name(client, tmp_path):
+def test_audit_log_records_real_user_and_ignores_header(client, tmp_path):
     from backend import store
     log_file = tmp_path / "audit.log"
     import logging
@@ -26,4 +23,5 @@ def test_audit_log_records_decoded_name(client, tmp_path):
     handler.close()
 
     content = log_file.read_text(encoding="utf-8")
-    assert "محمد" in content
+    assert "مدير الاختبارات" in content
+    assert "محمد" not in content

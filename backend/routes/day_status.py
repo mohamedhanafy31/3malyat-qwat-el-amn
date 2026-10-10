@@ -3,6 +3,7 @@ from flask import Blueprint, jsonify
 
 from .. import changes
 from .. import day_status as day_status_lib
+from ..auth import current_actor
 from ..store import AbortRequest, load_data, with_data
 from ..utils import canonical_day, json_payload
 
@@ -22,8 +23,8 @@ def close_day(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    payload = json_payload()
-    closed_by = str(payload.get("closed_by", "")).strip()
+    # هوية القائم بالفعل مصدرها الجلسة، مش جسم الطلب القديم.
+    closed_by = current_actor()["display_name"]
 
     def mutate(data):
         if day_status_lib.is_closed(data, day):
@@ -46,7 +47,7 @@ def reopen_day(day):
     if not reason:
         return jsonify({"error": "سبب فتح اليوم مطلوب."}), 400
 
-    reopened_by = str(payload.get("reopened_by", "")).strip()
+    reopened_by = current_actor()["display_name"]
 
     def mutate(data):
         if not day_status_lib.is_closed(data, day):

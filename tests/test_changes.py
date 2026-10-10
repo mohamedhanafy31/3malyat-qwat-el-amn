@@ -136,11 +136,11 @@ def test_day_filter_only_returns_that_days_entries(client):
     assert entries and all(e["day"] == DAY for e in entries)
 
 
-def test_edited_by_is_captured_from_the_header(client):
+def test_edited_by_is_captured_from_the_session(client):
     client.post(f"/api/assignments/{DAY}", json={"name": "خدمة", "kind": "خارجية"})
     _confirm(client, headers={"X-Edited-By": quote("محمد")})
     entries = _entries(client, entity="day_confirm")
-    assert entries[0]["edited_by"] == "محمد"
+    assert entries[0]["edited_by"] == "مدير الاختبارات"
 
 
 def test_log_is_capped(client, monkeypatch):

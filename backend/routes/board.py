@@ -20,6 +20,7 @@ from .. import target_defaults
 from ..assignments import (
     apply_assignment, blank, for_day, guard_duplicate, new_id, peek_day, vacant_twin,
 )
+from ..auth import current_actor
 from ..board import (
     ASSIGNMENT_SECTIONS, build_board, canonical_section_name, copy_section_rows, section_history, section_source,
     move_assignment, place_assignment_after, set_slot_officers, set_target_officers,
@@ -337,7 +338,8 @@ def confirm_unconfirmed_days():
     roster itself.
     """
     payload = json_payload()
-    by = str(payload.get("confirmed_by", "")).strip()
+    # اسم المؤكّد من الجلسة فقط؛ أي حقل قديم في الجسم بيتتجاهل تمامًا.
+    by = current_actor()["display_name"]
     requested = payload.get("days")
     if requested is not None and not isinstance(requested, list):
         return jsonify({"error": "قائمة الأيام يجب أن تكون قائمة."}), 400
@@ -377,8 +379,8 @@ def confirm_day(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    payload = json_payload()
-    by = str(payload.get("confirmed_by", "")).strip()
+    # اسم المؤكّد من الجلسة فقط؛ العميل مايقدرش ينتحل اسم حد تاني.
+    by = current_actor()["display_name"]
 
     def mutate(data):
         ok, err = day_status.check_open(data, day)

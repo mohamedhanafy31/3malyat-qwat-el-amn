@@ -55,7 +55,7 @@ def test_closing_a_day_records_who_and_when(client):
     r = client.post(f"/api/day-status/{DAY}/close", json={"closed_by": "أحمد"})
     assert r.status_code == 201
     body = r.get_json()
-    assert body["closed"] is True and body["closed_by"] == "أحمد" and body["closed_at"]
+    assert body["closed"] is True and body["closed_by"] == "مدير الاختبارات" and body["closed_at"]
 
     s = client.get(f"/api/day-status/{DAY}").get_json()
     assert s["closed"] is True and s["auto"] is False

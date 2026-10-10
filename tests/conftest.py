@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from werkzeug.security import generate_password_hash
 
 ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
@@ -12,6 +13,10 @@ if str(ROOT) not in sys.path:
 from app import app as flask_app          # noqa: E402
 from backend import day_status            # noqa: E402
 from backend import store                 # noqa: E402
+from backend.auth import users            # noqa: E402
+from backend.auth.security import secret_key  # noqa: E402
+from backend.routes.auth import reset_throttle  # noqa: E402
+from flask.testing import FlaskClient      # noqa: E402
 
 # أيام الاختبارات كلها في 2026، والأيام اللي فاتت بتتقفل تلقائيًا
 # (backend/day_status.py). من غير تثبيت «النهاردة» كل اختبار بيكتب في يوم
@@ -20,6 +25,7 @@ from backend import store                 # noqa: E402
 # بتحرّك اليوم ده صراحة في tests/test_day_close.py.
 # القيمة أقدم من أي تاريخ بتلمسه الاختبارات، فكل الأيام «جاية» ومفتوحة.
 FROZEN_TODAY = "2019-01-01"
+_TEST_PASSWORD_HASH = generate_password_hash("test-password", method="pbkdf2:sha256")
 
 
 FIXTURE_DATA = {
@@ -121,7 +127,64 @@ def frozen_today(monkeypatch):
     return set_today
 
 
+class _ProtectedClient(FlaskClient):
+    """كل طلب كتابة من الاختبارات القديمة يعدّي ترويسة CSRF الجديدة."""
+    def open(self, *args, **kwargs):
+        headers = dict(kwargs.pop("headers", {}) or {})
+        headers.setdefault("X-Requested-With", "fetch")
+        kwargs["headers"] = headers
+        return super().open(*args, **kwargs)
+
+
+def _client_for(role=None):
+    flask_app.config.update(TESTING=True)
+    flask_app.secret_key = secret_key()
+    flask_app.test_client_class = _ProtectedClient
+    client = flask_app.test_client()
+    if role:
+        username = f"test_{role}"
+        user = users.by_username(username)
+        if not user:
+            user = {"id": f"fixture-{role}", "username": username,
+                    "display_name": "مدير الاختبارات" if role == "admin" else f"مستخدم {role}",
+                    "role": role, "password_hash": _TEST_PASSWORD_HASH, "active": True,
+                    "must_change_password": False, "created_at": "2026-01-01T00:00:00",
+                    "created_by": "اختبارات", "last_login": None}
+            with users.LOCK:
+                rows = users._read_unlocked()
+                rows.append(user)
+                users._write_unlocked(rows)
+        with client.session_transaction() as sess:
+            sess["user_id"] = user["id"]
+            sess.permanent = True
+    return client
+
+
+@pytest.fixture(autouse=True)
+def _reset_login_throttle():
+    reset_throttle()
+
+
 @pytest.fixture
 def client(data_file):
-    flask_app.config.update(TESTING=True)
-    return flask_app.test_client()
+    return _client_for("admin")
+
+
+@pytest.fixture
+def anon_client(data_file):
+    return _client_for()
+
+
+@pytest.fixture
+def officer_client(data_file):
+    return _client_for("officer")
+
+
+@pytest.fixture
+def individual_client(data_file):
+    return _client_for("individual")
+
+
+@pytest.fixture
+def conscript_client(data_file):
+    return _client_for("conscript")

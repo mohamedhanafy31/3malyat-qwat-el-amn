@@ -6,6 +6,7 @@ import uuid
 
 from backend.routes import register_routes
 from backend.store import SchemaMismatch, acquire_process_lock
+from backend.auth import init_app as init_auth
 
 app = Flask(__name__)
 
@@ -21,6 +22,7 @@ app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024
 _STATIC_STAMPS = {}
 
 register_routes(app)
+init_auth(app)
 
 
 @app.url_defaults

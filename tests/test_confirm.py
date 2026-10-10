@@ -172,7 +172,7 @@ def test_bulk_confirmation_lists_and_confirms_every_pending_roster(client):
     assert client.get("/api/board/unconfirmed").get_json()["count"] == 0
     for day in days:
         state = client.get(f"/api/board/{day}/confirm").get_json()
-        assert state["confirmed"] is True and state["by"] == "المراجع"
+        assert state["confirmed"] is True and state["by"] == "مدير الاختبارات"
 
 
 def test_bulk_confirmation_rejects_a_non_list_day_selection(client):

@@ -16,11 +16,15 @@ from .day_status import bp as day_status_bp
 from .afraad import bp as afraad_bp
 from .inspection_schedule import bp as inspection_schedule_bp
 from .rest_suspension import bp as rest_suspension_bp
+from .auth import bp as auth_bp
+from .users import bp as users_bp
+from .audit import bp as audit_bp
 
 ALL_BLUEPRINTS = [pages_bp, meta_bp, people_bp, leaves_bp, duty_bp, duty_stats_bp,
                   board_bp, register_bp, courses_bp, counts_bp, changes_bp,
                   missions_bp, service_catalog_bp, officer_log_bp, day_status_bp,
-                  afraad_bp, inspection_schedule_bp, rest_suspension_bp]
+                  afraad_bp, inspection_schedule_bp, rest_suspension_bp,
+                  auth_bp, users_bp, audit_bp]
 
 
 def register_routes(app):

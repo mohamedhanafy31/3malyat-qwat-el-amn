@@ -52,9 +52,6 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import NamedTuple
-from urllib.parse import unquote
-
-from flask import request
 
 from .constants import DEFAULT_DATA, SECTION_OCCASIONAL
 from .repo.people import as_roster
@@ -152,34 +149,28 @@ class DataUnreadable(SchemaMismatch):
     بيرث من SchemaMismatch عشان يتمسك بنفس معالج الخطأ في app.py ويرجّع 503.
     """
 
-# سجل تدقيق بسيط — مين عدّل ايه وامتى، بدون نظام حسابات أو تسجيل دخول. الاسم
-# اختياري (حقل "اسمك" في الشريط العلوي)؛ لو فاضي بيتسجل null. الملف بيدور
-# تلقائيًا (5 ميجا × 5 نسخ) عشان ما يكبرش من غير حد.
+# سجل النشاط بيدور تلقائيًا (5 ميجا × 20 نسخة) عشان يفضل حجمه محدود.
 _LOG_DIR = (DATA_DIR / "logs") if _ENV_DATA_DIR is not None else (ROOT / "logs")
 _LOG_DIR.mkdir(parents=True, exist_ok=True)
 _audit_logger = logging.getLogger("personnel_system.audit")
 _audit_logger.setLevel(logging.INFO)
 if not _audit_logger.handlers:
     _audit_handler = RotatingFileHandler(_LOG_DIR / "audit.log", maxBytes=5 * 1024 * 1024,
-                                          backupCount=5, encoding="utf-8")
+                                          backupCount=20, encoding="utf-8")
     _audit_handler.setFormatter(logging.Formatter("%(message)s"))
     _audit_logger.addHandler(_audit_handler)
     _audit_logger.propagate = False
 
 
 def _log_audit():
-    try:
-        # الفرونت إند بيبعت الاسم مشفّر (encodeURIComponent) لأن ترويسة HTTP
-        # لازم تبقى ISO-8859-1 بس، والاسم هنا غالبًا عربي.
-        edited_by = unquote(request.headers.get("X-Edited-By", "")).strip()
-        _audit_logger.info(json.dumps({
-            "ts": datetime.now().isoformat(timespec="seconds"),
-            "method": request.method,
-            "path": request.path,
-            "edited_by": edited_by or None,
-        }, ensure_ascii=False))
-    except RuntimeError:
-        pass  # نداء بره سياق طلب HTTP (سكربت مستقبلي مثلًا) — تجاهل بهدوء
+    # الاستيراد هنا يمنع دايرة store -> auth.users -> store وقت بدء البرنامج.
+    from flask import g, has_request_context
+    if has_request_context():
+        # كود الاستجابة لسه مش معروف هنا؛ after_request يسجله بعد ما المسار يخلص.
+        g.audit_writes = getattr(g, "audit_writes", 0) + 1
+    else:
+        from .auth.audit_log import emit
+        emit("write")
 
 
 # ---------- أدوات الملفات ----------

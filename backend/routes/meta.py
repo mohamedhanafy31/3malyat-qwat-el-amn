@@ -21,6 +21,7 @@ from ..rest_status import officer_status, taqseera_alerts
 from ..repo import Repos
 from ..store import ALL_DAYS, load_data
 from ..upcoming import build as build_upcoming
+from ..auth import can
 
 bp = Blueprint("meta", __name__)
 
@@ -118,15 +119,17 @@ def bootstrap(page):
         alerts = taqseera_alerts(data, today)
         # «مهام اليوم» في الرئيسية: حالة تأكيد اليومية وآخر التغييرات — نفس
         # المصادر اللي صفحتي اليومية وسجل التغييرات بيقروا منها
-        return jsonify({"meta": meta, "alerts": alerts, "upcoming": build_upcoming(data, today),
+        payload = {"meta": meta, "alerts": alerts, "upcoming": build_upcoming(data, today),
                         "clock_warning": clock.check(today),
                         "confirm": confirm_lib.state_of(data, today.isoformat()),
-                        "recent_changes": changes_lib.recent(data, limit=5),
                         "counts": {
                             **_counts(data),
                             "on_rest": on_rest,
                             "taqseera": len(alerts),
-                        }})
+                        }}
+        if can("view_logs"):
+            payload["recent_changes"] = changes_lib.recent(data, limit=5)
+        return jsonify(payload)
 
     if page == "officers":
         return jsonify({
@@ -245,7 +248,12 @@ def get_data():
     repos = Repos(data)
     # نسخة جديدة بدل ما يعدّل اللقطة المحمّلة في مكانها. اليوميات بتتشال
     # وبيتحط مكانها قايمة التواريخ بس — ده كان الغرض من النداء ده أصلًا.
-    payload = repos.snapshot(exclude=("day_assignments", "day_officers"))
+    excluded = ["day_assignments", "day_officers"]
+    # النداء التوافقي القديم كان بيسرّب سجل التغييرات ضمن اللقطة الشاملة.
+    # السجل لا يرجع إلا لنفس الأدوار المسموح لها بمسارات السجلات الصريحة.
+    if not can("view_logs"):
+        excluded.append("change_log")
+    payload = repos.snapshot(exclude=tuple(excluded))
     payload["days"] = repos.days.assignment_dates()
     # القوة بترجع بالشكل المتداخل القديم (`{active, archive}`) رغم إنها
     # بقت متخزّنة قايمة واحدة. ده **مش** تناقض: النداء ده متسيب صراحةً

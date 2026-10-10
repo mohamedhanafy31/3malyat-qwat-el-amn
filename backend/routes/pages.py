@@ -28,6 +28,8 @@ PAGES = {
                      "سجل زمني لكل خدمة أو حالة للضابط في مدى تاريخ محدد"),
     "changes": ("changes.html", "سجل التغييرات",
                  "المُعدِّل، وما عُدِّل، وموعد التعديل — يُسجَّل وقت تأكيد اليومية، لا وقت الحفظ"),
+    "audit": ("audit.html", "سجل النشاط", "من فعل ماذا ومتى — الدخول والخروج وكل تعديل"),
+    "users": ("users.html", "إدارة الحسابات", "إنشاء حسابات الضباط والأفراد والمجندين وإدارتها"),
     "missions": ("missions.html", "المأموريات",
                   "مأموريات لها دورة حياة (مخططة/بدأت/عادت/أُغلقت) — ليست خدمة متكررة"),
     "courses": ("courses.html", "الفِرق والدورات",
@@ -106,6 +108,16 @@ def officer_log():
 @bp.get("/changes")
 def changes():
     return _render("changes")
+
+
+@bp.get("/audit")
+def audit():
+    return _render("audit")
+
+
+@bp.get("/users")
+def users():
+    return _render("users")
 
 
 @bp.get("/missions")
