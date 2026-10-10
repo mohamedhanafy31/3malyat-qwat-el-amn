@@ -272,10 +272,6 @@ async function api(url,opts){
       location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
       return null;
     }
-    if(r.status===403&&out?.code==="password_change_required"){
-      location.href='/change-password';
-      return null;
-    }
     if(r.status===403){
       if(opts.onError&&opts.onError(out,r.status)) return null;
       showToast("ليس لديك صلاحية لهذا الإجراء",true);
