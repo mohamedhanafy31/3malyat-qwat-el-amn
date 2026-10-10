@@ -127,8 +127,7 @@ def bootstrap(page):
                             "on_rest": on_rest,
                             "taqseera": len(alerts),
                         }}
-        if can("view_logs"):
-            payload["recent_changes"] = changes_lib.recent(data, limit=5)
+        payload["recent_changes"] = changes_lib.recent(data, limit=5)
         return jsonify(payload)
 
     if page == "officers":
@@ -249,10 +248,6 @@ def get_data():
     # نسخة جديدة بدل ما يعدّل اللقطة المحمّلة في مكانها. اليوميات بتتشال
     # وبيتحط مكانها قايمة التواريخ بس — ده كان الغرض من النداء ده أصلًا.
     excluded = ["day_assignments", "day_officers"]
-    # النداء التوافقي القديم كان بيسرّب سجل التغييرات ضمن اللقطة الشاملة.
-    # السجل لا يرجع إلا لنفس الأدوار المسموح لها بمسارات السجلات الصريحة.
-    if not can("view_logs"):
-        excluded.append("change_log")
     payload = repos.snapshot(exclude=tuple(excluded))
     payload["days"] = repos.days.assignment_dates()
     # القوة بترجع بالشكل المتداخل القديم (`{active, archive}`) رغم إنها

@@ -125,37 +125,25 @@ def test_every_route_is_default_deny_for_anonymous(anon_client):
 
 def test_view_logs_role_matrix(client, officer_client, individual_client, conscript_client):
     for allowed in (client, officer_client):
-        assert allowed.get("/changes").status_code == 200
         assert allowed.get("/audit").status_code == 200
-        assert allowed.get("/api/changes").status_code == 200
         assert allowed.get("/api/audit").status_code == 200
-        assert allowed.get("/api/bootstrap/changes").status_code == 200
     for denied in (individual_client, conscript_client):
-        assert denied.get("/changes").status_code == 403
         assert denied.get("/audit").status_code == 403
-        assert denied.get("/api/changes").get_json()["code"] == "forbidden"
         assert denied.get("/api/audit").get_json()["code"] == "forbidden"
-        assert "recent_changes" not in denied.get("/api/bootstrap/dashboard").get_json()
 
 
-def test_dashboard_recent_changes_visibility(client, officer_client,
-                                             individual_client, conscript_client):
-    assert "recent_changes" in client.get("/api/bootstrap/dashboard").get_json()
-    assert "recent_changes" in officer_client.get("/api/bootstrap/dashboard").get_json()
-    assert "recent_changes" not in individual_client.get("/api/bootstrap/dashboard").get_json()
-    assert "recent_changes" not in conscript_client.get("/api/bootstrap/dashboard").get_json()
-    assert individual_client.get("/api/bootstrap/changes").status_code == 403
-
-
-def test_full_data_hides_change_log_without_view_logs(
+def test_operations_change_page_is_open_to_every_role(
         client, officer_client, individual_client, conscript_client):
+    """«تغيير تشغيل» (سجل التغييرات) متاح للأربعة — بخلاف سجل النشاط."""
     day = "2026-06-01"
     client.post(f"/api/assignments/{day}", json={"name": "خدمة", "kind": "خارجية"})
     client.post(f"/api/board/{day}/confirm", json={})
-    assert "change_log" in client.get("/api/data").get_json()
-    assert "change_log" in officer_client.get("/api/data").get_json()
-    assert "change_log" not in individual_client.get("/api/data").get_json()
-    assert "change_log" not in conscript_client.get("/api/data").get_json()
+    for who in (client, officer_client, individual_client, conscript_client):
+        assert who.get("/changes").status_code == 200
+        assert who.get("/api/changes").status_code == 200
+        assert who.get("/api/bootstrap/changes").status_code == 200
+        assert "recent_changes" in who.get("/api/bootstrap/dashboard").get_json()
+        assert "change_log" in who.get("/api/data").get_json()
 
 
 def test_manage_users_role_matrix(client, officer_client, individual_client, conscript_client):

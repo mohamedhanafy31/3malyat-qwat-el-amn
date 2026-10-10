@@ -46,7 +46,8 @@ def _error(message, code, status):
 
 
 def _required_capability(path):
-    if path == "/changes" or path == "/audit" or path == "/api/changes" or path == "/api/audit" or path == "/api/bootstrap/changes":
+    # «تغيير تشغيل» (/changes) مفتوح لكل الأدوار؛ سجل النشاط (/audit) بس للرقابة.
+    if path == "/audit" or path == "/api/audit":
         return "view_logs"
     if path == "/users" or path == "/api/users" or path.startswith("/api/users/"):
         return "manage_users"
