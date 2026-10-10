@@ -29,10 +29,10 @@ def main():
             if not args.reset_password:
                 print("اسم المستخدم موجود بالفعل. استخدم --reset-password لإعادة تعيين كلمته.", file=sys.stderr)
                 return 2
-            users.change_password(existing["id"], password, False)
+            users.change_password(existing["id"], password)
             print("تمت إعادة تعيين كلمة المرور.")
         else:
-            users.create(username, display_name, "admin", password, "أداة create_admin", False)
+            users.create(username, display_name, "admin", password, "أداة create_admin")
             print("تم إنشاء حساب المدير.")
     except users.UserError as exc:
         print(str(exc), file=sys.stderr)

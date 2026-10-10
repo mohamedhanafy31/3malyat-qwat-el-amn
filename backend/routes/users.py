@@ -23,8 +23,7 @@ def create_user():
     body = request.get_json(silent=True) or {}
     try:
         user = users.create(body.get("username"), body.get("display_name"), body.get("role"),
-                            body.get("password"), current_user()["username"],
-                            body.get("must_change_password", True))
+                            body.get("password"), current_user()["username"])
     except users.UserError as exc:
         return _failed(exc)
     emit("user_created", status=201, target_username=user["username"],
@@ -35,8 +34,11 @@ def create_user():
 @bp.patch("/api/users/<user_id>")
 def update_user(user_id):
     body = request.get_json(silent=True) or {}
+    actor = current_user()
+    values = {key: body[key] for key in ("display_name", "role", "active", "username", "password")
+              if key in body}
     try:
-        before, user = users.update(user_id, body, current_user()["id"], include_before=True)
+        before, user = users.update(user_id, values, actor["id"], include_before=True)
     except users.UserError as exc:
         return _failed(exc)
     details = []
@@ -48,20 +50,32 @@ def update_user(user_id):
         details.append(f"الحالة: {old} ← {new}")
     if before and before.get("display_name") != user.get("display_name"):
         details.append(f"الاسم الظاهر: {before['display_name']} ← {user['display_name']}")
+    if before and before.get("username") != user.get("username"):
+        details.append(f"تغيير اسم المستخدم: {before['username']} ← {user['username']}")
+    if "password" in values:
+        details.append("تغيير كلمة المرور")
     emit("user_updated", target_username=user["username"],
          detail="، ".join(details) or "بدون تغيير")
+    if actor["id"] == user["id"]:
+        from flask import session
+        session["user_id"] = user["id"]
+        session["session_version"] = int(user.get("session_version", 0))
+        session.permanent = True
     return jsonify(user=users.public(user))
 
 
 @bp.post("/api/users/<user_id>/reset-password")
 def reset_password(user_id):
     body = request.get_json(silent=True) or {}
-    must_change = bool(body.get("must_change_password", True))
+    actor = current_user()
     try:
-        user = users.change_password(user_id, body.get("password"), must_change)
+        user = users.change_password(user_id, body.get("password"))
     except users.UserError as exc:
         return _failed(exc)
-    detail = ("يلزم تغيير كلمة المرور عند الدخول" if must_change
-              else "بدون إلزام تغيير كلمة المرور")
-    emit("password_reset", target_username=user["username"], detail=detail)
+    emit("password_reset", target_username=user["username"], detail="تغيير كلمة المرور")
+    if actor["id"] == user["id"]:
+        from flask import session
+        session["user_id"] = user["id"]
+        session["session_version"] = int(user.get("session_version", 0))
+        session.permanent = True
     return jsonify(ok=True)

@@ -16,7 +16,9 @@ def current_user():
     if hasattr(g, "auth_user"):
         return g.auth_user
     user = users.by_id(session.get("user_id")) if session.get("user_id") else None
-    g.auth_user = user if user and user.get("active") else None
+    version_matches = (user and int(user.get("session_version", 0)) ==
+                       int(session.get("session_version", 0)))
+    g.auth_user = user if user and user.get("active") and version_matches else None
     return g.auth_user
 
 
@@ -72,7 +74,7 @@ def init_app(app):
         if not user:
             session.clear()
             page_endpoint = (request.endpoint or "").startswith("pages.") or request.endpoint in {
-                "auth.login_page", "auth.setup_page", "auth.change_password_page"}
+                "auth.login_page", "auth.setup_page"}
             if path.startswith("/api/") or not page_endpoint:
                 return _error("لازم تسجّل الدخول أولًا.", "unauthenticated", 401)
             original = path + (("?" + request.query_string.decode()) if request.query_string else "")
@@ -85,17 +87,11 @@ def init_app(app):
             if path.startswith("/api/"):
                 return _error("غير مصرّح لك بالوصول.", "forbidden", 403)
             return render_template("403.html", page="forbidden", page_title="غير مصرّح"), 403
-        if user.get("must_change_password") and path not in ("/change-password", "/api/auth/me", "/api/auth/password", "/api/auth/logout"):
-            if path.startswith("/api/"):
-                return _error("لازم تغيّر كلمة المرور أولًا.", "password_change_required", 403)
-            return redirect("/change-password")
 
     @app.context_processor
     def auth_context():
         user = current_user()
         public_user = users.public(user, compact=True) if user else None
-        if public_user:
-            public_user.pop("must_change_password", None)
         return {"current_user": public_user, "can": can}
 
     @app.after_request

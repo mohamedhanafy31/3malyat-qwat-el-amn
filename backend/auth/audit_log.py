@@ -50,6 +50,8 @@ def _files():
 
 def _account_action(event, target_username, detail, method, path):
     label = action_label(event, method, path)
+    if event == "login_failed" and detail:
+        return f"{label} — {detail}"
     if event not in ("user_created", "user_updated", "password_reset") or not target_username:
         return label
     label += f" «{target_username}»"

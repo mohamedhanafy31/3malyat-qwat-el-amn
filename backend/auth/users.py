@@ -64,10 +64,8 @@ def public(user, compact=False):
     out = {key: user.get(key) for key in keys}
     out["role_label"] = ROLE_LABELS.get(user.get("role"), user.get("role", ""))
     if not compact:
-        for key in ("active", "must_change_password", "created_at", "created_by", "last_login"):
+        for key in ("active", "created_at", "created_by", "last_login"):
             out[key] = user.get(key)
-    else:
-        out["must_change_password"] = bool(user.get("must_change_password"))
     return out
 
 
@@ -77,12 +75,12 @@ def _password_hash(password):
     return generate_password_hash(password, method="pbkdf2:sha256")
 
 
-def create(username, display_name, role, password, created_by, must_change_password=True):
+def create(username, display_name, role, password, created_by):
     username = str(username or "").strip()
     display_name = str(display_name or "").strip()
     if not USERNAME_RE.fullmatch(username):
         raise UserError("invalid_username", "اسم المستخدم لازم يكون من 3 إلى 32 حرف إنجليزي أو رقم أو ._-.")
-    if role not in ROLE_LABELS:
+    if not isinstance(role, str) or role not in ROLE_LABELS:
         raise UserError("invalid_role", "الدور غير صحيح.")
     password_hash = _password_hash(password)
     with LOCK:
@@ -93,7 +91,7 @@ def create(username, display_name, role, password, created_by, must_change_passw
         user = {"id": uuid.uuid4().hex, "username": username,
                 "display_name": display_name or username, "role": role,
                 "password_hash": password_hash, "active": True,
-                "must_change_password": bool(must_change_password),
+                "session_version": 0,
                 "created_at": now, "created_by": created_by, "last_login": None}
         rows.append(user)
         _write_unlocked(rows)
@@ -125,7 +123,7 @@ def update(user_id, values, actor_id, include_before=False):
     def apply(user):
         before.update(user)
         new_role = values.get("role", user["role"])
-        if new_role not in ROLE_LABELS:
+        if not isinstance(new_role, str) or new_role not in ROLE_LABELS:
             raise UserError("invalid_role", "الدور غير صحيح.")
         new_active = bool(values.get("active", user["active"]))
         if not new_active and user_id == actor_id:
@@ -134,17 +132,39 @@ def update(user_id, values, actor_id, include_before=False):
             admins = [u for u in _read_unlocked() if u["role"] == "admin" and u.get("active")]
             if len(admins) <= 1:
                 raise UserError("last_admin", "لا يمكن تعطيل أو تخفيض آخر مدير نشط.", 409)
+        if user_id == actor_id and user["role"] == "admin" and new_role != "admin":
+            raise UserError("cannot_demote_self", "لا يمكن تخفيض دور حسابك الحالي.", 409)
+        if "username" in values:
+            username = str(values["username"] or "").strip()
+            if not USERNAME_RE.fullmatch(username):
+                raise UserError("invalid_username", "اسم المستخدم لازم يكون من 3 إلى 32 حرف إنجليزي أو رقم أو ._-.")
+            if any(u["id"] != user_id and u["username"].casefold() == username.casefold()
+                   for u in _read_unlocked()):
+                raise UserError("username_taken", "اسم المستخدم مستخدم بالفعل.", 409)
+            user["username"] = username
+        if "password" in values:
+            user["password_hash"] = _password_hash(values["password"])
         if "display_name" in values:
             user["display_name"] = str(values["display_name"] or "").strip() or user["username"]
         if "role" in values:
             user["role"] = new_role
         if "active" in values:
             user["active"] = new_active
+        invalidating = (before.get("username") != user.get("username") or
+                        before.get("password_hash") != user.get("password_hash") or
+                        before.get("role") != user.get("role") or
+                        before.get("active") != user.get("active"))
+        if invalidating:
+            user["session_version"] = int(user.get("session_version", 0)) + 1
     user = _mutate(user_id, apply)
     return (before, user) if include_before else user
 
 
-def change_password(user_id, password, must_change_password=False):
+def change_password(user_id, password):
     password_hash = _password_hash(password)
-    return _mutate(user_id, lambda u: u.update(password_hash=password_hash,
-                                                must_change_password=bool(must_change_password)))
+
+    def apply(user):
+        user["password_hash"] = password_hash
+        user["session_version"] = int(user.get("session_version", 0)) + 1
+
+    return _mutate(user_id, apply)

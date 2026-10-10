@@ -1,6 +1,8 @@
 """عقد المصادقة والصلاحيات وسجل النشاط."""
 import json
 
+from flask import template_rendered
+
 from backend.auth import current_actor, users
 from backend.auth.audit_log import emit
 from app import app
@@ -23,14 +25,17 @@ def test_setup_is_loopback_only_and_bootstraps_session(anon_client):
 
 
 def test_login_logout_and_throttle(anon_client):
-    users.create("login_user", "مستخدم الدخول", "officer", "password-123", "اختبار", False)
+    users.create("login_user", "مستخدم الدخول", "officer", "password-123", "اختبار")
     for _ in range(5):
-        response = anon_client.post("/api/auth/login", json={"username": "LOGIN_USER", "password": "wrong"})
+        response = anon_client.post("/api/auth/login", json={
+            "role": "admin", "username": "LOGIN_USER", "password": "wrong"})
         assert response.status_code == 401
-    assert anon_client.post("/api/auth/login", json={"username": "login_user", "password": "password-123"}).status_code == 429
+    assert anon_client.post("/api/auth/login", json={
+        "role": "officer", "username": "login_user", "password": "password-123"}).status_code == 429
 
     # عنوان IP مختلف له عدّاد مستقل.
-    response = anon_client.post("/api/auth/login", json={"username": "LOGIN_USER", "password": "password-123"},
+    response = anon_client.post("/api/auth/login", json={
+        "role": "officer", "username": "LOGIN_USER", "password": "password-123"},
                                 environ_base={"REMOTE_ADDR": "127.0.0.2"})
     assert response.status_code == 200
     assert anon_client.post("/api/auth/logout").get_json() == {"ok": True}
@@ -41,6 +46,62 @@ def test_csrf_header_is_required_even_for_login(anon_client):
     response = anon_client.post("/api/auth/login", json={}, headers={"X-Requested-With": ""})
     assert response.status_code == 403
     assert response.get_json()["code"] == "csrf"
+
+
+def test_login_page_gets_roles_in_contract_order(client):
+    rendered = []
+
+    def capture(sender, template, context, **extra):
+        rendered.append(context)
+
+    template_rendered.connect(capture, app)
+    try:
+        assert client.get("/login?next=/audit").status_code == 200
+    finally:
+        template_rendered.disconnect(capture, app)
+    assert rendered[-1]["next"] == "/audit"
+    assert rendered[-1]["roles"] == [
+        {"key": "admin", "label": "ادمن"},
+        {"key": "officer", "label": "ضابط"},
+        {"key": "individual", "label": "فرد"},
+        {"key": "conscript", "label": "مجند"},
+    ]
+
+
+def test_login_requires_role_and_hides_all_credential_mismatches(
+        client, officer_client, anon_client):
+    _create(client, "role_check", role="officer")
+    disabled = _create(client, "stopped_user", role="officer").get_json()["user"]
+    assert client.patch(f"/api/users/{disabled['id']}", json={"active": False}).status_code == 200
+
+    missing = anon_client.post("/api/auth/login", json={
+        "username": "role_check", "password": "password-123"})
+    assert missing.status_code == 400
+    assert missing.get_json() == {"error": "اختر نوع المستخدم.", "code": "role_required"}
+
+    attempts = [
+        ({"role": "admin", "username": "role_check", "password": "password-123"},
+         "الدور المختار لا يطابق الحساب"),
+        ({"role": "officer", "username": "role_check", "password": "wrong-password"},
+         "كلمة مرور خاطئة"),
+        ({"role": "officer", "username": "missing_user", "password": "password-123"},
+         "حساب غير موجود"),
+        ({"role": "officer", "username": "stopped_user", "password": "password-123"},
+         "حساب موقوف"),
+    ]
+    expected = {"error": "بيانات الدخول غير صحيحة.", "code": "invalid_credentials"}
+    for body, detail in attempts:
+        response = anon_client.post("/api/auth/login", json=body)
+        assert response.status_code == 401
+        assert response.get_json() == expected
+        entries = client.get(f"/api/audit?user={body['username']}").get_json()["entries"]
+        entry = next(row for row in entries if row["detail"] == detail)
+        assert entry["username"] == body["username"]
+        assert entry["role"] == body["role"]
+        assert entry["detail"] == detail
+
+    officer_entry = officer_client.get("/api/audit?user=role_check").get_json()["entries"][0]
+    assert officer_entry["detail"] in {"الدور المختار لا يطابق الحساب", "كلمة مرور خاطئة"}
 
 
 def _sample_path(rule):
@@ -110,31 +171,37 @@ def test_manage_users_role_matrix(client, officer_client, individual_client, con
         assert denied.get("/api/users").get_json()["code"] == "forbidden"
 
 
-def test_must_change_password_flow(client):
-    made = _create(client, "needs_change").get_json()["user"]
-    with client.session_transaction() as sess:
-        sess["user_id"] = made["id"]
-    assert client.get("/").headers["Location"].endswith("/change-password")
-    assert client.get("/api/data").get_json()["code"] == "password_change_required"
-    assert client.get("/api/auth/me").status_code == 200
-    response = client.post("/api/auth/password", json={
-        "current_password": "password-123", "new_password": "new-password"})
-    assert response.status_code == 200
-    assert client.get("/api/data").status_code == 200
-
-
-def test_created_user_can_login_and_is_forced_to_change_password(client):
+def test_created_user_can_login_without_password_change_gate(client):
     made = _create(client, "temporary_user", role="officer").get_json()["user"]
-    assert made["must_change_password"] is True
+    assert "must_change_password" not in made
     login_client = app.test_client()
     response = login_client.post("/api/auth/login", json={
-        "username": "TEMPORARY_USER", "password": "password-123"})
+        "role": "officer", "username": "TEMPORARY_USER", "password": "password-123"})
     assert response.status_code == 200
-    assert response.get_json()["must_change_password"] is True
-    assert login_client.get("/").headers["Location"].endswith("/change-password")
-    blocked = login_client.get("/api/audit")
-    assert blocked.status_code == 403
-    assert blocked.get_json()["code"] == "password_change_required"
+    assert response.get_json() == {"ok": True, "next": "/"}
+    assert "must_change_password" not in login_client.get("/api/auth/me").get_json()["user"]
+
+
+def test_legacy_must_change_password_value_is_ignored(client):
+    made = _create(client, "legacy_password_flag").get_json()["user"]
+    with users.LOCK:
+        rows = users._read_unlocked()
+        stored = next(row for row in rows if row["id"] == made["id"])
+        stored["must_change_password"] = True
+        stored.pop("session_version", None)
+        users._write_unlocked(rows)
+    legacy_client = app.test_client()
+    login = legacy_client.post("/api/auth/login", json={
+        "role": "individual", "username": "legacy_password_flag",
+        "password": "password-123"})
+    assert login.status_code == 200
+    assert legacy_client.get("/").status_code == 200
+    assert "must_change_password" not in legacy_client.get("/api/auth/me").get_json()["user"]
+
+
+def test_removed_password_change_endpoints_return_not_found(client):
+    assert client.get("/change-password").status_code == 404
+    assert client.post("/api/auth/password", json={}).status_code == 404
 
 
 def test_last_admin_and_cannot_disable_self(client):
@@ -148,10 +215,10 @@ def test_last_admin_and_cannot_disable_self(client):
 
 
 def test_deactivated_users_session_is_rejected(client):
-    made = _create(client, "disable_me", must_change_password=False).get_json()["user"]
+    made = _create(client, "disable_me").get_json()["user"]
     other = app.test_client()
-    with other.session_transaction() as sess:
-        sess["user_id"] = made["id"]
+    assert other.post("/api/auth/login", json={
+        "role": "individual", "username": "disable_me", "password": "password-123"}).status_code == 200
     assert other.get("/api/auth/me").status_code == 200
     assert client.patch(f"/api/users/{made['id']}", json={"active": False}).status_code == 200
     assert other.get("/api/auth/me").status_code == 401
@@ -163,11 +230,49 @@ def test_role_change_applies_to_an_existing_session_immediately(client, officer_
                    if u["username"] == "test_officer")
     assert client.patch(f"/api/users/{officer['id']}", json={"role": "individual"}).status_code == 200
     response = officer_client.get("/api/audit")
-    assert response.status_code == 403
-    assert response.get_json()["code"] == "forbidden"
-    denied = client.get("/api/audit?event=access_denied").get_json()["entries"][0]
-    assert denied["username"] == "test_officer"
-    assert denied["display_name"] == "مستخدم officer"
+    assert response.status_code == 401
+    assert response.get_json()["code"] == "unauthenticated"
+
+
+def test_username_and_password_changes_invalidate_existing_sessions(client):
+    for username, change in (
+            ("rename_session", {"username": "renamed_session"}),
+            ("password_session", {"password": "replacement-password"})):
+        made = _create(client, username).get_json()["user"]
+        logged_in = app.test_client()
+        assert logged_in.post("/api/auth/login", json={
+            "role": "individual", "username": username,
+            "password": "password-123"}).status_code == 200
+        assert client.patch(f"/api/users/{made['id']}", json=change).status_code == 200
+        assert logged_in.get("/api/auth/me").status_code == 401
+
+
+def test_self_credential_edit_reissues_admin_session_and_audits_safely(client):
+    me = client.get("/api/auth/me").get_json()["user"]
+    response = client.patch(f"/api/users/{me['id']}", json={
+        "username": "renamed_admin", "password": "replacement-password"})
+    assert response.status_code == 200
+    assert client.get("/api/auth/me").get_json()["user"]["username"] == "renamed_admin"
+    entry = client.get("/api/audit?event=user_updated").get_json()["entries"][0]
+    assert "تغيير اسم المستخدم: test_admin ← renamed_admin" in entry["detail"]
+    assert "تغيير كلمة المرور" in entry["detail"]
+    assert "replacement-password" not in json.dumps(entry, ensure_ascii=False)
+
+
+def test_user_credential_update_validation_and_self_demotion_guard(client):
+    second = _create(client, "second_admin", role="admin").get_json()["user"]
+    target = _create(client, "validation_user").get_json()["user"]
+    assert client.patch(f"/api/users/{target['id']}", json={
+        "username": "second_ADMIN"}).get_json()["code"] == "username_taken"
+    assert client.patch(f"/api/users/{target['id']}", json={
+        "username": "x"}).get_json()["code"] == "invalid_username"
+    assert client.patch(f"/api/users/{target['id']}", json={
+        "password": "short"}).get_json()["code"] == "weak_password"
+    me = client.get("/api/auth/me").get_json()["user"]
+    demote = client.patch(f"/api/users/{me['id']}", json={"role": "officer"})
+    assert demote.status_code == 409
+    assert demote.get_json()["code"] == "cannot_demote_self"
+    assert second["role"] == "admin"
 
 
 def test_forged_actor_fields_and_header_are_ignored(client, tmp_path):
@@ -206,16 +311,17 @@ def test_auth_and_user_audit_events_have_actor_and_never_password(client, tmp_pa
     password = "unique-temp-password"
     made = client.post("/api/users", json={
         "username": "audit_user", "display_name": "مستخدم التدقيق", "role": "officer",
-        "password": password, "must_change_password": False}).get_json()["user"]
+        "password": password}).get_json()["user"]
     assert client.patch(f"/api/users/{made['id']}", json={
         "role": "individual", "display_name": "مستخدم محدث"}).status_code == 200
     login_client = app.test_client()
     assert login_client.post("/api/auth/login", json={
-        "username": "audit_user", "password": "wrong-password"}).status_code == 401
+        "role": "individual", "username": "audit_user", "password": "wrong-password"}).status_code == 401
     assert login_client.post("/api/auth/login", json={
-        "username": "AUDIT_USER", "password": password}).status_code == 200
+        "role": "individual", "username": "AUDIT_USER", "password": password}).status_code == 200
     assert client.post(f"/api/users/{made['id']}/reset-password", json={
         "password": "replacement-password"}).status_code == 200
+    assert login_client.get("/api/auth/me").status_code == 401
 
     expected = {"login_failed": "audit_user", "login_ok": "audit_user",
                 "user_created": "test_admin", "user_updated": "test_admin",
@@ -226,7 +332,8 @@ def test_auth_and_user_audit_events_have_actor_and_never_password(client, tmp_pa
 
     failed = client.get("/api/audit?event=login_failed").get_json()["entries"][0]
     assert failed["display_name"] == "audit_user"
-    assert failed["role"] is None
+    assert failed["role"] == "individual"
+    assert failed["detail"] == "كلمة مرور خاطئة"
 
     created = client.get("/api/audit?event=user_created").get_json()["entries"][0]
     assert created["target_username"] == "audit_user"
@@ -241,7 +348,7 @@ def test_auth_and_user_audit_events_have_actor_and_never_password(client, tmp_pa
 
     reset = client.get("/api/audit?event=password_reset").get_json()["entries"][0]
     assert reset["target_username"] == "audit_user"
-    assert reset["detail"] == "يلزم تغيير كلمة المرور عند الدخول"
+    assert reset["detail"] == "تغيير كلمة المرور"
     assert "audit_user" in reset["action_label"]
     serialized = json.dumps(client.get("/api/audit?limit=500").get_json(), ensure_ascii=False)
     assert password not in serialized
@@ -315,3 +422,15 @@ def test_audit_filters_pagination_and_legacy_line(client, tmp_path):
 
 def test_system_actor_outside_request_context():
     assert current_actor()["display_name"] == "النظام"
+
+
+def test_login_failed_reason_is_visible_in_audit_label(client, anon_client):
+    """سبب فشل الدخول (دور غلط مثلًا) بيظهر للأدمن في سجل النشاط بس —
+    الرد على المستخدم نفسه ثابت ومابيكشفش حاجة."""
+    from backend.auth import users
+    users.create("reason_user", "سبب", "officer", "password123", "اختبار")
+    r = anon_client.post("/api/auth/login", headers={"X-Requested-With": "fetch"},
+                         json={"role": "admin", "username": "reason_user", "password": "password123"})
+    assert r.status_code == 401 and r.get_json()["code"] == "invalid_credentials"
+    entry = client.get("/api/audit?event=login_failed").get_json()["entries"][0]
+    assert "الدور المختار لا يطابق الحساب" in entry["action_label"]

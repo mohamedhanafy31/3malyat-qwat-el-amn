@@ -148,7 +148,7 @@ def _client_for(role=None):
             user = {"id": f"fixture-{role}", "username": username,
                     "display_name": "مدير الاختبارات" if role == "admin" else f"مستخدم {role}",
                     "role": role, "password_hash": _TEST_PASSWORD_HASH, "active": True,
-                    "must_change_password": False, "created_at": "2026-01-01T00:00:00",
+                    "session_version": 0, "created_at": "2026-01-01T00:00:00",
                     "created_by": "اختبارات", "last_login": None}
             with users.LOCK:
                 rows = users._read_unlocked()
@@ -156,6 +156,7 @@ def _client_for(role=None):
                 users._write_unlocked(rows)
         with client.session_transaction() as sess:
             sess["user_id"] = user["id"]
+            sess["session_version"] = int(user.get("session_version", 0))
             sess.permanent = True
     return client
 
