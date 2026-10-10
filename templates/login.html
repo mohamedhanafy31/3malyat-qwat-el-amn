@@ -29,10 +29,28 @@
       <form id="loginForm" class="auth-form" novalidate>
         <input type="hidden" id="loginNext" value="{{ next|e }}">
 
+        {% set role_options = roles if (roles is defined and roles) else [
+          {'key': 'admin', 'label': 'ادمن'},
+          {'key': 'officer', 'label': 'ضابط'},
+          {'key': 'individual', 'label': 'فرد'},
+          {'key': 'conscript', 'label': 'مجند'}
+        ] %}
+        <fieldset class="seg-field">
+          <legend>نوع المستخدم</legend>
+          <div class="seg-toggle" id="loginRole">
+            {% for r in role_options %}
+            <label>
+              <input type="radio" name="loginRole" value="{{ r.key }}" required>
+              <span>{{ r.label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
         <div class="auth-field">
           <label for="loginUsername">اسم المستخدم</label>
           <div class="input-wrap">
-            <input type="text" id="loginUsername" name="username" class="auth-input" autocomplete="username" required autofocus placeholder="اكتب اسم المستخدم">
+            <input type="text" id="loginUsername" name="username" class="auth-input" autocomplete="username" required placeholder="اكتب اسم المستخدم">
           </div>
         </div>
 

@@ -1865,8 +1865,6 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .btn-toggle-pwd svg{width:20px;height:20px;fill:currentColor}
 .auth-submit-btn{width:100%;height:var(--control-h);font-size:var(--t-md);font-weight:700;
   display:flex;align-items:center;justify-content:center;gap:var(--s2)}
-.auth-extra-actions{text-align:center;margin-top:var(--s2)}
-.auth-logout-btn{color:var(--bad-700)}
 
 /* لافتة الخطأ والرسائل العامة */
 .alert-banner{padding:var(--s3) var(--s4);border-radius:var(--radius-control);font-size:var(--t-sm);

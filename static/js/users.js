@@ -145,7 +145,6 @@ $("#btnAddUser").onclick = () => {
   clearModalError("userCreateError");
   const form = $("#userCreateForm");
   form.reset();
-  $("#createMustChange").checked = true;
   openModal("userCreateModal");
 };
 
@@ -158,21 +157,19 @@ $("#userCreateForm").onsubmit = async e => {
   const displayName = ($("#createDisplayName")?.value || "").trim();
   const role = $("#createRole")?.value || "";
   const password = $("#createPassword")?.value || "";
-  const mustChange = $("#createMustChange")?.checked ?? true;
 
   if (!username || !displayName || !role || !password) {
     showModalError("userCreateError", "يرجى استيفاء جميع الحقول المطلوبة");
     return;
   }
   if (password.length < 8) {
-    showModalError("userCreateError", "يجب ألا تقل كلمة المرور عن ٨ أحرف");
+    showModalError("userCreateError", getErrorMessage("weak_password"));
     return;
   }
 
   const submitBtn = $("#createSubmitBtn");
   submitBtn.disabled = true;
 
-  let errorCode = null;
   const res = await api("/api/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -180,11 +177,9 @@ $("#userCreateForm").onsubmit = async e => {
       username,
       display_name: displayName,
       role,
-      password,
-      must_change_password: mustChange
+      password
     }),
     onError: (out, status) => {
-      errorCode = out?.code;
       const msg = getErrorMessage(out?.code, out?.error);
       showModalError("userCreateError", msg);
       return true; // منع التوست الافتراضي
@@ -208,9 +203,10 @@ function openEditModal(userId) {
 
   clearModalError("userEditError");
   $("#editUserId").value = u.id;
-  $("#editUsernameDisplay").value = u.username;
+  $("#editUsername").value = u.username || "";
   $("#editDisplayName").value = u.display_name || "";
   $("#editRole").value = u.role || "officer";
+  $("#editPassword").value = "";
 
   openModal("userEditModal");
 }
@@ -220,11 +216,40 @@ $("#userEditForm").onsubmit = async e => {
   clearModalError("userEditError");
 
   const userId = $("#editUserId").value;
+  const u = USERS.find(x => String(x.id) === String(userId));
+  if (!u) return;
+
+  const username = ($("#editUsername")?.value || "").trim();
   const displayName = ($("#editDisplayName")?.value || "").trim();
   const role = $("#editRole")?.value || "";
+  const password = $("#editPassword")?.value || "";
 
-  if (!displayName || !role) {
+  if (!username || !displayName || !role) {
     showModalError("userEditError", "يرجى ملء جميع الحقول المطلوبة");
+    return;
+  }
+  if (password && password.length < 8) {
+    showModalError("userEditError", getErrorMessage("weak_password"));
+    return;
+  }
+
+  const payload = {};
+  if (displayName !== (u.display_name || "")) {
+    payload.display_name = displayName;
+  }
+  if (role !== (u.role || "")) {
+    payload.role = role;
+  }
+  if (username !== (u.username || "")) {
+    payload.username = username;
+  }
+  if (password) {
+    payload.password = password;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    markModalSaved("userEditModal");
+    closeModal("userEditModal", true);
     return;
   }
 
@@ -234,10 +259,7 @@ $("#userEditForm").onsubmit = async e => {
   const res = await api(`/api/users/${encodeURIComponent(userId)}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      display_name: displayName,
-      role
-    }),
+    body: JSON.stringify(payload),
     onError: (out, status) => {
       const msg = getErrorMessage(out?.code, out?.error);
       showModalError("userEditError", msg);
@@ -302,7 +324,6 @@ function openResetModal(userId) {
   $("#resetUserId").value = u.id;
   $("#resetUserInfo").innerHTML = `إعادة تعيين كلمة المرور لحساب <strong>${esc(u.display_name)}</strong> (@${esc(u.username)})`;
   $("#resetNewPassword").value = "";
-  $("#resetMustChange").checked = true;
 
   openModal("userResetPasswordModal");
 }
@@ -313,14 +334,13 @@ $("#userResetPasswordForm").onsubmit = async e => {
 
   const userId = $("#resetUserId").value;
   const password = $("#resetNewPassword")?.value || "";
-  const mustChange = $("#resetMustChange")?.checked ?? true;
 
   if (!password) {
     showModalError("userResetError", "يرجى إدخال كلمة المرور الجديدة");
     return;
   }
   if (password.length < 8) {
-    showModalError("userResetError", "يجب ألا تقل كلمة المرور عن ٨ أحرف");
+    showModalError("userResetError", getErrorMessage("weak_password"));
     return;
   }
 
@@ -330,10 +350,7 @@ $("#userResetPasswordForm").onsubmit = async e => {
   const res = await api(`/api/users/${encodeURIComponent(userId)}/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      password,
-      must_change_password: mustChange
-    }),
+    body: JSON.stringify({ password }),
     onError: (out, status) => {
       const msg = getErrorMessage(out?.code, out?.error);
       showModalError("userResetError", msg);
