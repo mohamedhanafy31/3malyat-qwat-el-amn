@@ -23,3 +23,8 @@ import_archive/import_diff.md
 runtime/
 wheels/*.whl
 venv/
+
+# حسابات الدخول ومفتاح الجلسة (طبقة الصلاحيات) — لا تُتتبّع في git أبدًا
+data/users.json
+data/users.json.tmp
+data/secret_key
