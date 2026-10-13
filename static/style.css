@@ -1182,7 +1182,11 @@ body.sidebar-open{overflow:hidden}
   .register-toolbar .muted{order:3;margin-inline-start:0}
   .register-period{flex:1;justify-content:center}
   .register-hint{padding-inline:var(--s4)}
-  .reg43 .who-col{min-width:160px}
+  /* الأسماء رباعية وكانت على سطر واحد (nowrap) — العمود ياخد 245 من 375px
+     ويفضل ~4 أيام بس ظاهرين. على الموبايل الاسم بيلتف على سطرين في عمود ثابت. */
+  .reg43 .who-col{min-width:0;width:118px;max-width:118px;white-space:normal;
+    line-height:1.3;padding-inline:var(--s2);font-size:var(--t-xs)}
+  .reg43 .who-col .sub{font-size:10px}
   .duty-strip{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity}
   .sum-group{flex:none;scroll-snap-align:start}
 }
