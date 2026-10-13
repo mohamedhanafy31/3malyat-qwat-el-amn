@@ -8,6 +8,9 @@ SCRIPTS = (
     "START_SYSTEM.bat",
     "BACKUPS.bat",
     "run_windows.bat",
+    "INSTALL_AUTOSTART.bat",
+    "STOP_SYSTEM.bat",
+    "SETUP_PHONE_ACCESS.bat",
     "tools/deploy_console.bat",
 )
 

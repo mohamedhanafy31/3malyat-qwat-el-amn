@@ -37,7 +37,9 @@ sudo systemctl enable --now personnel-system
 |---|---|---|
 | `PREPARE_ONLINE.bat` | مرة واحدة، على جهاز **تاني** فيه نت | **أيوه** — ده الوحيد |
 | `SETUP_OFFLINE.bat` | مرة واحدة، على جهاز التشغيل | لأ |
-| `START_SYSTEM.bat` | كل يوم | لأ |
+| `START_SYSTEM.bat` | كل يوم (أو مرة واحدة `INSTALL_AUTOSTART.bat` بدلها) | لأ |
+| `STOP_SYSTEM.bat` | لإيقاف السيستم (مثلًا قبل الاستعادة) | لأ |
+| `SETUP_PHONE_ACCESS.bat` | اختياري — تطبيق الموبايل، شوف `MOBILE_APP.md` | **أيوه** |
 
 ---
 
