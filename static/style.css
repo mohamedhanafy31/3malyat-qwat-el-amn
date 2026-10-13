@@ -1754,8 +1754,16 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   .close{width:var(--touch-target);height:var(--touch-target)}
   .row-menu-item{min-height:var(--touch-target)}
   .multi{min-height:var(--touch-control)}
-  .multi-input{min-height:var(--control-h-sm)}
-  .multi-x{min-width:var(--control-h-sm);min-height:var(--control-h-sm)}
+  .multi-input{min-height:var(--touch-control)}
+  .multi-x{min-width:var(--touch-control);min-height:var(--touch-control)}
+  /* أهداف لمس كانت أصغر من صباع (QA الموبايل): زر الحساب 30px، «عرض الكل» 17px،
+     أسماء الفرق 20px، خانات حصر التشغيل 26×24، وأزرار نوع المستخدم في الدخول 36px */
+  .user-chip-btn{height:var(--touch-control)}
+  .recent-changes h4 a{display:inline-flex;align-items:center;min-height:var(--touch-target);
+    padding-inline:var(--s2)}
+  .roster-name{display:inline-flex;align-items:center;min-height:var(--touch-control)}
+  .reg43 .cell43{min-width:30px;height:32px}
+  .seg-toggle{height:var(--touch-target)}
   /* اختصارات لوحة المفاتيح مالهاش لازمة على شاشة لمس */
   .kbd-only{display:none}
 }
