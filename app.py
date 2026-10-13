@@ -20,7 +20,6 @@ app.json.ensure_ascii = False
 # نفسها محدودة بـ8MB (`service_catalog.MAX_IMAGE_BYTES`)، والسقف هنا أعلى
 # شوية لأي هامش بروتوكول.
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024
-_STATIC_STAMPS = {}
 
 register_routes(app)
 init_auth(app)
@@ -34,8 +33,11 @@ def _bust_static_cache(endpoint, values):
     للسيستم من غير ما المستخدم يعمل Hard Refresh."""
     if endpoint == "static" and "filename" in values:
         path = os.path.join(app.static_folder, values["filename"])
+        # بيتحسب مع كل رابط (مش مرة واحدة لكل تشغيل): الملفات الثابتة بتتخزّن عند
+        # المتصفح سنة كاملة (`_compress_and_cache`)، فلو ملف اتعدّل والسيستم شغّال
+        # والختم ثابت، المتصفح هيفضل على النسخة القديمة لحد إعادة التشغيل.
         try:
-            values["v"] = _STATIC_STAMPS.setdefault(values["filename"], int(os.path.getmtime(path)))
+            values["v"] = int(os.path.getmtime(path))
         except OSError:
             pass
 

@@ -38,3 +38,21 @@ def test_word_export_is_not_gzipped(client):
     res = client.get("/api/board/2026-04-10/export.docx", headers=GZ)
     assert res.status_code == 200 and res.data[:2] == b"PK"
     assert "Content-Encoding" not in res.headers
+
+
+def test_static_version_stamp_follows_file_changes(client, tmp_path, monkeypatch):
+    """الملفات الثابتة متخزّنة سنة عند المتصفح، فالختم لازم يتغيّر أول ما الملف
+    يتغيّر — حتى من غير إعادة تشغيل السيستم."""
+    import os
+    from app import app
+    static = tmp_path / "static"
+    static.mkdir()
+    (static / "x.css").write_text("a")
+    monkeypatch.setattr(app, "static_folder", str(static))
+    with app.test_request_context():
+        from flask import url_for
+        os.utime(static / "x.css", (1_000_000, 1_000_000))
+        first = url_for("static", filename="x.css")
+        os.utime(static / "x.css", (2_000_000, 2_000_000))
+        second = url_for("static", filename="x.css")
+    assert first.endswith("v=1000000") and second.endswith("v=2000000")
