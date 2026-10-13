@@ -8,6 +8,16 @@ from ..auth.roles import ROLE_LABELS
 
 bp = Blueprint("auth", __name__)
 
+
+def _is_local_request():
+    """الإعداد الأول من نفس الجهاز بس. طلبات Tailscale Serve (أو أي بروكسي)
+    بتوصل من 127.0.0.1 برضه، فوجود ترويسات التمرير معناه إن الطلب جاي من برّه."""
+    if request.remote_addr not in ("127.0.0.1", "::1"):
+        return False
+    return not any(request.headers.get(h) for h in (
+        "X-Forwarded-For", "Forwarded", "Tailscale-User-Login"))
+
+
 def _safe_next(value):
     value = str(value or "")
     return value if (value.startswith("/") and not value.startswith("//")
@@ -26,7 +36,7 @@ def login_page():
 def setup_page():
     if users.count():
         return redirect("/login")
-    if request.remote_addr not in ("127.0.0.1", "::1"):
+    if not _is_local_request():
         return render_template("403.html", page="forbidden", page_title="غير مصرّح"), 403
     return render_template("setup.html")
 
@@ -65,7 +75,7 @@ def login():
 def setup():
     if users.count():
         return jsonify(error="تم إعداد النظام بالفعل.", code="setup_complete"), 403
-    if request.remote_addr not in ("127.0.0.1", "::1"):
+    if not _is_local_request():
         return jsonify(error="الإعداد الأول متاح من نفس الجهاز فقط.", code="forbidden"), 403
     body = request.get_json(silent=True) or {}
     try:

@@ -17,6 +17,10 @@ def _create(client, username, role="individual", **extra):
 def test_setup_is_loopback_only_and_bootstraps_session(anon_client):
     assert anon_client.get("/login").headers["Location"].endswith("/setup")
     assert anon_client.get("/setup", environ_base={"REMOTE_ADDR": "10.0.0.2"}).status_code == 403
+    # Tailscale Serve بيمرّر الطلب من 127.0.0.1 — الترويسات بتكشف إنه جاي من برّه
+    assert anon_client.get("/setup", headers={"X-Forwarded-For": "100.64.0.5"}).status_code == 403
+    assert anon_client.post("/api/auth/setup", json={}, headers={
+        "X-Requested-With": "fetch", "Tailscale-User-Login": "x@example.com"}).status_code == 403
     response = anon_client.post("/api/auth/setup", json={
         "username": "First.Admin", "display_name": "المدير الأول", "password": "password-123"})
     assert response.status_code == 201

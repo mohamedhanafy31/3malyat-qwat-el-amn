@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+       background:#f2f5f9;color:#0f2a4a;font-family:system-ui,"Noto Naskh Arabic",sans-serif}
+  .card{background:#fff;border-radius:16px;padding:28px 22px;margin:16px;max-width:380px;
+        text-align:center;box-shadow:0 4px 20px rgba(15,42,74,.08)}
+  h1{font-size:20px;margin:0 0 10px}
+  p{font-size:15px;line-height:1.7;color:#3f5670;margin:0 0 6px}
+  .url{direction:ltr;font-family:monospace;font-size:13px;color:#6b7f95;word-break:break-all;margin:10px 0 20px}
+  button{display:block;width:100%;padding:14px;border-radius:10px;font-size:16px;margin-top:10px;
+         border:1px solid #0f2a4a;background:#fff;color:#0f2a4a;font-family:inherit}
+  button.primary{background:#0f2a4a;color:#fff}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>تعذّر الوصول إلى الخادم</h1>
+  <p>تأكد أن جهاز الكمبيوتر الرئيسي يعمل، وأن السيستم شغّال عليه، وأن الهاتف متصل بالإنترنت وبرنامج Tailscale مفعّل.</p>
+  <div class="url" id="url"></div>
+  <button class="primary" onclick="Android.retry()">إعادة المحاولة</button>
+  <button onclick="Android.changeServer()">تغيير عنوان الخادم</button>
+</div>
+<script>
+  document.getElementById("url").textContent = Android.serverUrl();
+</script>
+</body>
+</html>

@@ -28,3 +28,4 @@ venv/
 data/users.json
 data/users.json.tmp
 data/secret_key
+*.apk
