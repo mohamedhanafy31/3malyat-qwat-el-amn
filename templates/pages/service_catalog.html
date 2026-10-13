@@ -28,6 +28,8 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/vendor/pdf.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/service-catalog.js') }}"></script>
+{# مكتبة PDF (313KB) بتتحمّل بس لما المستخدم يختار ملف PDF — مش مع كل فتح للصفحة #}
+<script src="{{ url_for('static', filename='js/service-catalog.js') }}"
+        data-pdfjs="{{ url_for('static', filename='js/vendor/pdf.min.js') }}"
+        data-pdf-worker="{{ url_for('static', filename='js/vendor/pdf.worker.min.js') }}"></script>
 {% endblock %}

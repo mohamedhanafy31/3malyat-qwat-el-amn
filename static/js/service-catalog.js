@@ -13,9 +13,25 @@ const SERVICE_PERIOD_LABELS = {
 };
 const servicePeriodLabel = period => SERVICE_PERIOD_LABELS[period] || period;
 
-if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    document.currentScript.src.replace(/service-catalog\.js.*$/, "vendor/pdf.worker.min.js");
+/* مكتبة PDF تقيلة (313KB + worker) ومحتاجينها بس لما حد يرفع PDF — بتتحمّل
+   ساعتها مرة واحدة بدل ما تتنزّل مع كل فتح للصفحة (فرق كبير على الموبايل). */
+const _pdfScript = document.currentScript;
+let _pdfjsReady = null;
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (!_pdfjsReady) {
+    _pdfjsReady = new Promise((resolve, reject) => {
+      const tag = document.createElement("script");
+      tag.src = _pdfScript.dataset.pdfjs;
+      tag.onload = () => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = _pdfScript.dataset.pdfWorker;
+        resolve(window.pdfjsLib);
+      };
+      tag.onerror = () => { _pdfjsReady = null; tag.remove(); reject(new Error("load")) };
+      document.head.appendChild(tag);
+    });
+  }
+  return _pdfjsReady;
 }
 
 function serviceCard(s) {
@@ -258,7 +274,8 @@ $("#svcImageFile").onchange = async e => {
   e.target.value = "";
   if (!file) return;
   if (file.type === "application/pdf") {
-    if (!window.pdfjsLib) { showToast("لم تُحمَّل مكتبة قراءة PDF.", true); return }
+    try { await loadPdfJs() }
+    catch (err) { showToast("تعذّر تحميل مكتبة قراءة PDF — تحقق من الاتصال وحاول مرة أخرى.", true); return }
     try {
       const buf = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({data: buf}).promise;
