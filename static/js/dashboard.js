@@ -57,12 +57,17 @@
     : task("muted", `لا يعود أحد من الراحة خلال ${countLabel(3, "يوم")}`, "", "");
   $("#dashTasks").innerHTML = confirmTask + vacTask + backTask;
 
+  // السجلات القديمة (قبل ما كل حفظ يكتب جملة عربي) مالهاش text — بدل «leave create»
+  const ENTITY_AR = { leave: "راحة", mission: "مأمورية", officer_state: "حالة ضابط",
+    assignment: "خدمة", duty_move: "حركة ضابط/فرد", person: "بيانات فرد/ضابط" };
+  const ACTION_AR = { create: "إضافة", update: "تعديل", delete: "حذف" };
+  const changeFallback = e => `${ENTITY_AR[e.entity] || "تغيير"} — ${ACTION_AR[e.action] || "تعديل"}`;
   if (d.recent_changes !== undefined) {
     const recent = d.recent_changes || [];
     $("#dashChanges").innerHTML = recent.length ? `<h4>آخر التغييرات <a href="/changes">عرض الكل</a></h4>
       <ul class="change-list">${recent.map(e => `<li>
         <time>${esc(fmtShort((e.ts || "").slice(0, 10)))} ${esc(hhmm(e.ts))}</time>
-        <span>${esc(humanizeDates(e.text || `${e.entity} ${e.action}`))}</span>
+        <span>${esc(humanizeDates(e.text || changeFallback(e)))}</span>
         ${e.edited_by ? `<em>${esc(e.edited_by)}</em>` : ""}</li>`).join("")}</ul>`
       : `<p class="recent-empty">لا توجد تغييرات حديثة.</p>`;
   } else {

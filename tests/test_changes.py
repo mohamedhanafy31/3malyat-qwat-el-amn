@@ -68,6 +68,7 @@ def test_officer_state_change_is_recorded(client):
     entries = _entries(client, entity="officer_state", entity_id="OFF-001")
     assert len(entries) == 1
     assert entries[0]["after"]["taqseera"] is True
+    assert entries[0]["text"].endswith(f"في يومية {DAY}: تقصيرة")
 
 
 def test_clearing_an_empty_state_records_nothing(client):
@@ -102,6 +103,27 @@ def test_leave_lifecycle_is_recorded(client):
     entries = _entries(client, entity="leave", entity_id=lid)
     actions = [e["action"] for e in entries]
     assert actions == ["delete", "update", "create"], "الأحدث أولًا"
+    # كل تغيير بجملة عربي جاهزة فيها اسم صاحب الراحة — مش «leave create»
+    name = r.get_json()["name"]
+    texts = [e["text"] for e in entries]
+    assert texts[0].startswith("حذف راحة") and texts[2].startswith("تسجيل راحة")
+    assert texts[1].startswith("تعديل بيانات راحة"), "الملاحظة بس اتغيّرت مش المدة"
+    assert all(name in t and "2026-02-01" in t for t in texts)
+
+
+def test_leave_range_edit_text_shows_old_and_new_range(client):
+    lid = client.post("/api/leaves", json={
+        "person_id": "OFF-002", "type": "أسبوعية", "start": "2026-02-01", "end": "2026-02-01"}).get_json()["id"]
+    client.patch(f"/api/leaves/{lid}", json={"end": "2026-02-02"})
+    text = _entries(client, entity="leave", entity_id=lid)[0]["text"]
+    assert "2026-02-01 ← 2026-02-01" in text and "2026-02-01 ← 2026-02-02" in text
+
+
+def test_mission_changes_are_described(client):
+    mid = client.post("/api/missions", json={"name": "تأمين مباراة"}).get_json()["id"]
+    client.delete(f"/api/missions/{mid}")
+    texts = [e["text"] for e in _entries(client, entity="mission", entity_id=mid)]
+    assert texts == ["حذف مأمورية «تأمين مباراة»", "إضافة مأمورية «تأمين مباراة»"]
 
 
 def test_entity_filter_only_returns_that_entity(client):

@@ -16,6 +16,23 @@ from ..utils import json_payload, parse_date
 bp = Blueprint("leaves", __name__)
 
 
+def _leave_span(lv):
+    return f"{lv.get('type', '')} {lv.get('start', '')} ← {lv.get('end', '')}"
+
+
+def _leave_text(data, action, before=None, after=None):
+    """جملة السجل لتغيير راحة — نفس صيغة إلغاء/إيقاف الراحة في rest_suspension."""
+    lv = after or before
+    name = Repos(data).leaves.name_of(lv.get("person_id", ""))
+    if action == "create":
+        return f"تسجيل راحة {name} ({_leave_span(after)})"
+    if action == "delete":
+        return f"حذف راحة {name} ({_leave_span(before)})"
+    if _leave_span(before) == _leave_span(after):
+        return f"تعديل بيانات راحة {name} ({_leave_span(after)})"
+    return f"تعديل راحة {name}: ({_leave_span(before)}) ← ({_leave_span(after)})"
+
+
 @bp.post("/api/leaves")
 def add_leave():
     payload = json_payload()
@@ -42,7 +59,8 @@ def add_leave():
         reason = retro.require_reason(closed)
 
         added = leaves.add(Leave.from_dict(leave))
-        changes.record(data, "leave", leave["id"], "create", after=dict(leave))
+        changes.record(data, "leave", leave["id"], "create", after=dict(leave),
+                       text=_leave_text(data, "create", after=leave))
         if closed:
             retro.log_retro(data, "leave", leave["id"], closed, reason, after=dict(leave))
         return jsonify(leaves.named(added)), 201
@@ -80,7 +98,8 @@ def edit_leave(leave_id):
 
         updated = Leave.from_dict(leave)
         leaves.replace(updated)
-        changes.record(data, "leave", leave_id, "update", before=current, after=dict(leave))
+        changes.record(data, "leave", leave_id, "update", before=current, after=dict(leave),
+                       text=_leave_text(data, "update", before=current, after=leave))
         if closed:
             retro.log_retro(data, "leave", leave_id, closed, reason, before=current, after=dict(leave))
         return jsonify(leaves.named(updated))
@@ -100,7 +119,8 @@ def delete_leave(leave_id):
         reason = retro.require_reason(closed)
 
         leaves.remove(leave_id)
-        changes.record(data, "leave", leave_id, "delete", before=removed.as_dict())
+        changes.record(data, "leave", leave_id, "delete", before=removed.as_dict(),
+                       text=_leave_text(data, "delete", before=removed.as_dict()))
         if closed:
             retro.log_retro(data, "leave", leave_id, closed, reason, before=removed.as_dict())
         return jsonify({"ok": True})
@@ -201,7 +221,8 @@ def add_monthly_roster():
                     f"توجد راحة متداخلة للضابط نفسه ({clash['start']} → {clash['end']})."})
                 continue
             added = repos.leaves.add(Leave.from_dict(leave))
-            changes.record(data, "leave", leave["id"], "create", after=dict(leave))
+            changes.record(data, "leave", leave["id"], "create", after=dict(leave),
+                           text=_leave_text(data, "create", after=leave))
             row_closed = retro.closed_days_in(data, leave["start"], leave["end"])
             if row_closed:
                 retro.log_retro(data, "leave", leave["id"], row_closed, reason, after=dict(leave))

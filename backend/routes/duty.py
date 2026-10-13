@@ -23,6 +23,19 @@ from ..utils import MAX_LEN, around, canonical_day, json_payload
 bp = Blueprint("duty", __name__)
 
 
+def _state_text(name, day, before, after):
+    """جملة السجل لتغيير حالة ضابط في يومية الضباط — إيه اللي اتغيّر بالظبط."""
+    before, after = before or {}, after or {}
+    parts = []
+    if bool(before.get("taqseera")) != bool(after.get("taqseera")):
+        parts.append("تقصيرة" if after.get("taqseera") else "إلغاء التقصيرة")
+    if (before.get("status") or "") != (after.get("status") or ""):
+        parts.append(f"الحالة: {before.get('status') or '—'} ← {after.get('status') or '—'}")
+    if (before.get("note") or "") != (after.get("note") or ""):
+        parts.append(f"الملاحظة: {after.get('note') or 'مُسحت'}")
+    return f"{name} في يومية {day}: " + "، ".join(parts or ["تعديل الحالة"])
+
+
 @bp.get("/api/duty/<day>")
 def get_duty(day):
     day = canonical_day(day)
@@ -79,7 +92,8 @@ def set_state(day, person_id):
             raise AbortRequest((jsonify({"error": lock_err}), 409))
         # الحالة بتتقاس على قوة اليوم نفسه، فالضابط المتأرشف ينفع يتعدّل
         # في يوم كان فيه بالقوة
-        if not any(o.get("id") == person_id for o in officers_on(data, day)):
+        officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
+        if not officer:
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
         # الحقل اللي مش مبعوت في الطلب مابيتغيّرش. قبل كده كانت القيم
         # التلاتة بتتكتب دايمًا، فطلب فيه `taqseera` بس كان بيمسح الحالة
@@ -93,7 +107,8 @@ def set_state(day, person_id):
             note=note if "note" in payload else None)
         if before != dict(after):
             changes.record(data, "officer_state", person_id, "update",
-                           before=before, after=dict(after), reason=f"يوم {day}")
+                           before=before, after=dict(after), reason=f"يوم {day}",
+                           text=_state_text(officer.get("name", ""), day, before, after))
         result = summarise(data, day)
         result["daily"] = build_daily_view(data, day)
         result["revision"] = result["daily"]["revision"]
@@ -112,13 +127,15 @@ def clear_state(day, person_id):
         ok, lock_err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": lock_err}), 409))
-        if not any(o.get("id") == person_id for o in officers_on(data, day)):
+        officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
+        if not officer:
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
         before = dict(officer_state(data, day, person_id))
         set_officer_state(data, day, person_id, taqseera=False, status="", note="")
         if before:
             changes.record(data, "officer_state", person_id, "delete",
-                           before=before, reason=f"يوم {day}")
+                           before=before, reason=f"يوم {day}",
+                           text=f"مسح حالة {officer.get('name', '')} في يومية {day}")
         result = {"ok": True, "daily": build_daily_view(data, day)}
         result["revision"] = result["daily"]["revision"]
         return jsonify(result)

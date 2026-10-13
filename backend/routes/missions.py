@@ -38,7 +38,8 @@ def add_mission():
         if err:
             raise AbortRequest((jsonify({"error": err}), 400))
         entries.append(mission)
-        changes.record(data, "mission", mission["id"], "create", after=dict(mission))
+        changes.record(data, "mission", mission["id"], "create", after=dict(mission),
+                       text=f"إضافة مأمورية «{mission.get('name', '')}»")
         return jsonify(missions_lib.with_member_names(data, mission)), 201
 
     return with_data(mutate, ())
@@ -57,7 +58,8 @@ def edit_mission(mission_id):
         mission, err = missions_lib.apply_mission(data, mission, payload)
         if err:
             raise AbortRequest((jsonify({"error": err}), 400))
-        changes.record(data, "mission", mission_id, "update", before=before, after=dict(mission))
+        changes.record(data, "mission", mission_id, "update", before=before, after=dict(mission),
+                       text=f"تعديل مأمورية «{mission.get('name', '')}»")
         return jsonify(missions_lib.with_member_names(data, mission))
 
     return with_data(mutate, ())
@@ -71,7 +73,8 @@ def delete_mission(mission_id):
         if not mission:
             raise AbortRequest((jsonify({"error": "المأمورية غير موجودة."}), 404))
         repos.missions.remove(mission_id)
-        changes.record(data, "mission", mission_id, "delete", before=mission.as_dict())
+        changes.record(data, "mission", mission_id, "delete", before=mission.as_dict(),
+                       text=f"حذف مأمورية «{mission.as_dict().get('name', '')}»")
         return jsonify({"ok": True})
 
     return with_data(mutate, ())
