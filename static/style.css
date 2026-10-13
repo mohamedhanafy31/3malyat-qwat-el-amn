@@ -1773,7 +1773,10 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 @media(max-width:700px){
   .toolbar .tb-group .date-input-display{flex:1 1 110px;min-width:0}
   .tb-group > .day-jump{flex:1 1 30%}
-  /* شريط التأكيد تحت الأدوات فيه نفس الزرار بشكل أوضح — مايتكررش */
+}
+/* شريط التأكيد تحت الأدوات فيه نفس الزرار بشكل أوضح — مايتكررش. الموبايل
+   بالعرض (~915px عرض بس ~400px طول) كان بيعدّي شرط العرض ويظهر الزرارين. */
+@media(max-width:700px),(max-height:500px){
   .panel:has(.confirm-bar .primary) .confirm-day-btn{display:none}
 }
 
