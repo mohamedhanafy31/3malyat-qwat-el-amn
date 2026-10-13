@@ -832,10 +832,19 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .mtable td{font-size:var(--t-sm);padding:6px var(--s2)}
 /* عناوين الجداول العربية لا تُقسّم إلى حروف منفصلة داخل الأعمدة الضيقة.
    نسمح بتمرير الجدول أفقيًا عند الحاجة، بينما يظل محتوى الخلايا قابلًا للالتفاف. */
-.mcard .mtable th,.mcard .mtable td{white-space:normal;overflow-wrap:anywhere}
+/* break-word مش anywhere: anywhere بيدخل في حساب أقل عرض للعمود، فعلى الموبايل
+   عمود الهدف كان بيتعصر لـ51px والكلمة تتقطع حرف حرف («عيون موس/ي»). */
+.mcard .mtable th,.mcard .mtable td{white-space:normal;overflow-wrap:break-word}
 .mcard .mtable th{white-space:nowrap;overflow-wrap:normal;word-break:normal;min-width:max-content}
 .mtable .name{white-space:normal;line-height:1.35}
-.mcard .mtable .chip{white-space:normal;overflow-wrap:anywhere}
+.mcard .mtable .chip{white-space:normal;overflow-wrap:break-word}
+/* على الموبايل الجدول بيتمرر أفقيًا وعمود الإجراء (آخر عمود = أقصى الشمال)
+   كان بيبقى برّه الشاشة في كل صف — بنثبّته على حافة الكرت. */
+@media(max-width:700px){
+  .mcard .mtable:has(td.col-actions) tr > :last-child{position:sticky;inset-inline-end:0;z-index:1;
+    background:var(--surface);box-shadow:inset 1px 0 0 var(--line)}
+  .mcard .mtable:has(td.col-actions) thead tr > :last-child{background:inherit}
+}
 .mtable .num{white-space:normal}
 .mtable .actions{flex-wrap:nowrap}
 /* الظل الطرفي يظهر مع بقاء محتوى خارج مجال العرض، ويختفي عند الوصول
