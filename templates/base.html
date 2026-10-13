@@ -29,7 +29,7 @@
     <p class="sub">إدارة قـوات أمن السويس</p>
   </div>
   {% if current_user %}
-  <div class="user-chip-wrap" id="userChipWrap">
+  <div class="user-chip-wrap" id="userChipWrap" data-username="{{ current_user.username }}" data-role="{{ current_user.role }}">
     <button type="button" class="user-chip-btn" id="userChipBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu" title="حساب {{ current_user.display_name }}">
       <span class="user-avatar" aria-hidden="true">{{ current_user.display_name[:1] }}</span>
       <span class="user-chip-meta">

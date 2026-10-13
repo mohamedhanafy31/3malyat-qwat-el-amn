@@ -240,6 +240,7 @@ function _endProcess(token){_processRequests.delete(token);_paintProcessLoader()
 
 async function api(url,opts){
   opts=opts||{};
+  const callerSignal=opts.signal;
   const method=String(opts.method||"GET").toUpperCase();
   const mutation=method!=="GET";
   if(mutation){
@@ -269,6 +270,13 @@ async function api(url,opts){
   let out={}; try{out=await r.json()}catch(e){}
   if(!r.ok){
     if(r.status===401){
+      // الجلسة خلصت والمستخدم في نص حفظ — التحويل لصفحة الدخول كان بيضيّع كل اللي
+      // اتكتب في النموذج. بنطلب كلمة المرور هنا ونكمّل نفس الطلب بعد الدخول.
+      if(mutation&&!opts.__relogin){
+        if(await reloginDialog()) return api(url,{...opts,signal:callerSignal,__relogin:true});
+        showToast("لم يُحفظ — انتهت الجلسة. بياناتك ما زالت في النموذج.",true);
+        return null;
+      }
       location.href='/login?next='+encodeURIComponent(location.pathname+location.search);
       return null;
     }
@@ -931,6 +939,40 @@ function reasonDialog({title,body,label,confirmLabel,required=true,maxLength=300
     return value||(!required?"":null);
   },null);
 }
+/* نافذة دخول سريع فوق الصفحة لما الجلسة تخلص — نفس الحساب والدور، كلمة المرور بس. */
+function reloginDialog(){
+  const wrap=$("#userChipWrap");
+  const username=wrap?.dataset.username, role=wrap?.dataset.role;
+  if(!username||!role) return Promise.resolve(false);
+  return _dialogStart({
+    title:"انتهت الجلسة",
+    body:`اكتب كلمة المرور للحساب ${username} لإكمال الحفظ. ما كتبته في النموذج لم يُفقد.`,
+    confirmLabel:"دخول وإكمال الحفظ",
+  },()=>{
+    const field=document.createElement("label");
+    field.textContent="كلمة المرور";
+    const input=document.createElement("input");
+    input.id="sharedDialogPassword"; input.type="password"; input.autocomplete="current-password";
+    field.appendChild(input); $("#sharedDialogField").appendChild(field);
+    const confirm=$("#sharedDialogConfirm");
+    const sync=()=>{ confirm.disabled=!input.value };
+    input.addEventListener("input",sync); sync();
+  },async()=>{
+    const input=$("#sharedDialogPassword"), error=$("#sharedDialogError");
+    let ok=false;
+    try{
+      const r=await fetch("/api/auth/login",{method:"POST",
+        headers:{"Content-Type":"application/json","X-Requested-With":"fetch"},
+        body:JSON.stringify({username,role,password:input.value})});
+      ok=r.ok;
+    }catch(e){}
+    if(ok) return true;
+    error.textContent="كلمة المرور غير صحيحة أو تعذّر الاتصال بالخادم.";
+    error.classList.remove("hidden");
+    input.select();
+    return undefined;
+  },false);
+}
 function dateDialog({title,body,label,value,confirmLabel,min,max}){
   return _dialogStart({title,body,confirmLabel},()=>{
     const field=document.createElement("label");
@@ -959,11 +1001,15 @@ function dateDialog({title,body,label,value,confirmLabel,min,max}){
 }
 
 $("#sharedDialogCancel").onclick=()=>_dialogFinish(_dialogPending?.cancelValue);
-$("#sharedDialogForm").onsubmit=e=>{
+$("#sharedDialogForm").onsubmit=async e=>{
   e.preventDefault();
-  if(!_dialogPending||$("#sharedDialogConfirm").disabled) return;
-  const value=_dialogPending.onConfirm();
-  if(value!==undefined) _dialogFinish(value);
+  const pending=_dialogPending, confirm=$("#sharedDialogConfirm");
+  if(!pending||confirm.disabled) return;
+  // onConfirm ممكن تبقى async (نافذة الدخول) — الزر بيتقفل لحد ما ترد
+  confirm.disabled=true;
+  const value=await pending.onConfirm();
+  confirm.disabled=false;
+  if(value!==undefined&&_dialogPending===pending) _dialogFinish(value);
 };
 
 /* ---------- شارات الحالة (الحالة نفسها محسوبة في الباك إند) ---------- */

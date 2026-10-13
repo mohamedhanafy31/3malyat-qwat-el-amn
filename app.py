@@ -1,3 +1,4 @@
+import gzip
 import os
 
 from flask import Flask, jsonify, request
@@ -37,6 +38,57 @@ def _bust_static_cache(endpoint, values):
             values["v"] = _STATIC_STAMPS.setdefault(values["filename"], int(os.path.getmtime(path)))
         except OSError:
             pass
+
+
+_COMPRESSIBLE = ("application/json", "application/javascript", "image/svg+xml")
+_GZIP_MIN_BYTES = 1024
+# نسخة مضغوطة واحدة لكل ملف ثابت (مفتاحها المسار + الـETag) بدل ما نضغط
+# pdf.worker (1MB+) من الأول مع كل طلب
+_STATIC_GZIP = {}
+
+
+@app.after_request
+def _compress_and_cache(response):
+    """الموبايل بيوصل للسيستم عبر Tailscale وأحيانًا عبر Relay بعيد — حجم الرد
+    وعدد الرحلات هما اللي بيحددوا السرعة، مش وقت السيرفر.
+
+    - الملفات الثابتة المختومة بـ`?v=` (_bust_static_cache) اسمها بيتغيّر مع أي
+      تعديل، فبتتخزّن عند المتصفح سنة كاملة بدل ما كل صفحة تسأل عنها السيرفر تاني.
+    - JSON وHTML وCSS وJS بيتضغطوا gzip: بيانات زي سجل الراحات بتصغر ~94%.
+    """
+    is_static = request.path.startswith("/static/")
+    if is_static and response.status_code in (200, 304) and request.args.get("v"):
+        response.cache_control.no_cache = None
+        response.cache_control.public = True
+        response.cache_control.max_age = 31536000
+        response.cache_control.immutable = True
+
+    mimetype = response.mimetype or ""
+    if (response.status_code != 200
+            or "gzip" not in request.headers.get("Accept-Encoding", "").lower()
+            or "Content-Encoding" in response.headers
+            or not (mimetype.startswith("text/") or mimetype in _COMPRESSIBLE)
+            or (response.is_streamed and not response.direct_passthrough)):
+        return response
+
+    response.vary.add("Accept-Encoding")
+    key = None
+    if is_static:
+        etag = response.get_etag()[0]
+        key = (request.path, etag) if etag else None
+    body = _STATIC_GZIP.get(key) if key else None
+    if body is None:
+        response.direct_passthrough = False
+        raw = response.get_data()
+        if len(raw) < _GZIP_MIN_BYTES:
+            return response
+        body = gzip.compress(raw, compresslevel=6)
+        if key:
+            _STATIC_GZIP[key] = body
+    response.direct_passthrough = False
+    response.set_data(body)
+    response.headers["Content-Encoding"] = "gzip"
+    return response
 
 
 @app.errorhandler(SchemaMismatch)
