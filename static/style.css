@@ -1824,9 +1824,26 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   [data-mobile-cards] .table tbody td.num{direction:rtl}
   [data-mobile-cards] .table tbody td.cell-empty{display:none}
   [data-mobile-cards] .table tr.grouprow td{padding:var(--s2) var(--s4)}
-  /* علامة الصف (راجع قريب/منتهي) بتبقى شريط على طول الكرت مش على أول خانة بس */
-  [data-mobile-cards] .table tr.returning-soon td{border-inline-start:3px solid var(--warn-500)}
-  [data-mobile-cards] .table tr.was td{border-inline-start:3px solid var(--ink-300)}
+  /* كرت مضغوط: الخانات القصيرة اتنين جنب بعض (العنوان فوق القيمة)، وأزرار
+     الإجراء جنب الاسم بدل سطر لوحدها — كرت الضابط كان ~270px و34 كرت = 12 شاشة. */
+  [data-mobile-cards] .table tbody tr:not(.grouprow){display:flex;flex-wrap:wrap;align-items:flex-start}
+  [data-mobile-cards] .table tbody tr:not(.grouprow) > td{order:2;flex:1 1 50%;min-width:0;
+    flex-direction:column;align-items:flex-start;gap:1px;padding-block:4px}
+  [data-mobile-cards] .table tbody tr:not(.grouprow) > td[data-label]:not([data-label=""])::before{flex:none}
+  [data-mobile-cards] .table tbody tr:not(.grouprow) > td.name:first-child{order:0;flex:1 1 calc(100% - 140px);padding-bottom:var(--s1);
+    white-space:normal}
+  [data-mobile-cards] .table tbody tr:not(.grouprow) > td.col-actions{order:1;flex:0 0 auto;width:auto;
+    padding-top:var(--s3);padding-bottom:0}
+  /* النصوص الطويلة (عمل مسند، ملاحظات، وصف التغيير) تاخد السطر كله */
+  [data-mobile-cards] .table tbody tr:not(.grouprow) > td.wrap{flex-basis:100%;max-width:none}
+  /* التظليل على الصف كله مش الخانات — وإلا الفراغ بين الخانات يبان أبيض */
+  [data-mobile-cards] .table tbody tr:nth-child(even):not(.grouprow){background:var(--navy-50)}
+  [data-mobile-cards] .table tbody tr:not(.grouprow) > td:last-child{padding-bottom:var(--s3)}
+  /* علامة الصف (راجع قريب/منتهي) شريط على طول الكرت كله */
+  [data-mobile-cards] .table tr.returning-soon{border-inline-start:3px solid var(--warn-500);
+    background:var(--warn-50)}
+  [data-mobile-cards] .table tr.was{border-inline-start:3px solid var(--ink-300)}
+  [data-mobile-cards] .table tr:is(.returning-soon,.was) td:first-child{border-inline-start:0}
 }
 
 /* تلميح التمرير الأفقي: الحافة اللي وراها محتوى بتبهت. ظل مرسوم على
