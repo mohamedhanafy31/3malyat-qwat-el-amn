@@ -53,7 +53,7 @@ def test_export_filename_carries_the_day(client):
     assert DAY in disposition
 
 
-def test_export_returns_preserved_authoritative_roster_byte_for_byte(client):
+def test_export_ignores_preserved_authoritative_roster_and_generates(client):
     path = store.board_source_doc_path(DAY)
     path.parent.mkdir(parents=True, exist_ok=True)
     source = Document()
@@ -61,11 +61,13 @@ def test_export_returns_preserved_authoritative_roster_byte_for_byte(client):
     source.add_table(rows=2, cols=5).cell(0, 0).text = "الخدمات الأساسية"
     source.save(path)
 
-    expected = path.read_bytes()
     response = client.get(f"/api/board/{DAY}/export.docx")
 
     assert response.status_code == 200
-    assert response.data == expected
+    assert response.data != path.read_bytes()
+    generated = Document(io.BytesIO(response.data))
+    assert len(generated.tables) == 1
+    assert len(generated.tables[0].rows) == 34
 
 
 def test_generated_roster_uses_word_strength_columns_without_service_details(client):
@@ -79,10 +81,26 @@ def test_generated_roster_uses_word_strength_columns_without_service_details(cli
         assert client.post(f"/api/assignments/{DAY}", json=payload).status_code == 201
     table = _download(client).tables[0]
     basic = next(row for row in table.rows if row.cells[0].text.strip() == "خدمة أساسية اختبار صبح")
-    emergency = next(row for row in table.rows if row.cells[2].text.strip() == "خدمة طارئة اختبار")
-
+    emergency = next(row for row in table.rows
+                     if "خدمة طارئة اختبار" in " | ".join(cell.text for cell in row.cells))
     assert "آلي" not in basic.cells[1].text
     assert "8ص" not in basic.cells[1].text
-    assert emergency.cells[3].text.strip() == "—"
-    assert "12" not in emergency.cells[4].text
-    assert "آلي" not in emergency.cells[4].text
+    assert "آلي" not in " | ".join(cell.text for cell in emergency.cells)
+    assert "12ظ" not in " | ".join(cell.text for cell in emergency.cells)
+
+
+def test_generated_roster_uses_shared_person_labels(client):
+    person = client.post("/api/person", json={
+        "type": "personnel", "name": "فرد اختبار طويل الاسم", "code": "901",
+        "phone": "01012345678", "join_date": "2020-01-01", "role": "أمين شرطة",
+    }).get_json()
+    client.patch("/api/person/OFF-001", json={"short_name": "مختصر الضابط"})
+    for name, payload in (("خدمة فرد", {"personnel_ids": [person["id"]]}),
+                          ("خدمة ضابط", {"officer_ids": ["OFF-001"]}),
+                          ("خدمة fallback", {"officer_ids": ["OFF-002"]})):
+        payload.update({"name": name, "section": "الخدمات الطارئة", "kind": "خارجية"})
+        assert client.post(f"/api/assignments/{DAY}", json=payload).status_code == 201
+    text = _all_text(_download(client))
+    assert "ا.ش/ فرد اختبار طويل" in text
+    assert "عقيد/ مختصر الضابط" in text
+    assert "نقيب/ محمود علي" in text

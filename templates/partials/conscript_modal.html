@@ -1,0 +1,11 @@
+<div class="modal hidden" id="conscriptModal">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="conscriptTitle">
+    <button type="button" class="close" data-close="conscriptModal" aria-label="إغلاق">×</button>
+    <h2 id="conscriptTitle">إضافة مجند</h2>
+    <form id="conscriptForm" novalidate>
+      <label>اسم المجند <span class="req" aria-hidden="true">*</span><input id="conscriptName" required></label>
+      <label>التليفون<input id="conscriptPhone" inputmode="tel"></label>
+      <div class="actions modal-foot"><button class="primary full" type="submit">حفظ</button><button class="btn" type="button" data-close="conscriptModal">إلغاء</button></div>
+    </form>
+  </div>
+</div>

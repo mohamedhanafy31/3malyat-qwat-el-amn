@@ -1,6 +1,7 @@
 /* يومية تشغيل الضباط — جدول الإجمالي وحالة الضابط.
    التكليف بخدمة بقى في اليومية التفصيلية (نفس السجل)، والصفحة دي بتعدّل
-   حالة الضابط بس: تقصيرة / انتداب / غياب / مرضي / فرقة / طارئة / ملاحظة. */
+   حالة الضابط بس: تقصيرة / انتداب / غياب / مرضي / فرقة / طارئة، وتشغيل
+   إضافي بيتضاف على خدمته التلقائية، وإضافته للعمل بالإدارة في اللوحة. */
 let DUTY = null;
 
 window.exportDocxUrl = () => DUTY ? `/api/duty/${DUTY.date}/export.docx` : null;
@@ -80,7 +81,7 @@ function officerRow(r) {
     <td class="wrap">${esc(r.post) || "<span class='muted'>—</span>"}</td>
     <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
     <td>${grp}</td>
-    <td class="wrap">${esc(r.note) || "<span class='muted'>—</span>"}</td>
+    <td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}${r.admin_work ? ' <span class="chip m" title="يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية">+ عمل بالإدارة</span>' : ""}</td>
     <td><button class="mini" data-action="openAssign" data-id="${esc(r.id)}">الحالة</button></td>
   </tr>`;
 }
@@ -110,7 +111,20 @@ ACTIONS.openAssign = id => {
   // ملاحظة بس) يثبّت «فرقة» كحالة يدوية تفضل بعد ما الفرقة نفسها تتمسح.
   $("#assignStatus").value = row.status || "";
   $("#assignTaq").checked = !!row.taqseera;
+  $("#assignExtra").value = row.extra || "";
+  // النص القديم الكامل بيظهر بس لو موجود — الأيام الجديدة مفيهاش غير الإضافي
   $("#assignNote").value = row.note || "";
+  $("#assignNoteRow").classList.toggle("hidden", !row.note);
+  // الضابط في الخوارج (راحة/حالة/تقصيرة) مالوش خدمة تتكرر في «عمل بالإدارة»
+  // والصافي (من غير خدمة) موجود في «عمل بالإدارة» تلقائيًا
+  const outside = row.group === "خوارج", net = row.group === "صافي";
+  $("#assignAdmin").checked = !!row.admin_work;
+  $("#assignAdmin").disabled = outside || net;
+  $("#assignAdminHint").textContent = outside
+    ? "الضابط في الخوارج النهارده — مفيش نص تشغيلي يتضاف"
+    : net ? "الضابط صافي (بدون خدمة) — موجود في «عمل بالإدارة» تلقائيًا"
+    : "النص التشغيلي الكامل (خدمته + الإضافي) يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية، ويفضل في مكان خدمته";
+  updateAssignPreview();
   // الضابط في راحة اليوم ده — إيقافها من هنا مباشرة، من غير ما تروح صفحة الراحات
   const lv = row.leave;
   $("#assignRest").classList.toggle("hidden", !lv?.id);
@@ -125,11 +139,30 @@ ACTIONS.openAssign = id => {
   openModal("assignModal");
 };
 
+/* معاينة النص الكامل زي ما هيتطبع: خدمته التلقائية (أو النص القديم) + الإضافي */
+function updateAssignPreview() {
+  const row = DUTY?.rows.find(r => r.id === $("#assignPerson").value);
+  if (!row) return;
+  const note = $("#assignNote").value.trim();
+  // نفس صياغة الباك إند (`duty.service_line`): الأهداف «عمل بهدف …»
+  const line = s => {
+    let t = s.name || "";
+    if (s.section === "الأهداف" && t) t = t === "مشرف الأهداف" ? "متابعة اعمال الاهداف" : `عمل بهدف ${t}`;
+    return t + (s.shift ? ` فترة ${s.shift}` : "");
+  };
+  const base = note || row.services.map(line).filter(Boolean).join(" + ");
+  const full = [base, $("#assignExtra").value.trim()].filter(Boolean).join(" + ");
+  $("#assignPreview").textContent = full ? `النص الكامل: ${full}` : "مفيش نص تشغيلي لليوم ده.";
+}
+$("#assignExtra").oninput = updateAssignPreview;
+$("#assignNote").oninput = updateAssignPreview;
+
 $("#assignForm").onsubmit = async e => {
   e.preventDefault();
   const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent($("#assignPerson").value)}`,
     jsonReq("PUT", {taqseera: $("#assignTaq").checked,
-      status: $("#assignStatus").value, note: $("#assignNote").value}));
+      status: $("#assignStatus").value, note: $("#assignNote").value,
+      extra: $("#assignExtra").value, admin_work: $("#assignAdmin").checked}));
   if (!out) return;
   DUTY = out; closeModal("assignModal", true); showToast("تم حفظ الحالة"); render();
 };

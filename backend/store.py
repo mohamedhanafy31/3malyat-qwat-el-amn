@@ -74,6 +74,39 @@ DATA_DIR = _initial_data_dir()
 _ENV_DATA_DIR = DATA_DIR if os.environ.get("PERSONNEL_DATA_DIR", "").strip() else None
 LOCK = threading.Lock()
 
+
+class Changeset(NamedTuple):
+    days: frozenset
+    created_days: frozenset
+    removed_days: frozenset
+    core_keys: frozenset
+
+
+ALL_CORE_KEYS = frozenset({"*"})
+_AFTER_COMMIT_HOOKS = []
+_HOOKS_LOCK = threading.Lock()
+
+
+def register_after_commit(fn):
+    with _HOOKS_LOCK:
+        if fn not in _AFTER_COMMIT_HOOKS:
+            _AFTER_COMMIT_HOOKS.append(fn)
+
+
+def clear_after_commit_hooks():
+    with _HOOKS_LOCK:
+        _AFTER_COMMIT_HOOKS.clear()
+
+
+def _run_after_commit(changeset):
+    with _HOOKS_LOCK:
+        hooks = tuple(_AFTER_COMMIT_HOOKS)
+    for hook in hooks:
+        try:
+            hook(changeset)
+        except Exception:
+            logging.getLogger(__name__).exception("after-commit hook failed")
+
 CORE_NAME = "core.json"
 DAYS_NAME = "days"
 SOURCE_DOCS_NAME = "source_docs"
@@ -109,6 +142,7 @@ DAY_SECTIONS = {
     # النسخة المبدئية لضباط الأهداف جاية من آخر تأكيد لليوم السابق. بنحفظ
     # المصدر والبصمة جوّه ملف اليوم عشان نعرف هل المشغّل لمسها قبل تحديثها.
     "target_defaults": "target_defaults",
+    "day_campaign": "campaign",
     # علامة مصدر اليوم المستورد؛ غيابها يعني أن اليوم أُنشئ داخل النظام.
     "day_import": "import",
 }
@@ -477,6 +511,12 @@ def _day_meta(sig, blob):
         if isinstance(entry, dict):
             people.update(entry[k] for k in ("morning_person_id", "night_person_id")
                           if isinstance(entry.get(k), str) and entry.get(k))
+    campaign = blob.get("campaign") or {}
+    for section in ("lorries", "services", "daily"):
+        for value in (campaign.get(section) or {}).values():
+            driver = value.get("driver") or {}
+            if driver.get("id"):
+                people.add(driver["id"])
     return _DayMeta(sig, sections, _board_names(rows), frozenset(people))
 
 
@@ -498,6 +538,10 @@ class DayIndex:
     def has(self, day, key):
         meta = self._entries.get(day)
         return meta is not None and key in meta.sections
+
+    def signature(self, day):
+        meta = self._entries.get(day)
+        return meta.sig if meta is not None else None
 
     def days_with(self, *keys, start=None, end=None):
         """الأيام اللي فيها أي قسم من `keys` (أو أي يوم لو مفيش)، بين
@@ -700,6 +744,9 @@ def _normalise(data):
     data.setdefault("service_tags", [])
     data.setdefault("courses", [])
     data.setdefault("course_terms", [])
+    data.setdefault("vehicles", [])
+    data.setdefault("service_lines", [])
+    data.setdefault("conscripts", [])
     command = data.setdefault("command", {})
     for role in DEFAULT_DATA["command"]:
         command.setdefault(role, None)
@@ -843,6 +890,11 @@ def _write(data):
     scope = tracking.get("scope")
     core, days = split(data)
 
+    old_core = None
+    with _STATE_LOCK:
+        cached_core = _cache.get(str(core_file()), True)
+        if cached_core is not None:
+            old_core = pickle.loads(cached_core.packed)
     core_text = _dumps(core)
     core_stamp = _fingerprint(core_text)
     core_changed = core_stamp != before.get("core")
@@ -909,7 +961,29 @@ def _write(data):
     index = _ensure_index() if scope is not None else tracking.get("index")
     data["_fp"] = {"fingerprints": new_fp, "originals": new_originals,
                    "scope": scope, "index": index}
-    return written, removed
+    changed_days = frozenset(
+        p[:-5] for p in written if p.endswith(".json") and p != CORE_NAME
+    )
+    created_days = frozenset(day for day in changed_days if day not in before)
+    removed_days = frozenset(p[:-5] for p in removed if p.endswith(".json"))
+    if core_changed:
+        if old_core is None:
+            core_keys = ALL_CORE_KEYS
+        else:
+            changed = set()
+            for key in set(old_core) | set(core):
+                old_value = old_core.get(key)
+                new_value = core.get(key)
+                if old_value != new_value:
+                    changed.add(key)
+            defaults = {
+                key: value for key, value in DEFAULT_DATA.items()
+                if key not in old_core and core.get(key) == value
+            }
+            core_keys = frozenset(changed - set(defaults))
+    else:
+        core_keys = frozenset()
+    return Changeset(changed_days, created_days, removed_days, core_keys)
 
 
 def _last_backup_age():
@@ -971,12 +1045,13 @@ def assemble():
                  {p.stem: _load(p, cache=False)[1] for p in all_day_files()})
 
 
-def explode(data):
+def explode(data, _notify=True):
     """بيكتب dict كامل على المجلد — عكس `assemble()`.
 
     بيمسح ملفات الأيام اللي مش في الـdict عشان الاستعادة تبقى «رجّع
     للحظة دي» بالظبط، مش «دمج فوق اللي موجود».
     """
+    existing_days = {path.stem for path in all_day_files()}
     data = dict(data)
     data.setdefault("schema", SCHEMA_VERSION)
     core, days = split(data)
@@ -987,6 +1062,11 @@ def explode(data):
     for day, blob in days.items():
         _write_atomic(day_path(day), _dumps(blob))
     _cache.clear()
+    touched_days = frozenset(existing_days | set(days))
+    changeset = Changeset(touched_days, touched_days, frozenset(), ALL_CORE_KEYS)
+    if _notify:
+        _run_after_commit(changeset)
+    return changeset
 
 
 # ---------- النسخ الاحتياطية ----------
@@ -1106,9 +1186,10 @@ def restore_backup(name):
                 if uploads_root not in target.parents:
                     raise DataUnreadable("الأرشيف يحتوي مسار مرفق غير آمن.")
                 zip_members.append(member)
+    old_days = set(day_index().days())
     with LOCK:
         snapshot_now()                    # لقطة للوضع الحالي قبل الاستبدال
-        explode(data)
+        explode(data, _notify=False)
         if path.suffix == ".zip":
             with zipfile.ZipFile(path) as zf:
                 for member in zip_members:
@@ -1116,6 +1197,10 @@ def restore_backup(name):
                     target.parent.mkdir(parents=True, exist_ok=True)
                     with zf.open(member) as source, open(target, "wb") as dest:
                         shutil.copyfileobj(source, dest)
+    restored_days = set(day_index().days()) | old_days
+    _run_after_commit(Changeset(frozenset(restored_days),
+                                frozenset(restored_days),
+                                frozenset(), ALL_CORE_KEYS))
     return data
 
 
@@ -1266,7 +1351,8 @@ def save_data(data):
     تستخدم with_data() بدالها عشان تضمن إن حد تاني ما يقرأش/يكتبش في النص."""
     with LOCK:
         recover_journal()
-        _write(data)
+        changeset = _write(data)
+    _run_after_commit(changeset)
 
 
 class AbortRequest(Exception):
@@ -1290,9 +1376,10 @@ def with_data(fn, days=ALL_DAYS):
             result = fn(data)
         except AbortRequest as exc:
             return exc.response
-        _write(data)
+        changeset = _write(data)
         _log_audit()
-        return result
+    _run_after_commit(changeset)
+    return result
 
 
 # ---------- المعرّفات ----------

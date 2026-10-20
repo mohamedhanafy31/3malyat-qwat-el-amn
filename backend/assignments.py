@@ -21,7 +21,7 @@
 
 وجنبه سجل تاني **مش تكرار** — دي حقيقة مختلفة، حالة الضابط نفسه:
 
-    day_officers[day][officer_id] = {taqseera, status, note}
+    day_officers[day][officer_id] = {taqseera, status, note, extra, admin_work}
 
 الفرق المهم في الشكل: `officer_ids` **قايمة**:
   - فاضية  = خانة شاغرة. الوورد فيه 1,034 صف خدمات طارئة بقوام أفراد
@@ -73,9 +73,11 @@ def officer_state(data, day, officer_id):
     return officer_states(data, day).get(officer_id) or {}
 
 
-def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=None):
-    """حالة الضابط (تقصيرة/انتداب/غياب/مرضي/فرقة/طارئة/ملاحظة).
-    السجل بيتشال لما يفضّى عشان الملف ما يمتلئش بمدخلات فاضية."""
+def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=None,
+                      extra=None, admin_work=None):
+    """حالة الضابط (تقصيرة/انتداب/غياب/مرضي/فرقة/طارئة/ملاحظة/تشغيل إضافي/
+    إضافة للعمل بالإدارة). السجل بيتشال لما يفضّى عشان الملف ما يمتلئش
+    بمدخلات فاضية. الحقل اللي مش مبعوت (None) مابيتغيّرش."""
     states = data.setdefault("day_officers", {}).setdefault(day, {})
     entry = dict(states.get(officer_id) or {})
     if taqseera is not None:
@@ -84,8 +86,17 @@ def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=No
         entry["status"] = status
     if note is not None:
         entry["note"] = note
+    if extra is not None:
+        entry["extra"] = extra
+    if admin_work is not None:
+        entry["admin_work"] = bool(admin_work)
+    # الحقلين الجداد مابيتخزّنوش فاضيين — ملفات الأيام القديمة تفضل بنفس شكلها
+    for optional in ("extra", "admin_work"):
+        if not entry.get(optional):
+            entry.pop(optional, None)
 
-    if not any((entry.get("taqseera"), entry.get("status"), entry.get("note"))):
+    if not any((entry.get("taqseera"), entry.get("status"), entry.get("note"),
+                entry.get("extra"), entry.get("admin_work"))):
         states.pop(officer_id, None)
     else:
         states[officer_id] = entry

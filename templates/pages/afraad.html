@@ -11,12 +11,21 @@
       <button class="mini day-jump" id="dayToday">اليوم</button>
     </div>
     <div class="tb-group" role="group" aria-label="حالة اليوم"><span id="dayLockBadge">{{ skeleton("status") }}</span></div>
+    <div class="tb-group">
+      <button class="mini" id="afOcrOpen" type="button">قراءة صورة اليومية</button>
+      <button class="mini" id="afBasicOpen" type="button">تعديل الخدمات الأساسية</button>
+      <input id="afOcrImage" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+    </div>
   </div>
   <div id="afWrap">{{ skeleton("rows", 10) }}</div>
 </div>
 {% endblock %}
 
-{% block modals %}{% include "partials/afraad_entry_modal.html" %}{% endblock %}
+{% block modals %}
+{% include "partials/afraad_entry_modal.html" %}
+{% include "partials/afraad_ocr_modal.html" %}
+{% include "partials/afraad_basic_modal.html" %}
+{% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/afraad.js') }}"></script>

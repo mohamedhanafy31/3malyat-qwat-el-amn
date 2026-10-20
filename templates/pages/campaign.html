@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block export %}docx{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar" id="campaignBar">
+    <div class="tb-group" role="group" aria-label="التنقل بين الأيام">
+      <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
+      <input type="date" id="dutyDate" class="select">
+      <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
+      <button class="mini day-jump" id="dayToday">اليوم</button>
+    </div>
+    <div class="tb-group" role="group" aria-label="حالة اليوم"><span id="dayLockBadge">{{ skeleton("status") }}</span></div>
+  </div>
+  <div id="campaignWrap">{{ skeleton("cards", 3) }}</div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% include "partials/campaign_modal.html" %}
+{% endblock %}
+
+{% block scripts %}<script src="{{ url_for('static', filename='js/campaign.js') }}"></script>{% endblock %}

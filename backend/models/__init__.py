@@ -15,6 +15,8 @@ from .day import (
 )
 from .leave import Leave
 from .mission import OPEN_STATUSES, STATUSES, Mission
+from .conscript import Conscript
+from .vehicle import Vehicle
 from .person import (
     ACTIVE, ARCHIVED, Individual, Officer, OfficerHistory, Person, of_category,
 )
@@ -27,5 +29,6 @@ __all__ = [
     "Course", "CourseTerm", "COURSE_KINDS",
     "Day", "Assignment", "ConscriptSlot", "OfficerDayState", "DayStatus", "CountEntry",
     "Mission", "STATUSES", "OPEN_STATUSES",
+    "Vehicle", "Conscript",
     "ChangeEntry", "MAX_ENTRIES",
 ]

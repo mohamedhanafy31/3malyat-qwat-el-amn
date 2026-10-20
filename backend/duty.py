@@ -15,7 +15,7 @@
 """
 from .assignments import assignments_of, officer_state
 from .courses import by_id as courses_by_id, term_on
-from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SHIFTS
+from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SECTION_TARGETS, SHIFTS, TARGETS_FIRST
 from .dated import groups_on
 from .leaves import leave_on
 from .people import effective, officers_on
@@ -111,6 +111,39 @@ def _bucket(kinds, leave, state, medical, search_attached, course=None):
     return ("صافي", None)
 
 
+def service_line(service):
+    """سطر خدمة واحدة زي ما بيتطبع في يومية الضباط: الاسم + «فترة <الفترة>».
+
+    الأهداف بتتكتب في الورقة «عمل بهدف <الهدف>» ومشرف الأهداف «متابعة اعمال
+    الاهداف» — مش اسم الهدف لوحده زي ما هو على اللوحة."""
+    text = service.get("name", "")
+    if service.get("section") == SECTION_TARGETS and text:
+        text = "متابعة اعمال الاهداف" if text == TARGETS_FIRST else f"عمل بهدف {text}"
+    if service.get("shift"):
+        text += f" فترة {service['shift']}"
+    return text
+
+
+def manual_text(note, extra):
+    """النص اليدوي بس: `note` (نص تشغيل مستورد) ثم التشغيل الإضافي."""
+    return " + ".join(part.strip() for part in (note, extra) if str(part or "").strip())
+
+
+def operational_text(services, note, extra):
+    """النص التشغيلي الكامل للضابط في اليوم: خدمته التلقائية من اللوحة +
+    التشغيل الإضافي اليدوي.
+
+    `note` هو نص التشغيل المستورد من الوورد القديم وبيكون **كامل** (خدمة +
+    إضافة) — لو موجود بيحل محل الخدمة التلقائية عشان ماتتكررش. أما الأيام
+    الجديدة فمفيهاش `note`: الخدمة بتيجي من اللوحة والإضافة من `extra`.
+    فاضي لو مفيش خدمة ولا نص."""
+    base = str(note or "").strip()
+    if not base:
+        base = " + ".join(line for line in map(service_line, services or []) if line)
+    extra = str(extra or "").strip()
+    return " + ".join(part for part in (base, extra) if part)
+
+
 def officer_row(data, day, o, course_names=None):
     """صف ضابط واحد في يومية اليوم — نفس صف `summarise` بالظبط."""
     if course_names is None:
@@ -137,7 +170,8 @@ def officer_row(data, day, o, course_names=None):
     group, sub = _bucket(kinds, leave, state, medical,
                          eff["search_attached"], term)
     return {
-        "id": o["id"], "name": o.get("name", ""), "phone": o.get("phone", ""),
+        "id": o["id"], "name": o.get("name", ""), "short_name": o.get("short_name", ""),
+        "phone": o.get("phone", ""),
         "role": eff["role"], "post": eff["post"], "section": eff["section"],
         "search_attached": eff["search_attached"],
         "rest_system": eff["rest_system"], "rest_day": eff["rest_day"],
@@ -145,6 +179,11 @@ def officer_row(data, day, o, course_names=None):
         "services": items,
         "taqseera": bool(state.get("taqseera")),
         "status": state.get("status", ""),
+        "extra": state.get("extra", ""),
+        "admin_work": bool(state.get("admin_work")),
+        # النص التشغيلي الكامل (خدمته + اليدوي) والنص اليدوي بس
+        "text": operational_text(items, state.get("note", ""), state.get("extra", "")),
+        "manual": manual_text(state.get("note", ""), state.get("extra", "")),
         "leave": ({"id": leave.get("id"), "type": leave["type"], "start": leave["start"],
                    "end": leave["end"],
                    "return_date": leave["return_date"]} if leave else None),

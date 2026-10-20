@@ -10,6 +10,7 @@
    «خدمات مباراة المصري») — بيوصل هنا في `VIEW.custom_sections` وبياخد
    بلوك مستقل بنفس شكل بلوك الطوارئ بالظبط. */
 let DAY = null, MODE = "day", VIEW = null;
+window.exportXlsxUrl = () => DAY ? `/api/counts/${DAY}/export.xlsx` : null;
 
 /* ---------- العرض ---------- */
 

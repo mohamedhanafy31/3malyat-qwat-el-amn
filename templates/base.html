@@ -25,7 +25,7 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 3 6v6c0 5.2 3.6 9.9 9 11 5.4-1.1 9-5.8 9-11V6l-9-4Zm0 2.2 7 3.1v4.7c0 4.1-2.7 7.9-7 8.9-4.3-1-7-4.8-7-8.9V7.3l7-3.1ZM12.00 7.40 L13.03 10.18 L15.99 10.30 L13.66 12.14 L14.47 15.00 L12.00 13.35 L9.53 15.00 L10.34 12.14 L8.01 10.30 L10.97 10.18Z"/></svg>
   </div>
   <div class="titles">
-    <h1>مكتب العمليات وشؤون الضباط</h1>
+    <h1><span class="title-full">مكتب العمليات وشؤون الضباط</span><span class="title-compact" aria-hidden="true">مكتب العمليات</span></h1>
     <p class="sub">إدارة قـوات أمن السويس</p>
   </div>
   {% if current_user %}
@@ -122,6 +122,25 @@
     </div>
 
     <div class="side-group">
+      <div class="side-title">الحملة</div>
+      <a class="navbtn {{ 'active' if page == 'vehicles' }}" href="{{ url_for('pages.vehicles') }}"
+         {{ 'aria-current=page' if page == 'vehicles' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v8h-2V7H5v7H3V6a2 2 0 0 1 2-2Zm-1 9h16v5h-2v2H6v-2H4v-5Zm4 2v2h8v-2H8Z"/></svg>
+        <span>سجل المركبات</span>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'drivers' }}" href="{{ url_for('pages.drivers') }}"
+         {{ 'aria-current=page' if page == 'drivers' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11h14l-1.5-4h-11L5 11Zm-2 1h18v6h-2v2h-2v-2H7v2H5v-2H3v-6Zm4 2v2h3v-2H7Zm7 0v2h3v-2h-3Z"/></svg>
+        <span>السواقين</span>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'campaign' }}" href="{{ url_for('pages.campaign') }}"
+         {{ 'aria-current=page' if page == 'campaign' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v2H4V4Zm0 5h16v2H4V9Zm0 5h10v2H4v-2Zm0 5h10v2H4v-2Z"/></svg>
+        <span>يومية الحملة</span>
+      </a>
+    </div>
+
+    <div class="side-group">
       <div class="side-title">الراحات</div>
       <a class="navbtn {{ 'active' if page == 'leaves' }}" href="{{ url_for('pages.leaves') }}"
          {{ 'aria-current=page' if page == 'leaves' }}>
@@ -173,6 +192,11 @@
     <div class="side-group">
       <div class="side-title">الرقابة</div>
       {% if can('view_logs') %}
+      <a class="navbtn {{ 'active' if page == 'activity_stats' }}" href="{{ url_for('pages.activity_stats') }}"
+         {{ 'aria-current=page' if page == 'activity_stats' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16v2H4v-2Zm1-3h3V9H5v7Zm5 0h3V3h-3v13Zm5 0h3V6h-3v10Z"/></svg>
+        <span>إحصائيات الاستخدام</span>
+      </a>
       <a class="navbtn {{ 'active' if page == 'audit' }}" href="{{ url_for('pages.audit') }}"
          {{ 'aria-current=page' if page == 'audit' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>

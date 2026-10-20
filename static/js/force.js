@@ -132,7 +132,8 @@ function renderTable() {
           {action: "openRemove", id: p.id, extra: {name: p.name}, label: "إخراج من القوة", danger: true},
         ])}`;
       return `<tr>
-        <td class="name">${esc(p.name)}${badges(p)}</td>
+        <td class="name">${esc(p.name)}${p.short_name ? `<br><small class="muted">${esc(p.short_name)}</small>`
+          : `<br><small class="muted" title="بيظهر في اليوميات أول كلمتين من الاسم لحد ما تسجّل الاسم المختصر">بدون اسم مختصر</small>`}${badges(p)}</td>
         <td><span class="badge">${esc(p.role)}</span></td>
         <td>${esc(p.code)}</td>
         <td class="wrap">${esc(p.post) || "-"}</td>
@@ -329,6 +330,7 @@ function updateRoles() {
   $("#restDayWrap").classList.toggle("hidden", !isOff);
   $("#addressWrap").classList.toggle("hidden", isOff);
   $("#officerSectionWrap")?.classList.toggle("hidden", !isOff);
+  $("#shortNameWrap")?.classList.toggle("hidden", !isOff);
   toggleRestDay();
 }
 
@@ -368,6 +370,7 @@ function openPerson(id) {
   updateRoles();
 
   $("#fName").value = p?.name || "";
+  $("#fShortName").value = p?.short_name || "";
   $("#fCode").value = p?.code || "";
   $("#fPhone").value = p?.phone || "";
   $("#fJoin").value = p?.join_date || curDate();
@@ -396,6 +399,7 @@ $("#personForm").onsubmit = async e => {
     phone: $("#fPhone").value, join_date: $("#fJoin").value, post: $("#fPost").value};
   if (id) body.effective_from = $("#fEffectiveFrom").value;
   if (isOff) {
+    body.short_name = $("#fShortName").value.trim();
     body.rest_system = $("#fRestSystem").value;
     body.rest_day = $("#fRestSystem").value === "أسبوعية" ? $("#fRestDay").value : "";
     body.weapon_custody = $("#fWeaponCustody").value.trim();

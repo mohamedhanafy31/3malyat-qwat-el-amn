@@ -182,6 +182,12 @@ def bootstrap(page):
         payload["officer_index"] = _slim(Repos(data).people.all("officers"))
         return jsonify(payload)
 
+    if page in ("vehicles", "drivers"):
+        return jsonify({"meta": meta, "counts": _counts(data)})
+
+    if page == "campaign":
+        return jsonify(_days_payload(data, meta))
+
     if page == "leaves":
         repos = Repos(data)
         people = _slim(repos.people.active("officers")
@@ -203,8 +209,8 @@ def bootstrap(page):
         # صفحة الإحصائيات محتاجة meta + counts فقط — الداتا بتيجي من /api/leaves/stats
         return jsonify({"meta": meta, "counts": _counts(data)})
 
-    if page == "duty_stats":
-        # زي leaves_stats بالظبط — الداتا بتيجي من /api/duty/stats
+    if page in ("duty_stats", "activity_stats"):
+        # صفحات الإحصاء دي محتاجة meta + counts فقط؛ بيانات الرسم من API مستقل.
         return jsonify({"meta": meta, "counts": _counts(data)})
 
     if page == "service_catalog":

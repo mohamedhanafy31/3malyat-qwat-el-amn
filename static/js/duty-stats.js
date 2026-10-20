@@ -58,6 +58,14 @@ function drawLoadChart(data) {
     },
     plugins: [averageLinePlugin(avg)],
   });
+  const ranked = rows.map(r => ({ label: fullName(r), value: r.total, r })).sort((a, b) => b.value - a.value);
+  chartAlt("loadChart", {
+    lead: rows.length
+      ? `الأعلى تشغيلًا: ${topList(ranked)}. الأقل: ${topList([...ranked].reverse())}. المتوسط ${Math.round(avg * 10) / 10} مرة لكل ضابط.`
+      : "لا توجد بيانات تشغيل في هذا المدى.",
+    head: ["الضابط", "الإجمالي", "التفصيل"],
+    rows: ranked.map(x => [x.label, x.value, Object.entries(x.r.by_kind).map(([k, n]) => `${k}: ${n}`).join("، ") || "—"]),
+  });
 }
 
 function drawNetChart(data) {
@@ -79,6 +87,11 @@ function drawNetChart(data) {
         }},
       },
     },
+  });
+  chartAlt("netChart", {
+    lead: `الأعلى في معدل الصافي: ${topList(rows.map(r => ({ label: fullName(r), value: r.rate })), v => `${v}%`)}.`,
+    head: ["الضابط", "النسبة", "أيام الصافي", "إجمالي الأيام"],
+    rows: rows.map(r => [fullName(r), `${r.rate}%`, r.net_days, r.total_days]),
   });
 }
 
@@ -103,12 +116,20 @@ function drawShiftChart(data) {
       },
     },
   });
+  const gaps = rows.map(r => ({ label: fullName(r), value: Math.abs(r.morning - r.night), r }))
+    .sort((a, b) => b.value - a.value);
+  chartAlt("shiftChart", {
+    lead: `أكبر فرق بين الصباحية والليلية: ${topList(gaps, v => `فرق ${v}`)}.`,
+    head: ["الضابط", "صباحية", "ليلية", "الفرق"],
+    rows: gaps.map(x => [x.label, x.r.morning, x.r.night, x.value]),
+  });
 }
 
 function drawTaqseeraChart(data) {
   const rows = data.taqseera_count;
   const el = document.getElementById("taqseeraChart");
   if (!rows.length) {
+    el.closest(".ls-card").querySelector("[data-chart-alt]")?.remove();
     el.closest(".ls-chart-wrap").innerHTML = emptyState({compact: true, title: "لا توجد تقصيرات في هذا المدى"});
     return;
   }
@@ -126,6 +147,11 @@ function drawTaqseeraChart(data) {
         tooltip: { callbacks: { title: items => fullName(rows[items[0].dataIndex]), label: ctx => ` ${countLabel(ctx.raw, "تقصيرة")}` } },
       },
     },
+  });
+  chartAlt("taqseeraChart", {
+    lead: `الأكثر تقصيرًا: ${topList(rows.map(r => ({ label: fullName(r), value: r.count })), v => countLabel(v, "تقصيرة"))}.`,
+    head: ["الضابط", "عدد التقصيرات"],
+    rows: rows.map(r => [fullName(r), r.count]),
   });
 }
 
@@ -151,6 +177,14 @@ function drawWeekdayChart(data) {
         }},
       },
     },
+  });
+  const days = order.map((w, i) => ({ label: w, value: values[i] })).sort((a, b) => b.value - a.value);
+  chartAlt("weekdayChart", {
+    lead: maxVal > 0
+      ? `الأعلى تشغيلًا: ${topList(days, v => countLabel(v, "خدمة"))}.`
+      : "لا توجد خدمات مسندة في هذا المدى.",
+    head: ["اليوم", "الخدمات", "عدد الأيام", "الصافي"],
+    rows: order.map((w, i) => [w, values[i], byName[w]?.days || 0, byName[w]?.net || 0]),
   });
 }
 

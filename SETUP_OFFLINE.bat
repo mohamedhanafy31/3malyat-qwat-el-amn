@@ -29,7 +29,7 @@ if not defined SYSPY goto no_python
 if not exist "%ROOT%venv\Scripts\python.exe" %SYSPY% -m venv "%ROOT%venv" >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto failed
 set "PY=%ROOT%venv\Scripts\python.exe"
-"%PY%" -m pip install --no-index --find-links="%ROOT%wheels" -q flask waitress python-docx >>"%DEPLOY_LOG%" 2>&1
+"%PY%" -m pip install --no-index --find-links="%ROOT%wheels" -q flask waitress python-docx numpy opencv-python-headless Pillow pytesseract >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto failed
 call "%ROOT%tools\deploy_console.bat" ok "Local Python environment configured."
 

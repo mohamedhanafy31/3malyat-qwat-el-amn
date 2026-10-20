@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="drivers-grid">
+  <section class="mcard">
+    <h3>الأفراد السواقين <span class="mcount" id="personnelDriversCount">—</span></h3>
+    <p class="form-note drivers-note">بتتحدد من خانة «العمل المسند = سائق» في سجل الأفراد — <a href="{{ url_for('pages.personnel') }}">فتح سجل الأفراد</a></p>
+    <div id="personnelDriversWrap">{{ skeleton("rows", 3) }}</div>
+  </section>
+  <section class="mcard">
+    <h3>المجندون <span class="mcount" id="conscriptsCount">—</span><button class="mini" id="addConscriptBtn">{{ icon('plus') }} إضافة مجند</button></h3>
+    <div class="toolbar compact-toolbar"><input class="search" id="conscriptSearch" type="search" placeholder="بحث بالاسم أو التليفون" aria-label="بحث في المجندين"></div>
+    <div id="conscriptsWrap">{{ skeleton("rows", 3) }}</div>
+  </section>
+</div>
+{% endblock %}
+{% block modals %}{% include "partials/conscript_modal.html" %}{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/drivers.js') }}"></script>{% endblock %}

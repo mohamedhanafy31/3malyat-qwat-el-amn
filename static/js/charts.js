@@ -57,6 +57,31 @@ function uniqueShortNames(names) {
 }
 const fullName = r => `${r.role ? `${r.role} / ` : ""}${r.name || ""}`;
 
+/* بديل نصّي للرسم (canvas ما بيتقراش بقارئ الشاشة ولا بلوحة المفاتيح):
+   سطر ملخّص بيبدأ بأهم القيم (يتربط بالـcanvas بـaria-describedby)، وتحته
+   «عرض البيانات كجدول» مقفول افتراضيًا فمفيش شجرة طويلة مفتوحة — الجدول
+   الكامل بيتفتح عند الطلب. head: عناوين الأعمدة، rows: مصفوفات خلايا نصية. */
+const topList = (items, fmtVal = v => v, n = 3) =>
+  items.slice(0, n).map(i => `${i.label} (${fmtVal(i.value)})`).join("، ");
+
+function chartAlt(canvasId, { lead, head, rows }) {
+  const canvas = document.getElementById(canvasId);
+  const wrap = canvas?.closest(".ls-chart-wrap");
+  if (!wrap || !rows.length) return;
+  wrap.parentElement.querySelector(`[data-chart-alt="${canvasId}"]`)?.remove();
+  const id = `${canvasId}Alt`;
+  const title = wrap.parentElement.querySelector(".ls-card-title")?.textContent.trim();
+  wrap.insertAdjacentHTML("afterend", `<div class="chart-alt" data-chart-alt="${canvasId}">
+    <p class="chart-alt-lead" id="${id}">${esc(lead)}</p>
+    <details class="chart-alt-table"><summary>عرض البيانات كجدول</summary>
+      <div class="table-scroll">${mtable(head.map(esc), rows.map(r =>
+        `<tr>${r.map((c, i) => `<td${i ? ' class="n"' : ""}>${esc(c)}</td>`).join("")}</tr>`))}</div>
+    </details></div>`);
+  canvas.setAttribute("role", "img");
+  if (title) canvas.setAttribute("aria-label", title);
+  canvas.setAttribute("aria-describedby", id);
+}
+
 /* مفتاح ألوان بسيط فوق الرسم لما اللون بيحمل معنى — كل بند [اسم لون من
    الرموز (navy/gold/soft/bad/cat2/cat4…)، النص] */
 function chartLegend(canvasId, items) {

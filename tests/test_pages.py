@@ -1,9 +1,10 @@
 """الصفحات المنفصلة و bootstrap المخصوص لكل صفحة."""
 import pytest
 
-PAGES = ["dashboard", "officers", "personnel", "duty", "board", "counts", "leaves"]
+PAGES = ["dashboard", "officers", "personnel", "duty", "board", "counts", "leaves", "vehicles", "drivers", "campaign"]
 URLS = {"dashboard": "/", "officers": "/officers", "personnel": "/personnel",
-        "duty": "/duty", "board": "/board", "counts": "/counts", "leaves": "/leaves"}
+        "duty": "/duty", "board": "/board", "counts": "/counts", "leaves": "/leaves",
+        "vehicles": "/vehicles", "drivers": "/drivers", "campaign": "/campaign"}
 
 
 @pytest.mark.parametrize("page", PAGES)
@@ -20,6 +21,33 @@ def test_every_page_contains_the_global_process_loader(client):
     assert "جاري التحميل" in html
 
 
+def test_topbar_keeps_full_title_and_offers_compact_title(client):
+    html = client.get("/officers").get_data(as_text=True)
+    assert '<span class="title-full">مكتب العمليات وشؤون الضباط</span>' in html
+    assert '<span class="title-compact" aria-hidden="true">مكتب العمليات</span>' in html
+
+
+@pytest.mark.parametrize("template", ["login.html", "setup.html", "partials/user_modal.html"])
+def test_password_toggles_stay_in_keyboard_order(template):
+    from pathlib import Path
+    source = (Path(__file__).resolve().parent.parent / "templates" / template).read_text(encoding="utf-8")
+    toggles = source.split('data-toggle-password="')[1:]
+    assert toggles
+    assert all("tabindex" not in t.split(">")[0] for t in toggles)
+
+
+def test_board_does_not_silently_drop_a_typed_person_selection():
+    """كتابة الاسم في بحث الاختيار المتعدد من غير تثبيته كشارة ماينفعش
+    يعدي كحفظ ناجح فاضي. المطابقة الكاملة تتثبت، والنص الجزئي يوقف الحفظ.
+    """
+    from pathlib import Path
+    source = (Path(__file__).resolve().parent.parent / "static/js/board.js").read_text(encoding="utf-8")
+    assert "function commandIds(" in source
+    assert "اختر اسم ${singular} من قائمة النتائج قبل الحفظ" in source
+    assert "if (personnelIds === null) return;" in source
+    assert "personnel_ids: personnelIds" in source
+
+
 @pytest.mark.parametrize("page", PAGES)
 def test_bootstrap_returns_meta_for_every_page(client, page):
     d = client.get(f"/api/bootstrap/{page}").get_json()
@@ -30,6 +58,14 @@ def test_bootstrap_returns_meta_for_every_page(client, page):
 
 def test_unknown_bootstrap_page_404s(client):
     assert client.get("/api/bootstrap/nope").status_code == 404
+
+
+def test_campaign_page_has_export_and_bootstrap_days(client):
+    html = client.get("/campaign").get_data(as_text=True)
+    assert 'data-page="campaign"' in html
+    assert 'data-export="docx"' in html
+    payload = client.get("/api/bootstrap/campaign").get_json()
+    assert payload["meta"]["today"] and "days" in payload
 
 
 def test_pages_only_get_the_slice_they_need(client):

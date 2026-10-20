@@ -1,155 +1,211 @@
-"""Word export for the officers' daily roster using the approved 30-8-2026 layout."""
+"""تصدير يومية تشغيل الضباط بصيغة أرشيف 22/9/2026 وما بعدها."""
 from copy import deepcopy
 from datetime import date
 from io import BytesIO
 from pathlib import Path
 
 from docx import Document
-from docx.enum.table import WD_ROW_HEIGHT_RULE
-from docx.shared import Pt
+from docx.table import _Cell
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 
-from .board_export import WEEKDAY_BY_INDEX, _cell_text
-from .constants import OFFICER_SECTIONS, SECTION_FORCE, SECTION_GUARDS, SECTION_OUTSIDE
-
+from .board_export import WEEKDAY_BY_INDEX, normalize_document_runs, set_run_font
+from .constants import (OFFICER_SECTIONS, SECTION_FORCE, SECTION_GUARDS,
+                        SECTION_OUTSIDE, SECTION_SUBCAMP, SUBCAMP_SERVICES)
+from .export_fit import PageFitError, docx_table_spec, estimate_table_height, usable_height_pt
+from .labels import RANK_SHORT, officer_label
 
 TEMPLATE = Path(__file__).with_name("docx_templates") / "duty_roster.docx"
-RANK_SHORT = {"ملازم أول": "م.اول", "ملازم": "ملازم"}
+LAST_FIT = {}
+ROSTER_SLOTS = {SECTION_FORCE: 24, SECTION_GUARDS: 8, SECTION_OUTSIDE: 2}
 
 
 def _unique_cells(row):
     seen, cells = set(), []
     for cell in row.cells:
-        key = id(cell._tc)
-        if key not in seen:
-            seen.add(key)
+        if id(cell._tc) not in seen:
+            seen.add(id(cell._tc))
             cells.append(cell)
     return cells
 
 
-def _replace_paragraph(paragraph, text):
-    runs = list(paragraph.runs)
-    if not runs:
-        paragraph.add_run(text)
-        return
-    target = next((run for run in runs if run.text.strip()), runs[0])
-    for run in runs:
-        run.text = ""
-    target.text = text
+def _physical_cells(row):
+    """Return this row's XML cells without python-docx vertical-merge aliases."""
+    return [_Cell(tc, row) for tc in row._tr.tc_lst]
 
 
 def _title(day):
     d = date.fromisoformat(day)
     return (f"يومية تشغيل الضبـــاط بإدارة قـوات أمن السويس عـن يوم "
-            f"{WEEKDAY_BY_INDEX[d.weekday()]} الموافق {d.day}/{d.month}/{d.year}م")
+            f"{WEEKDAY_BY_INDEX[d.weekday()]}  الموافق {d.day} /{d.month}/{d.year}م")
 
 
 def _rest_text(row):
     system = str(row.get("rest_system") or "").strip()
-    if not system or system == "—":
+    if not system or system == "—" or (system == "أسبوعية" and not row.get("rest_day")):
         return "------------"
-    if system == "أسبوعية" and row.get("rest_day"):
+    if system == "أسبوعية":
         return row["rest_day"]
     return system
 
 
 def _daily_text(row):
-    if row.get("note"):
-        return row["note"]
-    parts = []
-    for service in row.get("services") or []:
-        text = service.get("name", "")
-        if service.get("shift"):
-            text += f" فترة {service['shift']}"
-        if text:
-            parts.append(text)
-    if parts:
-        return " + ".join(parts)
+    """«التشغيل اليومي»: الخدمة التلقائية من اللوحة + التشغيل الإضافي اليدوي."""
+    if row.get("text"):
+        return row["text"]
     if row.get("leave"):
         return row["leave"].get("type") or "راحة"
     return row.get("status") or row.get("group") or "عمل"
 
 
 def _grouped_rows(rows):
-    order = list(OFFICER_SECTIONS)
-    known = set(order)
-    order.extend(section for section in dict.fromkeys(
-        (row.get("section") or SECTION_FORCE) for row in rows) if section not in known)
-    return [(section, [row for row in rows if (row.get("section") or SECTION_FORCE) == section])
-            for section in order]
+    by_section = {}
+    for row in rows:
+        by_section.setdefault(row.get("section") or SECTION_FORCE, []).append(row)
+    return [(section, by_section.get(section, [])) for section in OFFICER_SECTIONS]
 
 
-def _compact_row(row, height):
-    """Keep the original one-page roster density even when cell text wraps."""
-    row.height = Pt(height)
-    row.height_rule = WD_ROW_HEIGHT_RULE.EXACTLY
-    for cell in _unique_cells(row):
-        tc_pr = cell._tc.get_or_add_tcPr()
-        margins = tc_pr.first_child_found_in("w:tcMar")
-        if margins is not None:
-            for edge in margins:
-                edge.set("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}w", "18")
+def _write_cell(cell, text, *, bold=False, size=9, center=False):
+    """Replace text while retaining the archive cell's run/font properties."""
+    old_run = next((run for paragraph in cell.paragraphs for run in paragraph.runs), None)
+    rpr = deepcopy(old_run._r.rPr) if old_run is not None and old_run._r.rPr is not None else None
+    paragraph = cell.paragraphs[0]
+    for extra in cell.paragraphs[1:]:
+        cell._tc.remove(extra._p)
+    for child in list(paragraph._p):
+        if child.tag != qn("w:pPr"):
+            paragraph._p.remove(child)
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER if center else WD_ALIGN_PARAGRAPH.RIGHT
+    ppr = paragraph._p.get_or_add_pPr()
+    if ppr.find(qn("w:bidi")) is None:
+        ppr.append(OxmlElement("w:bidi"))
+    if text is None or text == "":
+        return
+    run = paragraph.add_run(str(text))
+    if rpr is not None:
+        run._r.insert(0, deepcopy(rpr))
+    set_run_font(run, "Arial", size, bold)
 
 
-def _fill_summary(table, summary):
+def _summary_values(summary):
     external, internal = summary["خارجية"], summary["داخلية"]
     medical, outside = summary["طبية"], summary["خوارج"]
     morning = str(external["صباحية"])
     if external.get("بحث"):
-        morning += f" + {external['بحث']} بحث"
-    values = [summary["أصل القوة"], morning, external["ليلية"],
-              internal["صباحية"], internal["ليلية"], medical["موجود"], medical["راحة"],
-              outside["تقصيرة"], outside["راحة"], outside["طارئة"], outside["غياب"],
-              outside["مرضي"], outside["فرقة"], outside["انتداب"], summary["حراسات"],
-              "\n".join(summary.get("net_names") or []) or "—"]
-    # The source template intentionally floats this compact summary above the
-    # first roster rows. Exact heights stop long names from pushing it down and
-    # moving the roster onto a second page in Word/LibreOffice.
-    for row, height in zip(table.rows, (26.5, 22.8, 12.5, 12.5)):
-        _compact_row(row, height)
-    _cell_text(table.rows[0].cells[15], f"الصافي ({summary['صافي']})", bold=True,
-               size=6.0, center=True)
-    for row_index in (2, 3):
-        for index, value in enumerate(values):
-            _cell_text(table.rows[row_index].cells[index], value, bold=index in (0, 15),
-                       size=4.0 if index == 15 else 5.5, center=True)
-    _cell_text(table.rows[1].cells[15], values[15], size=4.0, center=True)
+        morning += f"+ {external['بحث']} بحث"
+    return [summary["أصل القوة"], morning, external["ليلية"], internal["صباحية"],
+            internal["ليلية"], medical["موجود"], medical["راحة"], outside["تقصيرة"],
+            outside["راحة"], outside["طارئة"], outside["غياب"], outside["مرضي"],
+            outside["فرقة"], outside["انتداب"], summary["حراسات"], ""]
+
+
+def _sparse_summary(rows):
+    subcamp = 0
+    deputed = False
+    for row in rows:
+        services = row.get("services") or []
+        if any(service.get("name") in SUBCAMP_SERVICES or
+               service.get("section") == SECTION_SUBCAMP for service in services):
+            subcamp += 1
+        deputed = deputed or row.get("status") == "انتداب"
+    return (f"{subcamp} معسكر فرعي" if subcamp else ""), ("منتدب" if deputed else "")
+
+
+def _fill_summary(table, summary, rows):
+    header, names_row, total, sparse = (_physical_cells(table.rows[index]) for index in range(4))
+    for index, value in enumerate(_summary_values(summary)):
+        _write_cell(total[index], value, bold=index == 0, size=8, center=True)
+    names = "\n".join(officer_label(row, full=False) for row in rows if row.get("group") == "صافي")
+    _write_cell(names_row[15], names, size=6, center=True)
+    _write_cell(header[6], "الصافي", bold=True, size=8, center=True)
+    subcamp, deputed = _sparse_summary(rows)
+    for index in range(len(sparse)):
+        _write_cell(sparse[index], subcamp if index == 3 else deputed if index == 4 else "",
+                    size=7, center=True)
+
+
+def _fit_measure(document):
+    roster, summary = document.tables[:2]
+    roster_rows, roster_widths = docx_table_spec(roster, 9)
+    summary_rows, summary_widths = docx_table_spec(summary, 8)
+    usable = usable_height_pt(document.sections[0])
+    roster_height = estimate_table_height(roster_rows, roster_widths)[0]
+    summary_height = estimate_table_height(summary_rows, summary_widths)[0]
+    ratio = (roster_height + summary_height) / usable
+    scale = 1.0
+    while ratio > .94 and scale >= .54:
+        scale = round(scale - .02, 2)
+        rscaled = [[{**cell, "size_pt": max(3.5, cell.get("size_pt", 9) * scale)
+                     } for cell in row] for row in roster_rows]
+        sscaled = [[{**cell, "size_pt": max(3.5, cell.get("size_pt", 8) * scale)
+                     } for cell in row] for row in summary_rows]
+        ratio = (estimate_table_height(rscaled, roster_widths)[0]
+                 + estimate_table_height(sscaled, summary_widths)[0]) / usable
+    if ratio > .94:
+        raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+    # Cell runs inherited from the archive contain a few smaller role-specific
+    # sizes, while newly written cells use the role's base size. Leave margin
+    # for that difference so the final serialized DOCX stays under the gate.
+    scale = max(.55, round(scale - .10, 2))
+    LAST_FIT.clear()
+    LAST_FIT.update(scale=scale, ratio=ratio, total_pt=ratio * usable,
+                    usable_pt=usable)
+    return scale
+
+
+def _scale_runs(document, scale):
+    if scale >= 1:
+        return
+    for paragraph in document.paragraphs:
+        for run in paragraph.runs:
+            size = run.font.size.pt if run.font.size else 9
+            set_run_font(run, "Arial", max(3.5, size * scale), bool(run.bold))
+    for table in document.tables:
+        for row in table.rows:
+            for cell in _unique_cells(row):
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        size = run.font.size.pt if run.font.size else 9
+                        set_run_font(run, "Arial", max(3.5, size * scale), bool(run.bold))
 
 
 def build_docx(duty):
     document = Document(TEMPLATE)
     for paragraph in document.paragraphs:
         if "يومية تشغيل الضب" in paragraph.text:
-            _replace_paragraph(paragraph, _title(duty["date"]))
+            paragraph.text = ""
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            set_run_font(paragraph.add_run(_title(duty["date"])), "Arial", 11, True)
             break
 
     table = document.tables[0]
-    officer_proto = deepcopy(table.rows[1]._tr)
-    section_proto = deepcopy(table.rows[25]._tr)
-    for row in list(table.rows[1:]):
-        table._tbl.remove(row._tr)
-
+    grouped = dict(_grouped_rows(duty["rows"]))
     number = 0
-    for section, rows in _grouped_rows(duty["rows"]):
-        if not rows:
-            continue
+    for section in OFFICER_SECTIONS:
         if section != SECTION_FORCE:
-            table._tbl.append(deepcopy(section_proto))
-            _compact_row(table.rows[-1], 9)
-            label = "الحراسات المشددة" if section == SECTION_GUARDS else (
-                "الخوارج" if section == SECTION_OUTSIDE else section)
-            _cell_text(_unique_cells(table.rows[-1])[0], label, bold=True, size=6.2, center=True)
-        for item in rows:
+            section_row = table.rows[25 if section == SECTION_GUARDS else 34]
+            label = ("الحراسات المشددة" if section == SECTION_GUARDS
+                     else "الخــــــــــــــــــــــــــوارج")
+            _write_cell(_unique_cells(section_row)[0], label, bold=True, size=9, center=True)
+        for offset in range(ROSTER_SLOTS[section]):
+            item = grouped.get(section, [])[offset] if offset < len(grouped.get(section, [])) else None
+            row_index = offset + (1 if section == SECTION_FORCE else
+                                  26 if section == SECTION_GUARDS else 35)
+            cells = _unique_cells(table.rows[row_index])
             number += 1
-            table._tbl.append(deepcopy(officer_proto))
-            _compact_row(table.rows[-1], 13)
-            cells = _unique_cells(table.rows[-1])
-            values = [f"{number}-", RANK_SHORT.get(item.get("role"), item.get("role") or "—"),
-                      item.get("name") or "—", item.get("post") or "—",
-                      _daily_text(item), _rest_text(item)]
-            for index, (cell, value) in enumerate(zip(cells, values)):
-                _cell_text(cell, value, bold=index == 2, size=5.25, center=index in (0, 1, 5))
+            values = [f"{number}-", "", "", "", "", ""]
+            if item:
+                values = [f"{number}-", RANK_SHORT.get(item.get("role"), item.get("role") or ""),
+                          item.get("name") or "", item.get("post") or "", _daily_text(item),
+                          _rest_text(item)]
+            for index, value in enumerate(values):
+                _write_cell(cells[index], value, bold=index == 2, size=9,
+                            center=index in (0, 1, 5))
 
-    _fill_summary(document.tables[1], duty["summary"])
+    _fill_summary(document.tables[1], duty["summary"], duty["rows"])
+    _scale_runs(document, _fit_measure(document))
+    normalize_document_runs(document)
     buf = BytesIO()
     document.save(buf)
     buf.seek(0)

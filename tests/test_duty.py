@@ -59,7 +59,7 @@ def test_export_returns_the_approved_officer_roster_docx(client):
     table_text = "\n".join(cell.text for table in document.tables
                            for row in table.rows for cell in row.cells)
     table_text = table_text.replace("ـ", "")
-    assert "1/3/2026" in title
+    assert "1 /3/2026" in title
     assert "العمل المسند" in table_text
     assert "الحراسات المشددة" in table_text
 

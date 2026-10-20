@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block page_actions %}
+<button class="primary" id="addVehicleBtn">{{ icon('plus') }} إضافة مركبة</button>
+{% endblock %}
+
+{% block content %}
+<div class="fleet-summary" aria-label="ملخص المركبات">
+  <div><span>إجمالي المركبات</span><strong id="vehicleTotal">—</strong></div>
+  <div><span>صالحة</span><strong id="vehicleOperational">—</strong></div>
+  <div><span>معطلة</span><strong id="vehicleDisabled">—</strong></div>
+  <div><span>من جهات خارجية</span><strong id="vehicleExternal">—</strong></div>
+</div>
+<div class="panel">
+  <div class="toolbar">
+    <input class="search" id="vehicleSearch" type="search" placeholder="بحث باللوحة أو الموديل أو الملاحظات" aria-label="بحث في المركبات">
+    <select class="select" id="vehicleTypeFilter" aria-label="تصفية حسب النوع"><option value="">كل الأنواع</option></select>
+    <select class="select" id="vehicleStatusFilter" aria-label="تصفية حسب الحالة">
+      <option value="">كل الحالات</option><option value="operational">صالحة</option><option value="disabled">معطلة</option>
+    </select>
+    <select class="select" id="vehicleOriginFilter" aria-label="تصفية حسب التبعية">
+      <option value="">كل التبعيات</option><option value="internal">الحملة</option><option value="external">جهة خارجية</option>
+    </select>
+    <label class="check-label"><input type="checkbox" id="vehicleArchived"> إظهار المؤرشفة</label>
+  </div>
+  <div id="vehiclesWrap">{{ skeleton("rows", 5) }}</div>
+</div>
+{% endblock %}
+
+{% block modals %}{% include "partials/vehicle_modal.html" %}{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/vehicles.js') }}"></script>{% endblock %}

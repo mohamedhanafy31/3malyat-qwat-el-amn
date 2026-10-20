@@ -43,6 +43,13 @@ def test_partial_records_keep_their_exact_keys(raw):
     assert _round_trip(Officer, raw) == raw
 
 
+def test_officer_short_name_round_trips():
+    raw = {"id": "OFF-001", "name": "الاسم الكامل", "short_name": "ابراهيم ابوالفرج"}
+    officer = Officer.from_dict(raw)
+    assert officer.short_name == raw["short_name"]
+    assert officer.as_dict() == raw
+
+
 def test_absent_field_stays_absent():
     """الحقل اللي ماكانش موجود مايتضافش — `confirm._fingerprint` بيفرّق
     بين `None` (ناقص) و`""` (موجود وفاضي)، فإضافته كانت هتخلي كل يوم

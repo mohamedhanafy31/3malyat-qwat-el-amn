@@ -156,7 +156,8 @@ function adminRow(row) {
           ${row.vacant ? "تعيين" : "تعديل"}</button>
       </td></tr>`;
   }
-  return `<tr><td class="name">${esc(nameOf()(row))}</td><td class="wrap">${esc(row.text) || "—"}</td></tr>`;
+  const added = row.added ? ` <span class="chip m" title="أُضيف من يومية الضباط (إضافة للعمل بالإدارة) وبيفضل في مكان خدمته">من الخدمة</span>` : "";
+  return `<tr><td class="name">${esc(nameOf()(row))}</td><td class="wrap">${esc(row.text) || "—"}${added}</td></tr>`;
 }
 
 function outsiderRow(row) {
@@ -250,11 +251,27 @@ function warningsCard(list) {
         <li><span class="w-ico">${icon("alert")}</span>
           <span class="chip taq">${esc(w.kind)}</span> ${esc(w.text)}</li>`).join("")}</ul>
     </div>`).join("");
-  return `<div class="alert-card">
-    <div class="alert-head"><span class="alert-ico">${icon("alert","ico-lg")}</span><strong>مراجعة اليوم</strong>
-      <span class="muted">${countLabel(list.length, "تنبيه")} — للفت النظر لا للمنع</span></div>
-    ${body}</div>`;
+  const folded = warningsFolded();
+  const chips = groups.map(g => `<span class="chip ${LEVEL_CLS[g.lv]}">${LEVEL_LABEL[g.lv]} <b>${g.items.length}</b></span>`).join("");
+  return `<div class="alert-card warn-card${folded ? " is-folded" : ""}">
+    <button type="button" class="warn-toggle" data-action="toggleWarnings"
+      aria-expanded="${!folded}" aria-label="${folded ? "إظهار" : "إخفاء"} مراجعة اليوم">
+      <span class="alert-ico">${icon("alert","ico-lg")}</span>
+      <strong>مراجعة اليوم</strong>
+      <span class="warn-chips">${chips}</span>
+      <span class="muted warn-hint">${folded ? "اضغط للعرض" : "للفت النظر لا للمنع"}</span>
+      <span class="warn-chevron" aria-hidden="true">${icon("chevron-down")}</span></button>
+    ${folded ? "" : `<div class="warn-body">${body}</div>`}</div>`;
 }
+
+/* طي «مراجعة اليوم» — الاختيار بيتحفظ في المتصفح ويفضل بين الأيام. */
+function warningsFolded() {
+  try { return localStorage.getItem("board.warningsFolded") === "1"; } catch { return false; }
+}
+ACTIONS.toggleWarnings = () => {
+  try { localStorage.setItem("board.warningsFolded", warningsFolded() ? "0" : "1"); } catch {}
+  render();
+};
 
 /* التقسيمة زي الوورد بالظبط: عمود يمين للخدمات (أساسية/طارئة/عمل
    بالإدارة + أي قسم مخصّص المشغّل ضافه بإيده — نفس نوع «services»)،
@@ -327,6 +344,31 @@ function fillMulti(el, people, chosen) {
     `<option value="${esc(p.id)}" ${chosen.includes(p.id) ? "selected" : ""}>${esc(nameOf()(p))}</option>`).join("");
 }
 const readMulti = el => [...el.selectedOptions].map(o => o.value);
+
+/* حقل البحث المتعدد لا يعتبر النص المكتوب اختيارًا إلا بعد الضغط على الاسم
+   من قائمة النتائج. قبل كده كان ممكن المشغّل يكتب اسم فرد ويضغط حفظ، فيظهر
+   تنبيه نجاح بينما `personnel_ids` تفضل فاضية. الاسم المطابق بالكامل نثبته
+   تلقائيًا؛ وأي نص جزئي نوقف الحفظ عنده برسالة واضحة بدل فقد الاختيار. */
+function commandIds(toggle, select, singular) {
+  if (!toggle.checked) return [];
+  const chosen = readMulti(select);
+  if (chosen.length) return chosen;
+  const input = select._comboInput || select;
+  const typed = String(input.value || "").trim();
+  if (typed) {
+    const exact = [...select.options].filter(option => normAr(option.textContent) === normAr(typed));
+    if (exact.length === 1) {
+      exact[0].selected = true;
+      if (typeof _msSync === "function") _msSync(select);
+      return [exact[0].value];
+    }
+  }
+  _showFieldError(input, typed
+    ? `اختر اسم ${singular} من قائمة النتائج قبل الحفظ`
+    : `اختر اسم ${singular} أو ألغِ خيار الرئاسة`);
+  input.focus({preventScroll: false});
+  return null;
+}
 
 function renderShiftToggle() {
   $("#enShift").innerHTML = SHIFTS().map(shift => `<label>
@@ -576,6 +618,10 @@ async function addService(body) {
 
 $("#entryForm").onsubmit = async e => {
   e.preventDefault();
+  const officerIds = commandIds($("#enHasOfficers"), $("#enOfficers"), "الضابط");
+  if (officerIds === null) return;
+  const personnelIds = commandIds($("#enHasPersonnel"), $("#enPersonnel"), "الفرد");
+  if (personnelIds === null) return;
   const conscripts = $$("#conRows .req-row").map(r => ({
     class: r.querySelector(".con-class").value.trim(),
     count: parseInt(r.querySelector(".con-count").value) || 0,
@@ -585,8 +631,8 @@ $("#entryForm").onsubmit = async e => {
     kind: $("#enKind").value,
     section: $("#enSection").value.trim(),
     shift: selectedShift(),
-    officer_ids: $("#enHasOfficers").checked ? readMulti($("#enOfficers")) : [],
-    personnel_ids: $("#enHasPersonnel").checked ? readMulti($("#enPersonnel")) : [],
+    officer_ids: officerIds,
+    personnel_ids: personnelIds,
     conscripts,
     conscript_count: parseInt($("#enConCount").value) || 0,
     weapon: $("#enWeapon").value.trim(),
@@ -710,7 +756,7 @@ $("#btnConfirmDay").onclick = async () => {
     : "";
   if (!(await confirmDialog({
     title: "تأكيد اليومية",
-    body: `هل تريد تأكيد يومية ${fmt(DAY)}؟ سيتم تسجيل التغييرات الحالية في سجل التغييرات.${extra}`,
+    body: `هل تريد تأكيد يومية ${dayLabel(DAY)}؟ سيتم تسجيل التغييرات الحالية في سجل التغييرات.${extra}`,
     confirmLabel: "تأكيد اليومية",
   }))) return;
   const out = await api(`/api/board/${DAY}/confirm`, jsonReq("POST", {}));
@@ -736,6 +782,22 @@ async function confirmAllUnconfirmed() {
   showToast("تم تأكيد " + countLabel(out.count || 0, "يومية"));
   await loadDay(DAY);
 }
+
+async function loadDailyFilesStatus() {
+  const out = await api(`/api/day-files/${DAY}`); if (!out) return;
+  const stamp = out.last_generated ? new Date(out.last_generated).toLocaleTimeString("ar-EG", {hour:"2-digit", minute:"2-digit"}) : "—";
+  const node = $("#dailyFilesStatus"); if (node) node.textContent = `آخر تحديث للملفات: ${stamp} · ${(out.files || []).length} ملفات`;
+}
+
+$("#btnRefreshFiles").onclick = async () => {
+  if (!(await confirmDialog({title: "تحديث الملفات", body: `تحديث ملفات يومية ${dayLabel(DAY)}؟`, confirmLabel: "تحديث الملفات"}))) return;
+  const out = await api(`/api/day-files/${DAY}/refresh`, {...jsonReq("POST", {}), timeoutMs: 120000, loadingLabel: "تحديث الملفات"});
+  if (!out) return;
+  const failed = Object.entries(out.results || {}).filter(([, value]) => !value.ok);
+  const good = Object.values(out.results || {}).filter(value => value.ok).length;
+  showToast(failed.length ? `تم تحديث ${good} ملفات؛ فشل: ${failed.map(([kind, value]) => `${kind}: ${value.error}`).join("، ")}` : `تم تحديث ${good} ملفات` , !!failed.length);
+  loadDailyFilesStatus();
+};
 $("#btnConfirmAll").onclick = confirmAllUnconfirmed;
 
 /* ---------- تنقّل الأيام ---------- */
@@ -746,6 +808,7 @@ async function loadDay(day) {
   renderRestStrip($("#restStrip"), day);
   renderConfirmBadge();
   loadDayStatus();
+  loadDailyFilesStatus();
 }
 const shiftDay = n => switchDay(addDays(DAY || curDate(), n));
 $("#dayPrev").onclick = () => shiftDay(-1);
@@ -823,6 +886,9 @@ document.addEventListener("keydown", e => {
     openEntry(null, {section: findRow(SELECTED_ROW_ID)?.section || "الخدمات الطارئة"});
   } else if (e.code === "PageUp" || e.code === "PageDown") {
     e.preventDefault(); shiftDay(e.code === "PageUp" ? -1 : 1);
+  } else if (e.code === "ArrowRight" || e.code === "ArrowLeft") {
+    // الواجهة عربية (RTL): «السابق» على اليمين و«التالي» على اليسار
+    e.preventDefault(); shiftDay(e.code === "ArrowRight" ? -1 : 1);
   } else if (e.code === "KeyT") {
     e.preventDefault(); switchDay(curDate());
   } else if (e.shiftKey && e.code === "Slash") {
@@ -863,7 +929,7 @@ async function loadDayStatus() {
 async function closeDay() {
   if (!(await confirmDialog({
     title: "إغلاق اليومية مبكرًا",
-    body: `سيُغلق يوم ${fmt(DAY)}، وسيتطلب أي تعديل لاحق فتحًا استثنائيًا.`,
+    body: `سيُغلق يوم ${dayLabel(DAY)}، وسيتطلب أي تعديل لاحق فتحًا استثنائيًا.`,
     confirmLabel: "إغلاق اليوم",
     danger: true,
   }))) return;
@@ -873,7 +939,7 @@ async function closeDay() {
 async function reopenDay() {
   const reason = await reasonDialog({
     title: "فتح اليومية استثنائيًا",
-    body: `سيُفتح يوم ${fmt(DAY)} للتعديل حتى نهاية اليوم الحالي فقط، وسيُسجَّل السبب في سجل التغييرات.`,
+    body: `سيُفتح يوم ${dayLabel(DAY)} للتعديل حتى نهاية اليوم الحالي فقط، وسيُسجَّل السبب في سجل التغييرات.`,
     label: "سبب الفتح الاستثنائي",
     confirmLabel: "فتح اليوم",
   });

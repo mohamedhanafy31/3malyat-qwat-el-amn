@@ -79,6 +79,17 @@ def person_references(data):
                 if entry.get(key):
                     yield f"day_afraad[{day}][{entry_id}].{key}", "individual", entry[key]
 
+    for day, sheet in (data.get("day_campaign") or {}).items():
+        for section in ("lorries", "services", "daily", "posts"):
+            for ident, value in (sheet.get(section) or {}).items():
+                if value.get("vehicle_id"):
+                    yield f"day_campaign[{day}][{section}][{ident}].vehicle_id", "vehicle", value["vehicle_id"]
+                driver = value.get("driver") or {}
+                if driver.get("kind") == "personnel" and driver.get("id"):
+                    yield f"day_campaign[{day}][{section}][{ident}].driver", "individual", driver["id"]
+                if driver.get("kind") == "conscript" and driver.get("id"):
+                    yield f"day_campaign[{day}][{section}][{ident}].driver", "conscript", driver["id"]
+
     for role, pid in (data.get("command") or {}).items():
         if pid:
             yield f"command[{role}]", "officer", pid
@@ -136,6 +147,9 @@ PERSON_REFERENCES = [
     ("day_afraad.*.morning_person_id / night_person_id", SET_NULL,
      lambda repos, pid, cat: _detach_afraad_links(repos, pid)),
 
+    ("day_campaign.*.driver", DETACH,
+     lambda repos, pid, cat: _detach_campaign_links(repos, pid)),
+
     ("command.<value>", SET_NULL,
      lambda repos, pid, cat: repos.config.clear_command(pid)),
 
@@ -182,6 +196,22 @@ def _detach_afraad_links(repos, person_id):
             for key in ("morning_person_id", "night_person_id"):
                 if entry.get(key) == person_id:
                     entry.pop(key, None)
+                    touched += 1
+    return touched
+
+
+def _detach_campaign_links(repos, person_id):
+    from .store import require_person_days
+    require_person_days(repos.data, person_id)
+    touched = 0
+    person = repos.people.find(person_id)
+    name = (person.name if person else "") or getattr(repos, "deleted_person_name", "")
+    for sheet in (repos.data.get("day_campaign") or {}).values():
+        for section in ("lorries", "services", "daily"):
+            for value in (sheet.get(section) or {}).values():
+                driver = value.get("driver") or {}
+                if driver.get("kind") == "personnel" and driver.get("id") == person_id:
+                    value["driver"] = {"kind": "text", "name": name}
                     touched += 1
     return touched
 

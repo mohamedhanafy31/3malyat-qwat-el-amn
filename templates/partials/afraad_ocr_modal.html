@@ -1,0 +1,15 @@
+<div class="modal hidden" id="afOcrModal">
+  <div class="modal-card af-ocr-modal" role="dialog" aria-modal="true" aria-labelledby="afOcrTitle">
+    <button type="button" class="close" data-close="afOcrModal" aria-label="إغلاق">×</button>
+    <h2 id="afOcrTitle">مراجعة قراءة صورة يومية الأفراد</h2>
+    <p class="muted">راجع الخدمة والفرد في كل فترة. لا يُحفظ شيء قبل الضغط على «تسكين المختار».</p>
+    <div id="afOcrSummary"></div>
+    <img id="afOcrOverlay" class="af-ocr-overlay hidden" alt="حدود الخلايا التي اكتشفها OCR">
+    <div id="afOcrRows" class="af-ocr-rows"></div>
+    <div id="afOcrWarnings"></div>
+    <div class="actions modal-foot">
+      <button class="primary" id="afOcrApply" type="button">تسكين المختار</button>
+      <button type="button" class="btn" data-close="afOcrModal">إلغاء</button>
+    </div>
+  </div>
+</div>

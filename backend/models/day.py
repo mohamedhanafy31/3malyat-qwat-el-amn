@@ -122,15 +122,24 @@ class OfficerDayState(Model):
     status: str = ""
     note: str = ""
     medical: bool = False
+    # تشغيل إضافي يدوي بيتضاف على خدمة الضابط التلقائية (من اليومية التفصيلية)
+    # في يومية الضباط. `note` القديم بيفضل نص تشغيل كامل بديل عن الخدمة
+    # (اللي اتستورد من الوورد) — شوف `duty.operational_text`.
+    extra: str = ""
+    # الضابط ده نصه التشغيلي الكامل بيتضاف كمان في «عمل بالإدارة» على
+    # اللوحة، ويفضل في مكان خدمته زي ما هو.
+    admin_work: bool = False
 
     def _check(self, errors):
         from ..assignments import OFFICER_STATUSES
         one_of(errors, self.status, OFFICER_STATUSES, "حالة غير صحيحة.")
         max_length(errors, self.note, "note")
+        max_length(errors, self.extra, "note")
 
     @property
     def empty(self):
-        return not (self.taqseera or text(self.status) or text(self.note) or self.medical)
+        return not (self.taqseera or text(self.status) or text(self.note) or self.medical
+                    or text(self.extra) or self.admin_work)
 
 
 @dataclass

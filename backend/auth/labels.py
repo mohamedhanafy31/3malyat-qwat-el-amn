@@ -25,6 +25,9 @@ ROUTES = [
     (r"^(PUT|POST|PATCH|DELETE) /api/afraad/", "تعديل يومية الأفراد"),
     (r"^(POST|PATCH|DELETE) /api/leaves", "تعديل سجل الراحات"),
     (r"^(POST|PATCH|DELETE) /api/missions", "تعديل مأمورية"),
+    (r"^(POST|PATCH|DELETE) /api/vehicles", "تعديل سجل المركبات"),
+    (r"^(POST|PATCH|DELETE) /api/conscripts", "تعديل سجل المجندين"),
+    (r"^(PUT|POST|DELETE) /api/campaign/", "تعديل يومية الحملة"),
     (r"^(POST|PATCH|DELETE) /api/course", "تعديل فرقة أو دورة"),
     (r"^(POST|PATCH|DELETE) /api/counts", "تعديل أعداد الخدمات"),
     (r"^(POST|PATCH|DELETE) /api/service-catalog", "تعديل دليل الخدمات"),
@@ -32,6 +35,7 @@ ROUTES = [
     (r"^(POST|PATCH|DELETE) /api/inspection-schedule", "تعديل جدول التفتيش"),
     (r"^PATCH /api/command", "تعديل بيانات القيادة"),
     (r"^POST /api/day-status/", "تغيير حالة اليوم"),
+    (r"^POST /api/day-files/", "تحديث الملفات اليومية"),
 ]
 
 

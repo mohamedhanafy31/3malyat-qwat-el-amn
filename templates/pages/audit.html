@@ -7,7 +7,7 @@
 {% block content %}
 <div class="panel">
   <div class="toolbar audit-toolbar">
-    <input type="search" id="auditSearch" class="search" placeholder="بحث بالوصف أو المسار أو اسم المستخدم أو IP" aria-label="بحث في سجل النشاط">
+    <input type="search" id="auditSearch" class="search" placeholder="بحث بالوصف أو اسم المستخدم" aria-label="بحث في سجل النشاط">
     <select id="auditUser" class="select" aria-label="تصفية حسب المستخدم">
       <option value="" selected>كل المستخدمين</option>
     </select>
@@ -24,7 +24,7 @@
   </div>
 
   <p class="hint panel-notice audit-note">
-    سجل النشاط العام: يرصد عمليات تسجيل الدخول والخروج ومحاولات الوصول المرفوضة وجميع عمليات التعديل بالوقت والمستخدم وعنوان IP.
+    سجل النشاط العام: يرصد عمليات تسجيل الدخول والخروج ومحاولات الوصول المرفوضة وجميع عمليات التعديل بالوقت والمستخدم.
   </p>
 
   <div id="auditWrap" data-mobile-cards>{{ skeleton("rows", 10) }}</div>

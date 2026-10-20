@@ -29,9 +29,14 @@ PAGES = {
     "changes": ("changes.html", "تغيير تشغيل",
                  "المُعدِّل، وما عُدِّل، وموعد التعديل — يُسجَّل وقت تأكيد اليومية، لا وقت الحفظ"),
     "audit": ("audit.html", "سجل النشاط", "من فعل ماذا ومتى — الدخول والخروج وكل تعديل"),
+    "activity_stats": ("activity_stats.html", "إحصائيات استخدام النظام",
+                       "نشاط الحسابات والدخول والتعديلات خلال المدة المحددة"),
     "users": ("users.html", "إدارة الحسابات", "إنشاء حسابات الضباط والأفراد والمجندين وإدارتها"),
     "missions": ("missions.html", "المأموريات",
                   "مأموريات لها دورة حياة (مخططة/بدأت/عادت/أُغلقت) — ليست خدمة متكررة"),
+    "vehicles": ("vehicles.html", "سجل المركبات", "بيانات مركبات الحملة وحالتها التشغيلية"),
+    "drivers": ("drivers.html", "السواقين", "الأفراد والمجندون المحددون للعمل كسائقين"),
+    "campaign": ("campaign.html", "يومية الحملة", "تسكين سواقين ومركبات الحملة يومًا بيوم"),
     "courses": ("courses.html", "الفِرق والدورات",
                  "الدورات التي يلتحق بها الضباط ومدة كل التحاق"),
     "register": ("register.html", "حصر تشغيل الضباط",
@@ -115,6 +120,11 @@ def audit():
     return _render("audit")
 
 
+@bp.get("/activity-stats")
+def activity_stats():
+    return _render("activity_stats")
+
+
 @bp.get("/users")
 def users():
     return _render("users")
@@ -123,6 +133,21 @@ def users():
 @bp.get("/missions")
 def missions():
     return _render("missions")
+
+
+@bp.get("/vehicles")
+def vehicles():
+    return _render("vehicles")
+
+
+@bp.get("/drivers")
+def drivers():
+    return _render("drivers")
+
+
+@bp.get("/campaign")
+def campaign():
+    return _render("campaign")
 
 
 @bp.get("/leaves")

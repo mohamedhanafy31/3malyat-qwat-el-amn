@@ -117,6 +117,8 @@ function syncCatalogFilters() {
 });
 
 /* ---------- نافذة عرض موقع خدمة (منبثقة للعرض بس) ---------- */
+const locationImageAlt = (name, i, n) =>
+  n > 1 ? `صورة موقع ${name} (${i + 1} من ${n})` : `صورة موقع ${name}`;
 function openLocationModal(id) {
   const s = CATALOG.find(x => x.id === id);
   if (!s) return;
@@ -125,13 +127,17 @@ function openLocationModal(id) {
   $("#locationModalText").classList.toggle("hidden", !s.location_text);
   const images = s.location_images || [];
   $("#locationModalGallery").innerHTML = images.length
-    ? images.map(f => `<img src="/uploads/service-catalog/${esc(f)}" alt=""
-        data-action="zoomLocationImage" data-extra="${dataAttr({filename: f})}">`).join("")
+    ? images.map((f, i) => `<button type="button" class="location-thumb"
+        data-action="zoomLocationImage" data-extra="${dataAttr({filename: f})}"
+        aria-label="تكبير ${esc(locationImageAlt(s.name, i, images.length))}">
+        <img src="/uploads/service-catalog/${esc(f)}" alt="${esc(locationImageAlt(s.name, i, images.length))}"></button>`).join("")
     : emptyState({compact: true, title: "لا توجد صور موقع مسجّلة بعد"});
   openModal("locationModal");
 }
 ACTIONS.openLocation = id => openLocationModal(id);
-ACTIONS.zoomLocationImage = (id, extra) => {
+ACTIONS.zoomLocationImage = (id, extra, el) => {
+  // src بيتحط قبل فتح النافذة (الصورة مخفية قبلها)؛ والبديل النصي من صورة المصغّرة
+  $("#locationZoomImg").alt = el?.querySelector("img")?.alt || "صورة موقع الخدمة";
   $("#locationZoomImg").src = `/uploads/service-catalog/${extra.filename}`;
   openModal("locationZoomModal");
 };

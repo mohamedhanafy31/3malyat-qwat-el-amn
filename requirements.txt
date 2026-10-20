@@ -9,6 +9,14 @@ waitress>=2.1,<4
 # تصدير اليومية التفصيلية كملف Word حقيقي (backend/board_export.py) —
 # محتاجة تتحمّل مع الباقي بـPREPARE_ONLINE.bat قبل ما تتفكّ أوفلاين
 python-docx>=1.1,<2
+# Later counts-export guidance (not required by the Word exporters yet).
+openpyxl>=3.1,<4
+
+# قراءة صور يومية الأفراد: اكتشاف شبكة الجدول محليًا ثم Tesseract للخلايا.
+numpy>=1.26,<3
+opencv-python-headless>=4.10,<5
+Pillow>=10,<14
+pytesseract>=0.3.13,<0.4
 
 # للتطوير بس (تشغيل tests/) — مش مطلوبة على جهاز التشغيل
 # pytest>=8

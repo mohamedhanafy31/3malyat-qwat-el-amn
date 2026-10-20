@@ -8,8 +8,23 @@ from .. import service_catalog as catalog_lib
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload
+from .. import service_lines as lines_lib
+from ..constants import CAMPAIGN_LORRIES
 
 bp = Blueprint("service_catalog", __name__)
+
+
+@bp.get("/api/service-lines")
+def list_service_lines():
+    data = load_data(())
+    lorries = {x["id"]: x["name"] for x in CAMPAIGN_LORRIES}
+    result = []
+    for line in lines_lib.lines(data):
+        result.append({**line,
+                       "members": [{"id": e.get("id"), "name": e.get("name", "")}
+                                   for e in lines_lib.members(data, line.get("id"))],
+                       "lorry_name": lorries.get(line.get("lorry_id"), "")})
+    return jsonify({"lines": result})
 
 
 @bp.get("/api/service-catalog")

@@ -158,11 +158,13 @@ def test_only_explicit_export_reads_the_whole_archive(archive, monkeypatch):
     monkeypatch.setattr(store, "_read", recording)
     gets = [f"/api/board/{DAYS[1]}", f"/api/assignments/{DAYS[1]}",
             f"/api/board/{DAYS[1]}/confirm", f"/api/duty/{DAYS[1]}",
-            f"/api/counts/{DAYS[1]}", "/api/counts/template", f"/api/afraad/{DAYS[1]}",
+            f"/api/counts/{DAYS[1]}", f"/api/counts/{DAYS[1]}/export.xlsx", "/api/counts/template", f"/api/afraad/{DAYS[1]}",
+            f"/api/campaign/{DAYS[1]}", f"/api/campaign/{DAYS[1]}/export.docx",
             f"/api/day-status/{DAYS[1]}", "/api/register/2026/3",
             "/api/register/officer/OFF-001", "/api/duty/stats", "/api/officer-log/OFF-001",
             "/api/leaves/stats", "/api/courses", "/api/missions", "/api/changes",
             "/api/rest-suspensions", "/api/service-catalog", "/api/inspection-schedule",
+            "/api/vehicles", "/api/conscripts", "/api/drivers",
             "/api/bootstrap/dashboard", "/api/bootstrap/officers", "/api/bootstrap/board"]
     for url in gets:
         calls.clear()

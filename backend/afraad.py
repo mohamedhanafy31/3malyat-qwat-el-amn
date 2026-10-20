@@ -1,7 +1,7 @@
 """يومية الأفراد — نفس ورقة «افراد» الحقيقية اللي بتتكتب بالإيد كل يوم:
-جزء «الخدمات الأساسية» قايمة مقفولة (نفس أسماءها وترتيبها بالظبط في
-`22-6-2026 افراد.docx` — 22 خدمة، مش دليل الخدمات العام اللي ممكن
-يتغيّر أو يبقى فاضي)، وجزء «الخدمات الطارئة» بياخد صفوفه مباشرة من قسم
+جزء «الخدمات الأساسية» قايمة مؤرخة (بتبدأ بنفس أسماء وترتيب
+`22-6-2026 افراد.docx` — 22 خدمة، وممكن تتعدل من صفحة الأفراد)، وجزء
+«الخدمات الطارئة» بياخد صفوفه مباشرة من قسم
 «الخدمات الطارئة» في اليومية التفصيلية — نفس مبدأ `counts.py` بالظبط
 (مفيش سجل مستقل للطوارئ، رقم واحد في مكان واحد).
 
@@ -15,14 +15,16 @@
 import re
 
 from .assignments import peek_day
-from .board import ASSIGNMENT_SECTIONS, _people_index, _row
-from .constants import SECTION_OCCASIONAL
-from .dated import afraad_basic_on
+from .board import ASSIGNMENT_SECTIONS, _display_key, _people_index, _row
+from .constants import SECTION_BASIC, SECTION_OCCASIONAL
+from .dated import afraad_basic_on, record_afraad_basic_change
+from .labels import officer_label
 from .repo import PeopleRepo
-from .text import norm_name
+from .store import reserve_id
+from .text import core_service_name, norm, norm_name
 
-# نفس أسماء وترتيب الخدمات الأساسية الـ22 في `22-6-2026 افراد.docx`
-# بالظبط — قايمة مقفولة، مش حرة زي دليل الخدمات العام. «كمين 109» في
+# أسماء وترتيب البداية للخدمات الأساسية الـ22 في `22-6-2026 افراد.docx`.
+# القائمة مؤرخة ويمكن تعديلها من صفحة الأفراد. «كمين 109» في
 # الأصل صفّين بنفس الاسم وقوام تاني (بيك اب/مدرعة)، فبانفصلوا هنا باسمين
 # مميّزين عشان يبقى كل صف له هوية واحدة واضحة.
 BASIC_SERVICE_NAMES = [
@@ -51,6 +53,19 @@ BASIC_SERVICE_NAMES = [
 ]
 BASIC_SERVICES = [{"id": f"AFB-{i:02d}", "name": name} for i, name in enumerate(BASIC_SERVICE_NAMES, 1)]
 
+def emergency_horizontal_pairs(row):
+    """صفوف الطوارئ الاختيارية التي تحفظ أزواج (خدمة، قائم بها).
+
+    الاستيراد القديم لا يستطيع استنتاج الأزواج من صف عام، لذلك نقرأ فقط
+    الشكل الصريح إن وجد، ونترك الصف المعتاد للمسار القائم.
+    """
+    pairs = row.get("horizontal_pairs")
+    if pairs is None:
+        pairs = row.get("pairs")
+    if not isinstance(pairs, list):
+        return []
+    return [pair for pair in pairs if isinstance(pair, dict)]
+
 def _overrides(data, day):
     return data.setdefault("day_afraad", {}).setdefault(day, {})
 
@@ -69,15 +84,18 @@ def _previous_overrides(data, day):
 def _slot(data, values, shift):
     person_id = values.get(f"{shift}_person_id", "")
     phone = values.get(f"{shift}_phone", "")
+    result = {"name": values.get(f"{shift}_name", ""), "phone": phone}
     if person_id:
         raw, category, _bucket = PeopleRepo(data).locate(person_id)
         if raw is not None and category == "personnel":
             # رقم سجل الفرد هو مصدر الحقيقة؛ تعديل الرقم في صفحة القوة
             # ينعكس فورًا على كل اليوميات المرتبطة به.
             phone = raw.get("phone") or phone
-    result = {"name": values.get(f"{shift}_name", ""), "phone": phone}
-    if person_id:
+            result["phone"] = phone
+            # الاسم المخزّن في الخانة «رتبة/ اسم» جاهز للعرض؛ التصدير بيحتاج الاسم نفسه
+            result["full_name"] = raw.get("name", "")
         result["person_id"] = person_id
+        result["role"] = raw.get("role", "") if raw is not None else ""
     return result
 
 
@@ -176,6 +194,87 @@ def occasional_rows(data, day):
     return rows
 
 
+def officer_service_pairs(data, day):
+    """أزواج ضابط/خدمة الأساسية الظاهرة أعلى طوارئ يومية الأفراد."""
+    people = _people_index(data)
+    ordered = []
+    for source_order, assignment in enumerate(peek_day(data, day)):
+        if assignment.get("section") != SECTION_BASIC or not assignment.get("officer_ids"):
+            continue
+        row = _row(assignment, people, day)
+        core = norm(core_service_name(row.get("name") or row.get("label")))
+        if "تدخل سريع" in core or "التدخل السريع" in core:
+            continue
+        officers = row.get("officers") or []
+        ordered.append((_display_key(row, source_order), {
+            "id": row["id"], "label": row.get("label") or row.get("name") or "",
+            "officers": officers,
+            "person": "، ".join(officer_label(officer) for officer in officers),
+        }))
+    return [pair for _key, pair in sorted(ordered, key=lambda item: item[0])]
+
+
+def _basic_history(data):
+    return data.setdefault("reference_lists", {}).setdefault("afraad_basic", [])
+
+
+def _all_basic_items(data):
+    items = [dict(item) for item in BASIC_SERVICES]
+    for version in _basic_history(data):
+        for item in version.get("items") or []:
+            if isinstance(item, dict):
+                items.append(item)
+    return items
+
+
+def _basic_entry_id(data, name):
+    wanted = norm(name)
+    id_map = data.setdefault("afraad_basic_ids", {})
+    if wanted in id_map:
+        return id_map[wanted]
+    for item in _all_basic_items(data):
+        if norm(item.get("name")) == wanted and item.get("id"):
+            id_map[wanted] = item["id"]
+            return id_map[wanted]
+    ident = reserve_id(data, "AFB", _all_basic_items(data), width=2)
+    id_map[wanted] = ident
+    return ident
+
+
+def _forward_basic_change(data, day, change):
+    updated = change([dict(item) for item in afraad_basic_on(data, day)])
+    record_afraad_basic_change(data, day, updated)
+    for version in _basic_history(data):
+        if (version.get("from") or "") > day:
+            version["items"] = change([dict(item) for item in version.get("items") or []])
+    return updated
+
+
+def add_basic_service(data, day, name):
+    name = str(name or "").strip()
+    if not name:
+        return None, "اسم الخدمة مطلوب.", 400
+    if len(name) > 120:
+        return None, "اسم الخدمة لا يزيد عن 120 حرفًا.", 400
+    if any(norm(item["name"]) == norm(name) for item in afraad_basic_on(data, day)):
+        return None, "هذه الخدمة موجودة بالفعل في هذا اليوم.", 409
+    entry = {"id": _basic_entry_id(data, name), "name": name}
+    _forward_basic_change(data, day, lambda items: items + [entry] if not any(
+        norm(item["name"]) == norm(name) for item in items) else items)
+    return entry["id"], None, None
+
+
+def remove_basic_service(data, day, entry_id):
+    target = next((item for item in afraad_basic_on(data, day) if item["id"] == entry_id), None)
+    if target is None:
+        return None, "الخدمة الأساسية غير موجودة في هذا اليوم.", 404
+    wanted = norm(target["name"])
+    _forward_basic_change(data, day, lambda items: [item for item in items
+                                                     if norm(item["name"]) != wanted])
+    (data.setdefault("day_afraad", {}).get(day) or {}).pop(entry_id, None)
+    return entry_id, None, None
+
+
 def build_afraad(data, day):
     personnel = []
     for person in PeopleRepo(data).on_force(day, "personnel"):
@@ -183,4 +282,5 @@ def build_afraad(data, day):
         personnel.append({"id": person.id, "name": person.name, "role": role,
                           "phone": person.phone})
     return {"date": day, "basic": basic_rows(data, day),
-            "occasional": occasional_rows(data, day), "personnel": personnel}
+            "occasional": occasional_rows(data, day), "personnel": personnel,
+            "officer_pairs": officer_service_pairs(data, day)}

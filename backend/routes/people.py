@@ -138,7 +138,7 @@ def add_person():
     if not join_date:
         return jsonify({"error": "تاريخ الانضمام غير صحيح."}), 400
 
-    bad_length = check_lengths(payload, ("name", "code", "phone", "post", "address", "section"))
+    bad_length = check_lengths(payload, ("name", "short_name", "code", "phone", "post", "address", "section"))
     if bad_length:
         return jsonify({"error": bad_length}), 400
     if not valid_phone(payload["phone"]):
@@ -176,6 +176,7 @@ def add_person():
             "status": "active"
         }
         if category == "officers":
+            person["short_name"] = str(payload.get("short_name", "")).strip()
             person["rest_system"] = str(payload.get("rest_system", "—")).strip() or "—"
             person["rest_day"] = str(payload.get("rest_day", "")).strip()
             person["weapon_custody"] = str(payload.get("weapon_custody", "")).strip()
@@ -236,7 +237,7 @@ def edit_person(person_id):
             if section not in _known_officer_sections(data) and not payload.get("new_section"):
                 raise AbortRequest((jsonify({"error": "القسم غير معروف. اختر «قسم جديد» لتسجيله."}), 400))
 
-        bad_length = check_lengths(payload, ("name", "code", "phone", "post",
+        bad_length = check_lengths(payload, ("name", "short_name", "code", "phone", "post",
                                              "address", "leave_reason", "weapon_custody", "section"))
         if bad_length:
             raise AbortRequest((jsonify({"error": bad_length}), 400))
@@ -283,6 +284,8 @@ def edit_person(person_id):
         for key in EDITABLE:
             if key in payload and not (historic and key in historic):
                 person[key] = str(payload[key]).strip()
+        if category == "officers" and "short_name" in payload:
+            person["short_name"] = str(payload["short_name"] or "").strip()
 
         if bucket == "archive" and "leave_date" in payload:
             leave_date = canonical_day(payload["leave_date"])
@@ -449,6 +452,7 @@ def delete_archive_record(person_id):
         closed = sorted(closed)
         reason = retro.require_reason(closed)
 
+        repos.deleted_person_name = raw.get("name", "")
         repos.people.remove(person_id)
         report = cascade_delete(repos, person_id, category)
         changes.record(data, "person", person_id, "delete", before=raw, after=report,

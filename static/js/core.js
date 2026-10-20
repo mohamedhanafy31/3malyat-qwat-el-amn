@@ -57,11 +57,26 @@ const fmtShort=d=>{
   return `${Number(parts[2])}/${Number(parts[1])}`;
 };
 /* اليوم المعروض في سطر وصف الصفحة — بدل رأس الدفتر اللي بقى للطباعة بس */
+/* اليوم بالتفصيل (الأربعاء 21 أكتوبر 2026) — نفس الصيغة في العنوان وفي نوافذ
+   تأكيد/فتح اليوم، عشان المستخدم يشوف بالظبط أنهي يوم بيأكّده */
+const dayLabel=s=>s?`${dayName(s)} ${fmt(s)}`:"-";
 function setPageDay(day){
-  const p=document.querySelector(".page-head .titles p");
+  const titles=document.querySelector(".page-head .titles");
+  const p=titles?.querySelector("p");
   if(!p||!day) return;
   if(p.dataset.base===undefined) p.dataset.base=p.textContent;
-  p.textContent=`${dayName(day)} ${fmt(day)} — ${p.dataset.base}`;
+  p.textContent=`${dayLabel(day)} — ${p.dataset.base}`;
+  /* يوم غير النهاردة: شارة ثابتة جنب العنوان، بتتشال أول ما نرجع لليوم الحالي.
+     مؤشر بصري ونصي بس — مفيش خطوة تأكيد إضافية على التنقل */
+  let warn=titles.querySelector(".day-warning");
+  if(day===curDate()){ warn?.remove(); return }
+  if(!warn){
+    warn=document.createElement("div");
+    warn.className="day-warning";
+    warn.setAttribute("role","status");
+    titles.insertBefore(warn,p);
+  }
+  warn.textContent=day>curDate()?"أنت تعمل على يوم قادم":"أنت تعمل على يوم سابق";
 }
 const humanizeDates=text=>String(text??"").replace(/\b\d{4}-\d{2}-\d{2}\b/g,fmt);
 
@@ -240,6 +255,8 @@ function _endProcess(token){_processRequests.delete(token);_paintProcessLoader()
 
 async function api(url,opts){
   opts=opts||{};
+  const timeoutMs=Number(opts.timeoutMs)||30000;
+  delete opts.timeoutMs;
   const callerSignal=opts.signal;
   const method=String(opts.method||"GET").toUpperCase();
   const mutation=method!=="GET";
@@ -254,7 +271,7 @@ async function api(url,opts){
     if(!mutation) _inflightGets.set(url,controller);
     const prior=opts.signal;
     opts.signal=prior||controller.signal;
-    timer=setTimeout(()=>controller.abort(),30000);
+    timer=setTimeout(()=>controller.abort(),timeoutMs);
     r=await fetch(url,opts);
   }
   catch(e){
@@ -1370,8 +1387,9 @@ function _cbRender(q) {
   const all = opts.map((o, i) => ({i, text: o.textContent, value: o.value}));
   const typed = String(q || "").trim();
   const allowCustom = !_cbMulti && _cbSel.hasAttribute("data-combo-custom");
+  const showCustomOption = allowCustom && _cbSel.dataset.comboCustomOption !== "none";
   const exact = typed && all.some(o => o.value.trim() === typed || o.text.trim() === typed);
-  const custom = allowCustom && typed && !exact
+  const custom = showCustomOption && typed && !exact
     ? [{custom: true, text: typed, value: typed}] : [];
   const matches = q ? all.filter(o => arIncludes(o.text, q)) : all;
   const available = [...custom, ...matches];

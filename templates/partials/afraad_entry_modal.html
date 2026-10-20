@@ -7,16 +7,17 @@
       <input type="hidden" id="afEntryId">
       <input type="hidden" id="afMorningPersonId">
       <input type="hidden" id="afNightPersonId">
-      <datalist id="afPersonnelList"></datalist>
       <div class="grid">
         <label>القائم بها صباحًا
-          <input id="afMorningName" list="afPersonnelList" autocomplete="off">
+          <select id="afMorningName" data-combo-custom data-combo-custom-option="none" data-maxlength="200"
+                  aria-label="القائم بها صباحًا"></select>
         </label>
         <label>هاتف الصباحية
           <input id="afMorningPhone">
         </label>
         <label>القائم بها ليلًا
-          <input id="afNightName" list="afPersonnelList" autocomplete="off">
+          <select id="afNightName" data-combo-custom data-combo-custom-option="none" data-maxlength="200"
+                  aria-label="القائم بها ليلًا"></select>
         </label>
         <label>هاتف الليلية
           <input id="afNightPhone">

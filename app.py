@@ -116,6 +116,8 @@ def _unexpected(exc):
 
 
 if __name__ == "__main__":
+    from backend.daily_files import start_worker
+    start_worker()
     acquire_process_lock()
     port = int(os.environ.get("PORT", "5000"))
     print(f"Personnel System running at http://127.0.0.1:{port}")

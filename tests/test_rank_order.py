@@ -38,3 +38,33 @@ def test_officers_page_order_matches_duty_page_rank_order(client):
 
     assert officers_page_ids == duty_page_ids
 
+
+
+def test_seniority_key_orders_year_then_number_for_mixed_code_formats():
+    from backend.utils import seniority_key
+
+    codes = ["1223/2006", "765/2002", "2023/1657", "2007", "1043/2003", "159/2008", "ض-01", ""]
+    ordered = sorted(codes, key=seniority_key)
+    assert ordered == ["765/2002", "1043/2003", "1223/2006", "2007", "159/2008",
+                       "2023/1657", "", "ض-01"]
+    # الرقم الأكبر من 2040 مش سنة: «2060/2013» رقم 2060 سنة 2013
+    assert seniority_key("2060/2013")[:3] == (0, 2013, 2060)
+    assert seniority_key("٧٦٥/٢٠٠٢")[:3] == (0, 2002, 765)
+
+
+def test_same_rank_officers_follow_seniority_number_not_name(client):
+    client.patch("/api/person/OFF-002", json={"role": "عقيد", "code": "50/2001"})
+    client.patch("/api/person/OFF-001", json={"code": "7/2009"})
+    rows = client.get("/api/duty/2026-06-01").get_json()["rows"]
+    assert [r["id"] for r in rows] == ["OFF-002", "OFF-001"]
+    client.patch("/api/person/OFF-001", json={"code": "7/1999"})
+    rows = client.get("/api/duty/2026-06-01").get_json()["rows"]
+    assert [r["id"] for r in rows] == ["OFF-001", "OFF-002"]
+
+
+def test_command_posts_stay_ahead_of_seniority(client):
+    client.patch("/api/person/OFF-002", json={"role": "عقيد", "code": "50/2001"})
+    client.patch("/api/person/OFF-001", json={"code": "7/1999"})
+    client.patch("/api/command", json={"مدير الإدارة": "OFF-002"})
+    rows = client.get("/api/duty/2026-06-01").get_json()["rows"]
+    assert rows[0]["id"] == "OFF-002"

@@ -8,6 +8,7 @@
 """
 from .store import reserve_id
 from .text import norm
+from .clocktime import parse_time
 from .utils import MAX_LEN
 
 PERIODS = ["صباحية وليلية", "صباحية بس", "ليلية بس"]
@@ -29,6 +30,8 @@ def catalog(data):
         e.setdefault("command_officers", 0)
         e.setdefault("command_individuals", 0)
         e.setdefault("tags", [])
+        e.setdefault("report_am", "")
+        e.setdefault("report_pm", "")
         e.pop("officers_count", None)
         e.pop("command_by", None)
     return entries
@@ -46,7 +49,7 @@ def blank_entry(entry_id, name):
     return {"id": entry_id, "name": name, "period": "", "kind": "", "post_type": "",
             "has_command": False, "command_officers": 0, "command_individuals": 0,
             "count": 0, "weapon": "", "instructions": "", "location_text": "",
-            "location_images": [], "tags": [], "order": 0}
+            "location_images": [], "tags": [], "report_am": "", "report_pm": "", "order": 0}
 
 
 def guess_post_type(name):
@@ -90,6 +93,17 @@ def apply_entry(data, entry, payload):
             return None, "يجب أن يكون عدد المجندين رقمًا."
     if "weapon" in payload:
         entry["weapon"] = str(payload["weapon"]).strip()
+    for field in ("report_am", "report_pm"):
+        if field not in payload:
+            continue
+        raw = str(payload[field] or "").strip()
+        if not raw:
+            entry[field] = ""
+        else:
+            value = parse_time(raw)
+            if value is None:
+                return None, "ميعاد الانتظام غير صحيح."
+            entry[field] = value
     if "instructions" in payload:
         instructions = str(payload["instructions"]).strip()
         if len(instructions) > MAX_INSTRUCTIONS:

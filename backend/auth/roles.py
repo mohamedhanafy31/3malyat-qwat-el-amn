@@ -1,14 +1,14 @@
 """الأدوار والصلاحيات الثابتة لطبقة الدخول."""
 
 ROLE_LABELS = {
-    "admin": "ادمن",
+    "admin": "مدير النظام",
     "officer": "ضابط",
     "individual": "فرد",
     "conscript": "مجند",
 }
 
 ROLE_CAPABILITIES = {
-    "admin": {"view_logs", "manage_users"},
+    "admin": {"view_logs", "manage_users", "manage_files"},
     "officer": {"view_logs"},
     "individual": set(),
     "conscript": set(),

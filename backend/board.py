@@ -237,9 +237,12 @@ def _people_index(data):
 def _person(people, person_id, day):
     p = people.get(person_id)
     if not p:
-        return {"id": person_id, "name": "", "role": "", "missing": True}
+        return {"id": person_id, "name": "", "role": "", "category": "", "missing": True}
     eff = effective(p, day)
-    return {"id": person_id, "name": p.get("name", ""), "role": eff["role"]}
+    category = "personnel" if person_id.startswith("IND-") else "officers"
+    return {"id": person_id, "name": p.get("name", ""), "role": eff["role"],
+            "short_name": p.get("short_name", "") if category == "officers" else "",
+            "category": category}
 
 
 def _roster(data, day):
@@ -266,7 +269,10 @@ def _roster(data, day):
 
     def slim(person):
         role = person.effective(day)["role"] if hasattr(person, "effective") else person.role
-        return {"id": person.id, "name": person.name, "role": role}
+        category = "personnel" if person.id.startswith("IND-") else "officers"
+        return {"id": person.id, "name": person.name, "role": role,
+                "short_name": getattr(person, "short_name", "") if category == "officers" else "",
+                "category": category}
 
     def not_on_leave(person):
         return not leave_on(data, person.id, day)
@@ -354,7 +360,8 @@ def _target_commanders(officers, name, day):
         post = norm(effective(p, day).get("post", ""))
         if post.startswith(prefix) and post[len(prefix):].strip() == needle:
             out.append({"id": p["id"], "name": p.get("name", ""),
-                        "role": effective(p, day)["role"]})
+                        "role": effective(p, day)["role"], "short_name": p.get("short_name", ""),
+                        "category": "officers"})
     return out
 
 
@@ -653,20 +660,28 @@ def build_board(data, day):
         # نقلتهم من «طبية» إلى «الخوارج». صف خدمة محفوظ يفضل ظاهر فوق عادي.
         if r["id"] in medical_ids:
             continue
-        who = {"id": r["id"], "name": r["name"], "role": r["role"]}
+        who = {"id": r["id"], "name": r["name"], "role": r["role"],
+               "short_name": people.get(r["id"], {}).get("short_name", "")}
+        # النص اليدوي = `note` المستورد + التشغيل الإضافي (الخدمة التلقائية
+        # مش جواه — الأقسام دي بتوصف الحالة نفسها مش الخدمة)
+        manual = r["manual"]
         if r["group"] == "خوارج":
             if r["bucket"] == "تقصيرة":
-                taqseeras.append({**who, "note": r["note"]})
+                taqseeras.append({**who, "note": manual})
             elif r["bucket"] == "راحة":
                 lv = r["leave"] or {}
                 rests.append({**who, "type": (r["leave"] or {}).get("type", "راحة"),
                               "start": lv.get("start"), "end": lv.get("end"),
-                              "return_date": lv.get("return_date"), "note": r["note"]})
+                              "return_date": lv.get("return_date"), "note": manual})
             else:
                 outsiders.append({**who, "reason": (r["leave"] or {}).get("type") or r["bucket"],
-                                  "note": r["note"]})
+                                  "note": manual})
         elif r["group"] == "صافي":
-            admin_work.append({**who, "text": r["note"] or r["post"]})
+            admin_work.append({**who, "text": manual or r["post"]})
+        elif r["admin_work"]:
+            # اتعلّم من يومية الضباط «إضافة للعمل بالإدارة»: نصه التشغيلي الكامل
+            # (خدمته + اليدوي) بيظهر هنا كمان، وهو فاضل في مكان خدمته زي ما هو
+            admin_work.append({**who, "text": r["text"] or r["post"], "added": True})
 
     computed = {
         SECTION_ADMIN_WORK: admin_work,

@@ -23,7 +23,8 @@ from .base import DictRepo, Repo
 from .config import ChangeRepo, ConfigRepo
 from .days import DayRepo
 from .people import IndividualRepo, OfficerRepo, PeopleRepo
-from .records import CourseRepo, CourseTermRepo, LeaveRepo, MissionRepo
+from .records import (ConscriptRepo, CourseRepo, CourseTermRepo, LeaveRepo,
+                      MissionRepo, VehicleRepo)
 
 
 class Repos:
@@ -34,6 +35,7 @@ class Repos:
         "leaves": LeaveRepo,
         "courses": CourseRepo, "terms": CourseTermRepo,
         "days": DayRepo, "missions": MissionRepo,
+        "vehicles": VehicleRepo, "conscripts": ConscriptRepo,
         "changes": ChangeRepo, "config": ConfigRepo,
     }
 
@@ -64,5 +66,5 @@ __all__ = [
     "Repo", "DictRepo", "Repos",
     "PeopleRepo", "OfficerRepo", "IndividualRepo",
     "LeaveRepo", "CourseRepo", "CourseTermRepo", "MissionRepo",
-    "DayRepo", "ConfigRepo", "ChangeRepo",
+    "DayRepo", "ConfigRepo", "ChangeRepo", "VehicleRepo", "ConscriptRepo",
 ]

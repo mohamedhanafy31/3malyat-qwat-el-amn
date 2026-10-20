@@ -91,3 +91,58 @@ def afraad_basic_on(data, day):
         if item_id and name:
             items.append({"id": item_id, "name": name})
     return items
+
+
+def record_afraad_basic_change(data, effective_from, items):
+    """يسجل نسخة الخدمات الأساسية ابتداءً من يوم محدد."""
+    lists = data.setdefault("reference_lists", {})
+    history = lists.setdefault("afraad_basic", [])
+    value = {"from": effective_from, "items": deepcopy(items)}
+    row = next((entry for entry in history if entry.get("from") == effective_from), None)
+    if row is None:
+        history.append(value)
+    else:
+        row.clear(); row.update(value)
+    history.sort(key=lambda entry: entry.get("from") or "")
+
+
+def campaign_daily_on(data, day):
+    entries = ((data.get("reference_lists") or {}).get("campaign_daily") or [])
+    applicable = [entry for entry in entries if (entry.get("from") or "") <= day]
+    row = max(applicable, key=lambda entry: entry.get("from") or "") if applicable else {"items": []}
+    return [dict(item) for item in row.get("items") or []
+            if isinstance(item, dict) and item.get("id") and str(item.get("name") or "").strip()]
+
+
+def record_campaign_daily_change(data, effective_from, items):
+    lists = data.setdefault("reference_lists", {})
+    history = lists.setdefault("campaign_daily", [])
+    value = {"from": effective_from, "items": deepcopy(items)}
+    row = next((entry for entry in history if entry.get("from") == effective_from), None)
+    if row is None:
+        history.append(value)
+    else:
+        row.clear(); row.update(value)
+    history.sort(key=lambda entry: entry.get("from") or "")
+
+
+def campaign_posts_on(data, day):
+    """الارتكازات السارية في يوم، مع الحفاظ على ترتيب النسخة المرجعية."""
+    entries = ((data.get("reference_lists") or {}).get("campaign_posts") or [])
+    applicable = [entry for entry in entries if (entry.get("from") or "") <= day]
+    row = max(applicable, key=lambda entry: entry.get("from") or "") if applicable else {"items": []}
+    return [dict(item) for item in row.get("items") or []
+            if isinstance(item, dict) and item.get("id") and str(item.get("name") or "").strip()]
+
+
+def record_campaign_posts_change(data, effective_from, items):
+    """يسجل نسخة قائمة الارتكازات ابتداءً من يوم محدد."""
+    lists = data.setdefault("reference_lists", {})
+    history = lists.setdefault("campaign_posts", [])
+    value = {"from": effective_from, "items": deepcopy(items)}
+    row = next((entry for entry in history if entry.get("from") == effective_from), None)
+    if row is None:
+        history.append(value)
+    else:
+        row.clear(); row.update(value)
+    history.sort(key=lambda entry: entry.get("from") or "")

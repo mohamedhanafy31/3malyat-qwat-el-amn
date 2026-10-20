@@ -34,6 +34,7 @@ except ImportError:
 
 from app import app
 from backend.store import acquire_process_lock
+from backend.daily_files import start_worker
 
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = int(os.environ.get("PORT", "5000"))
@@ -102,6 +103,7 @@ def _port_conflict_message():
 
 if __name__ == "__main__":
     logger = _configure_logging()
+    start_worker()
     acquire_process_lock()
     logger.info("Starting production server on http://%s:%s (threads=%s)",
                 HOST, PORT, THREADS)

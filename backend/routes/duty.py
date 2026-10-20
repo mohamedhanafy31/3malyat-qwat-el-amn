@@ -2,7 +2,8 @@
 
 التكليف بخدمة بقى من `/api/assignments/<day>` (نفس النقطة اللي اللوحة
 بتستخدمها) — الصفحة دي بتعدّل **حالة** الضابط بس: تقصيرة، انتداب/غياب/
-مرضي/فرقة/طارئة، وملاحظة. دي حقيقة مختلفة عن التكليف مش نسخة تانية منه.
+مرضي/فرقة/طارئة، وملاحظة، وتشغيل إضافي بيتضاف على خدمته التلقائية،
+وإضافته للعمل بالإدارة في اللوحة. دي حقيقة مختلفة عن التكليف مش نسخة تانية منه.
 تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
 حالة يومية هنا.
 """
@@ -33,6 +34,11 @@ def _state_text(name, day, before, after):
         parts.append(f"الحالة: {before.get('status') or '—'} ← {after.get('status') or '—'}")
     if (before.get("note") or "") != (after.get("note") or ""):
         parts.append(f"الملاحظة: {after.get('note') or 'مُسحت'}")
+    if (before.get("extra") or "") != (after.get("extra") or ""):
+        parts.append(f"التشغيل الإضافي: {after.get('extra') or 'مُسح'}")
+    if bool(before.get("admin_work")) != bool(after.get("admin_work")):
+        parts.append("إضافته للعمل بالإدارة" if after.get("admin_work")
+                     else "إلغاء إضافته للعمل بالإدارة")
     return f"{name} في يومية {day}: " + "، ".join(parts or ["تعديل الحالة"])
 
 
@@ -80,6 +86,9 @@ def set_state(day, person_id):
     note = str(payload.get("note", "")).strip()
     if len(note) > MAX_LEN["note"]:
         return jsonify({"error": f"الملاحظة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
+    extra = str(payload.get("extra", "") or "").strip()
+    if len(extra) > MAX_LEN["note"]:
+        return jsonify({"error": f"التشغيل الإضافي أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
 
     def mutate(data):
         stale = stale_revision(data, payload.get("revision"), [day])
@@ -104,7 +113,9 @@ def set_state(day, person_id):
             data, day, person_id,
             taqseera=bool(payload["taqseera"]) if "taqseera" in payload else None,
             status=status if "status" in payload else None,
-            note=note if "note" in payload else None)
+            note=note if "note" in payload else None,
+            extra=extra if "extra" in payload else None,
+            admin_work=bool(payload["admin_work"]) if "admin_work" in payload else None)
         if before != dict(after):
             changes.record(data, "officer_state", person_id, "update",
                            before=before, after=dict(after), reason=f"يوم {day}",
@@ -131,7 +142,8 @@ def clear_state(day, person_id):
         if not officer:
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
         before = dict(officer_state(data, day, person_id))
-        set_officer_state(data, day, person_id, taqseera=False, status="", note="")
+        set_officer_state(data, day, person_id, taqseera=False, status="", note="",
+                          extra="", admin_work=False)
         if before:
             changes.record(data, "officer_state", person_id, "delete",
                            before=before, reason=f"يوم {day}",

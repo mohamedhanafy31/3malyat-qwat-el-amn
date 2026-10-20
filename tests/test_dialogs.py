@@ -9,6 +9,7 @@ PAGE_URLS = [
     "/counts", "/afraad", "/service-catalog", "/officer-log", "/changes",
     "/missions", "/courses", "/register", "/register/OFF-001", "/leaves",
     "/leaves/stats", "/leaves/monthly", "/leaves/suspension",
+    "/vehicles", "/drivers", "/campaign",
 ]
 
 

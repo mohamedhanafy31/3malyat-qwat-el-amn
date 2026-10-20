@@ -2,6 +2,10 @@
 `22-6-2026 افراد.docx` بالظبط، 22 خدمة)، وكل تفاصيلها (القائم بها/
 التليفون/القوام/التسليح/الانتظام) بتتغيّر يوميًا. الطارئة + أي قسم
 مخصّص بييجوا من اليومية التفصيلية مرتبين بمعاد الانتظام."""
+import io
+
+from docx import Document
+
 from backend.afraad import BASIC_SERVICE_NAMES
 
 DAY = "2026-04-10"
@@ -121,6 +125,38 @@ def test_occasional_section_excludes_the_officer_boards_basic_and_targets(client
     assert labels == {"طارئة حقيقية"}
 
 
+def test_officer_service_pairs_are_derived_and_exclude_quick_intervention(client):
+    for name, pos in (("خدمة حراسة", 2), ("التدخل السريع", 1)):
+        result = _add_assignment(client, section="الخدمات أساسية", name=name, pos=pos,
+                                 officer_ids=["OFF-001"])
+        assert result["id"]
+    pairs = client.get(f"/api/afraad/{DAY}").get_json()["officer_pairs"]
+    assert [pair["label"] for pair in pairs] == ["خدمة حراسة صبح"]
+    assert pairs[0]["person"] == "عقيد/ أحمد محمد"
+
+
+def test_basic_service_edit_is_forward_dated_and_clears_current_override(client):
+    next_day = "2026-04-11"
+    response = client.post(f"/api/afraad/{DAY}/basic-services", json={"name": "خدمة جديدة"})
+    assert response.status_code == 200
+    entry = next(item for item in response.get_json()["basic"] if item["name"] == "خدمة جديدة")
+    client.put(f"/api/afraad/{DAY}/basic/{entry['id']}", json={"count": "5"})
+    removed = client.delete(f"/api/afraad/{DAY}/basic-services/{entry['id']}")
+    assert removed.status_code == 200
+    assert all(item["id"] != entry["id"] for item in removed.get_json()["basic"])
+    assert all(item["id"] != entry["id"] for item in
+               client.get(f"/api/afraad/{next_day}").get_json()["basic"])
+
+
+def test_basic_service_validation_and_readd_reuses_id(client):
+    response = client.post(f"/api/afraad/{DAY}/basic-services", json={"name": "خدمة مؤقتة"})
+    ident = next(item["id"] for item in response.get_json()["basic"] if item["name"] == "خدمة مؤقتة")
+    assert client.post(f"/api/afraad/{DAY}/basic-services", json={"name": "خِدْمَة مؤقتة"}).status_code == 409
+    assert client.delete(f"/api/afraad/{DAY}/basic-services/{ident}").status_code == 200
+    again = client.post(f"/api/afraad/{DAY}/basic-services", json={"name": "خدمة مؤقتة"})
+    assert next(item["id"] for item in again.get_json()["basic"] if item["name"] == "خدمة مؤقتة") == ident
+
+
 def test_a_custom_section_lands_in_the_occasional_table_too(client):
     """أي تصنيف زيادة عن «الخدمات الطارئة» (زي «خدمات انتشار») بيتحط في
     نفس جدول الطوارئ هنا — نفس مبدأ `counts.py` واللوحة بالظبط."""
@@ -144,10 +180,6 @@ def test_bootstrap_ships_the_afraad_page(client):
 
 
 def test_export_returns_a_real_docx_file(client):
-    import io
-
-    from docx import Document
-
     client.put(f"/api/afraad/{DAY}/basic/{FIRST_ID}", json={"morning_name": "م.ش/ محمد عطية"})
     _add_assignment(client, name="تسفير الأربعين", time="9ص")
     r = client.get(f"/api/afraad/{DAY}/export.docx")
@@ -155,7 +187,7 @@ def test_export_returns_a_real_docx_file(client):
     assert r.mimetype == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     doc = Document(io.BytesIO(r.data))
     assert len(doc.tables) == 1
-    assert len(doc.tables[0].columns) == 14
+    assert len(doc.tables[0].columns) == 16
     assert any("10/4/2026" in paragraph.text for paragraph in doc.paragraphs)
     text = "\n".join(p.text for t in doc.tables for row in t.rows for c in row.cells
                      for p in c.paragraphs)
@@ -164,3 +196,26 @@ def test_export_returns_a_real_docx_file(client):
     assert "كمين شرق النفق المستحدث" in text
     assert "تسفير الأربعين" in text
     assert "الخدمات الطارئة" in text
+
+
+def test_export_labels_linked_personnel_with_archive_style_name(client):
+    person = client.post("/api/person", json={
+        "type": "personnel", "name": "شريف صلاح جودة احمد", "code": "902",
+        "phone": "01012345678", "join_date": "2020-01-01", "role": "أمين شرطة",
+    }).get_json()
+    client.put(f"/api/afraad/{DAY}/basic/{FIRST_ID}", json={
+        "morning_person_id": person["id"], "morning_name": person["name"]})
+    response = client.get(f"/api/afraad/{DAY}/export.docx")
+    assert response.status_code == 200
+    doc = Document(io.BytesIO(response.data))
+    text = "\n".join(p.text for t in doc.tables for row in t.rows for c in row.cells
+                     for p in c.paragraphs)
+    assert "ا.ش/ شريف صلاح جودة" in text
+    assert "01012345678" in text
+
+
+def test_person_fields_use_the_searchable_combobox(client):
+    html = client.get("/afraad").get_data(as_text=True)
+    assert '<select id="afMorningName" data-combo-custom data-combo-custom-option="none"' in html
+    assert '<select id="afNightName" data-combo-custom data-combo-custom-option="none"' in html
+    assert "afPersonnelList" not in html

@@ -22,6 +22,8 @@
               title="تأكيد كل اليوميات المسجلة التي لم تُؤكّد بعد">
         {{ icon('check') }} <span>تأكيد غير المؤكد</span>
       </button>
+      <button class="mini" id="btnRefreshFiles" title="تحديث ملفات الأرشيف">{{ icon('refresh') }} تحديث الملفات</button>
+      <small class="muted" id="dailyFilesStatus">آخر تحديث للملفات: — · 0 ملفات</small>
       <button class="mini kbd-only" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
     </div>
   </div>
@@ -49,7 +51,8 @@
       <div><dt><kbd>D</kbd></dt><dd>تكرار الخدمة دون الأشخاص</dd></div>
       <div><dt><kbd>Delete</kbd></dt><dd>حذف الخدمة المختارة</dd></div>
       <div><dt><kbd>N</kbd></dt><dd>إضافة خدمة في القسم الحالي</dd></div>
-      <div><dt><kbd>PageUp</kbd> / <kbd>PageDown</kbd></dt><dd>اليوم السابق / التالي</dd></div>
+      <div><dt><kbd>→</kbd> / <kbd>←</kbd></dt><dd>اليوم السابق / التالي</dd></div>
+      <div><dt><kbd>PageUp</kbd> / <kbd>PageDown</kbd></dt><dd>اليوم السابق / التالي (بديل)</dd></div>
       <div><dt><kbd>T</kbd></dt><dd>الذهاب إلى اليوم</dd></div>
       <div><dt><kbd>Ctrl</kbd> + <kbd>Enter</kbd></dt><dd>حفظ نموذج الخدمة أثناء فتحه</dd></div>
       <div><dt><kbd>?</kbd></dt><dd>فتح شاشة الاختصارات هذه</dd></div>

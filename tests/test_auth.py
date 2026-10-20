@@ -60,7 +60,7 @@ def test_login_page_gets_roles_in_contract_order(client):
         template_rendered.disconnect(capture, app)
     assert rendered[-1]["next"] == "/audit"
     assert rendered[-1]["roles"] == [
-        {"key": "admin", "label": "ادمن"},
+        {"key": "admin", "label": "مدير النظام"},
         {"key": "officer", "label": "ضابط"},
         {"key": "individual", "label": "فرد"},
         {"key": "conscript", "label": "مجند"},
@@ -131,9 +131,13 @@ def test_view_logs_role_matrix(client, officer_client, individual_client, conscr
     for allowed in (client, officer_client):
         assert allowed.get("/audit").status_code == 200
         assert allowed.get("/api/audit").status_code == 200
+        assert allowed.get("/activity-stats").status_code == 200
+        assert allowed.get("/api/activity-stats").status_code == 200
     for denied in (individual_client, conscript_client):
         assert denied.get("/audit").status_code == 403
         assert denied.get("/api/audit").get_json()["code"] == "forbidden"
+        assert denied.get("/activity-stats").status_code == 403
+        assert denied.get("/api/activity-stats").get_json()["code"] == "forbidden"
 
 
 def test_operations_change_page_is_open_to_every_role(
@@ -381,7 +385,7 @@ def test_audit_file_cache_reuses_unchanged_file_and_invalidates_on_append(
     with (tmp_path / "audit.log").open("a", encoding="utf-8") as stream:
         stream.write(json.dumps(appended, ensure_ascii=False) + "\n")
 
-    response = client.get("/api/audit?q=OFF-CACHE").get_json()
+    response = client.get("/api/audit?q=cache_user").get_json()
     assert len(parsed) == first_count + 1
     assert response["entries"][0]["username"] == "cache_user"
     assert "cache_user" in response["users"]
@@ -405,6 +409,21 @@ def test_audit_filters_pagination_and_legacy_line(client, tmp_path):
     assert legacy["username"] is None
     assert legacy["display_name"] == "قديم"
     assert legacy["action_label"] == "تعديل بيانات فرد"
+    assert all(key not in legacy for key in ("ip", "method", "path"))
+
+
+def test_audit_does_not_store_or_return_network_and_api_details(client, tmp_path):
+    from backend import store
+    client.post("/api/assignments/2026-04-11", json={"name": "خدمة", "kind": "خارجية"})
+    for handler in store._audit_logger.handlers:
+        handler.flush()
+    raw_rows = [json.loads(line) for line in (tmp_path / "audit.log").read_text(
+        encoding="utf-8").splitlines()]
+    assert raw_rows
+    assert all(key not in row for row in raw_rows for key in ("ip", "method", "path"))
+    entries = client.get("/api/audit?limit=500").get_json()["entries"]
+    assert entries
+    assert all(key not in row for row in entries for key in ("ip", "method", "path"))
 
 
 def test_system_actor_outside_request_context():

@@ -4,9 +4,12 @@
 نسخة القالب الحيّة من غير ما يكتبها، عشان يوم محدش فتحه أصلًا مايتسجّلش له
 مدخل فاضي في الملف.
 """
-from flask import Blueprint, jsonify
+from io import BytesIO
+
+from flask import Blueprint, jsonify, send_file
 
 from .. import counts as counts_lib
+from ..counts_export import build_xlsx
 from .. import day_status
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
@@ -58,6 +61,19 @@ def get_counts(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     return jsonify(counts_lib.build(load_data([day]), day))
+
+
+@bp.get("/api/counts/<day>/export.xlsx")
+def export_counts_xlsx(day):
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    payload = counts_lib.build(load_data([day]), day)
+    year, month, number = (int(part) for part in day.split("-"))
+    buf = build_xlsx(payload)
+    return send_file(BytesIO(buf), as_attachment=True,
+                     download_name=f"اعداد الخدمات يوم {number}-{month}-{year}.xlsx",
+                     mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 @bp.get("/api/counts/template")

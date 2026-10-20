@@ -25,6 +25,11 @@ function drawTypeChart(data) {
         tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")} (${Math.round(ctx.raw / total * 100)}%)` } } },
     },
   });
+  chartAlt("typeChart", {
+    lead: `الأكثر شيوعًا: ${topList(entries.map(([label, value]) => ({ label, value })), v => countLabel(v, "راحة"))}.`,
+    head: ["النوع", "عدد الراحات", "النسبة"],
+    rows: entries.map(([k, n]) => [k, n, `${Math.round(n / total * 100)}%`]),
+  });
 }
 
 /* الحالة الراهنة: 95% من الدونات كانت «منتهية» فمكانتش بتقول حاجة —
@@ -53,6 +58,12 @@ function drawMonthChart(data) {
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")}` } } },
     },
   });
+  const months = keys.map((k, i) => ({ label: monthLabel(k), value: values[i] }));
+  chartAlt("monthChart", {
+    lead: `الأعلى شهريًا: ${topList([...months].sort((a, b) => b.value - a.value), v => countLabel(v, "راحة"))}.`,
+    head: ["الشهر", "عدد الراحات"],
+    rows: months.map(m => [m.label, m.value]),
+  });
 }
 
 function drawOfficerChart(data) {
@@ -79,6 +90,11 @@ function drawOfficerChart(data) {
       },
     },
   });
+  chartAlt("officerChart", {
+    lead: `الأكثر راحات: ${topList(rows.map(o => ({ label: o.name, value: o.count })), v => countLabel(v, "راحة"))}.`,
+    head: ["الضابط", "عدد الراحات", "إجمالي الأيام"],
+    rows: rows.map(o => [o.name, o.count, o.days]),
+  });
 }
 
 function drawDurationChart(data) {
@@ -92,6 +108,12 @@ function drawDurationChart(data) {
       scales: vbarScales(),
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")}` } } },
     },
+  });
+  const buckets = Object.entries(data.duration_buckets).map(([label, value]) => ({ label, value }));
+  chartAlt("durationChart", {
+    lead: `الأكثر شيوعًا: ${topList([...buckets].sort((a, b) => b.value - a.value), v => countLabel(v, "راحة"))}.`,
+    head: ["المدة", "عدد الراحات"],
+    rows: buckets.map(b => [b.label, b.value]),
   });
 }
 
@@ -112,6 +134,14 @@ function drawWeekdayChart(data) {
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")}` } } },
     },
   });
+  const days = order.map((label, i) => ({ label, value: values[i] }));
+  chartAlt("weekdayChart", {
+    lead: maxVal > 0
+      ? `الأكثر بداية للراحات: ${topList([...days].sort((a, b) => b.value - a.value), v => countLabel(v, "راحة"))}.`
+      : "لا توجد راحات في هذا المدى.",
+    head: ["اليوم", "عدد الراحات"],
+    rows: days.map(d => [d.label, d.value]),
+  });
 }
 
 function drawCumulativeChart(data) {
@@ -127,6 +157,14 @@ function drawCumulativeChart(data) {
       scales: vbarScales(),
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${countLabel(ctx.raw, "راحة")} تراكميًا` } } },
     },
+  });
+  const cum = data.cumulative;
+  chartAlt("cumulativeChart", {
+    lead: cum.length
+      ? `بلغ الإجمالي التراكمي ${countLabel(cum[cum.length - 1].total, "راحة")} حتى ${monthLabel(cum[cum.length - 1].month)}.`
+      : "لا توجد بيانات تراكمية.",
+    head: ["الشهر", "الإجمالي التراكمي"],
+    rows: cum.map(c => [monthLabel(c.month), c.total]),
   });
 }
 

@@ -156,6 +156,7 @@ button,input,select,textarea{font-family:inherit}
 .topbar .titles{display:flex;flex-direction:column;line-height:1.3;flex:1;min-width:0}
 .topbar h1{margin:0;font-size:var(--t-lg);font-family:var(--font-head);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .title-compact{display:none}
 .topbar .sub{margin:0;color:var(--on-dark-muted);font-size:var(--t-sm)}
 .topbar .today{font-size:var(--t-cap);color:var(--on-dark-soft);white-space:nowrap;text-align:start;
   border-inline-start:1px solid var(--border-on-dark);padding-inline-start:var(--s4)}
@@ -249,6 +250,10 @@ button,input,select,textarea{font-family:inherit}
   background:var(--gold-700);margin-inline-end:10px;vertical-align:-1px;border-radius:1px}
 .page-head .titles p{margin:var(--s1) 0 0;font-size:var(--t-cap);color:var(--ink-500);
   padding-inline-start:14px}
+/* شارة «يوم غير النهاردة» — ثابتة جنب العنوان، بنفس ألوان التحذير المشتركة */
+.page-head .titles .day-warning{display:inline-block;margin:var(--s1) 0 0 0;
+  padding:2px var(--s3);border:1px solid var(--warn-500);border-radius:var(--radius-control);
+  background:var(--warn-50);color:var(--warn-700);font-size:var(--t-cap);font-weight:700}
 .page-actions{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
 .page-actions .primary,.page-actions .btn{height:var(--control-h)}
 /* زرار التصدير بيستخدم قايمة الصف المشتركة، بس بعرض نصه */
@@ -411,6 +416,19 @@ button,input,select,textarea{font-family:inherit}
   .tb-group .date-input-display{flex:1 1 150px;width:auto}
   .tb-group.tb-end{margin-inline-start:0}
 }
+
+/* استيراد صورة يومية الأفراد — مراجعة قبل أي كتابة */
+.af-ocr-modal{width:min(96vw,1400px);max-width:1400px;max-height:94vh;overflow:auto}
+.af-ocr-overlay{display:block;max-width:100%;max-height:520px;margin:var(--s4) auto;
+  border:1px solid var(--line);border-radius:var(--radius-control)}
+.af-ocr-summary{margin:var(--s3) 0;padding:var(--s3);box-shadow:none}
+.af-ocr-rows{margin:var(--s4) 0}.af-ocr-table{min-width:1050px}
+.af-ocr-table td{vertical-align:top}.af-ocr-table td:first-child{text-align:center}
+.af-ocr-table select{width:100%;min-width:190px}
+.af-ocr-table small{display:block;color:var(--ink-400);margin-top:3px}
+.af-ocr-read{display:block;min-height:34px;margin-bottom:var(--s2);color:var(--ink-700);
+  font-size:var(--t-sm);line-height:1.5}
+@media(max-width:700px){.af-ocr-modal{width:100vw;max-height:100vh;border-radius:0}}
 .toolbar > .muted{font-size:var(--t-sm);margin-inline-start:auto}
 
 /* ═══════════════════ ⑪ حقول الإدخال ═══════════════════ */
@@ -740,7 +758,7 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .seg-field{border:0;padding:0;margin:0;min-width:0}
 .seg-field legend{padding:0;margin:0 0 6px;font-size:var(--t-cap);font-weight:700;
   color:var(--ink-900)}
-.seg-toggle{display:flex;width:100%;height:var(--control-h);overflow:hidden;
+.seg-toggle{display:flex;width:100%;height:var(--touch-target);overflow:hidden;
   border:1px solid var(--border-control);border-radius:var(--radius-control);background:var(--surface)}
 .seg-toggle.seg-toggle>label{position:relative;flex:1;display:flex;flex-direction:row;
   align-items:stretch;justify-content:center;gap:0;margin:0;cursor:pointer;
@@ -838,6 +856,17 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .mcard .mtable th{white-space:nowrap;overflow-wrap:normal;word-break:normal;min-width:max-content}
 .mtable .name{white-space:normal;line-height:1.35}
 .mcard .mtable .chip{white-space:normal;overflow-wrap:break-word}
+.fleet-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3);margin-bottom:var(--s4)}
+.fleet-summary>div{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);padding:var(--s3) var(--s4);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md)}
+.fleet-summary span{color:var(--ink-500);font-size:var(--t-sm)}
+.fleet-summary strong{color:var(--navy-900);font-size:var(--t-xl);font-variant-numeric:tabular-nums}
+.drivers-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)}
+.drivers-note{padding:var(--s3) var(--s4) 0;margin-bottom:0}
+.drivers-note a{color:var(--navy-700);font-weight:700}
+.compact-toolbar{padding:var(--s3) var(--s4)}
+.bidi-isolate{unicode-bidi:isolate}
+.check-label,.switch-label{display:inline-flex;align-items:center;gap:var(--s2);white-space:nowrap;font-size:var(--t-sm);font-weight:600;color:var(--ink-700)}
+@media(max-width:800px){.fleet-summary{grid-template-columns:1fr}.drivers-grid{grid-template-columns:1fr}}
 /* على الموبايل الجدول بيتمرر أفقيًا وعمود الإجراء (آخر عمود = أقصى الشمال)
    كان بيبقى برّه الشاشة في كل صف — بنثبّته على حافة الكرت. */
 @media(max-width:700px){
@@ -1205,6 +1234,23 @@ body.sidebar-open{overflow:hidden}
 .vacancy-summary{display:flex;align-items:center;gap:var(--s2);margin:var(--s4) var(--s5) 0;font-size:var(--t-cap)}
 .vacancy-summary.warn{color:var(--warn-700)}
 .vacancy-summary.ok{color:var(--ok-700)}
+.campaign-alert{margin:var(--s4) var(--s5) 0;padding:var(--s3) var(--s4)}
+.campaign-alert .alert-head{margin:0 0 var(--s2)}
+.campaign-alert .alert-list{margin:0;padding-inline-start:var(--s5)}
+.campaign-service-name{display:flex;align-items:center;gap:var(--s1);flex-wrap:wrap}
+.campaign-service-name strong{margin-inline-end:var(--s1)}
+.campaign-attach-chip{display:inline-flex;align-items:center;gap:3px;background:var(--gold-100);color:var(--gold-800);border-color:var(--gold-300)}
+.campaign-attach-chip button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;line-height:1;padding:0 2px}
+.muted-chip{color:var(--ink-500);background:var(--surface-sunken);border-color:var(--line)}
+.campaign-warn{cursor:help}
+.campaign-inline-select{width:100%;min-width:130px}
+.campaign-inline-select option[data-disabled="true"]{color:var(--ink-500);font-style:italic}
+.campaign-vehicle-cell{display:block;min-height:1.25em}
+.campaign-vehicle-type{color:var(--ink-700)}
+.campaign-post-driver{width:100%;min-width:140px}
+.campaign-plates{width:100%;font-family:var(--font-mono,monospace);line-height:1.7}
+.campaign-plates-card .actions{margin-top:var(--s3);justify-content:flex-start}
+.muted-text{color:var(--ink-500);font-size:var(--t-sm)}
 /* بطاقات الأرقام في الرئيسية روابط لصفحاتها */
 .stat-link{display:block;text-decoration:none;color:inherit;transition:border-color .12s,background .12s}
 .stat-link:hover{border-color:var(--navy-500);background:var(--navy-50)}
@@ -1459,6 +1505,13 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .chart-key i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .chart-key .k-navy{background:var(--navy-800)} .chart-key .k-gold{background:var(--gold-700)}
 .chart-key .k-soft{background:var(--navy-200)} .chart-key .k-bad{background:var(--bad-700)}
+/* البديل النصّي للرسم: ملخّص بأهم القيم + جدول كامل مقفول افتراضيًا */
+.chart-alt{margin-top:var(--s3);font-size:var(--t-sm)}
+.chart-alt-lead{margin:0 0 var(--s2);color:var(--ink-700);line-height:1.6}
+.chart-alt-table summary{cursor:pointer;color:var(--navy-800);font-weight:600;
+  padding:var(--s1) 0;min-height:var(--touch-control);display:flex;align-items:center}
+.chart-alt-table[open] summary{margin-bottom:var(--s2)}
+.chart-alt-table .table-scroll{max-height:360px;overflow:auto}
 .status-numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3)}
 .status-number{display:flex;flex-direction:column;align-items:center;gap:var(--s1);padding:var(--s4);
   border:1px solid var(--line);border-radius:var(--radius-card);border-top-width:3px}
@@ -1587,11 +1640,18 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 }
 @media(max-width:560px){
   .topbar .today{display:none}
-  /* على الموبايل البطاقات صف واحد بيتمرر — شبكة عمودين كانت بتسيب بطاقة
-     وحيدة في آخر صف لما العدد فردي */
-  .stats{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:var(--s2);
-    padding-bottom:var(--s1);scrollbar-width:thin}
-  .stats > .stat{flex:0 0 44%;scroll-snap-align:start}
+  /* اسم الحساب الكامل موجود في الاسم الميسّر وفي القائمة المنبثقة. على شاشة
+     الموبايل نخلي زر الحساب أيقونة مختصرة عشان عنوان المكتب يفضل مقروءًا. */
+  .topbar .user-chip-meta{display:none}
+  .topbar .user-chip-btn{gap:var(--s1);padding-inline:var(--s1)}
+  /* على الموبايل البطاقات شبكة عمودين مرئية بالكامل — الشريط الأفقي كان
+     بيقص بطاقة (ممكن تبقى «الإجمالي») من غير أي إشارة كافية للتمرير.
+     البطاقة الوحيدة في آخر صف (لما العدد فردي) بتاخد الصف كله. */
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+  .stats > .stat:last-child:nth-child(odd){grid-column:1 / -1}
+  .topbar .title-full{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap}
+  .topbar .title-compact{display:inline}
   .skel-stat .skel-sub-line + .skel-sub-line{display:block}
 }
 
@@ -1710,9 +1770,11 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
    كانت نسبة عرضها لطولها (صفحة PDF أبعادها مختلفة عن 16:9). */
 #locationModal .modal-card{width:min(900px,95vw)}
 .location-gallery{display:flex;flex-direction:column;gap:var(--s3);margin-top:var(--s4)}
+.location-thumb{display:block;width:100%;padding:0;background:none;border:0;
+  border-radius:var(--radius-sm);cursor:zoom-in}
 .location-gallery img{width:100%;height:auto;display:block;border-radius:var(--radius-sm);
-  border:1px solid var(--line);cursor:zoom-in}
-.location-gallery img:hover{outline:2px solid var(--navy-700)}
+  border:1px solid var(--line)}
+.location-thumb:hover img{outline:2px solid var(--navy-700)}
 .location-zoom-card{padding:var(--s3);text-align:center}
 .location-zoom-card img{max-width:100%;max-height:80vh;border-radius:var(--radius-sm)}
 
@@ -1898,8 +1960,8 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .auth-input:focus{border-color:var(--navy-600);outline:2px solid var(--navy-200)}
 .auth-input[disabled]{background:var(--navy-50);color:var(--ink-500);cursor:not-allowed}
 .password-wrap{position:relative;display:flex;align-items:center}
-.password-wrap .auth-input{padding-inline-end:44px}
-.btn-toggle-pwd{position:absolute;inset-inline-end:4px;width:34px;height:34px;background:none;
+.password-wrap .auth-input{padding-inline-end:var(--touch-target)}
+.btn-toggle-pwd{position:absolute;inset-inline-end:0;width:var(--touch-target);height:var(--touch-target);background:none;
   border:none;cursor:pointer;color:var(--ink-400);display:flex;align-items:center;justify-content:center;
   border-radius:var(--radius-control);padding:0;transition:color .15s ease,background .15s ease}
 .btn-toggle-pwd:hover{color:var(--ink-700);background:var(--navy-50)}
@@ -1946,3 +2008,72 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .audit-ip{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:var(--t-sm);color:var(--ink-700)}
 .audit-load-more{display:flex;justify-content:center;padding:var(--s4) 0}
 .user-reset-info{margin-bottom:var(--s4);padding:var(--s3);background:var(--navy-50);border-radius:var(--radius-control);font-size:var(--t-sm)}
+
+/* إحصائيات استخدام الحسابات — دفتر رقابة لا لوحة ترتيب للأفراد */
+.activity-method{display:flex;gap:var(--s3);align-items:flex-start;margin-bottom:var(--s4);
+  padding:var(--s3) var(--s4);border:1px solid var(--info-300);border-radius:var(--radius-card);
+  background:var(--info-100);color:var(--ink-700)}
+.activity-method-mark{width:4px;align-self:stretch;flex:none;border-radius:2px;background:var(--gold-700)}
+.activity-method strong{display:block;color:var(--navy-900);font-size:var(--t-cap)}
+.activity-method p{margin:2px 0 0;font-size:var(--t-sm)}
+.activity-filter-bar{position:sticky;top:calc(var(--topbar-h) + var(--s2));z-index:8}
+.activity-summary .stat strong{font-size:var(--t-xl)}
+.activity-ledger{overflow:hidden}
+.activity-ledger-head{align-items:center}
+.activity-ledger-head h3{margin:0 0 2px;font-size:var(--t-base);color:var(--navy-900)}
+.activity-ledger-head p{margin:0;font-size:var(--t-sm)}
+.activity-range-stamp{direction:ltr;font-variant-numeric:tabular-nums;font-size:var(--t-xs);
+  color:var(--navy-800);background:var(--gold-100);border:1px solid var(--gold-300);
+  border-radius:var(--radius-pill);padding:3px var(--s3);white-space:nowrap}
+.activity-member-filters{border-top:1px solid var(--line)}
+.activity-member-filters #activityMemberCount{margin-inline-start:auto;font-size:var(--t-sm)}
+.activity-person{min-width:210px}
+.activity-person>strong{display:block;color:var(--navy-900)}
+.activity-person-meta{display:flex;align-items:center;gap:var(--s2);margin-top:2px;
+  color:var(--ink-500);font-size:var(--t-xs)}
+.activity-volume{height:4px;margin-top:var(--s2);border-radius:var(--radius-pill);overflow:hidden;background:var(--navy-100)}
+.activity-volume span{display:block;height:100%;border-radius:inherit;background:var(--gold-700)}
+.activity-ledger td.n{text-align:center;font-variant-numeric:tabular-nums}
+.activity-ledger td.n strong{color:var(--navy-900)}
+@media(max-width:700px){
+  .activity-filter-bar{position:static}
+  .activity-member-filters #activityMemberCount{margin-inline-start:0}
+  .activity-ledger-head{align-items:flex-start}
+  .activity-range-stamp{margin-top:var(--s2)}
+}
+
+/* مراجعة اليوم قابلة للطي */
+.warn-toggle{display:flex;align-items:center;gap:var(--s3);width:100%;min-height:50px;
+  padding:var(--s3) var(--s4);background:none;border:0;font:inherit;color:inherit;
+  text-align:start;cursor:pointer;transition:background .15s}
+.warn-toggle:hover{background:var(--warn-hover-wash,rgba(0,0,0,.03))}
+.warn-toggle:focus-visible{outline:2px solid var(--warn-700);outline-offset:-2px}
+.warn-toggle strong{color:var(--warn-700);font-size:var(--t-md);font-family:var(--font-head);white-space:nowrap}
+.warn-chips{display:flex;flex-wrap:wrap;gap:var(--s2);min-width:0}
+.warn-chips .chip{white-space:nowrap}
+.warn-hint{margin-inline-start:auto;white-space:nowrap;font-size:var(--t-sm)}
+.warn-chevron{display:inline-grid;place-items:center;flex:none;width:28px;height:28px;
+  border-radius:50%;background:var(--surface);border:1px solid var(--border-control);
+  color:var(--warn-700);transition:transform .2s}
+.warn-chevron .ico{width:16px;height:16px;fill:currentColor}
+.warn-card:not(.is-folded) .warn-chevron{transform:rotate(180deg)}
+.warn-body{padding:0 var(--s4) var(--s3);border-top:1px solid var(--warn-300)}
+.warn-body .warn-group:first-child{margin-top:var(--s3)}
+@media(max-width:700px){.warn-hint{display:none}.warn-chevron{margin-inline-start:auto}}
+/* قايمة الاختيار بتنفتح جوّه المودال — من غير ارتفاع كافي بتتقصّ */
+.campaign-combo-modal{min-height:min(420px,90vh)}
+
+/* كل الجداول في كل الصفحات: المحتوى في منتصف الخانة أفقيًا ورأسيًا
+   (!important عشان يغلب قواعد الأعمدة الخاصة زي .who-col و td.wrap) */
+.table th,.table td,.af-ocr-table th,.af-ocr-table td{text-align:center !important;vertical-align:middle !important}
+.table td .actions,.table td .campaign-service-name,.table td .sub,.table .th-sort-btn{justify-content:center}
+.table td .combo-input,.table td select,.table td input:not([type=checkbox]):not([type=radio]){text-align:center}
+
+.block-hint{display:block;margin-top:2px;font-weight:400}
+
+/* تعديل الخدمات الأساسية في يومية الأفراد */
+#afBasicList{max-height:50vh;overflow:auto;margin:var(--s3) 0}
+#afBasicList .list-row{display:flex;justify-content:space-between;align-items:center;
+  gap:var(--s3);padding:var(--s2) var(--s2);border-bottom:1px solid var(--line)}
+#afBasicForm{display:flex;gap:var(--s3);align-items:center;margin-top:var(--s3)}
+#afBasicForm input{flex:1}

@@ -1,15 +1,6 @@
-"""تصدير اليومية التفصيلية كملف Word حقيقي (.docx) — نفس شكل الورقة
-الرسمية اللي بتتكتب بالإيد بالظبط (عنوان غليظ تحته خط، وجدول واحد
-متواصل بعمودين: يمين الخدمات، شمال الأهداف/الراحات/الكتل الثابتة —
-مش كروت منفصلة بفراغات بينها)، مبني من نفس البيانات اللي بتتعرض في
-`/board` (`build_board`). هيكل الملف اتاخد حرفيًا من فحص عيّنة حقيقية
-(`2026/6/3/3.docx`): جدول واحد أربعة أعمدة — العمودين اليمين لقسم واحد
-شغّال في كل لحظة (الخدمات)، والعمودين الشمال لقسم تاني (الأهداف وما
-بعدها) — كل نصّ بيتقدّم لوحده وياخد صف عنوان جديد لما قسمه يخلص، من غير
-ما يستنى القسم التاني.
-
-القسم بيتحدد نوعه من `sec["type"]` بالظبط زي `sectionCard()` في
-`static/js/board.js` — نفس منطق العرض، لغة تانية.
+"""تصدير اليومية التفصيلية كملف Word حقيقي (.docx) بصيغة الأرشيف الأحدث.
+كل يوم يستخدم نفس شبكة الستة أعمدة، ترتيب المناطق، والصفحة الواحدة؛
+النص فقط يُشتق من مخرج `build_board` الحالي.
 """
 from datetime import date
 from io import BytesIO
@@ -19,13 +10,18 @@ from docx.enum.section import WD_ORIENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Pt
+from docx.shared import Pt, Twips
+from docx.table import _Cell
+
+from .export_fit import (apply_fit_to_docx_table, fit_table, usable_height_pt,
+                         estimate_table_height)
 
 from .constants import (
     SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_OCCASIONAL, SECTION_OUTSIDERS,
     SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY, SECTION_GREAT, SECTION_SUBCAMP,
     SECTION_TARGETS, SECTION_TAQSEERA,
 )
+from .labels import officer_label, personnel_label
 
 WEEKDAY_BY_INDEX = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
 MONTH_BY_INDEX = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
@@ -38,6 +34,69 @@ RIGHT_COLUMN_SECTIONS = {SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTIO
 OFFICER_CENTRIC = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
 
 HEADER_FILL = "E9E9E9"
+
+
+def set_run_font(run, name="Arial", size_pt=11, bold=False):
+    """Set the four Word font properties needed by Arabic complex-script runs."""
+    run.bold = bold
+    run.font.name = name
+    run.font.size = Pt(size_pt)
+    rpr = run._r.get_or_add_rPr()
+    fonts = rpr.find(qn("w:rFonts"))
+    if fonts is None:
+        fonts = OxmlElement("w:rFonts")
+        rpr.append(fonts)
+    for attr in ("ascii", "hAnsi", "cs", "eastAsia"):
+        fonts.set(qn("w:" + attr), name)
+    for tag in ("w:sz", "w:szCs"):
+        node = rpr.find(qn(tag))
+        if node is None:
+            node = OxmlElement(tag)
+            rpr.append(node)
+        node.set(qn("w:val"), str(round(size_pt * 2)))
+    for tag in ("w:b", "w:bCs"):
+        node = rpr.find(qn(tag))
+        if node is None:
+            node = OxmlElement(tag)
+            rpr.append(node)
+        node.set(qn("w:val"), "1" if bold else "0")
+    return run
+
+
+def normalize_document_runs(document):
+    """Repair template/hand-created runs, including complex-script settings."""
+    for paragraph in document.paragraphs:
+        for run in paragraph.runs:
+            set_run_font(run, run.font.name or "Arial",
+                         run.font.size.pt if run.font.size else 10,
+                         bool(run.bold))
+    for table in document.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    _format_cell_paragraph(paragraph)
+                    for run in paragraph.runs:
+                        set_run_font(run, run.font.name or "Arial",
+                                     run.font.size.pt if run.font.size else 10,
+                                     bool(run.bold))
+
+
+def _format_cell_paragraph(paragraph, exact_line=None):
+    ppr = paragraph._p.get_or_add_pPr()
+    bidi = ppr.find(qn("w:bidi"))
+    if bidi is None:
+        ppr.append(OxmlElement("w:bidi"))
+    paragraph.paragraph_format.space_before = Pt(0)
+    paragraph.paragraph_format.space_after = Pt(0)
+    paragraph.paragraph_format.line_spacing = 1
+    if exact_line is not None:
+        spacing = ppr.find(qn("w:spacing"))
+        if spacing is None:
+            spacing = OxmlElement("w:spacing")
+        spacing.set(qn("w:lineRule"), "exact")
+        spacing.set(qn("w:line"), str(round(exact_line * 20)))
+        if spacing.getparent() is None:
+            ppr.append(spacing)
 
 
 def _day_title(day):
@@ -57,8 +116,8 @@ def _fmt_date(iso):
 
 
 def _who(person):
-    role, name = (person or {}).get("role", ""), (person or {}).get("name", "")
-    return f"{role}/ {name}" if role else (name or "")
+    person = person or {}
+    return officer_label(person) if person.get("category") != "personnel" else personnel_label(person)
 
 
 def _people_text(people):
@@ -90,21 +149,17 @@ def _shade(cell, hex_color):
     tcPr.append(shd)
 
 
-def _cell_text(cell, text, bold=False, size=11, center=False):
+def _cell_text(cell, text, bold=False, size=11, center=False, font_name="Bahnschrift SemiBold"):
     cell.text = ""
+    if text in (None, ""):
+        return
     p = cell.paragraphs[0]
     _rtl_right(p)
+    _format_cell_paragraph(p)
     if center:
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run(str(text) if text not in (None, "") else "—")
-    run.bold = bold
-    run.font.size = Pt(size)
-    run.font.name = "Arial"
-    rFonts = run._r.get_or_add_rPr().find(qn("w:rFonts"))
-    if rFonts is None:
-        rFonts = OxmlElement("w:rFonts")
-        run._r.get_or_add_rPr().append(rFonts)
-    rFonts.set(qn("w:cs"), "Arial")
+    run = p.add_run(str(text))
+    set_run_font(run, font_name, size, bold)
 
 
 def _service_desc(row):
@@ -130,12 +185,15 @@ def _basic_assignee(row):
     officers = _people_text(row.get("officers"))
     if officers:
         return officers
+    personnel = _people_text(row.get("personnel"))
+    if personnel:
+        return personnel
     source = (row.get("source_manning") or "").strip()
     # A source string containing a rank/name is still an officer assignment;
     # pure strength text ("2 فرد + 2 مج") belongs only in emergency services.
     if "/" in source and not any(token in source for token in ("فرد", "مج")):
         return source
-    return "—"
+    return ""
 
 
 def _compact_manning(row):
@@ -146,28 +204,30 @@ def _compact_manning(row):
     bits = []
     if row.get("officers"):
         bits.append(_people_text(row.get("officers")))
+    if row.get("personnel"):
+        bits.append(_people_text(row.get("personnel")))
     for conscript in row.get("conscripts") or []:
         cls = conscript.get("class") or "مج"
         count = conscript.get("count")
         bits.append(f"{count}{cls}" if count else cls)
     if row.get("conscript_count") and not row.get("conscripts"):
         bits.append(f"{row['conscript_count']}مج")
-    return " + ".join(filter(None, bits)) or "—"
+    return " + ".join(filter(None, bits))
 
 
 def _officer_desc(section_name, row):
     if section_name == SECTION_ADMIN_WORK:
         if row.get("fixedSection"):
-            return _people_text(row.get("officers")) or "—"
-        return row.get("text") or "—"
+            return _people_text(row.get("officers"))
+        return row.get("text") or ""
     if section_name == SECTION_OUTSIDERS:
-        return row.get("detail") or row.get("reason") or "—"
+        return row.get("detail") or row.get("reason") or ""
     if section_name == SECTION_RESTS:
         span = " → ".join(filter(None, [_fmt_date(row.get("start")), _fmt_date(row.get("end"))]))
         return f"{row.get('type') or 'راحة'} ({span})" if span else (row.get("type") or "راحة")
     if section_name == SECTION_TAQSEERA:
         return row.get("note") or "تقصيرة"
-    return "—"
+    return ""
 
 
 def _presentation_sections(sections):
@@ -269,77 +329,217 @@ def _word_rows(sec, *, left=False):
     return result
 
 
+def _unique_cells(row):
+    cells, seen = [], set()
+    for cell in row.cells:
+        if id(cell._tc) not in seen:
+            cells.append(cell)
+            seen.add(id(cell._tc))
+    return cells
+
+
+def _physical_cells(row):
+    """خلايا الصف الفعلية في الـXML — من غير الأسماء المستعارة اللي
+    python-docx بيرجّعها للخلايا المدموجة رأسيًا (continue بترجّع خلية الصف
+    اللي فوقها، فالكتابة عليها كانت بتمسح نص الخلية الأصلية)."""
+    return [_Cell(tc, row.table) for tc in row._tr.tc_lst]
+
+
+def _merge_shape(table, row_index, spans):
+    cells = table.rows[row_index].cells
+    start = 0
+    for span in spans:
+        if span > 1:
+            cells[start].merge(cells[start + span - 1])
+        start += span
+
+
+def _set_vmerge(cell, value):
+    tc_pr = cell._tc.get_or_add_tcPr()
+    node = tc_pr.find(qn("w:vMerge"))
+    if node is None:
+        node = OxmlElement("w:vMerge")
+        tc_pr.append(node)
+    if value:
+        node.set(qn("w:val"), value)
+
+
+def _section_by_name(sections, name, default_type="services"):
+    return next((s for s in sections if s["name"] == name),
+                {"name": name, "type": default_type, "rows": []})
+
+
+TAIL_START = 20          # أول صف في الجزء الأخير (كتلة المعسكر الفرعي / الخوارج)
+ADMIN_MIN_ROWS = 11      # صفوف «عمل بالادارة» في الورقة الرسمية
+TAIL_MIN_ROWS = 14
+
+
+def tail_row_count(admin_count, outsider_count):
+    """عدد صفوف الجزء الأخير: صفّين فرعي + عنوان + صفوف الإدارة (ولا أقل من
+    11)، أو عدد الخوارج لو أكتر. الأدنى 14 = ٣٤ صف في الورقة الرسمية."""
+    return max(TAIL_MIN_ROWS, 3 + max(ADMIN_MIN_ROWS, admin_count), outsider_count)
+
+
+def _latest_content(board):
+    """الـ20 صف الثابتة بترتيب الورقة الأحدث + الجزء الأخير الديناميكي.
+
+    بيرجّع (المحتوى، مجموعات دمج الحالة رأسيًا [(أول صف، آخر صف)])."""
+    sections = _presentation_sections(board["sections"])
+
+    def rows(name, kind="services"):
+        return list(_section_by_name(sections, name, kind).get("rows") or [])
+
+    basic, emergency = rows(SECTION_BASIC), rows(SECTION_OCCASIONAL)
+    targets, prison = rows(SECTION_TARGETS, "targets"), rows(SECTION_PRISON)
+    subcamp = rows(SECTION_SUBCAMP, "slots")
+    outsiders = rows(SECTION_OUTSIDERS, "officers")
+    admin = rows(SECTION_ADMIN_WORK, "admin")
+    for name in (SECTION_GREAT, SECTION_SECURITY):
+        for item in rows(name, "slots"):
+            admin.append({**item, "fixedSection": name})
+
+    def pair(row, left):
+        if not row:
+            return "", ""
+        return (row.get("label") or row.get("name") or "",
+                left(row))
+
+    def assignee(row):
+        return _basic_assignee(row)
+
+    def manning(row):
+        return _compact_manning(row)
+
+    content = [["الخدمات الاساسية", "الخدمات الطارئة"]]
+    for i in range(9):
+        content.append([*pair(basic[i] if i < len(basic) else None, assignee),
+                        *pair(emergency[i] if i < len(emergency) else None, manning)])
+    content.append(["الاهداف", *pair(emergency[9] if len(emergency) > 9 else None, manning)])
+
+    target_rows = targets[:8] + [{}] * max(0, 8 - len(targets))
+    prison_rows = prison[:7] + [{}] * max(0, 7 - len(prison))
+    target_person = lambda r: _people_text(r.get("officers")) or _people_text(r.get("commander"))
+    content.append(["مشرف الأهداف", target_person(target_rows[0]), "خدمات سجن قوات الامن"])
+    for i in range(7):
+        p = prison_rows[i]
+        pname = p.get("label") or p.get("name") or ""
+        ptext = manning(p) if pname else ""
+        if pname.startswith("فرد تأمين") and not ptext:
+            ptext = "ــــــــــــــــــــ"
+        content.append([target_rows[i + 1].get("label") or target_rows[i + 1].get("name") or "",
+                        target_person(target_rows[i + 1]), pname, ptext])
+    content.append(["ضابط عظيم وأمن المعسكر الفرعي", "الخوارج"])
+
+    # الجزء الأخير: يمين = كتلة المعسكر الفرعي (صفّين) ثم عنوان «عمل بالادارة»
+    # وتحته صفوف العمل بالإدارة؛ شمال = قايمة الخوارج من أول صف. عدد الصفوف
+    # بيكبر مع البيانات (الأدنى زي الورقة الرسمية: 11 صف عمل بالإدارة) بدل
+    # ما يتقطّع أي حد — العمود الأول للحالة بيتدمج رأسيًا لكل مجموعة متتالية.
+    tail = tail_row_count(len(admin), len(outsiders))
+    statuses = [o.get("status_type") or o.get("reason") or "" for o in outsiders]
+    groups, continued, start = [], set(), 0
+    while start < len(statuses):
+        end = start
+        while statuses[start] and end + 1 < len(statuses) and statuses[end + 1] == statuses[start]:
+            end += 1
+        if end > start:
+            groups.append((TAIL_START + start, TAIL_START + end))
+            continued.update(range(start + 1, end + 1))
+        start = end + 1
+    for i in range(tail):
+        outsider = outsiders[i] if i < len(outsiders) else {}
+        left = ["" if i in continued else statuses[i] if i < len(statuses) else "",
+                _who(outsider), _officer_desc(SECTION_OUTSIDERS, outsider)]
+        if i < 2:
+            slot = subcamp[i] if i < len(subcamp) else {}
+            right = [slot.get("shift") or ("فترة صباحية" if i == 0 else "فترة ليلية"),
+                     _people_text(slot.get("officers"))]
+        elif i == 2:
+            content.append(["عمل بالادارة", *left])
+            continue
+        else:
+            row = admin[i - 3] if i - 3 < len(admin) else {}
+            description = row.get("text") or row.get("name") or ""
+            if row.get("fixedSection") and row.get("shift"):
+                description = f"{description} {row['shift']}".strip()
+            right = [_who(row), description]
+        content.append([*right, *left])
+    return content, groups
+
+
 def build_docx(board):
-    """`board` هو نفسه مخرج `build_board(data, day)` — نفس الـJSON اللي
-    الواجهة بترسمه بالظبط. جدول واحد بعمودين مستقلين (يمين/شمال) بدل
-    كروت منفصلة، زي الورقة الرسمية الحقيقية بالظبط."""
+    """Build every day using the 9/28–9/29 six-column archive family."""
     document = Document()
     _set_rtl_doc(document)
     sect = document.sections[0]
     sect.orientation = WD_ORIENT.PORTRAIT
-    sect.page_width, sect.page_height = Cm(21.0), Cm(29.7)
-    sect.left_margin = sect.right_margin = Cm(1.2)
-    sect.top_margin = sect.bottom_margin = Cm(1.2)
-
+    sect.page_width, sect.page_height = Twips(11906), Twips(16838)
+    sect.top_margin, sect.right_margin = Twips(249), Twips(720)
+    sect.bottom_margin, sect.left_margin = Twips(142), Twips(567)
+    sect.header_distance = sect.footer_distance = Twips(720)
     style = document.styles["Normal"]
-    style.font.name = "Arial"
-    style.font.size = Pt(11)
-
-    title = document.add_paragraph()
-    _rtl_right(title)
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = title.add_run(_day_title(board["date"]))
-    run.bold = True
-    run.underline = True
-    run.font.size = Pt(18)
-    run.font.name = "Arial"
+    style.font.name = "Bahnschrift SemiBold"
+    style.font.size = Pt(10.5)
     document.add_paragraph()
 
-    # نفس ترتيب Word والواجهة: أساسية/أهداف/المعسكر/عمل الإدارة يمين،
-    # والطوارئ/السجن/الخوارج شمال.
-    sections = _presentation_sections(board["sections"])
-    right_names = [SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_ADMIN_WORK]
-    left_names = [SECTION_OCCASIONAL, SECTION_PRISON, SECTION_OUTSIDERS]
-    right = [next((s for s in sections if s["name"] == name), None) for name in right_names]
-    right = [s for s in right if s]
-    left = [next((s for s in sections if s["name"] == name), None) for name in left_names]
-    left = [s for s in left if s]
+    content, groups = _latest_content(board)
+    row_count = len(content)
+    table = document.add_table(rows=row_count, cols=6)
+    table.style = "Table Grid"
+    table.autofit = False
+    _rtl_table(table)
+    widths = [Twips(x) for x in (1694, 9, 2974, 711, 2129, 3248)]
+    for col, width in zip(table.columns, widths):
+        col.width = width
+    shapes = ([[3, 3]] + [[2, 1, 2, 1]] * 8 + [[1, 2, 2, 1], [3, 2, 1], [2, 1, 3]] +
+              [[2, 1, 2, 1]] * 7 + [[3, 3], [2, 1, 1, 1, 1], [2, 1, 1, 1, 1],
+                                     [3, 1, 1, 1]] +
+              [[2, 1, 1, 1, 1]] * (row_count - 23))
+    for index, shape in enumerate(shapes):
+        _merge_shape(table, index, shape)
 
-    right_rows, left_rows = [], []
-    for sec in right:
-        right_rows.extend(_word_rows(sec))
-    for sec in left:
-        left_rows.extend(_word_rows(sec, left=True))
+    # عمود الحالة في قايمة الخوارج بيتدمج رأسيًا لكل مجموعة متتالية من نفس
+    # الحالة (راحة، فرقة…) — حسب البيانات مش شكل ثابت، فمفيش اسم يتخبّى
+    # جوّه خلية «continue». الخلية دي هي قبل الأخيرة التلاتة من يمين الصف.
+    for first, last in groups:
+        for index in range(first, last + 1):
+            status_cell = _physical_cells(table.rows[index])[-3]
+            _set_vmerge(status_cell, "restart" if index == first else "continue")
 
-    total = max(len(right_rows), len(left_rows), 1)
-    # Official roster template: two right columns + three left columns.
-    tbl = document.add_table(rows=total, cols=5)
-    tbl.style = "Table Grid"
-    tbl.autofit = False
-    _rtl_table(tbl)
-    widths = [Cm(4.2), Cm(3.8), Cm(3.5), Cm(3.5), Cm(3.6)]
-    for col, w in zip(tbl.columns, widths):
-        col.width = w
+    header_rows = {0, 10, 11, 19, 22}
+    for index, values in enumerate(content):
+        for cell, value in zip(_physical_cells(table.rows[index]), values):
+            _cell_text(cell, value, bold=True, size=10.5, center=index in header_rows)
+        if index in header_rows:
+            # صف 22 عنوانه بس على اليمين؛ باقيه خاص بقايمة الخوارج
+            cells = _physical_cells(table.rows[index])
+            for cell in (cells[:1] if index == 22 else cells):
+                _shade(cell, "D9D9D9")
 
-    for i in range(total):
-        cells = tbl.rows[i].cells
-        for cells_pair, seq in ((cells[0:2], right_rows), (cells[2:5], left_rows)):
-            if i >= len(seq):
-                continue
-            is_header, a, b, c = seq[i]
-            if is_header:
-                merged = cells_pair[0]
-                for extra in cells_pair[1:]:
-                    merged = merged.merge(extra)
-                _shade(merged, HEADER_FILL)
-                _cell_text(merged, a, bold=True, size=12, center=True)
-            else:
-                _cell_text(cells_pair[0], a, bold=True, size=10.5)
-                _cell_text(cells_pair[1], b, size=10.5)
-                if len(cells_pair) == 3:
-                    _cell_text(cells_pair[2], c, size=10.5)
-
+    widths_pt = [width.pt for width in widths]
+    spec_rows = []
+    for shape, row in zip(shapes, table.rows):
+        measured = []
+        for cell, span in zip(_physical_cells(row), shape):
+            measured.append({"text": cell.text, "size_pt": 10.5, "bold": True,
+                             "font": "Bahnschrift SemiBold", "colspan": span})
+            measured.extend({"text": "", "size_pt": 10.5, "colspan": 1}
+                            for _ in range(span - 1))
+        spec_rows.append(measured)
+    fit = fit_table({"rows": spec_rows, "grid_widths_pt": widths_pt},
+                    usable_height_pt(sect))
+    apply_fit_to_docx_table(table, fit)
+    tail = document.add_paragraph()
+    tail.paragraph_format.space_before = Pt(0)
+    tail.paragraph_format.space_after = Pt(0)
+    set_run_font(tail.add_run(), "Bahnschrift SemiBold", 1, False)
+    normalize_document_runs(document)
+    LAST_FIT.clear()
+    LAST_FIT.update(scale=fit.scale, ratio=fit.ratio, total_pt=fit.total_pt,
+                    usable_pt=fit.usable_pt)
     buf = BytesIO()
     document.save(buf)
     buf.seek(0)
     return buf
+
+
+LAST_FIT = {}

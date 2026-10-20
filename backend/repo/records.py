@@ -3,7 +3,7 @@
 الراحات والفرق والالتحاقات والمأموريات — كلها قوايم في المستوى الأعلى
 بنفس الشكل، فبتاخد نفس الأساس (`Repo`) وبتضيف استعلاماتها بس.
 """
-from ..models import Course, CourseTerm, Leave, Mission
+from ..models import Conscript, Course, CourseTerm, Leave, Mission, Vehicle
 from .base import Repo
 
 
@@ -147,3 +147,13 @@ class MissionRepo(Repo):
 
     def of_officer(self, officer_id):
         return [m for m in self.all() if officer_id in (m.member_ids or [])]
+
+
+class VehicleRepo(Repo):
+    KEY = "vehicles"
+    MODEL = Vehicle
+
+
+class ConscriptRepo(Repo):
+    KEY = "conscripts"
+    MODEL = Conscript

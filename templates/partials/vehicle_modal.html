@@ -1,0 +1,21 @@
+<div class="modal hidden" id="vehicleModal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="vehicleTitle">
+    <button type="button" class="close" data-close="vehicleModal" aria-label="إغلاق">×</button>
+    <h2 id="vehicleTitle">إضافة مركبة</h2>
+    <form id="vehicleForm" novalidate>
+      <input type="hidden" id="vehicleId">
+      <div class="grid">
+        <label><span class="label-text">سلسلة اللوحة</span><input id="vehicleSeries" placeholder="ب12"></label>
+        <label><span class="label-text">رقم اللوحة <span class="req" aria-hidden="true">*</span></span><input id="vehicleNumber" inputmode="numeric" required></label>
+        <label>النوع <select id="vehicleType" required></select></label>
+        <label>الموديل<input id="vehicleModel"></label>
+        <label>التبعية<select id="vehicleOrigin"><option value="internal">الحملة</option><option value="external">جهة خارجية</option></select></label>
+        <label id="vehiclePartyLabel">الجهة <span class="req" aria-hidden="true">*</span><input id="vehicleParty" placeholder="مثال: مديرية أمن السويس"></label>
+        <label>الحالة<select id="vehicleStatus"><option value="operational">صالحة</option><option value="disabled">معطلة</option></select></label>
+        <label id="vehicleFaultLabel">سبب التعطيل <span class="req" aria-hidden="true">*</span><input id="vehicleFault"></label>
+      </div>
+      <label>ملاحظات<textarea id="vehicleNotes" rows="3"></textarea></label>
+      <div class="actions modal-foot"><button class="primary full" type="submit">حفظ</button><button class="btn" type="button" data-close="vehicleModal">إلغاء</button></div>
+    </form>
+  </div>
+</div>

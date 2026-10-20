@@ -1,4 +1,5 @@
 """أدوات عامة صغيرة مستخدمة في أكتر من مكان."""
+import re
 from bisect import bisect_left, bisect_right
 from datetime import date, timedelta
 
@@ -49,7 +50,7 @@ def canonical_day(value):
 
 # حدود طول الحقول الحرة — مش قواعد تشغيلية، دي حماية من الإدخال الغلط
 # (لصق صفحة كاملة في خانة الاسم) ومن تضخيم ملف البيانات.
-MAX_LEN = {"name": 120, "code": 40, "phone": 30, "post": 200,
+MAX_LEN = {"name": 120, "short_name": 120, "code": 40, "phone": 30, "post": 200,
            "address": 200, "note": 500, "reason": 200, "section": 60,
            "weapon_custody": 60, "weapon": 120, "time": 60, "party": 120}
 
@@ -113,14 +114,38 @@ def command_priority_map(data, day=None):
     return priority
 
 
+_ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
+_YEAR_RANGE = range(1980, 2041)
+
+
+def seniority_key(code):
+    """مفتاح ترتيب رقم الأقدمية (الكود): السنة الأول ثم الرقم، الأصغر أقدم.
+
+    الأكواد في الأرشيف بصيغ مختلطة: «765/2002» (رقم/سنة)، «2023/1657»
+    (سنة/رقم)، «2007» (سنة بس)، «ض-01». الرقم اللي بين 1980 و2040 هو السنة
+    (ولو الاتنين كده، الأخير هو السنة)، والباقي رقم الأقدمية. اللي مالوش
+    سنة معروفة (زي «ض-01») بيتحط بعد المعروفين في نفس الرتبة.
+    """
+    text = str(code or "").translate(_ARABIC_DIGITS)
+    numbers = [int(token) for token in re.findall(r"\d+", text)]
+    years = [n for n in numbers if n in _YEAR_RANGE]
+    if not years:
+        return (1, 0, numbers[0] if numbers else 0, text)
+    year = years[-1]
+    rest = list(numbers)
+    rest.remove(year)
+    return (0, year, rest[0] if rest else 0, text)
+
+
 def rank_key(person, command_priority=None):
     """مدير/وكيل الإدارة دايمًا أعلى اتنين في أي قايمة ضباط، بغض النظر عن
     الرتبة العسكرية — هم الأعلى تنظيميًا في الإدارة. باقي الضباط بعدهم
-    بالرتبة العسكرية العادية زي ما كان."""
+    بالرتبة العسكرية العادية، وجوّه الرتبة الواحدة برقم الأقدمية (`code`)
+    ثم الاسم."""
     top = (command_priority or {}).get(person.get("id"), len(COMMAND_ROLES))
     r = (person.get("role") or "").strip()
     idx = RANK_ORDER.index(r) if r in RANK_ORDER else len(RANK_ORDER)
-    return (top, idx, person.get("name", ""), person.get("code", ""))
+    return (top, idx, seniority_key(person.get("code", "")), person.get("name", ""))
 
 
 def sort_active(data, category):

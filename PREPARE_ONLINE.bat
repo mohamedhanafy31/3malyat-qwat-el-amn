@@ -14,7 +14,7 @@ call "%ROOT%tools\deploy_console.bat" ok "Host Python found."
 
 call "%ROOT%tools\deploy_console.bat" step "[2/6] Downloading offline wheels..."
 if not exist "%ROOT%wheels" mkdir "%ROOT%wheels"
-%SYSPY% -m pip download --only-binary=:all: --platform win_amd64 --python-version 3.11 --implementation cp --dest "%ROOT%wheels" flask waitress python-docx >>"%DEPLOY_LOG%" 2>&1
+%SYSPY% -m pip download --only-binary=:all: --platform win_amd64 --python-version 3.11 --implementation cp --dest "%ROOT%wheels" flask waitress python-docx numpy opencv-python-headless Pillow pytesseract >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto failed
 call "%ROOT%tools\deploy_console.bat" ok "Offline wheels ready."
 
@@ -46,7 +46,7 @@ call "%ROOT%tools\deploy_console.bat" ok "Application import verified."
 call "%ROOT%tools\deploy_console.bat" step "[6/6] Writing deployment manifest..."
 >"%ROOT%logs\deployment-manifest.txt" echo prepared=%date% %time%
 >>"%ROOT%logs\deployment-manifest.txt" echo python=3.11 embedded
->>"%ROOT%logs\deployment-manifest.txt" echo wheels=flask waitress python-docx
+>>"%ROOT%logs\deployment-manifest.txt" echo wheels=flask waitress python-docx numpy opencv-python-headless Pillow pytesseract
 call "%ROOT%tools\deploy_console.bat" ok "Deployment package is ready for USB transfer."
 call "%ROOT%tools\deploy_console.bat" info "Copy the complete project folder to the offline PC."
 endlocal

@@ -1,0 +1,1009 @@
+{
+ "vehicles": [
+  {
+   "plate_series": "ب12",
+   "plate_number": "8444",
+   "type": "ميك",
+   "model": "ايفكو",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "4222",
+   "type": "ميك",
+   "model": "بانسير",
+   "status": "operational",
+   "fault": "",
+   "notes": "نوعها في اليوميات «مدرعة بانسير» (40 يوم) — راجع النوع",
+   "archived": false
+  },
+  {
+   "plate_series": "ب16",
+   "plate_number": "3744",
+   "type": "ميك",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "3279",
+   "type": "ميك",
+   "model": "ايفكو",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "1481",
+   "type": "ميك",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "8234",
+   "type": "ميك",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "1487",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "9186",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "8965",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب14",
+   "plate_number": "7895",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "7899",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "5217",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "9416",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "7818",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "1564",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "5986",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "1168",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "1152",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "9187",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب14",
+   "plate_number": "6457",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "8966",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "2499",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "9971",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "9874",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "1565",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب14",
+   "plate_number": "7897",
+   "type": "لوري",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب17",
+   "plate_number": "2442",
+   "type": "بيك اب",
+   "model": "نيسان",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "5111",
+   "type": "بيك اب",
+   "model": "شفورلية",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "4996",
+   "type": "بيك اب",
+   "model": "شفورلية",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "9854",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "5434",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "4816",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب17",
+   "plate_number": "2171",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "",
+   "plate_number": "14168",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "اللوحة بدون سلسلة المحافظة في ملف الإضافات — راجعها",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "4822",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "4997",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب18",
+   "plate_number": "1397",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "8563",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "8566",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "4998",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "2443",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "4747",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "7776",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "5113",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "2426",
+   "type": "بيك اب",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "4313",
+   "type": "اوتوبيس",
+   "model": "اتوبيس",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب16",
+   "plate_number": "3393",
+   "type": "نقل مياه",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "8716",
+   "type": "اسعاف",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "1738",
+   "type": "اسعاف",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "1668",
+   "type": "لوجان (ملاكي)",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "2454",
+   "type": "جرار",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "6621",
+   "type": "جرار",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب16",
+   "plate_number": "8117",
+   "type": "ميكروباص",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب17",
+   "plate_number": "3669",
+   "type": "جرار",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "6116",
+   "type": "مدرعة",
+   "model": "الفهد",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "5292",
+   "type": "مدرعة",
+   "model": "مرسيدس",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "1193",
+   "type": "مدرعة",
+   "model": "بانسير",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب16",
+   "plate_number": "8411",
+   "type": "مدرعة",
+   "model": "بانسيرا",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "9545",
+   "type": "مدرعة",
+   "model": "كوجر",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "7146",
+   "type": "مدرعة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "7256",
+   "type": "مدرعة",
+   "model": "بانسير",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب11",
+   "plate_number": "5869",
+   "type": "مدرعة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب13",
+   "plate_number": "8633",
+   "type": "بيك اب دوبل كبينة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب14",
+   "plate_number": "9556",
+   "type": "بيك اب دوبل كبينة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "7318",
+   "type": "بيك اب دوبل كبينة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب16",
+   "plate_number": "9928",
+   "type": "بيك اب دوبل كبينة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب15",
+   "plate_number": "7322",
+   "type": "بيك اب دوبل كبينة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "2723",
+   "type": "بيك اب دوبل كبينة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  },
+  {
+   "plate_series": "ب12",
+   "plate_number": "2722",
+   "type": "بيك اب دوبل كبينة",
+   "model": "",
+   "status": "operational",
+   "fault": "",
+   "notes": "",
+   "archived": false
+  }
+ ],
+ "conscripts": [
+  {
+   "name": "يوسف حسن مصطفي دويدار",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "احمد محمد الكناني عبد الحليم",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمد احمد حسن طوسن",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "عمرو رافت احمد الدسوقي النجار",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "استيفن مجدي وليم متري",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمد عبدالرحمن محمد ابراهيم الدسوقي",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "مصطفي حمدي عطية الزماني",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "اشرف حامد حامد بدير محمد الحصري",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "يوسف صلاح عبده عبداللطيف",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمود سعيد محمد رشاد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "احمد رضا مأمون عواد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "معاذ هدايات سامي محمد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "طارق محمد سعد مصطفي  يطلعها وينزل",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "عبدالرحمن عماد ابو المجد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "كريم اشرف محمد زين الدين",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "رامز رمضان ابراهيم عرابي",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "يوسف طارق محمد نبيه",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "صلاح احمد صلاح مصطفي",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمد احمد نزيه محمد عبدالعزيز",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "يحي غريب عطية",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمد محمود عبدالخالق تركي",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "طارق محمد حامد محمد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "عمر محمد السيد صادق",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمد عباس جلال عبدالمقصود",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "عمرو خالد محمد مصطفي",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "مؤمن محمد صبحي محمد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "السيد عبدالناصر عبدالعزيز عليان",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "عبدالرحمن محمد سلامة",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "طارق علي شحاتة سيد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "احمد محمود فاروق محمد عزام",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "جمال خالد حامد عبدالحميد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "عبدالرحمن محمد زكي محمد",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "بهاء اشرف جابر محمد الجمل",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمد ممدوح محمد ابراهيم نصار",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمد عباس ابراهيم بركات",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "احمد عبدالوهاب عبدالله الجزار",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "وفيق وجدي ولسن بدير",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "محمود محمد حسن",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "صلاح عصام محمود المتولي الشافعي",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "حمدي ابراهيم عبدالسلام",
+   "phone": "",
+   "is_driver": true
+  },
+  {
+   "name": "عبدالله محمد عبداللطيف حسين",
+   "phone": "",
+   "is_driver": true
+  }
+ ],
+ "campaign_daily": [
+  "التدخل السريع",
+  "التدخل السريع",
+  "خط الغاز",
+  "القول المكبر",
+  "ارتكاز الاسعاف",
+  "سائق بورتوفيق"
+ ],
+ "report": {
+  "conflicts": [
+   {
+    "plate": "ب15/4222",
+    "addendum": "ميك",
+    "daily": "مدرعة بانسير",
+    "days": 40
+   }
+  ],
+  "unlisted_plates_seen_in_daily": [
+   {
+    "plate_number": "1877",
+    "type": "بيك اب",
+    "days": 10
+   },
+   {
+    "plate_number": "6597",
+    "type": "بيك اب",
+    "days": 8
+   },
+   {
+    "plate_number": "2448",
+    "type": "بيك اب",
+    "days": 6
+   },
+   {
+    "plate_number": "7865",
+    "type": "لوري",
+    "days": 4
+   },
+   {
+    "plate_number": "2327",
+    "type": "بيك اب",
+    "days": 2
+   },
+   {
+    "plate_number": "9932",
+    "type": "بيك اب",
+    "days": 2
+   },
+   {
+    "plate_number": "4377",
+    "type": "بيك اب",
+    "days": 2
+   },
+   {
+    "plate_number": "1125",
+    "type": "لوري",
+    "days": 1
+   },
+   {
+    "plate_number": "1367",
+    "type": "بيك اب",
+    "days": 1
+   },
+   {
+    "plate_number": "9329",
+    "type": "بيك اب",
+    "days": 1
+   },
+   {
+    "plate_number": "9229",
+    "type": "بيك اب",
+    "days": 1
+   },
+   {
+    "plate_number": "3743",
+    "type": "بيك اب",
+    "days": 1
+   },
+   {
+    "plate_number": "4317",
+    "type": "بيك اب",
+    "days": 1
+   },
+   {
+    "plate_number": "1723",
+    "type": "بيك اب",
+    "days": 1
+   },
+   {
+    "plate_number": "1674",
+    "type": "بيك اب",
+    "days": 1
+   }
+  ],
+  "counts": {
+   "ميك": 6,
+   "لوري": 20,
+   "بيك اب": 19,
+   "اوتوبيس": 1,
+   "نقل مياه": 1,
+   "اسعاف": 2,
+   "لوجان (ملاكي)": 1,
+   "جرار": 3,
+   "ميكروباص": 1,
+   "مدرعة": 8,
+   "بيك اب دوبل كبينة": 7
+  }
+ }
+}

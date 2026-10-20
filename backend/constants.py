@@ -32,10 +32,31 @@ DEFAULT_DATA = {
     "service_tags": [],
     "courses": [],
     "course_terms": [],
+    "vehicles": [],
+    "service_lines": [],
+    "conscripts": [],
     "command": {role: None for role in COMMAND_ROLES},
     "command_groups": {role: [] for role in GROUP_ROLES},
     "id_seq": {},
 }
+
+VEHICLE_TYPES = ["بيك اب", "بيك اب دوبل كبينة", "لوري", "اوتوبيس", "ميك",
+                 "مدرعة", "اسعاف", "جرار", "نقل مياه", "ميكروباص",
+                 "لوجان (ملاكي)"]
+VEHICLE_STATUSES = {"operational": "صالحة", "disabled": "معطلة"}
+# تبعية المركبة: تبع الحملة، أو مركبة من جهة خارجية (والجهة بتتسجل معاها)
+VEHICLE_ORIGINS = {"internal": "الحملة", "external": "جهة خارجية"}
+CAMPAIGN_LORRIES = [
+    {"id": "LOR-1", "name": "المحور + المحكمة"},
+    {"id": "LOR-2", "name": "القنصلية"},
+    {"id": "LOR-3", "name": "فيصل"},
+    {"id": "LOR-4", "name": "كـ109"},
+]
+APPOINTMENT_LORRIES = [
+    {"id": "LOR-A1", "name": "المديرية"},
+    {"id": "LOR-A2", "name": "الأربعين"},
+    {"id": "LOR-A3", "name": "الإدارة الجديدة"},
+]
 
 # تصنيف الخدمة — ده اللي بيحدد الضابط يتحسب في أي خانة في جدول الإجمالي.
 # «بحث» مبقاش تصنيف خدمة: الوورد بيكتب «+N بحث» على الضابط اللي تشغيله من

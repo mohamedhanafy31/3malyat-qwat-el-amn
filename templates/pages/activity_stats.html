@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block page_actions %}
+<a class="btn back-link" href="{{ url_for('pages.audit') }}">{{ icon('clock') }} سجل النشاط التفصيلي</a>
+{% endblock %}
+
+{% block content %}
+<div class="activity-method" role="note">
+  <span class="activity-method-mark" aria-hidden="true"></span>
+  <div>
+    <strong>قراءة الاستخدام، وليست تقييمًا للأداء</strong>
+    <p>الوقت النشط تقديري من الأحداث المسجلة، مع احتساب 15 دقيقة كحد أقصى بين حدثين متتاليين. لا يراقب النظام وجود المستخدم أمام الشاشة.</p>
+  </div>
+</div>
+
+<div class="ls-filter-bar activity-filter-bar">
+  <div class="ls-filter-range" role="group" aria-label="مدى التاريخ">
+    <div class="ls-filter-title">{{ icon('filter') }} <span>مدى التقرير:</span></div>
+    <div class="ls-filter-group"><label for="asFrom">من:</label><input type="date" id="asFrom" class="select select-sm"></div>
+    <div class="ls-filter-group"><label for="asTo">إلى:</label><input type="date" id="asTo" class="select select-sm"></div>
+  </div>
+  <div class="ls-filter-quick">
+    <button type="button" class="btn btn-xs" id="asPreset7">7 أيام</button>
+    <button type="button" class="btn btn-xs" id="asPreset30">30 يومًا</button>
+    <button type="button" class="btn btn-xs" id="asPresetMonth">هذا الشهر</button>
+  </div>
+  <button type="button" class="btn btn-xs ls-refresh" id="asRefresh">{{ icon('refresh') }} تحديث</button>
+</div>
+
+<div class="stats activity-summary" id="activitySummary">{{ skeleton("stats-sub-wrap", 6) }}</div>
+
+<div class="ls-grid ls-grid-2 activity-charts">
+  <section class="ls-card" aria-labelledby="activityDailyTitle">
+    <h3 class="ls-card-title" id="activityDailyTitle">الحركة اليومية</h3>
+    <p class="ls-card-hint">التعديلات ومرات الدخول وعدد الحسابات النشطة في كل يوم</p>
+    <div class="ls-chart-wrap ls-bar-wrap"><canvas id="activityDailyChart"></canvas></div>
+  </section>
+  <section class="ls-card" aria-labelledby="activityHoursTitle">
+    <h3 class="ls-card-title" id="activityHoursTitle">ساعات النشاط</h3>
+    <p class="ls-card-hint">توزيع الأحداث على ساعات اليوم لتحديد فترات الاستخدام الفعلية</p>
+    <div class="ls-chart-wrap ls-bar-wrap"><canvas id="activityHoursChart"></canvas></div>
+  </section>
+</div>
+
+<section class="panel activity-ledger" aria-labelledby="memberLedgerTitle">
+  <div class="panel-head activity-ledger-head">
+    <div>
+      <h3 id="memberLedgerTitle">دفتر نشاط الحسابات</h3>
+      <p class="muted">الأرقام تخص المدة المختارة فقط، والحسابات بلا نشاط تظل ظاهرة.</p>
+    </div>
+    <span class="activity-range-stamp" id="activityRangeStamp"></span>
+  </div>
+  <div class="toolbar activity-member-filters">
+    <input type="search" class="search" id="activityMemberSearch" placeholder="بحث بالاسم أو اسم المستخدم" aria-label="بحث في الحسابات">
+    <select class="select" id="activityRoleFilter" aria-label="تصفية حسب الدور">
+      <option value="">كل الأدوار</option>
+      <option value="admin">مدير النظام</option>
+      <option value="officer">ضابط</option>
+      <option value="individual">فرد</option>
+      <option value="conscript">مجند</option>
+    </select>
+    <span class="muted" id="activityMemberCount"></span>
+  </div>
+  <div id="activityMembers" data-mobile-cards>{{ skeleton("rows", 8) }}</div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/activity-stats.js') }}"></script>
+{% endblock %}

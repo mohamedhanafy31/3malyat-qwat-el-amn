@@ -41,15 +41,7 @@ function formatAuditEvent(e) {
 
 function formatAuditDetails(e) {
   const action = esc(e.action_label || "—");
-  const methodPath = (e.method || e.path)
-    ? `<div class="sub muted audit-method-path" dir="ltr"><code>${esc((e.method || "").toUpperCase())} ${esc(e.path || "")}</code></div>`
-    : "";
-  return `<div class="audit-details-cell">${action}${methodPath}</div>`;
-}
-
-function formatAuditIp(e) {
-  if (!e.ip) return "<span class='muted'>—</span>";
-  return `<span class="audit-ip font-mono" dir="ltr">${esc(e.ip)}</span>`;
+  return `<div class="audit-details-cell">${action}</div>`;
 }
 
 function auditRow(e) {
@@ -58,7 +50,6 @@ function auditRow(e) {
     <td>${formatAuditUser(e)}</td>
     <td>${formatAuditEvent(e)}</td>
     <td class="wrap">${formatAuditDetails(e)}</td>
-    <td>${formatAuditIp(e)}</td>
   </tr>`;
 }
 
@@ -97,7 +88,7 @@ function render(isError = false) {
 
   wrap.innerHTML = `
     <div class="table-scroll">
-      ${mtable(["الوقت", "المستخدم", "الحدث", "التفاصيل", "عنوان IP"], ENTRIES.map(auditRow))}
+      ${mtable(["الوقت", "المستخدم", "الحدث", "التفاصيل"], ENTRIES.map(auditRow))}
     </div>
     <div class="count">عدد السجلات المعروضة: ${ENTRIES.length}</div>
   `;
