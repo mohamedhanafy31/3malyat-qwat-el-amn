@@ -1,5 +1,5 @@
 @echo off
-rem Stops the running system cleanly, including the auto-restart supervisor.
+rem Stops this Personnel System instance after confirming its readiness marker.
 setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul 2>&1
 set "ROOT=%~dp0"
@@ -20,11 +20,7 @@ if defined PY (
     if "!READY_RESULT!"=="13" goto foreign_port
 )
 
-call "%ROOT%tools\deploy_console.bat" step "[1/2] Telling the auto-restart supervisor to stop..."
->"%ROOT%logs\autostart.stop" echo stop
-call "%ROOT%tools\deploy_console.bat" ok "Stop requested."
-
-call "%ROOT%tools\deploy_console.bat" step "[2/2] Stopping the server on port %PORT%..."
+call "%ROOT%tools\deploy_console.bat" step "[1/1] Stopping the server on port %PORT%..."
 set "FOUND="
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /c:":%PORT% " ^| findstr LISTENING') do (
     set "FOUND=1"
@@ -39,7 +35,7 @@ if not errorlevel 1 (
     pause
     exit /b 1
 )
-call "%ROOT%tools\deploy_console.bat" ok "System stopped. Run START_SYSTEM.bat to start it again; it also starts at the next login if autostart is installed."
+call "%ROOT%tools\deploy_console.bat" ok "System stopped. Run START_SYSTEM.bat whenever you want to start it again."
 
 goto done
 

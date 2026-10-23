@@ -55,7 +55,7 @@ echo     Phone address:  %PHONE_URL%
 echo.
 call "%ROOT%tools\deploy_console.bat" info "Enter this address in the phone app. It is also saved in logs\phone-url.txt."
 "%PY%" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:%PORT%/', timeout=2)" >nul 2>&1
-if errorlevel 1 call "%ROOT%tools\deploy_console.bat" warn "The system is not running right now. Run START_SYSTEM.bat or INSTALL_AUTOSTART.bat."
+if errorlevel 1 call "%ROOT%tools\deploy_console.bat" warn "The system is not running right now. Run START_SYSTEM.bat."
 endlocal
 pause
 exit /b 0

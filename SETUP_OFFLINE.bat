@@ -19,6 +19,9 @@ if not "!MODE!"=="embedded" call :find_host_python
 if not "!MODE!"=="embedded" if not defined SYSPY goto no_python
 if not "!MODE!"=="embedded" set "CHECKPY=!SYSPY!"
 
+!CHECKPY! "%ROOT%tools\deploy_check.py" retire-autostart >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 goto legacy_autostart_failed
+
 set "PRE_OUT=%ROOT%logs\preflight-output.tmp"
 !CHECKPY! "%ROOT%tools\deploy_check.py" preflight --mode setup >"!PRE_OUT!" 2>&1
 set "PRE_RESULT=!ERRORLEVEL!"
@@ -126,6 +129,9 @@ call "%ROOT%tools\deploy_console.bat" info "Run PREPARE_ONLINE.bat first (it dow
 goto show_failure
 :preflight_failed
 call "%ROOT%tools\deploy_console.bat" error "This PC is not ready for setup. Fix the problem listed above and run this file again."
+goto show_failure
+:legacy_autostart_failed
+call "%ROOT%tools\deploy_console.bat" error "The old background autostart could not be disabled. Restart Windows and run setup again."
 goto show_failure
 :assets_failed
 call "%ROOT%tools\deploy_console.bat" error "Offline assets are missing, incomplete, or corrupt. Run PREPARE_ONLINE.bat again with internet."

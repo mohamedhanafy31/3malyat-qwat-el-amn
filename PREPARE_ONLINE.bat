@@ -15,6 +15,9 @@ for %%C in ("py -3" "python" "py") do if not defined SYSPY (
 if not defined SYSPY goto no_python
 call "%ROOT%tools\deploy_console.bat" ok "Host Python found: !SYSPY!"
 
+%SYSPY% "%ROOT%tools\deploy_check.py" retire-autostart >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 goto legacy_autostart_failed
+
 call "%ROOT%tools\deploy_console.bat" step "[2/5] Checking this PC (Windows x64, folders, disk space, running server)..."
 set "PRE_OUT=%ROOT%logs\preflight-output.tmp"
 %SYSPY% "%ROOT%tools\deploy_check.py" preflight --mode prepare >"!PRE_OUT!" 2>&1
@@ -54,6 +57,11 @@ goto show_failure
 
 :preflight_failed
 call "%ROOT%tools\deploy_console.bat" error "This PC cannot be prepared yet. Fix the problem listed above and run this file again."
+goto show_failure
+
+:legacy_autostart_failed
+call "%ROOT%tools\deploy_console.bat" error "The old background autostart could not be disabled."
+call "%ROOT%tools\deploy_console.bat" info "Restart Windows, then run PREPARE_ONLINE.bat again. Normal startup uses START_SYSTEM.bat only."
 goto show_failure
 
 :setup_failed

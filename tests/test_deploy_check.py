@@ -30,3 +30,24 @@ def test_platform_and_port_contract():
             pass
         else:
             raise AssertionError(f"accepted invalid port {invalid}")
+
+
+def test_retire_legacy_autostart_removes_shortcut_and_waits_for_lock(tmp_path, monkeypatch):
+    appdata = tmp_path / "AppData" / "Roaming"
+    shortcut = (appdata / "Microsoft" / "Windows" / "Start Menu" / "Programs" /
+                "Startup" / "Personnel System.lnk")
+    shortcut.parent.mkdir(parents=True)
+    shortcut.write_bytes(b"legacy")
+    calls = {"count": 0}
+
+    def locked(_path):
+        calls["count"] += 1
+        return calls["count"] < 3
+
+    monkeypatch.setattr(deploy_check, "is_file_locked", locked)
+    problem = deploy_check.retire_legacy_autostart(
+        tmp_path, {"APPDATA": str(appdata)}, timeout=1, sleep=lambda _seconds: None)
+
+    assert problem is None
+    assert not shortcut.exists()
+    assert not (tmp_path / "logs" / "autostart.stop").exists()

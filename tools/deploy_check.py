@@ -27,6 +27,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -256,12 +257,59 @@ def cmd_ready(args):
 def running_server_problem(root, port):
     """Reason to refuse replacing runtime files, or None when nothing is running."""
     data_lock = data_dir(root) / ".lock"
-    supervisor_lock = Path(root) / "logs" / "autostart.lock"
-    if is_file_locked(data_lock) or is_file_locked(supervisor_lock):
-        return "the Personnel System server (or its auto-restart supervisor) is running"
+    if is_file_locked(data_lock):
+        return "the Personnel System server is running"
     if probe_ready(port, 1.0) in (READY, UNAVAILABLE):
         return f"the Personnel System server is already answering on port {port}"
     return None
+
+
+def retire_legacy_autostart(root, environ=None, timeout=65.0, sleep=time.sleep):
+    """Disable the retired background supervisor and wait for it to release its lock.
+
+    This is deliberately scoped to this project's exact lock/stop files and the
+    old exact Startup shortcut name. It never scans for or kills Python processes.
+    Returns None on success, otherwise a printable problem.
+    """
+    root = Path(root)
+    env = os.environ if environ is None else environ
+    logs = root / "logs"
+    lock = logs / "autostart.lock"
+    stop = logs / "autostart.stop"
+    appdata = (env.get("APPDATA") or "").strip()
+    if appdata:
+        shortcut = (Path(appdata) / "Microsoft" / "Windows" / "Start Menu" /
+                    "Programs" / "Startup" / "Personnel System.lnk")
+        try:
+            shortcut.unlink(missing_ok=True)
+        except OSError as exc:
+            return f"could not remove the old Personnel System Startup shortcut ({exc})"
+    if not is_file_locked(lock):
+        stop.unlink(missing_ok=True)
+        return None
+    try:
+        logs.mkdir(parents=True, exist_ok=True)
+        stop.write_text("stop\n", encoding="ascii")
+    except OSError as exc:
+        return f"could not request the old autostart supervisor to stop ({exc})"
+    deadline = time.monotonic() + timeout
+    while is_file_locked(lock) and time.monotonic() < deadline:
+        sleep(0.5)
+    if is_file_locked(lock):
+        return ("the old autostart supervisor did not stop in time; sign out of Windows "
+                "or restart the PC, then run PREPARE_ONLINE.bat again")
+    stop.unlink(missing_ok=True)
+    return None
+
+
+def cmd_retire_autostart(args):
+    root = Path(args.root).resolve() if args.root else ROOT
+    problem = retire_legacy_autostart(root, timeout=args.timeout)
+    if problem:
+        print(f"[X] {problem}.")
+        return 1
+    print("[OK] Legacy background autostart is disabled. Use START_SYSTEM.bat to run the system.")
+    return 0
 
 
 def cmd_preflight(args):
@@ -310,9 +358,12 @@ def main(argv=None):
     p_ready.add_argument("--port", default=None)
     p_ready.add_argument("--timeout", type=float, default=2.0)
     p_ready.add_argument("--quiet", action="store_true")
+    p_retire = sub.add_parser("retire-autostart")
+    p_retire.add_argument("--root", default=None)
+    p_retire.add_argument("--timeout", type=float, default=65.0)
     args = parser.parse_args(argv)
     return {"host-python": cmd_host_python, "preflight": cmd_preflight,
-            "ready": cmd_ready}[args.cmd](args)
+            "ready": cmd_ready, "retire-autostart": cmd_retire_autostart}[args.cmd](args)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ SCRIPTS = (
     "START_SYSTEM.bat",
     "BACKUPS.bat",
     "run_windows.bat",
-    "INSTALL_AUTOSTART.bat",
     "STOP_SYSTEM.bat",
     "SETUP_PHONE_ACCESS.bat",
     "tools/deploy_console.bat",
@@ -82,12 +81,18 @@ def test_offline_dependency_and_ocr_contract_is_complete():
 
 def test_startup_uses_application_readiness_marker_not_root_http():
     start = (ROOT / "START_SYSTEM.bat").read_text(encoding="ascii")
-    autostart = (ROOT / "INSTALL_AUTOSTART.bat").read_text(encoding="ascii")
     stop = (ROOT / "STOP_SYSTEM.bat").read_text(encoding="ascii")
-    for text in (start, autostart, stop):
+    for text in (start, stop):
         assert "deploy_check.py\" ready" in text
         assert "urlopen('%URL%'" not in text
     assert "Nothing was killed" in stop
+
+
+def test_supported_release_does_not_include_background_autostart():
+    names = {path.relative_to(ROOT).as_posix() for path in prepare_offline_bundle.release_files()}
+    assert "INSTALL_AUTOSTART.bat" not in names
+    assert "tools/autostart.py" not in names
+    assert "retire-autostart" in (ROOT / "PREPARE_ONLINE.bat").read_text(encoding="ascii")
 
 
 def test_offline_release_excludes_secrets_and_large_archives():

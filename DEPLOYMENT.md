@@ -41,6 +41,10 @@ sudo systemctl enable --now personnel-system
 | `STOP_SYSTEM.bat` | لإيقاف السيستم (مثلًا قبل الاستعادة) | لأ |
 | `SETUP_PHONE_ACCESS.bat` | اختياري — تطبيق الموبايل، شوف `MOBILE_APP.md` | **أيوه** |
 
+لا يثبت النظام خدمة خلفية ولا تشغيلًا تلقائيًا مع دخول Windows. التشغيل يدوي
+وواضح من `START_SYSTEM.bat`، والإيقاف من `STOP_SYSTEM.bat`. أثناء التحضير تُزال
+تلقائيًا أي وصلة Startup أو مشرف قديم من إصدارات سابقة.
+
 ---
 
 ## طريقتا التثبيت

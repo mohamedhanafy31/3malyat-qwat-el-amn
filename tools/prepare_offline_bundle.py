@@ -45,7 +45,7 @@ ARABIC_MODEL_URL = (
 TOP_LEVEL_FILES = {
     "app.py", "serve.py", "requirements.txt", "README.md", "DEPLOYMENT.md",
     "START_SYSTEM.bat", "STOP_SYSTEM.bat", "SETUP_OFFLINE.bat", "BACKUPS.bat",
-    "INSTALL_AUTOSTART.bat", "SETUP_PHONE_ACCESS.bat", "run_windows.bat",
+    "SETUP_PHONE_ACCESS.bat", "run_windows.bat",
     "personnel-system.service.example",
 }
 INCLUDE_DIRS = ("backend", "templates", "static", "importer", "migrations", "tools", "wheels", "runtime", "data")
