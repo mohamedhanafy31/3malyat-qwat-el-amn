@@ -104,7 +104,7 @@ goto show_failure
 
 :show_failure
 call "%ROOT%tools\deploy_console.bat" info "Details: %DEPLOY_LOG%"
-if not defined PERSONNEL_NO_PAUSE if not defined PERSONNEL_SETUP_FROM_START (
+if not defined PERSONNEL_NO_PAUSE if not defined PERSONNEL_SETUP_FROM_START if not defined PERSONNEL_SETUP_FROM_PREPARE (
     echo.
     echo Press any key to close this window after reading the error above.
     pause >nul

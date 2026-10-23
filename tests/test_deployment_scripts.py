@@ -24,6 +24,7 @@ def test_deployment_batch_files_are_ascii_only():
 
 
 def test_deployment_scripts_are_relocatable_and_logged():
+    prepare = (ROOT / "PREPARE_ONLINE.bat").read_text(encoding="ascii")
     start = (ROOT / "START_SYSTEM.bat").read_text(encoding="ascii")
     setup = (ROOT / "SETUP_OFFLINE.bat").read_text(encoding="ascii")
     assert 'set "ROOT=%~dp0"' in start
@@ -34,10 +35,13 @@ def test_deployment_scripts_are_relocatable_and_logged():
     assert "First launch detected" in start
     assert "AUTO_SETUP_ATTEMPTED" in start
     assert "PERSONNEL_SETUP_FROM_START" in setup
+    assert 'call "%ROOT%SETUP_OFFLINE.bat"' in prepare
+    assert "PERSONNEL_SETUP_FROM_PREPARE" in prepare
+    assert "--archive" not in prepare
 
     assert "if not defined PERSONNEL_NO_PAUSE" in start
-    assert "if not defined PERSONNEL_NO_PAUSE if not defined PERSONNEL_SETUP_FROM_START" in setup
-    for script in (start, setup):
+    assert "if not defined PERSONNEL_NO_PAUSE if not defined PERSONNEL_SETUP_FROM_START if not defined PERSONNEL_SETUP_FROM_PREPARE" in setup
+    for script in (prepare, start, setup):
         assert "Press any key to close this window" in script
         assert 'info "Details: %DEPLOY_LOG%"' in script
 

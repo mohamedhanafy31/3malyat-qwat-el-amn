@@ -35,7 +35,7 @@ sudo systemctl enable --now personnel-system
 
 | الملف | امتى | إنترنت؟ |
 |---|---|---|
-| `PREPARE_ONLINE.bat` | مرة واحدة، على جهاز **تاني** فيه نت | **أيوه** — ده الوحيد |
+| `PREPARE_ONLINE.bat` | مرة واحدة عند تنزيل Source code من GitHub | **أيوه** — ده الوحيد |
 | `SETUP_OFFLINE.bat` | اختياري للتشخيص؛ `START_SYSTEM.bat` يشغله تلقائيًا أول مرة | لأ |
 | `START_SYSTEM.bat` | أول تشغيل والإعداد، ثم كل يوم | لأ |
 | `STOP_SYSTEM.bat` | لإيقاف السيستم (مثلًا قبل الاستعادة) | لأ |
@@ -43,18 +43,24 @@ sudo systemctl enable --now personnel-system
 
 ---
 
-## الخطوات بالترتيب
+## طريقتا التثبيت
 
-### 1) على جهاز فيه إنترنت
+### الطريقة A: لو نزّلت Source code من GitHub على جهاز Windows فيه إنترنت
 ```
 PREPARE_ONLINE.bat
 ```
-بيجهّز جوّه المشروع:
+ينزّل المكونات، يجهّز **نفس مجلد المشروع** ويشغّل فحص الإعداد تلقائيًا. بعد
+ظهور رسالة الجاهزية شغّل `START_SYSTEM.bat`؛ التشغيلات التالية لا تحتاج
+إنترنت. ويجهّز جوّه المشروع:
 - `runtime\` — نسخة بايثون محمولة (فيها بايثون كامل، الجهاز المعزول مش هيحتاج يثبّت حاجة)
 - `wheels\` — كل الحزم، بما فيها Flask وWord وExcel وOpenCV، كملفات جاهزة
 - `tools\offline_installers\` — محرك Tesseract وبيانات اللغة العربية
 - `OFFLINE_ASSETS.sha256` — بصمات كل مكونات التشغيل قبل النقل
-- `dist\personnel-system-offline-<date>.zip` — الملف النهائي الجاهز للنقل
+
+لإنشاء ZIP نهائي للنشر كمشرف إصدار، شغّل:
+```
+python tools\prepare_offline_bundle.py --archive
+```
 
 ميزة قراءة صورة «يومية الأفراد» تحتاج **محرك Tesseract نفسه** مع لغة العربية
 `ara`؛ لذلك الحزمة النهائية تحمل المثبّت وملف اللغة، و`SETUP_OFFLINE.bat`
@@ -63,7 +69,7 @@ PREPARE_ONLINE.bat
 ويمكن بدلًا منه تشغيل PaddleOCR من بيئة مستقلة وضبط متغير `PADDLE_PYTHON`
 لمسار Python الخاص بها.
 
-### 2) نزّل ملف Offline Release من GitHub
+### الطريقة B: نزّل ملف Offline Release من GitHub
 من صفحة **Releases** على GitHub نزّل الملف المسمى
 `personnel-system-offline-<date>.zip`، وليس زر **Source code (zip)**، ثم فكّه
 على الجهاز. ملف Source code لا يحتوي مكونات التشغيل الكبيرة التي لا يسمح Git
@@ -83,7 +89,7 @@ PREPARE_ONLINE.bat
 >
 > المسار ينفع يبقى فيه مسافات وحروف عربية عادي — ده متجرَّب.
 
-### 3) فك الضغط وشغّل
+### بعد تنزيل Offline Release: فك الضغط وشغّل
 ```
 START_SYSTEM.bat
 ```
