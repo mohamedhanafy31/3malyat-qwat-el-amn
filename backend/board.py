@@ -60,11 +60,12 @@ NON_FREE_SECTIONS = {
 SECTION_COPY_FIELDS = (
     "name", "kind", "section", "shift", "weapon", "time",
     "party", "conscripts", "conscript_count", "note", "counts_in_summary",
+    "mission_transport",
 )
 _SECTION_COPY_DEFAULTS = {
     "name": "", "kind": "", "section": "", "shift": "",
     "weapon": "", "time": "", "party": "", "conscripts": [], "conscript_count": 0,
-    "note": "", "counts_in_summary": True,
+    "note": "", "counts_in_summary": True, "mission_transport": False,
 }
 
 
@@ -303,6 +304,7 @@ def _row(assignment, people, day):
         "weapon": assignment.get("weapon", ""),
         "time": assignment.get("time", ""),
         "party": assignment.get("party", ""),
+        "mission_transport": bool(assignment.get("mission_transport")),
         "note": assignment.get("note", ""),
         "pos": assignment.get("pos") if isinstance(assignment.get("pos"), int)
         and not isinstance(assignment.get("pos"), bool) else None,
@@ -667,15 +669,20 @@ def build_board(data, day):
         manual = r["manual"]
         if r["group"] == "خوارج":
             if r["bucket"] == "تقصيرة":
-                taqseeras.append({**who, "note": manual})
+                # التقصيرة مش قسم في الورقة المطبوعة: الضابط بيتحط في تشغيله العادي
+                # (على خدمته لو عليه خدمة، وإلا في «عمل بالإدارة» بنص عمله)
+                taqseeras.append({**who, "note": manual, "has_service": bool(r["services"]),
+                                  "text": r["text"] or manual or r["post"]})
             elif r["bucket"] == "راحة":
                 lv = r["leave"] or {}
                 rests.append({**who, "type": (r["leave"] or {}).get("type", "راحة"),
                               "start": lv.get("start"), "end": lv.get("end"),
                               "return_date": lv.get("return_date"), "note": manual})
             else:
-                outsiders.append({**who, "reason": (r["leave"] or {}).get("type") or r["bucket"],
-                                  "note": manual})
+                lv = r["leave"] or {}
+                outsiders.append({**who, "reason": lv.get("type") or r["bucket"], "note": manual,
+                                  "leave_type": lv.get("type"), "start": lv.get("start"),
+                                  "end": lv.get("end"), "return_date": lv.get("return_date")})
         elif r["group"] == "صافي":
             admin_work.append({**who, "text": manual or r["post"]})
         elif r["admin_work"]:

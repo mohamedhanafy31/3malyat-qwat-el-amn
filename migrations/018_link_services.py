@@ -10,9 +10,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from common import AlreadyDone, run  # noqa: E402
 from backend.clocktime import parse_shift_pair  # noqa: E402
-from backend.constants import CAMPAIGN_LORRIES  # noqa: E402
 from backend.service_catalog import catalog, new_id  # noqa: E402
-from backend.service_links import resolve_service_id, service_for_counts_entry  # noqa: E402
+from backend.service_links import resolve_service_id  # noqa: E402
+
+
+# كل الخدمات الأساسية اللي بتطلع مع لواري خطوط السير انتظامها 8 ص و8 م
+# (قرار المشغّل) — الصباحي للي فترتها فيها صباحية، والليلي للي فيها ليلية.
+LINE_AM, LINE_PM = "08:00", "20:00"
 
 
 RUN_DAY = date.today().isoformat()
@@ -73,9 +77,25 @@ def _seed_lines(data):
             ("خط المحور والمحكمة", "المحكمة والمحور", "LOR-1"),
             ("خط الداخلي (القنصلية)", "الداخلي", "LOR-2")]
     lines.extend({"id": f"LN-{i}", "name": name, "tag": tag, "lorry_id": lorry,
-                  "order": [], "depart_am": "", "depart_pm": ""}
+                  "order": [], "depart_am": LINE_AM, "depart_pm": LINE_PM}
                  for i, (name, tag, lorry) in enumerate(seed, 1))
     return len(seed)
+
+
+def _line_report_times(data):
+    tags = {line.get("tag") for line in data.get("service_lines") or [] if line.get("tag")}
+    changed = 0
+    for entry in catalog(data):
+        if not tags & set(entry.get("tags") or []):
+            continue
+        period = entry.get("period") or "صباحية وليلية"
+        wanted = {"report_am": LINE_AM if "صباحية" in period else entry.get("report_am", ""),
+                  "report_pm": LINE_PM if "ليلية" in period else entry.get("report_pm", "")}
+        for field, value in wanted.items():
+            if entry.get(field) != value:
+                entry[field] = value
+                changed += 1
+    return changed
 
 
 def migrate(data):
@@ -130,9 +150,14 @@ def migrate(data):
             if not target.get("report_pm") and pm:
                 target["report_pm"] = pm
                 filled += 1
+    line_times = _line_report_times(data)
     data["_migrations"].append("018_link_services")
-    return [f"أضيفت {added} خدمة، واتدمج {merged} وسم، واتزرعت {seeded} خطوط سير.",
-            f"اتربط {linked} صف، واتملت {filled} مواعيد، والصافي {len(unmatched_rows)} اسم."]
+    report = [f"أضيفت {added} خدمة، واتدمج {merged} وسم، واتزرعت {seeded} خطوط سير.",
+              f"اتربط {linked} صف، واتملت {filled} مواعيد، والصافي {len(unmatched_rows)} اسم.",
+              f"اتوحّد معاد خدمات خطوط السير (8ص / 8م): {line_times} خانة."]
+    report.extend(f"غير مربوط [{row['source']}] {row['id']}: {row['name']}"
+                  for row in unmatched_rows)
+    return report
 
 
 def _write_report():

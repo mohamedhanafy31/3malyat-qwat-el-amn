@@ -12,9 +12,9 @@
     </div>
     <div class="tb-group" role="group" aria-label="حالة اليوم"><span id="dayLockBadge">{{ skeleton("status") }}</span></div>
     <div class="tb-group">
-      <button class="mini" id="afOcrOpen" type="button">قراءة صورة اليومية</button>
+      <button class="mini" id="afOcrOpen" type="button">قراءة صورة / PDF</button>
       <button class="mini" id="afBasicOpen" type="button">تعديل الخدمات الأساسية</button>
-      <input id="afOcrImage" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+      <input id="afOcrImage" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden>
     </div>
   </div>
   <div id="afWrap">{{ skeleton("rows", 10) }}</div>
@@ -28,5 +28,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/afraad.js') }}"></script>
+<script src="{{ url_for('static', filename='js/afraad.js') }}"
+        data-pdfjs="{{ url_for('static', filename='js/vendor/pdf.min.js') }}"
+        data-pdf-worker="{{ url_for('static', filename='js/vendor/pdf.worker.min.js') }}"></script>
 {% endblock %}

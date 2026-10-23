@@ -4,6 +4,16 @@ from backend.service_lines import line_for_service, members
 from backend.service_links import resolve_service_id, service_for_counts_entry
 
 
+def _migration_module():
+    import importlib.util
+    from pathlib import Path
+    path = Path(__file__).parents[1] / "migrations" / "018_link_services.py"
+    spec = importlib.util.spec_from_file_location("migration_018", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_archive_times_and_round_trips():
     values = {
         "8 ص / 8 م": ("08:00", "20:00"), "8 ص فترة صباحة": ("08:00", None),
@@ -48,7 +58,7 @@ def test_service_links_are_exact_or_explicit_aliases():
     assert resolve_service_id(data, "حملة أمن وطني 12ص") == "SVC-2"
     assert resolve_service_id(data, "خدمة مختلفة") is None
     assert service_for_counts_entry(data, {"service_id": "SVC-3", "name": "مختلف"}) == "SVC-3"
-    assert service_for_counts_entry(data, {"service_id": "SVC-999", "name": "قول مكبر"}) == "SVC-1"
+    assert service_for_counts_entry(data, {"service_id": "SVC-999", "name": "قول مكبر"}) == "SVC-999"
 
 
 def test_service_lines_use_tags_then_catalog_order():
@@ -71,3 +81,54 @@ def test_catalog_time_fields_default_and_validate():
     entry, error = apply_entry(data, entry, {"report_am": "مش وقت"})
     assert entry is None and error
     assert catalog({"service_catalog": [{"id": "SVC-2", "name": "قديمة"}]})[0]["report_am"] == ""
+
+
+def test_migration_links_only_current_and_future_count_copies():
+    migration = _migration_module()
+    migration.RUN_DAY = "2026-10-20"
+    data = {
+        "id_seq": {"SVC": 3}, "service_catalog": [
+            {"id": "SVC-003", "name": "التدخل السريع", "tags": ["الدخلي"],
+             "report_am": "", "report_pm": ""},
+        ], "service_tags": ["الدخلي"], "counts_template": {"entries": [
+            {"id": "CNT-1", "name": "التدخل سريع"},
+        ]}, "service_counts": {
+            "2026-10-19": {"entries": [{"id": "OLD", "name": "التدخل سريع"}]},
+            "2026-10-20": {"entries": [{"id": "NEW", "name": "التدخل سريع"}]},
+        }, "reference_lists": {
+            "afraad_basic": [{"from": "2026-10-20", "items": [{"id": "AFB-1", "name": "التدخل سريع"}]}],
+            "campaign_daily": [{"from": "2026-10-20", "items": []}],
+        }, "day_afraad": {"2026-10-20": {"AFB-1": {"schedule": "8 ص / 8 م"}}},
+    }
+    report = migration.migrate(data)
+    assert any("الصافي" in line for line in report)
+    assert "service_id" not in data["service_counts"]["2026-10-19"]["entries"][0]
+    assert data["service_counts"]["2026-10-20"]["entries"][0]["service_id"] == "SVC-003"
+    assert data["counts_template"]["entries"][0]["service_id"] == "SVC-003"
+    assert data["service_catalog"][0]["report_am"] == "08:00"
+    assert data["service_catalog"][0]["report_pm"] == "20:00"
+    assert data["service_tags"] == ["الداخلي"]
+    assert len(data["service_lines"]) == 4
+
+
+def test_migration_sets_line_services_to_8am_8pm_by_period():
+    migration = _migration_module()
+    migration.RUN_DAY = "2026-10-20"
+    data = {
+        "id_seq": {"SVC": 3}, "service_catalog": [
+            {"id": "SVC-001", "name": "اعلى 109", "tags": ["الخارجي"],
+             "period": "صباحية وليلية", "report_am": "07:00", "report_pm": ""},
+            {"id": "SVC-002", "name": "كنيسة الإيمان", "tags": ["الداخلي"],
+             "period": "ليلية بس", "report_am": "", "report_pm": "19:00"},
+            {"id": "SVC-003", "name": "قول السلام", "tags": [],
+             "period": "صباحية وليلية", "report_am": "09:00", "report_pm": ""},
+        ], "service_tags": [], "counts_template": {"entries": []}, "service_counts": {},
+        "reference_lists": {}, "day_afraad": {},
+    }
+    migration.migrate(data)
+    by_id = {e["id"]: e for e in data["service_catalog"]}
+    assert (by_id["SVC-001"]["report_am"], by_id["SVC-001"]["report_pm"]) == ("08:00", "20:00")
+    assert (by_id["SVC-002"]["report_am"], by_id["SVC-002"]["report_pm"]) == ("", "20:00")
+    # خدمة برّه أي خط ما بتتلمسش
+    assert (by_id["SVC-003"]["report_am"], by_id["SVC-003"]["report_pm"]) == ("09:00", "")
+    assert all((l["depart_am"], l["depart_pm"]) == ("08:00", "20:00") for l in data["service_lines"])

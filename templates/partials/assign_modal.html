@@ -11,8 +11,9 @@
     <form id="assignForm" novalidate>
       <input type="hidden" id="assignPerson">
       <div class="grid">
-        <label>حالة خاصة <small>تظهر خانتها في جدول الإجمالي</small>
-          <select id="assignStatus"></select>
+        <label>حالة خاصة <small>اختر تصنيفًا موجودًا أو اكتب تصنيفًا جديدًا؛ يظهر في جدول الإجمالي ويُحفظ للمرات القادمة</small>
+          <select id="assignStatus" data-combo-custom data-combo-custom-label="تصنيف جديد"
+                  data-maxlength="60" aria-label="تصنيف حالة الضابط"></select>
         </label>
         <label class="checkline">
           <input type="checkbox" id="assignTaq"> تقصيرة (خرج بدري بعد خدمته)

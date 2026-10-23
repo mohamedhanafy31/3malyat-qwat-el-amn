@@ -3,10 +3,13 @@
 from flask import Blueprint, jsonify, request, send_file
 
 from .. import day_status
+from ..dated import afraad_basic_on
 from ..afraad import (add_basic_service, build_afraad, remove_basic_service,
                        set_basic_entry)
+from .. import ocr_samples
 from ..afraad_ocr import analyze_image, apply_rows
 from ..afraad_export import build_docx
+from ..repo import PeopleRepo
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import canonical_day, json_payload
 
@@ -124,13 +127,17 @@ def preview_afraad_ocr(day):
     if upload is None or not upload.filename:
         return jsonify({"error": "اختر صورة أولاً."}), 400
     data = load_data(_afraad_scope(day))
+    raw = upload.read()
     try:
-        result = analyze_image(upload.read(), upload.filename, data, day)
+        result = analyze_image(raw, upload.filename, data, day)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
     except RuntimeError as exc:
         return jsonify({"error": str(exc)}), 503
     result["revision"] = revision(data, [day])
+    # الصورة وناتج القراءة بيتحفظوا لبناء موديل OCR خاص بالنظام بعدين
+    result["sample_id"] = ocr_samples.save_prediction(
+        raw, upload.filename, day, result, afraad_basic_on(data, day))
     return jsonify(result)
 
 
@@ -154,6 +161,13 @@ def apply_afraad_ocr(day):
         applied, error = apply_rows(data, day, body.get("rows"))
         if error:
             raise AbortRequest((jsonify({"error": error}), 400))
+        built.append(ocr_samples.build_final(
+            body.get("sample_id"), day, body.get("review"), afraad_basic_on(data, day),
+            [person.as_dict() for person in PeopleRepo(data).on_force(day, "personnel")]))
         return jsonify({"applied": applied, "data": _payload(data, day)})
 
-    return with_data(mutate, _afraad_scope(day))
+    built = []
+    response = with_data(mutate, _afraad_scope(day))
+    if built and getattr(response, "status_code", 200) == 200:
+        ocr_samples.save_final(built[0])        # الصح بعد مراجعة المشغّل
+    return response

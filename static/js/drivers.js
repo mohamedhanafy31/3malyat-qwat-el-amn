@@ -1,5 +1,6 @@
 /* السواقين — عرض الأفراد السواقين وإدارة المجندين المحددين كسائقين. */
 let PERSONNEL_DRIVERS = [], CONSCRIPTS = [];
+setupRosterImport({kind: "conscripts", buttonId: "importConscriptsBtn", inputId: "importConscriptsFile", onApplied: loadDrivers});
 
 function personnelDriverRow(p) {
   return `<tr><td class="name">${esc(p.name)}</td><td>${esc(p.role || "—")}</td><td dir="ltr" class="bidi-isolate">${esc(fmtPhone(p.phone) || "—")}</td><td>${esc(p.post || "—")}</td></tr>`;

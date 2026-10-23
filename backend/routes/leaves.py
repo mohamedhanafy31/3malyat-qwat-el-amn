@@ -1,12 +1,13 @@
 """نقاط الراحات والإجازات."""
 from datetime import timedelta
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 
 from .. import changes, day_status, rest_suspension, retro
 from ..constants import REST_DURATIONS
 from ..leaves import MONTHLY_REST_SYSTEMS, build_leave, overlapping, validate_weekly_extra
 from ..leaves import stats as leaves_stats_data
+from ..leaves_export import build_monthly_docx, build_weekly_docx
 from ..models import Leave
 from ..people import effective
 from ..repo import Repos
@@ -243,3 +244,30 @@ def leaves_stats():
         "status": request.args.get("status", "").strip(),
     }
     return jsonify(leaves_stats_data(data, filters))
+
+
+def _export_day():
+    raw = request.args.get("on", "").strip() or day_status.today_iso()
+    return parse_date(raw)
+
+
+@bp.get("/api/leaves/monthly/export.docx")
+def export_monthly_roster():
+    on = _export_day()
+    if not on:
+        return jsonify({"error": "تاريخ الكشف غير صحيح."}), 400
+    output = build_monthly_docx(load_data(()), on)
+    return send_file(output, as_attachment=True,
+                     download_name=f"كشف الراحات الشهرية {on.isoformat()}.docx",
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+@bp.get("/api/leaves/weekly/export.docx")
+def export_weekly_roster():
+    on = _export_day()
+    if not on:
+        return jsonify({"error": "تاريخ الكشف غير صحيح."}), 400
+    output = build_weekly_docx(load_data(()), on)
+    return send_file(output, as_attachment=True,
+                     download_name=f"كشف الراحات الاسبوعية {on.isoformat()}.docx",
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")

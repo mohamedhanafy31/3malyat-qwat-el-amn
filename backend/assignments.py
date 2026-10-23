@@ -37,6 +37,7 @@ from .constants import (
 from .text import norm
 from .utils import too_long
 from .dated import targets_on
+from .clocktime import format_time, parse_time
 
 # القسم على اللوحة حر — أي اسم المشغّل يكتبه بيبقى قسم مستقل (لليوم ده بس،
 # `backend/board.py` هو اللي بيفسّره). الأسماء الأربعة دي استثناء: هي عناوين
@@ -53,6 +54,34 @@ RESERVED_SECTIONS = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTIO
 # فكانت خاناتهم في جدول الإجمالي مستحيل يوصلها رقم صح رغم إنهم في الوورد
 # 16 و30 مرة على التوالي.
 OFFICER_STATUSES = ["انتداب", "غياب", "مرضي", "فرقة", "طارئة"]
+MAX_OFFICER_STATUS_LENGTH = 60
+
+
+def officer_statuses(data):
+    """الحالات الأساسية ثم أي تصنيف حر سبق حفظه، بلا تكرار نصي/إملائي."""
+    out = list(OFFICER_STATUSES)
+    seen = {norm(value) for value in out}
+    for raw in data.get("custom_officer_statuses") or []:
+        value = str(raw or "").strip()
+        key = norm(value)
+        if value and key not in seen:
+            out.append(value)
+            seen.add(key)
+    return out
+
+
+def remember_officer_status(data, value):
+    """يسجّل تصنيف حالة جديدًا في البيانات العامة. يرجع رسالة خطأ أو None."""
+    value = str(value or "").strip()
+    if not value:
+        return None
+    if len(value) > MAX_OFFICER_STATUS_LENGTH:
+        return f"تصنيف الحالة أطول من الحد المسموح ({MAX_OFFICER_STATUS_LENGTH} حرفًا)."
+    if any(char in value for char in "\r\n\t"):
+        return "تصنيف الحالة يجب أن يكون في سطر واحد."
+    if norm(value) not in {norm(item) for item in officer_statuses(data)}:
+        data.setdefault("custom_officer_statuses", []).append(value)
+    return None
 
 
 def for_day(data, day):
@@ -215,6 +244,7 @@ def blank(assignment_id, name, section, **over):
         "time": "",
         "party": "",
         "counts_in_summary": True,
+        "mission_transport": False,
         "note": "",
     }
     row.update(over)
@@ -333,6 +363,8 @@ def apply_assignment(data, day, row, payload):
         row["section"] = section or SECTION_OCCASIONAL
     if "counts_in_summary" in payload:
         row["counts_in_summary"] = bool(payload["counts_in_summary"])
+    if "mission_transport" in payload:
+        row["mission_transport"] = bool(payload["mission_transport"])
     if "officer_ids" in payload:
         ids, err, status = clean_people(data, day, payload["officer_ids"], "officers")
         if err:
@@ -353,16 +385,35 @@ def apply_assignment(data, day, row, payload):
         if count is None:
             return None, COUNT_ERROR, 400
         row["conscript_count"] = count
-    for key in ("weapon", "time", "party", "note"):
+    for key in ("weapon", "party", "note"):
         if key in payload:
             err = too_long(payload, key)
             if err:
                 return None, err, 400
             row[key] = str(payload[key]).strip()
+    if "time" in payload:
+        err = too_long(payload, "time")
+        if err:
+            return None, err, 400
+        raw_time = str(payload["time"]).strip()
+        if not raw_time:
+            row["time"] = ""
+        else:
+            parsed_time = parse_time(raw_time)
+            if parsed_time is None:
+                # السطر القديم يفضل قابل للتعديل لو الوقت نفسه ما اتغيرش.
+                if raw_time == row.get("time", ""):
+                    pass
+                else:
+                    return None, "اختر معاد الانتظام من لوحة الساعة.", 400
+            else:
+                row["time"] = format_time(parsed_time)
 
     if row.get("section") == SECTION_TARGETS:
         if row.get("name") not in set(targets_on(data, day)):
             return None, f"«{row.get('name')}» ليس من الأهداف الثابتة — قائمة الأهداف مغلقة.", 400
         row["kind"] = "حراسات"
         row["shift"] = ""
+    if row.get("mission_transport") and row.get("kind") not in ("داخلية", "خارجية"):
+        return None, "المأمورية / الترحيلة يجب أن يكون تصنيفها داخلية أو خارجية.", 400
     return row, None, None

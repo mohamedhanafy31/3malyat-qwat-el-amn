@@ -73,6 +73,13 @@ def test_each_state_has_its_own_symbol(client):
     assert codes["انتداب"] == "ن"
 
 
+def test_custom_officer_status_is_counted_as_away(client):
+    client.put(f"/api/duty/{DAY}/OFF-001", json={"status": "مهمة خاصة"})
+    cell = _cell(_month(client), "OFF-001", DAY)
+    assert cell["label"] == "مهمة خاصة"
+    assert cell["family"] == "خارج"
+
+
 def test_any_working_shift_or_duty_gets_the_same_present_symbol(client):
     """دفتر 43 بيثبت التواجد بس — نوع الخدمة (صباحية/ليلية/حراسة/داخلية)
     تفصيلة موجودة في يومية التشغيل نفسها، مش في رمز الدفتر."""

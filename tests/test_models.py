@@ -144,6 +144,11 @@ def test_weekly_rest_without_a_weekday_is_rejected():
     assert "يجب تحديد يوم في الأسبوع للراحة الأسبوعية." in officer.validate()
 
 
+def test_officer_day_state_accepts_a_custom_status():
+    assert OfficerDayState.from_dict({"status": "مأمورية خاصة"}).validate() == []
+    assert OfficerDayState.from_dict({"status": "س" * 61}).validate()
+
+
 def test_leave_dates_must_be_ordered_and_sane():
     assert "تاريخ النهاية قبل تاريخ البداية." in Leave.from_dict({
         "person_id": "OFF-1", "type": "أسبوعية",

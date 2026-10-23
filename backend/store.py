@@ -80,6 +80,7 @@ class Changeset(NamedTuple):
     created_days: frozenset
     removed_days: frozenset
     core_keys: frozenset
+    changed_sections: dict = {}
 
 
 ALL_CORE_KEYS = frozenset({"*"})
@@ -143,6 +144,7 @@ DAY_SECTIONS = {
     # المصدر والبصمة جوّه ملف اليوم عشان نعرف هل المشغّل لمسها قبل تحديثها.
     "target_defaults": "target_defaults",
     "day_campaign": "campaign",
+    "day_service_runs": "service_runs",
     # علامة مصدر اليوم المستورد؛ غيابها يعني أن اليوم أُنشئ داخل النظام.
     "day_import": "import",
 }
@@ -983,7 +985,14 @@ def _write(data):
             core_keys = frozenset(changed - set(defaults))
     else:
         core_keys = frozenset()
-    return Changeset(changed_days, created_days, removed_days, core_keys)
+    changed_sections = {}
+    for day in changed_days:
+        old_blob = pickle.loads(originals[day]) if day in originals else {}
+        new_blob = days.get(day, {})
+        changed_sections[day] = frozenset(
+            name for name in DAY_SECTIONS.values()
+            if old_blob.get(name) != new_blob.get(name))
+    return Changeset(changed_days, created_days, removed_days, core_keys, changed_sections)
 
 
 def _last_backup_age():

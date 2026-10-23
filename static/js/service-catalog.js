@@ -5,7 +5,7 @@
    صور الموقع بترفع كملفات (مش base64) — مباشرة لو صورة، أو تختار صفحة
    من PDF (بيترسم في المتصفح بـPDF.js وتترفع كصورة PNG، السيرفر ملوش أي
    دخل بمعالجة PDF خالص). */
-let CATALOG = [], PERIODS = [], SVC_KINDS = [], SVC_POST_TYPES = [], SVC_TAGS = [], SVC_ENTRY_TAGS = [];
+let CATALOG = [], PERIODS = [], SVC_KINDS = [], SVC_POST_TYPES = [], SVC_TAGS = [], SVC_ENTRY_TAGS = [], SERVICE_LINES = [];
 let INSPECTIONS = {}, INSP_WEEKDAYS = [];
 const SERVICE_PERIOD_LABELS = {
   "صباحية بس": "صباحية فقط",
@@ -47,6 +47,7 @@ function serviceCard(s) {
   bits.push(s.count ? countLabel(s.count, "مجند") : "بدون مجندين");
   if (s.weapon) bits.push(esc(s.weapon));
   const hasLocation = !!(s.location_text || s.location_images?.length);
+  const reports = [s.report_am ? `صباحية: ${formatTimeAr(s.report_am)}` : "", s.report_pm ? `ليلية: ${formatTimeAr(s.report_pm)}` : ""].filter(Boolean);
   return `<div class="service-card">
     <div class="service-head">
       <div class="service-head-main">
@@ -64,6 +65,7 @@ function serviceCard(s) {
       </div>
     </div>
     <p class="service-bits">${bits.join(" · ")}</p>
+    ${reports.length ? `<p class="service-reports" aria-label="مواعيد الانتظام">${reports.join(" · ")}</p>` : ""}
     ${s.instructions ? `<p class="hint service-hint">${esc(s.instructions)}</p>` : ""}
     <div class="service-bar">
       ${hasLocation ? `<button class="mini" data-action="openLocation" data-id="${esc(s.id)}"
@@ -100,7 +102,17 @@ function render() {
   } else if (!rows.length) {
     $("#catalogWrap").innerHTML = emptyState({icon: "search", title: "لا توجد خدمة مطابقة للتصفية", hint: "حاول تعديل البحث أو عوامل التصفية."});
   } else {
-    $("#catalogWrap").innerHTML = `<div class="service-grid">${rows.map(serviceCard).join("")}</div>`;
+    const assigned = new Set();
+    let groups = SERVICE_LINES.map(line => {
+      const ids = new Set((line.members || []).map(m => m.id));
+      const members = rows.filter(s => ids.has(s.id));
+      members.forEach(s => assigned.add(s.id));
+      if (!members.length) return "";
+      return `<section class="service-line-group"><header class="service-line-head"><h2>${esc(line.name || "خط سير")}</h2><span>${esc(line.lorry_name || "")}</span></header><div class="service-grid">${members.map(serviceCard).join("")}</div></section>`;
+    }).filter(Boolean).join("");
+    const singles = rows.filter(s => !assigned.has(s.id));
+    if (singles.length) groups += `<section class="service-line-group"><header class="service-line-head"><h2>خدمات منفردة</h2></header><div class="service-grid">${singles.map(serviceCard).join("")}</div></section>`;
+    $("#catalogWrap").innerHTML = groups;
   }
 }
 
@@ -151,6 +163,8 @@ async function load() {
   SVC_TAGS = c.service_tags || [];
   $("#svcSeedBanner").classList.toggle("hidden", c.seeded);
   syncCatalogFilters();
+  const lines = await api("/api/service-lines");
+  SERVICE_LINES = lines?.lines || [];
   render();
 
   const s = await api("/api/inspection-schedule");
@@ -166,6 +180,12 @@ function syncCommandVisibility() {
   if (!on) { $("#svcCommandOfficers").value = 0; $("#svcCommandIndividuals").value = 0; }
 }
 $("#svcHasCommand").onchange = syncCommandVisibility;
+function syncReportVisibility() {
+  const period = $("#svcPeriod").value;
+  $("#svcReportAmWrap").classList.toggle("hidden", period === "ليلية بس");
+  $("#svcReportPmWrap").classList.toggle("hidden", period === "صباحية بس");
+}
+$("#svcPeriod").addEventListener("change", syncReportVisibility);
 
 function renderSvcTagChips() {
   $("#svcTagChips").innerHTML = SVC_ENTRY_TAGS.map((t, i) =>
@@ -312,6 +332,9 @@ function openService(id) {
   syncCommandVisibility();
   $("#svcCount").value = s?.count ?? 0;
   $("#svcWeapon").value = s?.weapon || "";
+  setTimeInputValue($("#svcReportAm"), s?.report_am || "");
+  setTimeInputValue($("#svcReportPm"), s?.report_pm || "");
+  syncReportVisibility();
   $("#svcInstructions").value = s?.instructions || "";
   $("#svcLocationText").value = s?.location_text || "";
   $("#svcTagList").innerHTML = SVC_TAGS.map(t => `<option value="${esc(t)}">`).join("");
@@ -353,6 +376,8 @@ $("#serviceForm").onsubmit = async e => {
     command_individuals: parseInt($("#svcCommandIndividuals").value) || 0,
     count: parseInt($("#svcCount").value) || 0,
     weapon: $("#svcWeapon").value.trim(),
+    report_am: $("#svcPeriod").value === "ليلية بس" ? "" : ($("#svcReportAm").dataset.hhmm || ""),
+    report_pm: $("#svcPeriod").value === "صباحية بس" ? "" : ($("#svcReportPm").dataset.hhmm || ""),
     instructions: $("#svcInstructions").value.trim(),
     location_text: $("#svcLocationText").value.trim(),
     tags: SVC_ENTRY_TAGS,

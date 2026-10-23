@@ -1,39 +1,78 @@
 {% extends "base.html" %}
 
-{# التنبيهات بتتعرض بعد بطاقات الأرقام مش قبلها — الأرقام هي أول حاجة
-   المستخدم بيدوّر عليها، والتنبيه ملخّص مطوي بعدده. #}
 {% block alerts %}{% endblock %}
 
 {% block content %}
 <div id="clockWarning"></div>
 <div id="restSuspension"></div>
-<div id="dashStats" class="stats">{{ skeleton("stats", 4) }}</div>
-<div id="alerts"><div class="alert-skel skel" aria-hidden="true"></div></div>
 
-{# «مهام اليوم» بدل كرتين: «تشغيل النهاردة» (تلات روابط وتاريخ مكرر من
-   الترويسة) و«السجلات» (نفس روابط القائمة ونفس الأرقام تالت مرة). هنا
-   اللي محتاج تصرّف فعلًا: التأكيد، الشواغر، الراجعين، وآخر التغييرات. #}
-<div class="dash-card dash-tasks">
-  <h3>مهام اليوم
-    <span class="dash-quick">
-      <a class="btn" href="{{ url_for('pages.board') }}">اليومية التفصيلية</a>
-      <a class="btn" href="{{ url_for('pages.duty') }}">يومية الضباط</a>
-      <a class="btn" href="{{ url_for('pages.counts') }}">أعداد الخدمات</a>
-    </span>
-  </h3>
-  <div class="body">
-    <ul class="task-list" id="dashTasks">{{ skeleton("tasks", 3) }}</ul>
-    <div class="recent-changes" id="dashChanges">{{ skeleton("changes", 5) }}</div>
+<section class="ops-strip" aria-label="ملخص التشغيل المباشر">
+  <div class="ops-clock"><span class="ops-eyebrow">الوقت الآن</span><strong id="opsClock">--:--</strong></div>
+  <div class="ops-next" aria-live="polite"><span class="ops-eyebrow">التالية</span><div id="opsNext">جارٍ تحميل لوحة التشغيل…</div></div>
+  <div id="opsCounters" class="ops-counters" aria-label="عدادات التشغيل"></div>
+</section>
+
+<div id="opsLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+<div id="opsBoard" class="ops-board" aria-busy="true"><div class="ops-loading">جارٍ تحميل لوحة التشغيل…</div></div>
+
+<details class="admin-followup">
+  <summary>متابعة إدارية <span>القوة، التقصيرة، التأكيد، والقادم</span></summary>
+  <div class="admin-followup-body">
+    <div id="dashStats" class="stats">{{ skeleton("stats", 4) }}</div>
+    <div id="alerts"><div class="alert-skel skel" aria-hidden="true"></div></div>
+    <div class="dash-card dash-tasks">
+      <h3>مهام اليوم
+        <span class="dash-quick">
+          <a class="btn" href="{{ url_for('pages.board') }}">اليومية التفصيلية</a>
+          <a class="btn" href="{{ url_for('pages.duty') }}">يومية الضباط</a>
+          <a class="btn" href="{{ url_for('pages.counts') }}">أعداد الخدمات</a>
+        </span>
+      </h3>
+      <div class="body"><ul class="task-list" id="dashTasks">{{ skeleton("tasks", 3) }}</ul><div class="recent-changes" id="dashChanges">{{ skeleton("changes", 5) }}</div></div>
+    </div>
+    <div class="dash-card dash-wide"><h3>القادم والمعلّق</h3><div class="body"><div class="dash-cols" id="dashUpcoming">{{ skeleton("rows", 4) }}</div></div></div>
+  </div>
+</details>
+{% endblock %}
+
+
+{# النوافذ لازم تبقى في block modals برّه .shell — فتح أي نافذة بيعمل .shell
+   inert، فلو النافذة جوّاها مابتستقبلش نقرات الماوس خالص. #}
+{% block modals %}
+<div class="modal hidden" id="opsLineModal">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="opsLineTitle">
+    <button type="button" class="close" data-close="opsLineModal" aria-label="إغلاق">×</button>
+    <h2 id="opsLineTitle">تشغيل الخط</h2>
+    <p id="opsLineMeta" class="dialog-body"></p>
+    <form id="opsLineForm" novalidate>
+      <div id="opsLineChecks" class="ops-checks"></div>
+      <div class="dialog-actions">
+        <button type="submit" class="primary" id="opsLineSubmit">قيام الخط</button>
+        <button type="button" class="btn" data-close="opsLineModal">إلغاء</button>
+      </div>
+    </form>
   </div>
 </div>
 
-{# «القادم والمعلّق» ثلاث قوائم مستقلة — كانت متكدّسة في عمود ضيّق. #}
-<div class="dash-card dash-wide">
-  <h3>القادم والمعلّق</h3>
-  <div class="body"><div class="dash-cols" id="dashUpcoming">{{ skeleton("rows", 4) }}</div></div>
+<div class="modal hidden" id="opsTimeModal">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="opsTimeTitle">
+    <button type="button" class="close" data-close="opsTimeModal" aria-label="إغلاق">×</button>
+    <h2 id="opsTimeTitle">تعديل المعاد</h2>
+    <p id="opsTimeService" class="dialog-body"></p>
+    <form id="opsTimeForm" novalidate>
+      <label>المعاد الجديد<input id="opsTimeInput" data-time aria-label="المعاد الجديد"></label>
+      <fieldset class="ops-scope">
+        <legend>نطاق التعديل</legend>
+        <label><input type="radio" name="opsTimeScope" value="day" checked> لليوم بس</label>
+        <label><input type="radio" name="opsTimeScope" value="default"> اجعله المعاد الافتراضي</label>
+      </fieldset>
+      <div class="dialog-actions">
+        <button type="submit" class="primary">حفظ المعاد</button>
+        <button type="button" class="btn" data-close="opsTimeModal">إلغاء</button>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>{% endblock %}

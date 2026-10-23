@@ -2,6 +2,7 @@
    الأعمدة وكرت القيادة، وده متحدد من data-page في <body>. #}
 {% extends "base.html" %}
 {% block page_actions %}
+{% if page == 'personnel' %}<button class="btn" id="importPersonnelBtn">استيراد كشف Word</button><input class="hidden" type="file" id="importPersonnelFile" accept=".doc,application/msword">{% endif %}
 <button class="primary" id="addBtn">{{ icon('plus') }} {{ 'إضافة ضابط' if page == 'officers' else 'إضافة فرد' }}</button>
 {% endblock %}
 
@@ -61,11 +62,13 @@
 {% block modals %}
   {% include "partials/person_modal.html" %}
   {% include "partials/remove_modal.html" %}
+  {% if page == 'personnel' %}{% include "partials/roster_import_modal.html" %}{% endif %}
   {% if page == 'officers' %}{% include "partials/leave_modal.html" %}{% include "partials/stop_leave_modal.html" %}{% endif %}
 {% endblock %}
 
 {% block scripts %}
 {% if page == 'officers' %}<script src="{{ url_for('static', filename='js/leave-form.js') }}"></script>
 <script src="{{ url_for('static', filename='js/rest-stop.js') }}"></script>{% endif %}
+{% if page == 'personnel' %}<script src="{{ url_for('static', filename='js/roster-import.js') }}"></script>{% endif %}
 <script src="{{ url_for('static', filename='js/force.js') }}"></script>
 {% endblock %}

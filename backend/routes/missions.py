@@ -6,8 +6,28 @@ from .. import missions as missions_lib
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload
+from ..utils import canonical_day
 
 bp = Blueprint("missions", __name__)
+
+
+@bp.get("/api/missions/day/<day>")
+def daily_missions(day):
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "التاريخ غير صحيح."}), 400
+    data = load_data({day})
+    groups = missions_lib.daily_assignments(data, day)
+    return jsonify({
+        "date": day,
+        "internal": groups["داخلية"],
+        "external": groups["خارجية"],
+        "counts": {
+            "internal": len(groups["داخلية"]),
+            "external": len(groups["خارجية"]),
+            "total": len(groups["داخلية"]) + len(groups["خارجية"]),
+        },
+    })
 
 
 @bp.get("/api/missions")

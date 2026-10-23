@@ -12,7 +12,7 @@ from flask import Blueprint, jsonify, send_file
 
 from .. import changes
 from .. import day_status
-from ..assignments import OFFICER_STATUSES, officer_state, set_officer_state
+from ..assignments import officer_state, officer_statuses, remember_officer_status, set_officer_state
 from ..duty import summarise
 from ..duty_export import build_docx
 from ..daily_view import build as build_daily_view
@@ -81,8 +81,6 @@ def set_state(day, person_id):
     payload = json_payload()
 
     status = str(payload.get("status", "")).strip()
-    if status and status not in OFFICER_STATUSES:
-        return jsonify({"error": "حالة غير صحيحة."}), 400
     note = str(payload.get("note", "")).strip()
     if len(note) > MAX_LEN["note"]:
         return jsonify({"error": f"الملاحظة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
@@ -104,6 +102,9 @@ def set_state(day, person_id):
         officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
         if not officer:
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
+        status_error = remember_officer_status(data, status) if "status" in payload else None
+        if status_error:
+            raise AbortRequest((jsonify({"error": status_error}), 400))
         # الحقل اللي مش مبعوت في الطلب مابيتغيّرش. قبل كده كانت القيم
         # التلاتة بتتكتب دايمًا، فطلب فيه `taqseera` بس كان بيمسح الحالة
         # والملاحظة المسجّلين — الواجهة بتبعت التلاتة فما بانش، لكن أي
@@ -121,6 +122,7 @@ def set_state(day, person_id):
                            before=before, after=dict(after), reason=f"يوم {day}",
                            text=_state_text(officer.get("name", ""), day, before, after))
         result = summarise(data, day)
+        result["officer_statuses"] = officer_statuses(data)
         result["daily"] = build_daily_view(data, day)
         result["revision"] = result["daily"]["revision"]
         return jsonify(result)

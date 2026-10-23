@@ -406,6 +406,9 @@ def _hook(changeset):
     manifest = _manifest()
     today = date.today()
     days = set(changeset.days) | set(changeset.created_days)
+    changed_sections = getattr(changeset, "changed_sections", {})
+    days = {day for day in days
+            if set(changed_sections.get(day) or ()) != {"service_runs"}}
     days = {day for day in days if day >= managed_from() or day in manifest}
     noisy = {"change_log", "id_seq", "schema", "inspection_seeded_days"}
     core_dirty = changeset.core_keys and (

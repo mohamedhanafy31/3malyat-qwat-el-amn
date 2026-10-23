@@ -2,11 +2,13 @@
 كل يوم يستخدم نفس شبكة الستة أعمدة، ترتيب المناطق، والصفحة الواحدة؛
 النص فقط يُشتق من مخرج `build_board` الحالي.
 """
-from datetime import date
+import re
+from datetime import date, timedelta
 from io import BytesIO
 
 from docx import Document
 from docx.enum.section import WD_ORIENT
+from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
@@ -21,6 +23,7 @@ from .constants import (
     SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY, SECTION_GREAT, SECTION_SUBCAMP,
     SECTION_TARGETS, SECTION_TAQSEERA,
 )
+from .afraad import _time_key
 from .labels import officer_label, personnel_label
 
 WEEKDAY_BY_INDEX = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
@@ -63,6 +66,63 @@ def set_run_font(run, name="Arial", size_pt=11, bold=False):
     return run
 
 
+# ترتيب أبناء العناصر حسب مخطط OOXML — Word بيرفض (أو يتجاهل) العنصر لو جه في
+# غير مكانه، والإضافة بـappend كانت بتحط rFonts بعد sz وbidi بعد jc.
+_ORDERS = {
+    "rPr": ["rStyle", "rFonts", "b", "bCs", "i", "iCs", "caps", "smallCaps", "strike", "dstrike",
+            "outline", "shadow", "emboss", "imprint", "noProof", "snapToGrid", "vanish", "webHidden",
+            "color", "spacing", "w", "kern", "position", "sz", "szCs", "highlight", "u", "effect",
+            "bdr", "shd", "fitText", "vertAlign", "rtl", "cs", "em", "lang", "eastAsianLayout",
+            "specVanish", "oMath"],
+    "pPr": ["pStyle", "keepNext", "keepLines", "pageBreakBefore", "framePr", "widowControl", "numPr",
+            "suppressLineNumbers", "pBdr", "shd", "tabs", "suppressAutoHyphens", "kinsoku", "wordWrap",
+            "overflowPunct", "topLinePunct", "autoSpaceDE", "autoSpaceDN", "bidi", "adjustRightInd",
+            "snapToGrid", "spacing", "ind", "contextualSpacing", "mirrorIndents", "suppressOverlap",
+            "jc", "textDirection", "textAlignment", "textboxTightWrap", "outlineLvl", "divId",
+            "cnfStyle", "rPr", "sectPr", "pPrChange"],
+    "tcPr": ["cnfStyle", "tcW", "gridSpan", "hMerge", "vMerge", "tcBorders", "shd", "noWrap", "tcMar",
+             "textDirection", "tcFitText", "vAlign", "hideMark"],
+    "tblPr": ["tblStyle", "tblpPr", "tblOverlap", "bidiVisual", "tblStyleRowBandSize",
+              "tblStyleColBandSize", "tblW", "jc", "tblCellSpacing", "tblInd", "tblBorders", "shd",
+              "tblLayout", "tblCellMar", "tblLook", "tblCaption", "tblDescription"],
+}
+
+
+def order_xml_children(document):
+    """يرتّب أبناء rPr/pPr/tcPr/tblPr في كل المستند بترتيب المخطط (ثابت وآمن)."""
+    body = document.element.body
+    for tag, order in _ORDERS.items():
+        rank = {qn("w:" + name): index for index, name in enumerate(order)}
+        for element in body.iter(qn("w:" + tag)):
+            children = list(element)
+            ordered = sorted(children, key=lambda child: rank.get(child.tag, len(rank)))
+            if ordered != children:
+                for child in children:
+                    element.remove(child)
+                for child in ordered:
+                    element.append(child)
+
+
+def style_tables_bold_rtl(document):
+    """كل الجداول: خط عريض (bold) واتجاه يمين لشمال (RTL) — الجدول والفقرات والخطوط."""
+    for table in document.tables:
+        if table._tbl.tblPr.find(qn("w:bidiVisual")) is None:
+            table._tbl.tblPr.append(OxmlElement("w:bidiVisual"))
+        for row in table.rows:
+            for tc in row._tr.tc_lst:
+                for paragraph in _Cell(tc, table).paragraphs:
+                    ppr = paragraph._p.get_or_add_pPr()
+                    if ppr.find(qn("w:bidi")) is None:
+                        ppr.append(OxmlElement("w:bidi"))
+                    for run in paragraph.runs:
+                        set_run_font(run, run.font.name or "Arial",
+                                     run.font.size.pt if run.font.size else 10, True)
+                        rpr = run._r.get_or_add_rPr()
+                        if rpr.find(qn("w:rtl")) is None:
+                            rpr.append(OxmlElement("w:rtl"))
+    order_xml_children(document)
+
+
 def normalize_document_runs(document):
     """Repair template/hand-created runs, including complex-script settings."""
     for paragraph in document.paragraphs:
@@ -72,13 +132,19 @@ def normalize_document_runs(document):
                          bool(run.bold))
     for table in document.tables:
         for row in table.rows:
-            for cell in row.cells:
+            # الخلايا الفعلية بس: الدمج الرأسي بيرجّع خلية الصف اللي فوق كاسم مستعار
+            for tc in row._tr.tc_lst:
+                cell = _Cell(tc, table)
+                # كل الجداول: نص الخلايا في النص أفقيًا ورأسيًا
+                cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
                 for paragraph in cell.paragraphs:
                     _format_cell_paragraph(paragraph)
+                    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
                     for run in paragraph.runs:
                         set_run_font(run, run.font.name or "Arial",
                                      run.font.size.pt if run.font.size else 10,
                                      bool(run.bold))
+    style_tables_bold_rtl(document)
 
 
 def _format_cell_paragraph(paragraph, exact_line=None):
@@ -196,16 +262,41 @@ def _basic_assignee(row):
     return ""
 
 
+def _conscript_total(row):
+    return row.get("conscript_count") or sum(
+        (entry.get("count") or 0) for entry in row.get("conscripts") or [])
+
+
+def _source_strength_is_current(row, source):
+    """نص القوام المستورد («2فرد + 2 مج») يفضل صالح للطباعة طول ما أرقامه
+    بتطابق اللي مربوط بالسيستم. لو المشغّل عدّل الأفراد أو المجندين بعد
+    الاستيراد، الأرقام بتختلف فنطبع المحسوب من الداتا الحالية بدل النص القديم."""
+    linked_people = len(row.get("officers") or []) + len(row.get("personnel") or [])
+    linked_conscripts = _conscript_total(row)
+    if not linked_people and not linked_conscripts:
+        return True                      # مفيش حاجة مربوطة نقارن بيها
+    people = re.search(r"(\d+)\s*فرد", source)
+    conscripts = re.search(r"(\d+)\s*مج", source)
+    if people and int(people.group(1)) != linked_people:
+        return False
+    if conscripts and int(conscripts.group(1)) != linked_conscripts:
+        return False
+    return True
+
+
 def _compact_manning(row):
     """Word's emergency column: personnel strength, without service details."""
     source = (row.get("source_manning") or "").strip()
-    if source and not ("/" in source and not any(token in source for token in ("فرد", "مج"))):
+    if (source and not ("/" in source and not any(token in source for token in ("فرد", "مج")))
+            and _source_strength_is_current(row, source)):
         return source
     bits = []
     if row.get("officers"):
         bits.append(_people_text(row.get("officers")))
     if row.get("personnel"):
-        bits.append(_people_text(row.get("personnel")))
+        # عمود القوام في الورقة أعداد («2فرد + 2 مج») مش أسماء — الأسماء في يومية الأفراد
+        count = len(row["personnel"])
+        bits.append(f"{count}فرد" if count > 1 else "فرد")
     for conscript in row.get("conscripts") or []:
         cls = conscript.get("class") or "مج"
         count = conscript.get("count")
@@ -230,27 +321,55 @@ def _officer_desc(section_name, row):
     return ""
 
 
+def leave_text(leave_type, start, end, return_date):
+    """نص الراحة/الإجازة المطبوع: «راحة شهرية من 17/9 والعودة 22/9» أو
+    «إجازة مصيف من 11/9 والعودة 16/9». الأسبوعية يوم واحد فبتتكتب من غير مدة."""
+    kind = str(leave_type or "").strip() or "راحة"
+    label = kind if kind.startswith(("إجازة", "اجازة", "راحة")) or kind in ("مرضي", "طارئة") \
+        else f"راحة {kind}"
+    if not start or (kind == "أسبوعية" and (not end or end == start)):
+        return label
+    back = return_date
+    if not back and end:
+        try:
+            back = (date.fromisoformat(end) + timedelta(days=1)).isoformat()
+        except ValueError:
+            back = ""
+    text = f"{label} من {_fmt_date(start)}"
+    return f"{text} والعودة {_fmt_date(back)}" if back else text
+
+
 def _presentation_sections(sections):
     by_name = {section["name"]: section for section in sections}
     admin = by_name.get(SECTION_ADMIN_WORK, {"name": SECTION_ADMIN_WORK, "type": "admin", "rows": []})
     admin_rows = list(admin.get("rows") or [])
+    # التقصيرة مش بتتطبع كقسم: اللي مالوش خدمة بيتضاف لعمل بالإدارة بنص عمله،
+    # واللي عليه خدمة ظاهر في مكان خدمته أصلًا.
+    taqseera = by_name.get(SECTION_TAQSEERA, {})
+    admin_rows.extend({key: row.get(key) for key in ("id", "name", "role", "short_name", "category")
+                       if key in row} | {"text": row.get("text") or row.get("note") or ""}
+                      for row in taqseera.get("rows", []) if not row.get("has_service"))
     for name in (SECTION_GREAT, SECTION_SECURITY):
         source = by_name.get(name)
         for row in source.get("rows", []) if source else []:
             admin_rows.append({**row, "fixedSection": name, "fixedLabel": name})
     outsiders = []
-    for name in (SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS):
+    for name in (SECTION_RESTS, SECTION_OUTSIDERS):
         source = by_name.get(name)
         for row in source.get("rows", []) if source else []:
             if name == SECTION_RESTS:
-                detail = row.get("type") or "راحة"
-                status_type = "راحة"
-            elif name == SECTION_TAQSEERA:
-                detail = row.get("note") or "تقصيرة"
-                status_type = "تقصيرة"
+                detail = leave_text(row.get("type"), row.get("start"), row.get("end"),
+                                    row.get("return_date"))
+                status_type = "إجازة" if str(row.get("type") or "").startswith(("إجازة", "اجازة")) else "راحة"
             else:
-                detail = row.get("note") or row.get("reason") or ""
                 status_type = row.get("reason") or "خارج"
+                if row.get("start"):
+                    detail = leave_text(row.get("leave_type"), row.get("start"), row.get("end"),
+                                        row.get("return_date"))
+                    if row.get("note") and row["note"] not in detail:
+                        detail = f"{detail} — {row['note']}"
+                else:
+                    detail = row.get("note") or row.get("reason") or ""
             outsiders.append({**row, "status_type": status_type, "detail": detail})
     hidden = {SECTION_ADMIN_WORK, SECTION_GREAT, SECTION_SECURITY,
               SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
@@ -390,6 +509,15 @@ def _latest_content(board):
         return list(_section_by_name(sections, name, kind).get("rows") or [])
 
     basic, emergency = rows(SECTION_BASIC), rows(SECTION_OCCASIONAL)
+    # أي قسم خدمات المشغّل ضافه بإيده (ماتش، انتشار، تفتيشات…) بينضم لجدول الطوارئ —
+    # زي يومية الأفراد — والكل مترتب بمعاد الانتظام (ترتيب مستقر لنفس الساعة)
+    known = {SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS, SECTION_PRISON, SECTION_SUBCAMP,
+             SECTION_GREAT, SECTION_SECURITY, SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA,
+             SECTION_OUTSIDERS}
+    for section in sections:
+        if section["name"] not in known and section.get("type") == "services":
+            emergency.extend(section.get("rows") or [])
+    emergency.sort(key=lambda row: _time_key(row.get("time")))
     targets, prison = rows(SECTION_TARGETS, "targets"), rows(SECTION_PRISON)
     subcamp = rows(SECTION_SUBCAMP, "slots")
     outsiders = rows(SECTION_OUTSIDERS, "officers")
@@ -410,24 +538,30 @@ def _latest_content(board):
     def manning(row):
         return _compact_manning(row)
 
+    # الصفوف الأساسية/الطارئة 9 في الورقة الرسمية، وبتكبر لو أي منهم أكتر (قبل كده
+    # الزيادة كانت بتتقطع من الطباعة)؛ صف «الاهداف» بياخد آخر صف طارئ
+    top = max(9, len(basic), len(emergency) - 1)
+    prison_n = max(7, len(prison))
+    shift = (top - 9) + (prison_n - 7)
     content = [["الخدمات الاساسية", "الخدمات الطارئة"]]
-    for i in range(9):
+    for i in range(top):
         content.append([*pair(basic[i] if i < len(basic) else None, assignee),
                         *pair(emergency[i] if i < len(emergency) else None, manning)])
-    content.append(["الاهداف", *pair(emergency[9] if len(emergency) > 9 else None, manning)])
+    content.append(["الاهداف", *pair(emergency[top] if len(emergency) > top else None, manning)])
 
     target_rows = targets[:8] + [{}] * max(0, 8 - len(targets))
-    prison_rows = prison[:7] + [{}] * max(0, 7 - len(prison))
+    prison_rows = prison + [{}] * (prison_n - len(prison))
     target_person = lambda r: _people_text(r.get("officers")) or _people_text(r.get("commander"))
     content.append(["مشرف الأهداف", target_person(target_rows[0]), "خدمات سجن قوات الامن"])
-    for i in range(7):
+    for i in range(prison_n):
         p = prison_rows[i]
         pname = p.get("label") or p.get("name") or ""
         ptext = manning(p) if pname else ""
         if pname.startswith("فرد تأمين") and not ptext:
             ptext = "ــــــــــــــــــــ"
-        content.append([target_rows[i + 1].get("label") or target_rows[i + 1].get("name") or "",
-                        target_person(target_rows[i + 1]), pname, ptext])
+        target = target_rows[i + 1] if i < 7 else {}
+        content.append([target.get("label") or target.get("name") or "",
+                        target_person(target), pname, ptext])
     content.append(["ضابط عظيم وأمن المعسكر الفرعي", "الخوارج"])
 
     # الجزء الأخير: يمين = كتلة المعسكر الفرعي (صفّين) ثم عنوان «عمل بالادارة»
@@ -442,7 +576,7 @@ def _latest_content(board):
         while statuses[start] and end + 1 < len(statuses) and statuses[end + 1] == statuses[start]:
             end += 1
         if end > start:
-            groups.append((TAIL_START + start, TAIL_START + end))
+            groups.append((TAIL_START + shift + start, TAIL_START + shift + end))
             continued.update(range(start + 1, end + 1))
         start = end + 1
     for i in range(tail):
@@ -463,7 +597,7 @@ def _latest_content(board):
                 description = f"{description} {row['shift']}".strip()
             right = [_who(row), description]
         content.append([*right, *left])
-    return content, groups
+    return content, groups, top, prison_n
 
 
 def build_docx(board):
@@ -481,7 +615,8 @@ def build_docx(board):
     style.font.size = Pt(10.5)
     document.add_paragraph()
 
-    content, groups = _latest_content(board)
+    content, groups, top, prison_n = _latest_content(board)
+    shift = (top - 9) + (prison_n - 7)
     row_count = len(content)
     table = document.add_table(rows=row_count, cols=6)
     table.style = "Table Grid"
@@ -490,10 +625,11 @@ def build_docx(board):
     widths = [Twips(x) for x in (1694, 9, 2974, 711, 2129, 3248)]
     for col, width in zip(table.columns, widths):
         col.width = width
-    shapes = ([[3, 3]] + [[2, 1, 2, 1]] * 8 + [[1, 2, 2, 1], [3, 2, 1], [2, 1, 3]] +
-              [[2, 1, 2, 1]] * 7 + [[3, 3], [2, 1, 1, 1, 1], [2, 1, 1, 1, 1],
-                                     [3, 1, 1, 1]] +
-              [[2, 1, 1, 1, 1]] * (row_count - 23))
+    # الصفوف الأساسية/الطارئة (top) وخدمات السجن (prison_n) بتكبر مع البيانات؛ الأدنى زي الورقة
+    shapes = ([[3, 3]] + [[2, 1, 2, 1]] * (top - 1) + [[1, 2, 2, 1], [3, 2, 1], [2, 1, 3]] +
+              [[2, 1, 2, 1]] * prison_n + [[3, 3], [2, 1, 1, 1, 1], [2, 1, 1, 1, 1],
+                                           [3, 1, 1, 1]] +
+              [[2, 1, 1, 1, 1]] * (row_count - 23 - shift))
     for index, shape in enumerate(shapes):
         _merge_shape(table, index, shape)
 
@@ -505,14 +641,14 @@ def build_docx(board):
             status_cell = _physical_cells(table.rows[index])[-3]
             _set_vmerge(status_cell, "restart" if index == first else "continue")
 
-    header_rows = {0, 10, 11, 19, 22}
+    header_rows = {0, top + 1, top + 2, 19 + shift, 22 + shift}
     for index, values in enumerate(content):
         for cell, value in zip(_physical_cells(table.rows[index]), values):
             _cell_text(cell, value, bold=True, size=10.5, center=index in header_rows)
         if index in header_rows:
             # صف 22 عنوانه بس على اليمين؛ باقيه خاص بقايمة الخوارج
             cells = _physical_cells(table.rows[index])
-            for cell in (cells[:1] if index == 22 else cells):
+            for cell in (cells[:1] if index == 22 + shift else cells):
                 _shade(cell, "D9D9D9")
 
     widths_pt = [width.pt for width in widths]

@@ -161,22 +161,30 @@ def set_basic_entry(data, day, entry_id, payload):
     return ov, None, None
 
 
-_TIME_RE = re.compile(r"(\d{1,2})\s*(ص|ظ|م)?")
+_TIME_RE = re.compile(r"(\d{1,2})(?:\s*[:.]\s*(\d{2}))?\s*(ص|ظ|م|ليل|ل)?(?![\w\u0600-\u06ff])|(\d{1,2})(?:\s*[:.]\s*(\d{2}))?\s*(ص|ظ|م|ليل|ل)")
+NO_TIME = 48 * 60
 
 
 def _time_key(text):
-    """معاد الانتظام حر الكتابة تمامًا («8ص»، «12ظ»، «11 ص حتى الانتهاء»)
-    — مفتاح ترتيب تقريبي بيدوّر على أول رقم وبادئة ص/ظ/م بعده، مش تحليل
-    وقت رسمي. اللي مالوش رقم واضح بيتحط في آخر الجدول بدل ما يوقف الترتيب."""
+    """معاد الانتظام حر الكتابة («8ص»، «2:30م»، «12ظ»، «12ليل»، «11 ص حتى الانتهاء»)
+    -> دقائق من بداية اليوم للترتيب الزمني: صباحًا ثم الظهر ثم مساءً ثم الليل.
+    اللي مالوش رقم واضح بيتحط في آخر الجدول بدل ما يوقف الترتيب. الترتيب
+    مستقر: نفس الساعة تفضل بترتيبها الأصلي."""
     m = _TIME_RE.search(text or "")
     if not m:
-        return 24 * 60
-    hour, suffix = int(m.group(1)), m.group(2) or ""
+        return NO_TIME
+    hour = int(m.group(1) or m.group(4))
+    minutes = int(m.group(2) or m.group(5) or 0)
+    suffix = m.group(3) or m.group(6) or ""
     if suffix == "ظ":
-        return 12 * 60
-    if suffix == "م":
-        return (hour % 12 + 12) * 60
-    return (hour % 12) * 60
+        base = 12 * 60
+    elif suffix == "م":
+        base = (hour % 12 + 12) * 60
+    elif suffix in ("ل", "ليل"):
+        base = (hour + 12) * 60 if 6 <= hour <= 11 else 24 * 60 if hour == 12 else (hour + 24) * 60
+    else:
+        base = (hour % 12) * 60
+    return base + (minutes if suffix != "ظ" else 0)
 
 
 def occasional_rows(data, day):

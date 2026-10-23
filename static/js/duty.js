@@ -18,12 +18,14 @@ function renderSummary(s) {
   const tile = (label, v) => `<div class="sum-tile${v ? "" : " zero"}"><span>${label}</span><b>${v}</b></div>`;
   const group = (title, tiles) => `<div class="sum-group"><h4>${title}</h4><div class="sum-tiles">${tiles}</div></div>`;
   const single = (title, v, cls = "") => `<div class="sum-group single ${cls}"><h4>${title}</h4><b>${v}</b></div>`;
+  const outsideOrder = ["تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب"];
+  outsideOrder.push(...Object.keys(kh).filter(key => !outsideOrder.includes(key)));
   const strip = `<div class="duty-strip">
     ${single("أصل القوة", s["أصل القوة"])}
     ${group("الخدمات الخارجية", tile("صباحية", x["صباحية"]) + tile("ليلية", x["ليلية"]) + tile("بحث", x["بحث"]))}
     ${group("الخدمات الداخلية", tile("صباحية", dl["صباحية"]) + tile("ليلية", dl["ليلية"]))}
     ${group("الخدمات الطبية", tile("موجود", tb["موجود"]) + tile("راحة", tb["راحة"]))}
-    ${group("الخوارج", ["تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب"].map(k => tile(k, kh[k])).join(""))}
+    ${group("الخوارج", outsideOrder.map(k => tile(k, kh[k] || 0)).join(""))}
     ${single("الحراسات المشددة", s["حراسات"])}
     ${single("الصافي", s["صافي"], "key")}
   </div>
@@ -32,18 +34,18 @@ function renderSummary(s) {
   $("#dutySummary").innerHTML = strip + `<div class="table-scroll export-only" hidden><table class="table sum">
    <thead>
     <tr><th rowspan="2">أصل القوة</th><th colspan="3">الخدمات الخارجية</th><th colspan="2">الخدمات الداخلية</th>
-        <th colspan="2">الخدمات الطبية</th><th colspan="7">الخوارج</th>
+        <th colspan="2">الخدمات الطبية</th><th colspan="${outsideOrder.length}">الخوارج</th>
         <th rowspan="2">الحراسات المشددة</th><th rowspan="2">الصافي (${s["صافي"]})</th></tr>
     <tr><th>صباحية</th><th>ليلية</th><th>بحث</th><th>صباحية</th><th>ليلية</th>
         <th>موجود</th><th>راحة</th>
-        <th>تقصيرة</th><th>راحة</th><th>طارئة</th><th>غياب</th><th>مرضي</th><th>فرقة</th><th>انتداب</th></tr>
+        ${outsideOrder.map(key => `<th>${esc(key)}</th>`).join("")}</tr>
    </thead>
    <tbody><tr class="sumrow">
      <td><b>${s["أصل القوة"]}</b></td>
      ${cell(x["صباحية"])}${cell(x["ليلية"])}${cell(x["بحث"])}
      ${cell(dl["صباحية"])}${cell(dl["ليلية"])}
      ${cell(tb["موجود"])}${cell(tb["راحة"])}
-     ${cell(kh["تقصيرة"])}${cell(kh["راحة"])}${cell(kh["طارئة"])}${cell(kh["غياب"])}${cell(kh["مرضي"])}${cell(kh["فرقة"])}${cell(kh["انتداب"])}
+     ${outsideOrder.map(key => cell(kh[key] || 0)).join("")}
      ${cell(s["حراسات"])}
      <td class="wrap">${s.net_names.map(esc).join("<br>") || "—"}</td>
    </tr></tbody></table></div>`;
@@ -164,11 +166,13 @@ $("#assignForm").onsubmit = async e => {
       status: $("#assignStatus").value, note: $("#assignNote").value,
       extra: $("#assignExtra").value, admin_work: $("#assignAdmin").checked}));
   if (!out) return;
+  if (out.officer_statuses) META.officer_statuses = out.officer_statuses;
   DUTY = out; closeModal("assignModal", true); showToast("تم حفظ الحالة"); render();
 };
 
 async function loadDay(day) {
   const d = await api(`/api/duty/${day}`); if (!d) return;
+  if (d.officer_statuses) META.officer_statuses = d.officer_statuses;
   DUTY = d; setPageDay(day); render();
   renderRestStrip($("#restStrip"), day);
 }

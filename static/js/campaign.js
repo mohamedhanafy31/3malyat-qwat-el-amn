@@ -91,7 +91,7 @@ function postRow(row) {
     <td>${esc(row.number || "")}</td><td class="name"><strong>${esc(row.name)}</strong>${warningChips(row)}</td>
     <td>${postDriver(row)}</td><td dir="ltr"><div class="campaign-vehicle-cell">${vehicleOptions(row)}${!row.vehicle && row.plate_text ? `<span class="muted-text" dir="ltr">${esc(plate)}</span>` : ""}</div></td>
     <td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${!row.vehicle && row.type_text ? `<span class="muted-text">${esc(type)}</span>` : ""}</div></td>
-    <td class="col-actions"><button class="mini bad" type="button" data-action="removeCampaignPost" data-id="${esc(row.id)}" data-extra="${dataAttr({name: row.name})}">إزالة</button></td>
+    <td class="col-actions"><div class="row-actions"><button class="mini" type="button" data-action="editCampaignPost" data-id="${esc(row.id)}">تعديل</button><button class="mini bad" type="button" data-action="removeCampaignPost" data-id="${esc(row.id)}" data-extra="${dataAttr({name: row.name})}">إزالة</button></div></td>
   </tr>`;
 }
 
@@ -192,7 +192,19 @@ ACTIONS.detachCampaignService = async (id, extra) => {
   if (out) { CAMPAIGN = out; render(); showToast("تمت إزالة الخدمة"); }
 };
 ACTIONS.openCampaignDaily = () => { $("#campaignDailyName").value = ""; openModal("campaignDailyModal"); };
-ACTIONS.openCampaignPost = () => { $("#campaignPostName").value = ""; $("#campaignPostNumber").value = ""; $("#campaignPostDriver").value = ""; openModal("campaignPostModal"); };
+function openPostModal(row = null) {
+  $("#campaignPostId").value = row?.id || "";
+  $("#campaignPostName").value = row?.name || "";
+  $("#campaignPostNumber").value = row?.number || "";
+  $("#campaignPostDriver").value = "";
+  $("#campaignPostDriverField").hidden = !!row;
+  $("#campaignPostTitle").textContent = row ? "تعديل الارتكاز" : "إضافة ارتكاز";
+  $("#campaignPostSubmit").textContent = row ? "حفظ التعديل" : "إضافة";
+  openModal("campaignPostModal");
+}
+
+ACTIONS.openCampaignPost = () => openPostModal();
+ACTIONS.editCampaignPost = id => openPostModal(rowBy(id));
 ACTIONS.removeCampaignPost = async (id, extra) => {
   if (!(await confirmDialog({title: "إزالة الارتكاز", body: "هتتشال من النهاردة ورايح، والأيام السابقة زي ما هي", confirmLabel: "إزالة", danger: true}))) return;
   const out = await api(`/api/campaign/${DAY}/posts/${encodeURIComponent(id)}`, {...jsonReq("DELETE", {revision: CAMPAIGN.revision}), onError: staleReload});
@@ -224,10 +236,13 @@ $("#campaignDailyForm").onsubmit = async event => {
 
 $("#campaignPostForm").onsubmit = async event => {
   event.preventDefault();
-  const body = {name: $("#campaignPostName").value.trim(), number: $("#campaignPostNumber").value.trim(), driver_text: $("#campaignPostDriver").value.trim(), revision: CAMPAIGN.revision};
+  const id = $("#campaignPostId").value;
+  const body = {name: $("#campaignPostName").value.trim(), number: $("#campaignPostNumber").value.trim(), revision: CAMPAIGN.revision};
+  if (!id) body.driver_text = $("#campaignPostDriver").value.trim();
   if (!body.name) return;
-  const out = await api(`/api/campaign/${DAY}/posts`, {...jsonReq("POST", body), onError: staleReload});
-  if (out) { CAMPAIGN = out; closeModal("campaignPostModal", true); render(); showToast("تمت إضافة الارتكاز"); }
+  const url = id ? `/api/campaign/${DAY}/posts/${encodeURIComponent(id)}` : `/api/campaign/${DAY}/posts`;
+  const out = await api(url, {...jsonReq(id ? "PATCH" : "POST", body), onError: staleReload});
+  if (out) { CAMPAIGN = out; closeModal("campaignPostModal", true); render(); showToast(id ? "تم تعديل الارتكاز من اليوم" : "تمت إضافة الارتكاز"); }
 };
 
 $("#dayPrev").onclick = () => loadDay(addDays($("#dutyDate").value || curDate(), -1));

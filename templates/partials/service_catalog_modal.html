@@ -38,6 +38,14 @@
         <label>نوع التسليح <small>آلي / دونك / خرطوش / فض / فيدرال / كلبش</small>
           <input id="svcWeapon">
         </label>
+        <div class="svc-report-row">
+          <label id="svcReportAmWrap">معاد الانتظام الصباحي
+            <input id="svcReportAm" data-time aria-label="معاد الانتظام الصباحي">
+          </label>
+          <label id="svcReportPmWrap">معاد الانتظام الليلي
+            <input id="svcReportPm" data-time aria-label="معاد الانتظام الليلي">
+          </label>
+        </div>
       </div>
       <label>تعليمات الخدمة
         <textarea id="svcInstructions" rows="3"></textarea>
@@ -51,25 +59,24 @@
         <datalist id="svcTagList"></datalist>
         <div id="svcTagChips" class="tag-chips"></div>
       </div>
+      <div id="svcImagesSection" class="field-section hidden">
+        <div class="field-legend">صور الموقع</div>
+        <div id="svcImageGallery" class="svc-gallery"></div>
+
+        <label>ارفع صورة أو PDF
+          <small>إذا كان الملف PDF، فيمكنك اختيار أي صفحة فيه لحفظها كصورة</small>
+          <input type="file" id="svcImageFile" accept="image/png,image/jpeg,image/webp,application/pdf">
+        </label>
+        <div id="svcPdfPicker" class="svc-pdf-picker hidden">
+          <p class="hint">اختر الصفحة التي تريد حفظها كصورة للموقع:</p>
+          <div id="svcPdfPages" class="svc-pdf-pages"></div>
+        </div>
+      </div>
+      <p id="svcImagesHint" class="hint hidden">احفظ الخدمة أولًا لتتمكن من إضافة صور موقع إليها.</p>
       <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ</button>
         <button type="button" class="btn" data-close="serviceModal">إلغاء</button>
       </div>
     </form>
-
-    <div id="svcImagesSection" class="field-section hidden">
-      <div class="field-legend">صور الموقع</div>
-      <div id="svcImageGallery" class="svc-gallery"></div>
-
-      <label>ارفع صورة أو PDF
-        <small>إذا كان الملف PDF، فيمكنك اختيار أي صفحة فيه لحفظها كصورة</small>
-        <input type="file" id="svcImageFile" accept="image/png,image/jpeg,image/webp,application/pdf">
-      </label>
-      <div id="svcPdfPicker" class="svc-pdf-picker hidden">
-        <p class="hint">اختر الصفحة التي تريد حفظها كصورة للموقع:</p>
-        <div id="svcPdfPages" class="svc-pdf-pages"></div>
-      </div>
-    </div>
-    <p id="svcImagesHint" class="hint field-section hidden">احفظ الخدمة أولًا لتتمكن من إضافة صور موقع إليها.</p>
   </div>
 </div>

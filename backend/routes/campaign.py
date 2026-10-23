@@ -133,6 +133,12 @@ def _add_post(data, day, body):
     return error, status
 
 
+@bp.patch("/api/campaign/<day>/posts/<post_id>")
+def patch_post(day, post_id):
+    return _write(day, lambda data, body: campaign.update_post(
+        data, _day(day), post_id, body.get("name"), body.get("number")))
+
+
 @bp.delete("/api/campaign/<day>/posts/<post_id>")
 def delete_post(day, post_id):
     return _write(day, lambda data, body: campaign.remove_post(data, _day(day), post_id))

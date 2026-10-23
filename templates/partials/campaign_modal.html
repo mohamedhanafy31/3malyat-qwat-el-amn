@@ -17,10 +17,11 @@
     <button type="button" class="close" data-close="campaignPostModal" aria-label="إغلاق">×</button>
     <h2 id="campaignPostTitle">إضافة ارتكاز</h2>
     <form id="campaignPostForm" novalidate>
+      <input type="hidden" id="campaignPostId">
       <label>اسم الارتكاز<input id="campaignPostName" maxlength="200" autocomplete="off" required></label>
       <label>الرقم (اختياري)<input id="campaignPostNumber" maxlength="20" autocomplete="off" placeholder="مثال: 6."></label>
-      <label>السائق الافتراضي (اختياري)<input id="campaignPostDriver" maxlength="200" autocomplete="off"></label>
-      <div class="actions modal-foot"><button class="primary" type="submit">إضافة</button><button type="button" class="btn" data-close="campaignPostModal">إلغاء</button></div>
+      <label id="campaignPostDriverField">السائق الافتراضي (اختياري)<input id="campaignPostDriver" maxlength="200" autocomplete="off"></label>
+      <div class="actions modal-foot"><button class="primary" id="campaignPostSubmit" type="submit">إضافة</button><button type="button" class="btn" data-close="campaignPostModal">إلغاء</button></div>
     </form>
   </div>
 </div>

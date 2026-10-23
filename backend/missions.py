@@ -107,3 +107,58 @@ def with_member_names(data, mission):
                "role": people.get(pid, {}).get("role", "")}
                for pid in mission.get("member_ids", [])]
     return {**mission, "members": members}
+
+
+def daily_assignments(data, day):
+    """الخدمات المعلّمة «مأمورية / ترحيلة» في يوم واحد.
+
+    المصدر هو ``day_assignments`` نفسه؛ لذلك تعديل الخدمة أو حذفها من
+    اليومية ينعكس هنا فورًا من غير سجل موازٍ أو خطوة مزامنة.
+    """
+    from .assignments import peek_day
+    from .people import effective
+    from .repo import PeopleRepo
+
+    people = {}
+    repo = PeopleRepo(data)
+    for category in ("officers", "personnel"):
+        for person in repo.raw_all(category):
+            people[person["id"]] = (person, category)
+
+    def member(person_id):
+        found = people.get(person_id)
+        if not found:
+            return {"id": person_id, "name": "", "role": "", "category": "",
+                    "missing": True}
+        person, category = found
+        state = effective(person, day)
+        return {"id": person_id, "name": person.get("name", ""),
+                "short_name": person.get("short_name", ""),
+                "role": state.get("role", ""), "category": category}
+
+    groups = {"داخلية": [], "خارجية": []}
+    for assignment in peek_day(data, day):
+        if not assignment.get("mission_transport"):
+            continue
+        kind = assignment.get("kind", "")
+        if kind not in groups:
+            # السجلات القديمة أو المعدّلة يدويًا لا تختفي، لكن إنشاء/تعديل
+            # السجل عبر الـAPI يمنع أصلًا هذا التعارض.
+            continue
+        groups[kind].append({
+            "id": assignment.get("id", ""),
+            "name": assignment.get("name", ""),
+            "kind": kind,
+            "section": assignment.get("section", ""),
+            "shift": assignment.get("shift", ""),
+            "source_manning": assignment.get("source_manning", ""),
+            "officers": [member(pid) for pid in assignment.get("officer_ids") or []],
+            "personnel": [member(pid) for pid in assignment.get("personnel_ids") or []],
+            "conscripts": assignment.get("conscripts") or [],
+            "conscript_count": int(assignment.get("conscript_count") or 0),
+            "weapon": assignment.get("weapon", ""),
+            "time": assignment.get("time", ""),
+            "party": assignment.get("party", ""),
+            "note": assignment.get("note", ""),
+        })
+    return groups

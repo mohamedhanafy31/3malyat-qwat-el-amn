@@ -304,6 +304,31 @@ def test_campaign_posts_add_update_inherit_clear_and_remove(client):
     assert not _campaign(client, first)["posts"] and not _campaign(client, later)["posts"]
 
 
+def test_campaign_post_identity_edit_starts_today_and_keeps_inherited_values(client):
+    first, later = "2026-07-10", "2026-07-11"
+    vehicle = _vehicle(client)
+    added = client.post(f"/api/campaign/{first}/posts", json={
+        "name": "ارتكاز البوابة", "number": "1.", "driver_text": "سائق الليل",
+    }).get_json()
+    post_id = added["posts"][0]["id"]
+    client.put(f"/api/campaign/{first}/post/{post_id}", json={"vehicle_id": vehicle["id"]})
+
+    inherited = next(row for row in _campaign(client, later)["posts"] if row["id"] == post_id)
+    assert inherited["inherited"] is True
+    assert inherited["driver_text"] == "سائق الليل"
+    assert inherited["vehicle"]["id"] == vehicle["id"]
+
+    changed = client.patch(f"/api/campaign/{later}/posts/{post_id}", json={
+        "name": "ارتكاز البوابة الرئيسية", "number": "2.",
+    })
+    assert changed.status_code == 200
+    old_row = next(row for row in _campaign(client, first)["posts"] if row["id"] == post_id)
+    new_row = next(row for row in changed.get_json()["posts"] if row["id"] == post_id)
+    assert (old_row["name"], old_row["number"]) == ("ارتكاز البوابة", "1.")
+    assert (new_row["name"], new_row["number"]) == ("ارتكاز البوابة الرئيسية", "2.")
+    assert new_row["driver_text"] == "سائق الليل" and new_row["vehicle"]["id"] == vehicle["id"]
+
+
 def test_campaign_posts_warnings_plate_register_and_vehicle_reference(client):
     day, later = "2026-07-10", "2026-07-11"
     vehicle = _vehicle(client, status="disabled", fault="عطل")

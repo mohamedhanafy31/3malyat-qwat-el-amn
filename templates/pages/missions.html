@@ -1,20 +1,61 @@
 {% extends "base.html" %}
 {% block page_actions %}
-<button class="primary" id="addMissionBtn">{{ icon('plus') }} مأمورية جديدة</button>
+<a class="btn" href="{{ url_for('pages.board') }}">{{ icon('edit') }} إدارة من اليومية التفصيلية</a>
 {% endblock %}
 
 {% block content %}
-<div class="panel">
-  <div class="toolbar">
-    <select id="msnStatusFilter" class="select" aria-label="تصفية حسب الحالة">
-      <option value="">كل الحالات</option>
-    </select>
+<section class="mission-dispatch" aria-labelledby="missionDispatchTitle">
+  <div class="mission-dispatch-head">
+    <div>
+      <span class="mission-kicker">كشف التحرك اليومي</span>
+      <h2 id="missionDispatchTitle">المأموريات والتراحيل</h2>
+      <p id="missionDayLabel">الخدمات المحددة من اليومية التفصيلية</p>
+    </div>
+    <div class="mission-day-nav" aria-label="اختيار اليوم">
+      <button class="mini" type="button" id="missionPrev" aria-label="اليوم السابق">السابق</button>
+      <label><span class="sr-only">تاريخ الكشف</span><input id="missionDay" type="date"></label>
+      <button class="mini" type="button" id="missionNext" aria-label="اليوم التالي">التالي</button>
+    </div>
   </div>
-  <div id="missionsWrap" data-mobile-cards>{{ skeleton("rows", 4) }}</div>
-</div>
+
+  <div class="mission-summary" aria-live="polite">
+    <div><span>إجمالي التحركات</span><strong id="missionTotal">—</strong></div>
+    <div class="external"><span>خارجية</span><strong id="missionExternalCount">—</strong></div>
+    <div class="internal"><span>داخلية</span><strong id="missionInternalCount">—</strong></div>
+  </div>
+
+  <div class="mission-lanes">
+    <section class="mission-lane external" aria-labelledby="externalTitle">
+      <header>
+        <span class="mission-lane-mark" aria-hidden="true">خ</span>
+        <div><h3 id="externalTitle">خارجية</h3><p>خارج نطاق المعسكر أو الإدارة</p></div>
+        <strong id="externalBadge">0</strong>
+      </header>
+      <div id="externalMissions" class="mission-card-list">{{ skeleton("cards", 2) }}</div>
+    </section>
+    <section class="mission-lane internal" aria-labelledby="internalTitle">
+      <header>
+        <span class="mission-lane-mark" aria-hidden="true">د</span>
+        <div><h3 id="internalTitle">داخلية</h3><p>داخل نطاق المعسكر أو الإدارة</p></div>
+        <strong id="internalBadge">0</strong>
+      </header>
+      <div id="internalMissions" class="mission-card-list">{{ skeleton("cards", 2) }}</div>
+    </section>
+  </div>
+</section>
 {% endblock %}
 
-{% block modals %}{% include "partials/mission_modal.html" %}{% endblock %}
+{% block modals %}
+<div class="modal hidden" id="missionNoteModal">
+  <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="missionNoteTitle">
+    <button type="button" class="close" data-close="missionNoteModal" aria-label="إغلاق">×</button>
+    <span class="mission-note-kicker">ملاحظة تشغيل</span>
+    <h2 id="missionNoteTitle">ملاحظات</h2>
+    <p id="missionNoteBody" class="mission-note-body"></p>
+    <div class="actions modal-foot"><button type="button" class="primary" data-close="missionNoteModal">تم</button></div>
+  </div>
+</div>
+{% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/missions.js') }}"></script>

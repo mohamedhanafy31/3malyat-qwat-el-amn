@@ -1,0 +1,16 @@
+<div class="modal hidden" id="rosterImportModal">
+  <div class="modal-card roster-import-card" role="dialog" aria-modal="true" aria-labelledby="rosterImportTitle">
+    <button type="button" class="close" data-close="rosterImportModal" aria-label="إغلاق">×</button>
+    <h2 id="rosterImportTitle">معاينة استيراد الكشف</h2>
+    <p class="form-note" id="rosterImportFile"></p>
+    <div class="stats roster-import-stats" id="rosterImportStats"></div>
+    <div class="alert warn hidden" id="rosterImportWarnings"></div>
+    <label>تاريخ سريان الكشف<input type="date" id="rosterImportDate"></label>
+    <div class="table-scroll roster-import-preview" id="rosterImportPreview"></div>
+    <p class="form-note">لن يُنفّذ أي تغيير قبل الضغط على «تطبيق الاستبدال».</p>
+    <div class="actions modal-foot">
+      <button class="primary bad" type="button" id="rosterImportApply">تطبيق الاستبدال</button>
+      <button class="btn" type="button" data-close="rosterImportModal">إلغاء</button>
+    </div>
+  </div>
+</div>

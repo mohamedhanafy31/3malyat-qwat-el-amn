@@ -9,7 +9,7 @@ from docx.shared import Pt
 
 from .afraad import BASIC_SERVICE_NAMES, emergency_horizontal_pairs
 from .board_export import (WEEKDAY_BY_INDEX, _cell_text, normalize_document_runs,
-                           set_run_font)
+                           set_run_font, style_tables_bold_rtl)
 from .export_fit import apply_fit_to_docx_table, docx_table_spec, fit_table, usable_height_pt
 from .labels import officer_label, personnel_label
 
@@ -225,6 +225,7 @@ def build_docx(afraad):
                   _occasional_weapon(source), _occasional_time(source)]
         _write_emergency_row(table.rows[-1], values)
 
+    style_tables_bold_rtl(document)          # العرض بيتقاس وهو bold
     rows, widths = docx_table_spec(table, 8)
     fit = fit_table({"rows": rows, "grid_widths_pt": widths},
                     usable_height_pt(document.sections[0]))

@@ -65,6 +65,7 @@ class Assignment(Model):
     time: str = ""
     party: str = ""
     counts_in_summary: bool = True
+    mission_transport: bool = False
     note: str = ""
 
     ID_PREFIX = "AS"
@@ -131,8 +132,9 @@ class OfficerDayState(Model):
     admin_work: bool = False
 
     def _check(self, errors):
-        from ..assignments import OFFICER_STATUSES
-        one_of(errors, self.status, OFFICER_STATUSES, "حالة غير صحيحة.")
+        from ..assignments import MAX_OFFICER_STATUS_LENGTH
+        if len(text(self.status)) > MAX_OFFICER_STATUS_LENGTH:
+            errors.append(f"تصنيف الحالة أطول من الحد المسموح ({MAX_OFFICER_STATUS_LENGTH} حرفًا).")
         max_length(errors, self.note, "note")
         max_length(errors, self.extra, "note")
 

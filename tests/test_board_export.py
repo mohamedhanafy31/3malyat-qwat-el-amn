@@ -101,6 +101,8 @@ def test_generated_roster_uses_shared_person_labels(client):
         payload.update({"name": name, "section": "الخدمات الطارئة", "kind": "خارجية"})
         assert client.post(f"/api/assignments/{DAY}", json=payload).status_code == 201
     text = _all_text(_download(client))
-    assert "ا.ش/ فرد اختبار طويل" in text
+    # قوام الطوارئ أعداد («فرد») مش أسماء — الأسماء في يومية الأفراد
+    assert "فرد اختبار" not in text
+    assert "فرد" in text
     assert "عقيد/ مختصر الضابط" in text
     assert "نقيب/ محمود علي" in text

@@ -23,6 +23,13 @@
             <legend>الفترة</legend>
             <div class="seg-toggle" id="enShift"></div>
           </fieldset>
+          <label class="command-check mission-transport-pick" id="enMissionTransportPick">
+            <input type="checkbox" id="enMissionTransport">
+            <span class="command-check-icon" aria-hidden="true">{{ icon('check') }}</span>
+            <span>مأمورية / ترحيلة
+              <small>تُضاف تلقائيًا لصفحة المأموريات والتراحيل في هذا اليوم</small>
+            </span>
+          </label>
           <div id="enSectionHistory" class="section-history hidden" aria-live="polite"></div>
         </div>
       </div>
@@ -65,8 +72,9 @@
           <label>التسليح <small>آلي / دونك / خرطوش / فض / فيدرال / كلبش</small>
             <input id="enWeapon" maxlength="120">
           </label>
-          <label>الانتظام <small>8ص / 8م / 11ص حتى الانتهاء</small>
-            <input id="enTime" maxlength="60">
+          <label>الانتظام <small>اختَر معاد الانتظام من لوحة الساعة</small>
+            <input id="enTime" data-time maxlength="60" aria-describedby="enTimeLegacy">
+            <small id="enTimeLegacy" class="time-legacy hidden"></small>
           </label>
           <label>الجهة <small>عتاقة / الجناين / فيصل / الأربعين</small>
             <input id="enParty" maxlength="120">

@@ -45,10 +45,10 @@ function targetSlotRow(row) {
   const commander = row.commander?.length
     ? chips(row.commander, "h")
     : `<span class="muted">لم يُحدَّد بعد من صفحة بيانات الضابط</span>`;
-  const assigned = row.source_manning
-    ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
-    : (row.officers.length ? chips(row.officers, "m")
-      : `<span class="muted">لم يُعيَّن أحد</span>`);
+  // الضابط المربوط بالسيستم أولًا؛ نص الورقة المستوردة بس لو مفيش ضابط مربوط
+  const assigned = row.officers.length ? chips(row.officers, "m")
+    : row.source_manning ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
+    : `<span class="muted">لم يُعيَّن أحد</span>`;
   return `<tr class="${row.vacant ? "vacant" : ""}">
     <td class="name">${esc(row.label)}</td>
     <td class="wrap">${commander}</td>
@@ -66,10 +66,10 @@ function targetSlotRow(row) {
 const SLOT_HEAD = ["الخدمة", "القائم بها", "الإجراء"];
 
 function slotRow(row, sectionName) {
-  const assigned = row.source_manning
-    ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
-    : (row.officers.length ? chips(row.officers, "m")
-      : `<span class="muted">لم يُعيَّن أحد</span>`);
+  // الضابط المربوط بالسيستم أولًا؛ نص الورقة المستوردة بس لو مفيش ضابط مربوط
+  const assigned = row.officers.length ? chips(row.officers, "m")
+    : row.source_manning ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
+    : `<span class="muted">لم يُعيَّن أحد</span>`;
   return `<tr class="${row.vacant ? "vacant" : ""}">
     <td class="name">${esc(row.shift)}</td>
     <td class="wrap">${assigned}</td>
@@ -88,16 +88,17 @@ function serviceRow(row) {
       <td class="col-actions"><div class="actions"><button class="mini" data-action="openEntry"
         data-extra="${dataAttr({shift: row.shift})}" aria-label="إضافة">${icon("plus")}</button></div></td></tr>`;
   }
-  const who = row.source_manning
-    ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
-    : ([chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ")
-      || `<span class='muted'>—</span>`);
+  // المربوطين بالسيستم أولًا (بيتأثروا بأي تعديل)، والنص المستورد بس لو مفيش حد مربوط
+  const linked = [chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ");
+  const who = linked
+    ? (row.source_manning ? `<span title="${esc("من الورقة المستوردة: " + row.source_manning)}">${linked}</span>` : linked)
+    : row.source_manning ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
+    : `<span class='muted'>—</span>`;
   const selected = row.id === SELECTED_ROW_ID;
   return `<tr class="service-row${row.vacant ? " vacant" : ""}${selected ? " is-selected" : ""}"
     data-service-id="${esc(row.id)}" tabindex="-1" aria-selected="${selected}">
     <td class="name service-name-cell">
       <span class="service-label">${esc(row.label)}</span>
-      ${row.note ? `<div class="sub">${esc(row.note)}</div>` : ""}
       <div class="service-rail" aria-label="ترتيب وتكرار الخدمة">
         <button type="button" class="mini btn-xs move" data-action="moveEntry"
           data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
@@ -281,8 +282,14 @@ const RIGHT_COLUMN_SECTIONS = ["الخدمات أساسية", "الخدمات ا
 function splitColumns(sections) {
   const rightNames = ["الخدمات أساسية", "الأهداف", "ضابط عظيم وأمن المعسكر الفرعي", "عمل بالإدارة"];
   const leftNames = ["الخدمات الطارئة", "خدمات سجن قوات الأمن", "الخوارج"];
-  return [rightNames.map(name => sections.find(section => section.name === name)).filter(Boolean),
-    leftNames.map(name => sections.find(section => section.name === name)).filter(Boolean)];
+  const known = new Set([...rightNames, ...leftNames]);
+  // الأقسام اللي المشغّل ضافها بإيده (خدمات ماتش، انتشار، تفتيشات…) كانت بتختفي
+  // من الصفحة لأنها مش في القايمتين — بتظهر دلوقتي بعد «الخدمات الطارئة» مباشرة
+  const custom = sections.filter(section => !known.has(section.name) && section.type === "services");
+  const left = leftNames.map(name => sections.find(section => section.name === name)).filter(Boolean);
+  const at = left.findIndex(section => section.name === "الخدمات الطارئة") + 1;
+  left.splice(at, 0, ...custom);
+  return [rightNames.map(name => sections.find(section => section.name === name)).filter(Boolean), left];
 }
 
 function render() {
@@ -544,8 +551,13 @@ function openEntry(rowId, preset, duplicate = false) {
   $("#conRows").innerHTML = (row?.conscripts || []).map(conRow).join("");
   $("#enConCount").value = row?.conscript_count || "";
   $("#enWeapon").value = row?.weapon || "";
-  $("#enTime").value = row?.time || "";
+  setTimeInputValue($("#enTime"), row?.time || "");
+  const legacyTime = $("#enTimeLegacy");
+  legacyTime.textContent = row?.time ? `النص القديم: ${row.time} — اختَر وقتًا جديدًا لتطبيعه.` : "";
+  legacyTime.classList.toggle("hidden", !row?.time || !!$("#enTime").dataset.hhmm);
   $("#enParty").value = row?.party || "";
+  $("#enMissionTransport").checked = !!row?.mission_transport;
+  syncMissionTransportPick();
   $("#enNote").value = row?.note || "";
   openModal("entryModal");
   queueSectionHistory(false);
@@ -560,6 +572,16 @@ function syncCommandWraps() {
 }
 $("#enHasOfficers").addEventListener("change", syncCommandWraps);
 $("#enHasPersonnel").addEventListener("change", syncCommandWraps);
+function syncMissionTransportPick() {
+  const allowed = ["داخلية", "خارجية"].includes($("#enKind").value);
+  const input = $("#enMissionTransport");
+  if (!allowed) input.checked = false;
+  input.disabled = !allowed;
+  $("#enMissionTransportPick").classList.toggle("is-on", input.checked);
+  $("#enMissionTransportPick").classList.toggle("is-disabled", !allowed);
+}
+$("#enMissionTransport").addEventListener("change", syncMissionTransportPick);
+$("#enTime").addEventListener("change", () => $("#enTimeLegacy").classList.toggle("hidden", !!$("#enTime").dataset.hhmm || !$("#enTime").value));
 
 ACTIONS.openEntry = (id, extra) => openEntry(id || null, extra);
 ACTIONS.duplicateEntry = id => openEntry(id, {section: findRow(id)?.section}, true);
@@ -594,7 +616,7 @@ ACTIONS.moveEntry = (id, extra) => moveService(id, extra.direction);
 ACTIONS.removeConRow = (id, extra, el) => el.closest(".req-row").remove();
 
 $("#addConRow").onclick = () => $("#conRows").insertAdjacentHTML("beforeend", conRow({}));
-$("#enKind").addEventListener("change", () => syncShiftOptions());
+$("#enKind").addEventListener("change", () => { syncShiftOptions(); syncMissionTransportPick(); });
 $("#enSection").addEventListener("input", () => queueSectionHistory(true));
 $("#enSection").addEventListener("change", () => queueSectionHistory(true));
 
@@ -636,8 +658,9 @@ $("#entryForm").onsubmit = async e => {
     conscripts,
     conscript_count: parseInt($("#enConCount").value) || 0,
     weapon: $("#enWeapon").value.trim(),
-    time: $("#enTime").value.trim(),
+    time: $("#enTime").dataset.hhmm || $("#enTime").value.trim(),
     party: $("#enParty").value.trim(),
+    mission_transport: $("#enMissionTransport").checked,
     note: $("#enNote").value.trim(),
   };
   const id = $("#enId").value;

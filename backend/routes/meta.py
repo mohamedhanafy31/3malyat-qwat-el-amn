@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from flask import Blueprint, jsonify
 
 from .. import changes as changes_lib, clock, confirm as confirm_lib, day_status, rest_suspension
-from ..assignments import OFFICER_STATUSES
+from ..assignments import officer_statuses
 from ..board import BOARD_ORDER
 from ..constants import (
     COMMAND_ROLES, GROUP_ROLES, LEAVE_TYPES, OFFICER_SECTIONS, REST_DURATIONS,
@@ -38,7 +38,7 @@ def _meta(data):
         "board_sections": BOARD_ORDER,
         "service_sections": SERVICE_SECTIONS,
         "service_documents": SERVICE_DOCUMENTS,
-        "officer_statuses": OFFICER_STATUSES,
+        "officer_statuses": officer_statuses(data),
         "officer_sections": _officer_sections(data),
         "command_roles": COMMAND_ROLES,
         "command": Repos(data).config.command(),
@@ -178,9 +178,7 @@ def bootstrap(page):
         return jsonify({"meta": meta, "counts": _counts(data)})
 
     if page == "missions":
-        payload = {"meta": meta, "counts": _counts(data)}
-        payload["officer_index"] = _slim(Repos(data).people.all("officers"))
-        return jsonify(payload)
+        return jsonify(_days_payload(data, meta))
 
     if page in ("vehicles", "drivers"):
         return jsonify({"meta": meta, "counts": _counts(data)})

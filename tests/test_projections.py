@@ -138,9 +138,12 @@ def test_every_word_column_of_khawarej_is_reachable(client):
         assert _row(client, "OFF-001")["bucket"] == status
 
 
-def test_unknown_status_is_refused(client):
-    assert client.put(f"/api/duty/{DAY}/OFF-001",
-                      json={"status": "حالة مخترعة"}).status_code == 400
+def test_new_status_becomes_a_custom_khawarej_bucket(client):
+    response = client.put(f"/api/duty/{DAY}/OFF-001",
+                          json={"status": "حالة مخصصة"})
+    assert response.status_code == 200
+    assert response.get_json()["summary"]["خوارج"]["حالة مخصصة"] == 1
+    assert _row(client, "OFF-001")["bucket"] == "حالة مخصصة"
 
 
 def test_state_survives_assignment_edits(client):

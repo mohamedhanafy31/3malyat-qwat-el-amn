@@ -2,43 +2,50 @@
 from .service_catalog import catalog
 from .text import core_service_name, norm
 
-_ALIASES = {
-    "قول مكبر": "القول المكبر", "الاسعاف": "الإسعاف", "ارتكاز الاسعاف": "الإسعاف",
-    "التدخل سريع": "التدخل السريع", "تدخل سريع": "التدخل السريع",
-    "مبنى المخابرات الحربية": "مبنى المخابرات", "استراحة القنصل السعودي": "استراحة القنصل",
-    "اعلي كمين 109": "اعلى 109", "ارتكاز قسم فيصل الجديد": "ارتكاز قسم فيصل",
-    "كول كورنيش": "قول الكورنيش", "قول كورنيش": "قول الكورنيش",
-    "حملة أمن وطني 12ص": "حملة الأمن الوطني",
-}
+# كل مجموعة = أسماء لنفس الخدمة اتكتبت بأشكال مختلفة في القوايم. أي اسم من
+# المجموعة بيتربط بأي صف في الدليل اسمه من نفس المجموعة — مفيش اتجاه.
+_ALIAS_GROUPS = [
+    ["قول مكبر", "القول المكبر"],
+    ["الاسعاف", "الإسعاف", "ارتكاز الاسعاف", "ارتكاز الإسعاف"],
+    ["التدخل السريع", "التدخل سريع", "تدخل سريع"],
+    ["مبنى المخابرات", "مبنى المخابرات الحربية"],
+    ["استراحة القنصل", "استراحة القنصل السعودي"],
+    ["اعلى 109", "اعلي كمين 109", "اعلى كمين 109"],
+    ["نقطة تفتيش كمين 109 اسفل", "كمين 109", "كمين 109 - بيك اب", "كمين 109 - مدرعة"],
+    ["ارتكاز قسم فيصل", "ارتكاز قسم فيصل الجديد"],
+    ["القنصلية السعودية", "القنصلية", "قنصلية"],
+    ["قول الكورنيش", "كول كورنيش", "قول كورنيش"],
+    ["حملة الأمن الوطني", "حملة أمن وطني 12ص", "حملة امن وطني"],
+]
 
 
 def _keys(name):
     raw = str(name or "")
-    return norm(raw), norm(core_service_name(raw))
+    return {key for key in (norm(raw), norm(core_service_name(raw))) if key}
+
+
+def _group_keys(name):
+    """مفاتيح الاسم نفسه + مفاتيح كل اسم في مجموعة مرادفاته."""
+    keys = _keys(name)
+    for group in _ALIAS_GROUPS:
+        group_keys = set().union(*(_keys(member) for member in group))
+        if keys & group_keys:
+            keys |= group_keys
+    return keys
 
 
 def resolve_service_id(data, name):
-    by_name = {}
+    wanted = _group_keys(name)
+    if not wanted:
+        return None
     for entry in catalog(data):
-        for key in _keys(entry.get("name")):
-            if key:
-                by_name.setdefault(key, entry.get("id"))
-    for key in _keys(name):
-        if key in by_name:
-            return by_name[key]
-        alias = _ALIASES.get(key)
-        if alias is None:
-            alias = next((target for source, target in _ALIASES.items()
-                          if key in _keys(source)), None)
-        if alias:
-            for alias_key in _keys(alias):
-                if alias_key in by_name:
-                    return by_name[alias_key]
+        if _keys(entry.get("name")) & wanted:
+            return entry.get("id")
     return None
 
 
 def service_for_counts_entry(data, entry):
     stored = str((entry or {}).get("service_id") or "").strip()
-    if stored and any(item.get("id") == stored for item in catalog(data)):
+    if stored:
         return stored
     return resolve_service_id(data, (entry or {}).get("name"))

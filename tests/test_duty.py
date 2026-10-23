@@ -5,6 +5,7 @@
 """
 
 import io
+import json
 
 from docx import Document
 
@@ -93,6 +94,36 @@ def test_clear_assignments_day_delete_endpoint(client):
     assert body["states_cleared"] is True
     assert len(client.get("/api/assignments/2026-03-01").get_json()["assignments"]) == 0
     assert _row(client, "OFF-001")["status"] == ""
+
+
+def test_custom_officer_status_is_saved_and_reused(client, data_file):
+    response = client.put("/api/duty/2026-03-01/OFF-001", json={"status": "مأمورية خاصة"})
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["summary"]["خوارج"]["مأمورية خاصة"] == 1
+    assert body["summary"]["balanced"] is True
+    assert "مأمورية خاصة" in body["officer_statuses"]
+    assert _row(client, "OFF-001")["status"] == "مأمورية خاصة"
+
+    stored = json.loads(data_file.read_text())
+    assert stored["custom_officer_statuses"] == ["مأمورية خاصة"]
+    bootstrap = client.get("/api/bootstrap/duty").get_json()
+    assert "مأمورية خاصة" in bootstrap["meta"]["officer_statuses"]
+
+
+def test_reusing_custom_status_does_not_duplicate_the_saved_option(client, data_file):
+    for officer_id in ("OFF-001", "OFF-002"):
+        assert client.put(f"/api/duty/2026-03-01/{officer_id}",
+                          json={"status": "خدمة خارجية مؤقتة"}).status_code == 200
+    stored = json.loads(data_file.read_text())
+    assert stored["custom_officer_statuses"] == ["خدمة خارجية مؤقتة"]
+
+
+def test_custom_status_length_is_limited(client, data_file):
+    response = client.put("/api/duty/2026-03-01/OFF-001", json={"status": "س" * 61})
+    assert response.status_code == 400
+    assert "60" in response.get_json()["error"]
+    assert "custom_officer_statuses" not in json.loads(data_file.read_text())
 
 
 def _row(client, officer_id, day="2026-03-01"):

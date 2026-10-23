@@ -1,97 +1,77 @@
-/* المأموريات — كيان له دورة حياة (مخططة/بدأت/عادت/أغلقت/ألغيت)،
-   مختلف عن الخدمة المتكررة اللي بتتحط على اليومية التفصيلية كل يوم. */
-let MISSIONS = [], OFFICERS = [], STATUSES = [];
+/* كشف المأموريات والتراحيل اليومي — عرض مباشر للخدمات المعلّمة في اليومية. */
+let MISSION_DAY = "", MISSION_ROWS = [];
 
-const STATUS_CLS = {"مخططة": "w", "بدأت": "on", "عادت": "h", "أغلقت": "done", "ألغيت": "err"};
-const nameOf = p => `${p.role ? p.role + "/ " : ""}${p.name}`;
+const missionPersonName = person => `${person.role ? person.role + "/ " : ""}${person.name || "غير مسجل"}`;
 
-function missionRow(m) {
-  const members = m.members.map(p => `<span class="chip m">${esc(nameOf(p))}</span>`).join(" ")
-    || "<span class='muted'>—</span>";
-  return `<tr>
-    <td class="name">${esc(m.name)}${m.note ? `<div class="sub">${esc(m.note)}</div>` : ""}</td>
-    <td class="wrap">${members}</td>
-    <td>${m.start ? fmt(m.start) : "<span class='muted'>—</span>"}</td>
-    <td><span class="chip ${STATUS_CLS[m.status] || "w"}">${esc(m.status)}</span></td>
-    <td class="col-actions"><div class="actions">
-      <button class="mini" data-action="openMission" data-id="${esc(m.id)}">تعديل</button>
-      ${rowMenu([{action: "deleteMission", id: m.id, extra: {name: m.name},
-        label: "حذف", danger: true}], {label: "إجراءات المأمورية"})}
-    </div></td>
-  </tr>`;
+function missionPeople(row) {
+  const officers = (row.officers || []).map(person => `<span class="chip m">${esc(missionPersonName(person))}</span>`).join(" ");
+  const personnel = (row.personnel || []).map(person => `<span class="chip h">${esc(missionPersonName(person))}</span>`).join(" ");
+  return [officers, personnel].filter(Boolean).join(" ")
+    || (row.source_manning ? `<span class="source-roster-text">${esc(row.source_manning)}</span>` : "")
+    || `<span class="muted">لم يُعيَّن قائم بالخدمة</span>`;
 }
 
-function render() {
-  $("#missionsWrap").innerHTML = tableBlock(
-    ["المأمورية", "المشاركون", "تاريخ البداية", "الحالة", "الإجراء"],
-    MISSIONS.map(missionRow), `عدد المأموريات: ${MISSIONS.length}`, {title: "لا توجد مأموريات", hint: "أضف مأمورية جديدة لمتابعة حالتها من التخطيط حتى الإغلاق.",
-      action: {label: "مأمورية جديدة", id: "addMissionBtn"}});
+function missionConscripts(row) {
+  const slots = (row.conscripts || []).map(slot => `<span class="chip w">${esc(slot.class || "مجند")}${slot.count ? ` ×${Number(slot.count)}` : ""}</span>`).join(" ");
+  const total = row.conscript_count ? `<span class="chip w">${esc(countLabel(row.conscript_count, "مجند"))}</span>` : "";
+  return [slots, total].filter(Boolean).join(" ");
 }
 
-async function loadList(status) {
-  const q = status ? `?status=${encodeURIComponent(status)}` : "";
-  const d = await api(`/api/missions${q}`);
-  if (!d) return;
-  MISSIONS = d.missions; STATUSES = d.statuses;
-  fillSelect($("#msnStatusFilter"), [["", "كل الحالات"], ...STATUSES.map(s => [s, s])], true);
-  render();
-}
-$("#msnStatusFilter").onchange = () => loadList($("#msnStatusFilter").value);
+const missionFact = (label, value) => value ? `<div><span>${esc(label)}</span><strong>${esc(value)}</strong></div>` : "";
 
-function fillMulti(el, people, chosen) {
-  el.innerHTML = people.map(p =>
-    `<option value="${esc(p.id)}" ${chosen.includes(p.id) ? "selected" : ""}>${esc(nameOf(p))}</option>`).join("");
+function missionCard(row) {
+  const conscripts = missionConscripts(row);
+  return `<article class="mission-service-card">
+    <div class="mission-card-head"><div><span class="mission-section">${esc(row.section || "خدمات اليوم")}</span><h4>${esc(row.name)}</h4></div>
+      ${row.shift ? `<span class="mission-shift">${esc(row.shift)}</span>` : ""}</div>
+    <div class="mission-staff"><span>القائمون بها</span><div>${missionPeople(row)}</div></div>
+    ${conscripts ? `<div class="mission-conscripts"><span>المجندون</span><div>${conscripts}</div></div>` : ""}
+    <div class="mission-facts">${missionFact("الانتظام", row.time)}${missionFact("الجهة", row.party)}${missionFact("التسليح", row.weapon)}</div>
+    ${row.note ? `<div class="mission-card-actions"><button type="button" class="mini mission-note-btn" data-action="showMissionNote" data-id="${esc(row.id)}">ملاحظات</button></div>` : ""}
+  </article>`;
 }
-const readMulti = el => [...el.selectedOptions].map(o => o.value);
 
-function openMission(id) {
-  const m = id ? MISSIONS.find(x => x.id === id) : null;
-  $("#msnId").value = id || "";
-  $("#missionTitle").textContent = m ? "تعديل مأمورية" : "مأمورية جديدة";
-  $("#msnName").value = m?.name || "";
-  fillSelect($("#msnStatus"), STATUSES.map(s => [s, s]));
-  $("#msnStatus").value = m?.status || STATUSES[0] || "";
-  $("#msnStart").value = m?.start || "";
-  fillMulti($("#msnMembers"), OFFICERS, (m?.members || []).map(p => p.id));
-  $("#msnNote").value = m?.note || "";
-  openModal("missionModal");
+function missionEmpty(kind) {
+  return `<div class="mission-empty">${icon("inbox")}<strong>لا توجد تحركات ${esc(kind)} في هذا اليوم</strong>
+    <span>علِّم الخدمة من اليومية التفصيلية بخيار «مأمورية / ترحيلة» لتظهر هنا.</span></div>`;
 }
-ACTIONS.openMission = id => openMission(id || null);
-ACTIONS.deleteMission = async (id, extra) => {
-  if (!(await confirmDialog({
-    title: "حذف المأمورية",
-    body: `ستُحذف مأمورية «${extra.name}» نهائيًا ولا يمكن التراجع عن ذلك.`,
-    confirmLabel: "حذف المأمورية",
-    danger: true,
-  }))) return;
-  if (await api(`/api/missions/${encodeURIComponent(id)}`, {method: "DELETE"})) {
-    showToast("تم الحذف"); loadList($("#msnStatusFilter").value);
-  }
+
+function renderMissionGroup(target, rows, kind) {
+  $(target).innerHTML = rows.length ? rows.map(missionCard).join("") : missionEmpty(kind);
+}
+
+async function loadMissionDay(day) {
+  const data = await api(`/api/missions/day/${encodeURIComponent(day)}`);
+  if (!data) return;
+  MISSION_DAY = data.date;
+  MISSION_ROWS = [...data.external, ...data.internal];
+  $("#missionDay").value = MISSION_DAY;
+  setPageDay(MISSION_DAY);
+  $("#missionDayLabel").textContent = `${dayName(MISSION_DAY)} ${fmt(MISSION_DAY)} — الخدمات المحددة من اليومية التفصيلية`;
+  $("#missionTotal").textContent = data.counts.total;
+  $("#missionExternalCount").textContent = data.counts.external;
+  $("#missionInternalCount").textContent = data.counts.internal;
+  $("#externalBadge").textContent = data.counts.external;
+  $("#internalBadge").textContent = data.counts.internal;
+  renderMissionGroup("#externalMissions", data.external, "خارجية");
+  renderMissionGroup("#internalMissions", data.internal, "داخلية");
+}
+
+ACTIONS.showMissionNote = id => {
+  const row = MISSION_ROWS.find(item => item.id === id);
+  if (!row?.note) return;
+  $("#missionNoteTitle").textContent = `ملاحظات — ${row.name}`;
+  $("#missionNoteBody").textContent = row.note;
+  openModal("missionNoteModal");
 };
-$("#addMissionBtn").onclick = () => openMission(null);
 
-$("#missionForm").onsubmit = async e => {
-  e.preventDefault();
-  const body = {
-    name: $("#msnName").value.trim(),
-    status: $("#msnStatus").value,
-    start: $("#msnStart").value,
-    member_ids: readMulti($("#msnMembers")),
-    note: $("#msnNote").value.trim(),
-  };
-  const id = $("#msnId").value;
-  const out = id
-    ? await api(`/api/missions/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
-    : await api("/api/missions", jsonReq("POST", body));
-  if (!out) return;
-  closeModal("missionModal", true); showToast(id ? "تم الحفظ" : "تمت الإضافة");
-  loadList($("#msnStatusFilter").value);
-};
+$("#missionDay").addEventListener("change", event => { if (event.target.value) loadMissionDay(event.target.value); });
+$("#missionPrev").onclick = () => loadMissionDay(addDays(MISSION_DAY || curDate(), -1));
+$("#missionNext").onclick = () => loadMissionDay(addDays(MISSION_DAY || curDate(), 1));
 
 async function load() {
-  const d = await bootstrap();
-  if (!d) return;
-  OFFICERS = d.officer_index || [];
-  loadList("");
+  const data = await bootstrap();
+  if (!data) return;
+  loadMissionDay(curDate());
 }
 load();

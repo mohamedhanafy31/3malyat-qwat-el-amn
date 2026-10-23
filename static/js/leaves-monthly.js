@@ -60,11 +60,14 @@ function render() {
   const wrap = $("#rosterWrap");
   if (!ROSTER) { wrap.innerHTML = skeleton("rows", 8); return }
   $("#suspensionBar").innerHTML = suspensionBanner(suspendedTypes());
-  wrap.innerHTML = tableBlock(
-    ["الضابط", "نظام الراحة", "الحالة الحالية", "تاريخ الراحة الجديد"],
-    ROSTER.map(rosterRow),
-    `عدد الضباط: ${ROSTER.length}`,
-    "لا يوجد ضباط بنظام راحة شهري أو نصف شهري");
+  const headers = ["الضابط", "نظام الراحة", "الحالة الحالية", "تاريخ الراحة الجديد"];
+  const groupBlock = (type, title) => {
+    const rows = ROSTER.filter(row => row.rest_system === type);
+    return `<section class="roster-kind-group"><h4>${esc(title)} <span class="mcount">${rows.length}</span></h4>${tableBlock(
+      headers, rows.map(rosterRow), `عدد الضباط: ${rows.length}`, `لا يوجد ضباط بنظام ${title}`)}</section>`;
+  };
+  wrap.innerHTML = groupBlock("نصف شهرية", "راحات نصف شهرية")
+    + groupBlock("شهرية", "راحات شهرية");
   // الصفوف دي بتتولّد من جديد كل render() — لازم ترقية يدوية كل مرة،
   // بعكس حقول التاريخ الثابتة في الـmodals اللي بترقّى مرة واحدة بس
   // في core.js وقت تحميل الصفحة.
@@ -78,6 +81,11 @@ function render() {
   updateDirty();
 
   renderWeekly();
+}
+
+function groupedRoster(rows) {
+  const order = {"نصف شهرية": 0, "شهرية": 1};
+  return [...rows].sort((a, b) => (order[a.rest_system] ?? 9) - (order[b.rest_system] ?? 9));
 }
 
 function weeklyLeaveChip(leave) {
@@ -188,8 +196,21 @@ $("#saveRosterBtn").onclick = async () => {
 async function load() {
   const d = await bootstrap();
   if (!d) return;
-  ROSTER = d.roster || [];
+  ROSTER = groupedRoster(d.roster || []);
   WEEKLY_ROSTER = d.weekly_roster || [];
   render();
 }
+
+
+function reportDate() {
+  return $("#leavesReportDate").value || META.today || curDate();
+}
+
+$("#leavesReportDate").value = curDate();
+$("#exportMonthlyLeaves").onclick = () => {
+  window.location.assign(`/api/leaves/monthly/export.docx?on=${encodeURIComponent(reportDate())}`);
+};
+$("#exportWeeklyLeaves").onclick = () => {
+  window.location.assign(`/api/leaves/weekly/export.docx?on=${encodeURIComponent(reportDate())}`);
+};
 load();

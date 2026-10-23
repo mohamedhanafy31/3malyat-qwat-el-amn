@@ -164,3 +164,69 @@ def test_no_warning_once_the_mission_has_returned(client):
                json={"name": "دورية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
     warnings = client.get("/api/board/2026-04-12").get_json()["warnings"]
     assert not any(w["kind"] == "مأمورية" for w in warnings)
+
+
+# ---------- كشف المأموريات والتراحيل من اليومية التفصيلية ----------
+
+def test_daily_missions_only_include_marked_assignments(client):
+    day = "2026-04-12"
+    client.post(f"/api/assignments/{day}", json={
+        "name": "خدمة عادية", "kind": "داخلية", "officer_ids": ["OFF-001"],
+    })
+    marked = client.post(f"/api/assignments/{day}", json={
+        "name": "ترحيلة النيابة", "kind": "خارجية", "shift": "صباحية",
+        "officer_ids": ["OFF-001"],
+        "conscript_count": 3, "weapon": "آلي", "time": "08:30", "party": "السويس",
+        "note": "التجمع أمام البوابة الرئيسية", "mission_transport": True,
+    })
+    assert marked.status_code == 201
+
+    body = client.get(f"/api/missions/day/{day}").get_json()
+    assert body["counts"] == {"internal": 0, "external": 1, "total": 1}
+    assert [row["name"] for row in body["external"]] == ["ترحيلة النيابة"]
+    row = body["external"][0]
+    assert row["officers"][0]["name"] == "أحمد محمد"
+    assert row["personnel"] == []
+    assert row["note"] == "التجمع أمام البوابة الرئيسية"
+    assert row["time"] == "8:30ص"
+
+
+def test_daily_missions_are_grouped_into_internal_and_external(client):
+    day = "2026-04-12"
+    for name, kind in (("مأمورية داخل المعسكر", "داخلية"), ("مأمورية خارج المحافظة", "خارجية")):
+        response = client.post(f"/api/assignments/{day}", json={
+            "name": name, "kind": kind, "mission_transport": True,
+        })
+        assert response.status_code == 201
+
+    body = client.get(f"/api/missions/day/{day}").get_json()
+    assert [row["name"] for row in body["internal"]] == ["مأمورية داخل المعسكر"]
+    assert [row["name"] for row in body["external"]] == ["مأمورية خارج المحافظة"]
+
+
+def test_mission_transport_requires_internal_or_external_kind(client):
+    response = client.post("/api/assignments/2026-04-12", json={
+        "name": "حراسة", "kind": "حراسات", "mission_transport": True,
+    })
+    assert response.status_code == 400
+    assert "داخلية أو خارجية" in response.get_json()["error"]
+
+
+def test_unchecking_or_deleting_assignment_removes_it_from_daily_missions(client):
+    day = "2026-04-12"
+    created = client.post(f"/api/assignments/{day}", json={
+        "name": "ترحيلة", "kind": "خارجية", "mission_transport": True,
+    }).get_json()
+    assignment_id = created["id"]
+    assert client.get(f"/api/missions/day/{day}").get_json()["counts"]["total"] == 1
+
+    client.patch(f"/api/assignments/{day}/{assignment_id}", json={"mission_transport": False})
+    assert client.get(f"/api/missions/day/{day}").get_json()["counts"]["total"] == 0
+
+    client.patch(f"/api/assignments/{day}/{assignment_id}", json={"mission_transport": True})
+    client.delete(f"/api/assignments/{day}/{assignment_id}")
+    assert client.get(f"/api/missions/day/{day}").get_json()["counts"]["total"] == 0
+
+
+def test_daily_missions_reject_invalid_date(client):
+    assert client.get("/api/missions/day/not-a-date").status_code == 400

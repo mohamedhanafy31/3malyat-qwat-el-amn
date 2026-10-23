@@ -29,3 +29,6 @@ data/users.json
 data/users.json.tmp
 data/secret_key
 *.apk
+
+# عيّنات OCR (صور فيها بيانات أفراد) — للتدريب المحلي بس
+data/ocr_samples/

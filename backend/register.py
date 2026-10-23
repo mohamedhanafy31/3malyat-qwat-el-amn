@@ -105,12 +105,15 @@ def cell_for(row):
 
     info = REGISTER_CODES.get((group, bucket))
     if info is None:
-        # خانة جديدة اتضافت في الإجمالي ومالهاش رمز لسه — أول حرف بدل ما تختفي.
-        # ده معناه REGISTER_CODES محتاج تحديث عشان الرمز يبقى دقيق.
-        logger.warning("لا يوجد رمز دفتر 43 لـ (%r, %r) — تم استخدام رمز بديل تلقائي.",
-                        row["group"], row["bucket"])
-        label = f'{row["group"]}{" · " + row["bucket"] if row["bucket"] else ""}'
-        info = {"code": row["group"][0], "label": label, "family": "عمل"}
+        # تصنيف خوارج حر: أول حرف منه رمز واضح، ويظل محسوبًا «خارج».
+        if group == "خوارج" and bucket:
+            info = {"code": bucket[0], "label": bucket, "family": "خارج"}
+        else:
+            # خانة بنيوية جديدة غير الخوارج ما زالت تحتاج تعريف رمز صريح.
+            logger.warning("لا يوجد رمز دفتر 43 لـ (%r, %r) — تم استخدام رمز بديل تلقائي.",
+                           row["group"], row["bucket"])
+            label = f'{row["group"]}{" · " + row["bucket"] if row["bucket"] else ""}'
+            info = {"code": row["group"][0], "label": label, "family": "عمل"}
     return info
 
 

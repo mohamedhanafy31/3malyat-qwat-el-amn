@@ -270,6 +270,24 @@ def add_post(data, day, name, number=None, driver_text=None):
     return ident, None, None
 
 
+def update_post(data, day, post_id, name, number=None):
+    """يعدّل بيانات الارتكاز ابتداءً من اليوم المحدد مع إبقاء الأيام السابقة كما هي."""
+    name = str(name or "").strip()
+    number = str(number or "").strip()
+    if not name:
+        return "اسم الارتكاز مطلوب.", 400
+    if len(name) > 200 or len(number) > 20:
+        return "بيانات الارتكاز أطول من الحد المسموح.", 400
+    items = campaign_posts_on(data, day)
+    target = next((item for item in items if item.get("id") == post_id), None)
+    if target is None:
+        return "الارتكاز غير موجود.", 404
+    target["name"] = name
+    target["number"] = number
+    record_campaign_posts_change(data, day, items)
+    return None, None
+
+
 def remove_post(data, day, post_id):
     items = campaign_posts_on(data, day)
     if post_id not in {item.get("id") for item in items}:

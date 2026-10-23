@@ -13,7 +13,7 @@
 مثبت في الوورد (34 في كل الأيام المفحوصة). عشان كده الترتيب اللي تحت
 مهم: الضابط بياخد أول خانة تنطبق عليه.
 """
-from .assignments import assignments_of, officer_state
+from .assignments import assignments_of, officer_state, officer_statuses
 from .courses import by_id as courses_by_id, term_on
 from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SECTION_TARGETS, SHIFTS, TARGETS_FIRST
 from .dated import groups_on
@@ -66,14 +66,15 @@ def _first_cell(kinds, search_attached):
     return (kind, shift if shift in SHIFTS else DEFAULT_SHIFT)
 
 
-def _empty_summary(force):
+def _empty_summary(force, statuses=()):
+    outside = ["تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب"]
+    outside += [value for value in statuses if value not in outside]
     return {
         "أصل القوة": force,
         "خارجية": {"صباحية": 0, "ليلية": 0, "بحث": 0},
         "داخلية": {"صباحية": 0, "ليلية": 0},
         "طبية": {"موجود": 0, "راحة": 0},
-        "خوارج": {k: 0 for k in ("تقصيرة", "راحة", "طارئة", "غياب",
-                                  "مرضي", "فرقة", "انتداب")},
+        "خوارج": {key: 0 for key in outside},
         "حراسات": 0,
         "صافي": 0,
     }
@@ -202,7 +203,8 @@ def summarise(data, day):
     officers = officers_on(data, day)
     course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
 
-    s = _empty_summary(len(officers))
+    statuses = officer_statuses(data)
+    s = _empty_summary(len(officers), statuses)
     net_names, rows = [], []
 
     for o in officers:
@@ -213,7 +215,9 @@ def summarise(data, day):
             if group == "صافي":
                 net_names.append(f'{row["role"]}/ {o.get("name", "")}')
         else:
-            s[group][sub] += 1
+            # تصنيف حالة قديم أو مضاف يدويًا لا يوقف اليومية حتى لو لم يكن
+            # موجودًا بعد في القائمة العامة لسبب ما.
+            s[group][sub] = s[group].get(sub, 0) + 1
         rows.append(row)
 
     counted = (sum(s["خارجية"].values()) + sum(s["داخلية"].values())
@@ -222,4 +226,5 @@ def summarise(data, day):
     s["net_names"] = net_names
     s["counted"] = counted
     s["balanced"] = counted == s["أصل القوة"]
-    return {"date": day, "summary": s, "rows": rows}
+    return {"date": day, "summary": s, "rows": rows,
+            "officer_statuses": officer_statuses(data)}

@@ -1,15 +1,110 @@
+<!-- ============ قراءة صورة يومية الأفراد (OCR بالذكاء الاصطناعي) ============
+     ثلاث مراحل في نفس النافذة: scan (القراءة شغالة) ← review (المراجعة) أو error.
+     المرحلة بتتحدد بـ data-stage على .af-ocr-modal. -->
 <div class="modal hidden" id="afOcrModal">
-  <div class="modal-card af-ocr-modal" role="dialog" aria-modal="true" aria-labelledby="afOcrTitle">
+  <div class="modal-card af-ocr-modal" data-stage="scan" role="dialog" aria-modal="true" aria-labelledby="afOcrTitle">
     <button type="button" class="close" data-close="afOcrModal" aria-label="إغلاق">×</button>
-    <h2 id="afOcrTitle">مراجعة قراءة صورة يومية الأفراد</h2>
-    <p class="muted">راجع الخدمة والفرد في كل فترة. لا يُحفظ شيء قبل الضغط على «تسكين المختار».</p>
-    <div id="afOcrSummary"></div>
-    <img id="afOcrOverlay" class="af-ocr-overlay hidden" alt="حدود الخلايا التي اكتشفها OCR">
-    <div id="afOcrRows" class="af-ocr-rows"></div>
-    <div id="afOcrWarnings"></div>
-    <div class="actions modal-foot">
-      <button class="primary" id="afOcrApply" type="button">تسكين المختار</button>
-      <button type="button" class="btn" data-close="afOcrModal">إلغاء</button>
-    </div>
+    <header class="ocr-head">
+      <h2 id="afOcrTitle">قراءة صورة اليومية</h2>
+      <span class="ocr-ai-badge" title="النص بيتقرا آليًا من الصورة وممكن يغلط — راجعه قبل التسكين">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm7 12l.9 2.6L22.5 17l-2.6.9L19 20.5l-.9-2.6-2.6-.9 2.6-.9L19 14zM5 15l.7 2 2 .7-2 .7L5 20.5l-.7-2-2-.7 2-.7L5 15z"/></svg>
+        ذكاء اصطناعي · OCR
+      </span>
+    </header>
+    <p class="muted ocr-sub" id="afOcrSub" aria-live="polite"></p>
+
+    <!-- 0) تجهيز الصورة: اختيار صفحة من PDF + قص -->
+    <section class="ocr-pane ocr-pane-prepare">
+      <div class="ocr-pdfbar hidden" id="afOcrPdfBar">
+        <strong>اختر الصفحة</strong>
+        <div class="ocr-pages" id="afOcrPages" role="listbox" aria-label="صفحات الملف"></div>
+      </div>
+      <div class="ocr-cropwrap">
+        <div class="ocr-cropbox" id="afOcrCropBox">
+          <img id="afOcrCropImg" alt="الصورة المراد قراءتها" draggable="false">
+          <div class="ocr-crop" id="afOcrCrop" aria-label="منطقة القص">
+            <i data-h="nw"></i><i data-h="n"></i><i data-h="ne"></i><i data-h="e"></i>
+            <i data-h="se"></i><i data-h="s"></i><i data-h="sw"></i><i data-h="w"></i>
+          </div>
+        </div>
+      </div>
+      <div class="ocr-crop-tools">
+        <span class="muted" id="afOcrCropInfo">اسحب الحواف لقص الجزء اللي فيه الجدول بس.</span>
+        <button type="button" class="mini" id="afOcrCropReset">الصورة كاملة</button>
+      </div>
+      <div class="actions modal-foot">
+        <button class="primary" id="afOcrGo" type="button">ابدأ القراءة</button>
+        <button type="button" class="btn" data-close="afOcrModal">إلغاء</button>
+      </div>
+    </section>
+
+    <!-- 1) القراءة شغالة -->
+    <section class="ocr-pane ocr-pane-scan" aria-live="polite">
+      <div class="ocr-scanframe" id="afOcrScanFrame">
+        <img id="afOcrPreviewImg" alt="الصورة اللي بتتقرا دلوقتي">
+        <i class="ocr-corner tl"></i><i class="ocr-corner tr"></i><i class="ocr-corner bl"></i><i class="ocr-corner br"></i>
+        <div class="ocr-grid-wash" aria-hidden="true"></div>
+        <div class="ocr-scanline" aria-hidden="true"></div>
+      </div>
+      <div class="ocr-progress">
+        <ol class="ocr-steps" id="afOcrSteps">
+          <li data-step="upload"><span class="dot"></span><b>رفع الصورة</b><small>تجهيز الصورة وفحص حجمها وصيغتها</small></li>
+          <li data-step="grid"><span class="dot"></span><b>اكتشاف الجدول</b><small>تحديد حدود الخلايا والصفوف</small></li>
+          <li data-step="read"><span class="dot"></span><b>قراءة النص</b><small>الذكاء الاصطناعي بيقرا كل خلية</small></li>
+          <li data-step="match"><span class="dot"></span><b>المطابقة</b><small>ربط الخدمات والأفراد بالسيستم</small></li>
+        </ol>
+        <div class="ocr-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="afOcrBar"><i></i></div>
+        <div class="ocr-meta"><span id="afOcrElapsed">0 ث</span><span class="muted">المدة تقديرية — القراءة ممكن تاخد لحد دقيقتين</span></div>
+        <button type="button" class="btn" id="afOcrCancel">إلغاء القراءة</button>
+      </div>
+    </section>
+
+    <!-- 2) فشل -->
+    <section class="ocr-pane ocr-pane-error">
+      <div class="alert bad"><b id="afOcrErrorTitle">تعذّرت القراءة</b><p id="afOcrErrorText"></p></div>
+      <div class="actions"><button type="button" class="primary" id="afOcrRetry">اختيار صورة تانية</button>
+        <button type="button" class="btn" data-close="afOcrModal">إغلاق</button></div>
+    </section>
+
+    <!-- 3) المراجعة: الصورة على جنب، والنتيجة كروت قابلة للتمرير، وشريط تسكين ثابت تحت -->
+    <section class="ocr-pane ocr-pane-review">
+      <div class="ocr-review">
+        <aside class="ocr-viewer">
+          <div class="ocr-viewer-tabs" role="tablist">
+            <button type="button" class="mini on" role="tab" data-view="original" aria-selected="true">الصورة</button>
+            <button type="button" class="mini" role="tab" data-view="overlay" aria-selected="false" id="afOcrOverlayTab">الخلايا المكتشفة</button>
+            <button type="button" class="mini" id="afOcrZoom" title="تكبير/تصغير الصورة">تكبير</button>
+          </div>
+          <div class="ocr-viewer-scroll"><img id="afOcrOverlay" class="af-ocr-overlay" alt="الصورة"></div>
+        </aside>
+        <div class="ocr-results">
+          <div class="ocr-results-head">
+            <div id="afOcrSummary"></div>
+            <div class="ocr-filter" role="tablist" id="afOcrFilter">
+              <button type="button" class="on" data-filter="all">الكل <i></i></button>
+              <button type="button" data-filter="ready">جاهز <i></i></button>
+              <button type="button" data-filter="review">يحتاج مراجعة <i></i></button>
+            </div>
+          </div>
+          <div id="afOcrRows" class="af-ocr-rows"></div>
+          <div id="afOcrWarnings"></div>
+        </div>
+      </div>
+      <footer class="ocr-footbar">
+        <div class="ocr-foot-info">
+          <span id="afOcrCount"></span>
+          <span class="ocr-select-actions">
+            <button type="button" class="linkish" data-ocr-select="confident">المؤكّد فقط</button>
+            <button type="button" class="linkish" data-ocr-select="all">الكل</button>
+            <button type="button" class="linkish" data-ocr-select="none">لا شيء</button>
+          </span>
+        </div>
+        <div class="ocr-foot-actions">
+          <button type="button" class="btn" data-close="afOcrModal">إلغاء</button>
+          <button type="button" class="btn" id="afOcrAgain">صورة تانية</button>
+          <button class="primary" id="afOcrApply" type="button">تسكين المختار</button>
+        </div>
+      </footer>
+    </section>
   </div>
 </div>

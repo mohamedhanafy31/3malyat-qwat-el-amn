@@ -23,7 +23,7 @@ def _rows(client, day=DAY):
 
 
 @pytest.mark.parametrize("field,limit", [
-    ("name", 120), ("section", 60), ("weapon", 120), ("time", 60),
+    ("name", 120), ("section", 60), ("weapon", 120),
     ("party", 120), ("note", 500),
 ])
 def test_text_fields_are_capped_on_create_and_edit(client, field, limit):

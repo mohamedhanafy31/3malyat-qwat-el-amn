@@ -11,6 +11,12 @@
         أدخل تاريخ بداية الراحة القادمة من كشف المديرية؛ تُحسب المدة والنوع تلقائيًا.
       </p>
     </div>
+    <div class="tb-group tb-end leaves-export-tools" role="group" aria-label="تصدير كشوف الراحات">
+      <label class="compact-field">تاريخ الكشف
+        <input type="date" id="leavesReportDate" class="select">
+      </label>
+      <button type="button" class="btn" id="exportMonthlyLeaves">{{ icon('download') }} تصدير Word</button>
+    </div>
   </div>
   <div id="rosterWrap">{{ skeleton("rows", 12) }}</div>
   <div class="roster-savebar">
@@ -28,6 +34,7 @@
         يُسجَّل اليوم الثابت تلقائيًا عند فتح اليومية. يمكنك من هنا إضافة يوم راحة آخر دون تغيير اليوم الثابت.
       </p>
     </div>
+    <button type="button" class="btn" id="exportWeeklyLeaves">{{ icon('download') }} تصدير الكشف الأسبوعي</button>
   </div>
   <div id="weeklyRosterWrap">{{ skeleton("rows", 6) }}</div>
 </div>

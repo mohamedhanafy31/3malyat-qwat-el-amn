@@ -13,6 +13,8 @@ AUTH_ACTIONS = {key: label for key, label in EVENT_LABELS.items() if key != "wri
 
 # الترتيب من الأخص للأعم. التعبيرات تغطي عائلات المسارات بدل جدول طويل هش.
 ROUTES = [
+    (r"^POST /api/roster-import/conscripts/apply$", "استبدال كشف المجندين السائقين"),
+    (r"^POST /api/roster-import/personnel/apply$", "استبدال كشف الأفراد"),
     (r"^POST /api/person$", "إضافة فرد"),
     (r"^PATCH /api/person/", "تعديل بيانات فرد"),
     (r"^DELETE /api/person/", "حذف فرد"),
@@ -36,6 +38,10 @@ ROUTES = [
     (r"^PATCH /api/command", "تعديل بيانات القيادة"),
     (r"^POST /api/day-status/", "تغيير حالة اليوم"),
     (r"^POST /api/day-files/", "تحديث الملفات اليومية"),
+    (r"^POST /api/ops/.*/depart$", "قيام خدمة"),
+    (r"^POST /api/ops/.*/return$", "عودة خدمة"),
+    (r"^POST /api/ops/.*/undo$", "تراجع تشغيل خدمة"),
+    (r"^PATCH /api/ops/.*/time$", "تعديل معاد خدمة"),
 ]
 
 

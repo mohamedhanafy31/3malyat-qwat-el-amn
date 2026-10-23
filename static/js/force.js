@@ -4,6 +4,7 @@
 const IS_OFF = PAGE === "officers";
 let LIST = {active: [], archive: []}, BUCKET = "active";
 let COMMAND = {}, COMMAND_GROUPS = {};
+if (!IS_OFF) setupRosterImport({kind: "personnel", buttonId: "importPersonnelBtn", inputId: "importPersonnelFile", onApplied: load});
 
 const readMulti = el => [...el.selectedOptions].map(o => o.value);
 const personById = id => [...LIST.active, ...LIST.archive].find(p => p.id === id);

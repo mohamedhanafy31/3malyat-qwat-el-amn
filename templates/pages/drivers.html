@@ -7,11 +7,12 @@
     <div id="personnelDriversWrap">{{ skeleton("rows", 3) }}</div>
   </section>
   <section class="mcard">
-    <h3>المجندون <span class="mcount" id="conscriptsCount">—</span><button class="mini" id="addConscriptBtn">{{ icon('plus') }} إضافة مجند</button></h3>
+    <h3>المجندون <span class="mcount" id="conscriptsCount">—</span><button class="mini" id="addConscriptBtn">{{ icon('plus') }} إضافة مجند</button><button class="mini" id="importConscriptsBtn">استيراد DOCX</button></h3>
+    <input class="hidden" type="file" id="importConscriptsFile" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
     <div class="toolbar compact-toolbar"><input class="search" id="conscriptSearch" type="search" placeholder="بحث بالاسم أو التليفون" aria-label="بحث في المجندين"></div>
     <div id="conscriptsWrap">{{ skeleton("rows", 3) }}</div>
   </section>
 </div>
 {% endblock %}
-{% block modals %}{% include "partials/conscript_modal.html" %}{% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/drivers.js') }}"></script>{% endblock %}
+{% block modals %}{% include "partials/conscript_modal.html" %}{% include "partials/roster_import_modal.html" %}{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/roster-import.js') }}"></script><script src="{{ url_for('static', filename='js/drivers.js') }}"></script>{% endblock %}

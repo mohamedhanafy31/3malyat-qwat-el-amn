@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt
 
-from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font
+from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font, style_tables_bold_rtl
 from .export_fit import apply_fit_to_docx_table, fit_table, usable_height_pt
 from .labels import personnel_label
 
@@ -205,6 +205,7 @@ def build_docx(campaign):
     LAST_FIT.clear()
     LAST_FIT.update(scale=fit.scale, ratio=fit.ratio, total_pt=fit.total_pt,
                     usable_pt=fit.usable_pt)
+    style_tables_bold_rtl(doc)
     output = BytesIO()
     doc.save(output)
     output.seek(0)

@@ -774,6 +774,60 @@ _sharedDialog.innerHTML=`<div class="modal-card small shared-dialog" role="dialo
 </div>`;
 document.body.appendChild(_sharedDialog);
 let _dialogPending=null;
+
+/* رأس موحّد للنوافذ. تجميع العنوان وزر الإغلاق في عنصر واحد يخليهما
+   ثابتين أثناء تمرير النماذج الطويلة، بدل ما المستخدم ينزل لآخر النموذج
+   من غير ما يفضل واضح هو بيعدّل إيه أو إزاي يقفل النافذة. بنبنيه هنا
+   عشان كل النوافذ الحالية والديناميكية تستفيد من غير تكرار نفس الغلاف. */
+function _enhanceModalFrame(modal){
+  const card=modal?.querySelector(":scope > .modal-card");
+  if(!card||card.classList.contains("modal-framed")) return;
+  const close=card.querySelector(":scope > .close");
+  const customHead=card.querySelector(":scope > .ocr-head");
+  const title=card.querySelector(":scope > h2:not(.sr-only)");
+  if(!close||(!customHead&&!title)) return;
+  let head;
+  if(customHead){
+    customHead.classList.add("modal-head");
+    const copy=document.createElement("div");
+    copy.className="modal-head-copy ocr-head-copy";
+    [...customHead.childNodes].filter(node=>node!==close).forEach(node=>copy.append(node));
+    customHead.append(copy,close);
+    head=customHead;
+  }else{
+    head=document.createElement("div");
+    head.className="modal-head";
+    const copy=document.createElement("div");
+    copy.className="modal-head-copy";
+    const kicker=card.querySelector(":scope > .mission-note-kicker");
+    const sheetHandle=card.querySelector(":scope > .sheet-handle");
+    if(kicker) copy.append(kicker);
+    copy.append(title);
+    if(sheetHandle) head.append(sheetHandle);
+    head.append(copy,close);
+    card.insertBefore(head,card.firstChild);
+  }
+  /* نافذة OCR لها تخطيط مراحل داخلي خاص (ومنها أكثر من شريط أفعال)،
+     فنكتفي بتثبيت رأسها ولا نعيد توزيع جسمها. */
+  if(card.classList.contains("af-ocr-modal")) return;
+  const footers=[...card.querySelectorAll(".modal-foot,.dialog-actions")];
+  const footer=footers.length===1?footers[0]:null;
+  if(footer){
+    const owner=footer.closest("form");
+    if(owner?.id){
+      footer.querySelectorAll('button[type="submit"],input[type="submit"]').forEach(control=>
+        control.setAttribute("form",owner.id));
+    }
+    footer.remove();
+  }
+  const body=document.createElement("div");
+  body.className="modal-body";
+  [...card.childNodes].filter(node=>node!==head&&node!==footer).forEach(node=>body.append(node));
+  card.append(body);
+  if(footer) card.append(footer);
+  card.classList.add("modal-framed");
+}
+$$('.modal').forEach(_enhanceModalFrame);
 const _modalFocusableSelector=[
   "a[href]", "button:not([disabled])", "input:not([disabled]):not([type=hidden])",
   "select:not([disabled])", "textarea:not([disabled])", "[tabindex]", '[contenteditable="true"]',
@@ -829,7 +883,8 @@ function _captureModalBaseline(event){
   // القوائم والتقويم في body، لكن تغييرهما محسوب على حقل النافذة الأصلية.
   const inCombo=_cbSel&&entry.form.contains(_cbSel)&&path.includes(comboPop);
   const inDate=_dpInput&&entry.form.contains(_dpInput)&&path.includes(datePopover);
-  if(inCard||inCombo||inDate) entry.snapshot=_modalFormState(entry.form);
+  const inTime=_tpInput&&entry.form.contains(_tpInput)&&path.includes(timePopover);
+  if(inCard||inCombo||inDate||inTime) entry.snapshot=_modalFormState(entry.form);
 }
 document.addEventListener("pointerdown",_captureModalBaseline,true);
 document.addEventListener("keydown",_captureModalBaseline,true);
@@ -858,6 +913,7 @@ function _focusModal(modal){
 function openModal(id){
   const modal=$("#"+id);
   if(!modal) return;
+  _enhanceModalFrame(modal);
   const current=_modalStack.find(entry=>entry.modal===modal);
   if(current){
     if(_modalTop()===current) _focusModal(modal);
@@ -1000,6 +1056,7 @@ function dateDialog({title,body,label,value,confirmLabel,min,max}){
     if(max) input.max=max;
     field.appendChild(input); $("#sharedDialogField").appendChild(field);
     upgradeDateInputs($("#sharedDialogField"));
+    upgradeTimeInputs($("#sharedDialogField"));
   },()=>{
     const input=$("#sharedDialogDate"), value=input.value;
     const error=$("#sharedDialogError");
@@ -1244,6 +1301,7 @@ ACTIONS._dpNav=id=>{
    ما الزرار نفسه يتشال. */
 document.addEventListener("click",e=>{
   if(_dpInput && !e.composedPath().includes(datePopover) && e.target!==_dpInput) _dpClose();
+  if(_tpInput && !e.composedPath().includes(timePopover) && e.target!==_tpInput) _tpClose();
 });
 /* التقويم `position:fixed` وموضعه بيتحسب مرة واحدة وقت الفتح (`_dpPosition`)
    نسبة لمكان الحقل وقتها. لو المستخدم بعد كده عمل اسكرول (الصفحة نفسها،
@@ -1256,6 +1314,7 @@ document.addEventListener("click",e=>{
    يسبّبه في بعض المتصفحات) كان بيقفل التقويم لوحده. */
 document.addEventListener("scroll",e=>{
   if(_dpInput && !datePopover.contains(e.target)) _dpPosition(_dpInput);
+  if(_tpInput && !timePopover.contains(e.target)) _tpPosition(_tpInput);
 },true);
 
 /** بتحوّل أي input[type=date]/input[type=month] لسه ما اترقّاش. بتتنادى
@@ -1289,6 +1348,121 @@ function upgradeDateInputs(root){
   });
 }
 upgradeDateInputs();
+
+/* ---------- منتقي وقت الانتظام العربي ----------
+   وقت الأرشيف له قواعده الخاصة: الرقم المجرد 1–6 مساءً، و«12ص» ظهر،
+   و«12م» منتصف الليل. الحقل نفسه يفضل نصًا للعرض القديم، لكن القيمة الجديدة
+   بتتسجل canonical في data.hhmm عشان الطلبات ما تعتمدش على صياغة العرض. */
+function parseTimeAr(text){
+  const value=String(text??"").replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x660));
+  const match=value.match(/(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(ص|ظ|م|ليل)?/);
+  if(!match) return null;
+  const hour=Number(match[1]), minute=Number(match[2]||0), suffix=match[3]||"";
+  if(minute<0||minute>59||hour<0||hour>23) return null;
+  let h=hour;
+  if(suffix==="ليل") h=h%12;
+  else if(suffix==="ص"||suffix==="ظ") h=h===12?12:h%12;
+  else if(suffix==="م") h=h===12?0:h%12+12;
+  else if(h===12) h=12;
+  else if(h>=1&&h<=6) h+=12;
+  return `${String(h).padStart(2,"0")}:${String(minute).padStart(2,"0")}`;
+}
+function formatTimeAr(value){
+  const match=String(value??"").match(/^(\d{2}):(\d{2})$/);
+  if(!match) throw new Error("الوقت لازم يكون HH:MM");
+  const hour=Number(match[1]), minute=Number(match[2]);
+  if(hour>23||minute>59) throw new Error("الوقت غير صحيح");
+  if(hour===0) return minute===0?"12 ليل":`12:${String(minute).padStart(2,"0")}ليل`;
+  if(hour===12) return `${minute===0?12:`12:${String(minute).padStart(2,"0")}`}ظ`;
+  const shown=hour<12?hour:hour-12, suffix=hour<12?"ص":"م";
+  return `${minute===0?shown:`${shown}:${String(minute).padStart(2,"0")}`}${suffix}`;
+}
+function setTimeInputValue(input, raw){
+  const text=String(raw??"");
+  const parsed=parseTimeAr(text);
+  input.dataset.hhmm=parsed||"";
+  input.value=parsed?formatTimeAr(parsed):text;
+  input.dataset.legacy=parsed||!text?"":"1";
+}
+
+const timePopover=document.createElement("div");
+timePopover.className="time-popover hidden";
+timePopover.id="timePopover";
+timePopover.setAttribute("role","dialog");
+timePopover.setAttribute("aria-modal","false");
+document.body.appendChild(timePopover);
+let _tpInput=null, _tpDraft=null;
+function _tpClose(){timePopover.classList.add("hidden");_tpInput=null;_tpDraft=null}
+function _tpCanonical(d){
+  let h=d.hour%12;
+  if(d.period==="am") h=d.hour===12?12:h;
+  else h=d.hour===12?0:h+12;
+  return `${String(h).padStart(2,"0")}:${String(d.minute).padStart(2,"0")}`;
+}
+function _tpDraftFromInput(input){
+  const value=input.dataset.hhmm||parseTimeAr(input.value);
+  if(!value) return {hour:8,minute:0,period:"am"};
+  const [hh,mm]=value.split(":").map(Number);
+  return {hour:hh===0||hh===12?12:hh%12,minute:mm,period:hh<12?"am":"pm"};
+}
+function _tpRender(focusKey){
+  const d=_tpDraft, selected=_tpCanonical(d);
+  const hours=Array.from({length:12},(_,i)=>i+1).map(h=>`<button type="button" class="tp-hour ${h===d.hour?"sel":""}" data-time-action="hour" data-value="${h}" aria-label="الساعة ${h}" aria-pressed="${h===d.hour}">${h}</button>`).join("");
+  const periods=[["am","ص"],["pm","م"]].map(([v,label])=>`<button type="button" class="tp-period ${v===d.period?"sel":""}" data-time-action="period" data-value="${v}" aria-label="${label}" aria-pressed="${v===d.period}">${label}</button>`).join("");
+  const quick=[0,15,30,45].map(m=>`<button type="button" class="tp-minute ${m===d.minute?"sel":""}" data-time-action="minute" data-value="${m}" aria-label="${String(m).padStart(2,"0")} دقيقة" aria-pressed="${m===d.minute}">${String(m).padStart(2,"0")}</button>`).join("");
+  timePopover.innerHTML=`<div class="tp-title" id="timePopoverTitle">اختيار معاد الانتظام</div>
+    <div class="tp-preview" aria-live="polite">${esc(formatTimeAr(selected))}</div>
+    <div class="tp-label">الساعة</div><div class="tp-hours" role="group" aria-label="اختيار الساعة">${hours}</div>
+    <div class="tp-label">الفترة</div><div class="tp-periods" role="group" aria-label="اختيار الفترة">${periods}</div>
+    <div class="tp-label">الدقائق</div><div class="tp-minutes" role="group" aria-label="اختيار الدقائق">${quick}</div>
+    <div class="tp-fine"><button type="button" data-time-action="fine" data-value="-5" aria-label="إنقاص خمس دقائق">−5</button><span>${String(d.minute).padStart(2,"0")}</span><button type="button" data-time-action="fine" data-value="5" aria-label="زيادة خمس دقائق">+5</button></div>
+    <div class="tp-actions"><button type="button" class="tp-clear" data-time-action="clear">مسح</button><button type="button" class="primary" data-time-action="done">تم</button></div>`;
+  timePopover.setAttribute("aria-labelledby","timePopoverTitle");
+  if(focusKey) timePopover.querySelector(`[data-time-action="${focusKey}"]`)?.focus();
+}
+function _tpPosition(input){
+  const r=input.getBoundingClientRect(), width=timePopover.offsetWidth||300, height=timePopover.offsetHeight||420, edge=8, gap=6;
+  const roomBelow=window.innerHeight-r.bottom-gap-edge, roomAbove=r.top-gap-edge;
+  let top=roomBelow>=height||roomBelow>=roomAbove ? r.bottom+gap : r.top-height-gap;
+  top=Math.max(edge,Math.min(top,window.innerHeight-height-edge));
+  const left=Math.max(edge,Math.min(r.left,window.innerWidth-width-edge));
+  timePopover.style.top=`${top}px`;timePopover.style.left=`${left}px`;
+}
+function _tpOpen(input){
+  _tpInput=input;_tpDraft=_tpDraftFromInput(input);_tpRender();timePopover.classList.remove("hidden");_tpPosition(input);
+  (timePopover.querySelector(".tp-hour.sel")||timePopover.querySelector(".tp-hour"))?.focus();
+}
+function _tpCommit(value){
+  const input=_tpInput;if(!input)return;
+  _tpClose();setTimeInputValue(input,value);_dpFireChange(input);input.focus();
+}
+timePopover.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-time-action]");if(!btn)return;
+  const action=btn.dataset.timeAction;
+  if(action==="done") return _tpCommit(_tpCanonical(_tpDraft));
+  if(action==="clear") return _tpCommit("");
+  if(action==="hour") _tpDraft.hour=Number(btn.dataset.value);
+  if(action==="period") _tpDraft.period=btn.dataset.value;
+  if(action==="minute") _tpDraft.minute=Number(btn.dataset.value);
+  if(action==="fine") _tpDraft.minute=(_tpDraft.minute+Number(btn.dataset.value)+60)%60;
+  _tpRender(action==="fine"?"fine":action);
+});
+timePopover.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){e.preventDefault();const input=_tpInput;_tpClose();input?.focus();return}
+  if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))return;
+  const buttons=[...timePopover.querySelectorAll("button")], index=buttons.indexOf(e.target);if(index<0)return;
+  e.preventDefault();const next=index+(e.key==="ArrowLeft"||e.key==="ArrowUp"?-1:1);buttons[(next+buttons.length)%buttons.length]?.focus();
+});
+function upgradeTimeInputs(root){
+  (root||document).querySelectorAll("input[data-time]").forEach(input=>{
+    if(input.dataset.timePicker) return;
+    input.dataset.timePicker="1";input.readOnly=true;input.classList.add("time-input-display");
+    setTimeInputValue(input,input.value);
+    input.addEventListener("click",()=>_tpOpen(input));
+    input.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();_tpOpen(input)}});
+  });
+}
+upgradeTimeInputs();
 
 /* ═══════════════════════════════════════════════════════════════════
    قائمة منسدلة قابلة للبحث (Combobox)
@@ -1388,6 +1562,7 @@ function _cbRender(q) {
   const typed = String(q || "").trim();
   const allowCustom = !_cbMulti && _cbSel.hasAttribute("data-combo-custom");
   const showCustomOption = allowCustom && _cbSel.dataset.comboCustomOption !== "none";
+  const customLabel = _cbSel.dataset.comboCustomLabel || "قسم جديد";
   const exact = typed && all.some(o => o.value.trim() === typed || o.text.trim() === typed);
   const custom = showCustomOption && typed && !exact
     ? [{custom: true, text: typed, value: typed}] : [];
@@ -1413,7 +1588,7 @@ function _cbRender(q) {
     return `<li id="${_cbSel._comboId}-option-${n}" role="option" aria-selected="${on}" data-action="_cbPick" data-id="${n}"
       class="combo-opt${o.custom ? " custom" : ""}${on ? " sel" : ""}${n === _cbIdx ? " active" : ""}"
       >${_cbMulti ? `<span class="combo-tick" aria-hidden="true">${on ? icon("check") : ""}</span>` : ""}${o.custom
-        ? `${icon("plus")} قسم جديد: «${esc(o.text)}»` : esc(o.text)}</li>`;
+        ? `${icon("plus")} ${esc(customLabel)}: «${esc(o.text)}»` : esc(o.text)}</li>`;
   }).join("")}</ul>${more}`;
   const active=comboPop.querySelector(".combo-opt.active");
   if(active) _cbInput.setAttribute("aria-activedescendant",active.id);
@@ -1830,7 +2005,9 @@ document.addEventListener("keydown",e=>{
     const popup=_rowMenuTrigger&&!rowMenuPop.classList.contains("hidden")&&rowMenuPop.contains(active)
       ? rowMenuPop
       : (!_cbSel||comboPop.classList.contains("hidden")||!comboPop.contains(active))
-        ? (!_dpInput||datePopover.classList.contains("hidden")||!datePopover.contains(active)?null:datePopover)
+        ? (!_dpInput||datePopover.classList.contains("hidden")||!datePopover.contains(active)
+            ? (!_tpInput||timePopover.classList.contains("hidden")||!timePopover.contains(active)?null:timePopover)
+            : datePopover)
         : comboPop;
     const focusable=[..._modalFocusable(card),...(popup?_modalFocusable(popup):[])];
     if(!focusable.length){ e.preventDefault(); card.focus({preventScroll:true}); return }
@@ -1848,6 +2025,7 @@ document.addEventListener("keydown",e=>{
   if(_rowMenuTrigger){ _rowMenuClose(true); return }
   if(_cbSel){ _cbClose(); return }
   if(_dpInput){ const input=_dpInput; _dpClose(); input.focus(); return }
+  if(_tpInput){ const input=_tpInput; _tpClose(); input.focus(); return }
   if(_modalTop()){ closeModal(_modalTop().modal.id); return }
   setSidebar(false);
 });

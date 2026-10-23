@@ -10,7 +10,8 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-from .board_export import WEEKDAY_BY_INDEX, normalize_document_runs, set_run_font
+from .board_export import (WEEKDAY_BY_INDEX, normalize_document_runs, set_run_font,
+                           style_tables_bold_rtl)
 from .constants import (OFFICER_SECTIONS, SECTION_FORCE, SECTION_GUARDS,
                         SECTION_OUTSIDE, SECTION_SUBCAMP, SUBCAMP_SERVICES)
 from .export_fit import PageFitError, docx_table_spec, estimate_table_height, usable_height_pt
@@ -94,9 +95,11 @@ def _summary_values(summary):
     morning = str(external["صباحية"])
     if external.get("بحث"):
         morning += f"+ {external['بحث']} بحث"
+    fixed_outside = {"تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب"}
+    other_emergency = sum(value for key, value in outside.items() if key not in fixed_outside)
     return [summary["أصل القوة"], morning, external["ليلية"], internal["صباحية"],
             internal["ليلية"], medical["موجود"], medical["راحة"], outside["تقصيرة"],
-            outside["راحة"], outside["طارئة"], outside["غياب"], outside["مرضي"],
+            outside["راحة"], outside["طارئة"] + other_emergency, outside["غياب"], outside["مرضي"],
             outside["فرقة"], outside["انتداب"], summary["حراسات"], ""]
 
 
@@ -204,6 +207,7 @@ def build_docx(duty):
                             center=index in (0, 1, 5))
 
     _fill_summary(document.tables[1], duty["summary"], duty["rows"])
+    style_tables_bold_rtl(document)          # العرض بيتقاس وهو bold
     _scale_runs(document, _fit_measure(document))
     normalize_document_runs(document)
     buf = BytesIO()
