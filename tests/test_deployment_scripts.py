@@ -30,9 +30,14 @@ def test_deployment_scripts_are_relocatable_and_logged():
     assert 'cd /d "%ROOT%"' in start
     assert '"%ROOT%serve.py"' in start
     assert "logs\\server-console.log" in start
+    assert 'call "%ROOT%SETUP_OFFLINE.bat"' in start
+    assert "First launch detected" in start
+    assert "AUTO_SETUP_ATTEMPTED" in start
+    assert "PERSONNEL_SETUP_FROM_START" in setup
 
+    assert "if not defined PERSONNEL_NO_PAUSE" in start
+    assert "if not defined PERSONNEL_NO_PAUSE if not defined PERSONNEL_SETUP_FROM_START" in setup
     for script in (start, setup):
-        assert "if not defined PERSONNEL_NO_PAUSE" in script
         assert "Press any key to close this window" in script
         assert 'info "Details: %DEPLOY_LOG%"' in script
 

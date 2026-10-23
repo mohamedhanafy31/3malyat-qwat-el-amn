@@ -6,6 +6,7 @@ cd /d "%ROOT%"
 set "PYTHONUTF8=1"
 call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "start-system"
 
+:check_runtime
 call "%ROOT%tools\deploy_console.bat" step "[1/5] Checking bundled runtime..."
 set "PY="
 if exist "%ROOT%runtime\python.exe" set "PY=%ROOT%runtime\python.exe"
@@ -61,7 +62,19 @@ endlocal
 exit /b 0
 
 :not_ready
-call "%ROOT%tools\deploy_console.bat" error "Production runtime is not ready. Run SETUP_OFFLINE.bat first."
+if defined AUTO_SETUP_ATTEMPTED goto setup_failed
+set "AUTO_SETUP_ATTEMPTED=1"
+call "%ROOT%tools\deploy_console.bat" info "First launch detected. Running offline setup automatically..."
+set "PERSONNEL_SETUP_FROM_START=1"
+call "%ROOT%SETUP_OFFLINE.bat"
+set "SETUP_RESULT=!ERRORLEVEL!"
+set "PERSONNEL_SETUP_FROM_START="
+if not "!SETUP_RESULT!"=="0" goto setup_failed
+call "%ROOT%tools\deploy_console.bat" ok "First-launch setup completed. Continuing startup."
+goto check_runtime
+
+:setup_failed
+call "%ROOT%tools\deploy_console.bat" error "Automatic offline setup failed."
 goto show_failure
 :failed
 call "%ROOT%tools\deploy_console.bat" error "Server stopped with an error. See logs\start-system.log."
