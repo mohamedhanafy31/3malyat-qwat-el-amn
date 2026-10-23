@@ -65,6 +65,15 @@ def test_store_requires_verify(batch):
         run_store(ledger, state, write=True)
 
 
+def test_new_importer_batches_require_structural_preview(batch):
+    ledger, state = batch
+    state["extractor_versions"]["preview"] = "1"
+    with pytest.raises(StoreRefused, match="preview"):
+        run_store(ledger, state)
+    state["stages"]["preview"] = {"status": "complete"}
+    assert run_store(ledger, state)["plan"]["write"] == 1
+
+
 def test_in_app_day_needs_flag_and_written_approval(batch):
     ledger, state = batch
     assert run_store(ledger, state, replace_existing=True)["skipped"]["2025-02-01"].endswith("replace.csv")

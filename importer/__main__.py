@@ -19,6 +19,8 @@ from .verify import DEFAULT_THRESHOLD
 from .verify import VERSION as VERIFY_VERSION
 from .verify import run_verify
 from .golden import run_golden
+from .preview import VERSION as PREVIEW_VERSION
+from .preview import run_preview
 from .store import StoreRefused, run_diff, run_report, run_rollback, run_store
 from .discover import VERSION as DISCOVER_VERSION
 from .discover import run_discover
@@ -33,7 +35,7 @@ from .validate import VERSION as VALIDATE_VERSION
 from .validate import run_validate
 
 
-STAGES = ("discover", "extract", "validate", "normalize", "resolve", "aliases", "transform", "verify", "audit", "golden",
+STAGES = ("discover", "extract", "validate", "normalize", "resolve", "aliases", "transform", "preview", "verify", "audit", "golden",
           "store", "rollback", "diff", "report", "run")
 DEFAULT_START = dt.date(2023, 10, 1)
 DEFAULT_END = dt.date(2026, 9, 29)
@@ -109,6 +111,7 @@ def main(argv: list[str] | None = None) -> int:
         "resolve": RESOLVE_VERSION,
         "aliases": ALIASES_VERSION,
         "transform": TRANSFORM_VERSION,
+        "preview": PREVIEW_VERSION,
         "verify": VERIFY_VERSION,
         "audit": AUDIT_VERSION,
     })
@@ -180,6 +183,15 @@ def main(argv: list[str] | None = None) -> int:
         print(f"اكتملت مرحلة transform: {checkpoint['days']} يومًا ({checkpoint['derived_days']} مشتق)، "
               f"{checkpoint['rows']} تكليفًا، {checkpoint['officer_states']} حالة ضابط.")
         return 0
+    if args.stage == "preview":
+        try:
+            checkpoint = run_preview(ledger, state)
+        except FileNotFoundError as exc:
+            cli.error(str(exc))
+        print(f"اكتملت مرحلة preview: {checkpoint['days']} يومًا، "
+              f"مجتاز {checkpoint['passed']}، معزول {checkpoint['quarantined']}، "
+              f"أخطاء {checkpoint['errors']}.")
+        return 0
     if args.stage == "verify":
         checkpoint = run_verify(ledger, state, threshold=args.threshold)
         print(f"اكتملت مرحلة verify: {checkpoint['days']} يومًا، متوسط الدرجة {checkpoint['mean_score']}، "
@@ -229,6 +241,7 @@ def main(argv: list[str] | None = None) -> int:
         run_resolve(ledger, state, args.from_date, args.to_date, resume=args.resume)
         run_aliases(ledger, state, args.from_date, args.to_date, resume=args.resume)
         run_transform(ledger, state, args.from_date, args.to_date, resume=args.resume)
+        run_preview(ledger, state)
         verified = run_verify(ledger, state, threshold=args.threshold)
         run_audit(ledger, args.from_date, args.to_date, state)
         run_diff(ledger, state)

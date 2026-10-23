@@ -93,6 +93,11 @@ def quarantined(ledger: Ledger) -> set[str]:
     return set((json.loads(path.read_text(encoding="utf-8")).get("days") or {}) if path.exists() else {})
 
 
+def preview_quarantined(ledger: Ledger) -> set[str]:
+    path = ledger.root / "quarantine" / f"{ledger.batch}-preview.json"
+    return set((json.loads(path.read_text(encoding="utf-8")).get("days") or {}) if path.exists() else {})
+
+
 # ---------- الخطة ----------
 
 def plan(ledger: Ledger, *, replace_existing: bool = False) -> dict[str, Any]:
@@ -100,6 +105,7 @@ def plan(ledger: Ledger, *, replace_existing: bool = False) -> dict[str, Any]:
     days = transformed_days(ledger)
     target = load_target_days(ledger.data_dir)
     held = quarantined(ledger)
+    structural = preview_quarantined(ledger)
     approved = approvals(ledger)
     partial = partial_source_dates(ledger)
     result: dict[str, tuple[str, str]] = {}
@@ -109,6 +115,8 @@ def plan(ledger: Ledger, *, replace_existing: bool = False) -> dict[str, Any]:
             result[date] = ("skip", "يوم مرجعي محمي")
         elif date in partial:
             result[date] = ("skip", "مصدر جزئي — محتاج مراجعة")
+        elif date in structural:
+            result[date] = ("skip", "معزول بنيويًا في preview")
         elif date in held:
             result[date] = ("skip", "معزول في verify")
         elif current is None:
@@ -209,6 +217,10 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
     verify_state = (state.get("stages") or {}).get("verify") or {}
     if verify_state.get("status") != "complete":
         raise StoreRefused("لازم verify يكتمل للدفعة الأول")
+    if "preview" in (state.get("extractor_versions") or {}):
+        preview_state = (state.get("stages") or {}).get("preview") or {}
+        if preview_state.get("status") != "complete":
+            raise StoreRefused("لازم preview البنيوي يكتمل للدفعة الأول")
     if write and resume:
         # A recovered store journal may already have applied the intended files;
         # continue far enough to write the importer completion record.
@@ -401,7 +413,7 @@ def run_rollback(ledger: Ledger, state: dict[str, Any] | None = None, *, write: 
 def run_report(ledger: Ledger, state: dict[str, Any] | None = None) -> Path:
     def report(name: str) -> dict[str, Any]:
         return _load(ledger.report_path(name))
-    transform, verify = report("transform.json"), report("verify.json")
+    transform, preview, verify = report("transform.json"), report("preview.json"), report("verify.json")
     stored = _load(_store_record_path(ledger))
     review = _load(ledger.root / "review" / f"{ledger.batch}-store-review.json") or []
     lines = [f"# تقرير الدفعة {ledger.batch}", ""]
@@ -410,6 +422,12 @@ def run_report(ledger: Ledger, state: dict[str, Any] | None = None) -> Path:
     lines += [f"| {name} | {info.get('status', '')} |" for name, info in stages.items()]
     lines += ["", "## TRANSFORM", ""] + [f"- {key}: {value}" for key, value in transform.items() if key != "review"]
     lines += [f"- مراجعة {key}: {value}" for key, value in (transform.get("review") or {}).items()]
+    if preview:
+        lines += ["", "## PREVIEW", "",
+                  f"- أيام: {preview.get('days')}، مجتاز {preview.get('passed')}، "
+                  f"معزول {preview.get('quarantined')}، أخطاء {preview.get('errors')}، "
+                  f"تحذيرات {preview.get('warnings')}",
+                  "- التفاصيل: reports/" + f"{ledger.batch}-preview.md"]
     lines += ["", "## VERIFY", "", f"- أيام: {verify.get('days')}، متوسط الدرجة {verify.get('mean_score')}، "
               f"معزول {verify.get('quarantined')} (الحد {verify.get('threshold')})",
               "- التفاصيل: reports/" + f"{ledger.batch}-verify.md"]
@@ -436,4 +454,5 @@ def run_report(ledger: Ledger, state: dict[str, Any] | None = None) -> Path:
     return path
 
 
-__all__ = ["StoreRefused", "check_migrations", "plan", "run_diff", "run_report", "run_rollback", "run_store"]
+__all__ = ["StoreRefused", "check_migrations", "plan", "preview_quarantined", "run_diff", "run_report",
+           "run_rollback", "run_store"]
