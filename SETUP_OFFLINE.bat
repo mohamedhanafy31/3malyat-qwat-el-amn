@@ -91,17 +91,23 @@ exit /b 0
 
 :no_wheels
 call "%ROOT%tools\deploy_console.bat" error "No offline wheels found. Run PREPARE_ONLINE.bat first."
-endlocal
-exit /b 1
+goto show_failure
 :no_python
 call "%ROOT%tools\deploy_console.bat" error "No bundled runtime and no system Python was found."
-endlocal
-exit /b 1
+goto show_failure
 :no_tesseract
 call "%ROOT%tools\deploy_console.bat" error "Bundled Tesseract OCR or Arabic language data is missing."
-endlocal
-exit /b 1
+goto show_failure
 :failed
 call "%ROOT%tools\deploy_console.bat" error "Offline setup failed. See logs\setup-offline.log."
+goto show_failure
+
+:show_failure
+call "%ROOT%tools\deploy_console.bat" info "Details: %DEPLOY_LOG%"
+if not defined PERSONNEL_NO_PAUSE (
+    echo.
+    echo Press any key to close this window after reading the error above.
+    pause >nul
+)
 endlocal
 exit /b 1

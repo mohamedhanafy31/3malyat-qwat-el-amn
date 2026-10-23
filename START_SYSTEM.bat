@@ -62,9 +62,18 @@ exit /b 0
 
 :not_ready
 call "%ROOT%tools\deploy_console.bat" error "Production runtime is not ready. Run SETUP_OFFLINE.bat first."
-endlocal
-exit /b 1
+goto show_failure
 :failed
 call "%ROOT%tools\deploy_console.bat" error "Server stopped with an error. See logs\start-system.log."
+goto show_failure
+
+:show_failure
+call "%ROOT%tools\deploy_console.bat" info "Details: %DEPLOY_LOG%"
+call "%ROOT%tools\deploy_console.bat" info "Server output: %ROOT%logs\server-console.log"
+if not defined PERSONNEL_NO_PAUSE (
+    echo.
+    echo Press any key to close this window after reading the error above.
+    pause >nul
+)
 endlocal
 exit /b 1

@@ -25,9 +25,16 @@ def test_deployment_batch_files_are_ascii_only():
 
 def test_deployment_scripts_are_relocatable_and_logged():
     start = (ROOT / "START_SYSTEM.bat").read_text(encoding="ascii")
+    setup = (ROOT / "SETUP_OFFLINE.bat").read_text(encoding="ascii")
     assert 'set "ROOT=%~dp0"' in start
     assert 'cd /d "%ROOT%"' in start
     assert '"%ROOT%serve.py"' in start
+    assert "logs\\server-console.log" in start
+
+    for script in (start, setup):
+        assert "if not defined PERSONNEL_NO_PAUSE" in script
+        assert "Press any key to close this window" in script
+        assert 'info "Details: %DEPLOY_LOG%"' in script
 
     for name in SCRIPTS:
         text = (ROOT / name).read_text(encoding="ascii")
