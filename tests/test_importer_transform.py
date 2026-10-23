@@ -5,7 +5,7 @@ from backend.constants import (
     SECTION_OUTSIDERS, SECTION_RESTS, SECTION_SUBCAMP, SECTION_TARGETS,
 )
 from importer.transform import (
-    DayBuilder, _computed_section, _count_int, _display_section, _party, _pick,
+    DayBuilder, _computed_section, _count_int, _display_section, _party, _pick, _slim,
     _shift_from_time, _strip_shift_word,
     core_delta, reference_versions,
 )
@@ -172,6 +172,32 @@ def test_board_shift_only_row_continues_service_and_person_label_is_not_a_sectio
     assert ("الخدمات الطارئة", "ارتكاز المثلث صبح", "صباحية") in rows
     assert ("الخدمات الطارئة", "ارتكاز المثلث ليل", "ليلية") in rows
     assert ("الخدمات الطارئة", "مأمورية إمداد", "صباحية") in rows
+
+
+def test_board_header_sets_each_lanes_initial_section_independently():
+    records = [
+        _rec(0, "board", "header", half_labels=["الخدمات الأساسية", "الخدمات الطارئة"]),
+        _rec(1, "board", "board_row", half=0, label="تدخل سريع صبح", manning="فرد",
+             shift=["صباحية"]),
+        _rec(2, "board", "board_row", half=1, label="ترحيلة العاشر 7ص", manning="فرد + مج",
+             shift=["صباحية"]),
+    ]
+    day = DayBuilder("2026-10-04", records, FakeCtx()).build("B", "B")
+    rows = {(row["section"], row["name"]) for row in day["assignments"]}
+    assert (SECTION_BASIC, "تدخل سريع صبح") in rows
+    assert (SECTION_OCCASIONAL, "ترحيلة العاشر 7ص") in rows
+
+
+def test_slim_preserves_board_header_lane_labels():
+    record = {
+        "date": "2026-10-04", "role": "board", "record_type": "header",
+        "path": "2026/10/4/4.docx", "file_sha1": "abc", "table_index": 0, "row_index": 0,
+        "half_labels": ["الخدمات الأساسية", "  الخدمات الطارئة  "],
+    }
+
+    slim = _slim(0, record)
+
+    assert slim["half_labels"] == ["الخدمات الأساسية", "الخدمات الطارئة"]
 
 
 def test_history_ignores_unknown_ranks_and_one_day_blips():

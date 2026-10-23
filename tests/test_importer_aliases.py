@@ -1,5 +1,6 @@
 import json
 
+from backend.constants import SECTION_OCCASIONAL
 from importer.aliases import VocabularyItem, collect_phrases, detect_events, propose_alias, service_key
 
 
@@ -40,6 +41,19 @@ def test_instruction_row_is_note_not_service_phrase():
     phrases, notes = collect_phrases(records, _vocabulary())
     assert not phrases
     assert notes[0]["classification"] == "note"
+
+
+def test_board_header_initializes_each_lane_phrase_context():
+    records = [{
+        "date": "2026-10-04", "role": "board", "record_type": "header", "path": "4.docx",
+        "half_labels": ["الخدمات الأساسية", "الخدمات الطارئة"],
+    }, {
+        "date": "2026-10-04", "role": "board", "record_type": "board_row", "path": "4.docx",
+        "half": 1, "label": "ترحيلة العاشر 7ص", "raw_cells": ["ترحيلة العاشر 7ص", "فرد + مج"],
+    }]
+    phrases, _notes = collect_phrases(records, _vocabulary())
+    phrase = next(iter(phrases.values()))
+    assert phrase.contexts == {f"board:{SECTION_OCCASIONAL}": 1}
 
 
 def test_event_detection_uses_headings_and_only_current_nonstale_documents():

@@ -16,7 +16,7 @@ from .ledger import Ledger, atomic_write_jsonl
 from .textnorm import dates_in_text, norm, strip_format_marks, weekday_in_text
 
 
-VERSION = "2"
+VERSION = "3"
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 HEADER_ALIASES = {
     "م": "م", "الرتبه": "الرتبة", "رقم الاقدميه": "رقم الأقدمية",
@@ -29,11 +29,13 @@ HEADER_ALIASES = {
 }
 ROSTER_SECTIONS = ("الحراسات المشدده", "الخوارج")
 BOARD_SECTIONS = (
-    "الخدمات الاساسيه", "الخدمات اساسيه", "الخدمات الطاريه", "الطواري", "الاهداف", "معسكر فرعي",
+    "الخدمات الاساسيه", "الخدمات اساسيه", "خدمات الاساسيه", "خدمات اساسيه",
+    "الخدمات الطاريه", "الطواري", "الاهداف", "معسكر فرعي",
     "المعسكر الفرعي", "ضابط الامن", "ضابط عظيم", "خدمات سجن قوات الامن", "خدمات السجن",
     "تقصيره", "الخوارج", "الراحات",
     "عمل بالاداره", "فتره صباحيه", "فتره ليليه",
 )
+BOARD_SECTION_KEYS = tuple(norm(section) for section in BOARD_SECTIONS)
 WEAPONS = ("الي", "خرطوش", "فيدرال", "دونك", "كلبش", "مايك", "بريتا")
 TIME_RE = re.compile(r"(?:\b\d{1,2}\s*(?::|\.)\s*\d{1,2}\b|\b\d{1,2}\s*[صمظ]\b|الساعه|انتظام)")
 PERSON_RE = re.compile(r"(?:\b01\d{9}\b|م\s*[.\/]\s*ش|ا\s*[.\/]\s*ش|رقيب|مساعد|مندوب|معاون)")
@@ -44,6 +46,7 @@ STRENGTH_RE = re.compile(r"(?:\d+\s*(?:مج|مجند|فرد)|سائق)")
 class Cell:
     text: str
     columns: tuple[int, ...]
+    vmerge: str = ""
 
 
 @dataclass(frozen=True)
@@ -121,7 +124,10 @@ def read_docx_raw(path: Path) -> DocxData:
                     for cell in row.findall(W + "tc"):
                         span = max(1, _grid_value(cell.find("./" + W + "tcPr/" + W + "gridSpan"), 1))
                         columns = tuple(range(grid, grid + span))
-                        parsed_cells.append(Cell(_cell_text(cell), columns))
+                        merge = cell.find("./" + W + "tcPr/" + W + "vMerge")
+                        # w:vMerge من غير قيمة = استمرار للخلية اللي فوقها.
+                        vmerge = (merge.get(W + "val") or "continue") if merge is not None else ""
+                        parsed_cells.append(Cell(_cell_text(cell), columns, vmerge))
                         grid += span
                     parsed_rows.append(tuple(parsed_cells))
                 tables.append(Table(tuple(parsed_rows)))
@@ -282,19 +288,34 @@ def _extract_board(doc: dict[str, Any], data: DocxData) -> list[dict[str, Any]]:
     for ti, table in enumerate(data.tables):
         if not table.rows:
             continue
-        header_index = next((ri for ri, row in enumerate(table.rows) if
-                             any(value in norm(" ".join(c.text for c in row)) for value in _BASIC_HEADERS) and
-                             "الاهداف" in norm(" ".join(c.text for c in row))), 0)
+        # رأس أكتوبر مثلًا «الخدمات الأساسية | الخدمات الطارئة»، وليس
+        # «الخدمات الأساسية | الأهداف». البحث القديم اشترط «الأهداف» ثم
+        # قسّم الجدول من المنتصف، فاعتبر بداية اليمين 3 بدل 2 وأسقط اسم
+        # خدمة الطوارئ الموجود في العمودين 2–3.
+        def section_cells(row: tuple[Cell, ...]) -> list[Cell]:
+            return [cell for cell in row if cell.text.strip() and
+                    any(section in norm(cell.text) for section in BOARD_SECTION_KEYS)]
+
+        header_index = next((ri for ri, row in enumerate(table.rows)
+                             if any(value in norm(" ".join(c.text for c in row)) for value in _BASIC_HEADERS)
+                             and len(section_cells(row)) >= 2), None)
+        if header_index is None:
+            header_index = next((ri for ri, row in enumerate(table.rows)
+                                 if len(section_cells(row)) >= 2), 0)
         header = table.rows[header_index]
-        starts = sorted({cell.columns[0] for cell in header
-                         if any(signature in norm(cell.text) for signature in (*_BASIC_HEADERS, "الاهداف"))})
+        anchors = sorted(section_cells(header), key=lambda cell: cell.columns[0])
+        starts = sorted({cell.columns[0] for cell in anchors})
         known_header = len(starts) >= 2
         if len(starts) < 2:
             max_column = max((column for row in table.rows for cell in row for column in cell.columns), default=3)
             starts = [0, (max_column + 1) // 2]
         starts = starts[:2]
+        half_labels = []
+        for start in starts:
+            label = next((cell.text for cell in anchors if cell.columns[0] == start), "")
+            half_labels.append(label)
         records.append(_row_record(doc, "header", ti, header_index, header, half_starts=starts,
-                                   known_section=known_header))
+                                   half_labels=half_labels, known_section=known_header))
         for half_index, start in enumerate(starts):
             end = starts[half_index + 1] if half_index + 1 < len(starts) else 10**6
             for ri, row in enumerate(table.rows[header_index + 1:], header_index + 1):
@@ -306,7 +327,8 @@ def _extract_board(doc: dict[str, Any], data: DocxData) -> list[dict[str, Any]]:
                 kind = "board_label" if len(nonempty) == 1 else "board_row"
                 records.append(_row_record(doc, kind, ti, ri, cells, half=half_index,
                                            label=nonempty[0], manning=nonempty[1] if len(nonempty) > 1 else "",
-                                           known_section=any(section in norm(nonempty[0]) for section in BOARD_SECTIONS)))
+                                           extra_cells=nonempty[2:],
+                                           known_section=any(section in norm(nonempty[0]) for section in BOARD_SECTION_KEYS)))
     return records
 
 

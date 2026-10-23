@@ -138,6 +138,44 @@ def test_board_header_without_article_and_spanning_cell_stay_in_one_half():
     assert pairs == [(0, "خدمة أولى", "رائد/ ضابط تجريبي"), (1, "هدف أول", "فرد")]
 
 
+def test_board_october_header_anchors_right_lane_at_emergency_column():
+    """تخطيط أكتوبر يبدأ يمينه عند 2؛ عدد أعمدة الجدول مش هو الحد."""
+    from importer.extract import Cell, DocxData, Table, _extract_board
+    rows = (
+        (Cell("الخدمات الأساسية", (0, 1)), Cell("الخدمات الطارئة", (2, 3, 4))),
+        (Cell("تدخل سريع صبح", (0,)), Cell("نقيب/ ضابط", (1,)),
+         Cell("ترحيلة العاشر 7ص", (2, 3)), Cell("فرد + مج", (4, 5))),
+    )
+    data = DocxData((), (), (Table(rows),), "x", ("",))
+    records = _extract_board({"path": "4.docx", "date": "2026-10-04", "role": "board"}, data)
+    header = next(record for record in records if record["record_type"] == "header")
+    assert header["half_starts"] == [0, 2]
+    assert header["half_labels"] == ["الخدمات الأساسية", "الخدمات الطارئة"]
+    right = next(record for record in records
+                 if record["record_type"] == "board_row" and record["half"] == 1)
+    assert (right["label"], right["manning"], right["extra_cells"]) == (
+        "ترحيلة العاشر 7ص", "فرد + مج", [])
+
+
+def test_board_same_physical_row_keeps_two_lanes_independent_and_preserves_third_cell():
+    from importer.extract import Cell, DocxData, Table, _extract_board
+    rows = (
+        (Cell("الخدمات الأساسية", (0, 1)), Cell("الخدمات الطارئة", (2, 3, 4))),
+        (Cell("الأهداف", (0, 1)), Cell("ترحيلة العاشر", (2, 3)), Cell("فرد + مج", (4, 5))),
+        (Cell("مشرف الأهداف", (0,)), Cell("مقدم/ السعيد", (1,)),
+         Cell("الخوارج", (2, 3, 4))),
+        (Cell("سوميد", (0,)), Cell("رائد/ محمد", (1,)), Cell("راحة", (2,)),
+         Cell("رائد/ خالد", (3,)), Cell("راحة شهرية", (4, 5))),
+    )
+    data = DocxData((), (), (Table(rows),), "x", ("",))
+    records = _extract_board({"path": "4.docx", "date": "2026-10-04", "role": "board"}, data)
+    rows = {(record.get("row_index"), record.get("half")): record for record in records
+            if record["record_type"] in {"board_row", "board_label"}}
+    assert rows[(1, 0)]["label"] == "الأهداف"
+    assert (rows[(1, 1)]["label"], rows[(1, 1)]["manning"]) == ("ترحيلة العاشر", "فرد + مج")
+    assert rows[(3, 1)]["extra_cells"] == ["راحة شهرية"]
+
+
 def test_afraad_merged_shift_is_reassigned_by_content(tmp_path):
     path = tmp_path / "afraad.docx"
     _docx(path, ["يوم الأربعاء الموافق 2-9-2026م"], [[

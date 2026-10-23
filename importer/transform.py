@@ -39,7 +39,7 @@ from .apply import grade_family
 from .ledger import Ledger, atomic_write_json, atomic_write_jsonl
 from .textnorm import clean_text
 
-VERSION = "2"
+VERSION = "4"
 PROTECTED = {"2026-09-01", "2026-09-02"}
 BOARD_START = "2024-10-30"
 
@@ -87,6 +87,7 @@ def _slim(index: int, record: dict[str, Any]) -> dict[str, Any]:
         "i": index, "date": record["date"], "role": record["role"], "type": record["record_type"],
         "path": record.get("path", ""), "sha1": record.get("file_sha1", ""), "table": record.get("table_index"),
         "row": record.get("row_index"), "half": record.get("half"), "label": clean_text(record.get("label")),
+        "half_labels": [clean_text(value) for value in record.get("half_labels") or []],
         "manning": clean_text(record.get("manning")), "fields": record.get("fields") or {},
         "cells": [clean_text(value) for value in record.get("raw_cells") or []],
         "aligned": record.get("aligned") or {}, "block": record.get("block", ""),
@@ -665,11 +666,16 @@ class DayBuilder:
             return False
         events = self.ctx.events.get(self.date, [])
         halves: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        initial_sections: dict[int, str] = {}
+        for header in self._of("board", "header"):
+            for half, label in enumerate(header.get("half_labels") or []):
+                if label and half not in initial_sections:
+                    initial_sections[half] = self._section_for_label(label, events)
         heading: dict[str, tuple[str, str]] = {}
         for record in board:
             halves[int(record.get("half") or 0)].append(record)
         for half in sorted(halves):
-            section = SECTION_BASIC if half == 0 else SECTION_TARGETS
+            section = initial_sections.get(half) or (SECTION_BASIC if half == 0 else SECTION_TARGETS)
             previous_slot = None
             previous_label = ""
             for record in sorted(halves[half], key=lambda r: (r["table"] or 0, r["row"] or 0)):

@@ -25,7 +25,7 @@ from .ledger import Ledger, atomic_write_bytes, atomic_write_json, atomic_write_
 from .textnorm import clean_text, dates_in_text
 
 
-VERSION = "1"
+VERSION = "3"
 REVIEW_FIELDS = [
     "key", "examples", "count", "first", "last", "contexts", "proposed canonical",
     "confidence", "runner-up", "category", "kind", "section", "counts_in_summary",
@@ -443,6 +443,12 @@ def collect_phrases(records: list[dict[str, Any]], vocabulary: list[VocabularyIt
         if role == "roster" and kind == "roster_row":
             for value in record.get("normalized", {}).get("officer", {}).get("daily", {}).get("services", []):
                 add(value, record, "التشغيل اليومي", "roster")
+        elif role == "board" and kind == "header":
+            for half, raw in enumerate(record.get("half_labels") or []):
+                mapped = _canonical_board_section(norm(clean_text(raw)))
+                if mapped:
+                    ident = (record["date"], record.get("path", ""), half)
+                    board_sections[ident] = mapped
         elif role == "board" and kind in {"board_label", "board_row"}:
             raw = clean_text(record.get("label"))
             marker = norm(raw)
@@ -500,8 +506,18 @@ def _instruction_phrase(flat: str) -> bool:
 
 
 def _canonical_board_section(value: str) -> str:
-    if value in {norm(section) for section in CANONICAL_SECTIONS}:
-        return value
+    # رجّع اسم النظام القياسي، مش النص المطبع. إرجاع «الخدمات الطاريه»
+    # كان ينشئ سياقًا مختلفًا عن SECTION_OCCASIONAL («الخدمات الطارئة»).
+    preferred = (
+        SECTION_BASIC, SECTION_OCCASIONAL, SECTION_PRISON, SECTION_TARGETS,
+        SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY, SECTION_ADMIN_WORK,
+    )
+    for section in preferred:
+        if value == norm(section):
+            return section
+    for section in sorted(CANONICAL_SECTIONS):
+        if value == norm(section):
+            return section
     rules = (("خدمات اساسي", SECTION_BASIC), ("خدمات الطواري", SECTION_OCCASIONAL),
              ("خدمات سجن قوات الامن", SECTION_PRISON), ("خدمات السجن", SECTION_PRISON),
              ("فرد تأمين فترة ليلة", SECTION_PRISON),
