@@ -22,6 +22,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+IS_WINDOWS = os.name == "nt"
 PYTHON_VERSION = "3.11.9"
 PYTHON_ARCHIVE = f"python-{PYTHON_VERSION}-embed-amd64.zip"
 PYTHON_URL = f"https://www.python.org/ftp/python/{PYTHON_VERSION}/{PYTHON_ARCHIVE}"
@@ -57,12 +58,59 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _windows_system_download(url: str, partial: Path) -> None:
+    """Download with the Windows certificate store without weakening TLS."""
+    curl = shutil.which("curl.exe")
+    if curl:
+        print("Python HTTPS verification failed; retrying with Windows curl...")
+        result = subprocess.run(
+            [curl, "--fail", "--location", "--retry", "3", "--retry-delay", "2",
+             "--connect-timeout", "30", "--output", str(partial), url],
+            check=False,
+        )
+        if result.returncode == 0 and partial.is_file() and partial.stat().st_size:
+            return
+        partial.unlink(missing_ok=True)
+
+    powershell = shutil.which("powershell.exe") or shutil.which("powershell")
+    if powershell:
+        print("Windows curl failed; retrying with the Windows certificate store...")
+        env = os.environ.copy()
+        env["PERSONNEL_DOWNLOAD_URL"] = url
+        env["PERSONNEL_DOWNLOAD_TARGET"] = str(partial)
+        script = (
+            "$ErrorActionPreference='Stop'; $ProgressPreference='SilentlyContinue'; "
+            "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; "
+            "Invoke-WebRequest -UseBasicParsing -Uri $env:PERSONNEL_DOWNLOAD_URL "
+            "-OutFile $env:PERSONNEL_DOWNLOAD_TARGET"
+        )
+        result = subprocess.run(
+            [powershell, "-NoProfile", "-NonInteractive", "-Command", script],
+            env=env,
+            check=False,
+        )
+        if result.returncode == 0 and partial.is_file() and partial.stat().st_size:
+            return
+        partial.unlink(missing_ok=True)
+
+    raise RuntimeError(
+        "Secure HTTPS download failed with Python, Windows curl, and PowerShell"
+    )
+
+
 def download(url: str, target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     partial = target.with_suffix(target.suffix + ".part")
+    partial.unlink(missing_ok=True)
     request = urllib.request.Request(url, headers={"User-Agent": "personnel-system-offline-builder/1"})
-    with urllib.request.urlopen(request, timeout=120) as response, partial.open("wb") as output:
-        shutil.copyfileobj(response, output, length=1024 * 1024)
+    try:
+        with urllib.request.urlopen(request, timeout=120) as response, partial.open("wb") as output:
+            shutil.copyfileobj(response, output, length=1024 * 1024)
+    except Exception:
+        partial.unlink(missing_ok=True)
+        if not IS_WINDOWS:
+            raise
+        _windows_system_download(url, partial)
     if partial.stat().st_size == 0:
         raise RuntimeError(f"Downloaded an empty file: {url}")
     os.replace(partial, target)

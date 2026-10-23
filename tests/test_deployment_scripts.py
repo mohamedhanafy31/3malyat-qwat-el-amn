@@ -1,3 +1,5 @@
+import ssl
+import subprocess
 from pathlib import Path
 
 from tools import offline_env, prepare_offline_bundle
@@ -78,3 +80,33 @@ def test_offline_release_excludes_secrets_and_large_archives():
     assert not any(path.startswith("data/source_docs/") for path in relative)
     assert not any(path.startswith("data/daily_files/") for path in relative)
     assert not any(path.startswith("data/import/") for path in relative)
+
+
+def test_windows_download_falls_back_to_verified_system_curl(tmp_path, monkeypatch):
+    target = tmp_path / "asset.bin"
+    calls = []
+
+    def fail_python_https(*args, **kwargs):
+        raise ssl.SSLCertVerificationError("unable to get local issuer certificate")
+
+    def find_windows_tool(name):
+        return r"C:\Windows\System32\curl.exe" if name == "curl.exe" else None
+
+    def run_curl(command, **kwargs):
+        calls.append(command)
+        output = Path(command[command.index("--output") + 1])
+        output.write_bytes(b"verified-download")
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(prepare_offline_bundle, "IS_WINDOWS", True)
+    monkeypatch.setattr(prepare_offline_bundle.urllib.request, "urlopen", fail_python_https)
+    monkeypatch.setattr(prepare_offline_bundle.shutil, "which", find_windows_tool)
+    monkeypatch.setattr(prepare_offline_bundle.subprocess, "run", run_curl)
+
+    prepare_offline_bundle.download("https://example.test/asset.bin", target)
+
+    assert target.read_bytes() == b"verified-download"
+    assert len(calls) == 1
+    assert "--fail" in calls[0]
+    assert "--insecure" not in calls[0]
+    assert "-k" not in calls[0]
