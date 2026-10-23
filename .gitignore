@@ -32,3 +32,8 @@ data/secret_key
 
 # عيّنات OCR (صور فيها بيانات أفراد) — للتدريب المحلي بس
 data/ocr_samples/
+
+# حزم الإصدار الأوفلاين مبنية محليًا وقد تكون مئات الميجابايت
+dist/
+tools/offline_installers/
+OFFLINE_ASSETS.sha256

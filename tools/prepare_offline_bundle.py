@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Build a complete, checksummed Windows x64 offline deployment bundle.
+
+The builder itself needs internet.  The resulting ZIP does not: it contains
+embedded CPython, all Windows wheels, the Tesseract installer, Arabic OCR data,
+the application, and the current operational JSON data (but never users or the
+Flask session secret).
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import urllib.request
+import zipfile
+from datetime import date
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+PYTHON_VERSION = "3.11.9"
+PYTHON_ARCHIVE = f"python-{PYTHON_VERSION}-embed-amd64.zip"
+PYTHON_URL = f"https://www.python.org/ftp/python/{PYTHON_VERSION}/{PYTHON_ARCHIVE}"
+TESSERACT_VERSION = "5.5.0.20241111"
+TESSERACT_INSTALLER = f"tesseract-ocr-w64-setup-{TESSERACT_VERSION}.exe"
+TESSERACT_URL = (
+    "https://github.com/tesseract-ocr/tesseract/releases/download/5.5.0/"
+    + TESSERACT_INSTALLER
+)
+ARABIC_MODEL_URL = (
+    "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/ara.traineddata"
+)
+
+TOP_LEVEL_FILES = {
+    "app.py", "serve.py", "requirements.txt", "README.md", "DEPLOYMENT.md",
+    "START_SYSTEM.bat", "STOP_SYSTEM.bat", "SETUP_OFFLINE.bat", "BACKUPS.bat",
+    "INSTALL_AUTOSTART.bat", "SETUP_PHONE_ACCESS.bat", "run_windows.bat",
+    "personnel-system.service.example",
+}
+INCLUDE_DIRS = ("backend", "templates", "static", "importer", "migrations", "tools", "wheels", "runtime", "data")
+EXCLUDED_PARTS = {
+    "__pycache__", ".pytest_cache", "import", "source_docs", "daily_files",
+    "ocr_samples", "logs", "backups",
+}
+EXCLUDED_DATA_FILES = {"users.json", "secret_key", ".lock", ".clock_seen"}
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def download(url: str, target: Path) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    partial = target.with_suffix(target.suffix + ".part")
+    request = urllib.request.Request(url, headers={"User-Agent": "personnel-system-offline-builder/1"})
+    with urllib.request.urlopen(request, timeout=120) as response, partial.open("wb") as output:
+        shutil.copyfileobj(response, output, length=1024 * 1024)
+    if partial.stat().st_size == 0:
+        raise RuntimeError(f"Downloaded an empty file: {url}")
+    os.replace(partial, target)
+
+
+def prepare_runtime(work: Path) -> None:
+    archive = work / PYTHON_ARCHIVE
+    download(PYTHON_URL, archive)
+    with zipfile.ZipFile(archive) as bundle:
+        if bundle.testzip() is not None or "python.exe" not in bundle.namelist():
+            raise RuntimeError("The embedded Python archive is invalid")
+        target = work / "runtime"
+        target.mkdir()
+        bundle.extractall(target)
+
+
+def prepare_wheels(work: Path) -> None:
+    target = work / "wheels"
+    target.mkdir()
+    command = [
+        sys.executable, "-m", "pip", "download", "--only-binary=:all:",
+        "--platform", "win_amd64", "--python-version", "3.11",
+        "--implementation", "cp", "--abi", "cp311", "--dest", str(target),
+        "-r", str(ROOT / "requirements.txt"),
+    ]
+    subprocess.run(command, check=True)
+    wheels = list(target.glob("*.whl"))
+    if not wheels:
+        raise RuntimeError("pip did not produce any wheels")
+    for wheel in wheels:
+        with zipfile.ZipFile(wheel) as bundle:
+            if bundle.testzip() is not None:
+                raise RuntimeError(f"Corrupt wheel: {wheel.name}")
+
+
+def prepare_ocr(work: Path) -> None:
+    target = work / "offline_installers"
+    download(TESSERACT_URL, target / TESSERACT_INSTALLER)
+    download(ARABIC_MODEL_URL, target / "ara.traineddata")
+
+
+def replace_directory(source: Path, target: Path) -> None:
+    old = target.with_name(target.name + ".old-offline-build")
+    if old.exists():
+        shutil.rmtree(old)
+    if target.exists():
+        target.rename(old)
+    try:
+        source.rename(target)
+    except Exception:
+        if old.exists() and not target.exists():
+            old.rename(target)
+        raise
+    if old.exists():
+        shutil.rmtree(old)
+
+
+def install_assets(work: Path) -> None:
+    readme = ROOT / "wheels" / "README.txt"
+    if readme.is_file():
+        shutil.copy2(readme, work / "wheels" / "README.txt")
+    replace_directory(work / "runtime", ROOT / "runtime")
+    replace_directory(work / "wheels", ROOT / "wheels")
+    replace_directory(work / "offline_installers", ROOT / "tools" / "offline_installers")
+
+
+def release_files():
+    for name in sorted(TOP_LEVEL_FILES):
+        path = ROOT / name
+        if path.is_file():
+            yield path
+    for directory in INCLUDE_DIRS:
+        base = ROOT / directory
+        if not base.exists():
+            continue
+        for path in sorted(base.rglob("*")):
+            if not path.is_file() or path.is_symlink():
+                continue
+            rel = path.relative_to(ROOT)
+            if any(part in EXCLUDED_PARTS for part in rel.parts):
+                continue
+            if rel.parts[0] == "data" and path.name in EXCLUDED_DATA_FILES:
+                continue
+            if path.suffix in {".pyc", ".part", ".tmp"}:
+                continue
+            yield path
+
+
+def write_asset_manifest() -> Path:
+    manifest = ROOT / "OFFLINE_ASSETS.sha256"
+    assets = [*sorted((ROOT / "wheels").glob("*.whl")),
+              *sorted((ROOT / "runtime").glob("*")),
+              *sorted((ROOT / "tools" / "offline_installers").glob("*"))]
+    # python311._pth is deliberately rewritten by SETUP_OFFLINE.bat to enable
+    # the project and site-packages.  It must not make a second setup look like
+    # asset corruption.
+    files = [path for path in assets if path.is_file() and not path.name.endswith("._pth")]
+    manifest.write_text("".join(f"{sha256(path)}  {path.relative_to(ROOT).as_posix()}\n" for path in files),
+                        encoding="ascii")
+    return manifest
+
+
+def build_archive() -> Path:
+    dist = ROOT / "dist"
+    dist.mkdir(exist_ok=True)
+    target = dist / f"personnel-system-offline-{date.today().isoformat()}.zip"
+    partial = target.with_suffix(".zip.part")
+    files = list(dict.fromkeys([*release_files(), ROOT / "OFFLINE_ASSETS.sha256"]))
+    with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6,
+                         allowZip64=True) as bundle:
+        for path in files:
+            bundle.write(path, (Path("personnel-system") / path.relative_to(ROOT)).as_posix())
+    with zipfile.ZipFile(partial) as bundle:
+        if bundle.testzip() is not None:
+            raise RuntimeError("Generated release ZIP failed integrity validation")
+    os.replace(partial, target)
+    target.with_suffix(".zip.sha256").write_text(f"{sha256(target)}  {target.name}\n", encoding="ascii")
+    return target
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--archive", action="store_true", help="also create the final transfer ZIP")
+    args = parser.parse_args(argv)
+    # Keep the staging directory on the project volume so the final directory
+    # swaps are atomic even when the system /tmp lives on another filesystem.
+    with tempfile.TemporaryDirectory(prefix=".offline-build-", dir=ROOT) as raw:
+        work = Path(raw)
+        prepare_runtime(work)
+        prepare_wheels(work)
+        prepare_ocr(work)
+        install_assets(work)
+    manifest = write_asset_manifest()
+    print(f"Asset manifest: {manifest}")
+    if args.archive:
+        archive = build_archive()
+        print(f"Offline ZIP: {archive}")
+        print(f"SHA-256: {sha256(archive)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

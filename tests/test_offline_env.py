@@ -22,3 +22,27 @@ def test_embedded_pth_includes_project_root_and_site_packages(tmp_path, monkeypa
     assert (runtime / root_entries[0].replace("\\", os.sep)).resolve() == project.resolve()
     assert r"Lib\site-packages" in lines
     assert "import site" in lines
+
+
+def test_install_activates_target_in_current_process(tmp_path, monkeypatch):
+    wheels = tmp_path / "wheels"
+    wheels.mkdir()
+    package = wheels / "example-1.0-py3-none-any.whl"
+    import zipfile
+    with zipfile.ZipFile(package, "w") as bundle:
+        bundle.writestr("offline_example/__init__.py", "READY = True\n")
+    target = tmp_path / "site-packages"
+    monkeypatch.setattr(offline_env, "WHEELS", wheels)
+    monkeypatch.setattr(offline_env, "ROOT", tmp_path)
+    monkeypatch.setattr(offline_env, "verify", lambda quiet=False: 0)
+
+    assert offline_env.install(target=target, quiet=True) == 0
+    assert str(target) in offline_env.sys.path
+
+
+def test_verify_accepts_auth_protection_on_fresh_install(monkeypatch):
+    monkeypatch.setattr(offline_env, "_missing", lambda names: [])
+
+    # The repository app has authentication enabled.  This exercises the real
+    # login/protected-route contract instead of a mock that could drift.
+    assert offline_env.verify(quiet=True) == 0

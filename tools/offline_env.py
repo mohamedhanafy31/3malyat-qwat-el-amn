@@ -30,7 +30,7 @@ WHEELS = ROOT / "wheels"
 # الحزم اللي لازم تكون موجودة عشان السيستم يشتغل. waitress اختيارية —
 # بتخلي التشغيل أثبت، وسيرفر Flask العادي شغّال من غيرها.
 REQUIRED = ["flask", "werkzeug", "jinja2", "markupsafe", "itsdangerous", "click", "docx",
-            "numpy", "cv2", "PIL", "pytesseract"]
+            "openpyxl", "numpy", "cv2", "PIL", "pytesseract"]
 OPTIONAL = ["waitress", "blinker", "colorama"]
 
 
@@ -109,6 +109,15 @@ def install(target=None, quiet=False):
         if not quiet:
             print(f"    + {wheel.name}")
 
+    # Editing python311._pth only affects the next interpreter process.  The
+    # installer verifies in this same process, so activate the freshly
+    # extracted packages explicitly instead of reporting them as missing on
+    # the first offline setup run.
+    root_text = str(ROOT)
+    if root_text not in sys.path:
+        sys.path.insert(0, root_text)
+    site.addsitedir(str(target))
+
     if not quiet:
         print()
     return verify(quiet=quiet)
@@ -154,22 +163,31 @@ def verify(strict=False, quiet=False):
     from app import app                                 # noqa: E402
     app.config["TESTING"] = True
     client = app.test_client()
+    login = client.get("/login")
+    setup = client.get("/setup")
     page = client.get("/leaves")
     api = client.get("/api/bootstrap/leaves")
-    if page.status_code != 200 or api.status_code != 200:
-        print(f"[X] السيستم مابيردّش صح (صفحة {page.status_code}، API {api.status_code}).")
+    # A fresh offline package intentionally excludes users and secrets.  The
+    # protected page/API must therefore redirect/reject until the first admin
+    # is created; treating 302/401 as an installation failure made a secure
+    # fresh install impossible.
+    entry_ok = login.status_code == 200 or setup.status_code == 200
+    if (not entry_ok or page.status_code not in (200, 302)
+            or api.status_code not in (200, 401)):
+        print(f"[X] السيستم مابيردّش صح (دخول {login.status_code}، إعداد {setup.status_code}، "
+              f"صفحة {page.status_code}، API {api.status_code}).")
         return 1
 
     if not quiet:
         import importlib.metadata as _md
-        data = api.get_json()
+        data = api.get_json() if api.status_code == 200 else {}
         print(f"[OK] بايثون    : {sys.version.split()[0]}  ({sys.executable})")
         print(f"[OK] Flask     : {_md.version('flask')}")
         opt = [n for n in OPTIONAL if n not in _missing(OPTIONAL)]
         print(f"[OK] اختيارية  : {'، '.join(opt) if opt else 'مفيش'}")
         print(f"[OK] البيانات  : {len(data.get('leaves', []))} راحة، "
               f"{data.get('counts', {}).get('officers', 0)} ضابط على القوة")
-        print(f"[OK] الصفحات   : بتفتح وبترد 200")
+        print(f"[OK] الصفحات   : صفحة الدخول تعمل والحماية مفعلة")
         print(f"[OK] الأساسيات : socket / zlib / gzip / UTF-8 شغّالين")
         if strict:
             print("[OK] الشبكة    : أي اتصال خارجي كان هيتمنع — ومحصلش أي محاولة")

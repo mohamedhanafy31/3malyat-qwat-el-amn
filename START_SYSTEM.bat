@@ -3,6 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul 2>&1
 set "ROOT=%~dp0"
 cd /d "%ROOT%"
+set "PYTHONUTF8=1"
 call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "start-system"
 
 call "%ROOT%tools\deploy_console.bat" step "[1/5] Checking bundled runtime..."
@@ -16,9 +17,18 @@ if not defined PORT set "PORT=5000"
 set "URL=http://127.0.0.1:%PORT%/"
 
 call "%ROOT%tools\deploy_console.bat" step "[2/5] Checking production dependencies..."
-"%PY%" -c "import flask, docx, waitress" >>"%DEPLOY_LOG%" 2>&1
+"%PY%" -c "import flask, docx, openpyxl, waitress" >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto not_ready
 call "%ROOT%tools\deploy_console.bat" ok "Waitress and application dependencies found."
+
+set "TESSERACT_CMD=%ROOT%tools\tesseract\tesseract.exe"
+set "TESSDATA_PREFIX=%ROOT%tools\tesseract\tessdata"
+if not exist "%TESSERACT_CMD%" (
+    set "TESSERACT_CMD=%ProgramFiles%\Tesseract-OCR\tesseract.exe"
+    set "TESSDATA_PREFIX=%ProgramFiles%\Tesseract-OCR\tessdata"
+)
+if not exist "%TESSERACT_CMD%" goto not_ready
+if not exist "%TESSDATA_PREFIX%\ara.traineddata" goto not_ready
 
 call "%ROOT%tools\deploy_console.bat" step "[3/5] Checking application import and database..."
 "%PY%" -c "import app; print(app.__file__)" >>"%DEPLOY_LOG%" 2>&1
