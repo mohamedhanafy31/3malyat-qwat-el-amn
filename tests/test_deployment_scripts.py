@@ -68,6 +68,11 @@ def test_offline_dependency_and_ocr_contract_is_complete():
     assert "openpyxl" in start
     assert "ara.traineddata" in setup
     assert "TESSERACT_CMD" in start
+    assert 'set "TESSDATA_DIR=%ROOT%tools\\tesseract\\tessdata"' in setup
+    assert 'set "TESSDATA_PREFIX=%ROOT%tools\\tesseract\\tessdata"' in start
+    assert "%ProgramFiles%\\Tesseract-OCR" in setup
+    assert 'set "PROGRAM_FILES_X86=%ProgramFiles(x86)%"' in setup
+    assert "%LOCALAPPDATA%\\Programs\\Tesseract-OCR" in setup
 
 
 def test_offline_release_excludes_secrets_and_large_archives():

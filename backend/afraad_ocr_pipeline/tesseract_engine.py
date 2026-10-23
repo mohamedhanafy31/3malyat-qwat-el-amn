@@ -12,6 +12,9 @@ from .config import PipelineConfig
 from .models import OCRResult
 
 
+PROJECT_TESSDATA = Path(__file__).resolve().parents[2] / "tools" / "tesseract" / "tessdata"
+
+
 def _available() -> bool:
     return _command() is not None
 
@@ -27,6 +30,8 @@ def _command() -> str | None:
 
 
 def _configure(pytesseract):
+    if (PROJECT_TESSDATA / "ara.traineddata").is_file():
+        os.environ.setdefault("TESSDATA_PREFIX", str(PROJECT_TESSDATA))
     command = _command()
     if command:
         pytesseract.pytesseract.tesseract_cmd = command

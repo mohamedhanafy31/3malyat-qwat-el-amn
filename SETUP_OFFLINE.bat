@@ -4,6 +4,7 @@ chcp 65001 >nul 2>&1
 set "ROOT=%~dp0"
 cd /d "%ROOT%"
 set "PYTHONUTF8=1"
+set "PROGRAM_FILES_X86=%ProgramFiles(x86)%"
 call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "setup-offline"
 
 call "%ROOT%tools\deploy_console.bat" step "[1/6] Checking offline package..."
@@ -42,16 +43,20 @@ call "%ROOT%tools\deploy_console.bat" ok "Local Python environment configured."
 call "%ROOT%tools\deploy_console.bat" step "[3/6] Installing bundled Arabic OCR engine..."
 set "TESSERACT_EXE=%ROOT%tools\tesseract\tesseract.exe"
 set "TESSDATA_DIR=%ROOT%tools\tesseract\tessdata"
-if not exist "!TESSERACT_EXE!" (
-    set "TESSERACT_EXE=%ProgramFiles%\Tesseract-OCR\tesseract.exe"
-    set "TESSDATA_DIR=%ProgramFiles%\Tesseract-OCR\tessdata"
-)
+if not exist "!TESSERACT_EXE!" set "TESSERACT_EXE=%ProgramFiles%\Tesseract-OCR\tesseract.exe"
+if not exist "!TESSERACT_EXE!" if defined PROGRAM_FILES_X86 set "TESSERACT_EXE=!PROGRAM_FILES_X86!\Tesseract-OCR\tesseract.exe"
+if not exist "!TESSERACT_EXE!" set "TESSERACT_EXE=%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"
 if not exist "!TESSERACT_EXE!" (
     set "TESSERACT_INSTALLER="
     for %%F in ("%ROOT%tools\offline_installers\tesseract-ocr-w64-setup-*.exe") do set "TESSERACT_INSTALLER=%%~fF"
     if not defined TESSERACT_INSTALLER goto no_tesseract
     start "" /wait "!TESSERACT_INSTALLER!" /S
-    if errorlevel 1 goto failed
+    set "TESSERACT_INSTALL_RESULT=!ERRORLEVEL!"
+    >>"%DEPLOY_LOG%" echo Tesseract installer exit code: !TESSERACT_INSTALL_RESULT!
+    set "TESSERACT_EXE=%ROOT%tools\tesseract\tesseract.exe"
+    if not exist "!TESSERACT_EXE!" set "TESSERACT_EXE=%ProgramFiles%\Tesseract-OCR\tesseract.exe"
+    if not exist "!TESSERACT_EXE!" if defined PROGRAM_FILES_X86 set "TESSERACT_EXE=!PROGRAM_FILES_X86!\Tesseract-OCR\tesseract.exe"
+    if not exist "!TESSERACT_EXE!" set "TESSERACT_EXE=%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"
 )
 set /a TESS_WAIT=0
 :wait_tesseract
@@ -61,9 +66,11 @@ set /a TESS_WAIT+=1
 if !TESS_WAIT! LSS 60 goto wait_tesseract
 goto no_tesseract
 :tesseract_ready
-if not exist "!TESSDATA_DIR!" mkdir "!TESSDATA_DIR!"
-copy /Y "%ROOT%tools\offline_installers\ara.traineddata" "!TESSDATA_DIR!\ara.traineddata" >nul
+if not exist "!TESSDATA_DIR!" mkdir "!TESSDATA_DIR!" >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto failed
+copy /Y "%ROOT%tools\offline_installers\ara.traineddata" "!TESSDATA_DIR!\ara.traineddata" >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 goto failed
+set "TESSDATA_PREFIX=!TESSDATA_DIR!"
 "!TESSERACT_EXE!" --list-langs 2>>"%DEPLOY_LOG%" | findstr /x "ara" >nul
 if errorlevel 1 goto no_tesseract
 call "%ROOT%tools\deploy_console.bat" ok "Bundled Tesseract and Arabic language data are ready."

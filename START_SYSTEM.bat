@@ -4,6 +4,7 @@ chcp 65001 >nul 2>&1
 set "ROOT=%~dp0"
 cd /d "%ROOT%"
 set "PYTHONUTF8=1"
+set "PROGRAM_FILES_X86=%ProgramFiles(x86)%"
 call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "start-system"
 
 :check_runtime
@@ -24,10 +25,9 @@ call "%ROOT%tools\deploy_console.bat" ok "Waitress and application dependencies 
 
 set "TESSERACT_CMD=%ROOT%tools\tesseract\tesseract.exe"
 set "TESSDATA_PREFIX=%ROOT%tools\tesseract\tessdata"
-if not exist "%TESSERACT_CMD%" (
-    set "TESSERACT_CMD=%ProgramFiles%\Tesseract-OCR\tesseract.exe"
-    set "TESSDATA_PREFIX=%ProgramFiles%\Tesseract-OCR\tessdata"
-)
+if not exist "%TESSERACT_CMD%" set "TESSERACT_CMD=%ProgramFiles%\Tesseract-OCR\tesseract.exe"
+if not exist "%TESSERACT_CMD%" if defined PROGRAM_FILES_X86 set "TESSERACT_CMD=!PROGRAM_FILES_X86!\Tesseract-OCR\tesseract.exe"
+if not exist "%TESSERACT_CMD%" set "TESSERACT_CMD=%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"
 if not exist "%TESSERACT_CMD%" goto not_ready
 if not exist "%TESSDATA_PREFIX%\ara.traineddata" goto not_ready
 
