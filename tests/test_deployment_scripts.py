@@ -25,6 +25,12 @@ def test_deployment_batch_files_are_ascii_only():
         raw.decode("ascii")
 
 
+def test_deployment_batch_files_use_windows_line_endings():
+    for name in SCRIPTS:
+        raw = (ROOT / name).read_bytes()
+        assert b"\n" not in raw.replace(b"\r\n", b"")
+
+
 def test_deployment_scripts_are_relocatable_and_logged():
     prepare = (ROOT / "PREPARE_ONLINE.bat").read_text(encoding="ascii")
     start = (ROOT / "START_SYSTEM.bat").read_text(encoding="ascii")
@@ -39,7 +45,8 @@ def test_deployment_scripts_are_relocatable_and_logged():
     assert "PERSONNEL_SETUP_FROM_START" in setup
     assert 'call "%ROOT%SETUP_OFFLINE.bat"' in prepare
     assert "PERSONNEL_SETUP_FROM_PREPARE" in prepare
-    assert "--archive" not in prepare
+    assert "preflight --mode prepare" in prepare
+    assert "host-python" in prepare
 
     assert "if not defined PERSONNEL_NO_PAUSE" in start
     assert "if not defined PERSONNEL_NO_PAUSE if not defined PERSONNEL_SETUP_FROM_START if not defined PERSONNEL_SETUP_FROM_PREPARE" in setup
@@ -66,13 +73,21 @@ def test_offline_dependency_and_ocr_contract_is_complete():
     assert "openpyxl" in offline_env.REQUIRED
     assert "openpyxl" in setup
     assert "openpyxl" in start
-    assert "ara.traineddata" in setup
-    assert "TESSERACT_CMD" in start
-    assert 'set "TESSDATA_DIR=%ROOT%tools\\tesseract\\tessdata"' in setup
+    assert "ocr_setup.py" in setup
+    assert "ocr_setup.py" in start
+    assert 'if exist "%ROOT%tools\\tesseract\\tessdata\\ara.traineddata"' in start
     assert 'set "TESSDATA_PREFIX=%ROOT%tools\\tesseract\\tessdata"' in start
-    assert "%ProgramFiles%\\Tesseract-OCR" in setup
-    assert 'set "PROGRAM_FILES_X86=%ProgramFiles(x86)%"' in setup
-    assert "%LOCALAPPDATA%\\Programs\\Tesseract-OCR" in setup
+    assert "optional" in setup.lower()
+
+
+def test_startup_uses_application_readiness_marker_not_root_http():
+    start = (ROOT / "START_SYSTEM.bat").read_text(encoding="ascii")
+    autostart = (ROOT / "INSTALL_AUTOSTART.bat").read_text(encoding="ascii")
+    stop = (ROOT / "STOP_SYSTEM.bat").read_text(encoding="ascii")
+    for text in (start, autostart, stop):
+        assert "deploy_check.py\" ready" in text
+        assert "urlopen('%URL%'" not in text
+    assert "Nothing was killed" in stop
 
 
 def test_offline_release_excludes_secrets_and_large_archives():
@@ -115,3 +130,17 @@ def test_windows_download_falls_back_to_verified_system_curl(tmp_path, monkeypat
     assert "--fail" in calls[0]
     assert "--insecure" not in calls[0]
     assert "-k" not in calls[0]
+
+
+def test_asset_directory_swap_can_roll_back(tmp_path):
+    target = tmp_path / "runtime"
+    source = tmp_path / "new-runtime"
+    target.mkdir()
+    source.mkdir()
+    (target / "version.txt").write_text("old", encoding="ascii")
+    (source / "version.txt").write_text("new", encoding="ascii")
+
+    kept = prepare_offline_bundle.activate_directory(source, target)
+    assert (target / "version.txt").read_text(encoding="ascii") == "new"
+    prepare_offline_bundle.rollback_directories([(target, kept)])
+    assert (target / "version.txt").read_text(encoding="ascii") == "old"

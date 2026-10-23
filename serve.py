@@ -94,10 +94,11 @@ def _port_conflict_message():
         f"    الأغلب إن السيستم شغّال في شاشة تانية مفتوحة — اقفلها وجرّب تاني.\n"
         f"    Most likely the system is already running in another window.\n"
         f"\n"
-        f"    ولو محتاج تغيّر رقم المنفذ، افتح الملف:  START_SYSTEM.bat\n"
-        f"    ودوّر على السطر:\n"
-        f'        set "PORT={PORT}"\n'
-        f"    غيّر الرقم (مثلاً 5050) واحفظ الملف وشغّله تاني.\n"
+        f"    ولو محتاج تغيّر رقم المنفذ، اضبط متغير البيئة PORT قبل التشغيل،\n"
+        f"    مثلًا من نافذة CMD:\n"
+        f'        set PORT=5050\n'
+        f"        START_SYSTEM.bat\n"
+        f"    (START_SYSTEM.bat بيستخدم PORT لو متضبط، وإلا 5000).\n"
     )
 
 

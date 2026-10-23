@@ -6,6 +6,7 @@ if /i "%~1"=="ok" goto ok
 if /i "%~1"=="warn" goto warn
 if /i "%~1"=="error" goto error
 if /i "%~1"=="info" goto info
+if /i "%~1"=="failures" goto failures
 exit /b 2
 
 :init
@@ -15,6 +16,8 @@ if not defined DEPLOY_ROOT set "DEPLOY_ROOT=%~dp0..\"
 if not exist "%DEPLOY_ROOT%logs" mkdir "%DEPLOY_ROOT%logs" >nul 2>&1
 set "DEPLOY_LOG=%DEPLOY_ROOT%logs\%DEPLOY_NAME%.log"
 if not defined DEPLOY_NAME set "DEPLOY_LOG=%DEPLOY_ROOT%logs\deployment.log"
+rem Each run starts a fresh log so failure lines shown at the end are current.
+if exist "%DEPLOY_LOG%" move /y "%DEPLOY_LOG%" "%DEPLOY_LOG%.previous" >nul 2>&1
 set "DEPLOY_COLOR="
 if defined WT_SESSION set "DEPLOY_COLOR=1"
 if defined ANSICON set "DEPLOY_COLOR=1"
@@ -40,13 +43,21 @@ exit /b 0
 :info
 call :write "%~2" "36"
 exit /b 0
+:failures
+rem Show the precise failure lines (they start with [X]) recorded by the helper tools.
+if exist "%DEPLOY_LOG%" findstr /b /c:"[X]" "%DEPLOY_LOG%"
+exit /b 0
 
 :write
 set "DEPLOY_MESSAGE=%~1"
-if defined DEPLOY_LOG >>"%DEPLOY_LOG%" echo [%date% %time%] %DEPLOY_MESSAGE%
-if defined DEPLOY_COLOR (
-    echo %ESC%[%~2m%DEPLOY_MESSAGE%%ESC%[0m
-) else (
-    echo %DEPLOY_MESSAGE%
-)
+setlocal EnableDelayedExpansion
+if defined DEPLOY_LOG >>"%DEPLOY_LOG%" echo [%date% %time%] !DEPLOY_MESSAGE!
+rem No parenthesized block here: a ")" inside a message would end it early.
+if defined DEPLOY_COLOR goto write_color
+echo !DEPLOY_MESSAGE!
+endlocal
+exit /b 0
+:write_color
+echo !ESC![%~2m!DEPLOY_MESSAGE!!ESC![0m
+endlocal
 exit /b 0

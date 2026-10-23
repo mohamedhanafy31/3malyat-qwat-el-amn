@@ -4,7 +4,6 @@ chcp 65001 >nul 2>&1
 set "ROOT=%~dp0"
 cd /d "%ROOT%"
 set "PYTHONUTF8=1"
-set "PROGRAM_FILES_X86=%ProgramFiles(x86)%"
 call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "start-system"
 
 :check_runtime
@@ -23,22 +22,22 @@ call "%ROOT%tools\deploy_console.bat" step "[2/5] Checking production dependenci
 if errorlevel 1 goto not_ready
 call "%ROOT%tools\deploy_console.bat" ok "Waitress and application dependencies found."
 
-set "TESSERACT_CMD=%ROOT%tools\tesseract\tesseract.exe"
-set "TESSDATA_PREFIX=%ROOT%tools\tesseract\tessdata"
-if not exist "%TESSERACT_CMD%" set "TESSERACT_CMD=%ProgramFiles%\Tesseract-OCR\tesseract.exe"
-if not exist "%TESSERACT_CMD%" if defined PROGRAM_FILES_X86 set "TESSERACT_CMD=!PROGRAM_FILES_X86!\Tesseract-OCR\tesseract.exe"
-if not exist "%TESSERACT_CMD%" set "TESSERACT_CMD=%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"
-if not exist "%TESSERACT_CMD%" goto not_ready
-if not exist "%TESSDATA_PREFIX%\ara.traineddata" goto not_ready
+if exist "%ROOT%tools\tesseract\tessdata\ara.traineddata" set "TESSDATA_PREFIX=%ROOT%tools\tesseract\tessdata"
+"%PY%" "%ROOT%tools\ocr_setup.py" status --quiet >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 call "%ROOT%tools\deploy_console.bat" warn "Optional image OCR is unavailable; the rest of the system will still start."
 
 call "%ROOT%tools\deploy_console.bat" step "[3/5] Checking application import and database..."
+"%PY%" "%ROOT%tools\offline_env.py" check-data --quiet >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 goto data_failed
 "%PY%" -c "import app; print(app.__file__)" >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto failed
 call "%ROOT%tools\deploy_console.bat" ok "Application and database are ready."
 
 call "%ROOT%tools\deploy_console.bat" step "[4/5] Starting production server..."
-"%PY%" -c "import urllib.request; urllib.request.urlopen('%URL%', timeout=1)" >nul 2>&1
-if not errorlevel 1 goto healthy
+"%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet
+set "READY_RESULT=!ERRORLEVEL!"
+if "!READY_RESULT!"=="0" goto healthy
+if not "!READY_RESULT!"=="10" goto port_failed
 set "PYW=%PY%"
 if exist "%ROOT%runtime\pythonw.exe" set "PYW=%ROOT%runtime\pythonw.exe"
 if exist "%ROOT%venv\Scripts\pythonw.exe" set "PYW=%ROOT%venv\Scripts\pythonw.exe"
@@ -46,8 +45,11 @@ start "" /b "%PYW%" "%ROOT%serve.py" >>"%ROOT%logs\server-console.log" 2>&1
 set /a WAIT=0
 :wait_server
 timeout /t 1 /nobreak >nul
-"%PY%" -c "import urllib.request; urllib.request.urlopen('%URL%', timeout=1)" >nul 2>&1
-if not errorlevel 1 goto healthy
+"%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet
+set "READY_RESULT=!ERRORLEVEL!"
+if "!READY_RESULT!"=="0" goto healthy
+if "!READY_RESULT!"=="11" goto readiness_failed
+if "!READY_RESULT!"=="12" goto port_failed
 set /a WAIT+=1
 if !WAIT! LSS 30 goto wait_server
 goto failed
@@ -78,6 +80,16 @@ call "%ROOT%tools\deploy_console.bat" error "Automatic offline setup failed."
 goto show_failure
 :failed
 call "%ROOT%tools\deploy_console.bat" error "Server stopped with an error. See logs\start-system.log."
+goto show_failure
+:data_failed
+call "%ROOT%tools\deploy_console.bat" error "The real application data failed validation. No data was changed."
+goto show_failure
+:readiness_failed
+call "%ROOT%tools\deploy_console.bat" error "The Personnel System answered, but its data is unavailable. See logs\server.log."
+goto show_failure
+:port_failed
+call "%ROOT%tools\deploy_console.bat" error "Port %PORT% is used by another program or returned the wrong application marker."
+call "%ROOT%tools\deploy_console.bat" info "Close that program, or run: set PORT=5050 then START_SYSTEM.bat"
 goto show_failure
 
 :show_failure

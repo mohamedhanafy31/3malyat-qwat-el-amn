@@ -20,12 +20,22 @@ def _available() -> bool:
 
 
 def _command() -> str | None:
-    configured = os.environ.get("TESSERACT_CMD", "").strip()
+    """Same search order as tools/ocr_setup.py: a valid TESSERACT_CMD, the
+    project copy, standard Windows install folders, then PATH."""
+    configured = os.environ.get("TESSERACT_CMD", "").strip().strip('"')
     bundled = Path(__file__).resolve().parents[2] / "tools" / "tesseract" / "tesseract.exe"
     if configured and Path(configured).is_file():
         return configured
     if bundled.is_file():
         return str(bundled)
+    for var, parts in (("ProgramFiles", ("Tesseract-OCR",)),
+                       ("ProgramFiles(x86)", ("Tesseract-OCR",)),
+                       ("LOCALAPPDATA", ("Programs", "Tesseract-OCR"))):
+        base = os.environ.get(var)
+        if base:
+            standard = Path(base, *parts, "tesseract.exe")
+            if standard.is_file():
+                return str(standard)
     return shutil.which("tesseract")
 
 

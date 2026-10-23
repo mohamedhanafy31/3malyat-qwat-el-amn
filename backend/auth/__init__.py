@@ -9,7 +9,8 @@ from .roles import can as role_can, capabilities
 from .security import LazySecretSessionInterface, secret_key
 
 PUBLIC = {("GET", "/login"), ("GET", "/setup"),
-          ("POST", "/api/auth/login"), ("POST", "/api/auth/setup")}
+          ("POST", "/api/auth/login"), ("POST", "/api/auth/setup"),
+          ("GET", "/api/health/ready")}
 
 
 def current_user():

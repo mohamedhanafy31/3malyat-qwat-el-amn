@@ -22,6 +22,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools import verify_offline_assets                      # noqa: E402
+from tools.deploy_check import MIN_HOST_PYTHON               # noqa: E402
+
 IS_WINDOWS = os.name == "nt"
 PYTHON_VERSION = "3.11.9"
 PYTHON_ARCHIVE = f"python-{PYTHON_VERSION}-embed-amd64.zip"
@@ -152,29 +158,62 @@ def prepare_ocr(work: Path) -> None:
     download(ARABIC_MODEL_URL, target / "ara.traineddata")
 
 
-def replace_directory(source: Path, target: Path) -> None:
+def activate_directory(source: Path, target: Path) -> Path | None:
+    """Move `source` into place, keeping the previous folder as a rollback.
+
+    Returns the retained previous folder (or None when there was none).  The
+    caller deletes it with `commit_directories` once the whole set is verified,
+    or restores it with `rollback_directories`.
+    """
     old = target.with_name(target.name + ".old-offline-build")
     if old.exists():
         shutil.rmtree(old)
+    kept = None
     if target.exists():
         target.rename(old)
+        kept = old
     try:
         source.rename(target)
     except Exception:
-        if old.exists() and not target.exists():
-            old.rename(target)
+        if kept is not None and not target.exists():
+            kept.rename(target)
         raise
-    if old.exists():
-        shutil.rmtree(old)
+    return kept
 
 
-def install_assets(work: Path) -> None:
+def rollback_directories(done: list) -> None:
+    """Undo `activate_directory` calls, newest first."""
+    for target, kept in reversed(done):
+        if target.exists():
+            shutil.rmtree(target, ignore_errors=True)
+        if kept is not None and kept.exists():
+            kept.rename(target)
+
+
+def commit_directories(done: list) -> None:
+    for _target, kept in done:
+        if kept is not None and kept.exists():
+            shutil.rmtree(kept, ignore_errors=True)
+
+
+def install_assets(work: Path) -> list:
+    """Activate runtime, wheels and installers as one unit. -> rollback records.
+
+    If any step fails, everything already activated is restored, so a failed
+    preparation never leaves a half-replaced runtime next to old wheels.
+    """
     readme = ROOT / "wheels" / "README.txt"
     if readme.is_file():
         shutil.copy2(readme, work / "wheels" / "README.txt")
-    replace_directory(work / "runtime", ROOT / "runtime")
-    replace_directory(work / "wheels", ROOT / "wheels")
-    replace_directory(work / "offline_installers", ROOT / "tools" / "offline_installers")
+    done = []
+    try:
+        for name, target in (("runtime", ROOT / "runtime"), ("wheels", ROOT / "wheels"),
+                             ("offline_installers", ROOT / "tools" / "offline_installers")):
+            done.append((target, activate_directory(work / name, target)))
+    except Exception:
+        rollback_directories(done)
+        raise
+    return done
 
 
 def release_files():
@@ -237,13 +276,32 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     # Keep the staging directory on the project volume so the final directory
     # swaps are atomic even when the system /tmp lives on another filesystem.
+    if sys.version_info[:2] < MIN_HOST_PYTHON:
+        print(f"[X] Python {MIN_HOST_PYTHON[0]}.{MIN_HOST_PYTHON[1]} or newer is required "
+              f"on the preparation PC (found {sys.version.split()[0]}).")
+        return 1
+    manifest_path = ROOT / "OFFLINE_ASSETS.sha256"
+    old_manifest = manifest_path.read_bytes() if manifest_path.is_file() else None
     with tempfile.TemporaryDirectory(prefix=".offline-build-", dir=ROOT) as raw:
         work = Path(raw)
         prepare_runtime(work)
         prepare_wheels(work)
         prepare_ocr(work)
-        install_assets(work)
-    manifest = write_asset_manifest()
+        done = install_assets(work)
+        # Validate the activated set before discarding the previous one.
+        try:
+            manifest = write_asset_manifest()
+            if verify_offline_assets.verify(quiet=True) != 0:
+                raise RuntimeError("The newly prepared assets failed verification")
+        except Exception:
+            rollback_directories(done)
+            if old_manifest is None:
+                manifest_path.unlink(missing_ok=True)
+            else:
+                manifest_path.write_bytes(old_manifest)
+            print("[X] Preparation failed; the previous runtime and wheels were restored.")
+            raise
+        commit_directories(done)
     print(f"Asset manifest: {manifest}")
     if args.archive:
         archive = build_archive()

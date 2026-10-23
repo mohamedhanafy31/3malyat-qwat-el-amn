@@ -1,0 +1,319 @@
+#!/usr/bin/env python3
+"""Deployment preflight and readiness helpers used by the Windows batch files.
+
+Standard library only and ASCII console output: it runs before the project
+runtime is configured (an embedded Python ignores the script directory until
+SETUP_OFFLINE.bat has edited its ._pth) and its text is shown in cmd.exe.
+
+    python tools/deploy_check.py host-python [--wheel-abi cp311]
+    python tools/deploy_check.py preflight --mode prepare|setup
+    python tools/deploy_check.py ready --port 5000 [--timeout 2]
+
+`ready` exit codes: 0 this application is ready, 10 nothing is listening,
+11 this application answered but reports it is unavailable (data cannot be
+loaded), 12 another service answered with something other than this
+application's readiness marker, 13 a listener did not answer within the timeout
+(possibly this application still starting).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import platform
+import shutil
+import socket
+import struct
+import subprocess
+import sys
+import tempfile
+import urllib.error
+import urllib.request
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+# Keep in sync with backend/routes/health.py (tests compare them).
+SERVICE_ID = "personnel-system"
+READY_PATH = "/api/health/ready"
+DEFAULT_PORT = 5000
+
+# Oldest host Python able to run tools/prepare_offline_bundle.py.
+MIN_HOST_PYTHON = (3, 9)
+
+MIN_FREE_MB = {"prepare": 1500, "setup": 700}
+
+READY, NOT_LISTENING, UNAVAILABLE, FOREIGN, NO_ANSWER = 0, 10, 11, 12, 13
+
+
+# ---------- host Python ----------
+
+def host_python_problem(version, pip_ok, bits=64, wheel_abi=None, implementation="cpython"):
+    """Return why this interpreter cannot be used, or None when it can."""
+    if tuple(version[:2]) < MIN_HOST_PYTHON:
+        return (f"Python {version[0]}.{version[1]} is too old; "
+                f"{MIN_HOST_PYTHON[0]}.{MIN_HOST_PYTHON[1]} or newer is required")
+    if not pip_ok:
+        return "pip is not working for this Python (python -m pip --version failed)"
+    if wheel_abi:
+        wanted = f"{wheel_abi[2]}.{wheel_abi[3:]}" if wheel_abi.startswith("cp") else wheel_abi
+        if implementation != "cpython" or f"{version[0]}.{version[1]}" != wanted:
+            return (f"the offline wheels target CPython {wanted} 64-bit but this is "
+                    f"{implementation} {version[0]}.{version[1]}")
+        if bits != 64:
+            return f"the offline wheels target 64-bit Python but this is {bits}-bit"
+    return None
+
+
+def pip_works(python=None):
+    try:
+        result = subprocess.run([python or sys.executable, "-m", "pip", "--version"],
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                timeout=120, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return result.returncode == 0
+
+
+def cmd_host_python(args):
+    version = sys.version_info
+    bits = struct.calcsize("P") * 8
+    problem = host_python_problem(version, pip_works(), bits, args.wheel_abi,
+                                  platform.python_implementation().lower())
+    label = f"{version[0]}.{version[1]}.{version[2]} {bits}-bit at {sys.executable}"
+    if problem:
+        print(f"[X] Unusable Python ({label}): {problem}.")
+        return 1
+    print(f"[OK] Usable Python: {label}")
+    return 0
+
+
+# ---------- platform, folders, disk ----------
+
+def platform_problem(system, machine, win_version="10.0"):
+    """Windows 10+ on x64 only (the bundled runtime and wheels are win_amd64)."""
+    if system != "Windows":
+        return f"this setup supports Windows 10 x64 only (found {system or 'unknown'})"
+    try:
+        major = int(str(win_version).split(".")[0])
+    except ValueError:
+        major = 0
+    if major < 10:
+        return f"Windows 10 or newer is required (found version {win_version})"
+    if str(machine).upper() not in ("AMD64", "X86_64"):
+        return f"a 64-bit x64 CPU is required (found {machine or 'unknown'})"
+    return None
+
+
+def native_machine(environ=None):
+    """OS architecture even when a 32-bit process runs on 64-bit Windows."""
+    env = os.environ if environ is None else environ
+    return (env.get("PROCESSOR_ARCHITEW6432") or env.get("PROCESSOR_ARCHITECTURE")
+            or platform.machine())
+
+
+def writable_problem(path):
+    """None when files can be created in `path` (or where it would be created)."""
+    probe = Path(path)
+    while not probe.exists():
+        if probe.parent == probe:
+            return f"no existing parent folder for {path}"
+        probe = probe.parent
+    if not probe.is_dir():
+        return f"{probe} is not a folder"
+    try:
+        with tempfile.NamedTemporaryFile(dir=probe, prefix=".write-test-", delete=True):
+            pass
+    except OSError as exc:
+        return f"cannot write to {probe} ({exc})"
+    return None
+
+
+def free_space_problem(path, need_mb, free_bytes=None):
+    probe = Path(path)
+    while not probe.exists() and probe.parent != probe:
+        probe = probe.parent
+    try:
+        free = shutil.disk_usage(probe).free if free_bytes is None else free_bytes
+    except OSError as exc:
+        return f"cannot read free disk space for {probe} ({exc})"
+    if free < need_mb * 1024 * 1024:
+        return f"only {free // (1024 * 1024)} MB free on the drive of {probe}; {need_mb} MB are required"
+    return None
+
+
+def data_dir(root, environ=None):
+    """Same rule as backend.store: PERSONNEL_DATA_DIR (absolute) or <root>/data."""
+    env = os.environ if environ is None else environ
+    raw = (env.get("PERSONNEL_DATA_DIR") or "").strip()
+    return Path(raw) if raw else Path(root) / "data"
+
+
+# ---------- running server detection ----------
+
+def is_file_locked(path):
+    """True when another process holds the OS lock the server/supervisor keeps.
+
+    Never creates the file: a missing lock file means nothing is running.
+    """
+    try:
+        fd = os.open(path, os.O_RDWR)
+    except OSError:
+        return False
+    try:
+        if os.name == "nt":
+            import msvcrt
+            os.lseek(fd, 0, os.SEEK_SET)
+            try:
+                msvcrt.locking(fd, msvcrt.LK_NBLCK, 1)
+            except OSError:
+                return True
+            os.lseek(fd, 0, os.SEEK_SET)
+            msvcrt.locking(fd, msvcrt.LK_UNLCK, 1)
+            return False
+        import fcntl
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            return True
+        fcntl.flock(fd, fcntl.LOCK_UN)
+        return False
+    finally:
+        os.close(fd)
+
+
+def classify_response(http_status, body):
+    """Map an HTTP answer from the readiness URL to a `ready` exit code."""
+    try:
+        payload = json.loads(bytes(body[:4096]).decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return FOREIGN
+    if not isinstance(payload, dict) or payload.get("service") != SERVICE_ID:
+        return FOREIGN
+    if (http_status == 200 and payload.get("status") == "ready"
+            and isinstance(payload.get("schema"), int)):
+        return READY
+    return UNAVAILABLE
+
+
+def parse_port(value):
+    text = str(DEFAULT_PORT if value in (None, "") else value).strip()
+    if not text.isdigit() or not 1 <= int(text) <= 65535:
+        raise ValueError(f"PORT must be a number from 1 to 65535 (found {text!r})")
+    return int(text)
+
+
+def probe_ready(port, timeout=2.0):
+    """Ask 127.0.0.1:<port> whether *this* application is ready."""
+    url = f"http://127.0.0.1:{port}{READY_PATH}"
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    try:
+        with opener.open(url, timeout=timeout) as response:
+            return classify_response(response.status, response.read(4097))
+    except urllib.error.HTTPError as exc:
+        try:
+            return classify_response(exc.code, exc.read(4097))
+        finally:
+            exc.close()
+    except urllib.error.URLError as exc:
+        if isinstance(exc.reason, ConnectionRefusedError):
+            return NOT_LISTENING
+        if isinstance(exc.reason, (socket.timeout, TimeoutError)):
+            return NO_ANSWER
+        return FOREIGN
+    except (socket.timeout, TimeoutError):
+        return NO_ANSWER
+    except (OSError, ValueError):
+        return FOREIGN
+    except Exception:       # http.client.HTTPException and friends: not our service
+        return FOREIGN
+
+
+READY_MESSAGES = {
+    READY: "This application is ready.",
+    NOT_LISTENING: "Nothing is listening on the port.",
+    UNAVAILABLE: "This application is running but its data cannot be loaded. "
+                 "See logs\\server.log and logs\\server-console.log.",
+    FOREIGN: "The port is used by a different program (or one that did not answer correctly). "
+             "Close it or set the PORT environment variable to a free port.",
+    NO_ANSWER: "Something is listening on the port but did not answer in time "
+               "(the application may still be starting).",
+}
+
+
+def cmd_ready(args):
+    try:
+        port = parse_port(args.port)
+    except ValueError as exc:
+        print(f"[X] {exc}")
+        return FOREIGN
+    code = probe_ready(port, args.timeout)
+    if not args.quiet:
+        print(f"[{'OK' if code == READY else 'X'}] Port {port}: {READY_MESSAGES[code]}")
+    return code
+
+
+def running_server_problem(root, port):
+    """Reason to refuse replacing runtime files, or None when nothing is running."""
+    data_lock = data_dir(root) / ".lock"
+    supervisor_lock = Path(root) / "logs" / "autostart.lock"
+    if is_file_locked(data_lock) or is_file_locked(supervisor_lock):
+        return "the Personnel System server (or its auto-restart supervisor) is running"
+    if probe_ready(port, 1.0) in (READY, UNAVAILABLE):
+        return f"the Personnel System server is already answering on port {port}"
+    return None
+
+
+def cmd_preflight(args):
+    root = Path(args.root).resolve() if args.root else ROOT
+    failures = []
+
+    def check(problem):
+        if problem:
+            failures.append(problem)
+            print(f"[X] {problem}.")
+
+    check(platform_problem(platform.system(), native_machine(), platform.version())
+          if not args.skip_platform else None)
+    for name, path in (("installation folder", root), ("data folder", data_dir(root)),
+                       ("logs folder", root / "logs"),
+                       ("backups folder", data_dir(root).parent / "backups")):
+        problem = writable_problem(path)
+        check(f"The {name} is not writable: {problem}" if problem else None)
+    check(free_space_problem(root, args.min_free_mb or MIN_FREE_MB[args.mode]))
+    try:
+        port = parse_port(os.environ.get("PORT"))
+    except ValueError as exc:
+        check(str(exc))
+    else:
+        running = running_server_problem(root, port)
+        if running:
+            check(f"Cannot continue: {running}. Run STOP_SYSTEM.bat first, then run this step again")
+    if failures:
+        return 1
+    print("[OK] Preflight checks passed (Windows x64, writable folders, free disk space, server stopped).")
+    return 0
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = parser.add_subparsers(dest="cmd", required=True)
+    p_py = sub.add_parser("host-python")
+    p_py.add_argument("--wheel-abi", default=None, help="for example cp311")
+    p_pre = sub.add_parser("preflight")
+    p_pre.add_argument("--mode", choices=sorted(MIN_FREE_MB), required=True)
+    p_pre.add_argument("--root", default=None)
+    p_pre.add_argument("--min-free-mb", type=int, default=0)
+    p_pre.add_argument("--skip-platform", action="store_true", help="tests only")
+    p_ready = sub.add_parser("ready")
+    p_ready.add_argument("--port", default=None)
+    p_ready.add_argument("--timeout", type=float, default=2.0)
+    p_ready.add_argument("--quiet", action="store_true")
+    args = parser.parse_args(argv)
+    return {"host-python": cmd_host_python, "preflight": cmd_preflight,
+            "ready": cmd_ready}[args.cmd](args)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -115,7 +115,8 @@ def _sample_path(rule):
 
 def test_every_route_is_default_deny_for_anonymous(anon_client):
     public = {("GET", "/login"), ("GET", "/setup"),
-              ("POST", "/api/auth/login"), ("POST", "/api/auth/setup")}
+              ("POST", "/api/auth/login"), ("POST", "/api/auth/setup"),
+              ("GET", "/api/health/ready")}
     for rule in app.url_map.iter_rules():
         if rule.endpoint == "static":
             continue
@@ -125,6 +126,15 @@ def test_every_route_is_default_deny_for_anonymous(anon_client):
                 continue
             response = anon_client.open(path, method=method)
             assert response.status_code in (302, 401), (method, path, response.status_code)
+
+
+def test_public_readiness_response_identifies_this_app_without_exposing_data(anon_client):
+    response = anon_client.get("/api/health/ready")
+    assert response.status_code == 200
+    assert response.get_json() == {
+        "service": "personnel-system", "status": "ready", "schema": 6,
+    }
+    assert response.headers["Cache-Control"] == "no-store"
 
 
 def test_view_logs_role_matrix(client, officer_client, individual_client, conscript_client):

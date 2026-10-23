@@ -42,6 +42,7 @@ import json
 import logging
 import os
 import pickle
+import re
 import shutil
 import threading
 import time
@@ -1052,6 +1053,120 @@ def assemble():
     # قراءة كاملة من غير ما تطرد أيام الشغل من الكاش
     return merge(_load(core_file(), core=True)[1],
                  {p.stem: _load(p, cache=False)[1] for p in all_day_files()})
+
+
+_DAY_STEM = re.compile(r"\d{4}-\d{2}-\d{2}")
+_CORE_LISTS = ("leaves", "service_tags", "courses", "course_terms", "vehicles",
+               "service_lines", "conscripts")
+_CORE_DICTS = ("command", "command_groups", "id_seq")
+_DAY_TYPES = {
+    "assignments": list,
+    "officer_states": dict,
+    "confirm": dict,
+    "status": dict,
+    "counts": dict,
+    "assignment_seq": int,
+    "afraad_basic": dict,
+    "weekly_rest_seeded": bool,
+    "target_defaults": dict,
+    "campaign": dict,
+    "service_runs": dict,
+    "import": dict,
+}
+
+
+def _invalid(path, why):
+    return DataUnreadable(
+        f"الملف «{path.name}» ببنية غير صالحة: {why}. لم تُكتب عليه أي بيانات — "
+        f"استعد أحدث نسخة سليمة من {BACKUP_DIR_NAME}/."
+    )
+
+
+def _validate_core_shape(core, path):
+    schema = core.get("schema", 1)
+    if isinstance(schema, bool) or not isinstance(schema, int):
+        raise _invalid(path, "رقم البنية «schema» ليس عددًا صحيحًا")
+    _check_schema(schema)
+    for key in _CORE_LISTS:
+        if key in core and not isinstance(core[key], list):
+            raise _invalid(path, f"«{key}» يجب أن تكون قائمة")
+    for key in _CORE_DICTS:
+        if key in core and not isinstance(core[key], dict):
+            raise _invalid(path, f"«{key}» يجب أن يكون كائنًا")
+    for key in ("officers", "personnel"):
+        if key in core and not isinstance(core[key], (list, dict)):
+            raise _invalid(path, f"«{key}» يجب أن تكون قائمة أو كائنًا")
+    return schema
+
+
+def validate_data(full=True, recover=True):
+    """يتحقق من البيانات المضبوطة فعليًا **من غير ما يكتب أي حاجة**.
+
+    بيحمّل `core.json` وملفات الأيام المفهرسة بنفس مسار القراءة الحقيقي،
+    ويرمي `SchemaMismatch`/`DataUnreadable` برسالة تسمّي الملف. الاستثناء الوحيد
+    الذي يكتب هو تعافي دفتر المعاملات (`recover_journal`) — نفس سلوك أي قراءة.
+    مجلد بيانات فاضي تمامًا معناه تثبيت جديد: بيرجّع status="fresh" ومابيبنيش
+    بيانات افتراضية (ده بيحصل عند أول استخدام فعلي).
+
+    `full=False` (فحص الجاهزية المتكرر): النواة والفهرس بس — الفهرس بيقرا كل
+    ملف يوم مرة واحدة ثم بيعتمد على بصمات الملفات. `full=True` بيفحص كل ملف يوم
+    وشكله ومكانه.
+
+    `recover=False` لأدوات الفحص الخارجية لما سيرفر تاني ماسك قفل البيانات —
+    ماينفعش عملية تانية تعيد تشغيل دفتر معاملة ممكن يكون شغّال دلوقتي.
+
+    -> dict: status ("ok"|"fresh")، schema، days.
+    """
+    with LOCK:
+        if recover:
+            recover_journal()
+        core_path = core_file()
+        if not core_path.exists():
+            if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
+                raise DataUnreadable(
+                    f"مجلد البيانات «{DATA_DIR.name}» موجود، لكنه لا يحتوي على {CORE_NAME}. "
+                    f"استعد نسخة من {BACKUP_DIR_NAME}/."
+                )
+            legacy = ROOT / "data.json"
+            if legacy.exists():
+                raise SchemaMismatch(
+                    f"لا تزال البيانات في الملف القديم الواحد «{legacy.name}». "
+                    f"شغّل migrations/010_split_data_files.py لتفكيكه في مجلد "
+                    f"«{DATA_DIR.name}/» (ينشئ نسخة احتياطية قبل الكتابة)."
+                )
+            return {"status": "fresh", "schema": SCHEMA_VERSION, "days": 0}
+
+        _, core = _load(core_path, core=True, cache=False)
+        schema = _validate_core_shape(core, core_path)
+        try:
+            data = merge(core, {})
+            _normalise(data)
+        except (TypeError, AttributeError, KeyError, ValueError) as exc:
+            raise _invalid(core_path, f"تعذّر تجميع البيانات ({type(exc).__name__})") from exc
+
+        files = all_day_files()
+        if full:
+            for path in files:
+                if not _DAY_STEM.fullmatch(path.stem) or path != day_path(path.stem):
+                    raise _invalid(path, "اسم الملف أو مكانه لا يطابق تاريخ اليوم")
+                _, blob = _load(path, cache=False)
+                if not isinstance(blob, dict):
+                    raise _invalid(path, "محتوى ملف اليوم يجب أن يكون كائنًا")
+                for name, expected in _DAY_TYPES.items():
+                    value = blob.get(name)
+                    if name in blob and (isinstance(value, bool) != (expected is bool)
+                                         or not isinstance(value, expected)):
+                        raise _invalid(path, f"القسم «{name}» ليس بالشكل المتوقع")
+        try:
+            index = _ensure_index()
+        except SchemaMismatch:
+            raise
+        except (TypeError, AttributeError, KeyError, ValueError) as exc:
+            raise DataUnreadable(
+                f"تعذّر فهرسة ملفات الأيام ({type(exc).__name__}). "
+                f"استعد نسخة من {BACKUP_DIR_NAME}/."
+            ) from exc
+        return {"status": "ok", "schema": schema, "days": len(index.days())}
 
 
 def explode(data, _notify=True):

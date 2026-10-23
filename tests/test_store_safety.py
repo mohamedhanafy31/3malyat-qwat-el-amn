@@ -233,6 +233,25 @@ def test_a_corrupt_day_file_stops_everything_instead_of_reading_empty(client, da
         store.load_data()
 
 
+def test_deployment_validation_reads_real_day_files(data_file):
+    path = store.day_path("2026-04-10")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text('{"assignment_seq": "not-an-integer"}', encoding="utf-8")
+    store._cache.clear()
+
+    with pytest.raises(store.DataUnreadable, match="assignment_seq"):
+        store.validate_data(full=True)
+
+
+def test_deployment_validation_accepts_a_completely_fresh_data_folder(tmp_path, monkeypatch):
+    monkeypatch.setattr(store, "DATA_DIR", tmp_path / "new-data")
+    store._cache.clear()
+
+    assert store.validate_data(full=True) == {
+        "status": "fresh", "schema": store.SCHEMA_VERSION, "days": 0,
+    }
+
+
 # ---------- قفل العملية الواحدة ----------
 
 def test_second_process_on_the_same_data_folder_is_refused(client, data_file):
