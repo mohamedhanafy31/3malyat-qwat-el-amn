@@ -15,7 +15,11 @@ if not defined PY goto not_ready
 call "%ROOT%tools\deploy_console.bat" ok "Runtime found."
 
 "%PY%" "%ROOT%tools\deploy_check.py" choose-port --range-start 5000 --range-end 5099 --output "%ROOT%logs\server.port"
-if errorlevel 1 goto port_selection_failed
+set "PORT_RESULT=!ERRORLEVEL!"
+set "SERVER_STATE=new"
+if "!PORT_RESULT!"=="20" set "SERVER_STATE=ready"
+if "!PORT_RESULT!"=="21" set "SERVER_STATE=unavailable"
+if not "!PORT_RESULT!"=="0" if not "!PORT_RESULT!"=="20" if not "!PORT_RESULT!"=="21" goto port_selection_failed
 set /p PORT=<"%ROOT%logs\server.port"
 set "URL=http://127.0.0.1:%PORT%/"
 
@@ -36,12 +40,8 @@ if errorlevel 1 goto failed
 call "%ROOT%tools\deploy_console.bat" ok "Application and database are ready."
 
 call "%ROOT%tools\deploy_console.bat" step "[4/5] Starting production server..."
->>"%DEPLOY_LOG%" echo [%date% %time%] [TRACE] Pre-launch readiness probe on port %PORT%.
-"%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet --trace >>"%DEPLOY_LOG%" 2>&1
-set "READY_RESULT=!ERRORLEVEL!"
-if "!READY_RESULT!"=="0" goto healthy
-if "!READY_RESULT!"=="11" goto readiness_failed
-if not "!READY_RESULT!"=="10" goto port_precheck_failed
+if "!SERVER_STATE!"=="ready" goto healthy
+if "!SERVER_STATE!"=="unavailable" goto readiness_failed
 set "PYW=%PY%"
 if exist "%ROOT%runtime\pythonw.exe" set "PYW=%ROOT%runtime\pythonw.exe"
 if exist "%ROOT%venv\Scripts\pythonw.exe" set "PYW=%ROOT%venv\Scripts\pythonw.exe"
@@ -95,9 +95,6 @@ call "%ROOT%tools\deploy_console.bat" error "The Personnel System answered, but 
 goto show_failure
 :port_failed
 call "%ROOT%tools\deploy_console.bat" error "Port %PORT% answered as a different application after launch. See the trace in logs\start-system.log."
-goto show_failure
-:port_precheck_failed
-call "%ROOT%tools\deploy_console.bat" error "The pre-launch probe on port %PORT% returned an unexpected result. See the trace in logs\start-system.log."
 goto show_failure
 :port_selection_failed
 call "%ROOT%tools\deploy_console.bat" error "No available server port was found from 5000 through 5099."

@@ -15,6 +15,9 @@ SETUP_OFFLINE.bat has edited its ._pth) and its text is shown in cmd.exe.
 loaded), 12 another service answered with something other than this
 application's readiness marker, 13 a listener did not answer within the timeout
 (possibly this application still starting).
+
+`choose-port` exit codes: 0 launch a new server, 20 this application is already
+ready on the selected port, 21 it is already running but unavailable.
 """
 from __future__ import annotations
 
@@ -48,6 +51,7 @@ MIN_HOST_PYTHON = (3, 9)
 MIN_FREE_MB = {"prepare": 1500, "setup": 700}
 
 READY, NOT_LISTENING, UNAVAILABLE, FOREIGN, NO_ANSWER = 0, 10, 11, 12, 13
+CHOOSE_NEW, CHOOSE_EXISTING_READY, CHOOSE_EXISTING_UNAVAILABLE = 0, 20, 21
 
 
 # ---------- host Python ----------
@@ -294,21 +298,31 @@ def port_is_available(port, host="127.0.0.1"):
 
 
 def choose_available_port(preferred, range_start=5000, range_end=5099):
-    """Keep a healthy existing instance, otherwise return a bindable port."""
+    """Return a bindable port, or identify this application already using it."""
     preferred = parse_port(preferred)
     range_start = parse_port(range_start)
     range_end = parse_port(range_end)
     if range_start > range_end:
         raise ValueError("port range start must not be greater than its end")
 
-    if probe_ready(preferred, 0.5) in (READY, UNAVAILABLE):
-        return preferred, "existing"
-    candidates = [preferred]
-    candidates.extend(port for port in range(range_start, range_end + 1)
-                      if port != preferred)
-    for port in candidates:
+    # A successful exclusive bind is authoritative and fast. Do not make an
+    # HTTP connection to a port that is known to be empty: on some Windows 10
+    # machines a refused loopback connection times out or is filtered instead
+    # of returning WSAECONNREFUSED promptly.
+    if port_is_available(preferred):
+        return preferred, "preferred"
+
+    existing = probe_ready(preferred, 3.0)
+    if existing == READY:
+        return preferred, "existing_ready"
+    if existing == UNAVAILABLE:
+        return preferred, "existing_unavailable"
+
+    for port in range(range_start, range_end + 1):
+        if port == preferred:
+            continue
         if port_is_available(port):
-            return port, "preferred" if port == preferred else "fallback"
+            return port, "fallback"
     raise RuntimeError(f"no free local TCP port was found from {range_start} to {range_end}")
 
 
@@ -342,13 +356,18 @@ def cmd_choose_port(args):
         except OSError as exc:
             print(f"[X] Cannot save the selected port to {args.output}: {exc}.")
             return 1
-    if reason == "existing":
+    if reason == "existing_ready":
         print(f"[OK] The Personnel System is already running on port {port}.")
-    elif reason == "fallback":
+        return CHOOSE_EXISTING_READY
+    if reason == "existing_unavailable":
+        print(f"[WARNING] The Personnel System is already running on port {port}, "
+              "but its data is unavailable.")
+        return CHOOSE_EXISTING_UNAVAILABLE
+    if reason == "fallback":
         print(f"[OK] Requested port {parse_port(preferred)} is busy; using free port {port}.")
     else:
         print(f"[OK] Using available port {port}.")
-    return 0
+    return CHOOSE_NEW
 
 
 def cmd_saved_port(args):
@@ -378,7 +397,11 @@ def cmd_ready(args):
     except ValueError as exc:
         print(f"[X] {exc}")
         return FOREIGN
-    code, detail = probe_ready_detail(port, args.timeout)
+    if args.bind_first and port_is_available(port):
+        code = NOT_LISTENING
+        detail = "exclusive bind succeeded; nothing is listening on the port"
+    else:
+        code, detail = probe_ready_detail(port, args.timeout)
     if args.trace:
         print(f"[TRACE] readiness port={port} exit={code}: {detail}")
     if not args.quiet:
@@ -491,6 +514,7 @@ def main(argv=None):
     p_ready.add_argument("--timeout", type=float, default=2.0)
     p_ready.add_argument("--quiet", action="store_true")
     p_ready.add_argument("--trace", action="store_true")
+    p_ready.add_argument("--bind-first", action="store_true")
     p_choose = sub.add_parser("choose-port")
     p_choose.add_argument("--preferred", default=None)
     p_choose.add_argument("--range-start", default=5000)

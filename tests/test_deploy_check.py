@@ -1,3 +1,4 @@
+from argparse import Namespace
 import json
 import socket
 import urllib.error
@@ -55,10 +56,24 @@ def test_choose_available_port_falls_back_when_preferred_is_busy(monkeypatch):
 
 def test_choose_available_port_reuses_running_personnel_system(monkeypatch):
     monkeypatch.setattr(deploy_check, "probe_ready", lambda port, timeout: deploy_check.READY)
-    monkeypatch.setattr(deploy_check, "port_is_available",
-                        lambda port: (_ for _ in ()).throw(AssertionError("must not bind")))
+    monkeypatch.setattr(deploy_check, "port_is_available", lambda port: False)
 
-    assert deploy_check.choose_available_port(5050, 5000, 5099) == (5050, "existing")
+    assert deploy_check.choose_available_port(5050, 5000, 5099) == (5050, "existing_ready")
+
+
+def test_choose_available_port_reports_unavailable_existing_system(monkeypatch):
+    monkeypatch.setattr(deploy_check, "probe_ready", lambda port, timeout: deploy_check.UNAVAILABLE)
+    monkeypatch.setattr(deploy_check, "port_is_available", lambda port: False)
+
+    assert deploy_check.choose_available_port(5000) == (5000, "existing_unavailable")
+
+
+def test_choose_available_port_does_not_http_probe_a_free_port(monkeypatch):
+    monkeypatch.setattr(deploy_check, "port_is_available", lambda port: True)
+    monkeypatch.setattr(deploy_check, "probe_ready",
+                        lambda port, timeout: (_ for _ in ()).throw(AssertionError("must not probe")))
+
+    assert deploy_check.choose_available_port(5000) == (5000, "preferred")
 
 
 def test_port_is_available_detects_a_real_listener():
@@ -71,6 +86,15 @@ def test_port_is_available_detects_a_real_listener():
         listener.close()
 
 
+def test_ready_bind_first_reports_an_empty_port_without_http(monkeypatch):
+    monkeypatch.setattr(deploy_check, "port_is_available", lambda port: True)
+    monkeypatch.setattr(deploy_check, "probe_ready_detail",
+                        lambda port, timeout: (_ for _ in ()).throw(AssertionError("must not probe")))
+    args = Namespace(port="5000", timeout=3, quiet=True, trace=False, bind_first=True)
+
+    assert deploy_check.cmd_ready(args) == deploy_check.NOT_LISTENING
+
+
 def test_choose_port_saves_only_valid_numeric_port(tmp_path, monkeypatch):
     target = tmp_path / "logs" / "server.port"
     monkeypatch.setattr(deploy_check, "choose_available_port",
@@ -80,6 +104,18 @@ def test_choose_port_saves_only_valid_numeric_port(tmp_path, monkeypatch):
 
     assert deploy_check.cmd_choose_port(args) == 0
     assert target.read_text(encoding="ascii") == "5007\n"
+
+
+def test_choose_port_returns_distinct_existing_server_status(tmp_path, monkeypatch):
+    target = tmp_path / "logs" / "server.port"
+    args = type("Args", (), {"preferred": "5000", "range_start": "5000",
+                              "range_end": "5099", "output": str(target)})()
+    monkeypatch.setattr(deploy_check, "choose_available_port",
+                        lambda preferred, start, end: (5000, "existing_ready"))
+    assert deploy_check.cmd_choose_port(args) == deploy_check.CHOOSE_EXISTING_READY
+    monkeypatch.setattr(deploy_check, "choose_available_port",
+                        lambda preferred, start, end: (5000, "existing_unavailable"))
+    assert deploy_check.cmd_choose_port(args) == deploy_check.CHOOSE_EXISTING_UNAVAILABLE
 
 
 def test_retire_legacy_autostart_removes_shortcut_and_waits_for_lock(tmp_path, monkeypatch):

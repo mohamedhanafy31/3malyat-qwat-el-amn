@@ -44,9 +44,16 @@ def test_deployment_scripts_are_relocatable_and_logged():
     assert "choose-port" in start
     assert "logs\\server.port" in start
     assert "saved-port" in (ROOT / "STOP_SYSTEM.bat").read_text(encoding="ascii")
+    assert "--bind-first" in (ROOT / "STOP_SYSTEM.bat").read_text(encoding="ascii")
     assert "--trace" in start
     assert "LSS 30" in start
     assert start.index('if "!READY_RESULT!"=="12" goto port_failed') > start.index("LSS 30")
+    launch = start.index('start "" /b "%PYW%"')
+    step4 = start.index('[4/5] Starting production server')
+    assert 'deploy_check.py" ready' not in start[step4:launch]
+    assert '"20" set "SERVER_STATE=ready"' in start
+    assert '"21" set "SERVER_STATE=unavailable"' in start
+    assert start.index("goto port_selection_failed") < start.index("set /p PORT")
     assert "PERSONNEL_SETUP_FROM_START" in setup
     assert 'call "%ROOT%SETUP_OFFLINE.bat"' in prepare
     assert "PERSONNEL_SETUP_FROM_PREPARE" in prepare

@@ -17,7 +17,7 @@ if not defined PORT (
 )
 if not defined PORT set "PORT=5000"
 if defined PY (
-    "%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet
+    "%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 3 --quiet --bind-first
     set "READY_RESULT=!ERRORLEVEL!"
     if "!READY_RESULT!"=="10" goto not_running
     if "!READY_RESULT!"=="12" goto foreign_port
