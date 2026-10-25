@@ -37,8 +37,9 @@ sudo systemctl enable --now personnel-system
 |---|---|---|
 | `PREPARE_ONLINE.bat` | مرة واحدة عند تنزيل Source code من GitHub | **أيوه** — ده الوحيد |
 | `SETUP_OFFLINE.bat` | اختياري للتشخيص؛ `START_SYSTEM.bat` يشغله تلقائيًا أول مرة | لأ |
-| `START_SYSTEM.bat` | أول تشغيل والإعداد، ثم كل يوم | لأ |
-| `STOP_SYSTEM.bat` | لإيقاف السيستم (مثلًا قبل الاستعادة) | لأ |
+| `OPEN_SYSTEM.vbs` | التشغيل اليومي بدون نافذة Terminal | لأ |
+| `CLOSE_SYSTEM.vbs` | إيقاف النظام بدون نافذة Terminal | لأ |
+| `START_SYSTEM.bat` / `STOP_SYSTEM.bat` | تشغيل تشخيصي يظهر التفاصيل في CMD | لأ |
 | `SETUP_PHONE_ACCESS.bat` | اختياري — تطبيق الموبايل، شوف `MOBILE_APP.md` | **أيوه** |
 
 لا يثبت النظام خدمة خلفية ولا تشغيلًا تلقائيًا مع دخول Windows. التشغيل يدوي
@@ -103,9 +104,10 @@ python tools\prepare_offline_bundle.py --archive
 
 ### بعد تنزيل Offline Release: فك الضغط وشغّل
 ```
-START_SYSTEM.bat
+OPEN_SYSTEM.vbs
 ```
-في أول مرة يشغّل الإعداد المحلي تلقائيًا من الملفات الموجودة داخل الحزمة، من
+يشغّل `OPEN_SYSTEM.vbs` الملف `START_SYSTEM.bat` في الخلفية. في أول مرة يشغّل الإعداد
+المحلي تلقائيًا من الملفات الموجودة داخل الحزمة، من
 غير إنترنت، ثم يكمل التشغيل. بعد ذلك يتحقق من البيئة وقاعدة البيانات، يشغّل
 Waitress في نافذة خادم مستقلة، ينتظر
 فحص جاهزية خاص بالنظام (وليس مجرد صفحة HTTP)، ثم يفتح المتصفح على

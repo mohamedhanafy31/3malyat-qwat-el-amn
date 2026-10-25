@@ -16,6 +16,7 @@ SCRIPTS = (
     "SETUP_PHONE_ACCESS.bat",
     "tools/deploy_console.bat",
 )
+GUI_LAUNCHERS = ("OPEN_SYSTEM.vbs", "CLOSE_SYSTEM.vbs")
 
 
 def test_deployment_batch_files_are_ascii_only():
@@ -28,6 +29,25 @@ def test_deployment_batch_files_use_windows_line_endings():
     for name in SCRIPTS:
         raw = (ROOT / name).read_bytes()
         assert b"\n" not in raw.replace(b"\r\n", b"")
+
+
+def test_gui_launchers_are_ascii_windows_scripts():
+    for name in GUI_LAUNCHERS:
+        raw = (ROOT / name).read_bytes()
+        raw.decode("ascii")
+        assert b"\n" not in raw.replace(b"\r\n", b"")
+
+
+def test_gui_launchers_hide_cmd_and_surface_failures():
+    start = (ROOT / "OPEN_SYSTEM.vbs").read_text(encoding="ascii")
+    stop = (ROOT / "CLOSE_SYSTEM.vbs").read_text(encoding="ascii")
+    assert 'shell.Run(Quoted(batchFile), 0, True)' in start
+    assert 'shell.Run(Quoted(batchFile), 0, True)' in stop
+    assert 'PERSONNEL_NO_PAUSE' in start
+    assert 'PERSONNEL_NO_PAUSE' in stop
+    assert 'START_SYSTEM.bat' in start and 'start-system.log' in start
+    assert 'STOP_SYSTEM.bat' in stop and 'stop-system.log' in stop
+    assert 'notepad.exe' in start and 'notepad.exe' in stop
 
 
 def test_deployment_scripts_are_relocatable_and_logged():
@@ -103,6 +123,8 @@ def test_startup_uses_application_readiness_marker_not_root_http():
 
 def test_supported_release_does_not_include_background_autostart():
     names = {path.relative_to(ROOT).as_posix() for path in prepare_offline_bundle.release_files()}
+    assert "OPEN_SYSTEM.vbs" in names
+    assert "CLOSE_SYSTEM.vbs" in names
     assert "INSTALL_AUTOSTART.bat" not in names
     assert "tools/autostart.py" not in names
     assert "retire-autostart" in (ROOT / "PREPARE_ONLINE.bat").read_text(encoding="ascii")

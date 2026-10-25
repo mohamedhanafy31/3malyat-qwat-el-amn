@@ -36,7 +36,7 @@ netstat -ano | findstr /c:":%PORT% " | findstr LISTENING >nul
 if not errorlevel 1 (
     call "%ROOT%tools\deploy_console.bat" error "The server is still running. See logs\stop-system.log."
     endlocal
-    pause
+    if not defined PERSONNEL_NO_PAUSE pause
     exit /b 1
 )
 call "%ROOT%tools\deploy_console.bat" ok "System stopped. Run START_SYSTEM.bat whenever you want to start it again."
@@ -51,17 +51,17 @@ goto done
 call "%ROOT%tools\deploy_console.bat" error "Port %PORT% is not confirmed as this Personnel System. Nothing was killed."
 call "%ROOT%tools\deploy_console.bat" info "Close the other program yourself, or set PORT to the Personnel System port and retry."
 endlocal
-pause
+if not defined PERSONNEL_NO_PAUSE pause
 exit /b 1
 
 :no_runtime
 call "%ROOT%tools\deploy_console.bat" error "No configured Personnel System runtime was found. Nothing was killed."
 call "%ROOT%tools\deploy_console.bat" info "Run SETUP_OFFLINE.bat first, or stop the intended process manually after confirming its identity."
 endlocal
-pause
+if not defined PERSONNEL_NO_PAUSE pause
 exit /b 1
 
 :done
 endlocal
-pause
+if not defined PERSONNEL_NO_PAUSE pause
 exit /b 0
