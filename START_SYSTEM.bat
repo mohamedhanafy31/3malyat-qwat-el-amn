@@ -14,7 +14,9 @@ if not defined PY if exist "%ROOT%venv\Scripts\python.exe" set "PY=%ROOT%venv\Sc
 if not defined PY goto not_ready
 call "%ROOT%tools\deploy_console.bat" ok "Runtime found."
 
-if not defined PORT set "PORT=5000"
+"%PY%" "%ROOT%tools\deploy_check.py" choose-port --range-start 5000 --range-end 5099 --output "%ROOT%logs\server.port"
+if errorlevel 1 goto port_selection_failed
+set /p PORT=<"%ROOT%logs\server.port"
 set "URL=http://127.0.0.1:%PORT%/"
 
 call "%ROOT%tools\deploy_console.bat" step "[2/5] Checking production dependencies..."
@@ -37,6 +39,7 @@ call "%ROOT%tools\deploy_console.bat" step "[4/5] Starting production server..."
 "%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet
 set "READY_RESULT=!ERRORLEVEL!"
 if "!READY_RESULT!"=="0" goto healthy
+if "!READY_RESULT!"=="11" goto readiness_failed
 if not "!READY_RESULT!"=="10" goto port_failed
 set "PYW=%PY%"
 if exist "%ROOT%runtime\pythonw.exe" set "PYW=%ROOT%runtime\pythonw.exe"
@@ -88,8 +91,10 @@ goto show_failure
 call "%ROOT%tools\deploy_console.bat" error "The Personnel System answered, but its data is unavailable. See logs\server.log."
 goto show_failure
 :port_failed
-call "%ROOT%tools\deploy_console.bat" error "Port %PORT% is used by another program or returned the wrong application marker."
-call "%ROOT%tools\deploy_console.bat" info "Close that program, or run: set PORT=5050 then START_SYSTEM.bat"
+call "%ROOT%tools\deploy_console.bat" error "The selected port %PORT% became busy before the server could start. Run START_SYSTEM.bat again."
+goto show_failure
+:port_selection_failed
+call "%ROOT%tools\deploy_console.bat" error "No available server port was found from 5000 through 5099."
 goto show_failure
 
 :show_failure

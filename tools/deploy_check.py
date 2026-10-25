@@ -8,6 +8,7 @@ SETUP_OFFLINE.bat has edited its ._pth) and its text is shown in cmd.exe.
     python tools/deploy_check.py host-python [--wheel-abi cp311]
     python tools/deploy_check.py preflight --mode prepare|setup
     python tools/deploy_check.py ready --port 5000 [--timeout 2]
+    python tools/deploy_check.py choose-port --output logs/server.port
 
 `ready` exit codes: 0 this application is ready, 10 nothing is listening,
 11 this application answered but reports it is unavailable (data cannot be
@@ -230,6 +231,90 @@ def probe_ready(port, timeout=2.0):
         return FOREIGN
 
 
+def port_is_available(port, host="127.0.0.1"):
+    """Return True only when a new local server can bind this TCP port."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        # On Windows this prevents a misleading successful bind when another
+        # process already owns the address with sharing enabled.
+        exclusive = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
+        if exclusive is not None:
+            sock.setsockopt(socket.SOL_SOCKET, exclusive, 1)
+        sock.bind((host, port))
+        return True
+    except OSError:
+        return False
+    finally:
+        sock.close()
+
+
+def choose_available_port(preferred, range_start=5000, range_end=5099):
+    """Keep a healthy existing instance, otherwise return a bindable port."""
+    preferred = parse_port(preferred)
+    range_start = parse_port(range_start)
+    range_end = parse_port(range_end)
+    if range_start > range_end:
+        raise ValueError("port range start must not be greater than its end")
+
+    if probe_ready(preferred, 0.5) in (READY, UNAVAILABLE):
+        return preferred, "existing"
+    candidates = [preferred]
+    candidates.extend(port for port in range(range_start, range_end + 1)
+                      if port != preferred)
+    for port in candidates:
+        if port_is_available(port):
+            return port, "preferred" if port == preferred else "fallback"
+    raise RuntimeError(f"no free local TCP port was found from {range_start} to {range_end}")
+
+
+def atomic_write_text(path, text):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(text, encoding="ascii")
+    os.replace(temporary, path)
+
+
+def cmd_choose_port(args):
+    preferred = args.preferred
+    if preferred in (None, ""):
+        preferred = os.environ.get("PORT")
+    if preferred in (None, "") and args.output:
+        try:
+            preferred = Path(args.output).read_text(encoding="ascii").strip()
+            parse_port(preferred)
+        except (OSError, UnicodeError, ValueError):
+            preferred = None
+    try:
+        port, reason = choose_available_port(
+            preferred, args.range_start, args.range_end)
+    except (ValueError, RuntimeError) as exc:
+        print(f"[X] Cannot select a server port: {exc}.")
+        return 1
+    if args.output:
+        try:
+            atomic_write_text(args.output, f"{port}\n")
+        except OSError as exc:
+            print(f"[X] Cannot save the selected port to {args.output}: {exc}.")
+            return 1
+    if reason == "existing":
+        print(f"[OK] The Personnel System is already running on port {port}.")
+    elif reason == "fallback":
+        print(f"[OK] Requested port {parse_port(preferred)} is busy; using free port {port}.")
+    else:
+        print(f"[OK] Using available port {port}.")
+    return 0
+
+
+def cmd_saved_port(args):
+    try:
+        value = Path(args.file).read_text(encoding="ascii").strip()
+        print(parse_port(value))
+    except (OSError, UnicodeError, ValueError):
+        return 1
+    return 0
+
+
 READY_MESSAGES = {
     READY: "This application is ready.",
     NOT_LISTENING: "Nothing is listening on the port.",
@@ -358,12 +443,21 @@ def main(argv=None):
     p_ready.add_argument("--port", default=None)
     p_ready.add_argument("--timeout", type=float, default=2.0)
     p_ready.add_argument("--quiet", action="store_true")
+    p_choose = sub.add_parser("choose-port")
+    p_choose.add_argument("--preferred", default=None)
+    p_choose.add_argument("--range-start", default=5000)
+    p_choose.add_argument("--range-end", default=5099)
+    p_choose.add_argument("--output", default=None)
+    p_saved = sub.add_parser("saved-port")
+    p_saved.add_argument("--file", required=True)
     p_retire = sub.add_parser("retire-autostart")
     p_retire.add_argument("--root", default=None)
     p_retire.add_argument("--timeout", type=float, default=65.0)
     args = parser.parse_args(argv)
     return {"host-python": cmd_host_python, "preflight": cmd_preflight,
-            "ready": cmd_ready, "retire-autostart": cmd_retire_autostart}[args.cmd](args)
+            "ready": cmd_ready, "choose-port": cmd_choose_port,
+            "saved-port": cmd_saved_port,
+            "retire-autostart": cmd_retire_autostart}[args.cmd](args)
 
 
 if __name__ == "__main__":

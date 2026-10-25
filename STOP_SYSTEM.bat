@@ -6,12 +6,16 @@ set "ROOT=%~dp0"
 cd /d "%ROOT%"
 call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "stop-system"
 
-if not defined PORT set "PORT=5000"
-
 set "PY="
 if exist "%ROOT%runtime\python.exe" set "PY=%ROOT%runtime\python.exe"
 if not defined PY if exist "%ROOT%venv\Scripts\python.exe" set "PY=%ROOT%venv\Scripts\python.exe"
 if not defined PY goto no_runtime
+if not defined PORT (
+    "%PY%" "%ROOT%tools\deploy_check.py" saved-port --file "%ROOT%logs\server.port" >"%ROOT%logs\stop-port.tmp"
+    if not errorlevel 1 set /p PORT=<"%ROOT%logs\stop-port.tmp"
+    del /q "%ROOT%logs\stop-port.tmp" >nul 2>&1
+)
+if not defined PORT set "PORT=5000"
 if defined PY (
     "%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet
     set "READY_RESULT=!ERRORLEVEL!"

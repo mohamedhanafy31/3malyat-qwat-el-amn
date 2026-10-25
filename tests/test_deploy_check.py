@@ -1,4 +1,5 @@
 import json
+import socket
 
 from tools import deploy_check
 
@@ -30,6 +31,42 @@ def test_platform_and_port_contract():
             pass
         else:
             raise AssertionError(f"accepted invalid port {invalid}")
+
+
+def test_choose_available_port_falls_back_when_preferred_is_busy(monkeypatch):
+    monkeypatch.setattr(deploy_check, "probe_ready", lambda port, timeout: deploy_check.FOREIGN)
+    monkeypatch.setattr(deploy_check, "port_is_available", lambda port: port == 5002)
+
+    assert deploy_check.choose_available_port(5000, 5000, 5005) == (5002, "fallback")
+
+
+def test_choose_available_port_reuses_running_personnel_system(monkeypatch):
+    monkeypatch.setattr(deploy_check, "probe_ready", lambda port, timeout: deploy_check.READY)
+    monkeypatch.setattr(deploy_check, "port_is_available",
+                        lambda port: (_ for _ in ()).throw(AssertionError("must not bind")))
+
+    assert deploy_check.choose_available_port(5050, 5000, 5099) == (5050, "existing")
+
+
+def test_port_is_available_detects_a_real_listener():
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.bind(("127.0.0.1", 0))
+    listener.listen()
+    try:
+        assert deploy_check.port_is_available(listener.getsockname()[1]) is False
+    finally:
+        listener.close()
+
+
+def test_choose_port_saves_only_valid_numeric_port(tmp_path, monkeypatch):
+    target = tmp_path / "logs" / "server.port"
+    monkeypatch.setattr(deploy_check, "choose_available_port",
+                        lambda preferred, start, end: (5007, "fallback"))
+    args = type("Args", (), {"preferred": "5000", "range_start": "5000",
+                              "range_end": "5099", "output": str(target)})()
+
+    assert deploy_check.cmd_choose_port(args) == 0
+    assert target.read_text(encoding="ascii") == "5007\n"
 
 
 def test_retire_legacy_autostart_removes_shortcut_and_waits_for_lock(tmp_path, monkeypatch):
