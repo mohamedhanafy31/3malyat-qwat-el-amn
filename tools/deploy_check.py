@@ -19,6 +19,8 @@ application's readiness marker, 13 a listener did not answer within the timeout
 from __future__ import annotations
 
 import argparse
+import errno
+import http.client
 import json
 import os
 import platform
@@ -205,30 +207,73 @@ def parse_port(value):
     return int(text)
 
 
-def probe_ready(port, timeout=2.0):
-    """Ask 127.0.0.1:<port> whether *this* application is ready."""
+def _error_numbers(error):
+    """Collect portable errno and Windows WSA codes from a socket error."""
+    values = {getattr(error, "errno", None), getattr(error, "winerror", None)}
+    if getattr(error, "args", None) and isinstance(error.args[0], int):
+        values.add(error.args[0])
+    return {value for value in values if isinstance(value, int)}
+
+
+def classify_transport_error(error):
+    """Map connection-stage failures without mistaking Windows refusal for HTTP."""
+    if isinstance(error, (socket.timeout, TimeoutError)):
+        return NO_ANSWER
+    if isinstance(error, ConnectionRefusedError):
+        return NOT_LISTENING
+    numbers = _error_numbers(error)
+    refused = {errno.ECONNREFUSED, 10061}  # WSAECONNREFUSED
+    timed_out = {errno.ETIMEDOUT, 10060}   # WSAETIMEDOUT
+    interrupted = {
+        errno.ECONNRESET, errno.ECONNABORTED, errno.EPIPE,
+        10053, 10054, 10058,               # WSAECONNABORTED/RESET/SHUTDOWN
+    }
+    if numbers & refused:
+        return NOT_LISTENING
+    if numbers & (timed_out | interrupted):
+        return NO_ANSWER
+    return None
+
+
+def _transport_detail(error):
+    numbers = sorted(_error_numbers(error))
+    suffix = f" codes={numbers}" if numbers else ""
+    return f"{type(error).__name__}{suffix}"
+
+
+def probe_ready_detail(port, timeout=2.0):
+    """Return readiness code plus a safe diagnostic description."""
     url = f"http://127.0.0.1:{port}{READY_PATH}"
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
     try:
         with opener.open(url, timeout=timeout) as response:
-            return classify_response(response.status, response.read(4097))
+            code = classify_response(response.status, response.read(4097))
+            return code, f"HTTP {response.status}; {READY_MESSAGES[code]}"
     except urllib.error.HTTPError as exc:
         try:
-            return classify_response(exc.code, exc.read(4097))
+            code = classify_response(exc.code, exc.read(4097))
+            return code, f"HTTP {exc.code}; {READY_MESSAGES[code]}"
         finally:
             exc.close()
     except urllib.error.URLError as exc:
-        if isinstance(exc.reason, ConnectionRefusedError):
-            return NOT_LISTENING
-        if isinstance(exc.reason, (socket.timeout, TimeoutError)):
-            return NO_ANSWER
-        return FOREIGN
-    except (socket.timeout, TimeoutError):
-        return NO_ANSWER
-    except (OSError, ValueError):
-        return FOREIGN
-    except Exception:       # http.client.HTTPException and friends: not our service
-        return FOREIGN
+        code = classify_transport_error(exc.reason) or FOREIGN
+        return code, f"URL transport {_transport_detail(exc.reason)}; {READY_MESSAGES[code]}"
+    except (socket.timeout, TimeoutError) as exc:
+        return NO_ANSWER, f"transport {_transport_detail(exc)}; {READY_MESSAGES[NO_ANSWER]}"
+    except http.client.RemoteDisconnected as exc:
+        return NO_ANSWER, f"HTTP {type(exc).__name__}; {READY_MESSAGES[NO_ANSWER]}"
+    except OSError as exc:
+        code = classify_transport_error(exc) or FOREIGN
+        return code, f"socket {_transport_detail(exc)}; {READY_MESSAGES[code]}"
+    except ValueError as exc:
+        return FOREIGN, f"request {type(exc).__name__}; {READY_MESSAGES[FOREIGN]}"
+    except Exception as exc:  # malformed/non-HTTP answer: not our service
+        return FOREIGN, f"HTTP {type(exc).__name__}; {READY_MESSAGES[FOREIGN]}"
+
+
+def probe_ready(port, timeout=2.0):
+    """Ask 127.0.0.1:<port> whether *this* application is ready."""
+    return probe_ready_detail(port, timeout)[0]
 
 
 def port_is_available(port, host="127.0.0.1"):
@@ -333,7 +378,9 @@ def cmd_ready(args):
     except ValueError as exc:
         print(f"[X] {exc}")
         return FOREIGN
-    code = probe_ready(port, args.timeout)
+    code, detail = probe_ready_detail(port, args.timeout)
+    if args.trace:
+        print(f"[TRACE] readiness port={port} exit={code}: {detail}")
     if not args.quiet:
         print(f"[{'OK' if code == READY else 'X'}] Port {port}: {READY_MESSAGES[code]}")
     return code
@@ -443,6 +490,7 @@ def main(argv=None):
     p_ready.add_argument("--port", default=None)
     p_ready.add_argument("--timeout", type=float, default=2.0)
     p_ready.add_argument("--quiet", action="store_true")
+    p_ready.add_argument("--trace", action="store_true")
     p_choose = sub.add_parser("choose-port")
     p_choose.add_argument("--preferred", default=None)
     p_choose.add_argument("--range-start", default=5000)

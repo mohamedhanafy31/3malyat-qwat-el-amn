@@ -33,7 +33,7 @@ except ImportError:
     )
 
 from app import app
-from backend.store import acquire_process_lock
+from backend import store
 from backend.daily_files import start_worker
 
 HOST = os.environ.get("HOST", "127.0.0.1")
@@ -102,20 +102,37 @@ def _port_conflict_message():
     )
 
 
-if __name__ == "__main__":
+def main():
     logger = _configure_logging()
-    start_worker()
-    acquire_process_lock()
-    logger.info("Starting production server on http://%s:%s (threads=%s)",
+    logger.info("[startup 1/5] Python=%s root=%s", sys.executable, PROJECT_ROOT)
+    try:
+        logger.info("[startup 2/5] Acquiring exclusive data lock in %s", store.DATA_DIR)
+        store.acquire_process_lock()
+        logger.info("[startup 3/5] Data lock acquired; starting daily-files worker")
+        start_worker()
+    except SystemExit as exc:
+        logger.error("Startup stopped before the HTTP server could bind: %s", exc)
+        return exc.code if isinstance(exc.code, int) else 1
+    except Exception:
+        logger.exception("Startup failed before the HTTP server could bind")
+        return 1
+    logger.info("[startup 4/5] Binding Waitress to http://%s:%s (threads=%s)",
                 HOST, PORT, THREADS)
     while True:
         try:
             serve(app, host=HOST, port=PORT, threads=THREADS,
                   channel_timeout=120, asyncore_use_poll=True)
+            logger.info("[startup 5/5] Waitress stopped normally")
             break  # serve() ما بترجعش إلا لو السيرفر اتقفل عمدًا
         except Exception as exc:
             # تعارض المنفذ حالة نهائية — خروج نضيف برسالة، من غير إعادة محاولة
             if _is_port_in_use(exc):
-                raise SystemExit(_port_conflict_message())
+                logger.error(_port_conflict_message())
+                return 1
             logger.exception("Server stopped unexpectedly; retrying in 3 seconds")
             time.sleep(3)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -36,25 +36,28 @@ if errorlevel 1 goto failed
 call "%ROOT%tools\deploy_console.bat" ok "Application and database are ready."
 
 call "%ROOT%tools\deploy_console.bat" step "[4/5] Starting production server..."
-"%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet
+>>"%DEPLOY_LOG%" echo [%date% %time%] [TRACE] Pre-launch readiness probe on port %PORT%.
+"%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet --trace >>"%DEPLOY_LOG%" 2>&1
 set "READY_RESULT=!ERRORLEVEL!"
 if "!READY_RESULT!"=="0" goto healthy
 if "!READY_RESULT!"=="11" goto readiness_failed
-if not "!READY_RESULT!"=="10" goto port_failed
+if not "!READY_RESULT!"=="10" goto port_precheck_failed
 set "PYW=%PY%"
 if exist "%ROOT%runtime\pythonw.exe" set "PYW=%ROOT%runtime\pythonw.exe"
 if exist "%ROOT%venv\Scripts\pythonw.exe" set "PYW=%ROOT%venv\Scripts\pythonw.exe"
+>>"%DEPLOY_LOG%" echo [%date% %time%] [TRACE] Launching serve.py with port %PORT%.
 start "" /b "%PYW%" "%ROOT%serve.py" >>"%ROOT%logs\server-console.log" 2>&1
+call "%ROOT%tools\deploy_console.bat" info "Server process launched. Waiting up to 30 seconds for readiness..."
 set /a WAIT=0
 :wait_server
 timeout /t 1 /nobreak >nul
-"%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet
+"%PY%" "%ROOT%tools\deploy_check.py" ready --port "%PORT%" --timeout 1 --quiet --trace >>"%DEPLOY_LOG%" 2>&1
 set "READY_RESULT=!ERRORLEVEL!"
 if "!READY_RESULT!"=="0" goto healthy
 if "!READY_RESULT!"=="11" goto readiness_failed
-if "!READY_RESULT!"=="12" goto port_failed
 set /a WAIT+=1
 if !WAIT! LSS 30 goto wait_server
+if "!READY_RESULT!"=="12" goto port_failed
 goto failed
 
 :healthy
@@ -82,7 +85,7 @@ goto check_runtime
 call "%ROOT%tools\deploy_console.bat" error "Automatic offline setup failed."
 goto show_failure
 :failed
-call "%ROOT%tools\deploy_console.bat" error "Server stopped with an error. See logs\start-system.log."
+call "%ROOT%tools\deploy_console.bat" error "Server did not become ready within 30 seconds. See logs\start-system.log and logs\server.log."
 goto show_failure
 :data_failed
 call "%ROOT%tools\deploy_console.bat" error "The real application data failed validation. No data was changed."
@@ -91,7 +94,10 @@ goto show_failure
 call "%ROOT%tools\deploy_console.bat" error "The Personnel System answered, but its data is unavailable. See logs\server.log."
 goto show_failure
 :port_failed
-call "%ROOT%tools\deploy_console.bat" error "The selected port %PORT% became busy before the server could start. Run START_SYSTEM.bat again."
+call "%ROOT%tools\deploy_console.bat" error "Port %PORT% answered as a different application after launch. See the trace in logs\start-system.log."
+goto show_failure
+:port_precheck_failed
+call "%ROOT%tools\deploy_console.bat" error "The pre-launch probe on port %PORT% returned an unexpected result. See the trace in logs\start-system.log."
 goto show_failure
 :port_selection_failed
 call "%ROOT%tools\deploy_console.bat" error "No available server port was found from 5000 through 5099."

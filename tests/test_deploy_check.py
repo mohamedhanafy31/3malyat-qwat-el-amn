@@ -1,5 +1,6 @@
 import json
 import socket
+import urllib.error
 
 from tools import deploy_check
 
@@ -31,6 +32,18 @@ def test_platform_and_port_contract():
             pass
         else:
             raise AssertionError(f"accepted invalid port {invalid}")
+
+
+def test_windows_connection_refused_is_not_misclassified_as_foreign():
+    refused = OSError(10061, "Windows connection refused")
+    assert deploy_check.classify_transport_error(refused) == deploy_check.NOT_LISTENING
+    wrapped = urllib.error.URLError(refused)
+    assert deploy_check.classify_transport_error(wrapped.reason) == deploy_check.NOT_LISTENING
+
+
+def test_windows_reset_during_startup_is_retryable():
+    assert deploy_check.classify_transport_error(
+        OSError(10054, "Windows connection reset")) == deploy_check.NO_ANSWER
 
 
 def test_choose_available_port_falls_back_when_preferred_is_busy(monkeypatch):
