@@ -29,6 +29,7 @@ DEFAULT_DATA = {
     "leaves": [],
     "day_assignments": {},
     "day_officers": {},
+    "officer_status_periods": [],
     "service_tags": [],
     "courses": [],
     "course_terms": [],
@@ -168,8 +169,16 @@ WEEKDAYS = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "�
 # لأي تفتيش جديد يتضاف، قابلين للتعديل لكل تفتيش لوحده (`inspection_schedule.py`).
 INSPECTION_DEFAULT_WEAPON = "دونك"
 INSPECTION_DEFAULT_COUNT = 5
+# أنواع الراحة الحالية — المعروضة للاختيار والمقبولة في أي سجل جديد
 LEAVE_TYPES = ["أسبوعية", "نصف شهرية", "شهرية", "إجازة مصيف", "إجازة طارئة",
-               "راحة فرقة", "مرضي", "مجمعة", "راحة"]
+               "إجازة خاصة", "مرضي", "مجمعة", "راحة"]
+LEAVE_FORM_TYPES = LEAVE_TYPES
+
+# «راحة فرقة» اتلغت كنوع: الفرقة بتتسجّل التحاقًا من صفحة الفرق. السجلات
+# القديمة بالنوع ده بتفضل تتحمّل وتتعرض (خانتها «فرقة» من LEAVE_BUCKET)،
+# ومينفعش يتعمل سجل جديد بيه.
+LEGACY_LEAVE_TYPES = ["راحة فرقة"]
+ALL_LEAVE_TYPES = LEAVE_TYPES + LEGACY_LEAVE_TYPES
 
 # المدة القياسية بالأيام لكل نوع راحة — تُحسب تلقائيًا عند تحديد يوم البداية
 REST_DURATIONS = {"شهرية": 7, "نصف شهرية": 3, "أسبوعية": 1}

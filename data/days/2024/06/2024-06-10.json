@@ -776,7 +776,8 @@
       "night_person_id": "IND-005",
       "night_phone": "01151585036",
       "schedule": "8 ص / 8 م",
-      "weapon": "آلي"
+      "weapon": "آلي",
+      "morning_person_id": "IND-195"
     },
     "AFB-12": {
       "count": "1 مج قتالي (3 مجند ) صبح 1 مج قتالي (3 مجند ) ليل",

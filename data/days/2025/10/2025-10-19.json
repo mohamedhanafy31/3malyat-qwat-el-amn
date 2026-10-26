@@ -1021,7 +1021,9 @@
       "night_name": "معاون/ ابراهيم النسر",
       "night_phone": "",
       "schedule": "8 ص / 8م",
-      "weapon": "آلي"
+      "weapon": "آلي",
+      "morning_person_id": "IND-193",
+      "night_person_id": "IND-193"
     },
     "AFB-45": {
       "count": "1 مج قتالي (2 مجند ) صبح 1 مج قتالي ( 2 مجند ) ليل",

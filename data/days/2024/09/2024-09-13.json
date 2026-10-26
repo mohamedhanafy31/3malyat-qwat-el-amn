@@ -1093,7 +1093,8 @@
       "night_person_id": "IND-111",
       "night_phone": "",
       "schedule": "8 ص / 8 م",
-      "weapon": "الي"
+      "weapon": "الي",
+      "morning_person_id": "IND-103"
     }
   },
   "import": {

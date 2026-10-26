@@ -1,619 +1,1272 @@
 {
   "assignments": [
     {
-      "section": "الخدمات أساسية",
-      "shift": "صباحية",
+      "conscript_count": 4,
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 2
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0001",
+      "kind": "خارجية",
+      "name": "تدخل سريع",
+      "note": "",
       "officer_ids": [
         "OFF-007"
       ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "الي + كلبش",
-      "time": "8 ص / 8 م",
       "party": "",
-      "note": "",
-      "id": "AS-0001",
-      "name": "تدخل سريع",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
+      "personnel_ids": [
+        "IND-050"
+      ],
+      "section": "الخدمات أساسية",
+      "shift": "صباحية",
+      "time": "8ص",
+      "weapon": "الي + كلبش"
     },
     {
-      "section": "الخدمات أساسية",
-      "shift": "ليلية",
+      "conscript_count": 4,
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 2
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0002",
+      "kind": "خارجية",
+      "name": "تدخل سريع",
+      "note": "",
       "officer_ids": [
         "OFF-016"
       ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "الي + كلبش",
-      "time": "8 ص / 8 م",
       "party": "",
-      "note": "",
-      "id": "AS-0002",
-      "name": "تدخل سريع",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
+      "personnel_ids": [
+        "IND-050"
+      ],
+      "section": "الخدمات أساسية",
+      "shift": "ليلية",
+      "time": "8م",
+      "weapon": "الي + كلبش"
     },
     {
-      "section": "الخدمات الطارئة",
-      "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [],
+      "conscript_count": 5,
       "conscripts": [
         {
-          "class": "",
+          "class": "مج",
           "count": 5
         }
       ],
-      "weapon": "الي + دونك",
-      "time": "8ص",
-      "party": "",
-      "note": "",
-      "id": "AS-0003",
-      "name": "تأمين كنترول الثانوية",
-      "kind": "خارجية",
       "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
+      "id": "AS-0003",
+      "kind": "خارجية",
+      "name": "تأمين كنترول الثانوية",
+      "note": "",
+      "officer_ids": [],
+      "party": "",
+      "personnel_ids": [],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [],
+      "time": "8ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 2,
       "conscripts": [
         {
-          "class": "",
-          "count": 2
-        },
-        {
-          "class": "فرد",
+          "class": "مج",
           "count": 2
         }
       ],
-      "weapon": "",
-      "time": "12ظ",
-      "party": "",
-      "note": "",
-      "id": "AS-0004",
-      "name": "حملة الأمن الوطني",
-      "kind": "خارجية",
       "counts_in_summary": true,
-      "conscript_count": 0
+      "id": "AS-0004",
+      "kind": "خارجية",
+      "name": "حملة الأمن الوطني",
+      "note": "",
+      "officer_ids": [],
+      "party": "",
+      "personnel_ids": [
+        "IND-116"
+      ],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "12ظ",
+      "weapon": ""
     },
     {
+      "conscript_count": 2,
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 2
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0005",
+      "kind": "خارجية",
+      "name": "حملة الأمن الوطني",
+      "note": "",
+      "officer_ids": [],
+      "party": "",
+      "personnel_ids": [
+        "IND-011",
+        "IND-003"
+      ],
       "section": "الخدمات الطارئة",
       "shift": "ليلية",
-      "officer_ids": [],
-      "personnel_ids": [],
-      "conscripts": [
-        {
-          "class": "",
-          "count": 2
-        },
-        {
-          "class": "فرد",
-          "count": 2
-        }
-      ],
-      "weapon": "",
       "time": "12م",
-      "party": "",
-      "note": "",
-      "id": "AS-0005",
-      "name": "حملة الأمن الوطني",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
+      "weapon": ""
     },
     {
-      "section": "الخدمات الطارئة",
-      "shift": "صباحية",
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0006",
+      "kind": "خارجية",
+      "name": "مأمورية العيادة",
+      "note": "",
       "officer_ids": [],
+      "party": "",
       "personnel_ids": [
         "IND-127"
       ],
-      "conscripts": [],
-      "weapon": "",
-      "time": "8ص",
-      "party": "",
-      "note": "",
-      "id": "AS-0006",
-      "name": "مأمورية العيادة",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
+      "time": "8ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 1,
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0007",
+      "kind": "خارجية",
+      "name": "ترحيلة وادي النطرون",
+      "note": "",
       "officer_ids": [
         "OFF-005"
       ],
-      "personnel_ids": [],
-      "conscripts": [
-        {
-          "class": "",
-          "count": 0
-        }
-      ],
-      "weapon": "",
-      "time": "7ص",
       "party": "سجن فيصل",
-      "note": "",
-      "id": "AS-0007",
-      "name": "ترحيلة وادي النطرون",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
+      "personnel_ids": [],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [],
+      "time": "7ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 1,
       "conscripts": [
         {
-          "class": "",
-          "count": 0
-        },
-        {
-          "class": "فرد",
+          "class": "مج",
           "count": 1
         }
       ],
-      "weapon": "",
-      "time": "8ص",
-      "party": "السويس",
-      "note": "",
+      "counts_in_summary": true,
       "id": "AS-0008",
+      "kind": "خارجية",
       "name": "ترحيلة القاهرة",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
+      "note": "",
+      "officer_ids": [],
+      "party": "السويس",
+      "personnel_ids": [
+        "IND-123"
+      ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [],
+      "time": "8ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 1,
       "conscripts": [
         {
-          "class": "",
-          "count": 0
-        },
-        {
-          "class": "فرد",
+          "class": "مج",
           "count": 1
         }
       ],
-      "weapon": "آلي",
-      "time": "8ص",
-      "party": "الجناين",
-      "note": "",
+      "counts_in_summary": true,
       "id": "AS-0009",
+      "kind": "خارجية",
       "name": "ترحيلة نيابة عسكرية",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الخدمات الطارئة",
-      "shift": "صباحية",
+      "note": "",
       "officer_ids": [],
-      "personnel_ids": [],
-      "conscripts": [
-        {
-          "class": "",
-          "count": 0
-        },
-        {
-          "class": "فرد",
-          "count": 1
-        }
-      ],
-      "weapon": "",
-      "time": "8ص",
       "party": "الجناين",
-      "note": "",
-      "id": "AS-0010",
-      "name": "ترحيلة نيابة عامة",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
+      "personnel_ids": [
+        "IND-017"
+      ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [],
+      "time": "8ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 1,
       "conscripts": [
         {
-          "class": "",
-          "count": 0
-        },
-        {
-          "class": "فرد",
+          "class": "مج",
           "count": 1
         }
       ],
-      "weapon": "",
-      "time": "9ص",
-      "party": "الاربعين",
-      "note": "",
-      "id": "AS-0011",
-      "name": "ترحيلة مستشفى",
-      "kind": "خارجية",
       "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
+      "id": "AS-0010",
+      "kind": "خارجية",
+      "name": "ترحيلة نيابة عامة",
+      "note": "",
+      "officer_ids": [],
+      "party": "الجناين",
+      "personnel_ids": [
+        "IND-007"
+      ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [],
+      "time": "8ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 1,
       "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0011",
+      "kind": "خارجية",
+      "name": "ترحيلة مستشفى",
+      "note": "ترحيلة مستشفي",
+      "officer_ids": [],
+      "party": "الاربعين",
+      "personnel_ids": [],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "9ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 7,
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 6
+        },
         {
           "class": "طلبة",
-          "count": 6
+          "count": 1
         }
       ],
-      "weapon": "",
-      "time": "8ص",
-      "party": "المديرية",
-      "note": "",
-      "id": "AS-0012",
-      "name": "مأمورية إمداد",
-      "kind": "خارجية",
       "counts_in_summary": true,
-      "conscript_count": 0
+      "id": "AS-0012",
+      "kind": "خارجية",
+      "name": "مأمورية إمداد",
+      "note": "",
+      "officer_ids": [],
+      "party": "المديرية",
+      "personnel_ids": [],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "8ص",
+      "weapon": ""
     },
     {
-      "section": "ضابط عظيم وأمن المعسكر الفرعي",
-      "shift": "ليلية",
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0013",
+      "kind": "خارجية",
+      "name": "الزعفرانه",
+      "note": "",
       "officer_ids": [
-        "OFF-010",
+        "OFF-017"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0014",
+      "kind": "خارجية",
+      "name": "تفتيش الاربعين",
+      "note": "",
+      "officer_ids": [],
+      "party": "فيصل",
+      "personnel_ids": [],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "10ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0015",
+      "kind": "خارجية",
+      "name": "تفتيش فيصل",
+      "note": "",
+      "officer_ids": [],
+      "party": "الاربعين",
+      "personnel_ids": [],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "10ص",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": false,
+      "id": "AS-0016",
+      "kind": "داخلية",
+      "name": "نوبتجي المعسكر الفرعي",
+      "note": "",
+      "officer_ids": [
         "OFF-013"
       ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
       "party": "",
-      "note": "",
-      "id": "AS-0013",
-      "name": "نوبتجي المعسكر الفرعي",
-      "kind": "داخلية",
-      "counts_in_summary": false,
-      "conscript_count": 0
+      "personnel_ids": [],
+      "section": "ضابط عظيم وأمن المعسكر الفرعي",
+      "shift": "صباحية",
+      "time": "",
+      "weapon": ""
     },
     {
-      "section": "ضابط عظيم الإدارة",
-      "shift": "صباحية",
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": false,
+      "id": "AS-0017",
+      "kind": "داخلية",
+      "name": "نوبتجي المعسكر الفرعي",
+      "note": "",
+      "officer_ids": [
+        "OFF-010"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "ضابط عظيم وأمن المعسكر الفرعي",
+      "shift": "ليلية",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0018",
+      "kind": "داخلية",
+      "name": "ضابط عظيم الإدارة",
+      "note": "",
       "officer_ids": [
         "OFF-025"
       ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
       "party": "",
-      "note": "",
-      "id": "AS-0014",
-      "name": "ضابط عظيم الإدارة",
-      "kind": "داخلية",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الخدمات الطارئة",
+      "personnel_ids": [],
+      "section": "ضابط عظيم الإدارة",
       "shift": "صباحية",
-      "officer_ids": [
-        "OFF-005"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
       "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0015",
-      "name": "ترحيلة",
-      "kind": "خارجية",
-      "counts_in_summary": true,
-      "conscript_count": 0
+      "weapon": ""
     },
     {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0019",
+      "kind": "داخلية",
+      "name": "ضابط عظيم الإدارة",
+      "note": "",
+      "officer_ids": [
+        "OFF-034"
+      ],
+      "party": "",
+      "personnel_ids": [],
       "section": "ضابط عظيم الإدارة",
       "shift": "ليلية",
-      "officer_ids": [
-        "OFF-034"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
       "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0016",
-      "name": "ضابط عظيم الإدارة",
-      "kind": "داخلية",
-      "counts_in_summary": true,
-      "conscript_count": 0
+      "weapon": ""
     },
     {
-      "section": "ضابط الأمن بالإدارة",
-      "shift": "ليلية",
-      "officer_ids": [
-        "OFF-034"
-      ],
-      "personnel_ids": [],
+      "conscript_count": 0,
       "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0017",
-      "name": "ضابط أمن الإدارة",
-      "kind": "داخلية",
       "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الأهداف",
-      "shift": "",
-      "officer_ids": [
-        "OFF-022"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0018",
-      "name": "كهرباء عتاقة",
-      "kind": "حراسات",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الأهداف",
-      "shift": "",
-      "officer_ids": [
-        "OFF-006"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0019",
-      "name": "مشرف الأهداف",
-      "kind": "حراسات",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الأهداف",
-      "shift": "",
-      "officer_ids": [
-        "OFF-024"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "note": "",
       "id": "AS-0020",
-      "name": "سوميد",
-      "kind": "حراسات",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الأهداف",
-      "shift": "",
-      "officer_ids": [
-        "OFF-003"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
+      "kind": "داخلية",
+      "name": "ضابط أمن الإدارة",
       "note": "",
-      "id": "AS-0021",
-      "name": "كهرباء السخنة",
-      "kind": "حراسات",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الأهداف",
-      "shift": "",
-      "officer_ids": [
-        "OFF-008"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0022",
-      "name": "أنابيب البترول",
-      "kind": "حراسات",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الأهداف",
-      "shift": "",
-      "officer_ids": [
-        "OFF-001"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0023",
-      "name": "مصر للبترول",
-      "kind": "حراسات",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "الأهداف",
-      "shift": "",
-      "officer_ids": [
-        "OFF-021"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "note": "",
-      "id": "AS-0024",
-      "name": "عيون موسي",
-      "kind": "حراسات",
-      "counts_in_summary": true,
-      "conscript_count": 0
-    },
-    {
-      "section": "ضابط الأمن بالإدارة",
-      "shift": "صباحية",
       "officer_ids": [
         "OFF-018"
       ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "weapon": "",
-      "time": "",
       "party": "",
-      "note": "",
-      "id": "AS-0025",
-      "name": "ضابط أمن الإدارة",
-      "kind": "داخلية",
+      "personnel_ids": [],
+      "section": "ضابط الأمن بالإدارة",
+      "shift": "صباحية",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
       "counts_in_summary": true,
-      "conscript_count": 0
+      "id": "AS-0021",
+      "kind": "داخلية",
+      "name": "ضابط أمن الإدارة",
+      "note": "",
+      "officer_ids": [
+        "OFF-034"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "ضابط الأمن بالإدارة",
+      "shift": "ليلية",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0022",
+      "kind": "حراسات",
+      "name": "مشرف الأهداف",
+      "note": "",
+      "officer_ids": [
+        "OFF-006"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0023",
+      "kind": "حراسات",
+      "name": "سوميد",
+      "note": "",
+      "officer_ids": [
+        "OFF-024"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0024",
+      "kind": "حراسات",
+      "name": "كهرباء السخنة",
+      "note": "",
+      "officer_ids": [
+        "OFF-003"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0025",
+      "kind": "حراسات",
+      "name": "عيون موسي",
+      "note": "",
+      "officer_ids": [
+        "OFF-021"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0026",
+      "kind": "حراسات",
+      "name": "هلة المحجر",
+      "note": "",
+      "officer_ids": [
+        "OFF-028"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0027",
+      "kind": "حراسات",
+      "name": "أنابيب البترول",
+      "note": "",
+      "officer_ids": [
+        "OFF-008"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0028",
+      "kind": "حراسات",
+      "name": "مصر للبترول",
+      "note": "",
+      "officer_ids": [
+        "OFF-001"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0029",
+      "kind": "حراسات",
+      "name": "كهرباء عتاقة",
+      "note": "",
+      "officer_ids": [
+        "OFF-022"
+      ],
+      "party": "",
+      "personnel_ids": [],
+      "section": "الأهداف",
+      "shift": "",
+      "time": "",
+      "weapon": ""
     }
   ],
   "officer_states": {
+    "OFF-001": {
+      "note": "عمل بهدف مصر للبترول"
+    },
     "OFF-002": {
       "note": "مدير الإدارة"
-    },
-    "OFF-027": {
-      "note": "وكيل الادارة"
-    },
-    "OFF-026": {
-      "note": "راحة اسبوعية"
-    },
-    "OFF-014": {
-      "note": "راحة نصف شهرية (1/3)"
-    },
-    "OFF-020": {
-      "note": "عمل بالادارة"
-    },
-    "OFF-016": {
-      "note": "تدخل سريع فترة ليلية"
-    },
-    "OFF-011": {
-      "note": "راحة شهرية (7/7)"
-    },
-    "OFF-028": {
-      "note": "هدف هلة المحجر"
-    },
-    "OFF-015": {
-      "note": "راحة نصف شهرية (1/3)"
-    },
-    "OFF-010": {
-      "note": "نوبتجي المعسكر الفرعي فترة ليلية"
-    },
-    "OFF-013": {
-      "taqseera": true,
-      "note": "نوبتجي المعسكر الفرعي حتى الساعة 2م + تقصيرة"
-    },
-    "OFF-025": {
-      "note": "ضابط عظيم الادارة فترة صباحية +متابعة اعمال التحريات والحملة"
-    },
-    "OFF-031": {
-      "note": "متابعة اعمال الكتيبة والعهده"
-    },
-    "OFF-012": {
-      "note": "اجازة شهرية (7/7)"
-    },
-    "OFF-029": {
-      "status": "فرقة",
-      "note": "فرقة القيادات الأولى"
-    },
-    "OFF-005": {
-      "note": "ترحيلة وادي النطرون"
-    },
-    "OFF-034": {
-      "note": "ضابط عظيم وامن الادارة فترة ليلية + متابعة اعمال العمليات وشئون الضباط"
-    },
-    "OFF-022": {
-      "note": "عمل بهدف كهرباء عتاقة"
-    },
-    "OFF-023": {
-      "taqseera": true,
-      "note": "عمل بالادارة + تقصيرة"
-    },
-    "OFF-007": {
-      "note": "تدخل سريع فترة صباحية"
-    },
-    "OFF-017": {
-      "note": "الزعفرانة ليل"
-    },
-    "OFF-006": {
-      "note": "مشرف الأهداف"
-    },
-    "OFF-004": {
-      "taqseera": true,
-      "note": "هدف هلة المحجر + تقصيرة"
-    },
-    "OFF-009": {
-      "note": "راحة اسبوعية"
-    },
-    "OFF-024": {
-      "note": "عمل بهدف سوميد"
     },
     "OFF-003": {
       "note": "عمل بهدف السخنة"
     },
+    "OFF-004": {
+      "note": "هدف هلة المحجر + تقصيرة",
+      "taqseera": true
+    },
+    "OFF-005": {
+      "note": "ترحيلة وادي النطرون"
+    },
+    "OFF-006": {
+      "note": "مشرف الأهداف"
+    },
+    "OFF-007": {
+      "note": "تدخل سريع فترة صباحية"
+    },
     "OFF-008": {
       "note": "عمل بهدف انابيب البترول"
     },
-    "OFF-001": {
-      "note": "عمل بهدف مصر للبترول"
+    "OFF-009": {
+      "note": "راحة اسبوعية"
     },
-    "OFF-021": {
-      "note": "عمل بهدف عيون موسى"
+    "OFF-010": {
+      "note": "نوبتجي المعسكر الفرعي فترة ليلية"
     },
-    "OFF-030": {
-      "status": "انتداب",
-      "note": "انتداب شمال سيناء"
+    "OFF-011": {
+      "note": "راحة شهرية (7/7)"
     },
-    "OFF-033": {
-      "note": "عمل"
+    "OFF-012": {
+      "note": "اجازة شهرية (7/7)"
     },
-    "OFF-032": {
-      "note": "راحة"
+    "OFF-013": {
+      "note": "نوبتجي المعسكر الفرعي حتى الساعة 2م + تقصيرة",
+      "taqseera": true
+    },
+    "OFF-014": {
+      "note": "راحة نصف شهرية (1/3)"
+    },
+    "OFF-015": {
+      "note": "راحة نصف شهرية (1/3)"
+    },
+    "OFF-016": {
+      "note": "تدخل سريع فترة ليلية"
+    },
+    "OFF-017": {
+      "note": "الزعفرانة ليل"
     },
     "OFF-018": {
       "note": "ضابط امن الادارة فترة صباحية"
     },
     "OFF-019": {
-      "note": "إدارة البحــــث + تشغيل من خلال إدارة البحث"
+      "note": "إدارة البحث + تشغيل من خلال إدارة البحث"
+    },
+    "OFF-020": {
+      "note": "عمل بالادارة"
+    },
+    "OFF-021": {
+      "note": "عمل بهدف عيون موسى"
+    },
+    "OFF-022": {
+      "note": "عمل بهدف كهرباء عتاقة"
+    },
+    "OFF-023": {
+      "note": "عمل بالادارة + تقصيرة",
+      "taqseera": true
+    },
+    "OFF-024": {
+      "note": "عمل بهدف سوميد"
+    },
+    "OFF-025": {
+      "note": "ضابط عظيم الادارة فترة صباحية +متابعة اعمال التحريات والحملة"
+    },
+    "OFF-026": {
+      "note": "راحة اسبوعية"
+    },
+    "OFF-027": {
+      "note": "وكيل الادارة"
+    },
+    "OFF-028": {
+      "note": "هدف هلة المحجر"
+    },
+    "OFF-029": {
+      "note": "فرقة القيادات الأولى",
+      "status": "فرقة"
+    },
+    "OFF-030": {
+      "note": "انتداب شمال سيناء",
+      "status": "انتداب"
+    },
+    "OFF-031": {
+      "note": "متابعة اعمال الكتيبة والعهده"
+    },
+    "OFF-032": {
+      "note": "راحة"
+    },
+    "OFF-033": {
+      "note": "عمل"
+    },
+    "OFF-034": {
+      "note": "ضابط عظيم وامن الادارة فترة ليلية + متابعة اعمال العمليات وشئون الضباط"
     }
   },
+  "counts": {
+    "entries": [
+      {
+        "block": "صباحية",
+        "count": 4,
+        "id": "CNT-001",
+        "name": "نقطه تفتيش كمين 109 اسفل",
+        "order": 1,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-002",
+        "name": "ارتكاز الحى الحكومى",
+        "order": 2,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-003",
+        "name": "كنيسة العذراء مريم",
+        "order": 3,
+        "party": "الاربعين",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-004",
+        "name": "اعلى 109",
+        "order": 4,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 3,
+        "id": "CNT-005",
+        "name": "سياره تأمين فرع الامن الوطنى",
+        "order": 5,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 2,
+        "id": "CNT-006",
+        "name": "المحور",
+        "order": 6,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-007",
+        "name": "جنيفة",
+        "order": 7,
+        "party": "الطرق",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 3,
+        "id": "CNT-008",
+        "name": "القنصلية السعودية",
+        "order": 8,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 4,
+        "id": "CNT-009",
+        "name": "التدخل السريع",
+        "order": 9,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-010",
+        "name": "ام القمر",
+        "order": 10,
+        "party": "الطرق",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 3,
+        "id": "CNT-011",
+        "name": "استراحة القنصل",
+        "order": 11,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 2,
+        "id": "CNT-012",
+        "name": "خط الغاز",
+        "order": 12,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-013",
+        "name": "36 لاسلكي",
+        "order": 13,
+        "party": "الطرق",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-014",
+        "name": "مايك المديرية",
+        "order": 14,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 2,
+        "id": "CNT-015",
+        "name": "قول مكبر",
+        "order": 15,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 5,
+        "id": "CNT-016",
+        "name": "كنيسة ماري جرجس الصباح",
+        "order": 16,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 2,
+        "id": "CNT-017",
+        "name": "مبنى المخابرات الحربيه",
+        "order": 17,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 3,
+        "id": "CNT-018",
+        "name": "الاسعاف",
+        "order": 18,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 2,
+        "id": "CNT-019",
+        "name": "ارتكاز قسم فيصل",
+        "order": 19,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-020",
+        "name": "كنيسة الراعي الصالح",
+        "order": 20,
+        "party": "السويس",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-021",
+        "name": "المركبات",
+        "order": 21,
+        "party": "المركبات",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-022",
+        "name": "قول ممشى بور توفيق",
+        "order": 22,
+        "party": "السويس",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 2,
+        "id": "CNT-023",
+        "name": "المجمع الطبي",
+        "order": 23,
+        "party": "فيصل",
+        "weapon": ""
+      },
+      {
+        "block": "صباحية",
+        "count": 1,
+        "id": "CNT-024",
+        "name": "مستشفى السويس العام",
+        "order": 24,
+        "party": "السويس",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 4,
+        "id": "CNT-025",
+        "name": "نقطه تفتيش كمين 109 اسفل",
+        "order": 25,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-026",
+        "name": "ارتكاز الحى الحكومى",
+        "order": 26,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-027",
+        "name": "مبنى الرقابة الادارية",
+        "order": 27,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-028",
+        "name": "اعلى 109",
+        "order": 28,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 3,
+        "id": "CNT-029",
+        "name": "سياره تأمين فرع الامن الوطنى",
+        "order": 29,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-030",
+        "name": "مايك و تشكيل فيصل",
+        "order": 30,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-031",
+        "name": "جنيفة",
+        "order": 31,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 3,
+        "id": "CNT-032",
+        "name": "القنصلية السعودية",
+        "order": 32,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 4,
+        "id": "CNT-033",
+        "name": "التدخل السريع",
+        "order": 33,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-034",
+        "name": "ام القمر",
+        "order": 34,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 3,
+        "id": "CNT-035",
+        "name": "استراحة القنصل",
+        "order": 35,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-036",
+        "name": "خط الغاز",
+        "order": 36,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-037",
+        "name": "36 لاسلكي",
+        "order": 37,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-038",
+        "name": "مايك المديرية",
+        "order": 38,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-039",
+        "name": "قول مكبر",
+        "order": 39,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 5,
+        "id": "CNT-040",
+        "name": "كنيسة ماري جرجس الصباح",
+        "order": 40,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-041",
+        "name": "مبنى المخابرات الحربيه",
+        "order": 41,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-042",
+        "name": "ارتكاز المحافظة",
+        "order": 42,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-043",
+        "name": "كنيسة الايمان",
+        "order": 43,
+        "party": "الاربعين",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-044",
+        "name": "ارتكاز قسم فيصل",
+        "order": 44,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-045",
+        "name": "كنيسة الراعي الصالح",
+        "order": 45,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-046",
+        "name": "الكنيسة الرسولية",
+        "order": 46,
+        "party": "الاربعين",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-047",
+        "name": "قول ممشى بور توفيق",
+        "order": 47,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-048",
+        "name": "المجمع الطبي",
+        "order": 48,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-049",
+        "name": "مستشفى السويس العام",
+        "order": 49,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 6,
+        "id": "CNT-050",
+        "name": "مامورية امداد",
+        "order": 50,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 10,
+        "id": "CNT-051",
+        "name": "تامين مقر اسئلة ثانوية",
+        "order": 51,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 3,
+        "id": "CNT-052",
+        "name": "ترحيلة وادي النطرون",
+        "order": 52,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 8,
+        "id": "CNT-053",
+        "name": "تشكيل مستعد",
+        "order": 53,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 3,
+        "id": "CNT-054",
+        "name": "ترحيلة القاهرة",
+        "order": 54,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 5,
+        "id": "CNT-055",
+        "name": "المحكمة",
+        "order": 55,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-056",
+        "name": "ترحيلة نيابة عسكرية",
+        "order": 56,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 5,
+        "id": "CNT-057",
+        "name": "تفتيش فيصل",
+        "order": 57,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-058",
+        "name": "ترحيلة نيابة عامة",
+        "order": 58,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 5,
+        "id": "CNT-059",
+        "name": "تفتيش الاربعين",
+        "order": 59,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 2,
+        "id": "CNT-060",
+        "name": "ترحيلة مستشفي",
+        "order": 60,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 4,
+        "id": "CNT-061",
+        "name": "حملة امن وطنى 12ظ",
+        "order": 61,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-062",
+        "name": "مأمورية عيادة",
+        "order": 62,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 4,
+        "id": "CNT-063",
+        "name": "حملة امن وطنى 12م",
+        "order": 63,
+        "party": "",
+        "weapon": ""
+      },
+      {
+        "block": "ليلية",
+        "count": 1,
+        "id": "CNT-064",
+        "name": "كول كورنيش",
+        "order": 64,
+        "party": "",
+        "weapon": ""
+      }
+    ]
+  },
+  "assignment_seq": 29,
   "afraad_basic": {
     "AFB-01": {
       "count": "(1مجند) صبح + 1 سائق (1مجند) ليل +1 سائق",
@@ -836,5 +1489,37 @@
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
     }
+  },
+  "import": {
+    "at": "archive-full",
+    "batch": "archive-full",
+    "derived": false,
+    "sources": [
+      {
+        "path": "2026/6/24/24-6-2026 افراد.docx",
+        "sha1": "282c78e33532fc0b559e0ecfe9433672bb7a4056",
+        "type": "afraad"
+      },
+      {
+        "path": "2026/6/24/24.docx",
+        "sha1": "774512f64c3fe43f4da25c99521e3f1d4f3c0e54",
+        "type": "board"
+      },
+      {
+        "path": "2026/6/24/اعداد الخدمات يوم 24-6-2026.docx",
+        "sha1": "b455c12ce0d6842384a20c31b49d146933b26af1",
+        "type": "counts"
+      },
+      {
+        "path": "2026/6/24/24..docx",
+        "sha1": "482da576c6d1e45bf6ddb6926feebbd85b865d4a",
+        "type": "duty_list"
+      },
+      {
+        "path": "2026/6/24/24-6-2026.docx",
+        "sha1": "c89ee053fa95af755b9e1d1a44aa36cd580810cc",
+        "type": "roster"
+      }
+    ]
   }
 }

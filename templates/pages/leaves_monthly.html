@@ -8,7 +8,7 @@
     <div class="monthly-head-copy">
       <h3 class="monthly-head-title">الشهرية ونصف الشهرية</h3>
       <p class="hint monthly-head-hint">
-        أدخل تاريخ بداية الراحة القادمة من كشف المديرية؛ تُحسب المدة والنوع تلقائيًا.
+        أدخل البداية، وعدّل المدة لكل ضابط عند الحاجة. يمكنك إنهاء الراحة الجارية أو إلغاء القادمة من نفس الصف.
       </p>
     </div>
     <div class="tb-group tb-end leaves-export-tools" role="group" aria-label="تصدير كشوف الراحات">
@@ -40,6 +40,11 @@
 </div>
 {% endblock %}
 
+{% block modals %}
+{% include "partials/stop_leave_modal.html" %}
+{% endblock %}
+
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/rest-stop.js') }}"></script>
 <script src="{{ url_for('static', filename='js/leaves-monthly.js') }}"></script>
 {% endblock %}

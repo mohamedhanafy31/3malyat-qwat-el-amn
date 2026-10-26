@@ -1,9 +1,13 @@
 """يومية تشغيل الضباط — العرض، وحالة الضابط اليومية.
 
 التكليف بخدمة بقى من `/api/assignments/<day>` (نفس النقطة اللي اللوحة
-بتستخدمها) — الصفحة دي بتعدّل **حالة** الضابط بس: تقصيرة، انتداب/غياب/
-مرضي/فرقة/طارئة، وملاحظة، وتشغيل إضافي بيتضاف على خدمته التلقائية،
-وإضافته للعمل بالإدارة في اللوحة. دي حقيقة مختلفة عن التكليف مش نسخة تانية منه.
+بتستخدمها) — الصفحة دي بتعدّل **حالة** الضابط بس: تقصيرة، حالة خاصة،
+وملاحظة، وتشغيل إضافي بيتضاف على خدمته التلقائية، وإضافته للعمل بالإدارة
+في اللوحة. دي حقيقة مختلفة عن التكليف مش نسخة تانية منه.
+
+«مرضي»/«غياب»/«انتداب» بتبدأ من اليوم وتستمر لحد «إيقاف الحالة»، و«طارئة»
+لازم معاها ``status_end`` (حتى يوم، شامل) وبتنتهي لوحدها — الاتنين سجل مدى
+في `status_periods.py` مش نسخة في كل ملف يوم. «فرقة» مصدرها التحاق الفرق.
 تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
 حالة يومية هنا.
 """
@@ -12,13 +16,18 @@ from flask import Blueprint, jsonify, send_file
 
 from .. import changes
 from .. import day_status
-from ..assignments import officer_state, officer_statuses, remember_officer_status, set_officer_state
+from ..assignments import (is_legacy_status, officer_state, officer_statuses,
+                           remember_officer_status, set_officer_state)
 from ..duty import summarise
 from ..duty_export import build_docx
 from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..people import officers_on
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
+from ..status_periods import PERIOD_STATUSES, PeriodError, is_bounded
+from ..status_periods import active_on as persistent_status_on
+from ..status_periods import start as start_persistent_status
+from ..status_periods import stop as stop_persistent_status
 from ..utils import MAX_LEN, around, canonical_day, json_payload
 
 bp = Blueprint("duty", __name__)
@@ -40,6 +49,24 @@ def _state_text(name, day, before, after):
         parts.append("إضافته للعمل بالإدارة" if after.get("admin_work")
                      else "إلغاء إضافته للعمل بالإدارة")
     return f"{name} في يومية {day}: " + "، ".join(parts or ["تعديل الحالة"])
+
+
+def _period_text(name, day, period, before, closed):
+    """جملة السجل لبدء/تعديل حالة ممتدة."""
+    status = period.get("status", "")
+    if before and before.get("id") == period.get("id"):
+        text = f"تعديل {status} لـ{name}: من {period.get('start')} حتى {period.get('end')}"
+    elif is_bounded(status):
+        text = f"بدء {status} لـ{name} من {day} حتى {period.get('end')}"
+    elif period.get("end"):
+        # حالة مستمرة اتقفلت تلقائيًا قبل حالة لاحقة مجدولة
+        text = (f"بدء حالة {status} المستمرة لـ{name} من {day} "
+                f"حتى {period['end']} (قبل حالة مسجلة لاحقًا)")
+    else:
+        text = f"بدء حالة {status} المستمرة لـ{name} من {day} حتى إيقافها"
+    if closed and closed.get("id") != period.get("id"):
+        text += f"، مع إنهاء حالة {closed.get('status', '')} السابقة"
+    return text
 
 
 @bp.get("/api/duty/<day>")
@@ -87,6 +114,9 @@ def set_state(day, person_id):
     extra = str(payload.get("extra", "") or "").strip()
     if len(extra) > MAX_LEN["note"]:
         return jsonify({"error": f"التشغيل الإضافي أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
+    status_end = str(payload.get("status_end", "") or "").strip()
+    if status_end and status not in PERIOD_STATUSES:
+        return jsonify({"error": "يوم النهاية (حتى يوم) خاص بحالة «طارئة»."}), 400
 
     def mutate(data):
         stale = stale_revision(data, payload.get("revision"), [day])
@@ -102,18 +132,37 @@ def set_state(day, person_id):
         officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
         if not officer:
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
-        status_error = remember_officer_status(data, status) if "status" in payload else None
-        if status_error:
-            raise AbortRequest((jsonify({"error": status_error}), 400))
         # الحقل اللي مش مبعوت في الطلب مابيتغيّرش. قبل كده كانت القيم
         # التلاتة بتتكتب دايمًا، فطلب فيه `taqseera` بس كان بيمسح الحالة
         # والملاحظة المسجّلين — الواجهة بتبعت التلاتة فما بانش، لكن أي
         # سكربت أو نداء خارجي كان بيفقد بيانات من غير ما يعرف.
         before = dict(officer_state(data, day, person_id))
+        # «فرقة»/«راحة فرقة» قيم أرشيفية: صف قديم مكتوب فيه أي منهم بيتحفظ
+        # زي ما هو (تعديل ملاحظته مثلًا)، لكن مفيش تسجيل جديد بيهم.
+        keeps_legacy = ("status" in payload and is_legacy_status(status)
+                        and status == (before.get("status") or ""))
+        if "status" in payload and status not in PERIOD_STATUSES and not keeps_legacy:
+            status_error = remember_officer_status(data, status)
+            if status_error:
+                raise AbortRequest((jsonify({"error": status_error}), 400))
+        period_before = dict(persistent_status_on(data, person_id, day) or {})
+        period_after = closed = None
+        period_changed = False
+        if "status" in payload and status in PERIOD_STATUSES:
+            try:
+                period, period_changed, closed = start_persistent_status(
+                    data, person_id, status, day, end=status_end)
+            except PeriodError as error:
+                raise AbortRequest((jsonify({"error": str(error)}), error.status))
+            period_after = dict(period)
+            # الحالة الممتدة مصدرها سجل المدى؛ لا نكررها في ملف اليوم.
+            stored_status = ""
+        else:
+            stored_status = status
         after = set_officer_state(
             data, day, person_id,
             taqseera=bool(payload["taqseera"]) if "taqseera" in payload else None,
-            status=status if "status" in payload else None,
+            status=stored_status if "status" in payload else None,
             note=note if "note" in payload else None,
             extra=extra if "extra" in payload else None,
             admin_work=bool(payload["admin_work"]) if "admin_work" in payload else None)
@@ -121,10 +170,55 @@ def set_state(day, person_id):
             changes.record(data, "officer_state", person_id, "update",
                            before=before, after=dict(after), reason=f"يوم {day}",
                            text=_state_text(officer.get("name", ""), day, before, after))
+        if period_changed:
+            updated = period_before.get("id") == period_after["id"]
+            changes.record(
+                data, "officer_status_period", period_after["id"],
+                "update" if updated else "create",
+                before=period_before or None, after=period_after, day=day,
+                text=_period_text(officer.get("name", ""), day, period_after,
+                                  period_before, closed),
+            )
         result = summarise(data, day)
         result["officer_statuses"] = officer_statuses(data)
         result["daily"] = build_daily_view(data, day)
         result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
+
+    return with_data(mutate, around(day, -1, 0))
+
+
+@bp.post("/api/duty/<day>/<person_id>/stop-status")
+def stop_continuous_status(day, person_id):
+    """اجعل ``day`` أول يوم عادي بعد حالة ممتدة فعالة.
+
+    الاستخدام الأساسي إيقاف «مرضي»/«غياب»/«انتداب» المفتوحة، وسجلات «طارئة»
+    القديمة اللي اتعملت من غير نهاية. «طارئة» بنهاية بتخلص لوحدها؛ لو
+    اتوقفت هنا بدري بتتقصّر لليوم السابق."""
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+
+    def mutate(data):
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
+        officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
+        if not officer:
+            raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
+        before, after = stop_persistent_status(data, person_id, day)
+        if not before:
+            raise AbortRequest((jsonify({"error": "لا توجد حالة مرضي/غياب/انتداب أو طارئة فعالة في هذا اليوم."}), 404))
+        state = dict(officer_state(data, day, person_id))
+        if state.get("status") == before.get("status"):
+            set_officer_state(data, day, person_id, status="")
+        changes.record(
+            data, "officer_status_period", before["id"], "delete" if after is None else "update",
+            before=before, after=after, day=day,
+            text=f"إيقاف حالة {before.get('status', '')} لـ{officer.get('name', '')} من {day}",
+        )
+        result = summarise(data, day)
+        result["revision"] = revision(data, [day])
         return jsonify(result)
 
     return with_data(mutate, around(day, -1, 0))
@@ -150,6 +244,16 @@ def clear_state(day, person_id):
             changes.record(data, "officer_state", person_id, "delete",
                            before=before, reason=f"يوم {day}",
                            text=f"مسح حالة {officer.get('name', '')} في يومية {day}")
+        # مسح حالة اليوم = اليوم ده يرجع عادي، فالحالة الممتدة بتقف منه
+        # (وتتلغي لو كانت بادئة فيه) — نفس «إيقاف الحالة» بالظبط.
+        period_before, period_after = stop_persistent_status(data, person_id, day)
+        if period_before:
+            changes.record(
+                data, "officer_status_period", period_before["id"],
+                "delete" if period_after is None else "update",
+                before=period_before, after=period_after, day=day,
+                text=f"إيقاف حالة {period_before.get('status', '')} لـ"
+                     f"{officer.get('name', '')} من {day} (مسح حالة اليوم)")
         result = {"ok": True, "daily": build_daily_view(data, day)}
         result["revision"] = result["daily"]["revision"]
         return jsonify(result)

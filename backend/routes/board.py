@@ -422,6 +422,10 @@ def clear_day(day):
         if clear_states:
             loaded.officer_states = {}
         days.save(loaded)
+        if clear_states:
+            # الحالات الممتدة اللي اتسجّلت بداية من اليوم ده جزء من حالاته
+            from ..status_periods import drop_starting_on
+            drop_starting_on(data, day)
         return jsonify({"ok": True, "deleted": count, "states_cleared": clear_states})
 
     return with_data(mutate, [day])

@@ -73,6 +73,9 @@ def person_references(data):
         for pid in states:
             yield f"day_officers[{day}]", "officer", pid
 
+    for row in data.get("officer_status_periods") or []:
+        yield f"officer_status_periods[{row.get('id')}].officer_id", "officer", row.get("officer_id")
+
     for day, entries in (data.get("day_afraad") or {}).items():
         for entry_id, entry in (entries or {}).items():
             for key in ("morning_person_id", "night_person_id"):
@@ -143,6 +146,9 @@ PERSON_REFERENCES = [
 
     ("day_officers.<key>", CASCADE,
      lambda repos, pid, cat: repos.days.drop_officer_states(pid)),
+
+    ("officer_status_periods.officer_id", CASCADE,
+     lambda repos, pid, cat: _drop_status_periods(repos, pid)),
 
     ("day_afraad.*.morning_person_id / night_person_id", SET_NULL,
      lambda repos, pid, cat: _detach_afraad_links(repos, pid)),
@@ -228,6 +234,11 @@ def _drop_terms(repos, person_id):
     for term in found:
         repos.terms.remove(term.id)
     return len(found)
+
+
+def _drop_status_periods(repos, person_id):
+    from .status_periods import drop_officer
+    return drop_officer(repos.data, person_id)
 
 
 def _detach_missions(repos, person_id):

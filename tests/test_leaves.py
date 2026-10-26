@@ -26,6 +26,25 @@ def test_invalid_type_rejected(client):
     assert r.status_code == 400
 
 
+def test_named_special_leave_requires_and_displays_its_name(client):
+    missing = client.post("/api/leaves", json={
+        "person_id": "OFF-002", "type": "إجازة خاصة",
+        "start": "2026-05-10", "end": "2026-05-12",
+    })
+    assert missing.status_code == 400
+    assert "اسم الإجازة" in missing.get_json()["error"]
+
+    created = client.post("/api/leaves", json={
+        "person_id": "OFF-002", "type": "إجازة خاصة", "special_name": "إجازة عيد",
+        "start": "2026-05-10", "end": "2026-05-12",
+    })
+    assert created.status_code == 201, created.get_json()
+    assert created.get_json()["display_type"] == "إجازة خاصة — إجازة عيد"
+    row = next(row for row in client.get("/api/duty/2026-05-11").get_json()["rows"]
+               if row["id"] == "OFF-002")
+    assert row["leave"]["type"] == "إجازة خاصة — إجازة عيد"
+
+
 def test_source_field_preserved_on_edit(client, data_file):
     r = client.patch("/api/leaves/LV-001", json={"note": "تعديل تجريبي"})
     assert r.status_code == 200
@@ -164,7 +183,40 @@ def test_monthly_roster_create_uses_rest_system_and_duration(client):
     out = client.get("/api/bootstrap/leaves_monthly").get_json()
     row = out["roster"][0]
     assert row["status"] == "upcoming"
-    assert row["current"] == {"start": "2030-06-01", "end": "2030-06-07"}
+    assert row["current"] == {"id": lv["id"], "start": "2030-06-01", "end": "2030-06-07"}
+
+
+def test_monthly_roster_accepts_per_officer_custom_duration(client):
+    client.patch("/api/person/OFF-001", json={"rest_system": "نصف شهرية"})
+    response = client.post("/api/leaves/monthly", json={
+        "entries": [{"officer_id": "OFF-001", "start": "2030-06-01", "days": 5}]})
+    assert response.status_code == 200
+    leave = response.get_json()["created"][0]
+    assert (leave["start"], leave["end"], leave["return_date"]) == (
+        "2030-06-01", "2030-06-05", "2030-06-06")
+
+
+def test_monthly_roster_can_change_duration_of_upcoming_leave(client):
+    client.patch("/api/person/OFF-001", json={"rest_system": "شهرية"})
+    first = client.post("/api/leaves/monthly", json={
+        "entries": [{"officer_id": "OFF-001", "start": "2030-06-01"}]})
+    leave_id = first.get_json()["created"][0]["id"]
+    changed = client.post("/api/leaves/monthly", json={"entries": [{
+        "officer_id": "OFF-001", "start": "2030-06-01", "days": 4,
+        "leave_id": leave_id,
+    }]})
+    assert changed.status_code == 200
+    assert changed.get_json()["created"][0]["end"] == "2030-06-04"
+    roster = client.get("/api/bootstrap/leaves_monthly").get_json()["roster"][0]
+    assert roster["current"] == {"id": leave_id, "start": "2030-06-01", "end": "2030-06-04"}
+
+
+def test_monthly_roster_rejects_invalid_custom_duration(client):
+    client.patch("/api/person/OFF-001", json={"rest_system": "شهرية"})
+    response = client.post("/api/leaves/monthly", json={
+        "entries": [{"officer_id": "OFF-001", "start": "2030-06-01", "days": 0}]})
+    assert not response.get_json()["created"]
+    assert "120" in response.get_json()["errors"][0]["error"]
 
 
 def test_monthly_roster_partial_failure_does_not_block_other_rows(client):

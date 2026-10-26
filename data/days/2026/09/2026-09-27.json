@@ -22,8 +22,6 @@
       ],
       "section": "الخدمات أساسية",
       "shift": "صباحية",
-      "source_label": "تدخل سريع صبح",
-      "source_manning": "نقيب/عبدالرحمن طارق",
       "time": "8ص",
       "weapon": "الي + كلبش"
     },
@@ -49,8 +47,6 @@
       ],
       "section": "الخدمات أساسية",
       "shift": "ليلية",
-      "source_label": "تدخل سريع ليل",
-      "source_manning": "نقيب/ محمد عبدالعزيز",
       "time": "8م",
       "weapon": "الي + كلبش"
     },
@@ -78,8 +74,6 @@
       ],
       "section": "الخدمات أساسية",
       "shift": "ليلية",
-      "source_label": "القول المكبر ليل",
-      "source_manning": "مقدم/حسام رضوان",
       "time": "8ص",
       "weapon": "الي+ فيدرال"
     },
@@ -98,8 +92,6 @@
       "personnel_ids": [],
       "section": "الخدمات أساسية",
       "shift": "صباحية",
-      "source_label": "مامورية مستشفى السويس العسكرى",
-      "source_manning": "نقيب/على فاروق",
       "time": "",
       "weapon": ""
     },
@@ -118,13 +110,11 @@
       "personnel_ids": [],
       "section": "الخدمات أساسية",
       "shift": "صباحية",
-      "source_label": "دور النيابات 8ص",
-      "source_manning": "رائد/ ابراهيم ابوالفرج",
       "time": "8ص",
       "weapon": ""
     },
     {
-      "conscript_count": 4,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -144,13 +134,11 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "حملة امن وطنى 12ظ",
-      "source_manning": "2فرد + 2 مج",
       "time": "12ظ",
       "weapon": "آلي"
     },
     {
-      "conscript_count": 4,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -167,16 +155,14 @@
       "personnel_ids": [],
       "section": "الخدمات الطارئة",
       "shift": "ليلية",
-      "source_label": "حملة أمن وطني 12 ليل",
-      "source_manning": "فرد + مج",
-      "time": "12ل",
-      "weapon": ""
+      "time": "12ظ",
+      "weapon": "آلي"
     },
     {
       "conscript_count": 7,
       "conscripts": [
         {
-          "class": "وحدة",
+          "class": "وحدة فض",
           "count": 1
         }
       ],
@@ -192,8 +178,6 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "ازالة الجناين",
-      "source_manning": "فرد + وحدة",
       "time": "9ص",
       "weapon": "فض"
     },
@@ -201,7 +185,7 @@
       "conscript_count": 20,
       "conscripts": [
         {
-          "class": "وحدة",
+          "class": "وحدة فض",
           "count": 1
         }
       ],
@@ -217,13 +201,11 @@
       "personnel_ids": [],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "وحدة المحكمة 8ص",
-      "source_manning": "وحدة + رائد/جمال امين + ت",
       "time": "8ص",
       "weapon": "فض"
     },
     {
-      "conscript_count": 1,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -238,17 +220,15 @@
       "officer_ids": [],
       "party": "عتاقة",
       "personnel_ids": [
-        "NEW-IND-194"
+        "IND-179"
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "احضار العاشر 7ص\"عتاقة\"",
-      "source_manning": "فرد + مج",
       "time": "7ص",
       "weapon": "آلي"
     },
     {
-      "conscript_count": 1,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -267,13 +247,11 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "ترحيلة المطار 9ص\"عتاقة\"",
-      "source_manning": "فرد + مج",
       "time": "9ص",
       "weapon": "آلي"
     },
     {
-      "conscript_count": 1,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -292,8 +270,6 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "تريحلة بدر 7ص\"عتاقة\"",
-      "source_manning": "فرد + مج",
       "time": "7ص",
       "weapon": "آلي"
     },
@@ -311,14 +287,12 @@
       "name": "ترحيلة عرض سياسي",
       "note": "",
       "officer_ids": [],
-      "party": "سجن عتاقة",
+      "party": "عتاقة",
       "personnel_ids": [
         "IND-107"
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "ترحيلة عرض سياسي 8ص\"سجن عتاقة\"",
-      "source_manning": "فرد + مج",
       "time": "8ص",
       "weapon": "آلي"
     },
@@ -342,8 +316,6 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "ترحيلة عسكرية جنائي 8ص \"الجناين\"",
-      "source_manning": "فرد + مج",
       "time": "8ص",
       "weapon": "آلي"
     },
@@ -367,16 +339,56 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "source_label": "ترحيلة حدث وحريم 8ص \"سجن عتاقة\"",
-      "source_manning": "فرد + مج",
       "time": "8ص",
       "weapon": "آلي"
+    },
+    {
+      "conscript_count": 5,
+      "conscripts": [
+        {
+          "class": "وحدة حفظ نظام",
+          "count": 1
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0016",
+      "kind": "خارجية",
+      "name": "تفتيش فيصل",
+      "note": "",
+      "officer_ids": [],
+      "party": "سجن فيصل",
+      "personnel_ids": [],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "10ص",
+      "weapon": "دونك"
+    },
+    {
+      "conscript_count": 5,
+      "conscripts": [
+        {
+          "class": "وحدة حفظ نظام",
+          "count": 1
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0017",
+      "kind": "خارجية",
+      "name": "تفتيش عتاقة",
+      "note": "",
+      "officer_ids": [],
+      "party": "سجن عتاقة",
+      "personnel_ids": [],
+      "section": "الخدمات الطارئة",
+      "shift": "صباحية",
+      "time": "10ص",
+      "weapon": "دونك"
     },
     {
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": false,
-      "id": "AS-0016",
+      "id": "AS-0018",
       "kind": "داخلية",
       "name": "نوبتجي المعسكر الفرعي",
       "note": "",
@@ -387,8 +399,6 @@
       "personnel_ids": [],
       "section": "ضابط عظيم وأمن المعسكر الفرعي",
       "shift": "صباحية",
-      "source_label": "فترة صباحية",
-      "source_manning": "عقيد/ اسماعيل محمد",
       "time": "",
       "weapon": ""
     },
@@ -396,7 +406,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": false,
-      "id": "AS-0017",
+      "id": "AS-0019",
       "kind": "داخلية",
       "name": "نوبتجي المعسكر الفرعي",
       "note": "",
@@ -407,8 +417,6 @@
       "personnel_ids": [],
       "section": "ضابط عظيم وأمن المعسكر الفرعي",
       "shift": "ليلية",
-      "source_label": "فترة ليلية",
-      "source_manning": "",
       "time": "",
       "weapon": ""
     },
@@ -416,7 +424,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0018",
+      "id": "AS-0020",
       "kind": "حراسات",
       "name": "مشرف الأهداف",
       "note": "",
@@ -427,8 +435,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "مشرف الأهداف",
-      "source_manning": "المقدم/ السعيد عبده",
       "time": "",
       "weapon": ""
     },
@@ -436,7 +442,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0019",
+      "id": "AS-0021",
       "kind": "حراسات",
       "name": "سوميد",
       "note": "",
@@ -447,8 +453,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "سوميد",
-      "source_manning": "مقدم/ محمد عطية",
       "time": "",
       "weapon": ""
     },
@@ -456,7 +460,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0020",
+      "id": "AS-0022",
       "kind": "حراسات",
       "name": "كهرباء السخنة",
       "note": "",
@@ -467,8 +471,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "السخنة",
-      "source_manning": "م.أول/ منتصر بهاء",
       "time": "",
       "weapon": ""
     },
@@ -476,7 +478,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0021",
+      "id": "AS-0023",
       "kind": "حراسات",
       "name": "كهرباء عتاقة",
       "note": "",
@@ -487,8 +489,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "كهرباء عتاقة",
-      "source_manning": "نقيب/ طارق فاروق",
       "time": "",
       "weapon": ""
     },
@@ -496,7 +496,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0022",
+      "id": "AS-0024",
       "kind": "حراسات",
       "name": "أنابيب البترول",
       "note": "",
@@ -507,8 +507,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "أنابيب البترول",
-      "source_manning": "م.اول / أحمد فوزي",
       "time": "",
       "weapon": ""
     },
@@ -516,7 +514,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0023",
+      "id": "AS-0025",
       "kind": "حراسات",
       "name": "مصر للبترول",
       "note": "",
@@ -527,8 +525,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "مصر للبترول",
-      "source_manning": "نقيب/ محمد عاطف",
       "time": "",
       "weapon": ""
     },
@@ -536,7 +532,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0024",
+      "id": "AS-0026",
       "kind": "حراسات",
       "name": "عيون موسي",
       "note": "",
@@ -547,8 +543,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "عيون موسي",
-      "source_manning": "مقدم/ طاهر سلطان",
       "time": "",
       "weapon": ""
     },
@@ -556,7 +550,7 @@
       "conscript_count": 0,
       "conscripts": [],
       "counts_in_summary": true,
-      "id": "AS-0025",
+      "id": "AS-0027",
       "kind": "حراسات",
       "name": "هلة المحجر",
       "note": "",
@@ -567,48 +561,6 @@
       "personnel_ids": [],
       "section": "الأهداف",
       "shift": "",
-      "source_label": "هلة المحجر",
-      "source_manning": "رائد/ احمد السمان",
-      "time": "",
-      "weapon": ""
-    },
-    {
-      "conscript_count": 0,
-      "conscripts": [],
-      "counts_in_summary": true,
-      "id": "AS-0026",
-      "kind": "داخلية",
-      "name": "تأمين السجن العسكري",
-      "note": "",
-      "officer_ids": [
-        "OFF-048"
-      ],
-      "party": "",
-      "personnel_ids": [],
-      "section": "خدمات سجن قوات الأمن",
-      "shift": "صباحية",
-      "source_label": "تأمين السجن العسكري فترة صباحية",
-      "source_manning": "رائد/محمد بحر",
-      "time": "",
-      "weapon": ""
-    },
-    {
-      "conscript_count": 0,
-      "conscripts": [],
-      "counts_in_summary": true,
-      "id": "AS-0027",
-      "kind": "داخلية",
-      "name": "تأمين السجن العسكري",
-      "note": "",
-      "officer_ids": [
-        "OFF-013"
-      ],
-      "party": "",
-      "personnel_ids": [],
-      "section": "خدمات سجن قوات الأمن",
-      "shift": "ليلية",
-      "source_label": "تأمين السجن العسكري فترة ليلية",
-      "source_manning": "رائد/خالد خلف",
       "time": "",
       "weapon": ""
     },
@@ -618,17 +570,15 @@
       "counts_in_summary": true,
       "id": "AS-0028",
       "kind": "داخلية",
-      "name": "ضابط مباحث السجن العسكري",
+      "name": "تأمين السجن العسكري",
       "note": "",
       "officer_ids": [
-        "NEW-OFF-036"
+        "OFF-048"
       ],
       "party": "",
       "personnel_ids": [],
-      "section": "خدمات سجن قوات الأمن",
+      "section": "سجن قوات الامن",
       "shift": "صباحية",
-      "source_label": "ضابط مباحث فترة صباحية",
-      "source_manning": "عقيد/ محمد هلال عبدالمنعم",
       "time": "",
       "weapon": ""
     },
@@ -638,40 +588,47 @@
       "counts_in_summary": true,
       "id": "AS-0029",
       "kind": "داخلية",
-      "name": "ضابط مباحث السجن العسكري",
+      "name": "تأمين السجن العسكري",
       "note": "",
       "officer_ids": [
-        "NEW-OFF-035"
+        "OFF-013"
       ],
       "party": "",
       "personnel_ids": [],
-      "section": "خدمات سجن قوات الأمن",
+      "section": "سجن قوات الامن",
       "shift": "ليلية",
-      "source_label": "ضابط مباحث فترة ليلية",
-      "source_manning": "عقيد/ محمد اسماعيل طايع",
       "time": "",
       "weapon": ""
     },
     {
-      "conscript_count": 2,
-      "conscripts": [
-        {
-          "class": "مج",
-          "count": 2
-        }
-      ],
+      "conscript_count": 0,
+      "conscripts": [],
       "counts_in_summary": true,
       "id": "AS-0030",
       "kind": "داخلية",
-      "name": "ملاحظة الحالة بالطرقة",
-      "note": "",
+      "name": "ضابط مباحث السجن العسكري",
+      "note": "محمد هلال عبدالمنعم",
       "officer_ids": [],
       "party": "",
       "personnel_ids": [],
-      "section": "خدمات سجن قوات الأمن",
+      "section": "سجن قوات الامن",
       "shift": "صباحية",
-      "source_label": "ملاحظة الحالة بالطرقة (ص+ل)",
-      "source_manning": "عدد 2 مجند دونك",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "conscript_count": 0,
+      "conscripts": [],
+      "counts_in_summary": true,
+      "id": "AS-0031",
+      "kind": "داخلية",
+      "name": "ضابط مباحث السجن العسكري",
+      "note": "محمد اسماعيل طايع",
+      "officer_ids": [],
+      "party": "",
+      "personnel_ids": [],
+      "section": "سجن قوات الامن",
+      "shift": "ليلية",
       "time": "",
       "weapon": ""
     },
@@ -684,19 +641,62 @@
         }
       ],
       "counts_in_summary": true,
-      "id": "AS-0031",
+      "id": "AS-0032",
       "kind": "داخلية",
       "name": "ملاحظة الحالة بالطرقة",
       "note": "",
       "officer_ids": [],
       "party": "",
       "personnel_ids": [],
-      "section": "خدمات سجن قوات الأمن",
-      "shift": "ليلية",
-      "source_label": "ملاحظة الحالة بالطرقة (ص+ل)",
-      "source_manning": "عدد 2 مجند دونك",
+      "section": "فرد تأمين فترة ليلة",
+      "shift": "صباحية",
       "time": "",
       "weapon": ""
+    },
+    {
+      "conscript_count": 2,
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 2
+        }
+      ],
+      "counts_in_summary": true,
+      "id": "AS-0033",
+      "kind": "داخلية",
+      "name": "ملاحظة الحالة بالطرقة",
+      "note": "",
+      "officer_ids": [],
+      "party": "",
+      "personnel_ids": [],
+      "section": "فرد تأمين فترة ليلة",
+      "shift": "ليلية",
+      "time": "",
+      "weapon": ""
+    },
+    {
+      "id": "AS-0034",
+      "section": "الخدمات الطارئة",
+      "name": "ترحيلة عسكرية جنائي",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [
+        "IND-130"
+      ],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "conscript_count": 1,
+      "weapon": "الي",
+      "time": "8ص",
+      "party": "الجناين",
+      "counts_in_summary": true,
+      "mission_transport": false,
+      "note": ""
     }
   ],
   "officer_states": {
@@ -1341,7 +1341,7 @@
       }
     ]
   },
-  "assignment_seq": 31,
+  "assignment_seq": 34,
   "afraad_basic": {
     "AFB-01": {
       "count": "(1مجند) صبح + 1 سائق (1مجند) ليل +1 سائق",
@@ -1452,6 +1452,14 @@
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
     },
+    "AFB-19": {
+      "count": "ميك فض (3 مجند)",
+      "morning_name": "ا.ش/ محمد السيد عبده",
+      "morning_person_id": "IND-188",
+      "morning_phone": "01062464214",
+      "schedule": "11 ص حتى الانتهاء",
+      "weapon": "مايك فض"
+    },
     "AFB-20": {
       "count": "",
       "morning_name": "م.ش/ علي ابراهيم صالح",
@@ -1469,7 +1477,7 @@
       "morning_person_id": "IND-189",
       "morning_phone": "01227732345",
       "night_name": "م.ش/ محمد عطية سالم",
-      "night_person_id": "IND-119",
+      "night_person_id": "IND-042",
       "night_phone": "01016357811",
       "schedule": "8 ص / 8 م",
       "weapon": "الي + كلبش"
@@ -1508,6 +1516,14 @@
       "weapon": ""
     },
     "AFB-26": {
+      "count": "1 مج قتالي ( 1 مجند ) صبح",
+      "morning_name": "ا.ش/ احمد صبري سيد",
+      "morning_person_id": "IND-004",
+      "morning_phone": "01122158140",
+      "schedule": "8 ص فترة صباحة",
+      "weapon": "الى"
+    },
+    "AFB-34": {
       "count": "(2 مجند ) صبح \" ادارة الطرق\" (2 مجند ) ليل\" ادارة الطرق\"",
       "morning_name": "م.ش/ ابراهيم محمد أحمد النسر",
       "morning_person_id": "IND-064",
@@ -1518,15 +1534,7 @@
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
     },
-    "AFB-27": {
-      "count": "1 مج قتالي ( 1 مجند ) صبح",
-      "morning_name": "ا.ش/ احمد صبري سيد",
-      "morning_person_id": "IND-004",
-      "morning_phone": "01122158140",
-      "schedule": "8 ص فترة صباحة",
-      "weapon": "الى"
-    },
-    "AFB-28": {
+    "AFB-46": {
       "count": "1 مج قتالي ( 1 مجند ) صبح",
       "morning_name": "ا.ش/ وليد محمود",
       "morning_person_id": "IND-172",
@@ -1534,23 +1542,248 @@
       "schedule": "8 ص فترة صباحة",
       "weapon": "الى"
     },
-    "AFB-29": {
+    "AFB-49": {
       "count": "1 مج قتالي (2 مجند ) صبح 1 مج قتالي (2 مجند ) ليل",
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
+    }
+  },
+  "campaign": {
+    "lorries": {
+      "LOR-1": {
+        "vehicle_id": "VEH-012",
+        "driver": {
+          "kind": "text",
+          "name": "مصطفي طلبة"
+        },
+        "attached": [
+          {
+            "assignment_id": "AS-0017"
+          }
+        ]
+      },
+      "LOR-2": {
+        "vehicle_id": "VEH-017",
+        "driver": {
+          "kind": "text",
+          "name": "احمد شعبان"
+        }
+      },
+      "LOR-3": {
+        "vehicle_id": "VEH-018",
+        "driver": {
+          "kind": "text",
+          "name": "محمد شبل"
+        },
+        "attached": [
+          {
+            "assignment_id": "AS-0016"
+          }
+        ]
+      },
+      "LOR-4": {
+        "vehicle_id": "VEH-018",
+        "driver": {
+          "kind": "text",
+          "name": "محمد شبل"
+        }
+      }
     },
-    "AFB-30": {
-      "count": "ميك فض (3 مجند)",
-      "morning_name": "ا.ش/ محمد السيد عبده",
-      "morning_person_id": "IND-188",
-      "morning_phone": "01062464214",
-      "schedule": "11 ص حتى الانتهاء",
-      "weapon": "مايك فض"
+    "services": {
+      "AS-0008": {
+        "vehicle_id": "VEH-011",
+        "driver": {
+          "kind": "text",
+          "name": "عبدالمنعم عشماوي"
+        }
+      },
+      "AS-0009": {
+        "driver": {
+          "kind": "text",
+          "name": "محمد السيد"
+        }
+      },
+      "AS-0010": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-018"
+        }
+      },
+      "AS-0012": {
+        "vehicle_id": "VEH-036",
+        "driver": {
+          "kind": "text",
+          "id": "",
+          "name": "عبدالله محمد عبداللطيف حسين"
+        }
+      },
+      "AS-0013": {
+        "vehicle_id": "VEH-040",
+        "driver": {
+          "kind": "text",
+          "name": "نصر محمد"
+        }
+      },
+      "AS-0015": {
+        "vehicle_id": "VEH-034",
+        "driver": {
+          "kind": "text",
+          "name": "محمود بدر"
+        }
+      },
+      "AS-0011": {
+        "vehicle_id": "VEH-064",
+        "driver": {
+          "kind": "text",
+          "name": "محمد احمد"
+        }
+      }
+    },
+    "daily": {
+      "CD-001": {
+        "vehicle_id": "VEH-031",
+        "driver": {
+          "kind": "text",
+          "name": "محمد الدسوقي"
+        }
+      },
+      "CD-002": {
+        "vehicle_id": "VEH-030",
+        "driver": {
+          "kind": "text",
+          "name": "ابراهيم علي"
+        }
+      },
+      "CD-008": {
+        "vehicle_id": "VEH-028",
+        "driver": {
+          "kind": "text",
+          "name": "باهر محمد"
+        }
+      },
+      "CD-003": {
+        "vehicle_id": "VEH-033",
+        "driver": {
+          "kind": "text",
+          "id": "",
+          "name": "طارق علي شحاتة سيد"
+        }
+      },
+      "CD-004": {
+        "vehicle_id": "VEH-032",
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-010"
+        }
+      },
+      "CD-005": {
+        "vehicle_id": "VEH-003",
+        "driver": {
+          "kind": "text",
+          "id": "",
+          "name": "يحي غريب عطية"
+        }
+      },
+      "CD-006": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-005"
+        }
+      }
+    },
+    "posts": {
+      "CP-001": {
+        "vehicle_id": "VEH-004",
+        "plate_text": "3279ب13",
+        "type_text": "مايك ايفكو"
+      },
+      "CP-002": {
+        "vehicle_id": "VEH-056",
+        "plate_text": "5292ب12",
+        "type_text": "مدرعه مرسيدس"
+      },
+      "CP-003": {
+        "vehicle_id": "VEH-035",
+        "plate_text": "4822ب11",
+        "type_text": "بيك اب شفورلية"
+      },
+      "CP-004": {
+        "vehicle_id": "VEH-027",
+        "plate_text": "2442ب17",
+        "type_text": "بيك اب نيسان"
+      },
+      "CP-005": {
+        "vehicle_id": "VEH-001",
+        "plate_text": "8444ب12",
+        "type_text": "مايك ايفكو"
+      },
+      "CP-013": {
+        "vehicle_id": "VEH-002",
+        "plate_text": "4222 ب15",
+        "type_text": "مدرعة بانسير"
+      },
+      "CP-014": {
+        "vehicle_id": "VEH-029",
+        "plate_text": "4996 ب12",
+        "type_text": "بيك اب شفورلية"
+      },
+      "CP-008": {
+        "vehicle_id": "VEH-055",
+        "plate_text": "6116ب12",
+        "type_text": "المدرعه الفهد"
+      },
+      "CP-010": {
+        "vehicle_id": "VEH-057",
+        "plate_text": "1193ب11",
+        "type_text": "مدرعة بانسير",
+        "driver_text": "مجند قوات امن صبح .ليل"
+      },
+      "CP-011": {
+        "vehicle_id": "VEH-058",
+        "plate_text": "8411 ب16",
+        "type_text": "مدرعة بانسيرا"
+      },
+      "CP-012": {
+        "vehicle_id": "VEH-059",
+        "plate_text": "9545ب13",
+        "type_text": "مدرعة كوجر"
+      }
+    },
+    "plates": {
+      "rows": [
+        [
+          "ب13/9416",
+          "ب14/7895",
+          "ب15/5217",
+          "ب13/9186",
+          "ب11/4822",
+          "ب13/8633",
+          "ب13/8563"
+        ],
+        [
+          "ب15/1168",
+          "ب13/8965",
+          "ب12/1152",
+          "ب13/8563",
+          "ب12/4997",
+          "ب18/1397",
+          "ب12/2723"
+        ],
+        [
+          "ب12/5986",
+          "ب15/7899",
+          "ب11/4313",
+          "ب15/7818",
+          "ب11/1564",
+          "ب12/4997",
+          "ب14/9556"
+        ]
+      ]
     }
   },
   "import": {
-    "at": "sep-refactor2",
-    "batch": "sep-refactor2",
+    "at": "archive-full",
+    "batch": "archive-full",
     "derived": false,
     "sources": [
       {

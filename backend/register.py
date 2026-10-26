@@ -49,6 +49,8 @@ REGISTER_CODES = {
     ("خوارج", "غياب"):     {"code": "غ",   "label": "غياب",              "family": "خارج"},
     ("خوارج", "انتداب"):   {"code": "ن",   "label": "انتداب",            "family": "خارج"},
     ("خوارج", "فرقة"):     {"code": "ف",   "label": "فرقة",              "family": "خارج"},
+    # «راحة فرقة» اتلغت؛ صفوف الأرشيف المكتوب فيها بتتقري كفرقة
+    ("خوارج", "راحة فرقة"):{"code": "ف",   "label": "فرقة",              "family": "خارج"},
 }
 # الضابط مكانش على القوة يومها (انضم بعده أو خرج قبله)
 OFF_FORCE = {"code": "—", "label": "ليس على القوة", "family": "خارج القوة"}
@@ -257,7 +259,7 @@ def officer_register(data, officer_id, days=None):
             "day_officers": dict(dict.items(data.get("day_officers") or {}))}
     officer = next((o for o in PeopleRepo(data).raw_all("officers")
                     if o.get("id") == officer_id), None)
-    course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
+    catalog = courses_by_id(data)
 
     from .day_status import today_iso
     today = today_iso()
@@ -267,7 +269,7 @@ def officer_register(data, officer_id, days=None):
         if officer is None or (officer.get("join_date") or "") > day or (
                 (officer.get("leave_date") or "") and day > officer["leave_date"]):
             continue                      # مكانش على القوة — مالوش سطر في دفتره
-        row = officer_row(view, day, officer, course_names)
+        row = officer_row(view, day, officer, catalog)
         person = row
         if day > today and row["group"] == "صافي":
             continue                      # يوم لسه ما جاش ومالوش فيه خدمة — مش «عمل بالإدارة»

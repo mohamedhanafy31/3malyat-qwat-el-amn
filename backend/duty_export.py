@@ -51,8 +51,37 @@ def _rest_text(row):
     return system
 
 
+def _status_period_text(row):
+    """صياغة الحالة الممتدة في Word؛ المفتوحة تذكر يوم البداية فقط."""
+    period = row.get("persistent_status") or {}
+    if row.get("status_source") != "period" or not period:
+        return ""
+    status = period.get("status") or row.get("status") or "خارج"
+    try:
+        start = date.fromisoformat(period.get("start") or "").strftime("%d/%m/%Y")
+    except (TypeError, ValueError):
+        start = period.get("start") or ""
+    if not period.get("end"):
+        return f"{status} من يوم {start}" if start else status
+    try:
+        end = date.fromisoformat(period["end"]).strftime("%d/%m/%Y")
+    except (TypeError, ValueError):
+        end = period["end"]
+    return f"{status} من {start} حتى {end}" if start else f"{status} حتى {end}"
+
+
 def _daily_text(row):
     """«التشغيل اليومي»: الخدمة التلقائية من اللوحة + التشغيل الإضافي اليدوي."""
+    # الفرقة المحسوبة من سجل الالتحاق ليس لها حالة يومية مكتوبة؛ من دون
+    # هذا الفرع كان ملف Word يطبع «خوارج» فقط رغم أن الشاشة تعرض الاسم
+    # والمدة والمكان. التكليف الفعلي يظل أقوى من مدى الفرقة، لذلك نطبقها
+    # فقط عندما كانت الخانة النهائية نفسها «خوارج/فرقة».
+    if (row.get("group"), row.get("bucket")) == ("خوارج", "فرقة") and row.get("course"):
+        from .duty import course_with_note
+        return course_with_note(row["course"], row.get("text"))
+    period_text = _status_period_text(row)
+    if period_text:
+        return period_text
     if row.get("text"):
         return row["text"]
     if row.get("leave"):

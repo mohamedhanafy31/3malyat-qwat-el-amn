@@ -50,17 +50,28 @@ RESERVED_SECTIONS = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTIO
 # والتصنيف ثابتين مش اختيار المشغّل، فالتحقق هنا بيفرضهم حتى لو حد نادى
 # المسار العام (`/api/assignments`) بدل مسار الأهداف المخصّص
 # (`/api/board/<day>/target/<name>`).
-# حالات الضابط اللي مش تكليف بخدمة. «مرضي» و«فرقة» و«طارئة» كانوا ناقصين،
-# فكانت خاناتهم في جدول الإجمالي مستحيل يوصلها رقم صح رغم إنهم في الوورد
-# 16 و30 مرة على التوالي.
-OFFICER_STATUSES = ["انتداب", "غياب", "مرضي", "فرقة", "طارئة"]
+# حالات الضابط اللي مش تكليف بخدمة والمعروضة للاختيار في يومية الضباط.
+# «مرضي»/«غياب»/«انتداب» مستمرة حتى الإيقاف و«طارئة» لمدة محددة
+# (`status_periods.py`).
+OFFICER_STATUSES = ["انتداب", "غياب", "مرضي", "طارئة"]
+# قيم بتتقري من الأرشيف بس ومش معروضة كاختيار: «فرقة» مصدرها الالتحاق
+# المسجّل (`course_terms`) مش حالة يدوية، و«راحة فرقة» اتلغت. صفوف الأيام
+# القديمة المكتوب فيها أي منهم بتفضل تتعرض وتتحسب في خانتها.
+LEGACY_OFFICER_STATUSES = ["فرقة", "راحة فرقة"]
 MAX_OFFICER_STATUS_LENGTH = 60
 
 
+def is_legacy_status(value):
+    return norm(str(value or "").strip()) in {norm(item) for item in LEGACY_OFFICER_STATUSES}
+
+
 def officer_statuses(data):
-    """الحالات الأساسية ثم أي تصنيف حر سبق حفظه، بلا تكرار نصي/إملائي."""
+    """الحالات الأساسية ثم أي تصنيف حر سبق حفظه، بلا تكرار نصي/إملائي.
+
+    القيم الأرشيفية (`LEGACY_OFFICER_STATUSES`) مش بتطلع هنا حتى لو اتحفظت
+    قبل كده كتصنيف حر."""
     out = list(OFFICER_STATUSES)
-    seen = {norm(value) for value in out}
+    seen = {norm(value) for value in out + LEGACY_OFFICER_STATUSES}
     for raw in data.get("custom_officer_statuses") or []:
         value = str(raw or "").strip()
         key = norm(value)
@@ -79,6 +90,8 @@ def remember_officer_status(data, value):
         return f"تصنيف الحالة أطول من الحد المسموح ({MAX_OFFICER_STATUS_LENGTH} حرفًا)."
     if any(char in value for char in "\r\n\t"):
         return "تصنيف الحالة يجب أن يكون في سطر واحد."
+    if is_legacy_status(value):
+        return "«فرقة» تُسجّل من صفحة الفرق (التحاق الضابط بفرقة)، لا كحالة يدوية."
     if norm(value) not in {norm(item) for item in officer_statuses(data)}:
         data.setdefault("custom_officer_statuses", []).append(value)
     return None

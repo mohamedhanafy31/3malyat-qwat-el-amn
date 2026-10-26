@@ -140,7 +140,7 @@ const OFFICER_VIEWS = {
   "الخوارج": [["الضابط", "السبب", "التفاصيل"], r =>
     `<tr><td class="name">${esc(nameOf()(r))}</td>
      <td><span class="chip taq">${esc(r.reason)}</span></td>
-     <td class="wrap">${esc(r.note)}</td></tr>`],
+     <td class="wrap">${esc(outsiderDetail(r))}</td></tr>`],
 };
 
 const OUTSIDER_HEAD = ["الضابط", "الحالة", "التفاصيل"];
@@ -167,6 +167,25 @@ function outsiderRow(row) {
     <td class="wrap">${esc(row.detail) || "—"}</td></tr>`;
 }
 
+/* تفاصيل صف الخوارج: الفرقة من الالتحاق المسجّل (مع الملاحظة اليدوية لو
+   مش مكرراها — صفوف الأرشيف كاتبة الفرقة كاملة في الملاحظة)، أو مدى الحالة
+   الممتدة، أو الملاحظة لوحدها. نفس قاعدة `duty.course_with_note`. */
+function outsiderDetail(row) {
+  const note = (row.note || "").trim();
+  const course = row.course;
+  if (course?.text) {
+    if (note && note.includes(course.name || course.text)) return note;
+    return note ? `${course.text} — ${note}` : course.text;
+  }
+  const period = row.status_period;
+  if (period && !note) {
+    return period.end
+      ? `من ${fmtShort(period.start)} حتى ${fmtShort(period.end)}`
+      : `من يوم ${fmtShort(period.start)}`;
+  }
+  return note || row.reason || "";
+}
+
 function presentationSections(sections) {
   const byName = new Map(sections.map(section => [section.name, section]));
   const admin = byName.get("عمل بالإدارة") || {name: "عمل بالإدارة", type: "admin", rows: []};
@@ -184,7 +203,7 @@ function presentationSections(sections) {
       const statusType = name === "الراحات" ? "راحة" : name === "التقصيرات" ? "تقصيرة" : (row.reason || "خارج");
       const detail = name === "الراحات"
         ? `${row.type || "راحة"}${row.start || row.end ? ` (${fmtShort(row.start)} — ${fmtShort(row.end)})` : ""}`
-        : (row.note || row.reason || "");
+        : outsiderDetail(row);
       outsiderRows.push({...row, status_type: statusType, detail});
     }
   }

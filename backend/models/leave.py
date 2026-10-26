@@ -9,7 +9,9 @@
 """
 from dataclasses import dataclass
 
-from ..constants import LEAVE_TYPES
+# النموذج بيتحقق من السجلات المخزنة كمان، فلازم يقبل النوع الأرشيفي «راحة
+# فرقة» — منع إنشائه جديد في `leaves.build_leave`.
+from ..constants import ALL_LEAVE_TYPES as LEAVE_TYPES
 from .base import Model, date_order, max_length, one_of, require, valid_date
 
 
@@ -22,6 +24,7 @@ class Leave(Model):
     end: str = ""
     return_date: str = ""           # محسوب: اليوم اللي بعد النهاية
     note: str = ""
+    special_name: str = ""          # وصف «إجازة خاصة» مثل عيد/مأمورية عائلية
     source: str = ""                # النص الأصلي لو السجل اتستخرج من الأرشيف
     origin: str = ""                # تلقائية أسبوعية أو راحة أسبوعية إضافية
     # إيقاف الراحة قبل نهايتها (`backend/rest_suspension.py::stop_leave`) —

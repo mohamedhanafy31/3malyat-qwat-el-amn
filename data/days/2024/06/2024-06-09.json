@@ -661,7 +661,8 @@
       "night_person_id": "IND-212",
       "night_phone": "01102886584",
       "schedule": "8 ص / 8 م",
-      "weapon": "آلي"
+      "weapon": "آلي",
+      "morning_person_id": "IND-195"
     },
     "AFB-07": {
       "count": "(7 مجند) صبح (7 مجند) ليل",

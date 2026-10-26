@@ -45,6 +45,59 @@ def test_a_term_puts_the_officer_in_the_khawarej_cell_all_through_it(client):
     assert _row(client, "OFF-002", "2026-04-16")["group"] == "صافي"
 
 
+def test_duty_row_carries_the_full_course_detail(client):
+    course = _course(client, note="تدريب مشترك").get_json()
+    _term(client, course_id=course["id"], note="بأمر الإدارة")
+
+    detail = _row(client, "OFF-002", DAY)["course"]
+    assert {k: detail[k] for k in ("name", "place", "kind", "start", "end",
+                                   "term_note", "course_note")} == {
+        "name": "فرقة الحراسات المشددة", "place": "مدرسة الدفاع الشعبي",
+        "kind": "تخصصية", "start": "2026-04-05", "end": "2026-04-15",
+        "term_note": "بأمر الإدارة", "course_note": "تدريب مشترك"}
+    assert detail["text"] == ("فرقة الحراسات المشددة خلال الفترة من 5/4/2026 "
+                              "حتى 15/4/2026 بمدرسة الدفاع الشعبي")
+
+
+def test_board_outsider_row_carries_the_course_detail(client):
+    course = _course(client).get_json()
+    _term(client, course_id=course["id"])
+
+    board = client.get(f"/api/board/{DAY}").get_json()
+    outsiders = next(s for s in board["sections"] if s["name"] == "الخوارج")["rows"]
+    row = next(r for r in outsiders if r["id"] == "OFF-002")
+    assert row["reason"] == "فرقة"
+    assert row["course"]["text"].startswith("فرقة الحراسات المشددة خلال الفترة من 5/4/2026")
+    assert row["course"]["place"] == "مدرسة الدفاع الشعبي"
+
+
+def test_duty_docx_daily_text_uses_the_full_course_detail(client):
+    from backend.duty_export import _daily_text
+
+    course = _course(client).get_json()
+    _term(client, course_id=course["id"])
+    row = _row(client, "OFF-002", DAY)
+    assert _daily_text(row) == row["course"]["text"]
+
+
+def test_course_text_skips_missing_parts(client):
+    course = _course(client, place="", kind="").get_json()
+    _term(client, course_id=course["id"])
+    assert _row(client, "OFF-002", DAY)["course"]["text"] == (
+        "فرقة الحراسات المشددة خلال الفترة من 5/4/2026 حتى 15/4/2026")
+
+
+def test_course_with_note_does_not_repeat_an_imported_full_sentence():
+    from backend.duty import course_with_note
+
+    course = {"name": "فرقة س", "text": "فرقة س خلال الفترة من 1/1/2026 حتى 2/1/2026"}
+    imported = "فرقة س خلال الفترة من 1/1/2026 حتي 2/1/2026 بمعهد"
+    assert course_with_note(course, imported) == imported
+    assert course_with_note(course, "متابعة") == f"{course['text']} — متابعة"
+    assert course_with_note(course, "") == course["text"]
+    assert course_with_note(None, "ملاحظة") == "ملاحظة"
+
+
 def test_the_summary_counts_it_in_the_faraqa_column(client):
     course = _course(client).get_json()
     _term(client, course_id=course["id"])

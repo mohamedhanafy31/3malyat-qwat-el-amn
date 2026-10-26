@@ -1,21 +1,26 @@
 <!-- ============ إيقاف راحة ضابط قبل نهايتها ============ -->
 <div class="modal hidden" id="stopLeaveModal">
-  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="stopLeaveModalTitle">
-    <button type="button" class="close" data-close="stopLeaveModal" aria-label="إغلاق">×</button>
-    <h2 id="stopLeaveModalTitle">إيقاف الراحة</h2>
-    <p class="hint" id="stopLeaveWho"></p>
+  <div class="modal-card small leave-stop-card" role="dialog" aria-modal="true" aria-labelledby="stopLeaveModalTitle">
+    <div class="modal-head">
+      <div class="modal-head-copy">
+        <span class="leave-stop-kicker">إجراء على راحة مسجلة</span>
+        <h2 id="stopLeaveModalTitle">إنهاء أو إلغاء الراحة</h2>
+      </div>
+      <button type="button" class="close" data-close="stopLeaveModal" aria-label="إغلاق">×</button>
+    </div>
+    <div class="leave-stop-summary" id="stopLeaveWho"></div>
     <form id="stopLeaveForm" novalidate>
       <input type="hidden" id="stopLeaveId">
-      <label><span class="label-text">أول يوم للعودة إلى العمل <span class="req" aria-hidden="true">*</span></span>
+      <label id="stopOnRow"><span class="label-text">أول يوم للعودة إلى العمل <span class="req" aria-hidden="true">*</span></span>
         <input type="date" id="stopOn" required>
       </label>
       <label><span class="label-text">السبب <span class="req" aria-hidden="true">*</span></span>
         <input id="stopReason" required placeholder="مثال: استدعاء بقرار المديرية">
       </label>
-      <p class="hint" id="stopHint"></p>
+      <p class="leave-stop-result" id="stopHint" aria-live="polite"></p>
       <div class="actions modal-foot">
-        <button class="primary full" type="submit">إيقاف الراحة</button>
-        <button type="button" class="btn" data-close="stopLeaveModal">إلغاء</button>
+        <button class="primary full" type="submit" id="stopLeaveSubmit">إنهاء الراحة</button>
+        <button type="button" class="btn" data-close="stopLeaveModal">رجوع</button>
       </div>
     </form>
   </div>

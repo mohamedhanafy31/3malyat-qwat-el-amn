@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from docx import Document
 
-from backend.duty_export import LAST_FIT, build_docx
+from backend.duty_export import LAST_FIT, _daily_text, build_docx
 from tools.fidelity.duty import _structure, load_docx
 
 
@@ -50,6 +50,20 @@ def test_latest_mapping_uses_full_roster_name_and_dash_rest():
     assert row.cells[2].text == "الاسم الكامل للضابط"
     assert row.cells[5].text == "------------"
     assert document.tables[1].rows[0].cells[15].text == "الصافي"
+
+
+def test_open_status_prints_name_and_start_day_only():
+    row = {"status": "مرضي", "status_source": "period", "persistent_status": {
+        "status": "مرضي", "start": "2026-10-23", "end": "",
+    }}
+    assert _daily_text(row) == "مرضي من يوم 23/10/2026"
+
+
+def test_bounded_status_keeps_start_and_end_days():
+    row = {"status": "طارئة", "status_source": "period", "persistent_status": {
+        "status": "طارئة", "start": "2026-10-23", "end": "2026-10-25",
+    }}
+    assert _daily_text(row) == "طارئة من 23/10/2026 حتى 25/10/2026"
 
 
 def test_archive_structure_signature_matches_latest_template_when_available():

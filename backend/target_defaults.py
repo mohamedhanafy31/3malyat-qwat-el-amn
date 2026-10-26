@@ -7,6 +7,7 @@ from .constants import ROLE_MEDICAL, SECTION_TARGETS, TARGET_NAMES, TARGETS_FIRS
 from .dated import groups_on, targets_on
 from .leaves import leave_on
 from .repo import PeopleRepo
+from .status_periods import active_on as status_period_on
 
 
 
@@ -82,6 +83,8 @@ def _eligible_map(data, day, confirmed_rows):
             and officer_id not in medical
             and not leave_on(data, officer_id, day)
             and not str((states.get(officer_id) or {}).get("status") or "").strip()
+            # مرضي/غياب/انتداب/طارئة الممتدة مش مكتوبة في ملف اليوم
+            and not status_period_on(data, officer_id, day)
         ]
     return result
 

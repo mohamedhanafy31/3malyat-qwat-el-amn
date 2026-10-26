@@ -129,12 +129,20 @@ def test_assemble_matches_what_the_app_reads(client):
 
 
 def test_a_day_with_only_an_officer_state_still_gets_a_file(client):
-    """اليوم ممكن يبقى فيه حالة ضابط من غير أي تكليف — ده يوم حقيقي."""
-    client.put(f"/api/duty/{DAY}/OFF-001", json={"status": "غياب"})
+    """اليوم ممكن يبقى فيه حالة ضابط من غير أي تكليف — ده يوم حقيقي.
+
+    (حالة ليوم واحد — «غياب» وأخواتها بقت مدى في core مش حالة يوم.)"""
+    client.put(f"/api/duty/{DAY}/OFF-001", json={"status": "مهمة خاصة"})
     assert store.day_path(DAY).exists()
     blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
     assert set(blob) == {"officer_states"}
-    assert store.load_data()["day_officers"][DAY]["OFF-001"]["status"] == "غياب"
+    assert store.load_data()["day_officers"][DAY]["OFF-001"]["status"] == "مهمة خاصة"
+
+
+def test_a_continuous_status_is_kept_in_core_not_in_day_files(client):
+    client.put(f"/api/duty/{DAY}/OFF-001", json={"status": "غياب"})
+    assert "OFF-001" not in (store.load_data()["day_officers"].get(DAY) or {})
+    assert [p["status"] for p in store.assemble()["officer_status_periods"]] == ["غياب"]
 
 
 def test_import_marker_round_trips_in_the_day_file_and_empty_is_absent(data_file):

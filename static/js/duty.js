@@ -1,8 +1,23 @@
 /* يومية تشغيل الضباط — جدول الإجمالي وحالة الضابط.
    التكليف بخدمة بقى في اليومية التفصيلية (نفس السجل)، والصفحة دي بتعدّل
-   حالة الضابط بس: تقصيرة / انتداب / غياب / مرضي / فرقة / طارئة، وتشغيل
-   إضافي بيتضاف على خدمته التلقائية، وإضافته للعمل بالإدارة في اللوحة. */
+   حالة الضابط بس: تقصيرة / انتداب / غياب / مرضي / طارئة، وتشغيل إضافي
+   بيتضاف على خدمته التلقائية، وإضافته للعمل بالإدارة في اللوحة.
+   «فرقة» بتيجي من التحاق الفرق المسجّل وتفاصيلها بتتعرض تحت الخانة. */
 let DUTY = null;
+
+// نفس `backend/status_periods.py`: المستمرة لحد الإيقاف، والطارئة لحد يوم محدد
+const CONTINUOUS_STATUSES = ["مرضي", "غياب", "انتداب"];
+const BOUNDED_STATUSES = ["طارئة"];
+
+/* سطر مدى الحالة الممتدة: المفتوحة تعرض يوم البداية فقط، والمحددة تعرض المدى. */
+function periodSpan(p) {
+  return p.end ? `من ${fmt(p.start)} حتى ${fmt(p.end)}` : `من يوم ${fmt(p.start)}`;
+}
+
+/* الفرقة: الجملة الرسمية (الاسم + المدة + المكان) ثم النوع والملاحظات لو موجودة */
+function courseLine(c) {
+  return [c.text, c.kind && `(${c.kind})`, c.term_note, c.course_note].filter(Boolean).join(" — ");
+}
 
 window.exportDocxUrl = () => DUTY ? `/api/duty/${DUTY.date}/export.docx` : null;
 
@@ -72,9 +87,12 @@ function officerRow(r) {
   const svc = r.services.length
     ? r.services.map(s => `<span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.name)}<i>${esc(s.shift)}</i></span>`).join(" ")
     : `<span class="muted">—</span>`;
-  const grp = r.leave ? `<span class="chip rest">${esc(r.leave.type)}</span><div class="sub">حتى ${fmt(r.leave.end)}</div>`
+  const grp = r.leave ? `<span class="chip rest leave-kind-chip">${esc(r.leave.type)}</span><div class="sub">حتى ${fmt(r.leave.end)}</div>`
     : r.group === "صافي" ? `<span class="chip on">صافي</span>`
-    : `<span class="chip ${KIND_CLS[r.group] || "done"}">${esc(r.group)}${r.bucket ? " · " + esc(r.bucket) : ""}</span>`;
+    : `<span class="chip ${KIND_CLS[r.group] || "done"}">${esc(r.group)}${r.bucket ? " · " + esc(r.bucket) : ""}</span>`
+      + (r.status_source === "period" && r.persistent_status
+        ? `<div class="sub">${esc(periodSpan(r.persistent_status))}</div>` : "")
+      + (r.course ? `<div class="sub wrap">${esc(courseLine(r.course))}</div>` : "");
   const gone = r.later_left ? `<span class="chip done" title="خرج من القوة يوم ${fmt(r.later_left)}">خرج ${fmt(r.later_left)}</span>` : "";
   const search = r.search_attached ? ` <span class="chip soon" title="تشغيل من إدارة البحث">بحث</span>` : "";
   return `<tr class="${r.later_left ? "was" : ""}">
@@ -105,13 +123,20 @@ ACTIONS.openAssign = id => {
   $("#assignHint").textContent =
     `يوم ${dayName(DUTY.date)} ${fmt(DUTY.date)} — التكليف بالخدمات من اليومية التفصيلية.`
     + (row.leave ? ` تنبيه: الضابط في ${row.leave.type} حتى ${fmt(row.leave.end)}.` : "");
-  fillSelect($("#assignStatus"),
-    [["", "— بدون —"], ...(META.officer_statuses || []).map(x => [x, x])]);
+  const choices = [...(META.officer_statuses || [])];
+  // صف أرشيفي بحالة مش متاحة للاختيار («فرقة» يدوية قديمة) بيفضل بقيمته
+  // عشان حفظ ملاحظته مايمسحهاش — لكنها مش معروضة لأي ضابط تاني.
+  if (row.status && !choices.includes(row.status)) choices.push(row.status);
+  fillSelect($("#assignStatus"), [["", "— بدون —"], ...choices.map(x => [x, x])]);
   // الحالة المسجّلة بس — مش الخانة المحسوبة. الضابط بيقع في «خوارج/فرقة»
   // لأن مدى التحاقه بفرقة بيغطي اليوم، من غير ما يكون فيه حالة متكتبة.
   // ملء الحقل من row.bucket كان بيخلي أي حفظ (حتى لو المستخدم داخل يكتب
   // ملاحظة بس) يثبّت «فرقة» كحالة يدوية تفضل بعد ما الفرقة نفسها تتمسح.
   $("#assignStatus").value = row.status || "";
+  const period = row.status_source === "period" ? row.persistent_status : null;
+  $("#assignStatusEnd").value = period && BOUNDED_STATUSES.includes(period.status) ? (period.end || "") : "";
+  $("#assignStatusEnd").min = DUTY.date;
+  updatePersistentHint();
   $("#assignTaq").checked = !!row.taqseera;
   $("#assignExtra").value = row.extra || "";
   // النص القديم الكامل بيظهر بس لو موجود — الأيام الجديدة مفيهاش غير الإضافي
@@ -138,8 +163,47 @@ ACTIONS.openAssign = id => {
                     () => loadDay(DUTY.date));
     };
   }
+  const persistent = row.persistent_status;
+  $("#assignPersistent").classList.toggle("hidden", !persistent?.id);
+  if (persistent?.id) {
+    const bounded = persistent.kind === "bounded";
+    $("#assignPersistentTitle").textContent = bounded ? "حالة لمدة محددة" : "حالة مستمرة";
+    $("#assignPersistentText").textContent = `${persistent.status} ${periodSpan(persistent)}`
+      + (persistent.legacy_open ? " — سجل قديم بلا يوم نهاية؛ أوقفه أو احفظه بيوم نهاية" : "");
+    // الطارئة بنهاية بتخلص لوحدها — تعديل «حتى يوم» من النموذج بدل الإيقاف
+    $("#assignStopPersistent").classList.toggle("hidden", bounded && !persistent.open_ended);
+    $("#assignStopPersistent").onclick = async () => {
+      const yes = await confirmDialog({
+        title: `إيقاف حالة ${persistent.status}`,
+        body: `سيعود ${row.name} إلى الحالة العادية بداية من ${fmt(DUTY.date)}.`,
+        confirmLabel: "إيقاف الحالة",
+        danger: true,
+      });
+      if (!yes) return;
+      const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent(row.id)}/stop-status`,
+        jsonReq("POST", {}));
+      if (!out) return;
+      DUTY = out; closeModal("assignModal", true); showToast("تم إيقاف الحالة"); render();
+    };
+  }
   openModal("assignModal");
 };
+
+function updatePersistentHint() {
+  const value = $("#assignStatus").value;
+  const continuous = CONTINUOUS_STATUSES.includes(value);
+  const bounded = BOUNDED_STATUSES.includes(value);
+  const hint = $("#assignStatusHint");
+  hint.classList.toggle("is-persistent", continuous || bounded);
+  $("#assignEndRow").classList.toggle("hidden", !bounded);
+  $("#assignStatusEnd").required = bounded;
+  hint.textContent = continuous
+    ? `حالة «${value}» تبدأ من هذا اليوم وتستمر تلقائيًا حتى إيقافها.`
+    : bounded ? `حالة «${value}» من هذا اليوم حتى اليوم المحدد، وتنتهي تلقائيًا بعده.`
+    : value ? `حالة «${value}» لهذا اليوم فقط.`
+    : "مرضي وغياب وانتداب تستمر حتى إيقافها؛ طارئة حتى يوم محدد؛ باقي الحالات ليوم واحد.";
+}
+$("#assignStatus").addEventListener("change", updatePersistentHint);
 
 /* معاينة النص الكامل زي ما هيتطبع: خدمته التلقائية (أو النص القديم) + الإضافي */
 function updateAssignPreview() {
@@ -161,10 +225,22 @@ $("#assignNote").oninput = updateAssignPreview;
 
 $("#assignForm").onsubmit = async e => {
   e.preventDefault();
+  const status = $("#assignStatus").value;
+  const body = {taqseera: $("#assignTaq").checked, status, note: $("#assignNote").value,
+    extra: $("#assignExtra").value, admin_work: $("#assignAdmin").checked};
+  if (BOUNDED_STATUSES.includes(status)) {
+    const end = $("#assignStatusEnd").value;
+    if (!end) { showToast(`حدد «حتى يوم» لحالة ${status}`, true); $("#assignStatusEnd").focus(); return; }
+    if (end < DUTY.date) { showToast("«حتى يوم» قبل يوم البداية", true); $("#assignStatusEnd").focus(); return; }
+    body.status_end = end;
+  }
+  const row = DUTY.rows.find(r => r.id === $("#assignPerson").value);
+  if (!status && row?.status_source === "period") {
+    // «بدون» مابيوقفش الحالة الممتدة — الإيقاف له زرار صريح فوق
+    showToast("لإنهاء الحالة استخدم «إيقاف الحالة من هذا اليوم»", true); return;
+  }
   const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent($("#assignPerson").value)}`,
-    jsonReq("PUT", {taqseera: $("#assignTaq").checked,
-      status: $("#assignStatus").value, note: $("#assignNote").value,
-      extra: $("#assignExtra").value, admin_work: $("#assignAdmin").checked}));
+    jsonReq("PUT", body));
   if (!out) return;
   if (out.officer_statuses) META.officer_statuses = out.officer_statuses;
   DUTY = out; closeModal("assignModal", true); showToast("تم حفظ الحالة"); render();

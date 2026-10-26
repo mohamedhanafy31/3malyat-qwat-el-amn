@@ -923,7 +923,8 @@
       "night_person_id": "IND-203",
       "night_phone": "01011063079",
       "schedule": "8ص / 8 م",
-      "weapon": "آلي"
+      "weapon": "آلي",
+      "morning_person_id": "IND-195"
     },
     "AFB-06": {
       "count": "1 مج قتالي (3 مجند ) صبح 1 مج قتالي (3 مجند ) ليل",

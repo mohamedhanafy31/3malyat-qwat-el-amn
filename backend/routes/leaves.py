@@ -17,6 +17,18 @@ from ..utils import json_payload, parse_date
 bp = Blueprint("leaves", __name__)
 
 
+def _monthly_duration(entry, system):
+    """مدة صف الكشف: الافتراضي القياسي، وقابلة للتعديل من 1 إلى 120 يومًا."""
+    raw = entry.get("days", REST_DURATIONS[system])
+    if isinstance(raw, bool):
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    return value if 1 <= value <= 120 else None
+
+
 def _leave_span(lv):
     return f"{lv.get('type', '')} {lv.get('start', '')} ← {lv.get('end', '')}"
 
@@ -80,7 +92,8 @@ def edit_leave(leave_id):
             raise AbortRequest((jsonify({"error": "سجل الراحة غير موجود."}), 404))
 
         current = found.as_dict()
-        leave, err = build_leave({**current, **payload}, data, leave_id)
+        leave, err = build_leave({**current, **payload}, data, leave_id,
+                                 current_type=current.get("type"))
         if err:
             raise AbortRequest((jsonify({"error": err}), 400))
         rest_suspension.edit_guard(current, leave)
@@ -175,12 +188,20 @@ def add_monthly_roster():
             start_date = parse_date(start)
             if not start_date:
                 continue
-            end = (start_date + timedelta(days=REST_DURATIONS[system] - 1)).isoformat()
+            duration = _monthly_duration(entry, system)
+            if duration is None:
+                continue
+            end = (start_date + timedelta(days=duration - 1)).isoformat()
             # صف هيترفض بسبب وقف الراحات مايستاهلش يطلب سبب تعديل بأثر رجعي
             if rest_suspension.blocking(data, {"person_id": officer_id, "type": system,
                                                "start": start, "end": end}):
                 continue
             ranges.append((start, end))
+            leave_id = str(entry.get("leave_id", "") or "").strip()
+            if leave_id:
+                found = repos.leaves.find(leave_id)
+                if found:
+                    ranges.append((found.start, found.end))
 
         closed = sorted({d for s, e in ranges for d in retro.closed_days_in(data, s, e)})
         reason = retro.require_reason(closed)
@@ -190,6 +211,7 @@ def add_monthly_roster():
                 continue
             officer_id = str(entry.get("officer_id", "")).strip()
             start = str(entry.get("start", "")).strip()
+            leave_id = str(entry.get("leave_id", "") or "").strip()
 
             person = repos.people.find_in(officer_id, "officers")
             if not person:
@@ -204,11 +226,23 @@ def add_monthly_roster():
             if not start_date:
                 errors.append({"officer_id": officer_id, "error": "تاريخ غير صحيح."})
                 continue
-            end = (start_date + timedelta(days=REST_DURATIONS[system] - 1)).isoformat()
+            duration = _monthly_duration(entry, system)
+            if duration is None:
+                errors.append({"officer_id": officer_id,
+                               "error": "المدة يجب أن تكون من يوم واحد إلى 120 يومًا."})
+                continue
+            end = (start_date + timedelta(days=duration - 1)).isoformat()
 
-            leave, err = build_leave({"person_id": officer_id, "type": system,
+            current_obj = repos.leaves.find(leave_id) if leave_id else None
+            if leave_id and (not current_obj or current_obj.person_id != officer_id
+                             or current_obj.type != system):
+                errors.append({"officer_id": officer_id,
+                               "error": "سجل الراحة المطلوب تعديله غير صحيح."})
+                continue
+            current = current_obj.as_dict() if current_obj else {}
+            leave, err = build_leave({**current, "person_id": officer_id, "type": system,
                                        "start": start, "end": end},
-                                      data, repos.leaves.new_id())
+                                      data, leave_id or repos.leaves.new_id())
             if err:
                 errors.append({"officer_id": officer_id, "error": err})
                 continue
@@ -216,18 +250,32 @@ def add_monthly_roster():
             if blocked:
                 errors.append({"officer_id": officer_id, "error": blocked})
                 continue
-            clash = overlapping(data, leave)
+            if current_obj:
+                rest_suspension.edit_guard(current, leave)
+            clash = overlapping(data, leave, ignore_id=leave_id or None)
             if clash:
                 errors.append({"officer_id": officer_id, "error":
                     f"توجد راحة متداخلة للضابط نفسه ({clash['start']} → {clash['end']})."})
                 continue
-            added = repos.leaves.add(Leave.from_dict(leave))
-            changes.record(data, "leave", leave["id"], "create", after=dict(leave),
-                           text=_leave_text(data, "create", after=leave))
-            row_closed = retro.closed_days_in(data, leave["start"], leave["end"])
+            saved = Leave.from_dict(leave)
+            if current_obj:
+                repos.leaves.replace(saved)
+                changes.record(data, "leave", leave["id"], "update", before=current,
+                               after=dict(leave), text=_leave_text(
+                                   data, "update", before=current, after=leave))
+            else:
+                repos.leaves.add(saved)
+                changes.record(data, "leave", leave["id"], "create", after=dict(leave),
+                               text=_leave_text(data, "create", after=leave))
+            row_closed = sorted(set(
+                retro.closed_days_in(data, leave["start"], leave["end"])
+                + (retro.closed_days_in(data, current.get("start", ""), current.get("end", ""))
+                   if current_obj else [])
+            ))
             if row_closed:
-                retro.log_retro(data, "leave", leave["id"], row_closed, reason, after=dict(leave))
-            created.append(repos.leaves.named(added))
+                retro.log_retro(data, "leave", leave["id"], row_closed, reason,
+                                before=current or None, after=dict(leave))
+            created.append(repos.leaves.named(saved))
 
         return jsonify({"created": created, "errors": errors})
 

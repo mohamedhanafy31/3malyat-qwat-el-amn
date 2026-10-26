@@ -28,6 +28,7 @@ function openLeave(leaveId, personId, personHint) {
   const p = personHint || LEAVE_PEOPLE.find(x => x.id === pid);
 
   $("#lvNote").value = lv?.note || "";
+  $("#lvSpecialName").value = lv?.special_name || "";
   $("#lvType").value = lv ? lv.type
     : (p?.rest_system && p.rest_system !== "—" ? p.rest_system : "راحة");
   if (lv) {
@@ -45,7 +46,14 @@ function openLeave(leaveId, personId, personHint) {
   ["#lvPerson", "#lvType", "#lvStart", "#lvEnd"].forEach(sel => {
     const el = $(sel); el.disabled = locked; el.value = el.value;   // بيحدّث حقل البحث الظاهر
   });
-  updateHint(); openModal("leaveModal");
+  updateSpecialField(); updateHint(); openModal("leaveModal");
+}
+
+function updateSpecialField() {
+  const special = $("#lvType").value === "إجازة خاصة";
+  $("#lvSpecialRow").classList.toggle("hidden", !special);
+  $("#lvSpecialName").required = special;
+  if (!special) $("#lvSpecialName").value = "";
 }
 
 /* المدة القياسية: شهرية 7 أيام، نصف شهرية 3، أسبوعية يوم واحد */
@@ -73,7 +81,7 @@ $("#lvStart").oninput = () => {
   updateHint();
 };
 $("#lvEnd").oninput = updateHint;
-$("#lvType").onchange = () => { applyDuration(); updateHint() };
+$("#lvType").onchange = () => { updateSpecialField(); applyDuration(); updateHint() };
 $("#lvPerson").onchange = () => {
   const p = LEAVE_PEOPLE.find(x => x.id === $("#lvPerson").value);
   if (p?.rest_system && p.rest_system !== "—" && !$("#leaveId").value) {
@@ -89,7 +97,8 @@ $("#leaveForm").onsubmit = async e => {
   e.preventDefault();
   const id = $("#leaveId").value;
   const body = {person_id: $("#lvPerson").value, type: $("#lvType").value,
-    start: $("#lvStart").value, end: $("#lvEnd").value, note: $("#lvNote").value};
+    start: $("#lvStart").value, end: $("#lvEnd").value, note: $("#lvNote").value,
+    special_name: $("#lvSpecialName").value};
   const out = id
     ? await api(`/api/leaves/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
     : await api("/api/leaves", jsonReq("POST", body));

@@ -1,0 +1,10 @@
+{
+  "officer_states": {
+    "OFF-042": {
+      "taqseera": false,
+      "status": "غياب",
+      "note": ""
+    }
+  },
+  "weekly_rest_seeded": true
+}

@@ -12,7 +12,7 @@ from .. import changes as changes_lib, clock, confirm as confirm_lib, day_status
 from ..assignments import officer_statuses
 from ..board import BOARD_ORDER
 from ..constants import (
-    COMMAND_ROLES, GROUP_ROLES, LEAVE_TYPES, OFFICER_SECTIONS, REST_DURATIONS,
+    COMMAND_ROLES, GROUP_ROLES, LEAVE_FORM_TYPES, OFFICER_SECTIONS, REST_DURATIONS,
     REST_SYSTEMS, SERVICE_DOCUMENTS, SERVICE_KINDS, SERVICE_SECTIONS, SHIFTS,
     TAQSEERA_NOTICE_DAYS, WEEKDAYS,
 )
@@ -32,7 +32,7 @@ def _meta(data):
         "shifts": SHIFTS,
         "rest_systems": REST_SYSTEMS,
         "weekdays": WEEKDAYS,
-        "leave_types": LEAVE_TYPES,
+        "leave_types": LEAVE_FORM_TYPES,
         "rest_durations": REST_DURATIONS,
         "taqseera_notice_days": TAQSEERA_NOTICE_DAYS,
         "board_sections": BOARD_ORDER,

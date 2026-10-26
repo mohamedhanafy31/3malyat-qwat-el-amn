@@ -19,6 +19,20 @@ data.json
 import_archive/catalog_seed.json
 import_archive/import_diff.md
 
+# مدخلات/مخرجات الاستيراد المحلية الضخمة — البيانات المهيكلة النهائية فقط
+# هي التي تُحفظ في data/core.json وdata/days/.
+data/daily_files/
+data/source_docs/board/*.docx
+reports/
+tmp/
+.tmp-import.*/
+.reconcile-backup-*/
+
+# إعدادات وأدوات الوكلاء المحلية، وليست جزءًا من التطبيق المنشور.
+.agents/
+.codex/
+.impeccable/
+
 # بيئة التشغيل المحمولة والحزم — بتتجهّز بـPREPARE_ONLINE.bat مش بتتخزّن في git
 runtime/
 wheels/*.whl

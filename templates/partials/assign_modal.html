@@ -4,9 +4,15 @@
     <button type="button" class="close" data-close="assignModal" aria-label="إغلاق">×</button>
     <h2 id="assignTitle">حالة الضابط</h2>
     <p class="hint" id="assignHint"></p>
-    <div class="assign-rest hidden" id="assignRest">
-      <span id="assignRestText"></span>
-      <button type="button" class="mini bad" id="assignStopRest">إيقاف الراحة</button>
+    <div class="assign-state-card leave-state hidden" id="assignRest">
+      <span class="assign-state-icon" aria-hidden="true">{{ icon('calendar') }}</span>
+      <span class="assign-state-copy"><strong>راحة مسجلة</strong><span id="assignRestText"></span></span>
+      <button type="button" class="mini bad" id="assignStopRest">إنهاء الراحة</button>
+    </div>
+    <div class="assign-state-card persistent-status hidden" id="assignPersistent">
+      <span class="assign-state-icon" aria-hidden="true">{{ icon('clock') }}</span>
+      <span class="assign-state-copy"><strong id="assignPersistentTitle">حالة مستمرة</strong><span id="assignPersistentText"></span></span>
+      <button type="button" class="mini bad" id="assignStopPersistent">إيقاف الحالة من هذا اليوم</button>
     </div>
     <form id="assignForm" novalidate>
       <input type="hidden" id="assignPerson">
@@ -14,6 +20,10 @@
         <label>حالة خاصة <small>اختر تصنيفًا موجودًا أو اكتب تصنيفًا جديدًا؛ يظهر في جدول الإجمالي ويُحفظ للمرات القادمة</small>
           <select id="assignStatus" data-combo-custom data-combo-custom-label="تصنيف جديد"
                   data-maxlength="60" aria-label="تصنيف حالة الضابط"></select>
+          <small class="status-behavior-hint" id="assignStatusHint">مرضي وغياب وانتداب تستمر حتى إيقافها؛ طارئة حتى يوم محدد.</small>
+        </label>
+        <label class="hidden" id="assignEndRow">حتى يوم <small>آخر يوم في الطارئة (شامل) — تنتهي تلقائيًا بعده</small>
+          <input type="date" id="assignStatusEnd">
         </label>
         <label class="checkline">
           <input type="checkbox" id="assignTaq"> تقصيرة (خرج بدري بعد خدمته)

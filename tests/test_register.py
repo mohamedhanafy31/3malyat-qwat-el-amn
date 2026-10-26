@@ -65,9 +65,14 @@ def test_each_state_has_its_own_symbol(client):
     """رمز مفصّل لكل حالة (غياب/مرضي/فرقة/انتداب) — مش «عمل» موحّد.
     التقصيرة والعمل العادي هما بس اللي اتقصدوا يتوحّدوا (اختبار تاني)."""
     codes = {}
-    for status in ("غياب", "مرضي", "فرقة", "انتداب"):
+    for status in ("غياب", "مرضي", "انتداب"):
         client.put(f"/api/duty/{DAY}/OFF-001", json={"status": status})
         codes[status] = _cell(_month(client), "OFF-001", DAY)["code"]
+    # «فرقة» مصدرها التحاق مسجّل مش حالة يدوية
+    course = client.post("/api/courses", json={"name": "فرقة اختبار"}).get_json()
+    client.post("/api/course-terms", json={"officer_id": "OFF-002", "course_id": course["id"],
+                                           "start": DAY, "end": DAY})
+    codes["فرقة"] = _cell(_month(client), "OFF-002", DAY)["code"]
     assert len(set(codes.values())) == 4, codes
     assert codes["غياب"] == "غ" and codes["مرضي"] == "م" and codes["فرقة"] == "ف"
     assert codes["انتداب"] == "ن"
@@ -253,8 +258,10 @@ def test_every_leave_type_resolves_to_rest_or_leave_symbol(client):
 
     for i, kind in enumerate(LEAVE_TYPES):
         day = f"2026-06-{i + 1:02d}"
-        r = client.post("/api/leaves", json={"person_id": "OFF-001", "type": kind,
-                                              "start": day, "end": day})
+        body = {"person_id": "OFF-001", "type": kind, "start": day, "end": day}
+        if kind == "إجازة خاصة":
+            body["special_name"] = "إجازة عيد"
+        r = client.post("/api/leaves", json=body)
         assert r.status_code == 201, (kind, r.get_json())
         code = _cell(_month(client, 2026, 6), "OFF-001", day)["code"]
         assert code in ("ر", "ج", "م", "ف"), (kind, code)
@@ -301,7 +308,10 @@ def test_officer_page_loads_only_days_mentioning_the_officer(client, frozen_toda
     monkeypatch.setattr(route, "load_data", spy)
 
     out = client.get("/api/register/officer/OFF-002").get_json()
-    assert scopes == [["2026-04-10", "2026-05-02"]]
+    # الحالة الممتدة محفوظة مرة واحدة في core، فلا تحتاج تحميل ملف يوم
+    # بدايتها. الملف الوحيد المطلوب هو اليوم الذي فيه تكليف فعلي للضابط؛
+    # أيام الصافي/الراحة/الحالة تُحسب من الفهرس وبيانات core.
+    assert scopes == [["2026-04-10"]]
 
     # نفس النتيجة اللي كانت بتطلع من يومية القوة كاملة على الأرشيف كله
     full = store.load_data(store.ALL_DAYS)

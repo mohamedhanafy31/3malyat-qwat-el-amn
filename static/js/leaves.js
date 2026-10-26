@@ -104,6 +104,8 @@ function leaveRow(l, today) {
       <div class="sub">كانت حتى ${fmt(l.original_end)} — ${esc(l.stop_reason)}</div>`;
   }
   const canStop = OFFICER_IDS.has(l.person_id) && (live || upcoming);
+  const stopLabel = upcoming ? "إلغاء الراحة" : "إنهاء الآن";
+  const shownType = l.display_type || l.type;
 
   // تمييز صف العائدين قريباً
   const rowClass = live && daysUntil(l.return_date, today) <= 1 ? ' class="returning-soon"' : "";
@@ -119,18 +121,18 @@ function leaveRow(l, today) {
 
   return `<tr${rowClass}>
     <td class="name">${esc(l.name)}<div class="sub">${who}</div></td>
-    <td><span class="chip ${l.type === "شهرية" ? "m" : l.type === "نصف شهرية" ? "h" : "w"}">${esc(l.type)}</span>${origin}</td>
+    <td><span class="chip leave-kind-chip ${l.type === "شهرية" ? "m" : l.type === "نصف شهرية" ? "h" : "w"}">${esc(shownType)}</span>${origin}</td>
     <td>${fmt(l.start)}<div class="sub">تقصيرة ${dayName(addDays(l.start, -1))}</div></td>
     <td>${fmt(l.end)}</td>
     <td>${fmt(l.return_date)}</td>
     <td class="num">${days(l.start, l.end)}</td>
     <td>${stateHtml}</td>
     <td class="wrap">${esc(l.note) || "<span class='muted'>—</span>"}</td>
-    <td class="col-actions"><div class="actions">
+    <td class="col-actions"><div class="actions leave-row-actions">
+      ${canStop ? `<button class="mini ${upcoming ? "bad" : "warn"}" data-action="stopLeave"
+        data-id="${esc(l.id)}" data-extra="${dataAttr({name: l.name, type: shownType, start: l.start, end: l.end})}">${stopLabel}</button>` : ""}
       <button class="mini" data-action="openLeaveEdit" data-id="${esc(l.id)}">تعديل</button>
       ${rowMenu([
-        canStop ? {action: "stopLeave", id: l.id,
-          extra: {name: l.name, type: l.type, start: l.start, end: l.end}, label: "إيقاف الراحة"} : null,
         {action: "deleteLeave", id: l.id, extra: {name: l.name}, label: "حذف", danger: true},
       ])}
     </div></td></tr>`;

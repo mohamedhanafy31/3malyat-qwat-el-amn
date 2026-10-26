@@ -19,6 +19,12 @@
           <input type="date" name="end" id="lvEnd" required>
         </label>
       </div>
+      <label class="conditional-field hidden" id="lvSpecialRow">
+        <span class="conditional-field-title">تسمية الإجازة <span class="req" aria-hidden="true">*</span></span>
+        <input name="special_name" id="lvSpecialName" maxlength="80"
+               placeholder="مثال: عيد الفطر أو مناسبة عائلية">
+        <small>سيظهر الاسم بجوار «إجازة خاصة» في اليومية والكشوف.</small>
+      </label>
       <p class="hint" id="lvHint"></p>
       <label>ملاحظات
         <input name="note" id="lvNote">

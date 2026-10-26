@@ -6,7 +6,7 @@ from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.table import _Cell
 
-from backend.board_export import build_docx, leave_text
+from backend.board_export import build_docx, leave_text, status_period_text
 
 
 def test_leave_text_formats_rest_and_vacation_with_dates():
@@ -15,6 +15,11 @@ def test_leave_text_formats_rest_and_vacation_with_dates():
     assert leave_text("إجازة مصيف", "2026-09-11", "2026-09-15", "2026-09-16") == "إجازة مصيف من 11/9 والعودة 16/9"
     assert leave_text("أسبوعية", "2026-09-21", "2026-09-21", None) == "راحة أسبوعية"
     assert leave_text("شهرية", "2026-12-30", "2026-12-31", None) == "راحة شهرية من 30/12 والعودة 1/1"
+
+
+def test_status_period_text_hides_stop_wording_for_open_statuses():
+    assert status_period_text({"start": "2026-10-23", "end": ""}) == "من يوم 23/10"
+    assert status_period_text({"start": "2026-10-23", "end": "2026-10-25"}) == "من 23/10 حتى 25/10"
 
 
 def _board(rests=(), outsiders=(), taqseera=(), admin=()):

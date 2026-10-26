@@ -73,6 +73,8 @@ class LeaveRepo(Repo):
         """سجل الراحة كـdict مع اسم صاحبه — الشكل اللي الواجهة بتستقبله."""
         out = leave.as_dict()
         out["name"] = self.names().get(leave.person_id, "")
+        from ..leaves import leave_label
+        out["display_type"] = leave_label(out)
         return out
 
     def rows_with_names(self):

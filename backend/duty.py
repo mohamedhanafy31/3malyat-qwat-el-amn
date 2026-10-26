@@ -17,8 +17,10 @@ from .assignments import assignments_of, officer_state, officer_statuses
 from .courses import by_id as courses_by_id, term_on
 from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SECTION_TARGETS, SHIFTS, TARGETS_FIRST
 from .dated import groups_on
-from .leaves import leave_on
+from .leaves import leave_label, leave_on
 from .people import effective, officers_on
+from .status_periods import active_on as persistent_status_on
+from .status_periods import public as status_period_public
 
 # سلّم أولويات خانة الإجمالي — أول قاعدة تنطبق هي اللي بتاخد الضابط.
 # كل ضابط في خانة واحدة بس، ومجموع الخانات لازم يساوي أصل القوة (ثابت في
@@ -145,12 +147,63 @@ def operational_text(services, note, extra):
     return " + ".join(part for part in (base, extra) if part)
 
 
-def officer_row(data, day, o, course_names=None):
-    """صف ضابط واحد في يومية اليوم — نفس صف `summarise` بالظبط."""
-    if course_names is None:
-        course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
+def _dmy(iso):
+    """«2026-10-03» -> «3/10/2026» — نفس كتابة التواريخ في نص التشغيل."""
+    try:
+        year, month, day = (int(part) for part in str(iso).split("-"))
+    except ValueError:
+        return str(iso or "")
+    return f"{day}/{month}/{year}"
+
+
+def course_text(course):
+    """جملة الفرقة زي ما بتتكتب في اليومية: «<الاسم> خلال الفترة من … حتى …
+    ب<المكان>». الأجزاء الناقصة بتتشال من غير ما تسيب كلام مكسور."""
+    parts = [course.get("name") or "فرقة"]
+    if course.get("start") and course.get("end"):
+        parts.append(f"خلال الفترة من {_dmy(course['start'])} حتى {_dmy(course['end'])}")
+    if course.get("place"):
+        parts.append(f"ب{course['place']}")
+    return " ".join(parts)
+
+
+def course_with_note(course, note):
+    """نص الفرقة + النص اليدوي بلا تكرار. صف مستورد كاتب الفرقة كاملة في
+    ملاحظته («فرقة … خلال الفترة …») بيتعرض زي ما هو."""
+    note = str(note or "").strip()
+    text = (course or {}).get("text", "")
+    if not text or (note and (course.get("name") or text) in note):
+        return note or text
+    return f"{text} — {note}" if note else text
+
+
+def course_detail(term, course):
+    """تفاصيل الالتحاق + الفرقة نفسها لصف اليومية — أو None."""
+    if not term:
+        return None
+    course = course or {}
+    detail = {"id": term["id"], "course_id": term["course_id"],
+              "name": course.get("name", ""), "place": course.get("place", ""),
+              "kind": course.get("kind", ""),
+              "start": term.get("start", ""), "end": term.get("end", ""),
+              "term_note": term.get("note", ""), "course_note": course.get("note", "")}
+    detail["text"] = course_text(detail)
+    return detail
+
+
+def officer_row(data, day, o, catalog=None):
+    """صف ضابط واحد في يومية اليوم — نفس صف `summarise` بالظبط.
+
+    ``catalog`` فهرس الفرق بالمعرّف (`courses.by_id`) — بيتمرر من `summarise`
+    عشان مايتبنيش لكل ضابط."""
+    if catalog is None:
+        catalog = courses_by_id(data)
     eff = effective(o, day)
     state = officer_state(data, day, o["id"])
+    persistent = persistent_status_on(data, o["id"], day)
+    effective_state = dict(state)
+    if not effective_state.get("status") and persistent:
+        effective_state["status"] = persistent.get("status", "")
     leave = leave_on(data, o["id"], day)
     term = term_on(data, o["id"], day)
 
@@ -168,7 +221,7 @@ def officer_row(data, day, o, course_names=None):
     medical = (o["id"] in (groups_on(data, day).get(ROLE_MEDICAL) or [])
                or any(k == "طبية" for k, _ in kinds))
 
-    group, sub = _bucket(kinds, leave, state, medical,
+    group, sub = _bucket(kinds, leave, effective_state, medical,
                          eff["search_attached"], term)
     return {
         "id": o["id"], "name": o.get("name", ""), "short_name": o.get("short_name", ""),
@@ -179,20 +232,23 @@ def officer_row(data, day, o, course_names=None):
         "group": group, "bucket": sub,
         "services": items,
         "taqseera": bool(state.get("taqseera")),
-        "status": state.get("status", ""),
+        "status": effective_state.get("status", ""),
+        "manual_status": state.get("status", ""),
+        "status_source": "period" if persistent and not state.get("status") else (
+            "day" if state.get("status") else ""),
+        # الحالة الممتدة (مستمرة أو طارئة بمدة) اللي بتغطي اليوم، لو فيه
+        "persistent_status": status_period_public(persistent),
         "extra": state.get("extra", ""),
         "admin_work": bool(state.get("admin_work")),
         # النص التشغيلي الكامل (خدمته + اليدوي) والنص اليدوي بس
         "text": operational_text(items, state.get("note", ""), state.get("extra", "")),
         "manual": manual_text(state.get("note", ""), state.get("extra", "")),
-        "leave": ({"id": leave.get("id"), "type": leave["type"], "start": leave["start"],
+        "leave": ({"id": leave.get("id"), "type": leave_label(leave),
+                   "raw_type": leave["type"], "start": leave["start"],
                    "end": leave["end"],
                    "return_date": leave["return_date"]} if leave else None),
         "note": state.get("note", ""),
-        "course": ({"id": term["id"], "course_id": term["course_id"],
-                    "name": course_names.get(term["course_id"], ""),
-                    "start": term["start"], "end": term["end"]}
-                   if term else None),
+        "course": course_detail(term, catalog.get(term["course_id"]) if term else None),
         # كان بالقوة يومها لكنه خرج بعد كده — للتوضيح في اليوميات القديمة
         "later_left": o.get("leave_date", "") or None,
     }
@@ -201,14 +257,14 @@ def officer_row(data, day, o, course_names=None):
 def summarise(data, day):
     """يومية الضباط كاملة: صف لكل ضابط كان على القوة + جدول الإجمالي."""
     officers = officers_on(data, day)
-    course_names = {c["id"]: c["name"] for c in courses_by_id(data).values()}
+    catalog = courses_by_id(data)
 
     statuses = officer_statuses(data)
     s = _empty_summary(len(officers), statuses)
     net_names, rows = [], []
 
     for o in officers:
-        row = officer_row(data, day, o, course_names)
+        row = officer_row(data, day, o, catalog)
         group, sub = row["group"], row["bucket"]
         if sub is None:
             s[group] += 1

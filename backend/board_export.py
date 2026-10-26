@@ -339,6 +339,16 @@ def leave_text(leave_type, start, end, return_date):
     return f"{text} والعودة {_fmt_date(back)}" if back else text
 
 
+def status_period_text(period):
+    """تفاصيل الحالة الممتدة: المفتوحة من يوم البداية، والمحددة من/حتى."""
+    period = period or {}
+    start = _fmt_date(period.get("start"))
+    end = _fmt_date(period.get("end"))
+    if end:
+        return f"من {start} حتى {end}" if start else f"حتى {end}"
+    return f"من يوم {start}" if start else ""
+
+
 def _presentation_sections(sections):
     by_name = {section["name"]: section for section in sections}
     admin = by_name.get(SECTION_ADMIN_WORK, {"name": SECTION_ADMIN_WORK, "type": "admin", "rows": []})
@@ -368,6 +378,13 @@ def _presentation_sections(sections):
                                         row.get("return_date"))
                     if row.get("note") and row["note"] not in detail:
                         detail = f"{detail} — {row['note']}"
+                elif row.get("status_period"):
+                    detail = status_period_text(row["status_period"])
+                    if row.get("note") and row["note"] not in detail:
+                        detail = f"{detail} — {row['note']}"
+                elif row.get("course"):
+                    from .duty import course_with_note
+                    detail = course_with_note(row["course"], row.get("note"))
                 else:
                     detail = row.get("note") or row.get("reason") or ""
             outsiders.append({**row, "status_type": status_type, "detail": detail})

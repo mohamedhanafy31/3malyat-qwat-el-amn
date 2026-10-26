@@ -2,7 +2,7 @@
 from collections import defaultdict
 from datetime import date, timedelta
 
-from .constants import LEAVE_TYPES
+from .constants import LEAVE_TYPES, LEGACY_LEAVE_TYPES
 from .date_range import overlapping_of, parse_range
 from .people import find_person
 from .utils import MAX_LEN
@@ -10,14 +10,25 @@ from .utils import MAX_LEN
 MAX_NOTE = MAX_LEN["note"]
 
 
-def build_leave(payload, data, leave_id):
+def leave_label(leave):
+    """الاسم المعروض للنوع، مع وصف الإجازة الخاصة إن وُجد."""
+    kind = str((leave or {}).get("type", "") or "").strip()
+    special = str((leave or {}).get("special_name", "") or "").strip()
+    return f"إجازة خاصة — {special}" if kind == "إجازة خاصة" and special else kind
+
+
+def build_leave(payload, data, leave_id, current_type=None):
+    """``current_type`` نوع السجل قبل التعديل: سجل أرشيفي بنوع ملغي («راحة
+    فرقة») ينفع يتعدّل وهو محتفظ بنوعه، لكن مفيش سجل جديد يتعمل بيه."""
     person_id = str(payload.get("person_id", "")).strip()
     person, _, _ = find_person(data, person_id)
     if not person:
         return None, "يرجى اختيار الشخص."
 
     kind = str(payload.get("type", "")).strip()
-    if kind not in LEAVE_TYPES:
+    if kind in LEGACY_LEAVE_TYPES and kind != current_type:
+        return None, f"نوع «{kind}» لم يعد متاحًا — الفرقة تُسجّل من صفحة الفرق."
+    if kind not in LEAVE_TYPES and kind not in LEGACY_LEAVE_TYPES:
         return None, "نوع الراحة غير صحيح."
 
     start, end, error = parse_range(payload, 120, "مدة الراحة كبيرة بشكل غير منطقي.", required=True)
@@ -38,6 +49,12 @@ def build_leave(payload, data, leave_id):
     if len(note) > MAX_NOTE:
         return None, f"الملاحظة أطول من الحد المسموح ({MAX_NOTE} حرف)."
 
+    special_name = str(payload.get("special_name", "") or "").strip()
+    if kind == "إجازة خاصة" and not special_name:
+        return None, "اكتب اسم الإجازة الخاصة (مثال: إجازة عيد)."
+    if len(special_name) > 80:
+        return None, "اسم الإجازة الخاصة أطول من الحد المسموح (80 حرفًا)."
+
     # `name` **مابيتخزّنش** — بيتحلّ من `person_id` وقت القراءة
     # (`LeaveRepo.named`). تخزينه كان بيخلي أي تعديل اسم يسيب الراحات
     # القديمة بالاسم القديم لحد ما كود مزامنة يلحقها.
@@ -49,6 +66,7 @@ def build_leave(payload, data, leave_id):
         "end": end.isoformat(),
         "return_date": (end + timedelta(days=1)).isoformat(),
         "note": note,
+        "special_name": special_name if kind == "إجازة خاصة" else "",
         # بيتحافظ عليه تلقائيًا عند التعديل لأن edit_leave بيمرر السجل الحالي
         # مدموج مع التعديلات الجديدة، فلو الطلب ما لمسوش فضل زي ما هو
         "source": str(payload.get("source", "")).strip(),
@@ -120,9 +138,11 @@ def monthly_roster(data, today):
         status, info = "due", None
         if current:
             if current["start"] <= today_iso <= current["end"]:
-                status, info = "active", {"start": current["start"], "end": current["end"]}
+                status, info = "active", {"id": current.get("id"),
+                                           "start": current["start"], "end": current["end"]}
             elif current["start"] > today_iso:
-                status, info = "upcoming", {"start": current["start"], "end": current["end"]}
+                status, info = "upcoming", {"id": current.get("id"),
+                                             "start": current["start"], "end": current["end"]}
         # نوع راحته موقوف بأمر — مش «متأخر» عن تسجيل الكشف، هو ممنوع يتسجّل أصلًا
         if status == "due" and system in suspended:
             order = suspended[system]

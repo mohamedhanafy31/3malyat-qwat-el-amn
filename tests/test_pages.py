@@ -48,6 +48,21 @@ def test_board_does_not_silently_drop_a_typed_person_selection():
     assert "personnel_ids: personnelIds" in source
 
 
+def test_duty_modal_asks_for_an_emergency_end_day(client):
+    """«طارئة» محتاجة «حتى يوم» في النموذج، وتفاصيل الفرقة بتتعرض في الصف."""
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    html = client.get("/duty").get_data(as_text=True)
+    assert 'id="assignStatusEnd"' in html and "حتى يوم" in html
+    duty = (root / "static/js/duty.js").read_text(encoding="utf-8")
+    assert 'const BOUNDED_STATUSES = ["طارئة"]' in duty
+    assert "body.status_end = end" in duty
+    assert "courseLine(r.course)" in duty
+    assert "راحة فرقة" not in duty
+    board = (root / "static/js/board.js").read_text(encoding="utf-8")
+    assert "function outsiderDetail(" in board and "course.text" in board
+
+
 @pytest.mark.parametrize("page", PAGES)
 def test_bootstrap_returns_meta_for_every_page(client, page):
     d = client.get(f"/api/bootstrap/{page}").get_json()
@@ -94,6 +109,36 @@ def test_leaves_page_ships_rest_system_for_the_form(client):
     d = client.get("/api/bootstrap/leaves").get_json()
     p = next(x for x in d["people"] if x["id"] == "OFF-001")
     assert p["rest_system"] == "أسبوعية" and p["rest_day"] == "السبت"
+
+
+def test_monthly_roster_has_direct_duration_and_cancel_controls(client):
+    """الإنهاء/الإلغاء يظل مباشرًا من الصف، وتعديل المدة لا يختفي
+    خلف قائمة إجراءات أو مودال آخر.
+    """
+    from pathlib import Path
+    html = client.get("/leaves/monthly").get_data(as_text=True)
+    source = (Path(__file__).resolve().parent.parent / "static/js/leaves-monthly.js").read_text(
+        encoding="utf-8")
+    assert 'id="stopLeaveModal"' in html
+    assert "roster-days" in source
+    assert "duration-readout" in source
+    assert "roster-standard" in source
+    assert "إلغاء الراحة" in source
+    assert "إنهاء الآن" in source
+    assert '!["active", "suspended"].includes(row.status)' in source
+
+
+def test_new_leave_controls_keep_context_and_hide_irrelevant_cancel_date(client):
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    duty_html = client.get("/duty").get_data(as_text=True)
+    leaves_html = client.get("/leaves").get_data(as_text=True)
+    stop_source = (root / "static/js/rest-stop.js").read_text(encoding="utf-8")
+    assert "assign-state-card" in duty_html
+    assert "status-behavior-hint" in duty_html
+    assert "conditional-field" in leaves_html
+    assert '$("#stopOnRow").classList.toggle("hidden", upcoming)' in stop_source
+    assert '$("#stopOn").required = !upcoming' in stop_source
 
 
 def test_arabic_is_not_escaped_in_json(client):

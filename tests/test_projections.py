@@ -131,11 +131,22 @@ def test_guard_kind_never_gets_a_shift(client):
 
 def test_every_word_column_of_khawarej_is_reachable(client):
     """«مرضي» و«فرقة» كانوا في الوورد 16 و30 مرة، ومكانش فيه أي طريقة
-    توصّلهم لخانتهم — الحالات كانت انتداب/غياب بس."""
-    for status in ("انتداب", "غياب", "مرضي", "فرقة", "طارئة"):
-        client.put(f"/api/duty/{DAY}/OFF-001", json={"status": status})
+    توصّلهم لخانتهم — الحالات كانت انتداب/غياب بس. «طارئة» لازم معاها يوم
+    نهاية، و«فرقة» بتيجي من التحاق مسجّل مش حالة يدوية."""
+    for status in ("انتداب", "غياب", "مرضي", "طارئة"):
+        body = {"status": status}
+        if status == "طارئة":
+            body["status_end"] = DAY
+        assert client.put(f"/api/duty/{DAY}/OFF-001", json=body).status_code == 200, status
         assert _summary(client)["خوارج"][status] == 1, status
         assert _row(client, "OFF-001")["bucket"] == status
+
+    course = client.post("/api/courses", json={"name": "فرقة اختبار"}).get_json()
+    assert client.post("/api/course-terms", json={
+        "officer_id": "OFF-002", "course_id": course["id"],
+        "start": DAY, "end": DAY}).status_code == 201
+    assert _summary(client)["خوارج"]["فرقة"] == 1
+    assert _row(client, "OFF-002")["bucket"] == "فرقة"
 
 
 def test_new_status_becomes_a_custom_khawarej_bucket(client):

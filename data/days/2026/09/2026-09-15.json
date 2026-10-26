@@ -74,7 +74,7 @@
       "weapon": "الي+ فيدرال"
     },
     {
-      "conscript_count": 4,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -93,11 +93,11 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "صباحية",
-      "time": "12ظ",
+      "time": "12م",
       "weapon": "آلي"
     },
     {
-      "conscript_count": 4,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -116,14 +116,14 @@
       ],
       "section": "الخدمات الطارئة",
       "shift": "ليلية",
-      "time": "12 م",
+      "time": "12ظ",
       "weapon": "آلي"
     },
     {
       "conscript_count": 7,
       "conscripts": [
         {
-          "class": "وحدة",
+          "class": "وحدة فض",
           "count": 1
         }
       ],
@@ -144,7 +144,12 @@
     },
     {
       "conscript_count": 9,
-      "conscripts": [],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
       "counts_in_summary": true,
       "id": "AS-0007",
       "kind": "خارجية",
@@ -162,7 +167,7 @@
       "weapon": "آلي"
     },
     {
-      "conscript_count": 1,
+      "conscript_count": 2,
       "conscripts": [
         {
           "class": "مج",
@@ -299,7 +304,12 @@
     },
     {
       "conscript_count": 1,
-      "conscripts": [],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
       "counts_in_summary": true,
       "id": "AS-0014",
       "kind": "خارجية",
@@ -317,7 +327,12 @@
     },
     {
       "conscript_count": 5,
-      "conscripts": [],
+      "conscripts": [
+        {
+          "class": "وحدة حفظ نظام",
+          "count": 1
+        }
+      ],
       "counts_in_summary": true,
       "id": "AS-0015",
       "kind": "خارجية",
@@ -333,7 +348,12 @@
     },
     {
       "conscript_count": 2,
-      "conscripts": [],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
       "counts_in_summary": true,
       "id": "AS-0016",
       "kind": "خارجية",
@@ -605,8 +625,8 @@
       "conscript_count": 3,
       "conscripts": [
         {
-          "class": "مج",
-          "count": 3
+          "class": "وحدة فض",
+          "count": 1
         }
       ],
       "counts_in_summary": true,
@@ -639,17 +659,19 @@
       "note": "",
       "officer_ids": [],
       "party": "استاد السويس",
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-120"
+      ],
       "section": "مباراة المصري × الاتحاد انتظام باستاد السويس",
       "shift": "صباحية",
       "time": "5م",
-      "weapon": ""
+      "weapon": "حفظ نظام"
     },
     {
-      "conscript_count": 11,
+      "conscript_count": 10,
       "conscripts": [
         {
-          "class": "وحدة",
+          "class": "مج",
           "count": 1
         },
         {
@@ -670,7 +692,7 @@
       "section": "مباراة المصري × الاتحاد انتظام باستاد السويس",
       "shift": "صباحية",
       "time": "5م",
-      "weapon": ""
+      "weapon": "حفظ نظام"
     },
     {
       "conscript_count": 15,
@@ -766,7 +788,7 @@
       "section": "مباراة المصري × الاتحاد انتظام باستاد السويس",
       "shift": "صباحية",
       "time": "5م",
-      "weapon": ""
+      "weapon": "حفظ نظام"
     },
     {
       "conscript_count": 6,
@@ -793,7 +815,7 @@
       "section": "مباراة المصري × الاتحاد انتظام باستاد السويس",
       "shift": "صباحية",
       "time": "5م",
-      "weapon": ""
+      "weapon": "حفظ نظام"
     }
   ],
   "officer_states": {
@@ -1715,6 +1737,201 @@
       "night_phone": "01090622103",
       "schedule": "8 ص / 8 م",
       "weapon": "الى"
+    }
+  },
+  "campaign": {
+    "lorries": {
+      "LOR-1": {
+        "vehicle_id": "VEH-064",
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-032"
+        }
+      },
+      "LOR-2": {
+        "vehicle_id": "VEH-008",
+        "driver": {
+          "kind": "text",
+          "name": "كريم أحمد محمد"
+        },
+        "attached": [
+          {
+            "assignment_id": "AS-0015"
+          }
+        ]
+      },
+      "LOR-3": {
+        "vehicle_id": "VEH-009",
+        "driver": {
+          "kind": "text",
+          "name": "عبدالمنعم أحمد عشماوي"
+        }
+      },
+      "LOR-4": {
+        "vehicle_id": "VEH-018",
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-076"
+        }
+      }
+    },
+    "services": {
+      "AS-0006": {
+        "vehicle_id": "VEH-009",
+        "driver": {
+          "kind": "text",
+          "name": "عبدالمنعم أحمد عشماوي"
+        }
+      },
+      "AS-0033": {
+        "vehicle_id": "VEH-009"
+      },
+      "AS-0031": {
+        "vehicle_id": "VEH-006",
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-004"
+        }
+      },
+      "AS-0008": {
+        "driver": {
+          "kind": "text",
+          "name": "محمد عباس بركات"
+        }
+      },
+      "AS-0010": {
+        "driver": {
+          "kind": "text",
+          "name": "معاذ محمد هدايات"
+        }
+      },
+      "AS-0011": {
+        "vehicle_id": "VEH-035"
+      },
+      "AS-0012": {
+        "vehicle_id": "VEH-068",
+        "driver": {
+          "kind": "text",
+          "name": "أحمد محمود عزام"
+        }
+      },
+      "AS-0013": {
+        "vehicle_id": "VEH-038",
+        "driver": {
+          "kind": "text",
+          "id": "",
+          "name": "محمد احمد حسن طوسن"
+        }
+      }
+    },
+    "daily": {
+      "CD-001": {
+        "vehicle_id": "VEH-031",
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-010"
+        }
+      },
+      "CD-002": {
+        "vehicle_id": "VEH-030",
+        "driver": {
+          "kind": "text",
+          "name": "يوسف ياسر أنور"
+        }
+      },
+      "CD-008": {
+        "vehicle_id": "VEH-036",
+        "driver": {
+          "kind": "text",
+          "name": "محمود علي محمد"
+        }
+      },
+      "CD-003": {
+        "vehicle_id": "VEH-033",
+        "driver": {
+          "kind": "text",
+          "id": "",
+          "name": "طارق علي شحاتة سيد"
+        }
+      },
+      "CD-004": {
+        "vehicle_id": "VEH-032",
+        "driver": {
+          "kind": "text",
+          "name": "محمد عبدالرحمن الدسوقي"
+        }
+      },
+      "CD-005": {
+        "vehicle_id": "VEH-003",
+        "driver": {
+          "kind": "text",
+          "name": "السيد ناصر السيد"
+        }
+      },
+      "CD-006": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-005"
+        }
+      }
+    },
+    "posts": {
+      "CP-001": {
+        "vehicle_id": "VEH-004",
+        "plate_text": "3279ب13",
+        "type_text": "مايك ايفكو"
+      },
+      "CP-002": {
+        "vehicle_id": "VEH-056",
+        "plate_text": "5292ب12",
+        "type_text": "مدرعه مرسيدس"
+      },
+      "CP-003": {
+        "vehicle_id": "VEH-028",
+        "plate_text": "5111 ب12",
+        "type_text": "بيك اب شفورلية"
+      },
+      "CP-004": {
+        "vehicle_id": "VEH-027",
+        "plate_text": "2442ب17",
+        "type_text": "بيك اب نيسان"
+      },
+      "CP-005": {
+        "vehicle_id": "VEH-001",
+        "plate_text": "8444ب12",
+        "type_text": "مايك ايفكو"
+      },
+      "CP-013": {
+        "vehicle_id": "VEH-002",
+        "plate_text": "4222 ب15",
+        "type_text": "مدرعة بانسير"
+      },
+      "CP-014": {
+        "vehicle_id": "VEH-029",
+        "plate_text": "4996 ب12",
+        "type_text": "بيك اب شفورلية"
+      },
+      "CP-008": {
+        "vehicle_id": "VEH-055",
+        "plate_text": "6116ب12",
+        "type_text": "المدرعه الفهد"
+      },
+      "CP-010": {
+        "vehicle_id": "VEH-057",
+        "plate_text": "1193ب11",
+        "type_text": "مدرعة بانسير",
+        "driver_text": "مجند قوات امن صبح .ليل"
+      },
+      "CP-011": {
+        "vehicle_id": "VEH-058",
+        "plate_text": "8411 ب16",
+        "type_text": "مدرعة بانسيرا"
+      },
+      "CP-012": {
+        "vehicle_id": "VEH-059",
+        "plate_text": "9545ب13",
+        "type_text": "مدرعة كوجر"
+      }
     }
   },
   "import": {

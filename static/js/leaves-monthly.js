@@ -1,7 +1,8 @@
-/* تحديث كشف الراحات الشهرية — صف لكل ضابط نظامه شهري/نصف شهري، وتاريخ
-   بداية واحد بس. النوع والمدة معروفين مسبقًا من نظام راحته. */
+/* تحديث كشف الراحات الشهرية — البداية والمدة قابلتان للتعديل لكل ضابط،
+   مع إنهاء الجارية أو إلغاء القادمة مباشرة من نفس الصف. */
 let ROSTER = [], WEEKLY_ROSTER = [];
 const suspendedTypes = () => META.rest_suspension?.types || [];
+const durationUnit = value => Number(value) === 1 ? "يوم" : Number(value) === 2 ? "يومان" : "أيام";
 
 /* بانر وقف الراحات — مشترك الشكل مع الرئيسية وصفحة الراحات */
 function suspensionBanner(types) {
@@ -28,19 +29,48 @@ function statusChip(row) {
 
 function rosterRow(row) {
   const prefill = row.status === "upcoming" ? row.current.start : "";
+  const actualDays = row.status === "upcoming" && row.current
+    ? days(row.current.start, row.current.end) : (DURATIONS()[row.rest_system] || 1);
   const blocked = suspendedTypes().includes(row.rest_system);
   const needsDate = !["active", "upcoming", "suspended"].includes(row.status);
+  const canStop = ["active", "upcoming"].includes(row.status) && row.current?.id;
+  // الراحة الجارية لا تتعدل من كشف الراحة القادمة: الإجراء الواضح لها هو
+  // «إنهاء الآن». القادمة فقط هي التي يمكن تغيير تاريخها ومدتها هنا.
+  const editable = !blocked && !["active", "suspended"].includes(row.status);
+  const action = canStop
+    ? `<button class="mini roster-action-btn ${row.status === "upcoming" ? "bad" : "warn"}"
+         data-action="stopRosterLeave" data-id="${esc(row.id)}">
+         ${row.status === "upcoming" ? "إلغاء الراحة" : "إنهاء الآن"}</button>`
+    : `<span class="muted">—</span>`;
   return `<tr data-id="${esc(row.id)}"${needsDate && !blocked ? ' class="needs-date"' : ""}>
     <td class="name">${esc(row.name)}<div class="sub">${esc(row.role)}</div></td>
     <td><span class="chip ${row.rest_system === "شهرية" ? "m" : "h"}">${esc(row.rest_system)}</span></td>
     <td>${statusChip(row)}</td>
     <td>
       <input type="date" class="select roster-date" value="${esc(prefill)}"
-        data-id="${esc(row.id)}" data-initial="${esc(prefill)}" ${blocked ? "disabled" : ""}
+        data-id="${esc(row.id)}" data-initial="${esc(prefill)}" ${editable ? "" : "disabled"}
         aria-label="تاريخ الراحة الجديد — ${esc(row.name)}">
       <div class="sub roster-hint" id="hint-${esc(row.id)}"></div>
       <div class="roster-error" id="err-${esc(row.id)}"></div>
     </td>
+    <td class="duration-cell">
+      <div class="duration-stepper${editable ? "" : " is-disabled"}" role="group"
+           aria-label="مدة راحة ${esc(row.name)}">
+        <button type="button" class="duration-adjust" data-action="changeRestDays" data-id="${esc(row.id)}"
+          data-extra="${dataAttr({delta: -1})}" ${editable ? "" : "disabled"} aria-label="تقليل المدة">−</button>
+        <label class="duration-readout">
+          <span class="sr-only">عدد أيام راحة ${esc(row.name)}</span>
+          <input type="number" class="roster-days" min="1" max="120"
+            value="${actualDays}" data-id="${esc(row.id)}" data-initial="${actualDays}"
+            ${editable ? "" : "disabled"} aria-label="عدد أيام راحة ${esc(row.name)}">
+          <span class="duration-unit" id="days-unit-${esc(row.id)}" aria-hidden="true">${durationUnit(actualDays)}</span>
+        </label>
+        <button type="button" class="duration-adjust" data-action="changeRestDays" data-id="${esc(row.id)}"
+          data-extra="${dataAttr({delta: 1})}" ${editable ? "" : "disabled"} aria-label="زيادة المدة">+</button>
+      </div>
+      <div class="duration-note" id="days-note-${esc(row.id)}" aria-live="polite"></div>
+    </td>
+    <td class="roster-action">${action}</td>
   </tr>`;
 }
 
@@ -50,20 +80,40 @@ function updateRowHint(id) {
   if (!input || !hint) return;
   const row = ROSTER.find(r => r.id === id);
   const start = input.value;
-  if (!start || !row) { hint.textContent = ""; return }
-  const n = DURATIONS()[row.rest_system] || 1;
+  if (!row) return;
+  const duration = document.querySelector(`.roster-days[data-id="${CSS.escape(id)}"]`);
+  const n = Math.max(1, Math.min(120, Number(duration?.value) || DURATIONS()[row.rest_system] || 1));
+  const standard = DURATIONS()[row.rest_system] || 1;
+  updateDurationStyle(id, n, standard);
+  if (!start) { hint.textContent = ""; return }
   const end = addDays(start, n - 1);
   hint.textContent = `${countLabel(n, "يوم")} — حتى ${fmt(end)}، العودة ${fmt(addDays(end, 1))}`;
+}
+
+function updateDurationStyle(id, value, standard) {
+  const input = document.querySelector(`.roster-days[data-id="${CSS.escape(id)}"]`);
+  const stepper = input?.closest(".duration-stepper");
+  const note = $(`#days-note-${id}`);
+  const unit = $(`#days-unit-${id}`);
+  const custom = Number(value) !== Number(standard);
+  if (unit) unit.textContent = durationUnit(value);
+  stepper?.classList.toggle("is-custom", custom);
+  if (note) note.textContent = custom
+    ? `معدّلة عن القياسي ${countLabel(standard, "يوم")}` : "";
 }
 
 function render() {
   const wrap = $("#rosterWrap");
   if (!ROSTER) { wrap.innerHTML = skeleton("rows", 8); return }
   $("#suspensionBar").innerHTML = suspensionBanner(suspendedTypes());
-  const headers = ["الضابط", "نظام الراحة", "الحالة الحالية", "تاريخ الراحة الجديد"];
+  const headers = ["الضابط", "نظام الراحة", "الحالة الحالية", "تاريخ الراحة الجديد", "المدة", "الإجراء"];
   const groupBlock = (type, title) => {
     const rows = ROSTER.filter(row => row.rest_system === type);
-    return `<section class="roster-kind-group"><h4>${esc(title)} <span class="mcount">${rows.length}</span></h4>${tableBlock(
+    const standard = DURATIONS()[type] || 1;
+    return `<section class="roster-kind-group"><div class="roster-kind-head">
+      <h4>${esc(title)} <span class="mcount">${rows.length}</span></h4>
+      <span class="roster-standard">المدة القياسية <b>${countLabel(standard, "يوم")}</b></span>
+      </div>${tableBlock(
       headers, rows.map(rosterRow), `عدد الضباط: ${rows.length}`, `لا يوجد ضباط بنظام ${title}`)}</section>`;
   };
   wrap.innerHTML = groupBlock("نصف شهرية", "راحات نصف شهرية")
@@ -78,10 +128,30 @@ function render() {
     input.oninput = () => { updateRowHint(input.dataset.id); updateDirty(); };
     updateRowHint(input.dataset.id);
   });
+  $$(".roster-days").forEach(input => {
+    input.oninput = () => {
+      input.value = Math.max(1, Math.min(120, Number(input.value) || 1));
+      updateRowHint(input.dataset.id); updateDirty();
+    };
+  });
   updateDirty();
 
   renderWeekly();
 }
+
+ACTIONS.changeRestDays = (id, extra) => {
+  const input = document.querySelector(`.roster-days[data-id="${CSS.escape(id)}"]`);
+  if (!input || input.disabled) return;
+  input.value = Math.max(1, Math.min(120, Number(input.value || 1) + Number(extra.delta || 0)));
+  updateRowHint(id); updateDirty(); input.focus();
+};
+
+ACTIONS.stopRosterLeave = id => {
+  const row = ROSTER.find(item => item.id === id);
+  if (!row?.current?.id) return;
+  openStopLeave({id: row.current.id, name: row.name, type: row.rest_system,
+    start: row.current.start, end: row.current.end}, load);
+};
 
 function groupedRoster(rows) {
   const order = {"نصف شهرية": 0, "شهرية": 1};
@@ -153,20 +223,32 @@ ACTIONS.addWeeklyExtra = async (id, _extra, button) => {
 
 /* عدّاد التعديلات غير المحفوظة في شريط الحفظ اللاصق — الكشف طويل وزرار
    الحفظ كان فوق بس، فمكانش في أي إشارة إن فيه حاجة لسه ما اتحفظتش */
-const dirtyInputs = () => $$(".roster-date").filter(i => !i.disabled && (i.value || "") !== (i.dataset.initial || ""));
+const dirtyRows = () => ROSTER.filter(row => {
+  const dateInput = document.querySelector(`.roster-date[data-id="${CSS.escape(row.id)}"]`);
+  const daysInput = document.querySelector(`.roster-days[data-id="${CSS.escape(row.id)}"]`);
+  if (!dateInput || dateInput.disabled || !dateInput.value) return false;
+  return dateInput.value !== (dateInput.dataset.initial || "")
+    || daysInput?.value !== daysInput?.dataset.initial;
+});
 function updateDirty() {
-  const n = dirtyInputs().length;
+  const n = dirtyRows().length;
   // الصفة بتتبع العدد: تعديل واحد غير محفوظ، تعديلان غير محفوظين، تعديلات غير محفوظة
   $("#rosterDirty").textContent = n ? `عدد التعديلات غير المحفوظة: ${n}` : "";
   $("#rosterUndo").classList.toggle("hidden", !n);
   $("#saveRosterBtn").disabled = !n;
 }
 $("#rosterUndo").onclick = () => {
-  dirtyInputs().forEach(i => { i.value = i.dataset.initial || ""; updateRowHint(i.dataset.id); });
+  dirtyRows().forEach(row => {
+    const dateInput = document.querySelector(`.roster-date[data-id="${CSS.escape(row.id)}"]`);
+    const daysInput = document.querySelector(`.roster-days[data-id="${CSS.escape(row.id)}"]`);
+    dateInput.value = dateInput.dataset.initial || "";
+    daysInput.value = daysInput.dataset.initial || "1";
+    updateRowHint(row.id);
+  });
   updateDirty();
 };
 window.addEventListener("beforeunload", e => {
-  if (dirtyInputs().length) { e.preventDefault(); e.returnValue = ""; }
+  if (dirtyRows().length) { e.preventDefault(); e.returnValue = ""; }
 });
 
 $("#saveRosterBtn").onclick = async () => {
@@ -174,8 +256,14 @@ $("#saveRosterBtn").onclick = async () => {
   for (const row of ROSTER) {
     const input = document.querySelector(`.roster-date[data-id="${CSS.escape(row.id)}"]`);
     const start = input?.value || "";
+    const duration = document.querySelector(`.roster-days[data-id="${CSS.escape(row.id)}"]`);
     const already = row.status === "upcoming" ? row.current.start : "";
-    if (start && start !== already) entries.push({officer_id: row.id, start});
+    const alreadyDays = row.status === "upcoming" ? days(row.current.start, row.current.end)
+      : (DURATIONS()[row.rest_system] || 1);
+    const requestedDays = Number(duration?.value) || alreadyDays;
+    if (start && (start !== already || requestedDays !== alreadyDays))
+      entries.push({officer_id: row.id, start, days: requestedDays,
+        leave_id: row.status === "upcoming" ? row.current.id : ""});
     const errBox = $(`#err-${row.id}`);
     if (errBox) errBox.innerHTML = "";
   }

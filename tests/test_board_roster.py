@@ -146,6 +146,54 @@ def test_clinic_officers_are_not_offered_or_listed_in_computed_board_sections(cl
     assert (duty_row["group"], duty_row["bucket"]) == ("خوارج", "غياب")
 
 
+def _computed_ids(board):
+    computed = {"عمل بالإدارة", "الراحات", "التقصيرات", "الخوارج"}
+    return {r["id"] for section in board["sections"] if section["name"] in computed
+            for r in section["rows"]}
+
+
+def test_clinic_officer_on_a_course_is_absent_from_the_board(client):
+    assert client.patch("/api/command-groups", json={"طبي": ["OFF-002"]}).status_code == 200
+    course = client.post("/api/courses", json={"name": "فرقة اختبار"}).get_json()
+    assert client.post("/api/course-terms", json={
+        "officer_id": "OFF-002", "course_id": course["id"],
+        "start": "2026-04-05", "end": "2026-04-15"}).status_code == 201
+
+    board = client.get(f"/api/board/{DAY}").get_json()
+    assert "OFF-002" not in {o["id"] for o in board["roster"]["officers"]}
+    assert "OFF-002" not in _computed_ids(board)
+
+
+def test_clinic_officer_on_leave_is_absent_from_the_board(client):
+    assert client.patch("/api/command-groups", json={"طبي": ["OFF-002"]}).status_code == 200
+    assert client.post("/api/leaves", json={"person_id": "OFF-002", "type": "إجازة مصيف",
+                                            "start": DAY, "end": DAY}).status_code == 201
+    board = client.get(f"/api/board/{DAY}").get_json()
+    assert "OFF-002" not in {o["id"] for o in board["roster"]["officers"]}
+    assert "OFF-002" not in _computed_ids(board)
+
+
+def test_clinic_officer_with_continuous_status_stays_absent_on_following_days(client):
+    assert client.patch("/api/command-groups", json={"طبي": ["OFF-002"]}).status_code == 200
+    assert client.put(f"/api/duty/{DAY}/OFF-002", json={"status": "مرضي"}).status_code == 200
+    for day in (DAY, "2026-04-14"):
+        board = client.get(f"/api/board/{day}").get_json()
+        assert "OFF-002" not in {o["id"] for o in board["roster"]["officers"]}, day
+        assert "OFF-002" not in _computed_ids(board), day
+        row = next(r for r in client.get(f"/api/duty/{day}").get_json()["rows"]
+                   if r["id"] == "OFF-002")
+        assert row["bucket"] == "مرضي", day
+
+
+def test_non_clinic_officer_on_a_course_is_listed_in_outsiders(client):
+    """الاستبعاد بعضوية العيادة بس — ضابط عادي في فرقة بيظهر في الخوارج."""
+    course = client.post("/api/courses", json={"name": "فرقة اختبار"}).get_json()
+    client.post("/api/course-terms", json={"officer_id": "OFF-002", "course_id": course["id"],
+                                           "start": "2026-04-05", "end": "2026-04-15"})
+    board = client.get(f"/api/board/{DAY}").get_json()
+    assert "OFF-002" in _computed_ids(board)
+
+
 def test_stored_assignment_keeps_a_clinic_officer_while_new_picking_hides_him(client):
     """المنع في قايمة الاختيار بس؛ الحفظ لسه بيقبله وصف الخدمة يعرضه."""
     assert client.patch("/api/command-groups", json={"طبي": ["OFF-002"]}).status_code == 200

@@ -721,7 +721,8 @@
       "night_name": "مندوب/ هشام حسيب",
       "night_phone": "",
       "schedule": "8ص / 8 م",
-      "weapon": "آلي"
+      "weapon": "آلي",
+      "night_person_id": "IND-195"
     },
     "AFB-06": {
       "count": "1 مج قتالي (3 مجند ) صبح 1 مج قتالي (3 مجند ) ليل",

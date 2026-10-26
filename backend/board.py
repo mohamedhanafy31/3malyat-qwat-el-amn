@@ -682,7 +682,12 @@ def build_board(data, day):
                 lv = r["leave"] or {}
                 outsiders.append({**who, "reason": lv.get("type") or r["bucket"], "note": manual,
                                   "leave_type": lv.get("type"), "start": lv.get("start"),
-                                  "end": lv.get("end"), "return_date": lv.get("return_date")})
+                                  "end": lv.get("end"), "return_date": lv.get("return_date"),
+                                  # تفاصيل الفرقة من الالتحاق المسجّل، والحالة
+                                  # الممتدة (مرضي/غياب/انتداب/طارئة) بمداها
+                                  "course": r["course"] if r["bucket"] == "فرقة" else None,
+                                  "status_period": r["persistent_status"]
+                                  if r["status_source"] == "period" else None})
         elif r["group"] == "صافي":
             admin_work.append({**who, "text": manual or r["post"]})
         elif r["admin_work"]:

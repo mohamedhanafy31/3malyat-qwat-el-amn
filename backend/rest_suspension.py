@@ -247,7 +247,8 @@ def stop_leave(data, leave_id, reason, on=None, suspension_id=None, today=None):
         snapshot = {"leave_id": lv.id, "person_id": lv.person_id, "name": name,
                     "role": (raw or {}).get("role", ""), "type": lv.type,
                     "start": lv.start, "end": lv.end, "return_date": lv.return_date,
-                    "note": lv.note, "source": lv.source}
+                    "note": lv.note, "source": lv.source,
+                    "special_name": getattr(lv, "special_name", "")}
         return {"leave": None, "cancelled": True, "snapshot": snapshot}
 
     original_end = lv.original_end or lv.end
@@ -374,7 +375,8 @@ def _restore(data, order, reason):
         if not _is_officer(data, snap["person_id"]):
             continue
         leave = {k: snap.get(k, "") for k in
-                 ("person_id", "type", "start", "end", "return_date", "note", "source")}
+                 ("person_id", "type", "start", "end", "return_date", "note", "source",
+                  "special_name")}
         leave["id"] = snap["leave_id"]
         clash_guard(leave, snap.get("name", ""))
         repos.leaves.add(Leave.from_dict(leave))

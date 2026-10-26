@@ -8,8 +8,12 @@ import re
 from pathlib import Path
 from typing import Any
 
-from backend.assignments import OFFICER_STATUSES
-from backend.constants import LEAVE_TYPES, PERSONNEL_FAMILIES, RANK_ORDER, WEEKDAYS
+from backend.assignments import LEGACY_OFFICER_STATUSES, OFFICER_STATUSES as _CURRENT_STATUSES
+from backend.constants import ALL_LEAVE_TYPES as LEAVE_TYPES
+from backend.constants import PERSONNEL_FAMILIES, RANK_ORDER, WEEKDAYS
+
+# الاستيراد بيقرا الأرشيف، فبيعرف القيم القديمة («فرقة»/«راحة فرقة») كمان
+OFFICER_STATUSES = _CURRENT_STATUSES + LEGACY_OFFICER_STATUSES
 from backend.utils import valid_phone
 
 from .ledger import Ledger, atomic_write_jsonl
