@@ -12539,6 +12539,83 @@
   ],
   "leaves": [
     {
+      "id": "LV-6845",
+      "person_id": "OFF-036",
+      "type": "شهرية",
+      "start": "2026-10-10",
+      "end": "2026-10-16",
+      "return_date": "2026-10-17",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6846",
+      "person_id": "OFF-008",
+      "type": "شهرية",
+      "start": "2026-10-10",
+      "end": "2026-10-16",
+      "return_date": "2026-10-17",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6847",
+      "person_id": "OFF-037",
+      "type": "شهرية",
+      "start": "2026-10-12",
+      "end": "2026-10-16",
+      "return_date": "2026-10-17",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6840",
+      "person_id": "OFF-011",
+      "type": "شهرية",
+      "start": "2026-10-18",
+      "end": "2026-10-24",
+      "return_date": "2026-10-25",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6843",
+      "person_id": "OFF-012",
+      "type": "شهرية",
+      "start": "2026-10-18",
+      "end": "2026-10-24",
+      "return_date": "2026-10-25",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6842",
+      "person_id": "OFF-046",
+      "type": "شهرية",
+      "start": "2026-10-20",
+      "end": "2026-10-24",
+      "return_date": "2026-10-25",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6849",
+      "person_id": "OFF-040",
+      "type": "نصف شهرية",
+      "start": "2026-10-25",
+      "end": "2026-10-27",
+      "return_date": "2026-10-28",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
       "id": "LV-6833",
       "person_id": "OFF-031",
       "type": "نصف شهرية",
@@ -12550,8 +12627,19 @@
       "source": ""
     },
     {
-      "id": "LV-6836",
-      "person_id": "OFF-038",
+      "id": "LV-6844",
+      "person_id": "OFF-047",
+      "type": "شهرية",
+      "start": "2026-10-26",
+      "end": "2026-11-01",
+      "return_date": "2026-11-02",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6850",
+      "person_id": "OFF-028",
       "type": "أسبوعية",
       "start": "2026-10-27",
       "end": "2026-10-27",
@@ -12559,7 +12647,51 @@
       "note": "",
       "special_name": "",
       "source": "",
-      "origin": "weekly_extra"
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6838",
+      "person_id": "OFF-015",
+      "type": "نصف شهرية",
+      "start": "2026-11-01",
+      "end": "2026-11-03",
+      "return_date": "2026-11-04",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6841",
+      "person_id": "OFF-013",
+      "type": "شهرية",
+      "start": "2026-11-03",
+      "end": "2026-11-09",
+      "return_date": "2026-11-10",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6848",
+      "person_id": "OFF-049",
+      "type": "شهرية",
+      "start": "2026-11-03",
+      "end": "2026-11-09",
+      "return_date": "2026-11-10",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
+      "id": "LV-6837",
+      "person_id": "OFF-016",
+      "type": "نصف شهرية",
+      "start": "2026-11-07",
+      "end": "2026-11-09",
+      "return_date": "2026-11-10",
+      "note": "",
+      "special_name": "",
+      "source": ""
     },
     {
       "id": "LV-295",
@@ -12955,6 +13087,20 @@
       "name": "إعداد مدربي القوات الخاصة — تدريب مشترك",
       "place": "المعهد القومي لتدريب القوات الخاصة",
       "kind": "تدريبية",
+      "note": ""
+    },
+    {
+      "id": "CRS-055",
+      "name": "التدريب علي اعمال فض الشغب",
+      "place": "معهد تدريب قوات الأمن",
+      "kind": "",
+      "note": ""
+    },
+    {
+      "id": "CRS-057",
+      "name": "اعداد وتأهيل مجندي سرايا قوات الامن الخاصة",
+      "place": "معهد تدريب قوات الأمن",
+      "kind": "",
       "note": ""
     }
   ],
@@ -13633,17 +13779,44 @@
       "end": "2026-10-29",
       "note": "",
       "source": "فرقة التصدي للعدائيات خلال الفترة من 2026/10/17 حتي 2026/10/29 بالمعهد القومي لتدريب القوات الخاصة"
+    },
+    {
+      "id": "CT-0078",
+      "course_id": "CRS-055",
+      "officer_id": "OFF-044",
+      "start": "2026-09-19",
+      "end": "2026-10-01",
+      "note": "",
+      "source": ""
+    },
+    {
+      "id": "CT-0079",
+      "course_id": "CRS-057",
+      "officer_id": "OFF-018",
+      "start": "2026-10-24",
+      "end": "2026-11-19",
+      "note": "",
+      "source": ""
+    },
+    {
+      "id": "CT-0080",
+      "course_id": "CRS-057",
+      "officer_id": "OFF-045",
+      "start": "2026-10-25",
+      "end": "2026-11-19",
+      "note": "",
+      "source": ""
     }
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 202,
+    "CHG": 233,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
-    "LV": 6836,
-    "CRS": 54,
-    "CT": 77,
+    "LV": 6850,
+    "CRS": 57,
+    "CT": 80,
     "INS": 9,
     "RS": 1,
     "OFF": 99,
@@ -13652,7 +13825,7 @@
     "CON": 94,
     "CD": 8,
     "CP": 14,
-    "OSP": 1
+    "OSP": 2
   },
   "counts_template": {
     "entries": [
@@ -16395,6 +16568,709 @@
       },
       "reason": "",
       "edited_by": "النظام"
+    },
+    {
+      "id": "CHG-203",
+      "ts": "2026-10-26T18:59:11",
+      "entity": "course_term",
+      "entity_id": "CT-0078",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-09-19، 2026-09-20، 2026-09-21، 2026-09-22، 2026-09-23، 2026-09-24، 2026-09-25، 2026-09-26، 2026-09-27، 2026-09-28، 2026-09-29، 2026-09-30، 2026-10-01 — السبب: اضافة فرقة م.اول محمد اللبان",
+      "before": null,
+      "after": {
+        "id": "CT-0078",
+        "course_id": "CRS-055",
+        "officer_id": "OFF-044",
+        "start": "2026-09-19",
+        "end": "2026-10-01",
+        "note": "",
+        "source": ""
+      },
+      "reason": "اضافة فرقة م.اول محمد اللبان",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-204",
+      "ts": "2026-10-26T19:29:15",
+      "entity": "course_term",
+      "entity_id": "CT-0079",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-24، 2026-10-25 — السبب: اضافة فرقة اعداد وتأهيل مجندي سرايا قوات الامن الخاصة",
+      "before": null,
+      "after": {
+        "id": "CT-0079",
+        "course_id": "CRS-057",
+        "officer_id": "OFF-018",
+        "start": "2026-10-24",
+        "end": "2026-11-19",
+        "note": "",
+        "source": ""
+      },
+      "reason": "اضافة فرقة اعداد وتأهيل مجندي سرايا قوات الامن الخاصة",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-205",
+      "ts": "2026-10-26T19:30:09",
+      "entity": "course_term",
+      "entity_id": "CT-0080",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-25 — السبب: اضافة فرقة اعداد وتأهيل مجندي سرايا قوات الامن الخاصة لنقيب/ محمد عبدالعزيز",
+      "before": null,
+      "after": {
+        "id": "CT-0080",
+        "course_id": "CRS-057",
+        "officer_id": "OFF-045",
+        "start": "2026-10-25",
+        "end": "2026-11-19",
+        "note": "",
+        "source": ""
+      },
+      "reason": "اضافة فرقة اعداد وتأهيل مجندي سرايا قوات الامن الخاصة لنقيب/ محمد عبدالعزيز",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-206",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6837",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة عبدالرحمن رفعت الحسيني اسماعيل (نصف شهرية 2026-11-07 ← 2026-11-09)",
+      "before": null,
+      "after": {
+        "id": "LV-6837",
+        "person_id": "OFF-016",
+        "type": "نصف شهرية",
+        "start": "2026-11-07",
+        "end": "2026-11-09",
+        "return_date": "2026-11-10",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-207",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6838",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة طاهر سلطان عبد الحليم احمد (نصف شهرية 2026-11-01 ← 2026-11-03)",
+      "before": null,
+      "after": {
+        "id": "LV-6838",
+        "person_id": "OFF-015",
+        "type": "نصف شهرية",
+        "start": "2026-11-01",
+        "end": "2026-11-03",
+        "return_date": "2026-11-04",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-208",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6839",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة عبدالرحمن طارق محمد خميس (نصف شهرية 2026-10-26 ← 2026-10-28)",
+      "before": null,
+      "after": {
+        "id": "LV-6839",
+        "person_id": "OFF-040",
+        "type": "نصف شهرية",
+        "start": "2026-10-26",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-209",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6840",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة حسام فتحي رضوان خلف (شهرية 2026-10-18 ← 2026-10-24)",
+      "before": null,
+      "after": {
+        "id": "LV-6840",
+        "person_id": "OFF-011",
+        "type": "شهرية",
+        "start": "2026-10-18",
+        "end": "2026-10-24",
+        "return_date": "2026-10-25",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-210",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6840",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-18، 2026-10-19، 2026-10-20، 2026-10-21، 2026-10-22، 2026-10-23، 2026-10-24 — السبب: تظبيط راحات الضباط",
+      "before": null,
+      "after": {
+        "id": "LV-6840",
+        "person_id": "OFF-011",
+        "type": "شهرية",
+        "start": "2026-10-18",
+        "end": "2026-10-24",
+        "return_date": "2026-10-25",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "تظبيط راحات الضباط",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-211",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6841",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة خالد خلف الله خليفة إبراهيم (شهرية 2026-11-03 ← 2026-11-09)",
+      "before": null,
+      "after": {
+        "id": "LV-6841",
+        "person_id": "OFF-013",
+        "type": "شهرية",
+        "start": "2026-11-03",
+        "end": "2026-11-09",
+        "return_date": "2026-11-10",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-212",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6842",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة محمد عبدالغني ابو العلا محمد (شهرية 2026-10-20 ← 2026-10-24)",
+      "before": null,
+      "after": {
+        "id": "LV-6842",
+        "person_id": "OFF-046",
+        "type": "شهرية",
+        "start": "2026-10-20",
+        "end": "2026-10-24",
+        "return_date": "2026-10-25",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-213",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6842",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-20، 2026-10-21، 2026-10-22، 2026-10-23، 2026-10-24 — السبب: تظبيط راحات الضباط",
+      "before": null,
+      "after": {
+        "id": "LV-6842",
+        "person_id": "OFF-046",
+        "type": "شهرية",
+        "start": "2026-10-20",
+        "end": "2026-10-24",
+        "return_date": "2026-10-25",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "تظبيط راحات الضباط",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-214",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6843",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة حمدي احمد جاد الكريم احمد (شهرية 2026-10-18 ← 2026-10-24)",
+      "before": null,
+      "after": {
+        "id": "LV-6843",
+        "person_id": "OFF-012",
+        "type": "شهرية",
+        "start": "2026-10-18",
+        "end": "2026-10-24",
+        "return_date": "2026-10-25",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-215",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6843",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-18، 2026-10-19، 2026-10-20، 2026-10-21، 2026-10-22، 2026-10-23، 2026-10-24 — السبب: تظبيط راحات الضباط",
+      "before": null,
+      "after": {
+        "id": "LV-6843",
+        "person_id": "OFF-012",
+        "type": "شهرية",
+        "start": "2026-10-18",
+        "end": "2026-10-24",
+        "return_date": "2026-10-25",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "تظبيط راحات الضباط",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-216",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6844",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة محمد فتحي بكري مناع (شهرية 2026-10-26 ← 2026-11-01)",
+      "before": null,
+      "after": {
+        "id": "LV-6844",
+        "person_id": "OFF-047",
+        "type": "شهرية",
+        "start": "2026-10-26",
+        "end": "2026-11-01",
+        "return_date": "2026-11-02",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-217",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6845",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة ابراهيم ابو الفرج يحي جبر (شهرية 2026-10-10 ← 2026-10-16)",
+      "before": null,
+      "after": {
+        "id": "LV-6845",
+        "person_id": "OFF-036",
+        "type": "شهرية",
+        "start": "2026-10-10",
+        "end": "2026-10-16",
+        "return_date": "2026-10-17",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-218",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6845",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-10، 2026-10-11، 2026-10-12، 2026-10-13، 2026-10-14، 2026-10-15، 2026-10-16 — السبب: تظبيط راحات الضباط",
+      "before": null,
+      "after": {
+        "id": "LV-6845",
+        "person_id": "OFF-036",
+        "type": "شهرية",
+        "start": "2026-10-10",
+        "end": "2026-10-16",
+        "return_date": "2026-10-17",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "تظبيط راحات الضباط",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-219",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6846",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة احمد محمد محمود السمان (شهرية 2026-10-10 ← 2026-10-16)",
+      "before": null,
+      "after": {
+        "id": "LV-6846",
+        "person_id": "OFF-008",
+        "type": "شهرية",
+        "start": "2026-10-10",
+        "end": "2026-10-16",
+        "return_date": "2026-10-17",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-220",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6846",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-10، 2026-10-11، 2026-10-12، 2026-10-13، 2026-10-14، 2026-10-15، 2026-10-16 — السبب: تظبيط راحات الضباط",
+      "before": null,
+      "after": {
+        "id": "LV-6846",
+        "person_id": "OFF-008",
+        "type": "شهرية",
+        "start": "2026-10-10",
+        "end": "2026-10-16",
+        "return_date": "2026-10-17",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "تظبيط راحات الضباط",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-221",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6847",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة احمد فوزي احمد السيد (شهرية 2026-10-12 ← 2026-10-16)",
+      "before": null,
+      "after": {
+        "id": "LV-6847",
+        "person_id": "OFF-037",
+        "type": "شهرية",
+        "start": "2026-10-12",
+        "end": "2026-10-16",
+        "return_date": "2026-10-17",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-222",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6847",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-12، 2026-10-13، 2026-10-14، 2026-10-15، 2026-10-16 — السبب: تظبيط راحات الضباط",
+      "before": null,
+      "after": {
+        "id": "LV-6847",
+        "person_id": "OFF-037",
+        "type": "شهرية",
+        "start": "2026-10-12",
+        "end": "2026-10-16",
+        "return_date": "2026-10-17",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "تظبيط راحات الضباط",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-223",
+      "ts": "2026-10-26T19:35:59",
+      "entity": "leave",
+      "entity_id": "LV-6848",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة منتصر بهاء الدين محمد علي (شهرية 2026-11-03 ← 2026-11-09)",
+      "before": null,
+      "after": {
+        "id": "LV-6848",
+        "person_id": "OFF-049",
+        "type": "شهرية",
+        "start": "2026-11-03",
+        "end": "2026-11-09",
+        "return_date": "2026-11-10",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-224",
+      "ts": "2026-10-26T19:38:42",
+      "entity": "day_lock",
+      "entity_id": "2026-10-25",
+      "action": "reopen",
+      "day": "2026-10-25",
+      "text": "فتح استثنائي ليوم 2026-10-25 — السبب: تظبيط مرضي ماركو بيه",
+      "before": {
+        "closed": true,
+        "auto": true,
+        "reopened": false,
+        "closed_at": "2026-10-26T00:00:00",
+        "closed_by": "",
+        "stage": "closed"
+      },
+      "after": {
+        "closed": false,
+        "reopened_on": "2026-10-26",
+        "reopened_at": "2026-10-26T19:38:42",
+        "reopened_by": "3malyat_admin",
+        "reason": "تظبيط مرضي ماركو بيه"
+      },
+      "reason": "تظبيط مرضي ماركو بيه",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-225",
+      "ts": "2026-10-26T19:38:57",
+      "entity": "officer_state",
+      "entity_id": "OFF-042",
+      "action": "update",
+      "day": null,
+      "text": "ماركو ماجد اقلاديوس مرقس في يومية 2026-10-25: الحالة: غياب ← —",
+      "before": {
+        "taqseera": false,
+        "status": "غياب",
+        "note": ""
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-25",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-226",
+      "ts": "2026-10-26T19:38:57",
+      "entity": "officer_status_period",
+      "entity_id": "OSP-0002",
+      "action": "create",
+      "day": "2026-10-25",
+      "text": "بدء حالة مرضي المستمرة لـماركو ماجد اقلاديوس مرقس من 2026-10-25 حتى إيقافها",
+      "before": null,
+      "after": {
+        "id": "OSP-0002",
+        "officer_id": "OFF-042",
+        "status": "مرضي",
+        "start": "2026-10-25",
+        "end": "",
+        "stopped_on": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-227",
+      "ts": "2026-10-26T19:39:40",
+      "entity": "leave",
+      "entity_id": "LV-6839",
+      "action": "cancel",
+      "day": null,
+      "text": "إلغاء راحة عبدالرحمن طارق محمد خميس (نصف شهرية 2026-10-26 ← 2026-10-28) قبل بدايتها — السبب: خطأ في بداية الراحة",
+      "before": {
+        "id": "LV-6839",
+        "person_id": "OFF-040",
+        "type": "نصف شهرية",
+        "start": "2026-10-26",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "after": null,
+      "reason": "خطأ في بداية الراحة",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-228",
+      "ts": "2026-10-26T19:39:46",
+      "entity": "leave",
+      "entity_id": "LV-6849",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة عبدالرحمن طارق محمد خميس (نصف شهرية 2026-10-25 ← 2026-10-27)",
+      "before": null,
+      "after": {
+        "id": "LV-6849",
+        "person_id": "OFF-040",
+        "type": "نصف شهرية",
+        "start": "2026-10-25",
+        "end": "2026-10-27",
+        "return_date": "2026-10-28",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-229",
+      "ts": "2026-10-26T19:40:06",
+      "entity": "leave",
+      "entity_id": "LV-6850",
+      "action": "create",
+      "day": "2026-10-27",
+      "text": "تسجيل تلقائي لراحة محمد محمد عطية رزق الأسبوعية يوم الثلاثاء",
+      "before": null,
+      "after": {
+        "id": "LV-6850",
+        "person_id": "OFF-028",
+        "type": "أسبوعية",
+        "start": "2026-10-27",
+        "end": "2026-10-27",
+        "return_date": "2026-10-28",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-230",
+      "ts": "2026-10-26T19:51:17",
+      "entity": "leave",
+      "entity_id": "LV-6836",
+      "action": "cancel",
+      "day": null,
+      "text": "إلغاء راحة اسماعيل محمد عبدالسلام عيسي (أسبوعية 2026-10-27 ← 2026-10-27) قبل بدايتها — السبب: بالخطأ",
+      "before": {
+        "id": "LV-6836",
+        "person_id": "OFF-038",
+        "type": "أسبوعية",
+        "start": "2026-10-27",
+        "end": "2026-10-27",
+        "return_date": "2026-10-28",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "weekly_extra"
+      },
+      "after": null,
+      "reason": "بالخطأ",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-231",
+      "ts": "2026-10-26T20:15:25",
+      "entity": "officer_status_period",
+      "entity_id": "OSP-0002",
+      "action": "update",
+      "day": "2026-10-27",
+      "text": "إيقاف حالة مرضي لـماركو ماجد اقلاديوس مرقس من 2026-10-27",
+      "before": {
+        "id": "OSP-0002",
+        "officer_id": "OFF-042",
+        "status": "مرضي",
+        "start": "2026-10-25",
+        "end": "",
+        "stopped_on": ""
+      },
+      "after": {
+        "id": "OSP-0002",
+        "officer_id": "OFF-042",
+        "status": "مرضي",
+        "start": "2026-10-25",
+        "end": "2026-10-26",
+        "stopped_on": "2026-10-27"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-232",
+      "ts": "2026-10-26T20:27:25",
+      "entity": "officer_state",
+      "entity_id": "OFF-044",
+      "action": "update",
+      "day": null,
+      "text": "محمد طارق السيد محمد اللبان في يومية 2026-10-27: تقصيرة، التشغيل الإضافي: متابعة اعمال التدريب والاستعداد للجنة قوات الأمن، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التدريب والاستعداد للجنة قوات الأمن",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-10-27",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-233",
+      "ts": "2026-10-26T20:29:18",
+      "entity": "officer_state",
+      "entity_id": "OFF-009",
+      "action": "update",
+      "day": null,
+      "text": "السعيد محمد احمد عبده إسماعيل في يومية 2026-10-27: تقصيرة، التشغيل الإضافي: مشرف اهداف حتي انتهاء مقدم/ طاهر سلطان من المأمورية، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "مشرف اهداف حتي انتهاء مقدم/ طاهر سلطان من المأمورية",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-10-27",
+      "edited_by": "3malyat_admin"
     }
   ],
   "missions": [],
@@ -17125,7 +18001,8 @@
     "2025-06-19": true,
     "2025-06-21": true,
     "2026-08-01": true,
-    "2026-10-21": true
+    "2026-10-21": true,
+    "2026-10-27": true
   },
   "rest_suspensions": [
     {
@@ -28118,6 +28995,14 @@
       "start": "2026-10-23",
       "end": "2026-10-24",
       "stopped_on": "2026-10-25"
+    },
+    {
+      "id": "OSP-0002",
+      "officer_id": "OFF-042",
+      "status": "مرضي",
+      "start": "2026-10-25",
+      "end": "2026-10-26",
+      "stopped_on": "2026-10-27"
     }
   ]
 }

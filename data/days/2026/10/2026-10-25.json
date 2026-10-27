@@ -1,10 +1,10 @@
 {
-  "officer_states": {
-    "OFF-042": {
-      "taqseera": false,
-      "status": "غياب",
-      "note": ""
-    }
+  "status": {
+    "closed": false,
+    "reopened_on": "2026-10-26",
+    "reopened_at": "2026-10-26T19:38:42",
+    "reopened_by": "3malyat_admin",
+    "reason": "تظبيط مرضي ماركو بيه"
   },
   "weekly_rest_seeded": true
 }
