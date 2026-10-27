@@ -1,4 +1,4 @@
-/* اليومية التفصيلية — أقسام الوورد العشرة على سجل تكليف واحد.
+/* اليومية التفصيلية — الأقسام الرسمية والصافي على سجل تكليف واحد.
    اسم الخدمة حر بيكتبه المشغّل على الخانة نفسها، والتصنيف (خارجية/داخلية/
    حراسات/طبية) بيتحدد معاه — مفيش كتالوج منفصل يتربط بيه. */
 let BOARD = null, DAY = null;
@@ -26,8 +26,10 @@ window.exportDocxUrl = () => `/api/board/${DAY}/export.docx`;
 const nameOf = list => p => `${p.role ? p.role + "/ " : ""}${p.name}`;
 
 /* ---------- العرض ---------- */
+const taqseeraMark = person => person?.taqseera
+  ? ` <b class="taqseera-mark" title="تقصيرة" aria-label="تقصيرة">+ ت</b>` : "";
 const chips = (list, cls) => list.map(p =>
-  `<span class="chip ${cls}">${esc(nameOf()(p))}</span>`).join(" ");
+  `<span class="chip ${cls}">${esc(nameOf()(p))}${taqseeraMark(p)}</span>`).join(" ");
 const conChips = cons => (cons || []).map(c =>
   `<span class="chip w">${esc(c.class || "مجند")}${c.count ? " ×" + c.count : ""}</span>`).join(" ");
 
@@ -135,7 +137,9 @@ function serviceRow(row) {
 /* الأقسام المحسوبة — كل واحد بأعمدته بتاعته زي الوورد */
 const OFFICER_VIEWS = {
   "عمل بالإدارة": [["الضابط", "العمل"], r =>
-    `<tr><td class="name">${esc(nameOf()(r))}</td><td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}</td></tr>`],
+    `<tr><td class="name">${esc(nameOf()(r))}${taqseeraMark(r)}</td><td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}</td></tr>`],
+  "الصافي": [["الضابط"], r =>
+    `<tr><td class="name">${esc(nameOf()(r))}${taqseeraMark(r)}</td></tr>`],
   "الراحات": [["الضابط", "النوع", "من", "إلى", "العودة"], r =>
     `<tr><td class="name">${esc(nameOf()(r))}</td>
      <td><span class="chip ${r.type === "شهرية" ? "m" : r.type === "نصف شهرية" ? "h" : "w"}">${esc(r.type)}</span></td>
@@ -164,7 +168,7 @@ function adminRow(row) {
       </td></tr>`;
   }
   const added = row.added ? ` <span class="chip m" title="أُضيف من يومية الضباط (إضافة للعمل بالإدارة) وبيفضل في مكان خدمته">من الخدمة</span>` : "";
-  return `<tr><td class="name">${esc(nameOf()(row))}</td><td class="wrap">${esc(row.text) || "—"}${added}</td></tr>`;
+  return `<tr><td class="name">${esc(nameOf()(row))}${taqseeraMark(row)}</td><td class="wrap">${esc(row.text) || "—"}${added}</td></tr>`;
 }
 
 function outsiderRow(row) {
@@ -187,6 +191,8 @@ const REST_GROUP_ORDER = new Map([
   ["شهرية", {label: "الراحات الشهرية", order: 2}],
 ]);
 
+const STATUS_KIND_ORDER = ["دورة", "مرضي", "مأمورية", "انتداب", "طارئة", "غياب"];
+
 function outsiderGroupMeta(row) {
   if (row.source_group === "rest") {
     const type = (row.status_type || row.type || "إجازة").trim();
@@ -198,11 +204,9 @@ function outsiderGroupMeta(row) {
     const name = (row.course?.name || "فرقة غير محددة").trim();
     return {key: `course:${name}`, label: `فرقة: ${name}`, kind: "course", order: 4};
   }
-  if (row.source_group === "taqseera") {
-    return {key: "taqseera", label: "التقصيرات", kind: "taqseera", order: 6};
-  }
   const status = (row.status_type || "حالة خاصة").trim();
-  return {key: `status:${status}`, label: status, kind: "status", order: 5};
+  const known = STATUS_KIND_ORDER.indexOf(status);
+  return {key: `status:${status}`, label: status, kind: "status", order: 5 + (known < 0 ? STATUS_KIND_ORDER.length : known) / 100};
 }
 
 function outsiderGroups(rows) {
@@ -212,6 +216,7 @@ function outsiderGroups(rows) {
     if (!groups.has(meta.key)) groups.set(meta.key, {...meta, rows: []});
     groups.get(meta.key).rows.push(row);
   }
+  // كل نوع في مجموعة واحدة؛ الفرز ثابت وبيحافظ على ترتيب الأشخاص جوّه المجموعة.
   return [...groups.values()].sort((a, b) =>
     a.order - b.order || a.label.localeCompare(b.label, "ar"));
 }
@@ -253,27 +258,21 @@ function presentationSections(sections) {
   const byName = new Map(sections.map(section => [section.name, section]));
   const admin = byName.get("عمل بالإدارة") || {name: "عمل بالإدارة", type: "admin", rows: []};
   const adminRows = [...(admin.rows || [])];
-  for (const name of ["ضابط عظيم الإدارة", "ضابط الأمن بالإدارة"]) {
-    const source = byName.get(name);
-    for (const row of source?.rows || []) {
-      adminRows.push({...row, fixedSection: name, fixedLabel: source.name});
-    }
-  }
   const outsiderRows = [];
-  for (const name of ["الراحات", "التقصيرات", "الخوارج"]) {
+  for (const name of ["الراحات", "الخوارج"]) {
     const source = byName.get(name);
     for (const row of source?.rows || []) {
-      const sourceGroup = name === "الراحات" ? "rest" : name === "التقصيرات" ? "taqseera"
+      const sourceGroup = name === "الراحات" ? "rest"
         : (row.course || row.reason === "فرقة") ? "course" : "status";
       const statusType = name === "الراحات" ? (row.type || "راحة")
-        : name === "التقصيرات" ? "تقصيرة" : (row.reason || "خارج");
+        : (row.reason || "خارج");
       const detail = name === "الراحات"
         ? `${row.type || "راحة"}${row.start || row.end ? ` (${fmtShort(row.start)} — ${fmtShort(row.end)})` : ""}`
         : outsiderDetail(row);
       outsiderRows.push({...row, source_group: sourceGroup, status_type: statusType, detail});
     }
   }
-  return sections.filter(section => !["عمل بالإدارة", "ضابط عظيم الإدارة", "ضابط الأمن بالإدارة", "الراحات", "التقصيرات", "الخوارج"].includes(section.name))
+  return sections.filter(section => !["عمل بالإدارة", "الراحات", "التقصيرات", "الخوارج"].includes(section.name))
     .concat([{name: "عمل بالإدارة", type: "admin", rows: adminRows},
              {name: "الخوارج", type: "outsiders", rows: outsiderRows}]);
 }
@@ -362,10 +361,11 @@ ACTIONS.toggleWarnings = () => {
 /* التقسيمة زي الوورد بالظبط: عمود يمين للخدمات (أساسية/طارئة/عمل
    بالإدارة + أي قسم مخصّص المشغّل ضافه بإيده — نفس نوع «services»)،
    وعمود شمال للأهداف والمحسوبات والكتل الثابتة الثلاثة. */
-const RIGHT_COLUMN_SECTIONS = ["الخدمات أساسية", "الخدمات الطارئة", "عمل بالإدارة"];
+const RIGHT_COLUMN_SECTIONS = ["الخدمات أساسية", "الخدمات الطارئة", "عمل بالإدارة", "الصافي"];
 
 function splitColumns(sections) {
-  const rightNames = ["الخدمات أساسية", "الأهداف", "ضابط عظيم وأمن المعسكر الفرعي", "عمل بالإدارة"];
+  const rightNames = ["الخدمات أساسية", "الأهداف", "ضابط عظيم وأمن المعسكر الفرعي",
+    "ضابط عظيم الإدارة", "ضابط الأمن بالإدارة", "عمل بالإدارة", "الصافي"];
   const leftNames = ["الخدمات الطارئة", "خدمات سجن قوات الأمن", "الخوارج"];
   const known = new Set([...rightNames, ...leftNames]);
   // الأقسام اللي المشغّل ضافها بإيده (خدمات ماتش، انتشار، تفتيشات…) كانت بتختفي

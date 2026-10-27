@@ -53,7 +53,7 @@ function renderStats() {
       <strong>${current.length}</strong>
       <div class="stat-sub">${countLabel(officersOnLeave, "ضابط")} على راحة</div>
     </div>
-    <div class="stat stat-accent-orange">
+    <div class="stat${returningTomorrow.length ? " stat-accent-orange" : ""}">
       <span>يعودون غدًا أو بعده</span>
       <strong>${returningTomorrow.length}</strong>
       <div class="stat-sub">${returningTomorrow.length ? returningTomorrow.map(l => esc(l.name.split(" ")[0])).join("، ") : "—"}</div>
@@ -104,8 +104,8 @@ function leaveRow(l, today) {
       <div class="sub">كانت حتى ${fmt(l.original_end)} — ${esc(l.stop_reason)}</div>`;
   }
   const canStop = OFFICER_IDS.has(l.person_id) && (live || upcoming);
-  const stopLabel = upcoming ? "إلغاء الراحة" : "إنهاء الآن";
   const shownType = l.display_type || l.type;
+  const stopExtra = {name: l.name, type: shownType, start: l.start, end: l.end};
 
   // تمييز صف العائدين قريباً
   const rowClass = live && daysUntil(l.return_date, today) <= 1 ? ' class="returning-soon"' : "";
@@ -129,10 +129,11 @@ function leaveRow(l, today) {
     <td>${stateHtml}</td>
     <td class="wrap">${esc(l.note) || "<span class='muted'>—</span>"}</td>
     <td class="col-actions"><div class="actions leave-row-actions">
-      ${canStop ? `<button class="mini ${upcoming ? "bad" : "warn"}" data-action="stopLeave"
-        data-id="${esc(l.id)}" data-extra="${dataAttr({name: l.name, type: shownType, start: l.start, end: l.end})}">${stopLabel}</button>` : ""}
+      ${canStop && !upcoming ? `<button class="mini warn" data-action="stopLeave"
+        data-id="${esc(l.id)}" data-extra="${dataAttr(stopExtra)}">إنهاء الآن</button>` : ""}
       <button class="mini" data-action="openLeaveEdit" data-id="${esc(l.id)}">تعديل</button>
       ${rowMenu([
+        canStop && upcoming && {action: "stopLeave", id: l.id, extra: stopExtra, label: "إلغاء الراحة", danger: true},
         {action: "deleteLeave", id: l.id, extra: {name: l.name}, label: "حذف", danger: true},
       ])}
     </div></td></tr>`;

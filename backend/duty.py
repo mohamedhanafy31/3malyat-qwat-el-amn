@@ -16,7 +16,7 @@
 from .assignments import assignments_of, officer_state, officer_statuses
 from .courses import by_id as courses_by_id, term_on
 from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SECTION_TARGETS, SHIFTS, TARGETS_FIRST
-from .dated import groups_on
+from .dated import command_on, groups_on
 from .leaves import leave_label, leave_on
 from .people import effective, officers_on
 from .status_periods import active_on as persistent_status_on
@@ -167,6 +167,15 @@ def course_text(course):
     return " ".join(parts)
 
 
+def _fold_arabic(value):
+    """توحيد الهمزات والياء/الألف المقصورة والتاء المربوطة والتطويل والتشكيل والشرطات."""
+    table = str.maketrans({"أ": "ا", "إ": "ا", "آ": "ا", "ى": "ي", "ة": "ه", "ـ": None,
+                              "—": " ", "–": " ", "-": " ", "،": " "})
+    value = "".join(ch for ch in str(value or "").translate(table)
+                    if not 0x064B <= ord(ch) <= 0x065F)
+    return " ".join(value.split())
+
+
 def course_with_note(course, note):
     """نص الفرقة + النص اليدوي بلا تكرار. صف مستورد كاتب الفرقة كاملة في
     ملاحظته («فرقة … خلال الفترة …») بيتعرض زي ما هو."""
@@ -174,6 +183,10 @@ def course_with_note(course, note):
     text = (course or {}).get("text", "")
     if not text or (note and (course.get("name") or text) in note):
         return note or text
+    # الملاحظة المستوردة كثيرًا ما تكتب نفس اسم الفرقة بهمزة/ياء/تطويل مختلف
+    # («إعداد» مقابل «اعداد») فيتكرر الوصف؛ قارن بعد توحيد الإملاء.
+    if note and _fold_arabic(course.get("name") or text) in _fold_arabic(note):
+        return note
     return f"{text} — {note}" if note else text
 
 
@@ -262,9 +275,12 @@ def summarise(data, day):
     statuses = officer_statuses(data)
     s = _empty_summary(len(officers), statuses)
     net_names, rows = [], []
+    command_roles = {officer_id: role for role, officer_id in command_on(data, day).items()
+                     if officer_id}
 
     for o in officers:
         row = officer_row(data, day, o, catalog)
+        row["command_role"] = command_roles.get(row["id"], "")
         group, sub = row["group"], row["bucket"]
         if sub is None:
             s[group] += 1

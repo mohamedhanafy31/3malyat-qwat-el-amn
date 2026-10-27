@@ -7,7 +7,7 @@ function personnelDriverRow(p) {
 }
 
 function conscriptRow(c) {
-  return `<tr><td class="name">${esc(c.name)}</td><td dir="ltr" class="bidi-isolate">${esc(fmtPhone(c.phone) || "—")}</td><td><label class="switch-label"><input type="checkbox" data-driver-toggle="1" data-id="${esc(c.id)}" ${c.is_driver ? "checked" : ""}> سواق</label></td><td class="col-actions"><button class="mini bad" data-action="deleteConscript" data-id="${esc(c.id)}" data-extra="${dataAttr({name: c.name})}">حذف</button></td></tr>`;
+  return `<tr><td class="name">${esc(c.name)}</td><td dir="ltr" class="bidi-isolate">${esc(fmtPhone(c.phone) || "—")}</td><td><label class="switch-label"><input type="checkbox" data-driver-toggle="1" data-id="${esc(c.id)}" ${c.is_driver ? "checked" : ""}> سواق</label></td><td class="col-actions">${rowMenu([{action: "deleteConscript", id: c.id, extra: {name: c.name}, label: "حذف", danger: true}])}</td></tr>`;
 }
 
 function renderDrivers() {

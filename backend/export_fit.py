@@ -119,6 +119,36 @@ class TextMeter:
         return lines or [""]
 
 
+def percentile_need(values, fraction=.9):
+    """احتياج العمود = النسبة المئوية من عرض نصوصه (لا يتحكم فيها نص شاذ طويل)."""
+    values = sorted(values)
+    return values[min(len(values) - 1, int(len(values) * fraction))] if values else 0
+
+
+def fit_widths(needs, ranges, total):
+    """يوزّع `total` على الأعمدة: كل عمود يقترب من احتياجه داخل مدى الأرشيف
+    الحقيقي (low, high)؛ الزيادة تذهب للأعمدة الأكثر احتياجًا، والنقص يُخصم
+    من الأعمدة فوق حدّها الأدنى بالتناسب. المجموع النهائي = total بالتمام."""
+    grid = [min(max(n, lo), hi) for n, (lo, hi) in zip(needs, ranges)]
+    for _ in range(12):
+        gap = total - sum(grid)
+        if abs(gap) < 1:
+            break
+        if gap > 0:
+            room = [(hi - w) * (1 + max(0, n - w) / 100)
+                    for w, n, (lo, hi) in zip(grid, needs, ranges)]
+        else:
+            room = [w - lo for w, (lo, hi) in zip(grid, ranges)]
+        total_room = sum(room)
+        if total_room <= 0:
+            break
+        for index, (lo, hi) in enumerate(ranges):
+            grid[index] = min(max(grid[index] + gap * room[index] / total_room, lo), hi)
+    grid = [round(w) for w in grid]
+    grid[max(range(len(grid)), key=lambda i: ranges[i][1] - grid[i])] += total - sum(grid)
+    return grid
+
+
 def _cell_value(cell):
     if isinstance(cell, dict):
         return cell
@@ -139,7 +169,10 @@ def estimate_table_height(rows, grid_widths_pt, meter=None, slack=True):
             margins = cell.get("margins", (0.0, 0.0))
             if isinstance(margins, (int, float)):
                 margins = (float(margins), float(margins))
-            inner = max(1.0, width - sum(margins))
+            # hmargins: هوامش أفقية فقط (يمين+يسار) لا تدخل في الارتفاع، كخلايا Word
+            # العادية (هامش رأسي 0). margins القديمة تُحسب أفقيًا ورأسيًا.
+            hmargins = cell.get("hmargins")
+            inner = max(1.0, width - (float(hmargins) if hmargins is not None else sum(margins)))
             size = float(cell.get("size_pt", 10))
             lines = meter.wrap_lines(cell.get("text", ""), inner, size,
                                      bool(cell.get("bold")), cell.get("font", "Arial"))

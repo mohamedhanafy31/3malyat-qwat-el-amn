@@ -1,25 +1,30 @@
 """تصدير اليومية التفصيلية كملف Word حقيقي (.docx) بصيغة الأرشيف الأحدث.
-كل يوم يستخدم نفس شبكة الستة أعمدة، ترتيب المناطق، والصفحة الواحدة؛
-النص فقط يُشتق من مخرج `build_board` الحالي.
+
+القالب `docx_templates/board_roster.docx` نسخة من ملف أرشيف حقيقي (2026/10/20):
+الشبكة (5 أعمدة)، الجدول العائم وحدوده، الهيدر (العنوان)، هوامش الصفحة وحدودها،
+الأنماط والإعدادات كلها منه. المُصدِّر يبني الصفوف من `build_board` ويستنسخ
+خصائص الخلية/الفقرة/الـrun من خلية نموذج في القالب؛ tcW = مجموع الأعمدة
+المشمولة، وارتفاع الصف atLeast بلا hRule، ومقاس الخط فقط يُختار بالتقدير.
 """
 import re
+from copy import deepcopy
 from datetime import date, timedelta
 from io import BytesIO
+from pathlib import Path
 
 from docx import Document
-from docx.enum.section import WD_ORIENT
 from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Pt, Twips
+from docx.shared import Pt
 from docx.table import _Cell
 
-from .export_fit import (apply_fit_to_docx_table, fit_table, usable_height_pt,
-                         estimate_table_height)
+from .export_fit import (PageFitError, TextMeter, estimate_table_height, fit_widths,
+                         percentile_need)
 
 from .constants import (
-    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_OCCASIONAL, SECTION_OUTSIDERS,
+    SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_NET, SECTION_OCCASIONAL, SECTION_OUTSIDERS,
     SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY, SECTION_GREAT, SECTION_SUBCAMP,
     SECTION_TARGETS, SECTION_TAQSEERA,
 )
@@ -30,11 +35,16 @@ WEEKDAY_BY_INDEX = ["الاثنين", "الثلاثاء", "الأربعاء", "�
 MONTH_BY_INDEX = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
                   "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
 
-RIGHT_COLUMN_SECTIONS = {SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_ADMIN_WORK}
+RIGHT_COLUMN_SECTIONS = {
+    SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY,
+    SECTION_ADMIN_WORK, SECTION_NET,
+}
 # الأقسام اللي موضوعها الأساسي «ضابط» (كل صف = ضابط) — اسم الضابط بييجي
 # أول عمود (يمين نصفه)، والوصف بعده. عكس أقسام الخدمات/الأهداف/الكتل
 # اللي موضوعها الأساسي «خدمة» فاسمها هو اللي بييجي أول عمود.
-OFFICER_CENTRIC = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
+OFFICER_CENTRIC = {
+    SECTION_ADMIN_WORK, SECTION_NET, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
+}
 
 HEADER_FILL = "E9E9E9"
 
@@ -183,11 +193,17 @@ def _fmt_date(iso):
 
 def _who(person):
     person = person or {}
-    return officer_label(person) if person.get("category") != "personnel" else personnel_label(person)
+    label = officer_label(person) if person.get("category") != "personnel" else personnel_label(person)
+    return f"{label} + ت" if label and person.get("taqseera") else label
+
+
+def _people_list(people):
+    """تسميات الأشخاص (اسم الشهرة إن وُجد) واحدًا واحدًا — لصف مستقل لكل شخص."""
+    return [label for label in (_who(p) for p in (people or []) if p) if label]
 
 
 def _people_text(people):
-    return "، ".join(_who(p) for p in (people or []) if p) or ""
+    return "، ".join(_people_list(people))
 
 
 def _command_text(row, who):
@@ -258,24 +274,28 @@ def _service_desc(row):
     return " + ".join(bits) if bits else "شاغرة"
 
 
-def _basic_assignee(row):
-    """The basic-services Word column contains the officer only."""
-    officers = _people_text(row.get("officers"))
+def _basic_assignees(row):
+    """عمود الخدمات الأساسية في Word: ضابط واحد لكل عنصر (كل واحد في صف مستقل)."""
+    officers = _people_list(row.get("officers"))
     if officers:
         return officers
-    personnel = _people_text(row.get("personnel"))
+    personnel = _people_list(row.get("personnel"))
     if personnel:
         return personnel
     if row.get("officer_command_required"):
-        return "رئاسة ضابط — شاغر"
+        return ["رئاسة ضابط — شاغر"]
     if row.get("personnel_command_required"):
-        return "رئاسة فرد — شاغر"
+        return ["رئاسة فرد — شاغر"]
     source = (row.get("source_manning") or "").strip()
-    # A source string containing a rank/name is still an officer assignment;
-    # pure strength text ("2 فرد + 2 مج") belongs only in emergency services.
+    # نص مستورد حرفي فيه رتبة/اسم يظل كما هو (أرشيف)؛ نص القوام الصرف
+    # («2 فرد + 2 مج») مكانه الخدمات الطارئة فقط.
     if "/" in source and not any(token in source for token in ("فرد", "مج")):
-        return source
-    return ""
+        return [source]
+    return []
+
+
+def _basic_assignee(row):
+    return "\n".join(_basic_assignees(row))
 
 
 def _conscript_total(row):
@@ -325,6 +345,28 @@ def _compact_manning(row):
     return " + ".join(filter(None, bits))
 
 
+def _manning_pieces(row):
+    """نص عمود القوام مقسومًا لصف لكل ضابط حين يكون للخدمة ضابطان أو أكثر.
+
+    النص المستورد الحرفي (source_manning الساري) يبقى قطعة واحدة كما هو."""
+    text = _compact_manning(row)
+    officers = _people_list(row.get("officers"))
+    source = (row.get("source_manning") or "").strip()
+    if len(officers) < 2 or (source and text == source):
+        return [text]
+    rest = []
+    if row.get("personnel") or row.get("personnel_command_required"):
+        count = len(row.get("personnel") or [])
+        rest.append((f"{count}فرد" if count > 1 else "فرد") if count else "رئاسة فرد — شاغر")
+    for conscript in row.get("conscripts") or []:
+        cls = conscript.get("class") or "مج"
+        rest.append(f"{conscript['count']}{cls}" if conscript.get("count") else cls)
+    if row.get("conscript_count") and not row.get("conscripts"):
+        rest.append(f"{row['conscript_count']}مج")
+    first = " + ".join(filter(None, [f"رئاسة ضابط: {officers[0]}", *rest]))
+    return [first, *officers[1:]]
+
+
 def _officer_desc(section_name, row):
     if section_name == SECTION_ADMIN_WORK:
         if row.get("fixedSection"):
@@ -337,6 +379,8 @@ def _officer_desc(section_name, row):
         return f"{row.get('type') or 'راحة'} ({span})" if span else (row.get("type") or "راحة")
     if section_name == SECTION_TAQSEERA:
         return row.get("note") or "تقصيرة"
+    if section_name == SECTION_NET:
+        return ""
     return ""
 
 
@@ -370,20 +414,34 @@ def status_period_text(period):
     return f"من يوم {start}" if start else ""
 
 
+# ترتيب أنواع «الخوارج»: الراحة ثم الإجازة ثم الفرقة (زي الملفات الحقيقية)
+# ثم باقي الحالات؛ أي نوع غير معروف ييجي بعدهم بترتيب أول ظهور.
+OUTSIDER_KIND_ORDER = ("راحة", "إجازة", "فرقة", "دورة", "مرضي", "مأمورية", "انتداب", "طارئة", "غياب")
+
+
+def group_outsiders_by_kind(rows):
+    """يجمع صفوف الخوارج بحيث كل نوع حالة في مجموعة واحدة متتالية.
+
+    الترتيب ثابت (stable): ترتيب الأنواع من OUTSIDER_KIND_ORDER ثم أول ظهور،
+    وداخل النوع الواحد بيفضل ترتيب الأشخاص الأصلي (الرتبة/الأقدمية)."""
+    first = {}
+    for row in rows:
+        first.setdefault(row.get("status_type") or "", len(first))
+
+    def rank(row):
+        kind = row.get("status_type") or ""
+        if kind in OUTSIDER_KIND_ORDER:
+            return (0, OUTSIDER_KIND_ORDER.index(kind))
+        return (1, first[kind])
+    return sorted(rows, key=rank)
+
+
 def _presentation_sections(sections):
     by_name = {section["name"]: section for section in sections}
     admin = by_name.get(SECTION_ADMIN_WORK, {"name": SECTION_ADMIN_WORK, "type": "admin", "rows": []})
     admin_rows = list(admin.get("rows") or [])
-    # التقصيرة مش بتتطبع كقسم: اللي مالوش خدمة بيتضاف لعمل بالإدارة بنص عمله،
-    # واللي عليه خدمة ظاهر في مكان خدمته أصلًا.
-    taqseera = by_name.get(SECTION_TAQSEERA, {})
-    admin_rows.extend({key: row.get(key) for key in ("id", "name", "role", "short_name", "category")
-                       if key in row} | {"text": row.get("text") or row.get("note") or ""}
-                      for row in taqseera.get("rows", []) if not row.get("has_service"))
-    for name in (SECTION_GREAT, SECTION_SECURITY):
-        source = by_name.get(name)
-        for row in source.get("rows", []) if source else []:
-            admin_rows.append({**row, "fixedSection": name, "fixedLabel": name})
+    # التقصيرة لا تنشئ قسمًا ولا تُنقل إلى عمل الإدارة: علامة «+ ت» موجودة
+    # على الضابط داخل خدمته أو الصافي/عمل الإدارة.
     outsiders = []
     for name in (SECTION_RESTS, SECTION_OUTSIDERS):
         source = by_name.get(name)
@@ -409,8 +467,8 @@ def _presentation_sections(sections):
                 else:
                     detail = row.get("note") or row.get("reason") or ""
             outsiders.append({**row, "status_type": status_type, "detail": detail})
-    hidden = {SECTION_ADMIN_WORK, SECTION_GREAT, SECTION_SECURITY,
-              SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
+    outsiders = group_outsiders_by_kind(outsiders)
+    hidden = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
     out = [section for section in sections if section["name"] not in hidden]
     out.extend([
         {"name": SECTION_ADMIN_WORK, "type": "admin", "rows": admin_rows},
@@ -526,21 +584,77 @@ def _section_by_name(sections, name, default_type="services"):
                 {"name": name, "type": default_type, "rows": []})
 
 
-TAIL_START = 20          # أول صف في الجزء الأخير (كتلة المعسكر الفرعي / الخوارج)
-ADMIN_MIN_ROWS = 11      # صفوف «عمل بالادارة» في الورقة الرسمية
-TAIL_MIN_ROWS = 14
+TEMPLATE = Path(__file__).with_name("docx_templates") / "board_roster.docx"
+LAST_FIT = {}
+
+# القالب نسخة من ملف أرشيف حقيقي (2026/10/20/20.docx): الشبكة (5 أعمدة)، tblPr
+# العائم والحدود، الهيدر، هوامش الصفحة وحدودها، النمط الأساسي والإعدادات كلها من
+# الملف الحقيقي. المُصدِّر يبني الصفوف فقط ويستنسخ خصائص الخلية/الفقرة/الـrun
+# من خلية النموذج في القالب ويغيّر النص والحجم.
+FONT_SIZES_HALF = (24, 22, 20, 18, 16)   # 12..8pt: المدى الحقيقي في الأرشيف
+IMPOSSIBLE_RATIO = 1.15   # التقدير تقريبي؛ فوق هذا فقط نرفض بدل أن نفشل التصدير
+FIT_TARGET = .94
+PAGE_HEIGHT_PT = 841.9
+TABLE_TOP_PT = 62          # y بداية الجدول في ملف Word الحقيقي (الهيدر + tblpY)
+TRAILING_PT = 45           # 3 فقرات ختامية بعد الجدول (sz24) في الملف الحقيقي
+CELL_MARGIN_PT = 5.4       # هامش الخلية من نمط TableGrid (108 twips)
+ROW_BORDER_PT = .5
+MIN_TITLE, MIN_HEAD, MIN_SUBHEAD, MIN_BODY = 433, 315, 119, 94   # atLeast كما في الأرشيف (twips)
+SHADE = "D9D9D9"
+ROW_MINIMA = {"title": MIN_TITLE, "head": MIN_HEAD, "tailhead": MIN_SUBHEAD}
 
 
-def tail_row_count(admin_count, outsider_count):
-    """عدد صفوف الجزء الأخير: صفّين فرعي + عنوان + صفوف الإدارة (ولا أقل من
-    11)، أو عدد الخوارج لو أكتر. الأدنى 14 = ٣٤ صف في الورقة الرسمية."""
-    return max(TAIL_MIN_ROWS, 3 + max(ADMIN_MIN_ROWS, admin_count), outsider_count)
+def _size_cap_half(row_count):
+    """أقصى حجم خط حسب عدد الصفوف في الأرشيف: ≤35 صف حتى 12pt، وأكثر لا يتجاوز 11pt.
+    الحجم الفعلي هو الأكبر الذي يتسع في صفحة واحدة (الكاتب اليدوي يملأ الصفحة) فيخرج
+    ≈12pt لـ≤30 صف، 10–11pt لـ31–35، و8–9pt لما فوق."""
+    return 24 if row_count <= 35 else 22
+
+
+def _cell(text="", span=1, head=False, vm=None):
+    return {"text": "" if text is None else str(text), "span": span, "head": head, "vm": vm}
+
+
+def _row(cells, kind="body"):
+    return {"cells": cells, "kind": kind}
+
+
+def _group(right, left, rows):
+    """مجموعة صفوف لعنصر واحد (يمين) مقابل عنصر واحد (يسار).
+
+    كل جانب = (خلايا_الاسم, قائمة_نصوص_الأشخاص, أعمدة_الأشخاص). لو أي جانب فيه
+    أكثر من شخص يتوزع كل شخص على صف مستقل وتُدمج خلية اسم الخدمة رأسيًا
+    (vMerge) على كل صفوف المجموعة كما في الأرشيف الحقيقي، والجانب الأقل
+    يدمج خلية اسمه على الصفوف كلها ويترك الأشخاص الزائدين فارغين."""
+    def side_cells(side, index, count):
+        if side is None:
+            return None
+        name_cells, persons = side
+        out = []
+        for cell in name_cells:
+            vm = None
+            if count > 1 and cell["text"]:
+                vm = "restart" if index == 0 else "continue"
+            out.append(_cell(cell["text"] if index == 0 else "", cell["span"], cell["head"], vm))
+        if persons is not None:
+            out.append(_cell(persons[index] if index < len(persons) else ""))
+        return out
+
+    count = max(1, len((right or ((), []))[1] or []), len((left or ((), []))[1] or []))
+    for index in range(count):
+        cells = []
+        for side, blank in ((right, [_cell(), _cell()]), (left, [_cell("", 2), _cell()])):
+            cells.extend(side_cells(side, index, count) or blank)
+        rows.append(_row(cells))
 
 
 def _latest_content(board):
-    """الـ20 صف الثابتة بترتيب الورقة الأحدث + الجزء الأخير الديناميكي.
+    """صفوف اليومية بالترتيب الأحدث بلا صفوف حشو.
 
-    بيرجّع (المحتوى، مجموعات دمج الحالة رأسيًا [(أول صف، آخر صف)])."""
+    كل صف: {"kind", "cells": [{"text", "span", "head", "vm"}]} على شبكة الأعمدة
+    الخمسة (يمين: عمودان، يسار: ثلاثة). الأقسام الفارغة بلا بيانات تُحذف.
+    «الصافي» لا يُطبع في ملف Word، وضابط عظيم/أمن الإدارة يُدرجان داخل
+    قائمة «عمل بالادارة» الواحدة بنص دورهما وفترتهما."""
     sections = _presentation_sections(board["sections"])
 
     def rows(name, kind="services"):
@@ -550,7 +664,8 @@ def _latest_content(board):
     # أي قسم خدمات المشغّل ضافه بإيده (ماتش، انتشار، تفتيشات…) بينضم لجدول الطوارئ —
     # زي يومية الأفراد — والكل مترتب بمعاد الانتظام (ترتيب مستقر لنفس الساعة)
     known = {SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS, SECTION_PRISON, SECTION_SUBCAMP,
-             SECTION_GREAT, SECTION_SECURITY, SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA,
+             SECTION_GREAT, SECTION_SECURITY, SECTION_ADMIN_WORK, SECTION_NET,
+             SECTION_RESTS, SECTION_TAQSEERA,
              SECTION_OUTSIDERS}
     for section in sections:
         if section["name"] not in known and section.get("type") == "services":
@@ -560,160 +675,444 @@ def _latest_content(board):
     subcamp = rows(SECTION_SUBCAMP, "slots")
     outsiders = rows(SECTION_OUTSIDERS, "officers")
     admin = rows(SECTION_ADMIN_WORK, "admin")
-    for name in (SECTION_GREAT, SECTION_SECURITY):
-        for item in rows(name, "slots"):
-            admin.append({**item, "fixedSection": name})
+    great = rows(SECTION_GREAT, "slots")
+    security = rows(SECTION_SECURITY, "slots")
 
-    def pair(row, left):
-        if not row:
-            return "", ""
-        return (row.get("label") or row.get("name") or "",
-                left(row))
+    def name_of(row):
+        return (row or {}).get("label") or (row or {}).get("name") or ""
 
-    def assignee(row):
-        return _basic_assignee(row)
+    def target_people(row):
+        return _people_list(row.get("officers")) or _people_list(row.get("commander"))
 
-    def manning(row):
-        return _compact_manning(row)
+    def basic_side(row):
+        if row is None:
+            return None
+        return [_cell(name_of(row))], _basic_assignees(row)
 
-    # الصفوف الأساسية/الطارئة 9 في الورقة الرسمية، وبتكبر لو أي منهم أكتر (قبل كده
-    # الزيادة كانت بتتقطع من الطباعة)؛ صف «الاهداف» بياخد آخر صف طارئ
-    top = max(9, len(basic), len(emergency) - 1)
-    prison_n = max(7, len(prison))
-    shift = (top - 9) + (prison_n - 7)
-    content = [["الخدمات الاساسية", "الخدمات الطارئة"]]
+    def emergency_side(row):
+        if row is None:
+            return None
+        return [_cell(name_of(row), 2)], _manning_pieces(row)
+
+    block = bool(targets or prison)
+    # صف «الاهداف» بياخد آخر صف طارئ (لو فيه كتلة أهداف/سجن)؛ غير كده الطوارئ كلها فوق
+    top = max(len(basic), len(emergency) - (1 if block else 0), 0)
+    result = [_row([_cell("الخدمات الاساسية", 2, True), _cell("الخدمات الطارئة", 3, True)], "title")]
     for i in range(top):
-        content.append([*pair(basic[i] if i < len(basic) else None, assignee),
-                        *pair(emergency[i] if i < len(emergency) else None, manning)])
-    content.append(["الاهداف", *pair(emergency[top] if len(emergency) > top else None, manning)])
+        _group(basic_side(basic[i] if i < len(basic) else None),
+               emergency_side(emergency[i] if i < len(emergency) else None), result)
+    if block:
+        emg = emergency[top] if len(emergency) > top else None
+        pieces = _manning_pieces(emg) if emg else [""]
+        result.append(_row([_cell("الاهداف", 2, True), _cell(name_of(emg), 2),
+                            _cell(pieces[0])], "head"))
+        # قطع القوام الإضافية (ضابط ثانٍ للخدمة الطارئة في صف الأهداف) تأخذ صفوفًا بعده
+        for extra in pieces[1:]:
+            result.append(_row([_cell(), _cell(), _cell("", 2), _cell(extra)]))
+        count = max(len(targets), 1 + len(prison) if prison else 0)
+        for j in range(count):
+            if targets and j == 0:
+                right = [_cell("مشرف الأهداف")], target_people(targets[0])
+            elif j < len(targets):
+                right = [_cell(name_of(targets[j]))], target_people(targets[j])
+            else:
+                right = None
+            if prison and j == 0:
+                left = [_cell("خدمات سجن قوات الامن", 3, True)], None
+            elif prison and j - 1 < len(prison):
+                item = prison[j - 1]
+                pname = name_of(item)
+                ptexts = _manning_pieces(item) if pname else [""]
+                if pname.startswith("فرد تأمين") and not ptexts[0]:
+                    ptexts = ["ــــــــــــــــــــ"]
+                left = [_cell(pname, 2)], ptexts
+            else:
+                left = None
+            _group(right, left, result)
+    result.append(_row([_cell("ضابط عظيم وأمن المعسكر الفرعي", 2, True), _cell("الخوارج", 3, True)],
+                       "tailhead"))
 
-    target_rows = targets[:8] + [{}] * max(0, 8 - len(targets))
-    prison_rows = prison + [{}] * (prison_n - len(prison))
-    target_person = lambda r: _people_text(r.get("officers")) or _people_text(r.get("commander"))
-    content.append(["مشرف الأهداف", target_person(target_rows[0]), "خدمات سجن قوات الامن"])
-    for i in range(prison_n):
-        p = prison_rows[i]
-        pname = p.get("label") or p.get("name") or ""
-        ptext = manning(p) if pname else ""
-        if pname.startswith("فرد تأمين") and not ptext:
-            ptext = "ــــــــــــــــــــ"
-        target = target_rows[i + 1] if i < 7 else {}
-        content.append([target.get("label") or target.get("name") or "",
-                        target_person(target), pname, ptext])
-    content.append(["ضابط عظيم وأمن المعسكر الفرعي", "الخوارج"])
+    # يمين الذيل: قائمة واحدة مسطّحة تحت «عمل بالادارة» — كل ضابط بدوره ونصه؛
+    # وضابط عظيم/أمن الإدارة يُضافان بنص «الدور + الفترة» (ويُدمجان في صف
+    # الضابط نفسه لو كان فيها أصلًا، كما في الأرشيف الحقيقي).
+    entries = {}
+    order = []
 
-    # الجزء الأخير: يمين = كتلة المعسكر الفرعي (صفّين) ثم عنوان «عمل بالادارة»
-    # وتحته صفوف العمل بالإدارة؛ شمال = قايمة الخوارج من أول صف. عدد الصفوف
-    # بيكبر مع البيانات (الأدنى زي الورقة الرسمية: 11 صف عمل بالإدارة) بدل
-    # ما يتقطّع أي حد — العمود الأول للحالة بيتدمج رأسيًا لكل مجموعة متتالية.
-    tail = tail_row_count(len(admin), len(outsiders))
+    def add_entry(person, text):
+        key = person.get("id") or id(person)
+        if key not in entries:
+            entries[key] = [_who(person), []]
+            order.append(key)
+        if text:
+            entries[key][1].append(text)
+
+    for row in admin:
+        if row.get("fixedSection"):
+            for person in row.get("officers") or []:
+                add_entry(person, "")
+        else:
+            add_entry(row, row.get("text") or "")
+    for title, values in ((SECTION_GREAT, great), (SECTION_SECURITY, security)):
+        for index, value in enumerate(values):
+            shift = str(value.get("shift") or ("صباحية" if index == 0 else "ليلية"))
+            shift = shift if shift.startswith("فترة") else f"فترة {shift}"
+            role = title if value.get("slot") is not False else (name_of(value) or title)
+            for person in value.get("officers") or []:
+                add_entry(person, f"{role} {shift}")
+    right_entries = [(entries[key][0], " + ".join(entries[key][1])) for key in order]
+
+    tail = max(2 + (1 + len(right_entries) if right_entries else 0), len(outsiders))
     statuses = [o.get("status_type") or o.get("reason") or "" for o in outsiders]
-    groups, continued, start = [], set(), 0
+    # عمود الحالة بيتدمج رأسيًا لكل مجموعة متتالية من نفس الحالة (راحة، فرقة…)
+    # — حسب البيانات، فمفيش اسم يتخبّى جوّه خلية «continue».
+    vmerge = {}
+    start = 0
     while start < len(statuses):
         end = start
         while statuses[start] and end + 1 < len(statuses) and statuses[end + 1] == statuses[start]:
             end += 1
         if end > start:
-            groups.append((TAIL_START + shift + start, TAIL_START + shift + end))
-            continued.update(range(start + 1, end + 1))
+            vmerge[start] = "restart"
+            vmerge.update({index: "continue" for index in range(start + 1, end + 1)})
         start = end + 1
     for i in range(tail):
-        outsider = outsiders[i] if i < len(outsiders) else {}
-        left = ["" if i in continued else statuses[i] if i < len(statuses) else "",
-                _who(outsider), _officer_desc(SECTION_OUTSIDERS, outsider)]
+        outsider = outsiders[i] if i < len(outsiders) else None
+        mark = vmerge.get(i)
+        left = [_cell("" if mark == "continue" else statuses[i] if i < len(statuses) else "",
+                      vm=mark),
+                _cell(_who(outsider) if outsider else ""),
+                _cell(_officer_desc(SECTION_OUTSIDERS, outsider) if outsider else "")]
         if i < 2:
             slot = subcamp[i] if i < len(subcamp) else {}
-            right = [slot.get("shift") or ("فترة صباحية" if i == 0 else "فترة ليلية"),
-                     _people_text(slot.get("officers"))]
-        elif i == 2:
-            content.append(["عمل بالادارة", *left])
+            result.append(_row([
+                _cell(slot.get("shift") or ("فترة صباحية" if i == 0 else "فترة ليلية")),
+                _cell(_people_text(slot.get("officers"))), *left]))
             continue
+        position = i - 2
+        if position == 0 and right_entries:
+            result.append(_row([_cell(SECTION_ADMIN_WORK, 2, True), *left], "tailhead"))
+            continue
+        index = position - 1
+        values = right_entries[index] if right_entries and 0 <= index < len(right_entries) \
+            else ("", "")
+        result.append(_row([_cell(values[0]), _cell(values[1]), *left]))
+    return result
+
+
+# ---------------------------------------------------------------- بناء XML
+
+def _el(tag, **attrs):
+    node = OxmlElement(tag)
+    for key, value in attrs.items():
+        node.set(qn("w:" + key), str(value))
+    return node
+
+
+def _border(name, value, size):
+    return _el("w:" + name, val=value, sz=size, space=0, color="auto")
+
+
+def _tc_borders(start, end, kind, first_body, grid_count):
+    """حدود الخلية بنفس تقاسيم الأرشيف: إطار double على الأطراف، فاصل single sz12
+    بين كتلتي اليمين واليسار، وحدود علوية/سفلية مميزة لصف العنوان وصفوف العناوين."""
+    borders = _el("w:tcBorders")
+    top = bottom = None
+    if kind == "title":
+        top, bottom = ("thinThickSmallGap", 24), ("threeDEmboss", 12)
+    elif kind == "head":
+        top, bottom = ("threeDEmboss", 12), ("threeDEmboss", 12)
+    elif kind == "tailhead":
+        top, bottom = ("single", 4), ("single", 4)
+    elif first_body:
+        top = ("threeDEmboss", 12)
+    if top:
+        borders.append(_border("top", *top))
+    if start == 0:
+        borders.append(_border("left", "double", 4))
+    elif start == 2:
+        borders.append(_border("left", "single", 12))
+    if bottom:
+        borders.append(_border("bottom", *bottom))
+    if end == grid_count:
+        borders.append(_border("right", "double", 4))
+    elif end == 2:
+        borders.append(_border("right", "single", 12))
+    return borders if len(borders) else None
+
+
+def _set_rpr_size(rpr, half):
+    for tag in ("w:sz", "w:szCs"):
+        node = rpr.find(qn(tag))
+        if node is None:
+            node = OxmlElement(tag)
+            rpr.append(node)
+        node.set(qn("w:val"), str(half))
+
+
+def _prototypes(table):
+    """pPr وrPr نموذجين من خلية عادية في القالب (الفقرة بـjc=center وrFonts الحقيقي)."""
+    tc = table._tbl.tr_lst[1].tc_lst[1]
+    paragraph = tc.find(qn("w:p"))
+    ppr = deepcopy(paragraph.find(qn("w:pPr")))
+    rpr = deepcopy(paragraph.find(qn("w:r")).find(qn("w:rPr")))
+    return ppr, rpr
+
+
+def _build_tc(cell, start, grid, kind, first_body, protos, half):
+    ppr_proto, rpr_proto = protos
+    span = cell["span"]
+    tc = OxmlElement("w:tc")
+    pr = OxmlElement("w:tcPr")
+    pr.append(_el("w:tcW", w=sum(grid[start:start + span]), type="dxa"))
+    if span > 1:
+        pr.append(_el("w:gridSpan", val=span))
+    if cell["vm"]:
+        pr.append(_el("w:vMerge", val="restart") if cell["vm"] == "restart" else _el("w:vMerge"))
+    borders = _tc_borders(start, start + span, kind, first_body, len(grid))
+    if borders is not None:
+        pr.append(borders)
+    if cell["head"]:
+        pr.append(_el("w:shd", val="clear", color="auto", fill=SHADE,
+                      themeFill="background1", themeFillShade="D9"))
+    else:
+        pr.append(_el("w:shd", val="clear", color="auto", fill="auto"))
+    pr.append(_el("w:vAlign", val="center"))
+    tc.append(pr)
+    paragraph = OxmlElement("w:p")
+    ppr = deepcopy(ppr_proto)
+    mark = ppr.find(qn("w:rPr"))
+    if mark is not None:
+        _set_rpr_size(mark, half)
+    paragraph.append(ppr)
+    if cell["text"]:
+        run = OxmlElement("w:r")
+        rpr = deepcopy(rpr_proto)
+        _set_rpr_size(rpr, half)
+        run.append(rpr)
+        text = OxmlElement("w:t")
+        text.text = cell["text"]
+        text.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+        run.append(text)
+        paragraph.append(run)
+    tc.append(paragraph)
+    return tc
+
+
+def _build_tr(row, grid, protos, half, head_half, first_body):
+    tr = OxmlElement("w:tr")
+    minimum = ROW_MINIMA.get(row["kind"], MIN_BODY)
+    tr_pr = OxmlElement("w:trPr")
+    tr_pr.append(_el("w:trHeight", val=minimum))      # atLeast: بلا hRule كالأرشيف
+    tr.append(tr_pr)
+    start = 0
+    for cell in row["cells"]:
+        size = head_half if cell["head"] else half
+        tr.append(_build_tc(cell, start, grid, row["kind"], first_body, protos, size))
+        start += cell["span"]
+    return tr
+
+
+MEASURE_FONT = "Times New Roman"   # الحروف العربية تُعرض بـ TNR عريض في Word الحقيقي
+# مدى عرض كل عمود (twips) كما لُوحظ في ملفات الأرشيف الحقيقية، والمجموع الثابت.
+COLUMN_RANGES = ((1552, 1835), (2694, 3268), (558, 887), (1701, 2290), (2938, 3520))
+GRID_TOTAL = 10763
+GRID_STEP = 40             # خطوة تعديل الأعمدة في البحث المحلي (twips)
+GRID_PASSES = 3
+NEED_PERCENTILE = .9
+
+
+def _row_cells(rows):
+    """[(row_index, start_col, cell)] لكل خلية فعلية."""
+    for r, row in enumerate(rows):
+        start = 0
+        for cell in row["cells"]:
+            yield r, start, cell
+            start += cell["span"]
+
+
+def _measure(rows, grid_pt, half, head_half):
+    """تقدير ارتفاع الجدول (للاختيار بين مقاسات الخط فقط، لا لفرض ارتفاعات)."""
+    spans = {}                                   # (row, start) -> عدد الصفوف المدموجة
+    open_cells = {}
+    for r, start, cell in _row_cells(rows):
+        if cell["vm"] == "restart":
+            open_cells[start] = (r, start)
+            spans[(r, start)] = 1
+        elif cell["vm"] == "continue" and start in open_cells:
+            spans[open_cells[start]] += 1
         else:
-            row = admin[i - 3] if i - 3 < len(admin) else {}
-            description = row.get("text") or row.get("name") or ""
-            if row.get("fixedSection") and row.get("shift"):
-                description = f"{description} {row['shift']}".strip()
-            right = [_who(row), description]
-        content.append([*right, *left])
-    return content, groups, top, prison_n
+            open_cells.pop(start, None)
+    spec = []
+    for r, row in enumerate(rows):
+        cells = []
+        start = 0
+        for cell in row["cells"]:
+            size = (head_half if cell["head"] else half) / 2
+            item = {"text": cell["text"], "size_pt": size, "bold": True,
+                    "font": MEASURE_FONT, "colspan": cell["span"],
+                    "hmargins": 2 * CELL_MARGIN_PT}
+            if spans.get((r, start), 1) > 1:
+                item["rowspan"] = spans[(r, start)]
+            cells.append(item)
+            cells.extend({"text": "", "size_pt": size} for _ in range(cell["span"] - 1))
+            start += cell["span"]
+        spec.append(cells)
+    _total, heights = estimate_table_height(spec, grid_pt)
+    heights = [max(height, ROW_MINIMA.get(row["kind"], MIN_BODY) / 20) + ROW_BORDER_PT
+               for height, row in zip(heights, rows)]
+    return sum(heights)
 
 
-def build_docx(board):
-    """Build every day using the 9/28–9/29 six-column archive family."""
-    document = Document()
-    _set_rtl_doc(document)
-    sect = document.sections[0]
-    sect.orientation = WD_ORIENT.PORTRAIT
-    sect.page_width, sect.page_height = Twips(11906), Twips(16838)
-    sect.top_margin, sect.right_margin = Twips(249), Twips(720)
-    sect.bottom_margin, sect.left_margin = Twips(142), Twips(567)
-    sect.header_distance = sect.footer_distance = Twips(720)
-    style = document.styles["Normal"]
-    style.font.name = "Bahnschrift SemiBold"
-    style.font.size = Pt(10.5)
-    document.add_paragraph()
+def _content_grid(rows, half):
+    """عرض كل عمود (twips) بحسب أطول نص فعلي فيه، داخل مدى الأرشيف الحقيقي.
 
-    content, groups, top, prison_n = _latest_content(board)
-    shift = (top - 9) + (prison_n - 7)
-    row_count = len(content)
-    table = document.add_table(rows=row_count, cols=6)
-    table.style = "Table Grid"
-    table.autofit = False
-    _rtl_table(table)
-    widths = [Twips(x) for x in (1694, 9, 2974, 711, 2129, 3248)]
-    for col, width in zip(table.columns, widths):
-        col.width = width
-    # الصفوف الأساسية/الطارئة (top) وخدمات السجن (prison_n) بتكبر مع البيانات؛ الأدنى زي الورقة
-    shapes = ([[3, 3]] + [[2, 1, 2, 1]] * (top - 1) + [[1, 2, 2, 1], [3, 2, 1], [2, 1, 3]] +
-              [[2, 1, 2, 1]] * prison_n + [[3, 3], [2, 1, 1, 1, 1], [2, 1, 1, 1, 1],
-                                           [3, 1, 1, 1]] +
-              [[2, 1, 1, 1, 1]] * (row_count - 23 - shift))
-    for index, shape in enumerate(shapes):
-        _merge_shape(table, index, shape)
+    1) احتياج كل عمود = النسبة 90% من عرض نصوص خلاياه في سطر واحد (حتى لا
+       يتحكم نص شاذ طويل في العمود)، وخلايا الدمج الأفقي تُحمَّل على عمودها الأخير.
+    2) تُقصّ الاحتياجات في المدى ثم تُوزَّع على المجموع الثابت: الزيادة على الأعمدة
+       الأكثر احتياجًا، والنقص من الأعمدة فوق حدّها الأدنى بالتناسب."""
+    meter = TextMeter()
+    size = half / 2
+    singles = [[] for _ in COLUMN_RANGES]
+    spanned = []
+    for _r, start, cell in _row_cells(rows):
+        if cell["head"] or not cell["text"] or cell["vm"] == "continue":
+            continue
+        width = (max(meter.text_width(line, size, True, MEASURE_FONT)
+                     for line in cell["text"].splitlines() or [""])
+                 + 2 * CELL_MARGIN_PT + 3) * 20
+        if cell["span"] == 1:
+            singles[start].append(width)
+        else:
+            spanned.append((start, cell["span"], width))
+    need = [percentile_need(values, NEED_PERCENTILE) for values in singles]
+    for start, span, width in spanned:
+        last = start + span - 1
+        need[last] = max(need[last], width - sum(
+            min(max(need[c], COLUMN_RANGES[c][0]), COLUMN_RANGES[c][1]) for c in range(start, last)))
+    return fit_widths(need, COLUMN_RANGES, GRID_TOTAL)
 
-    # عمود الحالة في قايمة الخوارج بيتدمج رأسيًا لكل مجموعة متتالية من نفس
-    # الحالة (راحة، فرقة…) — حسب البيانات مش شكل ثابت، فمفيش اسم يتخبّى
-    # جوّه خلية «continue». الخلية دي هي قبل الأخيرة التلاتة من يمين الصف.
-    for first, last in groups:
-        for index in range(first, last + 1):
-            status_cell = _physical_cells(table.rows[index])[-3]
-            _set_vmerge(status_cell, "restart" if index == first else "continue")
 
-    header_rows = {0, top + 1, top + 2, 19 + shift, 22 + shift}
-    for index, values in enumerate(content):
-        for cell, value in zip(_physical_cells(table.rows[index]), values):
-            _cell_text(cell, value, bold=True, size=10.5, center=index in header_rows)
-        if index in header_rows:
-            # صف 22 عنوانه بس على اليمين؛ باقيه خاص بقايمة الخوارج
-            cells = _physical_cells(table.rows[index])
-            for cell in (cells[:1] if index == 22 + shift else cells):
-                _shade(cell, "D9D9D9")
+def _tune_grid(rows, grid, half, head_half):
+    """بحث محلي صغير: ينقل GRID_STEP بين عمودين طالما قلّ ارتفاع الجدول المقدَّر
+    (فتقلّ الأسطر الملتفّة)، مع بقاء كل عمود داخل مدى الأرشيف والمجموع ثابتًا."""
+    best = _measure(rows, [w / 20 for w in grid], half, head_half)
+    for _ in range(GRID_PASSES):
+        improved = False
+        for give in range(len(grid)):
+            for take in range(len(grid)):
+                if give == take:
+                    continue
+                trial = list(grid)
+                trial[give] -= GRID_STEP
+                trial[take] += GRID_STEP
+                if (trial[give] < COLUMN_RANGES[give][0] or trial[take] > COLUMN_RANGES[take][1]):
+                    continue
+                height = _measure(rows, [w / 20 for w in trial], half, head_half)
+                if height < best - .01:
+                    best, grid, improved = height, trial, True
+        if not improved:
+            break
+    return grid, best
 
-    widths_pt = [width.pt for width in widths]
-    spec_rows = []
-    for shape, row in zip(shapes, table.rows):
-        measured = []
-        for cell, span in zip(_physical_cells(row), shape):
-            measured.append({"text": cell.text, "size_pt": 10.5, "bold": True,
-                             "font": "Bahnschrift SemiBold", "colspan": span})
-            measured.extend({"text": "", "size_pt": 10.5, "colspan": 1}
-                            for _ in range(span - 1))
-        spec_rows.append(measured)
-    fit = fit_table({"rows": spec_rows, "grid_widths_pt": widths_pt},
-                    usable_height_pt(sect))
-    apply_fit_to_docx_table(table, fit)
-    tail = document.add_paragraph()
-    tail.paragraph_format.space_before = Pt(0)
-    tail.paragraph_format.space_after = Pt(0)
-    set_run_font(tail.add_run(), "Bahnschrift SemiBold", 1, False)
-    normalize_document_runs(document)
+
+def _choose_size(rows):
+    """يرجع (half, head_half, total, usable, grid): أكبر مقاس خط يتسع في صفحة،
+    وعرض الأعمدة محسوب من نصوص اليوم نفسها عند ذلك المقاس."""
+    usable = PAGE_HEIGHT_PT - TABLE_TOP_PT - TRAILING_PT
+    cap = _size_cap_half(len(rows))
+    total, grid = 0.0, None
+    for half in FONT_SIZES_HALF:
+        if half > cap:
+            continue
+        head_half = 24 if half in (22, 24) else half
+        grid = _content_grid(rows, half)
+        total = _measure(rows, [w / 20 for w in grid], half, head_half)
+        if total > usable * FIT_TARGET:
+            grid, total = _tune_grid(rows, grid, half, head_half)
+        if total <= usable * FIT_TARGET:
+            return half, head_half, total, usable, grid
+    # لا مقاس يحقق الهدف: نستخدم أصغر مقاس حقيقي (8pt) — التقدير مجرد دليل
+    # والملفات الحقيقية تُعدّل يدويًا؛ نرفض فقط لو التقدير مستحيل بوضوح.
+    if total <= usable * IMPOSSIBLE_RATIO:
+        return half, head_half, total, usable, grid
+    raise PageFitError("تعذر احتواء اليومية في صفحة واحدة (نسبة تقديرية %.2f)" % (total / usable))
+
+
+def _title_pieces(day):
+    d = date.fromisoformat(day)
+    return ["الخدمات عن يوم", " ", WEEKDAY_BY_INDEX[d.weekday()], " ", str(d.day), "/",
+            str(d.month), f"/{d.year}م"]
+
+
+def _set_title(document, day):
+    """نص الهيدر في runs القالب نفسها (Sultan bold 18pt مسطّر) — النص فقط يتغيّر."""
+    paragraph = document.sections[0].header.paragraphs[0]
+    runs = paragraph.runs
+    try:
+        pieces = _title_pieces(day)
+    except ValueError:
+        pieces = [str(day)]
+    for run, text in zip(runs, pieces):
+        run.text = text
+    for extra in runs[len(pieces):]:
+        extra._r.getparent().remove(extra._r)
+
+
+def clinic_search_ids(data, day):
+    """معرّفات أعضاء مجموعتي «طبي» (العيادة) و«بحث» في هذا اليوم."""
+    from .constants import ROLE_MEDICAL, ROLE_SEARCH
+    from .dated import groups_on
+    groups = groups_on(data, day)
+    return set(groups.get(ROLE_MEDICAL) or []) | set(groups.get(ROLE_SEARCH) or [])
+
+
+def strip_clinic_search(board, excluded_ids):
+    """نسخة من اليومية بلا العيادة والبحث (ملف Word فقط، الشاشة لا تتغيّر).
+
+    تُحذف: صفوف الضباط (راحات/خارج/عمل بالإدارة/صافي/...) لأعضاء المجموعتين،
+    وصفوف الخدمات ذات التصنيف «طبية»، ويُزال هؤلاء الضباط من قوائم ضباط/قادة
+    الخدمات والأهداف والفترات الثابتة (تبقى الخدمة نفسها شاغرة)."""
+    excluded = set(excluded_ids or ())
+    sections = []
+    for section in board.get("sections") or []:
+        rows = []
+        for row in section.get("rows") or []:
+            if row.get("kind") == "طبية":
+                continue
+            if row.get("id") in excluded and "officers" not in row:
+                continue
+            row = dict(row)
+            for key in ("officers", "commander", "personnel"):
+                if isinstance(row.get(key), list):
+                    row[key] = [p for p in row[key] if (p or {}).get("id") not in excluded]
+            rows.append(row)
+        sections.append({**section, "rows": rows})
+    return {**board, "sections": sections}
+
+
+def build_docx(board, exclude_ids=()):
+    """يومية تفصيلية من قالب نسخة ملف أرشيف حقيقي: الصفوف تُبنى من البيانات.
+
+    `exclude_ids`: ضباط العيادة/البحث الذين لا يظهرون في ملف Word."""
+    if exclude_ids:
+        board = strip_clinic_search(board, exclude_ids)
+    document = Document(TEMPLATE)
+    _set_title(document, board.get("date") or "")
+    table = document.tables[0]
+    protos = _prototypes(table)
+    rows = _latest_content(board)
+    half, head_half, total, usable, grid = _choose_size(rows)
+    for col, width in zip(table._tbl.tblGrid.findall(qn("w:gridCol")), grid):
+        col.set(qn("w:w"), str(width))
+    for tr in list(table._tbl.tr_lst):
+        table._tbl.remove(tr)
+    for index, row in enumerate(rows):
+        table._tbl.append(_build_tr(row, grid, protos, half, head_half, index == 1))
+    order_xml_children(document)
     LAST_FIT.clear()
-    LAST_FIT.update(scale=fit.scale, ratio=fit.ratio, total_pt=fit.total_pt,
-                    usable_pt=fit.usable_pt)
+    LAST_FIT.update(scale=round(half / 24, 2), grid=list(grid), ratio=total / usable, total_pt=total,
+                    usable_pt=usable, size_half_points=half, rows=len(rows))
     buf = BytesIO()
     document.save(buf)
     buf.seek(0)
     return buf
-
-
-LAST_FIT = {}

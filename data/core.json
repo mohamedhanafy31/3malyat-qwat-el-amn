@@ -2245,7 +2245,7 @@
       "post": "قائد هدف كهرباء عتاقة",
       "section": "الحراسات المشددة",
       "rest_system": "أسبوعية",
-      "rest_day": "الأربعاء",
+      "rest_day": "الثلاثاء",
       "status": "active",
       "id": "OFF-039",
       "history": [
@@ -2262,9 +2262,20 @@
           "post": "قائد هدف كهرباء عتاقة",
           "section": "الحراسات المشددة",
           "search_attached": false
+        },
+        {
+          "from": "2026-10-27",
+          "role": "نقيب",
+          "post": "قائد هدف كهرباء عتاقة",
+          "section": "الحراسات المشددة",
+          "search_attached": false,
+          "rest_system": "أسبوعية",
+          "rest_day": "الثلاثاء"
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": ""
     },
     {
       "name": "عبدالرحمن طارق محمد خميس",

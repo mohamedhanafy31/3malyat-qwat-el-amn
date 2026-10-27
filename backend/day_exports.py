@@ -6,7 +6,7 @@ from . import campaign, counts
 from .afraad import build_afraad
 from .afraad_export import build_docx as build_afraad_docx
 from .board import build_board
-from .board_export import build_docx as build_board_docx
+from .board_export import build_docx as build_board_docx, clinic_search_ids
 from .campaign_export import build_docx as build_campaign_docx
 from .day_open import needs_prepare, prepare
 from .duty import summarise
@@ -28,7 +28,7 @@ def build_board_bytes(day):
     preview = deepcopy(data)
     if needs_prepare(data, day, include_inspections=True):
         prepare(preview, day, include_inspections=True)
-    return _bytes(build_board_docx(build_board(preview, day)))
+    return _bytes(build_board_docx(build_board(preview, day), clinic_search_ids(preview, day)))
 
 
 def build_duty_bytes(day):

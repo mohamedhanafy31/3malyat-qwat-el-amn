@@ -36,7 +36,7 @@ function termRosterRow(t) {
         ${hasPeriod
           ? `<span class="roster-period num">${shortDate(t.start)} – ${shortDate(t.end)}</span>
              <span class="chip w">${countLabel(t.days, "يوم")}</span>`
-          : `<span class="roster-period muted">بدون تاريخ</span>`}
+          : ""}
         <div class="roster-actions">
           <button class="mini" data-action="openTerm" data-id="${esc(t.id)}"
             title="تعديل الالتحاق">تعديل</button>

@@ -95,7 +95,9 @@
       "counts_in_summary": true,
       "mission_transport": true,
       "note": "",
-      "pos": 0
+      "pos": 0,
+      "officer_command_required": false,
+      "personnel_command_required": true
     },
     {
       "id": "AS-0006",
@@ -118,7 +120,9 @@
       "counts_in_summary": true,
       "mission_transport": true,
       "note": "",
-      "pos": 1
+      "pos": 1,
+      "officer_command_required": false,
+      "personnel_command_required": true
     },
     {
       "id": "AS-0009",
@@ -141,13 +145,15 @@
       "counts_in_summary": true,
       "mission_transport": false,
       "note": "",
-      "pos": 2
+      "pos": 2,
+      "officer_command_required": false,
+      "personnel_command_required": true
     },
     {
       "id": "AS-0010",
       "section": "الخدمات الطارئة",
       "name": "مأمورية شئون المجندين",
-      "kind": "خارجية",
+      "kind": "داخلية",
       "shift": "صباحية",
       "officer_ids": [
         "OFF-015"
@@ -168,7 +174,9 @@
       "counts_in_summary": true,
       "mission_transport": true,
       "note": "",
-      "pos": 3
+      "pos": 3,
+      "officer_command_required": true,
+      "personnel_command_required": true
     },
     {
       "id": "AS-0011",

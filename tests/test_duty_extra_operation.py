@@ -105,6 +105,14 @@ def test_net_officer_is_listed_once_even_when_flagged(client):
     admin = _board_section(client, "عمل بالإدارة")["rows"]
     assert [r["id"] for r in admin].count("OFF-002") == 1
     assert next(r for r in admin if r["id"] == "OFF-002")["text"] == "متابعة"
+    assert "OFF-002" not in [r["id"] for r in _board_section(client, "الصافي")["rows"]]
+
+
+def test_net_officer_needs_operation_text_before_moving_to_admin(client):
+    response = client.put(f"/api/duty/{DAY}/OFF-002", json={"admin_work": True})
+    assert response.status_code == 400
+    assert "النص التشغيلي" in response.get_json()["error"]
+    assert "OFF-002" in [r["id"] for r in _board_section(client, "الصافي")["rows"]]
 
 
 def test_flag_is_ignored_for_an_officer_among_the_outsiders(client):
@@ -126,5 +134,7 @@ def test_duty_export_prints_service_plus_extra(client):
 def test_duty_export_lists_net_names_on_separate_lines(client):
     response = client.get(f"/api/duty/{DAY}/export.docx")
     document = Document(io.BytesIO(response.data))
-    cell = document.tables[1].rows[1].cells[15]
+    # الملف الحقيقي (17 عمودًا من يوم 16): خلية الأسماء آخر عمود، فقرة لكل ضابط
+    cell = document.tables[1].rows[1].cells[16]
     assert "\n" in cell.text and cell.text.count("/") >= 2
+    assert all(" / " in line for line in cell.text.split("\n"))

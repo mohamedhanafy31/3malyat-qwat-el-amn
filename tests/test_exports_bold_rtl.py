@@ -19,13 +19,19 @@ def test_every_table_is_bold_and_rtl(client, kind):
         for row in table.rows:
             for tc in row._tr.tc_lst:
                 for paragraph in _Cell(tc, table).paragraphs:
-                    assert paragraph._p.pPr.find(qn("w:bidi")) is not None
+                    if kind not in ("duty", "board", "afraad"):
+                        assert paragraph._p.pPr.find(qn("w:bidi")) is not None
                     for run in paragraph.runs:
                         runs += 1
                         rpr = run._r.rPr
-                        assert run.bold is True and rpr.find(qn("w:bCs")).get(qn("w:val")) == "1"
+                        # يومية الضباط تنسخ خصائص الملف الحقيقي: <w:bCs/> بلا val
+                        assert run.bold is True and rpr.find(qn("w:bCs")).get(qn("w:val")) in ("1", None)
                         assert rpr.find(qn("w:rtl")) is not None
     assert runs
+    if kind in ("duty", "board", "afraad"):
+        # الاتجاه RTL موروث من نمط Normal في الملف الحقيقي (لا bidi صريح في الفقرات)
+        normal = document.styles["Normal"].element
+        assert normal.pPr.find(qn("w:bidi")) is not None
 
 
 def test_run_and_paragraph_children_follow_schema_order(client):

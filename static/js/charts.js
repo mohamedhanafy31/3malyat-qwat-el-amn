@@ -35,9 +35,10 @@ function hbarScales(x = {}) {
   };
 }
 /* أعمدة رأسية وخطوط زمنية: أول فئة على اليمين */
-function vbarScales(y = {}) {
+function vbarScales(y = {}, x = {}) {
+  const { ticks: xTicks, ...xRest } = x;
   return {
-    x: { reverse: true, grid: { display: false }, ticks: { font: { size: 12 }, color: CT.inkStrong } },
+    x: { reverse: true, grid: { display: false }, ticks: { font: { size: 12 }, color: CT.inkStrong, ...xTicks }, ...xRest },
     y: { position: "right", beginAtZero: true, grid: { color: CT.grid }, ticks: { font: { size: 12 } }, ...y },
   };
 }

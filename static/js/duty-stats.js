@@ -33,8 +33,8 @@ function drawLoadChart(data) {
   const values = rows.map(r => r.total);
   const avg = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0;
   // اللون بيقول المسافة عن المتوسط — والمفتاح فوق الرسم بيشرح ده
-  const colorOf = v => v > avg * 1.3 ? CT.gold : v < avg * 0.7 ? CT.navySoft : CT.navy;
-  chartLegend("loadChart", [["gold", "أعلى من المتوسط بوضوح"], ["navy", "قريب من المتوسط"], ["soft", "أقل من المتوسط بوضوح"]]);
+  const colorOf = v => v > avg * 1.3 ? CT.warn : v < avg * 0.7 ? CT.navySoft : CT.navy;
+  chartLegend("loadChart", [["warn", "أعلى من المتوسط بوضوح"], ["navy", "قريب من المتوسط"], ["soft", "أقل من المتوسط بوضوح"]]);
   new Chart(document.getElementById("loadChart"), {
     type: "bar",
     data: { labels, datasets: [{ data: values, backgroundColor: values.map(colorOf),
@@ -161,11 +161,11 @@ function drawWeekdayChart(data) {
   const byName = Object.fromEntries(data.by_weekday.map(w => [w.weekday, w]));
   const values = order.map(w => byName[w]?.services || 0);
   const maxVal = values.length ? Math.max(...values) : 0;
-  chartLegend("weekdayChart", [["gold", "اليوم الأعلى تشغيلًا"], ["navy", "باقي الأيام"]]);
+  chartLegend("weekdayChart", [["warn", "اليوم الأعلى تشغيلًا"], ["navy", "باقي الأيام"]]);
   new Chart(document.getElementById("weekdayChart"), {
     type: "bar",
     data: { labels: order, datasets: [{ data: values,
-      backgroundColor: values.map(v => v === maxVal && v > 0 ? CT.gold : CT.navy),
+      backgroundColor: values.map(v => v === maxVal && v > 0 ? CT.warn : CT.navy),
       borderRadius: 6, borderSkipped: false, maxBarThickness: 44 }] },
     options: {
       ...CHART_BASE,

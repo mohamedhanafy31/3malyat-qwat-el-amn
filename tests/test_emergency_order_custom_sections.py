@@ -48,7 +48,8 @@ def test_board_export_keeps_every_emergency_and_custom_row_in_time_order():
         assert f"طارئة {i}" in text
     assert "تأمين مباراة" in text and "الباب الرئيسي" in text
     assert text.index("الباب الرئيسي") < text.index("تأمين مباراة")     # 8ص قبل 2:30م
-    assert len(table.rows) > 34                                         # الجدول كبر بدل ما يقطع
+    # لا صفوف حشو: عنوان + 11 صف طوارئ/مخصص + «الاهداف» + عنوان الخوارج + صفّا المعسكر الفرعي
+    assert len(table.rows) >= 15
 
 
 def test_prison_rows_beyond_seven_are_kept():

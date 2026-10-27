@@ -57,7 +57,6 @@ function formatCreatedBy(u) {
 
 function userRow(u) {
   const toggleLabel = u.active ? "إيقاف" : "تفعيل";
-  const toggleDanger = u.active ? "danger" : "";
 
   return `<tr>
     <td class="font-mono" dir="ltr"><strong>${esc(u.username)}</strong></td>
@@ -69,8 +68,10 @@ function userRow(u) {
     <td class="wrap">
       <div class="actions">
         <button type="button" class="mini" data-action="editUser" data-id="${esc(u.id)}" title="تعديل الاسم والصلاحية">تعديل</button>
-        <button type="button" class="mini ${toggleDanger}" data-action="toggleUser" data-id="${esc(u.id)}" title="${toggleLabel} الحساب">${toggleLabel}</button>
-        <button type="button" class="mini" data-action="resetUserPassword" data-id="${esc(u.id)}" title="إعادة تعيين كلمة المرور">كلمة المرور</button>
+        ${rowMenu([
+          {action: "resetUserPassword", id: u.id, label: "كلمة المرور"},
+          {action: "toggleUser", id: u.id, label: toggleLabel, danger: !!u.active},
+        ])}
       </div>
     </td>
   </tr>`;

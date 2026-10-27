@@ -150,14 +150,18 @@ ACTIONS.openAssign = id => {
   // النص القديم الكامل بيظهر بس لو موجود — الأيام الجديدة مفيهاش غير الإضافي
   $("#assignNote").value = row.note || "";
   $("#assignNoteRow").classList.toggle("hidden", !row.note);
-  // الضابط في الخوارج (راحة/حالة/تقصيرة) مالوش خدمة تتكرر في «عمل بالإدارة»
-  // والصافي (من غير خدمة) موجود في «عمل بالإدارة» تلقائيًا
-  const outside = row.group === "خوارج", net = row.group === "صافي";
-  $("#assignAdmin").checked = !!row.admin_work;
-  $("#assignAdmin").disabled = outside || net;
+  // التقصيرة علامة على تشغيل الضابط وليست «خارج» في اليومية التفصيلية.
+  // مدير/وكيل الإدارة يظهران تلقائيًا، وباقي الصافي يمكن نقله لعمل الإدارة
+  // صراحةً بعد كتابة نصه التشغيلي.
+  const outside = row.group === "خوارج" && row.bucket !== "تقصيرة";
+  const automaticAdmin = ["مدير الإدارة", "وكيل الإدارة"].includes(row.command_role);
+  const net = row.group === "صافي" || (row.bucket === "تقصيرة" && !row.services.length);
+  $("#assignAdmin").checked = !outside && (automaticAdmin || !!row.admin_work);
+  $("#assignAdmin").disabled = outside || automaticAdmin;
   $("#assignAdminHint").textContent = outside
     ? "الضابط في الخوارج النهارده — مفيش نص تشغيلي يتضاف"
-    : net ? "الضابط صافي (بدون خدمة) — موجود في «عمل بالإدارة» تلقائيًا"
+    : automaticAdmin ? `${row.command_role} — يظهر تلقائيًا في «عمل بالإدارة» ما لم يكن من الخوارج`
+    : net ? "الضابط صافي — فعّل الخيار بعد كتابة تشغيله لنقله إلى «عمل بالإدارة»"
     : "النص التشغيلي الكامل (خدمته + الإضافي) يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية، ويفضل في مكان خدمته";
   updateAssignPreview();
   // الضابط في راحة اليوم ده — إيقافها من هنا مباشرة، من غير ما تروح صفحة الراحات
@@ -254,8 +258,17 @@ $("#assignNote").oninput = updateAssignPreview;
 $("#assignForm").onsubmit = async e => {
   e.preventDefault();
   const status = $("#assignStatus").value;
+  const row = DUTY.rows.find(r => r.id === $("#assignPerson").value);
+  const automaticAdmin = ["مدير الإدارة", "وكيل الإدارة"].includes(row?.command_role);
+  if (!automaticAdmin && $("#assignAdmin").checked
+      && ![$("#assignNote").value.trim(), $("#assignExtra").value.trim(), ...(row?.services || []).map(s => s.name)]
+        .some(Boolean)) {
+    showToast("اكتب النص التشغيلي قبل إضافة الضابط إلى عمل بالإدارة", true);
+    $("#assignExtra").focus(); return;
+  }
   const body = {taqseera: $("#assignTaq").checked, status, note: $("#assignNote").value,
-    extra: $("#assignExtra").value, admin_work: $("#assignAdmin").checked};
+    extra: $("#assignExtra").value,
+    admin_work: automaticAdmin ? !!row.admin_work : $("#assignAdmin").checked};
   if (BOUNDED_STATUSES.includes(status)) {
     const end = $("#assignStatusEnd").value;
     if (!end) { showToast(`حدد «حتى يوم» لحالة ${status}`, true); $("#assignStatusEnd").focus(); return; }
@@ -268,7 +281,6 @@ $("#assignForm").onsubmit = async e => {
     if (!details) { showToast(`اكتب تفاصيل ${status}`, true); $("#assignStatusDetails").focus(); return; }
     body.status_title = title; body.status_details = details;
   }
-  const row = DUTY.rows.find(r => r.id === $("#assignPerson").value);
   if (!status && row?.status_source === "period") {
     // «بدون» مابيغيّرش الحالة الممتدة — الإنهاء والإلغاء لهم زرارين صريحين فوق
     showToast("لإنهاء الحالة استخدم «إنهاء الحالة من هذا اليوم»، ولإلغاء تسجيلها استخدم «إلغاء تسجيل الحالة بالكامل»", true); return;

@@ -30,9 +30,11 @@ function vehicleRow(v) {
     <td class="wrap">${v.notes ? esc(v.notes) : "<span class='muted'>—</span>"}</td>
     <td class="col-actions"><div class="actions">
       <button class="mini" data-action="editVehicle" data-id="${esc(v.id)}">تعديل</button>
-      <button class="mini ${v.status === "disabled" ? "ok" : "bad"}" data-action="${stateAction.action}" data-id="${esc(v.id)}">${stateAction.label}</button>
-      <button class="mini" data-action="${archiveAction.action}" data-id="${esc(v.id)}">${archiveAction.label}</button>
-      <button class="mini bad" data-action="deleteVehicle" data-id="${esc(v.id)}" data-extra="${dataAttr({name: v.plate})}">حذف</button>
+      ${rowMenu([
+        {action: stateAction.action, id: v.id, label: stateAction.label},
+        {action: archiveAction.action, id: v.id, label: archiveAction.label},
+        {action: "deleteVehicle", id: v.id, extra: {name: v.plate}, label: "حذف", danger: true},
+      ])}
     </div></td>
   </tr>`;
 }

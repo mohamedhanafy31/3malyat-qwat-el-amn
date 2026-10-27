@@ -4,20 +4,16 @@
 {% endblock %}
 
 {% block content %}
-<section class="mission-dispatch" aria-labelledby="missionDispatchTitle">
-  <div class="mission-dispatch-head">
-    <div>
-      <span class="mission-kicker">كشف التحرك اليومي</span>
-      <h2 id="missionDispatchTitle">المأموريات والتراحيل</h2>
-      <p id="missionDayLabel">الخدمات المحددة من اليومية التفصيلية</p>
-    </div>
-    <div class="mission-day-nav" aria-label="اختيار اليوم">
-      <button class="mini" type="button" id="missionPrev" aria-label="اليوم السابق">السابق</button>
-      <label><span class="sr-only">تاريخ الكشف</span><input id="missionDay" type="date"></label>
-      <button class="mini" type="button" id="missionNext" aria-label="اليوم التالي">التالي</button>
-    </div>
+<div class="toolbar">
+  <div class="tb-group" role="group" aria-label="التنقل بين الأيام">
+    <button class="mini" type="button" id="missionPrev">{{ icon('chevron-prev') }} السابق</button>
+    <input type="date" id="missionDay" class="select" aria-label="تاريخ الكشف">
+    <button class="mini" type="button" id="missionNext">التالي {{ icon('chevron-next') }}</button>
+    <button class="mini day-jump" type="button" id="missionToday">اليوم</button>
   </div>
+</div>
 
+<section class="mission-dispatch">
   <div class="mission-summary" aria-live="polite">
     <div><span>إجمالي التحركات</span><strong id="missionTotal">—</strong></div>
     <div class="external"><span>خارجية</span><strong id="missionExternalCount">—</strong></div>
@@ -28,7 +24,7 @@
     <section class="mission-lane external" aria-labelledby="externalTitle">
       <header>
         <span class="mission-lane-mark" aria-hidden="true">خ</span>
-        <div><h3 id="externalTitle">خارجية</h3><p>خارج نطاق المعسكر أو الإدارة</p></div>
+        <div><h3 id="externalTitle">خارجية</h3><p>جهة أخرى هي اللي بتدير المأمورية والإدارة بتدّي قوة بس — زي التراحيل وحملة الأمن الوطني</p></div>
         <strong id="externalBadge">0</strong>
       </header>
       <div id="externalMissions" class="mission-card-list">{{ skeleton("cards", 2) }}</div>
@@ -36,7 +32,7 @@
     <section class="mission-lane internal" aria-labelledby="internalTitle">
       <header>
         <span class="mission-lane-mark" aria-hidden="true">د</span>
-        <div><h3 id="internalTitle">داخلية</h3><p>داخل نطاق المعسكر أو الإدارة</p></div>
+        <div><h3 id="internalTitle">داخلية</h3><p>الإدارة ماسكة إدارة المأمورية بالكامل — زي شئون المجندين وتبة ضرب النار</p></div>
         <strong id="internalBadge">0</strong>
       </header>
       <div id="internalMissions" class="mission-card-list">{{ skeleton("cards", 2) }}</div>
@@ -55,8 +51,8 @@
       <input type="hidden" id="missionEditDay">
       <label>التصنيف <small>تظل الخدمة هي نفسها في اليومية التفصيلية، وينتقل عرضها بين الخارجية والداخلية</small>
         <select id="missionEditKind">
-          <option value="خارجية">خارجية — خارج نطاق المعسكر أو الإدارة</option>
-          <option value="داخلية">داخلية — داخل نطاق المعسكر أو الإدارة</option>
+          <option value="خارجية">خارجية — جهة أخرى بتديرها (تراحيل، حملة الأمن الوطني…)</option>
+          <option value="داخلية">داخلية — الإدارة بتديرها بالكامل (شئون المجندين، تبة ضرب النار…)</option>
         </select>
       </label>
       <div class="actions modal-foot">

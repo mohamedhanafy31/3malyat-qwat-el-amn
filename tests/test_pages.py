@@ -85,6 +85,15 @@ def test_board_groups_outsiders_in_operational_order():
     assert 'return {key: `leave:${type}`, label: type, kind: "leave", order: 3}' in source
 
 
+def test_board_renders_net_and_marks_taqseera_without_outsider_grouping():
+    from pathlib import Path
+    source = (Path(__file__).resolve().parent.parent / "static/js/board.js").read_text(encoding="utf-8")
+    assert '"الصافي": [[' in source
+    assert "const taqseeraMark =" in source and ">+ ت</b>" in source
+    assert 'for (const name of ["الراحات", "الخوارج"])' in source
+    assert '["الراحات", "التقصيرات", "الخوارج"]' not in source
+
+
 @pytest.mark.parametrize("page", PAGES)
 def test_bootstrap_returns_meta_for_every_page(client, page):
     d = client.get(f"/api/bootstrap/{page}").get_json()

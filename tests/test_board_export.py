@@ -67,7 +67,8 @@ def test_export_ignores_preserved_authoritative_roster_and_generates(client):
     assert response.data != path.read_bytes()
     generated = Document(io.BytesIO(response.data))
     assert len(generated.tables) == 1
-    assert len(generated.tables[0].rows) == 34
+    # بلا صفوف حشو: عنوان + «الاهداف» + مشرف الأهداف وأهدافه + عنوان الخوارج + صفّا المعسكر الفرعي
+    assert 10 <= len(generated.tables[0].rows) < 34
 
 
 def test_generated_roster_uses_word_strength_columns_without_service_details(client):
@@ -115,3 +116,21 @@ def test_export_prints_a_required_but_vacant_command_role(client):
     })
     assert response.status_code == 201, response.get_json()
     assert "رئاسة ضابط — شاغر" in _all_text(_download(client))
+
+
+def test_board_file_drops_clinic_and_search_members_but_web_board_keeps_them(client):
+    clinic, search = "OFF-001", "OFF-002"
+    names = {clinic: "عقيد/ أحمد محمد", search: "نقيب/ محمود علي"}
+    for name, oid in (("خدمة العيادة", clinic), ("خدمة البحث", search)):
+        r = client.post(f"/api/assignments/{DAY}", json={
+            "name": name, "section": "الخدمات الطارئة", "kind": "خارجية", "officer_ids": [oid]})
+        assert r.status_code == 201, r.get_json()
+    label = names.get
+    before = _all_text(_download(client))
+    assert label(clinic) in before and label(search) in before
+    assert client.patch("/api/command-groups",
+                        json={"طبي": [clinic], "بحث": [search]}).status_code == 200
+    after = _all_text(_download(client))
+    assert label(clinic) not in after and label(search) not in after
+    web = str(client.get(f"/api/board/{DAY}").get_json())
+    assert clinic in web and search in web                  # الشاشة تحتفظ بهما

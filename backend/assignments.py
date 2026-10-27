@@ -30,7 +30,7 @@
   - أكتر   = صف مشترك، زي «رائد/جمال امين م.اول/ماركو ماجد» في لوحة 20/8.
 """
 from .constants import (
-    SECTION_ADMIN_WORK, SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_RESTS,
+    SECTION_ADMIN_WORK, SECTION_NET, SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_RESTS,
     SECTION_TAQSEERA, SECTION_TARGETS, SECTION_PRISON, SERVICE_KINDS, SHIFTS, TARGET_NAMES,
     TARGETS_FIRST,
 )
@@ -40,11 +40,13 @@ from .dated import targets_on
 from .clocktime import format_time, parse_time
 
 # القسم على اللوحة حر — أي اسم المشغّل يكتبه بيبقى قسم مستقل (لليوم ده بس،
-# `backend/board.py` هو اللي بيفسّره). الأسماء الأربعة دي استثناء: هي عناوين
+# `backend/board.py` هو اللي بيفسّره). الأسماء المحجوزة دي استثناء: هي عناوين
 # محسوبة من حالة الضباط مش خدمات مخزّنة، فلو خدمة اتسمّت بنفس اسم واحد منهم
 # صفوفها هتختفي من اللوحة تمامًا (العرض المحسوب بياخد الأولوية) بدل ما تتعرض
 # كقسم مخصّص — القسم الحر لازم يتفادى الأسماء دي بالذات.
-RESERVED_SECTIONS = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS}
+RESERVED_SECTIONS = {
+    SECTION_ADMIN_WORK, SECTION_NET, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
+}
 
 # الأهداف قايمة مغلقة (`board.target_row_names`) — عكس باقي الأقسام. الاسم
 # والتصنيف ثابتين مش اختيار المشغّل، فالتحقق هنا بيفرضهم حتى لو حد نادى

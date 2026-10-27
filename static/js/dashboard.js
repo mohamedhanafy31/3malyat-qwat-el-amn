@@ -90,7 +90,7 @@
       ["out", "بالخارج"], ["back", "عادت"], ["carried", "مترحّلة"],
     ];
     $id("opsCounters").innerHTML = items.map(([key, label]) => `
-      <div class="ops-counter ops-counter-${key}">
+      <div class="ops-counter ops-counter-${key}${counters[key] ? "" : " ops-counter-zero"}">
         <b>${counters[key] ?? 0}</b><span>${label}</span>
       </div>`).join("");
   }
@@ -149,7 +149,8 @@
         ${run.day ? `<span class="ops-carried-meta">${esc(carriedMeta(run))}</span>` : ""}
       </div>
       <div class="ops-card-foot">
-        <span class="chip ${stateClass[state]}">${statusText[state]}</span>
+        ${run.hint ? `<span class="ops-state-text">${statusText[state]}</span>`
+          : `<span class="chip ${stateClass[state]}">${statusText[state]}</span>`}
         ${actionHtml}
       </div>
     </article>`;

@@ -19,9 +19,9 @@ from flask import Blueprint, jsonify, send_file
 
 from .. import changes
 from .. import day_status
-from ..assignments import (is_legacy_status, officer_state, officer_statuses,
+from ..assignments import (assignments_of, is_legacy_status, officer_state, officer_statuses,
                            remember_officer_status, set_officer_state)
-from ..duty import summarise
+from ..duty import operational_text, summarise
 from ..duty_export import build_docx
 from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
@@ -150,6 +150,14 @@ def set_state(day, person_id):
         # والملاحظة المسجّلين — الواجهة بتبعت التلاتة فما بانش، لكن أي
         # سكربت أو نداء خارجي كان بيفقد بيانات من غير ما يعرف.
         before = dict(officer_state(data, day, person_id))
+        if payload.get("admin_work"):
+            projected_note = note if "note" in payload else before.get("note", "")
+            projected_extra = extra if "extra" in payload else before.get("extra", "")
+            if not operational_text(assignments_of(data, day, person_id),
+                                    projected_note, projected_extra):
+                raise AbortRequest((jsonify({
+                    "error": "اكتب النص التشغيلي قبل إضافة الضابط إلى عمل بالإدارة."
+                }), 400))
         # «فرقة»/«راحة فرقة» قيم أرشيفية: صف قديم مكتوب فيه أي منهم بيتحفظ
         # زي ما هو (تعديل ملاحظته مثلًا)، لكن مفيش تسجيل جديد بيهم.
         keeps_legacy = ("status" in payload and is_legacy_status(status)

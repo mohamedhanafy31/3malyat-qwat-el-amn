@@ -25,7 +25,9 @@ def test_command_shows_in_admin_work_every_day(client):
     _set(client, DIRECTOR, "OFF-001")
     _set(client, DEPUTY, "OFF-002")
     for day in ("2026-04-01", "2026-04-02", "2026-07-15"):
-        assert {r["id"] for r in _admin_work(client, day)} == {"OFF-001", "OFF-002"}, day
+        rows = _admin_work(client, day)
+        assert {(r["id"], r["text"]) for r in rows} == {
+            ("OFF-001", DIRECTOR), ("OFF-002", DEPUTY)}, day
 
 
 def test_officer_on_rest_moves_to_the_rest_section(client):
@@ -38,25 +40,22 @@ def test_officer_on_rest_moves_to_the_rest_section(client):
     assert "OFF-001" in {r["id"] for r in sections["الراحات"]}
 
 
-def test_command_officer_with_a_service_leaves_admin_work(client):
+def test_command_officer_with_a_service_stays_in_admin_work_too(client):
     _set(client, DIRECTOR, "OFF-001")
     client.post("/api/assignments/2026-04-03",
                 json={"name": "دورية خارجية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
-    assert "OFF-001" not in {r["id"] for r in _admin_work(client, "2026-04-03")}
+    assert "OFF-001" in {r["id"] for r in _admin_work(client, "2026-04-03")}
 
 
-def test_changing_command_does_not_rewrite_the_archive(client):
-    """المنصب بيتغيّر مع حركة الضباط، والأيام القديمة بتفضل زي ما هي لأن
-    اللي بيحدد ظهور الضابط في «عمل بالإدارة» هو تكليفاته في اليوم ده
-    مش المنصب الحالي."""
+def test_changing_command_updates_the_automatic_admin_officer(client):
+    """عمل بالإدارة يقرأ شاغل المنصب المؤرّخ لليوم، مش تكليف خدمة."""
+    day = client.get("/api/data").get_json()["meta"]["today"]
     _set(client, DIRECTOR, "OFF-001")
-    day = "2026-04-04"
-    client.post(f"/api/assignments/{day}",
-                json={"name": "دورية خارجية", "kind": "خارجية", "officer_ids": ["OFF-001"]})
-    before = {r["id"] for r in _admin_work(client, day)}
+    assert "OFF-001" in {r["id"] for r in _admin_work(client, day)}
 
     _set(client, DIRECTOR, "OFF-002")
-    assert {r["id"] for r in _admin_work(client, day)} == before
+    ids = {r["id"] for r in _admin_work(client, day)}
+    assert "OFF-002" in ids and "OFF-001" not in ids
 
 
 def test_same_officer_cannot_hold_two_posts(client):

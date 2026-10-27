@@ -137,7 +137,7 @@ def test_clinic_officers_are_not_offered_or_listed_in_computed_board_sections(cl
 
     board = client.get(f"/api/board/{DAY}").get_json()
     assert "OFF-002" not in {o["id"] for o in board["roster"]["officers"]}
-    computed = {"عمل بالإدارة", "الراحات", "التقصيرات", "الخوارج"}
+    computed = {"عمل بالإدارة", "الصافي", "الراحات", "التقصيرات", "الخوارج"}
     assert all("OFF-002" not in {r["id"] for r in section["rows"]}
                for section in board["sections"] if section["name"] in computed)
 
@@ -147,7 +147,7 @@ def test_clinic_officers_are_not_offered_or_listed_in_computed_board_sections(cl
 
 
 def _computed_ids(board):
-    computed = {"عمل بالإدارة", "الراحات", "التقصيرات", "الخوارج"}
+    computed = {"عمل بالإدارة", "الصافي", "الراحات", "التقصيرات", "الخوارج"}
     return {r["id"] for section in board["sections"] if section["name"] in computed
             for r in section["rows"]}
 

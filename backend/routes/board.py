@@ -25,7 +25,7 @@ from ..board import (
     ASSIGNMENT_SECTIONS, build_board, canonical_section_name, copy_section_rows, section_history, section_source,
     move_assignment, place_assignment_after, set_slot_officers, set_target_officers,
 )
-from ..board_export import build_docx
+from ..board_export import build_docx, clinic_search_ids
 from ..constants import SECTION_OCCASIONAL, SERVICE_KINDS
 from ..duty import summarise
 from ..daily_view import build as build_daily_view
@@ -114,8 +114,9 @@ def export_board_docx(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
-    board = build_board(load_data(around(day, -1, 0)), day)
-    buf = build_docx(board)
+    data = load_data(around(day, -1, 0))
+    board = build_board(data, day)
+    buf = build_docx(board, clinic_search_ids(data, day))
     return send_file(buf, as_attachment=True, download_name=f"اليومية التفصيلية {day}.docx",
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 

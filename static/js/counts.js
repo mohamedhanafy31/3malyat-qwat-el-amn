@@ -123,7 +123,7 @@ function render() {
   $("#cntTotals").innerHTML = `<div class="stats">
     <div class="stat"><span>أساسية صباحية</span><strong>${t.basic_am}</strong></div>
     <div class="stat"><span>أساسية ليلية</span><strong>${t.basic_pm}</strong></div>
-    <div class="stat stat-accent-orange"><span>الطوارئ</span><strong>${t.emergency}</strong></div>
+    <div class="stat${t.emergency > 0 ? " stat-accent-orange" : ""}"><span>الطوارئ</span><strong>${t.emergency}</strong></div>
     ${extraStat}
     <div class="stat"><span>الإجمالي الكلي</span><strong>${t.grand_total}</strong></div>
   </div>`;

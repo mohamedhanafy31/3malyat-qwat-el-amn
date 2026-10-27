@@ -49,13 +49,13 @@ function vehicleOptions(row) {
     ? [selectedVehicle, ...available] : available;
   const noMatches = type && !available.length;
   return `<select class="campaign-inline-select" data-vehicle-row="${esc(row.id)}" aria-label="رقم المركبة في ${esc(row.name)}">
-    <option value="">— بدون مركبة —</option>${noMatches ? `<option disabled>لا توجد مركبات من هذا النوع</option>` : ""}${choices.map(vehicle => `<option value="${esc(vehicle.id)}"${vehicle.id === selected ? " selected" : ""}${vehicle.status === "disabled" ? " data-disabled=" + JSON.stringify(true) : ""}>${esc(vehicle.label)}${vehicle.status === "disabled" ? " (معطلة)" : ""}</option>`).join("")}</select>`;
+    <option value="">اختر مركبة</option>${noMatches ? `<option disabled>لا توجد مركبات من هذا النوع</option>` : ""}${choices.map(vehicle => `<option value="${esc(vehicle.id)}"${vehicle.id === selected ? " selected" : ""}${vehicle.status === "disabled" ? " data-disabled=" + JSON.stringify(true) : ""}>${esc(vehicle.label)}${vehicle.status === "disabled" ? " (معطلة)" : ""}</option>`).join("")}</select>`;
 }
 
 function vehicleTypeOptions(row) {
   const selected = CAMPAIGN_TYPE_FILTERS.get(row.id) ?? row.vehicle?.type ?? "";
   return `<select class="campaign-inline-select" data-type-row="${esc(row.id)}" aria-label="نوع المركبة في ${esc(row.name)}">
-    <option value="">— كل الأنواع —</option>${(CAMPAIGN.pickers?.types || []).map(type => `<option value="${esc(type)}"${type === selected ? " selected" : ""}>${esc(type)}</option>`).join("")}</select>`;
+    <option value="">اختر النوع</option>${(CAMPAIGN.pickers?.types || []).map(type => `<option value="${esc(type)}"${type === selected ? " selected" : ""}>${esc(type)}</option>`).join("")}</select>`;
 }
 
 function warningChips(row) {
@@ -76,7 +76,7 @@ function campaignRow(row, allowAttach) {
     <td>${driverOptions(row)}</td>
     <td dir="ltr">${vehicleOptions(row)}</td>
     <td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${row.vehicle ? `<div class="sub">${esc(row.vehicle.model || "")}${row.vehicle.origin === "external" ? `${row.vehicle.model ? " — " : ""}خارجية: ${esc(row.vehicle.party)}` : ""}</div>` : ""}</div></td>
-    <td class="col-actions">${row.kind === "daily" ? `<button class="mini bad" type="button" data-action="removeCampaignDaily" data-id="${esc(row.id)}" data-extra="${dataAttr({name: row.name})}">إزالة</button>` : "—"}</td>
+    <td class="col-actions">${row.kind === "daily" ? rowMenu([{action: "removeCampaignDaily", id: row.id, extra: {name: row.name}, label: "إزالة", danger: true}]) : "—"}</td>
   </tr>`;
 }
 
@@ -91,7 +91,7 @@ function postRow(row) {
     <td>${esc(row.number || "")}</td><td class="name"><strong>${esc(row.name)}</strong>${warningChips(row)}</td>
     <td>${postDriver(row)}</td><td dir="ltr"><div class="campaign-vehicle-cell">${vehicleOptions(row)}${!row.vehicle && row.plate_text ? `<span class="muted-text" dir="ltr">${esc(plate)}</span>` : ""}</div></td>
     <td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${!row.vehicle && row.type_text ? `<span class="muted-text">${esc(type)}</span>` : ""}</div></td>
-    <td class="col-actions"><div class="row-actions"><button class="mini" type="button" data-action="editCampaignPost" data-id="${esc(row.id)}">تعديل</button><button class="mini bad" type="button" data-action="removeCampaignPost" data-id="${esc(row.id)}" data-extra="${dataAttr({name: row.name})}">إزالة</button></div></td>
+    <td class="col-actions"><div class="row-actions"><button class="mini" type="button" data-action="editCampaignPost" data-id="${esc(row.id)}">تعديل</button>${rowMenu([{action: "removeCampaignPost", id: row.id, extra: {name: row.name}, label: "إزالة", danger: true}])}</div></td>
   </tr>`;
 }
 

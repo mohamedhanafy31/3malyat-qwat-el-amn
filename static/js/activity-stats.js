@@ -21,10 +21,10 @@ function renderActivitySummary() {
   const s = ACTIVITY.summary;
   const activeRate = s.accounts ? Math.round((s.active_members / s.accounts) * 100) : 0;
   document.getElementById("activitySummary").innerHTML = `
-    <div class="stat stat-accent-gold"><span>الحسابات النشطة</span><strong>${s.active_members}</strong>
+    <div class="stat"><span>الحسابات النشطة</span><strong>${s.active_members}</strong>
       <div class="stat-sub">من ${s.accounts} حساب · ${activeRate}%</div></div>
     <div class="stat"><span>مرات تسجيل الدخول</span><strong>${s.logins}</strong></div>
-    <div class="stat stat-accent-blue"><span>التعديلات المسجلة</span><strong>${s.changes}</strong></div>
+    <div class="stat"><span>التعديلات المسجلة</span><strong>${s.changes}</strong></div>
     <div class="stat"><span>الوقت النشط التقديري</span><strong>${activityDuration(s.estimated_active_minutes)}</strong>
       <div class="stat-sub">بحد خمول ${ACTIVITY.estimate_idle_minutes} دقيقة</div></div>
     <div class="stat${s.failed_logins ? " stat-accent-red" : ""}"><span>محاولات دخول فاشلة</span><strong>${s.failed_logins}</strong></div>
@@ -46,13 +46,13 @@ function renderActivityCharts() {
       datasets: [
         {label: "التعديلات", data: daily.map(row => row.changes), borderColor: CT.navy,
           backgroundColor: CT.navy, tension: .28, pointRadius: 2, borderWidth: 2},
-        {label: "مرات الدخول", data: daily.map(row => row.logins), borderColor: CT.gold,
-          backgroundColor: CT.gold, tension: .28, pointRadius: 2, borderWidth: 2},
+        {label: "مرات الدخول", data: daily.map(row => row.logins), borderColor: CT.cat[2],
+          backgroundColor: CT.cat[2], tension: .28, pointRadius: 2, borderWidth: 2},
         {label: "حسابات نشطة", data: daily.map(row => row.active_members), borderColor: CT.cat[1],
           backgroundColor: CT.cat[1], tension: .28, pointRadius: 2, borderWidth: 2},
       ],
     },
-    options: {...CHART_BASE, scales: vbarScales({ticks: {precision: 0}}),
+    options: {...CHART_BASE, scales: vbarScales({ticks: {precision: 0}}, {ticks: {maxRotation: 0, autoSkip: true, maxTicksLimit: 10}}),
       plugins: {legend: {display: true, position: "top", align: "start",
         labels: {boxWidth: 12, padding: 14}}}},
   }));
@@ -70,7 +70,7 @@ function renderActivityCharts() {
     type: "bar",
     data: {labels: byHour.map(row => `${String(row.hour).padStart(2, "0")}:00`),
       datasets: [{data: byHour.map(row => row.events), backgroundColor: byHour.map(row =>
-        row.events === Math.max(...byHour.map(item => item.events), 0) && row.events ? CT.gold : CT.navy),
+        row.events === Math.max(...byHour.map(item => item.events), 0) && row.events ? CT.warn : CT.navy),
         borderRadius: 3, borderSkipped: false, maxBarThickness: 18}]},
     options: {...CHART_BASE, scales: vbarScales({ticks: {precision: 0}}),
       plugins: {legend: {display: false}, tooltip: {callbacks: {label: ctx => ` ${ctx.raw} حدثًا مسجلًا`}}}},

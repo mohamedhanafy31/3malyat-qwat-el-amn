@@ -32,16 +32,6 @@ function drawTypeChart(data) {
   });
 }
 
-/* الحالة الراهنة: 95% من الدونات كانت «منتهية» فمكانتش بتقول حاجة —
-   بقت تلات أرقام واضحة */
-function drawStatusChart(data) {
-  const c = data.status_counts || {};
-  const box = document.getElementById("statusNumbers");
-  if (!box) return;
-  box.innerHTML = [["جارية", "جارية الآن", "info"], ["قادمة", "قادمة", "navy"], ["منتهية", "منتهية", "muted"]]
-    .map(([k, label, cls]) => `<div class="status-number ${cls}"><strong>${c[k] || 0}</strong><span>${label}</span></div>`).join("");
-}
-
 function drawMonthChart(data) {
   const keys = Object.keys(data.by_month);
   const values = Object.values(data.by_month);
@@ -168,7 +158,7 @@ function drawCumulativeChart(data) {
   });
 }
 
-function renderSummary(s) {
+function renderSummary(s, statusCounts = {}) {
   document.getElementById("summaryStats").innerHTML = `
     <div class="stat">
       <span>إجمالي الراحات</span><strong>${s.total}</strong>
@@ -185,6 +175,10 @@ function renderSummary(s) {
     <div class="stat">
       <span>قادمة</span><strong>${s.upcoming}</strong>
       <div class="stat-sub">لم تبدأ بعد</div>
+    </div>
+    <div class="stat">
+      <span>منتهية</span><strong>${statusCounts["منتهية"] || 0}</strong>
+      <div class="stat-sub">انتهت مدتها</div>
     </div>`;
 }
 
@@ -244,9 +238,8 @@ async function load() {
 
   populateFilterOptions(d.meta_options);
 
-  renderSummary(d.summary);
+  renderSummary(d.summary, d.status_counts);
   drawTypeChart(d);
-  drawStatusChart(d);
   drawMonthChart(d);
   drawOfficerChart(d);
   drawDurationChart(d);

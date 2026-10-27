@@ -4,8 +4,18 @@
     {
       "name": "personnel-system",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["app.py"],
+      "runtimeArgs": [
+        "app.py"
+      ],
       "port": 5000
+    },
+    {
+      "name": "ops-preview",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "/run/media/hanafy/aa9ee400-c081-4d3b-b831-a2a8c83c9f44/personal/.ops-preview.sh"
+      ],
+      "port": 5077
     }
   ]
 }

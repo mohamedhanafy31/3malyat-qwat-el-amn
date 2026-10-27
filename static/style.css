@@ -96,7 +96,7 @@
   --shadow-md:0 2px 8px rgba(10,31,54,.08);
   --shadow-pop:0 10px 30px rgba(10,31,54,.20);
 
-  --topbar-h:60px; --sidebar-w:238px;
+  --topbar-h:60px; --sidebar-w:238px; --sidebar-rail:60px;
 
   /* — الخطوط: كوفي للعناوين (صوت رسمي)، نسخ/واجهة للمتن (قراءة كثيفة) — */
   --font-head:"Noto Kufi Arabic", "Segoe UI", Tahoma, sans-serif;
@@ -244,6 +244,26 @@ button,input,select,textarea{font-family:inherit}
 .content{flex:1;min-width:0;padding:var(--s6) var(--s6) var(--s8)}
 .container{width:100%;max-width:1600px;margin:0 auto}
 
+
+/* ── شريط الأيقونات لما القائمة مقفولة + اختصارات الأرقام ── */
+.navbtn:focus-visible{outline:2px solid var(--gold-700);outline-offset:-2px}
+/* أرقام الاختصار والعدّادات مش بتظهر في القائمة — القائمة أسماء بس؛ الاختصار
+   بيبان في تلميح الشريط، وتنبيه «موقوفة» بس اللي بيفضل ظاهر. */
+.navbtn em:not(.nav-susp){display:none}
+.side-hint{margin:var(--s4) var(--s5) 0;font-size:var(--t-xs);color:var(--ink-500);line-height:1.8}
+.side-hint kbd{font:600 var(--t-xs) var(--font-num);border:1px solid var(--line-strong);
+  border-radius:var(--radius-sm);padding:0 4px;background:var(--surface)}
+/* اسم القسم بيطلع جنب الأيقونة لما الماوس يقف عليها أو التركيز ييجي عليها.
+   عنصر واحد position:fixed بدل ::after جوه كل رابط، لأن القائمة نفسها
+   overflow:auto فأي تلميح جواها كان هيتقص. */
+.nav-tip{position:fixed;z-index:40;pointer-events:none;white-space:nowrap;
+  background:var(--navy-950);color:var(--on-dark);font-size:var(--t-sm);font-weight:700;
+  padding:var(--s1) var(--s3);border-radius:var(--radius-control);box-shadow:var(--shadow-pop);
+  border-inline-end:3px solid var(--gold-700)}
+.nav-tip kbd{font:600 var(--t-xs) var(--font-num);color:var(--on-dark-muted);
+  margin-inline-start:var(--s2)}
+@media(max-width:860px){.side-hint,.nav-tip{display:none}}
+
 /* ═══════════════════ ⑤ ترويسة الصفحة — رأس اليومية ═══════════════════ */
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s4);
   margin-bottom:var(--s5);padding-bottom:var(--s3);flex-wrap:wrap;
@@ -325,12 +345,12 @@ button,input,select,textarea{font-family:inherit}
 .warn-group-head{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s2)}
 
 /* ═══════════════════ ⑦ بطاقات الأرقام ═══════════════════ */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
   gap:var(--s3);margin-bottom:var(--s5)}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);
-  padding:var(--s3) var(--s4);border-top:3px solid var(--navy-200)}
-.stat span{display:block;color:var(--ink-500);font-size:var(--t-sm);margin-bottom:2px}
-.stat strong{font-size:var(--t-2xl);color:var(--navy-950);font-family:var(--font-head);
+  padding:var(--s2) var(--s3);border-top:3px solid var(--navy-200)}
+.stat span{display:block;color:var(--ink-500);font-size:var(--t-xs);margin-bottom:1px}
+.stat strong{font-size:var(--t-xl);color:var(--navy-950);font-family:var(--font-head);
   line-height:1.15;display:block}
 .stat-sub{font-size:var(--t-xs);color:var(--ink-400);margin-top:var(--s1);line-height:1.4}
 .stat.stat-accent-red   {border-top-color:var(--bad-700)}
@@ -651,7 +671,7 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
    الجدول الأعرض من مكانه بس بياخد .is-wide (core.js) ويتمرر أفقيًا. */
 .table-scroll{overflow:visible;max-height:none}
 .table-scroll.is-wide{overflow-x:auto}
-.table-scroll:not(.is-wide) > .table > thead th{top:var(--topbar-h)}
+.table-scroll:not(.is-wide):not(.reg-scroll) > .table > thead th{top:var(--topbar-h)}
 .show-more{display:flex;justify-content:center;gap:var(--s2);padding:var(--s3) var(--s5);
   border-top:1px solid var(--line);background:var(--surface-sunken)}
 .show-more .btn{height:var(--control-h)}
@@ -719,6 +739,9 @@ tr.dim td{color:var(--ink-500)}
 .chip.on{color:var(--ok-700);border-inline-start-color:var(--ok-700);background:var(--ok-100);border-color:var(--ok-300)}
 .chip.done{color:var(--ink-500);border-inline-start-color:var(--ink-300);background:var(--navy-50)}
 .chip.taq{color:var(--warn-600);border-inline-start-color:var(--warn-600);background:var(--warn-100);border-color:var(--warn-300)}
+.taqseera-mark{display:inline-block;margin-inline-start:3px;padding:0 4px;border:1px solid var(--warn-300);
+  border-radius:var(--radius-sm);background:var(--warn-100);color:var(--warn-800);
+  font-size:var(--t-xs);font-weight:800;line-height:1.45;white-space:nowrap}
 .chip i{font-style:normal;opacity:.75;margin-inline-start:var(--s1);font-size:var(--t-xs)}
 .leave-kind-chip{max-width:220px;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
 .chip-day{display:inline-block;margin-inline-start:var(--s1);font-size:var(--t-xs);
@@ -907,7 +930,7 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .mcard .mtable th{white-space:nowrap;overflow-wrap:normal;word-break:normal;min-width:max-content}
 .mtable .name{white-space:normal;line-height:1.35}
 .mcard .mtable .chip{white-space:normal;overflow-wrap:break-word}
-.fleet-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3);margin-bottom:var(--s4)}
+.fleet-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s3);margin-bottom:var(--s4)}
 .fleet-summary>div{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s3);padding:var(--s3) var(--s4);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md)}
 .fleet-summary span{color:var(--ink-500);font-size:var(--t-sm)}
 .fleet-summary strong{color:var(--navy-900);font-size:var(--t-xl);font-variant-numeric:tabular-nums}
@@ -917,7 +940,8 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .compact-toolbar{padding:var(--s3) var(--s4)}
 .bidi-isolate{unicode-bidi:isolate}
 .check-label,.switch-label{display:inline-flex;align-items:center;gap:var(--s2);white-space:nowrap;font-size:var(--t-sm);font-weight:600;color:var(--ink-700)}
-@media(max-width:800px){.fleet-summary{grid-template-columns:1fr}.drivers-grid{grid-template-columns:1fr}}
+@media(max-width:1100px){.fleet-summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.fleet-summary{grid-template-columns:repeat(2,1fr)}.drivers-grid{grid-template-columns:1fr}}
 /* على الموبايل الجدول بيتمرر أفقيًا وعمود الإجراء (آخر عمود = أقصى الشمال)
    كان بيبقى برّه الشاشة في كل صف — بنثبّته على حافة الكرت. */
 @media(max-width:700px){
@@ -952,7 +976,6 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .outsider-group-leave{border-inline-start-color:var(--gold-700)}
 .outsider-group-course{border-inline-start-color:var(--cat-2)}
 .outsider-group-status{border-inline-start-color:var(--warn-700)}
-.outsider-group-taqseera{border-inline-start-color:var(--ink-500)}
 .outsider-group .mtable-wrap{border:0}
 
 /* ⑱ب اليومية التفصيلية — شكل «الدفتر الورقي» بالظبط: نفس التقسيمة اللي
@@ -1061,8 +1084,9 @@ tr.vacant td{background:repeating-linear-gradient(135deg,transparent,transparent
 .reg43 tbody tr:nth-child(even) .who-col,.reg43 tbody tr:nth-child(even) td{background:var(--navy-50)}
 .reg43 .d-col{min-width:30px;color:var(--ink-500);font-weight:600}
 .reg43 .t-col{min-width:38px;background:var(--navy-50)}
-.reg43 tfoot td{position:sticky;bottom:0;background:var(--navy-100);font-weight:700;
-  border-top:2px solid var(--line-strong)}
+/* صفوف الإجماليات الخمسة بنفس مستوى اللصق هتتراكب؛ فآخر صف بس هو اللي بيلصق تحت */
+.reg43 tfoot td{background:var(--navy-100);font-weight:700;border-top:2px solid var(--line-strong)}
+.reg43 tfoot tr:last-child td{position:sticky;bottom:0}
 .reg43 tfoot .tot-force td{background:var(--navy-100)}
 .reg43 th.no-rec{color:var(--ink-500);font-weight:400}
 .who-link{color:var(--ink-900);font-weight:600;text-decoration:none}
@@ -1240,6 +1264,7 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .roster-action{min-width:116px;white-space:nowrap}
 .roster-action-btn{min-width:88px}
 .leave-row-actions{align-items:center}
+.row-actions{display:flex;gap:var(--s1);align-items:center}
 @media(max-width:700px){
   .duration-cell{min-width:150px}
   .duration-stepper{height:40px}
@@ -1297,7 +1322,30 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
     box-shadow:-8px 0 24px var(--shadow-edge);width:min(86vw,var(--sidebar-w))}
   .sidebar.open{transform:none}
   .topbar .burger{display:flex;align-items:center;justify-content:center}
+
+  /* مقفولة = شريط أيقونات ضيق بدل ما تختفي خالص؛ المحتوى بيسيب مكانه
+     والزرار بيفتحها بعرضها الكامل فوق الصفحة زي الأول. */
+  .shell{padding-inline-start:var(--sidebar-rail)}
+  .sidebar{transition:width .18s ease,box-shadow .18s ease}
+  .sidebar:not(.open){transform:none;width:var(--sidebar-rail);box-shadow:none;
+    overflow-x:hidden;scrollbar-width:none}
+  .sidebar:not(.open)::-webkit-scrollbar{display:none}
+  .sidebar:not(.open) .navbtn > span:not(.nav-dot),
+  .sidebar:not(.open) .side-title,.sidebar:not(.open) .side-hint,
+  .sidebar:not(.open) .navbtn em:not(.nav-susp){display:none}
+  .sidebar:not(.open) .navbtn{justify-content:center;padding-inline:0}
+  .sidebar:not(.open) .navbtn svg{width:20px;height:20px;opacity:.7}
+  .sidebar:not(.open) .navbtn:hover svg,.sidebar:not(.open) .navbtn.active svg{opacity:1}
+  .sidebar:not(.open) .side-group{padding-bottom:var(--s1)}
+  .sidebar:not(.open) .side-group + .side-group{margin-top:var(--s1);border-top-color:var(--line)}
+  /* التنبيهات بتفضل ظاهرة كنقطة على الأيقونة: تقصيرة الضباط ووقف الراحات */
+  .sidebar:not(.open) .nav-dot{top:7px;inset-inline-start:auto;inset-inline-end:12px;
+    box-shadow:0 0 0 2px var(--surface)}
+  .sidebar:not(.open) .navbtn em.nav-susp{position:absolute;top:7px;inset-inline-end:12px;
+    width:8px;height:8px;min-width:0;padding:0;font-size:0;border-radius:50%;
+    box-shadow:0 0 0 2px var(--surface)}
 }
+@media(min-width:861px) and (prefers-reduced-motion:reduce){.sidebar{transition:none}}
 body.sidebar-open{overflow:hidden}
 .topbar .burger{position:relative;z-index:22}
 /* شريط أرقام يومية الضباط */
@@ -1327,16 +1375,16 @@ body.sidebar-open{overflow:hidden}
 }
 .sum-tile span{font-size:var(--t-xs);color:var(--ink-500)}
 .sum-tile b{font-size:var(--t-lg);color:var(--navy-950);font-variant-numeric:tabular-nums}
-.sum-tile.zero b{color:var(--ink-500);font-weight:400}
+.sum-tile.zero span,.sum-tile.zero b{color:var(--ink-300)}
+.sum-tile.zero b{font-weight:400}
 .net-names{margin:0 var(--s5) var(--s3)}
 .net-names summary{cursor:pointer;color:var(--navy-800);font-weight:600;font-size:var(--t-sm);padding:var(--s1) 0}
 .net-names ol{columns:3 220px;margin:var(--s2) 0 0;padding-inline-start:var(--s5);font-size:var(--t-sm)}
 .export-only{display:none !important}
-/* الخانة الشاغرة تحذير، مش نص رمادي */
-.cell-vacant{display:inline-flex;align-items:center;gap:var(--s1);padding:1px var(--s2);
-  border-radius:var(--radius-control);background:var(--warn-100);color:var(--warn-700);font-weight:600;
-  font-size:var(--t-sm)}
-.cell-vacant .ico{fill:currentColor}
+/* الخانة الشاغرة هادية (أغلب الصفوف شاغرة)؛ التنبيه الأصفر في سطر الملخص بس */
+.cell-vacant{display:inline-flex;align-items:center;color:var(--ink-500);font-weight:400;
+  font-size:var(--t-xs)}
+.cell-vacant .ico{display:none}
 .vacancy-summary{display:flex;align-items:center;gap:var(--s2);margin:var(--s4) var(--s5) 0;font-size:var(--t-cap)}
 .vacancy-summary.warn{color:var(--warn-700)}
 .vacancy-summary.ok{color:var(--ok-700)}
@@ -1675,6 +1723,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .chart-key span{display:inline-flex;align-items:center;gap:var(--s1)}
 .chart-key i{width:12px;height:12px;border-radius:3px;display:inline-block}
 .chart-key .k-navy{background:var(--navy-800)} .chart-key .k-gold{background:var(--gold-700)}
+.chart-key .k-warn{background:var(--warn-500)}
 .chart-key .k-soft{background:var(--navy-200)} .chart-key .k-bad{background:var(--bad-700)}
 /* البديل النصّي للرسم: ملخّص بأهم القيم + جدول كامل مقفول افتراضيًا */
 .chart-alt{margin-top:var(--s3);font-size:var(--t-sm)}
@@ -1683,14 +1732,6 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   padding:var(--s1) 0;min-height:var(--touch-control);display:flex;align-items:center}
 .chart-alt-table[open] summary{margin-bottom:var(--s2)}
 .chart-alt-table .table-scroll{max-height:360px;overflow:auto}
-.status-numbers{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3)}
-.status-number{display:flex;flex-direction:column;align-items:center;gap:var(--s1);padding:var(--s4);
-  border:1px solid var(--line);border-radius:var(--radius-card);border-top-width:3px}
-.status-number strong{font-size:var(--t-2xl);font-family:var(--font-head);color:var(--navy-950);
-  font-variant-numeric:tabular-nums}
-.status-number span{font-size:var(--t-sm);color:var(--ink-500)}
-.status-number.info{border-top-color:var(--info-700)} .status-number.navy{border-top-color:var(--navy-500)}
-.status-number.muted{border-top-color:var(--line-strong)}
 .gap-table td.n,.gap-table th:not(:first-child){text-align:center}
 .back-link{text-decoration:none;height:var(--control-h)}
 .ls-card-hint{margin:calc(var(--s3) * -1) 0 var(--s3);color:var(--ink-500);font-size:var(--t-sm)}
@@ -1895,7 +1936,8 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .roster-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
   gap:6px var(--s3)}
 .roster-who{display:flex;align-items:baseline;gap:6px;min-width:0}
-.roster-name{font-weight:700;color:var(--ink-900);font-size:var(--t-sm)}
+.roster-name{font-weight:700;color:var(--ink-900);font-size:var(--t-sm);text-decoration:none}
+.roster-name:hover,.roster-name:focus-visible{text-decoration:underline}
 .roster-role{font-size:var(--t-xs);color:var(--ink-500);white-space:nowrap}
 .roster-meta{display:flex;align-items:center;gap:6px;flex:none}
 .roster-period{font-size:var(--t-xs);color:var(--ink-500);white-space:nowrap}
@@ -1925,7 +1967,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   padding:var(--s4) var(--s5) var(--s6)}
 .service-card{background:var(--surface);border:1px solid var(--line);
   border-top:3px solid var(--navy-700);border-radius:var(--radius-md);
-  overflow:hidden;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;min-height:268px}
+  overflow:hidden;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
 .service-head{padding:var(--s4) var(--s4) 0}
 .service-name{margin:0 0 6px;font-size:var(--t-md);color:var(--navy-950);
   font-family:var(--font-head);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -2012,6 +2054,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ops-counter{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 0;border-inline-start:1px solid var(--navy-700)}
 .ops-counter b{font-family:var(--font-num);font-size:var(--t-md);line-height:1}
 .ops-counter span{font-size:var(--t-xs);color:var(--navy-100);white-space:nowrap}
+.ops-counter-zero b{color:var(--ink-300)}
 .ops-counter-prep b{color:var(--gold-300)}
 .ops-counter-late b{color:var(--warn-300)}
 .ops-counter-out b{color:var(--ok-300)}
@@ -2034,7 +2077,8 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ops-state-out{border-top-color:var(--ok-700)}
 .ops-state-back{border-top-color:var(--ink-300)}
 .ops-hint-prep{border-top-color:var(--gold-700)}
-.ops-hint-late{border-top-color:var(--bad-700);background:var(--warn-50)}
+.ops-hint-late{border-top-color:var(--bad-700)}
+.ops-state-text{font-size:var(--t-sm);color:var(--ink-500)}
 .ops-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s2);padding:var(--s3) var(--s3) 0}
 .ops-card-name{min-width:0;font-weight:700;color:var(--navy-950);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ops-card-tools{display:flex;align-items:center;gap:var(--s1);flex:none}
@@ -2536,7 +2580,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   padding-top:var(--s3);margin-top:var(--s3);border-top:1px solid var(--line)}
 .ocr-foot-info{display:flex;align-items:center;gap:var(--s4);flex-wrap:wrap}
 .ocr-select-actions{display:flex;gap:var(--s3)}
-.linkish{background:none;border:0;padding:0;color:var(--plum-700);cursor:pointer;font:inherit;text-decoration:underline}
+.ocr-select-actions .linkish{background:none;border:0;padding:0;color:var(--plum-700);cursor:pointer;font:inherit;text-decoration:underline}
 .ocr-warn-text{color:var(--bad-700);font-weight:700}
 .ocr-foot-actions{display:flex;gap:var(--s2)}
 @media(max-width:900px){
@@ -2557,18 +2601,8 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .mission-transport-pick small{font-weight:400;color:var(--ink-500)}
 .mission-dispatch{overflow:hidden;border:1px solid var(--line);border-radius:var(--radius-lg);
   background:var(--surface);box-shadow:var(--shadow-sm)}
-.mission-dispatch-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s5);
-  padding:var(--s5) var(--s6);color:var(--on-dark);
-  background:linear-gradient(120deg,var(--navy-950),var(--navy-800))}
-.mission-dispatch-head h2{margin:2px 0;font-size:clamp(1.35rem,2.3vw,2rem);color:inherit}
-.mission-dispatch-head p{margin:0;color:rgba(255,255,255,.72);font-size:var(--t-sm)}
-.mission-kicker,.mission-note-kicker{font-size:var(--t-xs);font-weight:800;letter-spacing:.08em;
+.mission-note-kicker{font-size:var(--t-xs);font-weight:800;letter-spacing:.08em;
   color:var(--gold-300)}
-.mission-day-nav{display:flex;align-items:center;gap:var(--s2);padding:var(--s2);
-  border:1px solid rgba(255,255,255,.18);border-radius:var(--radius-lg);background:rgba(255,255,255,.08)}
-.mission-day-nav .mini{color:var(--on-dark);border-color:rgba(255,255,255,.3);background:transparent}
-.mission-day-nav .mini:hover{background:rgba(255,255,255,.12)}
-.mission-day-nav input{min-width:150px;color:var(--navy-950);background:#fff}
 .mission-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--line)}
 .mission-summary>div{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
   padding:var(--s3) var(--s5);border-inline-start:1px solid var(--line)}
@@ -2621,12 +2655,10 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .mission-note-body{white-space:pre-wrap;line-height:1.9;padding:var(--s4);border-inline-start:4px solid var(--gold-600);
   border-radius:var(--radius-sm);background:var(--surface-sunken);color:var(--ink-900)}
 @media(max-width:850px){
-  .mission-dispatch-head{align-items:stretch;flex-direction:column;padding:var(--s4)}
-  .mission-day-nav{justify-content:center}.mission-lanes{grid-template-columns:1fr;padding:var(--s3)}
+  .mission-lanes{grid-template-columns:1fr;padding:var(--s3)}
 }
 @media(max-width:560px){
-  .mission-day-nav{display:grid;grid-template-columns:auto minmax(0,1fr) auto}
-  .mission-day-nav input{width:100%;min-width:0}.mission-summary>div{padding:var(--s3);flex-direction:column}
+  .mission-summary>div{padding:var(--s3);flex-direction:column}
   .mission-summary span{font-size:var(--t-xs)}.mission-facts{grid-template-columns:1fr}
   .mission-staff,.mission-conscripts{grid-template-columns:1fr}.mission-lanes{gap:var(--s3)}
 }

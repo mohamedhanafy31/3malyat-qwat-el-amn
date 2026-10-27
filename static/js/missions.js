@@ -50,7 +50,8 @@ async function loadMissionDay(day) {
   MISSION_ROWS = [...data.external, ...data.internal];
   $("#missionDay").value = MISSION_DAY;
   setPageDay(MISSION_DAY);
-  $("#missionDayLabel").textContent = `${dayName(MISSION_DAY)} ${fmt(MISSION_DAY)} — الخدمات المحددة من اليومية التفصيلية`;
+  const dayLabel = $("#missionDayLabel");
+  if (dayLabel) dayLabel.textContent = `${dayName(MISSION_DAY)} ${fmt(MISSION_DAY)} — الخدمات المحددة من اليومية التفصيلية`;
   $("#missionTotal").textContent = data.counts.total;
   $("#missionExternalCount").textContent = data.counts.external;
   $("#missionInternalCount").textContent = data.counts.internal;
@@ -98,6 +99,7 @@ $("#missionEditForm").onsubmit = async event => {
 
 $("#missionDay").addEventListener("change", event => { if (event.target.value) loadMissionDay(event.target.value); });
 $("#missionPrev").onclick = () => loadMissionDay(addDays(MISSION_DAY || curDate(), -1));
+$("#missionToday").onclick = () => loadMissionDay(curDate());
 $("#missionNext").onclick = () => loadMissionDay(addDays(MISSION_DAY || curDate(), 1));
 
 async function load() {

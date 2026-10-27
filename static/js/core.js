@@ -347,13 +347,17 @@ document.addEventListener("api:mutated",()=>{
   });
 });
 
+/** تاريخ عربي طويل لعنوان الشريط العلوي (نفس الصيغة في bootstrap وعند التحميل). */
+function fmtTodayAr(iso){
+  return new Date(iso+"T00:00:00")
+    .toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+}
 /** بيحمّل شريحة الصفحة الحالية بس — مش الداتا كلها. */
 async function bootstrap(){
   const d=await api(`/api/bootstrap/${PAGE}`);
   if(!d) return null;
   META=d.meta||{}; COUNTS=d.counts||{};
-  $("#today").textContent=new Date(curDate()+"T00:00:00")
-    .toLocaleDateString("ar-EG-u-nu-latn",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  $("#today").textContent=fmtTodayAr(curDate());
   paintNavCounts(d);
   return d;
 }
@@ -1976,23 +1980,76 @@ window.addEventListener("resize", () => { if (_cbSel) _cbPosition() });
    طريقة تقفلها غير إنك تضغط الزرار تاني بالظبط. دلوقتي الضغط برّه أو Esc
    أو اختيار قسم بيقفلها، والزرار بيقول حالته لقارئ الشاشة. */
 const sidebarEl=$("#sidebar"), scrimEl=$("#scrim"), burgerEl=$("#burgerBtn");
+/* على الشاشة الكبيرة القائمة المقفولة بتفضل شريط أيقونات شغّال، فمش بنعملها
+   inert غير على الموبايل اللي بتختفي فيه خالص. */
+const deskMQ=matchMedia("(min-width:861px)");
 function setSidebar(open){
   const focusWasInside=sidebarEl.contains(document.activeElement);
+  const gone=!open&&!deskMQ.matches;
   sidebarEl.classList.toggle("open",open);
-  sidebarEl.toggleAttribute("inert",!open);
-  sidebarEl.setAttribute("aria-hidden",String(!open));
+  sidebarEl.toggleAttribute("inert",gone);
+  sidebarEl.setAttribute("aria-hidden",String(gone));
   scrimEl.classList.toggle("open",open);
   document.body.classList.toggle("sidebar-open",open);
   document.querySelector("main")?.toggleAttribute("inert",open);
   burgerEl.setAttribute("aria-expanded",String(open));
   burgerEl.setAttribute("aria-label",open?"إغلاق القائمة":"فتح القائمة");
   if(open) (sidebarEl.querySelector(".navbtn.active")||sidebarEl.querySelector(".navbtn"))?.focus();
-  else if(focusWasInside) burgerEl.focus();
+  else if(focusWasInside&&!deskMQ.matches) burgerEl.focus();
 }
 setSidebar(false);
+deskMQ.addEventListener("change",()=>setSidebar(false));
 burgerEl.onclick=()=>setSidebar(!sidebarEl.classList.contains("open"));
 scrimEl.onclick=()=>setSidebar(false);
 sidebarEl.addEventListener("click",e=>{ if(e.target.closest(".navbtn")) setSidebar(false) });
+
+
+/* ---------- شريط الأيقونات + اختصارات التنقل ----------
+   Alt+1..9 (وCtrl+1..9 في المتصفحات اللي بتسمح) بتفتح الصفحة اللي عليها data-key.
+   كروم بيحجز Ctrl+1..9 لتبديل التبويبات ومش بيسيب الصفحة تلغيها، فـAlt هو
+   الأضمن؛ وCtrl شغّال في التطبيق المثبّت وفايرفوكس. */
+(function(){
+  const links=[...sidebarEl.querySelectorAll(".navbtn")];
+  links.forEach(a=>{
+    const label=a.querySelector("span")?.textContent.trim()||"";
+    a.dataset.label=label;
+    // النص بيستخبى في الشريط، فالاسم لازم يفضل مقروء لقارئ الشاشة
+    a.setAttribute("aria-label",label);
+    const k=a.dataset.key;
+    if(k) a.setAttribute("aria-keyshortcuts","Alt+"+k+" Control+"+k);
+  });
+
+  // تلميح اسم القسم: بيظهر بس والقائمة شريط أيقونات، على يسار الأيقونة
+  const tip=document.createElement("div");
+  tip.className="nav-tip hidden"; tip.setAttribute("role","tooltip"); tip.id="navTip";
+  document.body.appendChild(tip);
+  const hideTip=()=>tip.classList.add("hidden");
+  function showTip(a){
+    if(!deskMQ.matches||sidebarEl.classList.contains("open")) return hideTip();
+    tip.textContent=a.dataset.label;
+    if(a.dataset.key){ const kb=document.createElement("kbd"); kb.textContent="Alt+"+a.dataset.key; tip.appendChild(kb) }
+    tip.classList.remove("hidden");
+    const r=a.getBoundingClientRect(), side=sidebarEl.getBoundingClientRect();
+    tip.style.top=Math.round(r.top+r.height/2-tip.offsetHeight/2)+"px";
+    tip.style.left=Math.round(side.left-tip.offsetWidth-8)+"px";
+  }
+  sidebarEl.addEventListener("mouseover",e=>{ const a=e.target.closest(".navbtn"); if(a) showTip(a) });
+  sidebarEl.addEventListener("mouseleave",hideTip);
+  sidebarEl.addEventListener("focusin",e=>{ const a=e.target.closest(".navbtn"); if(a&&a.matches(":focus-visible")) showTip(a) });
+  sidebarEl.addEventListener("focusout",hideTip);
+  sidebarEl.addEventListener("scroll",hideTip,{passive:true});
+  burgerEl.addEventListener("click",hideTip);
+
+  document.addEventListener("keydown",e=>{
+    if(!(e.altKey||e.ctrlKey)||e.shiftKey||e.metaKey||e.repeat) return;
+    if(e.altKey&&e.ctrlKey) return;
+    if(!/^[1-9]$/.test(e.key)||_modalTop()) return;
+    const a=sidebarEl.querySelector('.navbtn[data-key="'+e.key+'"]');
+    if(!a) return;
+    e.preventDefault();
+    if(!a.classList.contains("active")) location.href=a.href;
+  });
+})();
 
 $$("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 $$(".modal").forEach(m=>m.onclick=e=>{
@@ -2242,4 +2299,11 @@ if ($("#dutyDate")) {
   // META لسه ماوصلش هنا، وtoISOString بالتوقيت العالمي (بعد نص الليل بيبقى امبارح)
   const d = new Date();
   setPageDay(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+}
+
+/* صفحات زي المراجعة والمستخدمين مابتندهش bootstrap، فالتاريخ بنملاه من الساعة
+   المحلية لو لسه فاضي (bootstrap بيكتب فوقه META.today في الصفحات التانية) */
+if ($("#today") && !$("#today").textContent.trim()) {
+  const d = new Date();
+  $("#today").textContent = fmtTodayAr(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
 }

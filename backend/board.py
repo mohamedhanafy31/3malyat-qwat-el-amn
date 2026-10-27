@@ -1,21 +1,22 @@
 """اليومية التفصيلية (اللوحة) — **عرض محسوب** على نفس تكليفات اليوم.
 
-التقسيمة هنا مأخوذة من الوورد حرفيًا بعد فحص 101 لوحة: عشرة أقسام بترتيب
-ثابت، ستة منهم فيهم خدمات مخزّنة وأربعة **محسوبين** من حالة الضباط.
+التقسيمة الأصلية مأخوذة من الوورد بعد فحص 101 لوحة، وأُضيف لها قسم
+«الصافي» ليفصل الضباط غير المسكّنين عن «عمل بالإدارة».
 
     1. الخدمات أساسية      خدمات   — الفترة بتتكتب جوّه الاسم («تدخل سريع صبح»)
     2. الخدمات الطارئة     خدمات   — أغلبها بدون ضابط: قوام أفراد ومجندين
-    3. عمل بالإدارة        محسوب   — الضباط بلا تكليف خدمي + نص عملهم
-    4. الأهداف             قايمة مغلقة — مشرف الأهداف + سبعة أهداف ثابتة، كل
+    3. عمل بالإدارة        محسوب   — المدير/الوكيل + من يحدده المشغّل
+    4. الصافي              محسوب   — ضباط القوة غير المسكّنين
+    5. الأهداف             قايمة مغلقة — مشرف الأهداف + سبعة أهداف ثابتة، كل
                             واحد بقائده (من منصب الضابط) والمعيّن فيه فعليًا
-    5. الراحات             محسوب
-    6. التقصيرات           محسوب
-    7. الخوارج             محسوب
-    8. ضابط عظيم وأمن المعسكر الفرعي   كتلة ثابتة: صف صباحية + صف ليلية
-    9. ضابط عظيم الإدارة               كتلة ثابتة
-   10. ضابط الأمن بالإدارة             كتلة ثابتة
+    6. الراحات             محسوب
+    7. التقصيرات           توافقي فقط؛ تظهر كعلامة + ت بجوار الضابط
+    8. الخوارج             محسوب
+    9. ضابط عظيم وأمن المعسكر الفرعي   كتلة ثابتة: صف صباحية + صف ليلية
+   10. ضابط عظيم الإدارة               كتلة ثابتة
+   11. ضابط الأمن بالإدارة             كتلة ثابتة
 
-الكتل الثابتة (8-10) بتظهر بصفّيها دايمًا حتى لو شاغرة — الوورد بيطبع
+الكتل الثابتة (9-11) بتظهر بصفّيها دايمًا حتى لو شاغرة — الوورد بيطبع
 الصفين في كل يوم، والخانة الفاضية معناها «محتاجة تكليف» مش «مش موجودة».
 """
 from .assignments import (
@@ -24,7 +25,8 @@ from .assignments import (
 from .checks import day_warnings
 from .confirm import state_of as confirm_state
 from .constants import (
-    BOARD_ROTATIONS, SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT,
+    BOARD_ROTATIONS, ROLE_DIRECTOR, ROLE_DEPUTY, SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT,
+    SECTION_NET,
     SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY,
     SECTION_SUBCAMP, SECTION_TAQSEERA, SECTION_TARGETS, SHIFTS, SUBCAMP_SERVICES,
     TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL,
@@ -36,7 +38,7 @@ from .text import norm
 
 # ترتيب API القديم محفوظ للتوافق؛ ترتيب العرض الجديد موجود في layout_columns.
 BOARD_ORDER = [
-    SECTION_BASIC, SECTION_OCCASIONAL, SECTION_ADMIN_WORK, SECTION_TARGETS,
+    SECTION_BASIC, SECTION_OCCASIONAL, SECTION_ADMIN_WORK, SECTION_NET, SECTION_TARGETS,
     SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
     SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY,
 ]
@@ -54,7 +56,7 @@ FIXED_SLOT_SECTIONS = [SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY]
 FREE_SERVICE_SECTIONS = [SECTION_BASIC, SECTION_OCCASIONAL, SECTION_PRISON]
 NON_FREE_SECTIONS = {
     SECTION_TARGETS, *FIXED_SLOT_SECTIONS,
-    SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
+    SECTION_ADMIN_WORK, SECTION_NET, SECTION_RESTS, SECTION_TAQSEERA, SECTION_OUTSIDERS,
 }
 
 # تعريف الخدمة اللي يتنقل بين الأيام. القائمون بها مستبعدين عمدًا: الأشخاص
@@ -238,7 +240,7 @@ def _people_index(data):
             for p in people.raw_all(cat)}
 
 
-def _person(people, person_id, day):
+def _person(people, person_id, day, taqseera_ids=()):
     p = people.get(person_id)
     if not p:
         return {"id": person_id, "name": "", "role": "", "category": "", "missing": True}
@@ -246,7 +248,8 @@ def _person(people, person_id, day):
     category = "personnel" if person_id.startswith("IND-") else "officers"
     return {"id": person_id, "name": p.get("name", ""), "role": eff["role"],
             "short_name": p.get("short_name", "") if category == "officers" else "",
-            "category": category}
+            "category": category,
+            "taqseera": category == "officers" and person_id in taqseera_ids}
 
 
 def _roster(data, day):
@@ -286,11 +289,13 @@ def _roster(data, day):
             "personnel": [slim(p) for p in repo.on_force(day, "personnel") if not_on_leave(p)]}
 
 
-def _row(assignment, people, day):
+def _row(assignment, people, day, taqseera_ids=()):
     """صف واحد على اللوحة. الخانة الشاغرة (بلا ضباط) صف مشروع مش نقص —
     1,034 صف خدمات طارئة في الأرشيف قوامها أفراد ومجندين من غير ضابط."""
-    officers = [_person(people, oid, day) for oid in assignment.get("officer_ids") or []]
-    personnel = [_person(people, pid, day) for pid in assignment.get("personnel_ids") or []]
+    officers = [_person(people, oid, day, taqseera_ids)
+                for oid in assignment.get("officer_ids") or []]
+    personnel = [_person(people, pid, day, taqseera_ids)
+                 for pid in assignment.get("personnel_ids") or []]
     return {
         "id": assignment["id"],
         "name": assignment.get("name", ""),
@@ -426,7 +431,10 @@ def target_rows_for_day(data, day):
     اللزوم لما محتاج الأهداف بس (زي إحصائيات التشغيل اللي بتلفّ على
     عشرات الأيام)."""
     people = _people_index(data)
-    rows = [_row(a, people, day) for a in peek_day(data, day)
+    states = officer_states(data, day)
+    taqseera_ids = {officer_id for officer_id, state in states.items()
+                    if state.get("taqseera")}
+    rows = [_row(a, people, day, taqseera_ids) for a in peek_day(data, day)
             if a.get("section") == SECTION_TARGETS]
     return _target_slots(rows, _officers_on_force(data, day), day, data)
 
@@ -639,12 +647,14 @@ def build_board(data, day):
 
     people = _people_index(data)
     states = officer_states(data, day)
+    taqseera_ids = {officer_id for officer_id, state in states.items()
+                    if state.get("taqseera")}
     medical_ids = set(groups_on(data, day).get(ROLE_MEDICAL) or [])
 
     by_section = {name: [] for name in ASSIGNMENT_SECTIONS}
     for source_order, a in enumerate(peek_day(data, day)):
         section = canonical_section_name(a.get("section") or SECTION_OCCASIONAL)
-        row = _row(a, people, day)
+        row = _row(a, people, day, taqseera_ids)
         row["_source_order"] = source_order
         by_section.setdefault(section, []).append(row)
     # الفرز هنا على نسخة العرض فقط. `_source_order` متغير داخلي بيتشال
@@ -663,7 +673,7 @@ def build_board(data, day):
         by_section[SECTION_TARGETS], target_commanders, day, data)
 
     full = summarise(data, day)
-    rests, taqseeras, outsiders, admin_work = [], [], [], []
+    rests, outsiders, admin_work, net = [], [], [], []
     for r in full["rows"]:
         # ضباط العيادة ليهم عرضهم وحسابهم في يومية الضباط، إنما اليومية
         # التفصيلية ما بتسردهمش في أقسام الضباط المحسوبة حتى لو حالة مكتوبة
@@ -671,17 +681,15 @@ def build_board(data, day):
         if r["id"] in medical_ids:
             continue
         who = {"id": r["id"], "name": r["name"], "role": r["role"],
-               "short_name": people.get(r["id"], {}).get("short_name", "")}
+               "short_name": people.get(r["id"], {}).get("short_name", ""),
+               "taqseera": bool(r["taqseera"])}
         # النص اليدوي = `note` المستورد + التشغيل الإضافي (الخدمة التلقائية
         # مش جواه — الأقسام دي بتوصف الحالة نفسها مش الخدمة)
         manual = r["manual"]
-        if r["group"] == "خوارج":
-            if r["bucket"] == "تقصيرة":
-                # التقصيرة مش قسم في الورقة المطبوعة: الضابط بيتحط في تشغيله العادي
-                # (على خدمته لو عليه خدمة، وإلا في «عمل بالإدارة» بنص عمله)
-                taqseeras.append({**who, "note": manual, "has_service": bool(r["services"]),
-                                  "text": r["text"] or manual or r["post"]})
-            elif r["bucket"] == "راحة":
+        is_taqseera = r["group"] == "خوارج" and r["bucket"] == "تقصيرة"
+        is_outside = r["group"] == "خوارج" and not is_taqseera
+        if is_outside:
+            if r["bucket"] == "راحة":
                 lv = r["leave"] or {}
                 rests.append({**who, "type": (r["leave"] or {}).get("type", "راحة"),
                               "start": lv.get("start"), "end": lv.get("end"),
@@ -696,17 +704,30 @@ def build_board(data, day):
                                   "course": r["course"] if r["bucket"] == "فرقة" else None,
                                   "status_period": r["persistent_status"]
                                   if r["status_source"] == "period" else None})
-        elif r["group"] == "صافي":
-            admin_work.append({**who, "text": manual or r["post"]})
+            continue
+
+        # مدير ووكيل الإدارة هما الوحيدان اللذان يظهران تلقائيًا في عمل
+        # بالإدارة، بنص المنصب التنظيمي نفسه. أي ضابط آخر يحتاج العلامة
+        # الصريحة من يومية الضباط. الخوارج الحقيقية استُبعدت فوق.
+        if r.get("command_role") in (ROLE_DIRECTOR, ROLE_DEPUTY):
+            admin_work.append({**who, "text": r["command_role"], "automatic": True})
         elif r["admin_work"]:
             # اتعلّم من يومية الضباط «إضافة للعمل بالإدارة»: نصه التشغيلي الكامل
             # (خدمته + اليدوي) بيظهر هنا كمان، وهو فاضل في مكان خدمته زي ما هو
-            admin_work.append({**who, "text": r["text"] or r["post"], "added": True})
+            admin_work.append({**who, "text": r["text"] or manual or r["post"], "added": True})
+        elif not r["services"]:
+            # «الصافي» = على القوة، ليس خارجًا، ولم يُسكّن على أي خدمة.
+            # خدمة المعسكر الفرعي لا تدخل إجمالي الإدارة، لكنها تظل تسكينًا
+            # فعليًا ولذلك لا تتكرر هنا.
+            net.append(who)
 
     computed = {
         SECTION_ADMIN_WORK: admin_work,
+        SECTION_NET: net,
         SECTION_RESTS: rests,
-        SECTION_TAQSEERA: taqseeras,
+        # متروك فارغًا للتوافق مع مستهلك قديم للاسم؛ التقصيرة أصبحت علامة
+        # على الضابط في خدمته/الصافي/عمل الإدارة وليست قسمًا مستقلًا.
+        SECTION_TAQSEERA: [],
         SECTION_OUTSIDERS: outsiders,
     }
 
@@ -732,7 +753,7 @@ def build_board(data, day):
             continue
         sections.append({"name": name, "type": "services", "rows": rows})
 
-    # أي قسم اتكتب بالإيد ومش من العشرة بيتعرض في الآخر بدل ما يختفي —
+    # أي قسم اتكتب بالإيد ومش من الأقسام الرسمية بيتعرض في الآخر بدل ما يختفي —
     # زي «خدمات مباراة المصري» ليوم فيه مباراة، لليوم ده بس من غير أي
     # تسجيل مسبق لاسم القسم في أي مكان.
     extra = [n for n in by_section if n not in BOARD_ORDER and by_section[n]]
@@ -742,7 +763,8 @@ def build_board(data, day):
     layout_version = "word-2026-09-26" if day >= "2026-09-26" else "word-legacy"
     return {"date": day, "layout_version": layout_version,
             "layout_columns": {
-                "right": [SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_ADMIN_WORK],
+                "right": [SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT,
+                          SECTION_SECURITY, SECTION_ADMIN_WORK, SECTION_NET],
                 "left": [SECTION_OCCASIONAL, SECTION_PRISON, SECTION_OUTSIDERS],
             }, "sections": sections,
             "confirm": confirm_state(data, day),

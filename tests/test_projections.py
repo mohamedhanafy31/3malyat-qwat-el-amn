@@ -184,10 +184,10 @@ def test_assignment_needs_a_name_and_kind(client):
 
 # ---------- تقسيمة اللوحة ----------
 
-def test_board_has_the_ten_word_sections_in_order(client):
+def test_board_has_the_eleven_official_sections_in_order(client):
     b = client.get(f"/api/board/{DAY}").get_json()
     assert [s["name"] for s in b["sections"]] == [
-        "الخدمات أساسية", "الخدمات الطارئة", "عمل بالإدارة", "الأهداف",
+        "الخدمات أساسية", "الخدمات الطارئة", "عمل بالإدارة", "الصافي", "الأهداف",
         "الراحات", "التقصيرات", "الخوارج",
         "ضابط عظيم وأمن المعسكر الفرعي", "ضابط عظيم الإدارة", "ضابط الأمن بالإدارة",
     ]
@@ -220,12 +220,30 @@ def test_board_labels_and_tags_are_not_stored_on_services(client):
     assert "groups" not in section
 
 
-def test_officers_with_no_service_land_in_admin_work(client):
-    """قسم «عمل بالإدارة» في الوورد = الضباط اللي مالهمش خدمة، والمدير
-    والوكيل دايمًا فيه."""
+def test_net_officers_are_separate_from_automatic_admin_leaders(client):
+    """المدير يظهر بمسماه في عمل بالإدارة، وغير المسكّن يظهر في الصافي."""
     client.patch("/api/command", json={"مدير الإدارة": "OFF-001"})
+    admin = _section(client, "عمل بالإدارة")["rows"]
+    net = _section(client, "الصافي")["rows"]
+    assert [(r["id"], r["text"], r["automatic"]) for r in admin] == [
+        ("OFF-001", "مدير الإدارة", True)]
+    assert [r["id"] for r in net] == ["OFF-002"]
+
+
+def test_director_and_deputy_have_their_exact_operation_titles(client):
+    response = client.patch("/api/command", json={
+        "مدير الإدارة": "OFF-001", "وكيل الإدارة": "OFF-002"})
+    assert response.status_code == 200
     rows = _section(client, "عمل بالإدارة")["rows"]
-    assert {r["id"] for r in rows} == {"OFF-001", "OFF-002"}
+    assert {(r["id"], r["text"]) for r in rows} == {
+        ("OFF-001", "مدير الإدارة"), ("OFF-002", "وكيل الإدارة")}
+
+
+def test_outside_director_is_not_duplicated_in_admin_work(client):
+    client.patch("/api/command", json={"مدير الإدارة": "OFF-001"})
+    client.put(f"/api/duty/{DAY}/OFF-001", json={"status": "غياب"})
+    assert "OFF-001" not in {r["id"] for r in _section(client, "عمل بالإدارة")["rows"]}
+    assert "OFF-001" in {r["id"] for r in _section(client, "الخوارج")["rows"]}
 
 
 # ---------- قواعد اتقاست على جدول الإجمالي في الوورد ----------
@@ -261,6 +279,24 @@ def test_taqseera_beats_an_ordinary_service_too(client):
     s = _summary(client)
     assert s["خوارج"]["تقصيرة"] == 1
     assert s["خارجية"]["صباحية"] == 0
+
+
+def test_taqseera_stays_beside_the_officer_service_not_in_outsiders(client):
+    _add(client, officer_ids=["OFF-002"])
+    client.put(f"/api/duty/{DAY}/OFF-002", json={"taqseera": True})
+
+    service_officer = _section(client, "الخدمات أساسية")["rows"][0]["officers"][0]
+    assert service_officer["id"] == "OFF-002" and service_officer["taqseera"] is True
+    assert _section(client, "التقصيرات")["rows"] == []
+    assert "OFF-002" not in {r["id"] for r in _section(client, "الخوارج")["rows"]}
+    assert "OFF-002" not in {r["id"] for r in _section(client, "الصافي")["rows"]}
+
+
+def test_unassigned_taqseera_officer_is_net_with_the_marker(client):
+    client.put(f"/api/duty/{DAY}/OFF-002", json={"taqseera": True})
+    mine = next(r for r in _section(client, "الصافي")["rows"] if r["id"] == "OFF-002")
+    assert mine["taqseera"] is True
+    assert "OFF-002" not in {r["id"] for r in _section(client, "الخوارج")["rows"]}
 
 
 def test_target_beats_an_ordinary_service_whatever_the_order(client):
@@ -333,7 +369,9 @@ def test_word_layout_exposes_columns_and_canonical_prison_section(client):
     board = client.get("/api/board/2026-09-26").get_json()
     assert board["layout_version"] == "word-2026-09-26"
     assert board["layout_columns"]["right"] == ["الخدمات أساسية", "الأهداف",
-                                                     "ضابط عظيم وأمن المعسكر الفرعي", "عمل بالإدارة"]
+                                                     "ضابط عظيم وأمن المعسكر الفرعي",
+                                                     "ضابط عظيم الإدارة", "ضابط الأمن بالإدارة",
+                                                     "عمل بالإدارة", "الصافي"]
     assert board["layout_columns"]["left"] == ["الخدمات الطارئة", "خدمات سجن قوات الأمن", "الخوارج"]
     prison = next(section for section in board["sections"] if section["name"] == "خدمات سجن قوات الأمن")
     assert prison["rows"][0]["name"] == "تأمين السجن"
@@ -343,6 +381,9 @@ def test_naming_a_section_after_a_computed_one_is_rejected_on_edit_too(client):
     row = _add(client, section="خدمات مباراة المصري").get_json()
     r = client.patch(f"/api/assignments/{DAY}/{row['id']}", json={"section": "الخوارج"})
     assert r.status_code == 400
+
+    rejected = client.patch(f"/api/assignments/{DAY}/{row['id']}", json={"section": "الصافي"})
+    assert rejected.status_code == 400
 
 
 # ---------- قائد الهدف العام (خانة ثابتة) مقابل الضابط المعيّن بالهدف ----------
@@ -488,6 +529,14 @@ def test_clearing_a_target_assignment_removes_the_underlying_row(client):
     assert row["officers"] == [] and row["vacant"] is True
     assert not any(a.get("name") == "سوميد" for a in
                    client.get(f"/api/assignments/{DAY}").get_json()["assignments"])
+
+
+def test_officer_removed_from_target_returns_to_net(client):
+    _set_target(client, "سوميد", ["OFF-002"])
+    assert "OFF-002" not in {r["id"] for r in _section(client, "الصافي")["rows"]}
+
+    _set_target(client, "سوميد", [])
+    assert "OFF-002" in {r["id"] for r in _section(client, "الصافي")["rows"]}
 
 
 def test_clearing_the_only_target_assignment_of_the_day_removes_the_day_file(client):
