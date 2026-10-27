@@ -57,6 +57,8 @@ def _status_period_text(row):
     if row.get("status_source") != "period" or not period:
         return ""
     status = period.get("status") or row.get("status") or "خارج"
+    if period.get("title") and period.get("label"):
+        return period["label"]      # «مأمورية: <الاسم> — <التفاصيل> — من … حتى …»
     try:
         start = date.fromisoformat(period.get("start") or "").strftime("%d/%m/%Y")
     except (TypeError, ValueError):

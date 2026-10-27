@@ -71,7 +71,7 @@ def test_leave_and_course_term_on_the_same_day_warns(client):
 
 
 def test_status_plus_assignment_warns(client):
-    client.put(f"/api/duty/{DAY}/OFF-002", json={"status": "انتداب"})
+    client.put(f"/api/duty/{DAY}/OFF-002", json={"status": "غياب"})
     _add(client, officer_ids=["OFF-002"])
     assert "حالة" in _kinds(client)
 

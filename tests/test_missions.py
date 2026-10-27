@@ -228,5 +228,52 @@ def test_unchecking_or_deleting_assignment_removes_it_from_daily_missions(client
     assert client.get(f"/api/missions/day/{day}").get_json()["counts"]["total"] == 0
 
 
+def test_switching_a_mission_between_internal_and_external_keeps_everything_else(client):
+    day = "2026-04-12"
+    created = client.post(f"/api/assignments/{day}", json={
+        "name": "ترحيلة النيابة", "kind": "خارجية", "shift": "صباحية",
+        "officer_ids": ["OFF-001"], "conscript_count": 3, "weapon": "آلي",
+        "time": "08:30", "party": "السويس", "note": "ملاحظة", "mission_transport": True,
+    }).get_json()
+
+    r = client.patch(f"/api/assignments/{day}/{created['id']}", json={"kind": "داخلية"})
+    assert r.status_code == 200, r.get_json()
+
+    body = client.get(f"/api/missions/day/{day}").get_json()
+    assert body["counts"] == {"internal": 1, "external": 0, "total": 1}
+    assert body["external"] == []
+    row = body["internal"][0]
+    assert row["id"] == created["id"]          # نفس التكليف، مش سجل جديد
+    assert (row["name"], row["shift"], row["conscript_count"], row["weapon"],
+            row["party"], row["note"]) == ("ترحيلة النيابة", "صباحية", 3, "آلي", "السويس", "ملاحظة")
+    assert [o["id"] for o in row["officers"]] == ["OFF-001"]
+    assert len(client.get(f"/api/assignments/{day}").get_json()["assignments"]) == 1
+
+    # ورجوع تاني
+    client.patch(f"/api/assignments/{day}/{created['id']}", json={"kind": "خارجية"})
+    assert client.get(f"/api/missions/day/{day}").get_json()["counts"]["external"] == 1
+
+
+def test_mission_kind_edit_rejects_a_bad_kind_and_missing_row(client):
+    day = "2026-04-12"
+    created = client.post(f"/api/assignments/{day}", json={
+        "name": "ترحيلة", "kind": "خارجية", "mission_transport": True}).get_json()
+    assert client.patch(f"/api/assignments/{day}/{created['id']}",
+                        json={"kind": "حراسات"}).status_code == 400
+    assert client.patch(f"/api/assignments/{day}/ASG-9999", json={"kind": "داخلية"}).status_code == 404
+    assert client.get(f"/api/missions/day/{day}").get_json()["counts"]["external"] == 1
+
+
+def test_missions_page_exposes_the_edit_action():
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    js = (root / "static/js/missions.js").read_text(encoding="utf-8")
+    html = (root / "templates/pages/missions.html").read_text(encoding="utf-8")
+    assert 'data-action="editMission"' in js
+    assert "ACTIONS.editMission" in js and "/api/assignments/" in js and '"PATCH"' in js
+    assert 'id="missionEditModal"' in html and 'id="missionEditKind"' in html
+    assert "داخلية" in html and "خارجية" in html
+
+
 def test_daily_missions_reject_invalid_date(client):
     assert client.get("/api/missions/day/not-a-date").status_code == 400

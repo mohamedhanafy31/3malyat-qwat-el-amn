@@ -60,7 +60,9 @@ def test_medical_officer_on_leave_stays_in_the_medical_column(client):
 def test_explicit_status_wins_over_the_medical_default(client):
     """حالة مكتوبة بالإيد لليوم ده بالذات بتغلب أي افتراض."""
     _set_medical(client, "OFF-001")
-    client.put("/api/duty/2026-05-03/OFF-001", json={"status": "انتداب"})
+    client.put("/api/duty/2026-05-03/OFF-001", json={
+        "status": "انتداب", "status_end": "2026-05-04",
+        "status_title": "تأمين", "status_details": "مهمة"})
     row = _row(client, "OFF-001", "2026-05-03")
     assert (row["group"], row["bucket"]) == ("خوارج", "انتداب")
 

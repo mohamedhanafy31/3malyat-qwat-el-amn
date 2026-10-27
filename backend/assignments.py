@@ -51,9 +51,9 @@ RESERVED_SECTIONS = {SECTION_ADMIN_WORK, SECTION_RESTS, SECTION_TAQSEERA, SECTIO
 # المسار العام (`/api/assignments`) بدل مسار الأهداف المخصّص
 # (`/api/board/<day>/target/<name>`).
 # حالات الضابط اللي مش تكليف بخدمة والمعروضة للاختيار في يومية الضباط.
-# «مرضي»/«غياب»/«انتداب» مستمرة حتى الإيقاف و«طارئة» لمدة محددة
+# «مرضي»/«غياب» مستمرة حتى الإنهاء و«طارئة»/«مأمورية»/«انتداب» لمدة محددة
 # (`status_periods.py`).
-OFFICER_STATUSES = ["انتداب", "غياب", "مرضي", "طارئة"]
+OFFICER_STATUSES = ["انتداب", "غياب", "مرضي", "طارئة", "مأمورية"]
 # قيم بتتقري من الأرشيف بس ومش معروضة كاختيار: «فرقة» مصدرها الالتحاق
 # المسجّل (`course_terms`) مش حالة يدوية، و«راحة فرقة» اتلغت. صفوف الأيام
 # القديمة المكتوب فيها أي منهم بتفضل تتعرض وتتحسب في خانتها.
@@ -258,10 +258,35 @@ def blank(assignment_id, name, section, **over):
         "party": "",
         "counts_in_summary": True,
         "mission_transport": False,
+        "officer_command_required": False,
+        "personnel_command_required": False,
         "note": "",
     }
     row.update(over)
     return row
+
+
+# «رئاسة ضابط» / «رئاسة فرد»: الدور ممكن يكون مطلوب وشاغر في نفس الوقت
+# (المشغّل حاجز المكان لحد ما يتعيّن حد)، فالعلم صريح ومحفوظ على الصف بدل ما
+# يتستنتج من وجود معرّفات. الصفوف القديمة اللي فيها معرّفات من غير علم بتتعامل
+# كأن الدور موجود.
+COMMAND_ROLES = {
+    "officer": ("officer_command_required", "officer_ids"),
+    "personnel": ("personnel_command_required", "personnel_ids"),
+}
+
+
+def command_required(assignment, who):
+    """هل دور الرئاسة (``officer``/``personnel``) موجود على الخانة؟ — العلم
+    الصريح، أو (للصفوف القديمة) وجود شخص معيّن فعلًا."""
+    flag, ids_key = COMMAND_ROLES[who]
+    return bool(assignment.get(flag)) or bool(assignment.get(ids_key))
+
+
+def command_vacant(assignment, who):
+    """الدور موجود لكن لسه مفيش حد معيّن فيه."""
+    _flag, ids_key = COMMAND_ROLES[who]
+    return command_required(assignment, who) and not assignment.get(ids_key)
 
 
 def label(assignment, with_shift=True):
@@ -421,6 +446,19 @@ def apply_assignment(data, day, row, payload):
                     return None, "اختر معاد الانتظام من لوحة الساعة.", 400
             else:
                 row["time"] = format_time(parsed_time)
+
+    # أعلام الرئاسة: العلم الصريح بيغلب. إلغاؤه بيفضّي المعرّفات المقابلة،
+    # وتحديد أشخاص من غير علم بيرفع العلم. صف قديم من غير أشخاص ولا علم
+    # مابيتغيّرش شكله.
+    for who, (flag, ids_key) in COMMAND_ROLES.items():
+        if flag in payload:
+            if not isinstance(payload[flag], bool):
+                return None, "خيار الرئاسة يجب أن يكون نعم أو لا.", 400
+            row[flag] = payload[flag]
+            if not row[flag]:
+                row[ids_key] = []
+        elif row.get(ids_key):
+            row[flag] = True
 
     if row.get("section") == SECTION_TARGETS:
         if row.get("name") not in set(targets_on(data, day)):

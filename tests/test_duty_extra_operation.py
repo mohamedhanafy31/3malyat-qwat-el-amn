@@ -109,7 +109,7 @@ def test_net_officer_is_listed_once_even_when_flagged(client):
 
 def test_flag_is_ignored_for_an_officer_among_the_outsiders(client):
     _assign(client)
-    client.put(f"/api/duty/{DAY}/OFF-002", json={"status": "انتداب", "admin_work": True})
+    client.put(f"/api/duty/{DAY}/OFF-002", json={"status": "غياب", "admin_work": True})
     admin = _board_section(client, "عمل بالإدارة")["rows"]
     assert "OFF-002" not in [r["id"] for r in admin]
 

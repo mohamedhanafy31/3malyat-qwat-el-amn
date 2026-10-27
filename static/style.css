@@ -938,6 +938,23 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
   background-repeat:no-repeat;background-size:32px 100%,32px 100%,10px 100%,10px 100%;
   background-attachment:local,local,scroll,scroll}
 
+/* الخوارج كتجميعات قابلة للمسح البصري بدل جدول طويل مختلط. العنوان هادئ
+   ومكمّل لنفس شكل الدفتر، واللون الجانبي مجرد علامة فئة مش حالة تشغيلية. */
+.outsider-groups{display:grid;gap:var(--s3);padding:var(--s3)}
+.outsider-group{min-width:0;border:1px solid var(--line);border-inline-start:4px solid var(--navy-500);
+  border-radius:var(--radius-sm);background:var(--surface);overflow:hidden}
+.outsider-group-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
+  min-height:38px;padding:var(--s2) var(--s3);background:var(--surface-sunken);
+  border-bottom:1px solid var(--line);color:var(--navy-900);font-size:var(--t-sm)}
+.outsider-group-count{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 var(--s2);
+  border:1px solid var(--line-strong);border-radius:var(--radius-pill);background:var(--surface);
+  color:var(--ink-700);font-family:var(--font-num);font-size:var(--t-xs);font-weight:700}
+.outsider-group-leave{border-inline-start-color:var(--gold-700)}
+.outsider-group-course{border-inline-start-color:var(--cat-2)}
+.outsider-group-status{border-inline-start-color:var(--warn-700)}
+.outsider-group-taqseera{border-inline-start-color:var(--ink-500)}
+.outsider-group .mtable-wrap{border:0}
+
 /* ⑱ب اليومية التفصيلية — شكل «الدفتر الورقي» بالظبط: نفس التقسيمة اللي
    كانت بتتكتب بالإيد على الوورد (عمودين ثابتين، إطار مزدوج للعنوان،
    خانة كل قسم بجدول محدّد الحدود) بس شغّالة على البيانات الحيّة —
@@ -1746,6 +1763,11 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   .ledger-head h2,.ledger-head .ledger-sub{color:#000 !important}
   .ledger-board .mcard{border:1px solid #000 !important}
   .ledger-board .mcard h3{background:#e9e9e9 !important;color:#000 !important}
+  .ledger-board .outsider-groups{gap:6px !important;padding:6px !important}
+  .ledger-board .outsider-group{border:1px solid #777 !important;border-radius:0 !important}
+  .ledger-board .outsider-group-head{min-height:0;padding:4px 6px !important;
+    background:#f3f3f3 !important;color:#000 !important;border-color:#999 !important}
+  .ledger-board .outsider-group-count{height:20px;background:#fff !important;color:#000 !important}
   .ledger-board .target-default-note{color:#555 !important}
   .ledger-board .mcount{background:#fff !important;color:#000 !important;
     border:1px solid #999 !important}
@@ -2588,7 +2610,8 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .mission-facts>div{display:flex;flex-direction:column;gap:2px;padding:var(--s2) var(--s3);background:var(--surface-sunken)}
 .mission-facts span{color:var(--ink-500);font-size:var(--t-xs)}
 .mission-facts strong{color:var(--ink-900);font-size:var(--t-sm);overflow-wrap:anywhere}
-.mission-card-actions{display:flex;justify-content:flex-end;padding-top:var(--s2);border-top:1px dashed var(--line)}
+.mission-card-actions{display:flex;justify-content:flex-end;gap:var(--s2);padding-top:var(--s2);border-top:1px dashed var(--line)}
+.command-role{display:inline-flex;align-items:center;flex-wrap:wrap;gap:var(--s1);margin-inline-end:var(--s2)}
 .mission-note-btn{color:var(--navy-800);font-weight:700}
 .mission-empty{display:flex;min-height:220px;flex-direction:column;align-items:center;justify-content:center;
   gap:var(--s2);padding:var(--s6);text-align:center;color:var(--ink-500)}

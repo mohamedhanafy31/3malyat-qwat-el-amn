@@ -38,7 +38,7 @@ import copy
 import json
 from datetime import datetime
 
-from .assignments import label, peek_day
+from .assignments import command_required, label, peek_day
 from .people import effective, find_person
 
 MAX_SNAPSHOT_DAYS = 60
@@ -84,7 +84,10 @@ def _fingerprint(rows):
     return sorted(
         (r.get("id"), tuple(sorted(r.get("officer_ids") or [])),
          tuple(sorted(r.get("personnel_ids") or [])),
-         tuple((k, _stable(r.get(k))) for k in sorted(TRACKED)))
+         tuple((k, _stable(r.get(k))) for k in sorted(TRACKED)),
+         # الدور المطلوب بعد الاستنتاج — صف قديم (معرّفات من غير علم) وصف جديد
+         # بعلم صريح لنفس الحالة ماينفعش يبانوا اتغيّروا
+         (command_required(r, "officer"), command_required(r, "personnel")))
         for r in rows)
 
 
@@ -207,6 +210,10 @@ def _service_events(before_rows, after_rows):
         old, new = before[rid], after[rid]
         moved = [(TRACKED[k], old.get(k), new.get(k)) for k in TRACKED
                  if _stable(old.get(k)) != _stable(new.get(k))]
+        for who, role_label in (("officer", "رئاسة ضابط"), ("personnel", "رئاسة فرد")):
+            was, now = command_required(old, who), command_required(new, who)
+            if was != now:
+                moved.append((role_label, was, now))
         if not moved:
             continue
         bits = "، ".join(f"{lbl}: «{_show(o)}» ← «{_show(n)}»" for lbl, o, n in moved)

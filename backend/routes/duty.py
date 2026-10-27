@@ -5,9 +5,12 @@
 وملاحظة، وتشغيل إضافي بيتضاف على خدمته التلقائية، وإضافته للعمل بالإدارة
 في اللوحة. دي حقيقة مختلفة عن التكليف مش نسخة تانية منه.
 
-«مرضي»/«غياب»/«انتداب» بتبدأ من اليوم وتستمر لحد «إيقاف الحالة»، و«طارئة»
-لازم معاها ``status_end`` (حتى يوم، شامل) وبتنتهي لوحدها — الاتنين سجل مدى
-في `status_periods.py` مش نسخة في كل ملف يوم. «فرقة» مصدرها التحاق الفرق.
+«مرضي»/«غياب» بتبدأ من اليوم وتستمر لحد «إنهاء الحالة من هذا اليوم»، و«طارئة»
+و«مأمورية» و«انتداب» لازم معاها ``status_end`` (حتى يوم، شامل) وبتنتهي
+لوحدها — و«مأمورية»/«انتداب» كمان ``status_title`` و``status_details``. كله
+سجل مدى في `status_periods.py` مش نسخة في كل ملف يوم. «إلغاء تسجيل الحالة
+بالكامل» (`cancel-status`) بيمسح السجل كله لأنه كان تسجيل بالغلط، عكس الإنهاء
+اللي بيحفظ اللي فات. «فرقة» مصدرها التحاق الفرق.
 تشغيل «طبية» بقى منصب ثابت في قيادة الإدارة (`PATCH /api/command`) مش
 حالة يومية هنا.
 """
@@ -24,8 +27,10 @@ from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..people import officers_on
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
-from ..status_periods import PERIOD_STATUSES, PeriodError, is_bounded
+from .. import retro
+from ..status_periods import PERIOD_STATUSES, PeriodError, describe, is_bounded
 from ..status_periods import active_on as persistent_status_on
+from ..status_periods import cancel as cancel_persistent_status
 from ..status_periods import start as start_persistent_status
 from ..status_periods import stop as stop_persistent_status
 from ..utils import MAX_LEN, around, canonical_day, json_payload
@@ -54,16 +59,19 @@ def _state_text(name, day, before, after):
 def _period_text(name, day, period, before, closed):
     """جملة السجل لبدء/تعديل حالة ممتدة."""
     status = period.get("status", "")
+    # «مأمورية»/«انتداب»: الاسم والتفاصيل جزء من نص السجل
+    detail = describe(period) if describe(period) != status else ""
+    suffix = f" ({detail})" if detail else ""
     if before and before.get("id") == period.get("id"):
-        text = f"تعديل {status} لـ{name}: من {period.get('start')} حتى {period.get('end')}"
+        text = f"تعديل {status} لـ{name}: من {period.get('start')} حتى {period.get('end')}{suffix}"
     elif is_bounded(status):
-        text = f"بدء {status} لـ{name} من {day} حتى {period.get('end')}"
+        text = f"بدء {status} لـ{name} من {day} حتى {period.get('end')}{suffix}"
     elif period.get("end"):
         # حالة مستمرة اتقفلت تلقائيًا قبل حالة لاحقة مجدولة
         text = (f"بدء حالة {status} المستمرة لـ{name} من {day} "
                 f"حتى {period['end']} (قبل حالة مسجلة لاحقًا)")
     else:
-        text = f"بدء حالة {status} المستمرة لـ{name} من {day} حتى إيقافها"
+        text = f"بدء حالة {status} المستمرة لـ{name} من {day} حتى إنهائها"
     if closed and closed.get("id") != period.get("id"):
         text += f"، مع إنهاء حالة {closed.get('status', '')} السابقة"
     return text
@@ -116,7 +124,12 @@ def set_state(day, person_id):
         return jsonify({"error": f"التشغيل الإضافي أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
     status_end = str(payload.get("status_end", "") or "").strip()
     if status_end and status not in PERIOD_STATUSES:
-        return jsonify({"error": "يوم النهاية (حتى يوم) خاص بحالة «طارئة»."}), 400
+        return jsonify({"error": "يوم النهاية (حتى يوم) خاص بحالات «طارئة» و«مأمورية» و«انتداب»."}), 400
+    status_title = str(payload.get("status_title", "") or "").strip()
+    status_details = str(payload.get("status_details", "") or "").strip()
+    # قفل الطول قبل التطبيع عشان نص طويل بمسافات مايعدّيش
+    if len(status_title) > 4 * 120 or len(status_details) > 4 * 300:
+        return jsonify({"error": "اسم أو تفاصيل الحالة أطول من الحد المسموح."}), 400
 
     def mutate(data):
         stale = stale_revision(data, payload.get("revision"), [day])
@@ -148,10 +161,21 @@ def set_state(day, person_id):
         period_before = dict(persistent_status_on(data, person_id, day) or {})
         period_after = closed = None
         period_changed = False
-        if "status" in payload and status in PERIOD_STATUSES:
+        # سجل قديم مفتوح (انتداب/طارئة بلا نهاية) بيتحفظ زي ما هو لما الحفظ
+        # مش بيبعت نهاية ولا اسم — مثلًا تعديل ملاحظة بس؛ ما يتفرضش عليه
+        # اكتمال البيانات إلا لو المستخدم فعلًا بيعدّل الحالة نفسها.
+        current = persistent_status_on(data, person_id, day)
+        keeps_open_legacy = bool(
+            current and current.get("status") == status and not current.get("end")
+            and is_bounded(status) and not status_end and not status_title
+            and not status_details)
+        if "status" in payload and status in PERIOD_STATUSES and keeps_open_legacy:
+            stored_status = ""
+        elif "status" in payload and status in PERIOD_STATUSES:
             try:
                 period, period_changed, closed = start_persistent_status(
-                    data, person_id, status, day, end=status_end)
+                    data, person_id, status, day, end=status_end,
+                    title=status_title, details=status_details)
             except PeriodError as error:
                 raise AbortRequest((jsonify({"error": str(error)}), error.status))
             period_after = dict(period)
@@ -190,11 +214,12 @@ def set_state(day, person_id):
 
 @bp.post("/api/duty/<day>/<person_id>/stop-status")
 def stop_continuous_status(day, person_id):
-    """اجعل ``day`` أول يوم عادي بعد حالة ممتدة فعالة.
+    """إنهاء الحالة من هذا اليوم: اجعل ``day`` أول يوم عادي بعد حالة ممتدة فعالة.
 
-    الاستخدام الأساسي إيقاف «مرضي»/«غياب»/«انتداب» المفتوحة، وسجلات «طارئة»
-    القديمة اللي اتعملت من غير نهاية. «طارئة» بنهاية بتخلص لوحدها؛ لو
-    اتوقفت هنا بدري بتتقصّر لليوم السابق."""
+    الاستخدام الأساسي إنهاء «مرضي»/«غياب» المفتوحة، وسجلات «طارئة»/«انتداب»
+    القديمة اللي اتعملت من غير نهاية. الحالة بنهاية بتخلص لوحدها؛ لو اتنهت
+    هنا بدري بتتقصّر لليوم السابق وبيتحفظ اللي فات. للتسجيل الغلط من
+    الأساس استخدم ``cancel-status``."""
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
@@ -208,14 +233,20 @@ def stop_continuous_status(day, person_id):
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
         before, after = stop_persistent_status(data, person_id, day)
         if not before:
-            raise AbortRequest((jsonify({"error": "لا توجد حالة مرضي/غياب/انتداب أو طارئة فعالة في هذا اليوم."}), 404))
+            raise AbortRequest((jsonify({"error": "لا توجد حالة ممتدة (مرضي/غياب/انتداب/طارئة/مأمورية) فعالة في هذا اليوم."}), 404))
         state = dict(officer_state(data, day, person_id))
         if state.get("status") == before.get("status"):
             set_officer_state(data, day, person_id, status="")
+        name = officer.get("name", "")
+        status = before.get("status", "")
+        if after is None:
+            text = (f"إنهاء حالة {status} لـ{name} من {day} — وهو أول يوم فيها، "
+                    "فأُزيل السجل لعدم وجود أيام سابقة")
+        else:
+            text = f"إنهاء حالة {status} لـ{name} من {day} (آخر يوم فيها {after.get('end')})"
         changes.record(
             data, "officer_status_period", before["id"], "delete" if after is None else "update",
-            before=before, after=after, day=day,
-            text=f"إيقاف حالة {before.get('status', '')} لـ{officer.get('name', '')} من {day}",
+            before=before, after=after, day=day, text=text,
         )
         result = summarise(data, day)
         result["revision"] = revision(data, [day])
@@ -224,8 +255,70 @@ def stop_continuous_status(day, person_id):
     return with_data(mutate, around(day, -1, 0))
 
 
+@bp.post("/api/duty/<day>/<person_id>/cancel-status")
+def cancel_status(day, person_id):
+    """إلغاء تسجيل الحالة بالكامل: بيمسح سجل الحالة اللي بيغطي ``day`` من
+    أوله لآخره (الماضي والمستقبل) — لتسجيل اتعمل بالغلط. للإنهاء مع حفظ
+    اللي فات استخدم ``stop-status``.
+
+    نفس سياسة الأيام المقفولة: اليوم المختار لازم يكون مفتوح، ولو السجل
+    بيغطي أيام مقفولة تانية لازم سبب مكتوب (`X-Retro-Reason`) ويتسجّل بأثر رجعي."""
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+
+    def scope(view):
+        return sorted({*around(day, -1, 0), *retro.status_scope(view)})
+
+    def mutate(data):
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
+        officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
+        if not officer:
+            raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
+        current = persistent_status_on(data, person_id, day)
+        if not current:
+            raise AbortRequest((jsonify({"error": "لا توجد حالة ممتدة (مرضي/غياب/انتداب/طارئة/مأمورية) فعالة في هذا اليوم."}), 404))
+        closed = retro.closed_days_in(
+            data, current.get("start", ""), current.get("end") or day_status.today_iso())
+        closed = [d for d in closed if d != day]
+        reason = retro.require_reason(closed)
+
+        before = cancel_persistent_status(data, person_id, day)
+        status = before.get("status", "")
+        # نسخ يومية قديمة من نفس الحالة على أيام السجل — ما نسيبهاش معلّقة
+        # (النسخة بتتشال من اليوم المختار بس؛ الحالات الممتدة مش بتتنسخ في الملفات)
+        state = dict(officer_state(data, day, person_id))
+        if state.get("status") == status:
+            set_officer_state(data, day, person_id, status="")
+        detail = describe(before)
+        span = (f"من {before.get('start')} حتى {before.get('end')}" if before.get("end")
+                else f"من {before.get('start')} (مفتوحة)")
+        text = (f"إلغاء تسجيل حالة {status} لـ{officer.get('name', '')} بالكامل "
+                f"({span}) من يوم {day}"
+                + (f" — {detail}" if detail != status else ""))
+        changes.record(data, "officer_status_period", before["id"], "delete",
+                       before=before, day=day, text=text)
+        if closed:
+            retro.log_retro(data, "officer_status_period", before["id"], closed, reason,
+                            before=before, text=f"{text} — يشمل أيامًا مغلقة: {'، '.join(closed)}")
+        result = summarise(data, day)
+        result["officer_statuses"] = officer_statuses(data)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
+
+    return with_data(mutate, scope)
+
+
 @bp.delete("/api/duty/<day>/<person_id>")
 def clear_state(day, person_id):
+    """مسح حالة الضابط المكتوبة في اليوم ده (تقصيرة/ملاحظة/إضافي/حالة اليوم).
+
+    ده **مش** إلغاء تسجيل: لو فيه حالة ممتدة بتغطي اليوم بتتنهي من اليوم ده
+    (يوم المسح أول يوم عادي) وبيتحفظ اللي قبله، والرد بيقول كده صراحة في
+    ``ended_status``. المسح الكامل للتسجيل الغلط له ``cancel-status``."""
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
@@ -252,9 +345,11 @@ def clear_state(day, person_id):
                 data, "officer_status_period", period_before["id"],
                 "delete" if period_after is None else "update",
                 before=period_before, after=period_after, day=day,
-                text=f"إيقاف حالة {period_before.get('status', '')} لـ"
-                     f"{officer.get('name', '')} من {day} (مسح حالة اليوم)")
-        result = {"ok": True, "daily": build_daily_view(data, day)}
+                text=f"إنهاء حالة {period_before.get('status', '')} لـ"
+                     f"{officer.get('name', '')} من {day} (مسح حالة اليوم — "
+                     "ليس إلغاءً كاملًا للتسجيل)")
+        result = {"ok": True, "daily": build_daily_view(data, day),
+                  "ended_status": period_before.get("status") if period_before else None}
         result["revision"] = result["daily"]["revision"]
         return jsonify(result)
 

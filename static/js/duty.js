@@ -5,13 +5,19 @@
    «فرقة» بتيجي من التحاق الفرق المسجّل وتفاصيلها بتتعرض تحت الخانة. */
 let DUTY = null;
 
-// نفس `backend/status_periods.py`: المستمرة لحد الإيقاف، والطارئة لحد يوم محدد
-const CONTINUOUS_STATUSES = ["مرضي", "غياب", "انتداب"];
-const BOUNDED_STATUSES = ["طارئة"];
+// نفس `backend/status_periods.py`: المستمرة لحد الإنهاء، والباقي لحد يوم محدد
+const CONTINUOUS_STATUSES = ["مرضي", "غياب"];
+const BOUNDED_STATUSES = ["طارئة", "مأمورية", "انتداب"];
+const DETAILED_STATUSES = ["مأمورية", "انتداب"];   // معاهم اسم وتفاصيل
 
 /* سطر مدى الحالة الممتدة: المفتوحة تعرض يوم البداية فقط، والمحددة تعرض المدى. */
 function periodSpan(p) {
   return p.end ? `من ${fmt(p.start)} حتى ${fmt(p.end)}` : `من يوم ${fmt(p.start)}`;
+}
+
+/* ما يظهر تحت الخانة: «مأمورية: الاسم — التفاصيل — من … حتى …» أو المدى بس */
+function periodLine(p) {
+  return p.title && p.label ? p.label : periodSpan(p);
 }
 
 /* الفرقة: الجملة الرسمية (الاسم + المدة + المكان) ثم النوع والملاحظات لو موجودة */
@@ -33,7 +39,7 @@ function renderSummary(s) {
   const tile = (label, v) => `<div class="sum-tile${v ? "" : " zero"}"><span>${label}</span><b>${v}</b></div>`;
   const group = (title, tiles) => `<div class="sum-group"><h4>${title}</h4><div class="sum-tiles">${tiles}</div></div>`;
   const single = (title, v, cls = "") => `<div class="sum-group single ${cls}"><h4>${title}</h4><b>${v}</b></div>`;
-  const outsideOrder = ["تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب"];
+  const outsideOrder = ["تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب", "مأمورية"];
   outsideOrder.push(...Object.keys(kh).filter(key => !outsideOrder.includes(key)));
   const strip = `<div class="duty-strip">
     ${single("أصل القوة", s["أصل القوة"])}
@@ -91,7 +97,7 @@ function officerRow(r) {
     : r.group === "صافي" ? `<span class="chip on">صافي</span>`
     : `<span class="chip ${KIND_CLS[r.group] || "done"}">${esc(r.group)}${r.bucket ? " · " + esc(r.bucket) : ""}</span>`
       + (r.status_source === "period" && r.persistent_status
-        ? `<div class="sub">${esc(periodSpan(r.persistent_status))}</div>` : "")
+        ? `<div class="sub wrap">${esc(periodLine(r.persistent_status))}</div>` : "")
       + (r.course ? `<div class="sub wrap">${esc(courseLine(r.course))}</div>` : "");
   const gone = r.later_left ? `<span class="chip done" title="خرج من القوة يوم ${fmt(r.later_left)}">خرج ${fmt(r.later_left)}</span>` : "";
   const search = r.search_attached ? ` <span class="chip soon" title="تشغيل من إدارة البحث">بحث</span>` : "";
@@ -136,6 +142,8 @@ ACTIONS.openAssign = id => {
   const period = row.status_source === "period" ? row.persistent_status : null;
   $("#assignStatusEnd").value = period && BOUNDED_STATUSES.includes(period.status) ? (period.end || "") : "";
   $("#assignStatusEnd").min = DUTY.date;
+  $("#assignStatusTitle").value = period && DETAILED_STATUSES.includes(period.status) ? (period.title || "") : "";
+  $("#assignStatusDetails").value = period && DETAILED_STATUSES.includes(period.status) ? (period.details || "") : "";
   updatePersistentHint();
   $("#assignTaq").checked = !!row.taqseera;
   $("#assignExtra").value = row.extra || "";
@@ -168,22 +176,37 @@ ACTIONS.openAssign = id => {
   if (persistent?.id) {
     const bounded = persistent.kind === "bounded";
     $("#assignPersistentTitle").textContent = bounded ? "حالة لمدة محددة" : "حالة مستمرة";
-    $("#assignPersistentText").textContent = `${persistent.status} ${periodSpan(persistent)}`
-      + (persistent.legacy_open ? " — سجل قديم بلا يوم نهاية؛ أوقفه أو احفظه بيوم نهاية" : "");
-    // الطارئة بنهاية بتخلص لوحدها — تعديل «حتى يوم» من النموذج بدل الإيقاف
+    $("#assignPersistentText").textContent = (persistent.title ? persistent.label : `${persistent.status} ${periodSpan(persistent)}`)
+      + (persistent.legacy_open ? " — سجل قديم بلا يوم نهاية؛ أنهِه أو احفظه بيوم نهاية" : "");
+    // الحالة بنهاية بتخلص لوحدها — تعديل «حتى يوم» من النموذج بدل الإنهاء
     $("#assignStopPersistent").classList.toggle("hidden", bounded && !persistent.open_ended);
     $("#assignStopPersistent").onclick = async () => {
       const yes = await confirmDialog({
-        title: `إيقاف حالة ${persistent.status}`,
-        body: `سيعود ${row.name} إلى الحالة العادية بداية من ${fmt(DUTY.date)}.`,
-        confirmLabel: "إيقاف الحالة",
+        title: `إنهاء حالة ${persistent.status} من هذا اليوم`,
+        body: `ستنتهي الحالة قبل ${fmt(DUTY.date)} ويعود ${row.name} إلى الحالة العادية بداية من هذا اليوم. `
+          + "الأيام السابقة تبقى مسجلة كما هي.",
+        confirmLabel: "إنهاء الحالة من هذا اليوم",
         danger: true,
       });
       if (!yes) return;
       const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent(row.id)}/stop-status`,
         jsonReq("POST", {}));
       if (!out) return;
-      DUTY = out; closeModal("assignModal", true); showToast("تم إيقاف الحالة"); render();
+      DUTY = out; closeModal("assignModal", true); showToast("تم إنهاء الحالة من هذا اليوم"); render();
+    };
+    $("#assignCancelPersistent").onclick = async () => {
+      const yes = await confirmDialog({
+        title: `إلغاء تسجيل حالة ${persistent.status} بالكامل`,
+        body: `سيُحذف تسجيل الحالة بالكامل (${periodSpan(persistent)}) من كل الأيام، السابقة واللاحقة، `
+          + "كأنه لم يُسجَّل. استخدمه فقط إذا كان التسجيل خطأ. لا يمكن التراجع عن ذلك.",
+        confirmLabel: "إلغاء تسجيل الحالة بالكامل",
+        danger: true,
+      });
+      if (!yes) return;
+      const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent(row.id)}/cancel-status`,
+        jsonReq("POST", {}));
+      if (!out) return;
+      DUTY = out; closeModal("assignModal", true); showToast("تم إلغاء تسجيل الحالة بالكامل"); render();
     };
   }
   openModal("assignModal");
@@ -195,13 +218,18 @@ function updatePersistentHint() {
   const bounded = BOUNDED_STATUSES.includes(value);
   const hint = $("#assignStatusHint");
   hint.classList.toggle("is-persistent", continuous || bounded);
+  const detailed = DETAILED_STATUSES.includes(value);
   $("#assignEndRow").classList.toggle("hidden", !bounded);
   $("#assignStatusEnd").required = bounded;
+  $("#assignTitleRow").classList.toggle("hidden", !detailed);
+  $("#assignDetailsRow").classList.toggle("hidden", !detailed);
+  $("#assignStatusTitle").required = detailed;
+  $("#assignStatusDetails").required = detailed;
   hint.textContent = continuous
-    ? `حالة «${value}» تبدأ من هذا اليوم وتستمر تلقائيًا حتى إيقافها.`
+    ? `حالة «${value}» تبدأ من هذا اليوم وتستمر تلقائيًا حتى إنهائها.`
     : bounded ? `حالة «${value}» من هذا اليوم حتى اليوم المحدد، وتنتهي تلقائيًا بعده.`
     : value ? `حالة «${value}» لهذا اليوم فقط.`
-    : "مرضي وغياب وانتداب تستمر حتى إيقافها؛ طارئة حتى يوم محدد؛ باقي الحالات ليوم واحد.";
+    : "مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد؛ باقي الحالات ليوم واحد.";
 }
 $("#assignStatus").addEventListener("change", updatePersistentHint);
 
@@ -234,10 +262,16 @@ $("#assignForm").onsubmit = async e => {
     if (end < DUTY.date) { showToast("«حتى يوم» قبل يوم البداية", true); $("#assignStatusEnd").focus(); return; }
     body.status_end = end;
   }
+  if (DETAILED_STATUSES.includes(status)) {
+    const title = $("#assignStatusTitle").value.trim(), details = $("#assignStatusDetails").value.trim();
+    if (!title) { showToast(`اكتب اسم ${status}`, true); $("#assignStatusTitle").focus(); return; }
+    if (!details) { showToast(`اكتب تفاصيل ${status}`, true); $("#assignStatusDetails").focus(); return; }
+    body.status_title = title; body.status_details = details;
+  }
   const row = DUTY.rows.find(r => r.id === $("#assignPerson").value);
   if (!status && row?.status_source === "period") {
-    // «بدون» مابيوقفش الحالة الممتدة — الإيقاف له زرار صريح فوق
-    showToast("لإنهاء الحالة استخدم «إيقاف الحالة من هذا اليوم»", true); return;
+    // «بدون» مابيغيّرش الحالة الممتدة — الإنهاء والإلغاء لهم زرارين صريحين فوق
+    showToast("لإنهاء الحالة استخدم «إنهاء الحالة من هذا اليوم»، ولإلغاء تسجيلها استخدم «إلغاء تسجيل الحالة بالكامل»", true); return;
   }
   const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent($("#assignPerson").value)}`,
     jsonReq("PUT", body));

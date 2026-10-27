@@ -190,6 +190,17 @@ def _people_text(people):
     return "، ".join(_who(p) for p in (people or []) if p) or ""
 
 
+def _command_text(row, who):
+    """نص دور الرئاسة، بما فيه الدور المؤكد الذي ما زال شاغرًا."""
+    key = f"{who}_command_required"
+    people_key = "officers" if who == "officer" else "personnel"
+    label = "رئاسة ضابط" if who == "officer" else "رئاسة فرد"
+    people = _people_text(row.get(people_key))
+    if not row.get(key) and not people:
+        return ""
+    return f"{label}: {people or 'شاغر'}"
+
+
 def _set_rtl_doc(document):
     for sect in document.sections:
         sect._sectPr.append(OxmlElement("w:bidi"))
@@ -232,7 +243,8 @@ def _service_desc(row):
     """كل تفاصيل الخدمة في خانة واحدة حرة — نفس أسلوب الورقة الرسمية
     («مج +فرد»، «فرد + مج») بدل أعمدة منفصلة لكل تفصيلة."""
     bits = []
-    who = "، ".join(filter(None, [_people_text(row.get("officers")), _people_text(row.get("personnel"))]))
+    who = "، ".join(filter(None, [_command_text(row, "officer"),
+                                  _command_text(row, "personnel")]))
     if who:
         bits.append(who)
     for c in row.get("conscripts") or []:
@@ -254,6 +266,10 @@ def _basic_assignee(row):
     personnel = _people_text(row.get("personnel"))
     if personnel:
         return personnel
+    if row.get("officer_command_required"):
+        return "رئاسة ضابط — شاغر"
+    if row.get("personnel_command_required"):
+        return "رئاسة فرد — شاغر"
     source = (row.get("source_manning") or "").strip()
     # A source string containing a rank/name is still an officer assignment;
     # pure strength text ("2 فرد + 2 مج") belongs only in emergency services.
@@ -291,12 +307,15 @@ def _compact_manning(row):
             and _source_strength_is_current(row, source)):
         return source
     bits = []
-    if row.get("officers"):
-        bits.append(_people_text(row.get("officers")))
-    if row.get("personnel"):
+    if row.get("officers") or row.get("officer_command_required"):
+        bits.append(_command_text(row, "officer"))
+    if row.get("personnel") or row.get("personnel_command_required"):
         # عمود القوام في الورقة أعداد («2فرد + 2 مج») مش أسماء — الأسماء في يومية الأفراد
-        count = len(row["personnel"])
-        bits.append(f"{count}فرد" if count > 1 else "فرد")
+        if row.get("personnel"):
+            count = len(row["personnel"])
+            bits.append(f"{count}فرد" if count > 1 else "فرد")
+        else:
+            bits.append("رئاسة فرد — شاغر")
     for conscript in row.get("conscripts") or []:
         cls = conscript.get("class") or "مج"
         count = conscript.get("count")
@@ -342,6 +361,8 @@ def leave_text(leave_type, start, end, return_date):
 def status_period_text(period):
     """تفاصيل الحالة الممتدة: المفتوحة من يوم البداية، والمحددة من/حتى."""
     period = period or {}
+    if period.get("title") and period.get("label"):
+        return period["label"]      # «مأمورية: <الاسم> — <التفاصيل> — من … حتى …»
     start = _fmt_date(period.get("start"))
     end = _fmt_date(period.get("end"))
     if end:

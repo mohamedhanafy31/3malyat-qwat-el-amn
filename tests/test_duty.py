@@ -25,7 +25,7 @@ def test_every_officer_lands_in_exactly_one_cell(client):
     client.post("/api/assignments/2026-03-01",
                 json={"service_id": "SVC-001", "shift": "صباحية",
                       "officer_ids": ["OFF-002"]})
-    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "انتداب"})
+    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "غياب"})
     s = client.get("/api/duty/2026-03-01").get_json()["summary"]
     assert s["counted"] == s["أصل القوة"] == 2
     assert s["balanced"] is True
@@ -71,8 +71,8 @@ def test_export_rejects_an_invalid_day(client):
 
 def test_clear_officer_state_delete_endpoint(client):
     # Set state
-    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "انتداب", "note": "تست"})
-    assert _row(client, "OFF-001")["status"] == "انتداب"
+    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "غياب", "note": "تست"})
+    assert _row(client, "OFF-001")["status"] == "غياب"
 
     # Delete state
     res = client.delete("/api/duty/2026-03-01/OFF-001")
@@ -84,7 +84,7 @@ def test_clear_officer_state_delete_endpoint(client):
 def test_clear_assignments_day_delete_endpoint(client):
     # Create assignment and state
     client.post("/api/assignments/2026-03-01", json={"service_id": "SVC-001", "shift": "صباحية", "officer_ids": ["OFF-001"]})
-    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "انتداب"})
+    client.put("/api/duty/2026-03-01/OFF-001", json={"status": "غياب"})
 
     # Bulk clear day with clear_states=1
     res = client.delete("/api/assignments/2026-03-01?clear_states=1")

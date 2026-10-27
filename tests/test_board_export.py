@@ -106,3 +106,12 @@ def test_generated_roster_uses_shared_person_labels(client):
     assert "فرد" in text
     assert "عقيد/ مختصر الضابط" in text
     assert "نقيب/ محمود علي" in text
+
+
+def test_export_prints_a_required_but_vacant_command_role(client):
+    response = client.post(f"/api/assignments/{DAY}", json={
+        "name": "خدمة شاغرة", "section": "الخدمات أساسية", "kind": "خارجية",
+        "shift": "صباحية", "officer_ids": [], "officer_command_required": True,
+    })
+    assert response.status_code == 201, response.get_json()
+    assert "رئاسة ضابط — شاغر" in _all_text(_download(client))

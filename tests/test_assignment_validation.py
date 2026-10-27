@@ -89,6 +89,55 @@ def test_clean_people_rejects_a_string_instead_of_iterating_it(client):
     assert ids is None and status == 400 and err
 
 
+def test_command_role_can_be_saved_vacant_then_assigned_and_removed(client):
+    created = _post(client, officer_ids=[], personnel_ids=[],
+                    officer_command_required=True, personnel_command_required=True)
+    assert created.status_code == 201, created.get_json()
+    row = created.get_json()
+    assert row["officer_command_required"] is True
+    assert row["personnel_command_required"] is True
+    assert row["officer_ids"] == [] and row["personnel_ids"] == []
+
+    board_rows = [r for section in client.get(f"/api/board/{DAY}").get_json()["sections"]
+                  for r in section["rows"]]
+    shown = next(r for r in board_rows if r.get("id") == row["id"])
+    assert shown["officer_command_vacant"] is True
+    assert shown["personnel_command_vacant"] is True
+    confirmed = client.post(f"/api/board/{DAY}/confirm", json={})
+    assert confirmed.status_code == 201, confirmed.get_json()
+
+    assigned = client.patch(f"/api/assignments/{DAY}/{row['id']}", json={
+        "officer_ids": ["OFF-001"], "officer_command_required": True})
+    assert assigned.status_code == 200
+    assert assigned.get_json()["officer_ids"] == ["OFF-001"]
+
+    removed = client.patch(f"/api/assignments/{DAY}/{row['id']}", json={
+        "officer_command_required": False})
+    assert removed.status_code == 200
+    assert removed.get_json()["officer_command_required"] is False
+    assert removed.get_json()["officer_ids"] == []
+
+
+@pytest.mark.parametrize("field", ["officer_command_required", "personnel_command_required"])
+def test_command_role_flag_must_be_boolean(client, field):
+    r = _post(client, **{field: "true"})
+    assert r.status_code == 400
+    assert _rows(client) == []
+
+
+def test_section_copy_keeps_vacant_command_role_without_copying_people(client):
+    source_day, target_day = "2026-04-09", "2026-04-10"
+    source = _post(client, day=source_day, section="قسم تجريبي",
+                   officer_ids=["OFF-001"], officer_command_required=True).get_json()
+    response = client.post(f"/api/board/{target_day}/section-copy", json={
+        "section": "قسم تجريبي", "source_day": source_day, "ids": [source["id"]],
+    })
+    assert response.status_code == 201, response.get_json()
+    copied = response.get_json()["rows"][0]
+    assert copied["officer_ids"] == []
+    assert copied["officer_command_required"] is True
+
+
 # ---------- الخانة الشاغرة المكررة ----------
 
 def test_identical_vacant_row_asks_for_confirmation(client):

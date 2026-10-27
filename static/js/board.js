@@ -88,8 +88,14 @@ function serviceRow(row) {
       <td class="col-actions"><div class="actions"><button class="mini" data-action="openEntry"
         data-extra="${dataAttr({shift: row.shift})}" aria-label="إضافة">${icon("plus")}</button></div></td></tr>`;
   }
-  // المربوطين بالسيستم أولًا (بيتأثروا بأي تعديل)، والنص المستورد بس لو مفيش حد مربوط
-  const linked = [chips(row.officers, "m"), chips(row.personnel, "h")].filter(Boolean).join(" ");
+  // دور الرئاسة يفضل ظاهر حتى لو لسه شاغر؛ الاسم المستورد fallback للصفوف القديمة فقط.
+  const command = (label, people, cls, required) => !required ? ""
+    : `<span class="command-role"><b>${esc(label)}:</b> ${people.length
+      ? chips(people, cls) : `<span class="muted">شاغر — لم يُعيَّن أحد</span>`}</span>`;
+  const linked = [
+    command("رئاسة ضابط", row.officers || [], "m", row.officer_command_required),
+    command("رئاسة فرد", row.personnel || [], "h", row.personnel_command_required),
+  ].filter(Boolean).join(" ");
   const who = linked
     ? (row.source_manning ? `<span title="${esc("من الورقة المستوردة: " + row.source_manning)}">${linked}</span>` : linked)
     : row.source_manning ? `<span class="source-roster-text">${esc(row.source_manning)}</span>`
@@ -162,9 +168,63 @@ function adminRow(row) {
 }
 
 function outsiderRow(row) {
+  const chipClass = row.source_group === "rest"
+    ? (row.status_type === "شهرية" ? "m" : row.status_type === "نصف شهرية" ? "h" : "w")
+    : row.source_group === "course" ? "cat2"
+    : row.source_group === "taqseera" ? "h" : "taq";
   return `<tr><td class="name">${esc(nameOf()(row))}</td>
-    <td><span class="chip ${row.status_type === "راحة" ? "m" : row.status_type === "تقصيرة" ? "h" : "taq"}">${esc(row.status_type || "خارج")}</span></td>
+    <td><span class="chip ${chipClass}">${esc(row.status_type || "خارج")}</span></td>
     <td class="wrap">${esc(row.detail) || "—"}</td></tr>`;
+}
+
+/* ترتيب «الخوارج» مقصود وثابت: أنواع الراحة الأساسية، ثم أنواع الإجازات
+   الفعلية الموجودة في البيانات، ثم كل فرقة باسمها، وبعدها الحالات الخاصة
+   والتقصيرات. الاسم الديناميكي مهم عشان «إجازة خاصة — إجازة عيد» أو أي
+   نوع يتضاف بعدين ياخد مجموعته تلقائيًا من غير تعديل الواجهة. */
+const REST_GROUP_ORDER = new Map([
+  ["أسبوعية", {label: "الراحات الأسبوعية", order: 0}],
+  ["نصف شهرية", {label: "الراحات النصف شهرية", order: 1}],
+  ["شهرية", {label: "الراحات الشهرية", order: 2}],
+]);
+
+function outsiderGroupMeta(row) {
+  if (row.source_group === "rest") {
+    const type = (row.status_type || row.type || "إجازة").trim();
+    const fixed = REST_GROUP_ORDER.get(type);
+    if (fixed) return {key: `rest:${type}`, label: fixed.label, kind: "rest", order: fixed.order};
+    return {key: `leave:${type}`, label: type, kind: "leave", order: 3};
+  }
+  if (row.source_group === "course") {
+    const name = (row.course?.name || "فرقة غير محددة").trim();
+    return {key: `course:${name}`, label: `فرقة: ${name}`, kind: "course", order: 4};
+  }
+  if (row.source_group === "taqseera") {
+    return {key: "taqseera", label: "التقصيرات", kind: "taqseera", order: 6};
+  }
+  const status = (row.status_type || "حالة خاصة").trim();
+  return {key: `status:${status}`, label: status, kind: "status", order: 5};
+}
+
+function outsiderGroups(rows) {
+  const groups = new Map();
+  for (const row of rows) {
+    const meta = outsiderGroupMeta(row);
+    if (!groups.has(meta.key)) groups.set(meta.key, {...meta, rows: []});
+    groups.get(meta.key).rows.push(row);
+  }
+  return [...groups.values()].sort((a, b) =>
+    a.order - b.order || a.label.localeCompare(b.label, "ar"));
+}
+
+function outsiderGroupsView(rows) {
+  return `<div class="outsider-groups">${outsiderGroups(rows).map(group => `
+    <section class="outsider-group outsider-group-${group.kind}">
+      <div class="outsider-group-head">
+        <strong>${esc(group.label)}</strong>
+        <span class="outsider-group-count">${group.rows.length}</span>
+      </div>
+      ${cardTable(OUTSIDER_HEAD, group.rows.map(outsiderRow))}
+    </section>`).join("")}</div>`;
 }
 
 /* تفاصيل صف الخوارج: الفرقة من الالتحاق المسجّل (مع الملاحظة اليدوية لو
@@ -178,10 +238,13 @@ function outsiderDetail(row) {
     return note ? `${course.text} — ${note}` : course.text;
   }
   const period = row.status_period;
-  if (period && !note) {
-    return period.end
+  // مأمورية/انتداب: الاسم والتفاصيل والمدى تظهر كل يوم بيغطيه السجل
+  if (period?.title && period.label) return note ? `${period.label} — ${note}` : period.label;
+  if (period) {
+    const span = period.end
       ? `من ${fmtShort(period.start)} حتى ${fmtShort(period.end)}`
       : `من يوم ${fmtShort(period.start)}`;
+    return [span, note].filter(Boolean).join(" — ");
   }
   return note || row.reason || "";
 }
@@ -200,11 +263,14 @@ function presentationSections(sections) {
   for (const name of ["الراحات", "التقصيرات", "الخوارج"]) {
     const source = byName.get(name);
     for (const row of source?.rows || []) {
-      const statusType = name === "الراحات" ? "راحة" : name === "التقصيرات" ? "تقصيرة" : (row.reason || "خارج");
+      const sourceGroup = name === "الراحات" ? "rest" : name === "التقصيرات" ? "taqseera"
+        : (row.course || row.reason === "فرقة") ? "course" : "status";
+      const statusType = name === "الراحات" ? (row.type || "راحة")
+        : name === "التقصيرات" ? "تقصيرة" : (row.reason || "خارج");
       const detail = name === "الراحات"
         ? `${row.type || "راحة"}${row.start || row.end ? ` (${fmtShort(row.start)} — ${fmtShort(row.end)})` : ""}`
         : outsiderDetail(row);
-      outsiderRows.push({...row, status_type: statusType, detail});
+      outsiderRows.push({...row, source_group: sourceGroup, status_type: statusType, detail});
     }
   }
   return sections.filter(section => !["عمل بالإدارة", "ضابط عظيم الإدارة", "ضابط الأمن بالإدارة", "الراحات", "التقصيرات", "الخوارج"].includes(section.name))
@@ -223,7 +289,7 @@ function sectionCard(sec) {
   } else if (sec.type === "admin") {
     body = count ? cardTable(ADMIN_HEAD, sec.rows.map(adminRow)) : emptyState({compact: true, title: "لا يوجد أحد في هذا القسم"});
   } else if (sec.type === "outsiders") {
-    body = count ? cardTable(OUTSIDER_HEAD, sec.rows.map(outsiderRow)) : emptyState({compact: true, title: "لا يوجد أحد في هذا القسم"});
+    body = count ? outsiderGroupsView(sec.rows) : emptyState({compact: true, title: "لا يوجد أحد في هذا القسم"});
   } else if (sec.type === "targets") {
     body = cardTable(TARGET_HEAD, sec.rows.map(targetSlotRow));
   } else if (sec.type === "slots") {
@@ -389,11 +455,13 @@ function commandIds(toggle, select, singular) {
       return [exact[0].value];
     }
   }
-  _showFieldError(input, typed
-    ? `اختر اسم ${singular} من قائمة النتائج قبل الحفظ`
-    : `اختر اسم ${singular} أو ألغِ خيار الرئاسة`);
-  input.focus({preventScroll: false});
-  return null;
+  if (typed) {
+    _showFieldError(input, `اختر اسم ${singular} من قائمة النتائج قبل الحفظ`);
+    input.focus({preventScroll: false});
+    return null;
+  }
+  // الرئاسة ممكن تتأكد وهي شاغرة، ويتعيّن الاسم لاحقًا.
+  return [];
 }
 
 function renderShiftToggle() {
@@ -564,8 +632,8 @@ function openEntry(rowId, preset, duplicate = false) {
   // الاختيار مقفول وراه checkbox — الخانة تنفع تفضل من غير ضابط أو فرد،
   // فالمربّعين دول بيبانوا بس لو الخانة فعلًا فيها رئاسة (تعديل) أو
   // المستخدم فعّلها بنفسه (إضافة).
-  $("#enHasOfficers").checked = !!currentOfficers.length;
-  $("#enHasPersonnel").checked = !!currentPersonnel.length;
+  $("#enHasOfficers").checked = !!(row?.officer_command_required || row?.officers?.length);
+  $("#enHasPersonnel").checked = !!(row?.personnel_command_required || row?.personnel?.length);
   syncCommandWraps();
   $("#conRows").innerHTML = (row?.conscripts || []).map(conRow).join("");
   $("#enConCount").value = row?.conscript_count || "";
@@ -674,6 +742,8 @@ $("#entryForm").onsubmit = async e => {
     shift: selectedShift(),
     officer_ids: officerIds,
     personnel_ids: personnelIds,
+    officer_command_required: $("#enHasOfficers").checked,
+    personnel_command_required: $("#enHasPersonnel").checked,
     conscripts,
     conscript_count: parseInt($("#enConCount").value) || 0,
     weapon: $("#enWeapon").value.trim(),

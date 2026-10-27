@@ -92,8 +92,8 @@ def test_bad_effective_date_is_refused(client):
 
 def test_delete_archive_record_cleans_day_officers(client):
     # Set day officer state
-    client.put("/api/duty/2026-03-01/OFF-002", json={"status": "انتداب"})
-    assert _row(client, "OFF-002", "2026-03-01")["status"] == "انتداب"
+    client.put("/api/duty/2026-03-01/OFF-002", json={"status": "غياب"})
+    assert _row(client, "OFF-002", "2026-03-01")["status"] == "غياب"
 
     # Archive OFF-002 via /remove endpoint
     r_arch = client.post("/api/person/OFF-002/remove", json={"reason": "إنهاء خدمة", "leave_date": "2026-03-05"})

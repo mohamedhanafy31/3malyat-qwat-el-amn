@@ -360,7 +360,12 @@ function toggleRestDay() {
 
 function openPerson(id) {
   const p = id ? personById(id) : null;
-  $("#personId").value = id || "";
+  if (id && !p) {   // سجل قديم في الشاشة (اتحذف/اتنقل) — منفتحش نموذج إضافة بالغلط
+    showToast("السجل لم يعد موجودًا — تم تحديث القائمة");
+    load();
+    return;
+  }
+  $("#personId").value = p ? p.id : "";
   $("#personModalTitle").textContent = p ? "تعديل البيانات" : "إضافة إلى القوة";
   $("#personSubmit").textContent = p ? "حفظ التعديلات" : "حفظ وإضافة للقوة";
   fillSelect($("#fRestSystem"), REST_SYSTEMS().map(x => [x, x]));

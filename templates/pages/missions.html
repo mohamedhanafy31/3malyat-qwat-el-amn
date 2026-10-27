@@ -46,6 +46,27 @@
 {% endblock %}
 
 {% block modals %}
+<div class="modal hidden" id="missionEditModal">
+  <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="missionEditTitle">
+    <button type="button" class="close" data-close="missionEditModal" aria-label="إغلاق">×</button>
+    <h2 id="missionEditTitle">تعديل تصنيف الخدمة</h2>
+    <form id="missionEditForm" novalidate>
+      <input type="hidden" id="missionEditId">
+      <input type="hidden" id="missionEditDay">
+      <label>التصنيف <small>تظل الخدمة هي نفسها في اليومية التفصيلية، وينتقل عرضها بين الخارجية والداخلية</small>
+        <select id="missionEditKind">
+          <option value="خارجية">خارجية — خارج نطاق المعسكر أو الإدارة</option>
+          <option value="داخلية">داخلية — داخل نطاق المعسكر أو الإدارة</option>
+        </select>
+      </label>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">حفظ التصنيف</button>
+        <button type="button" class="btn" data-close="missionEditModal">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="modal hidden" id="missionNoteModal">
   <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="missionNoteTitle">
     <button type="button" class="close" data-close="missionNoteModal" aria-label="إغلاق">×</button>

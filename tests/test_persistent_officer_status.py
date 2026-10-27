@@ -1,5 +1,5 @@
-"""حالات الضابط الممتدة: «مرضي»/«غياب»/«انتداب» مستمرة حتى الإيقاف، و«طارئة»
-لمدة محددة بيوم نهاية شامل. الاتنين سجل مدى في core مش نسخة في كل ملف يوم.
+"""حالات الضابط الممتدة: «مرضي»/«غياب» مستمرة حتى الإنهاء، و«طارئة»/«مأمورية»/
+«انتداب» لمدة محددة بيوم نهاية شامل. الاتنين سجل مدى في core مش نسخة في كل ملف يوم.
 """
 import json
 
@@ -18,7 +18,7 @@ def _periods():
             for p in assemble().get("officer_status_periods") or []]
 
 
-@pytest.mark.parametrize("status", ["مرضي", "غياب", "انتداب"])
+@pytest.mark.parametrize("status", ["مرضي", "غياب"])
 def test_continuous_status_continues_until_explicit_stop(client, status):
     started = client.put("/api/duty/2026-05-01/OFF-002", json={"status": status})
     assert started.status_code == 200, started.get_json()
@@ -139,9 +139,9 @@ def test_future_scheduled_period_is_preserved(client):
     client.put("/api/duty/2026-05-10/OFF-002",
                json={"status": "طارئة", "status_end": "2026-05-12"})
     # حالة مستمرة قبلها بتقف لوحدها قبل الطارئة المجدولة
-    client.put("/api/duty/2026-05-01/OFF-002", json={"status": "انتداب"})
+    client.put("/api/duty/2026-05-01/OFF-002", json={"status": "غياب"})
     assert _periods() == [
-        ("انتداب", "2026-05-01", "2026-05-09"),
+        ("غياب", "2026-05-01", "2026-05-09"),
         ("طارئة", "2026-05-10", "2026-05-12"),
     ]
     # وطارئة نهايتها بتعدّي على السجل المجدول بتترفض بدل ما تبلعه
@@ -165,7 +165,7 @@ def test_audit_text_describes_the_new_semantics(client):
                json={"status": "طارئة", "status_end": "2026-05-06"})
     texts = [c.get("text", "") for c in assemble().get("change_log") or []
              if c.get("entity") == "officer_status_period"]
-    assert any("المستمرة" in t and "حتى إيقافها" in t for t in texts), texts
+    assert any("المستمرة" in t and "حتى إنهائها" in t for t in texts), texts
     assert any("بدء طارئة" in t and "حتى 2026-05-06" in t and "إنهاء حالة مرضي" in t
                for t in texts), texts
 
@@ -218,7 +218,7 @@ def test_removed_statuses_are_not_offered(client):
     for value in ("راحة فرقة", "فرقة"):
         assert value not in duty_meta["officer_statuses"]
     assert "راحة فرقة" not in leave_meta["leave_types"]
-    assert duty_meta["officer_statuses"][:4] == ["انتداب", "غياب", "مرضي", "طارئة"]
+    assert duty_meta["officer_statuses"][:5] == ["انتداب", "غياب", "مرضي", "طارئة", "مأمورية"]
     suspension = client.get("/api/rest-suspensions").get_json()
     assert "راحة فرقة" not in suspension["leave_types"]
 

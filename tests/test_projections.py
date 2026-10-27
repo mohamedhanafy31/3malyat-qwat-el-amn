@@ -135,8 +135,10 @@ def test_every_word_column_of_khawarej_is_reachable(client):
     نهاية، و«فرقة» بتيجي من التحاق مسجّل مش حالة يدوية."""
     for status in ("انتداب", "غياب", "مرضي", "طارئة"):
         body = {"status": status}
-        if status == "طارئة":
+        if status in ("طارئة", "انتداب"):
             body["status_end"] = DAY
+        if status == "انتداب":
+            body.update(status_title="تأمين", status_details="مهمة")
         assert client.put(f"/api/duty/{DAY}/OFF-001", json=body).status_code == 200, status
         assert _summary(client)["خوارج"][status] == 1, status
         assert _row(client, "OFF-001")["bucket"] == status

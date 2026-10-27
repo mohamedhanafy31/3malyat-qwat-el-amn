@@ -67,6 +67,10 @@ class Assignment(Model):
     counts_in_summary: bool = True
     mission_transport: bool = False
     note: str = ""
+    # رئاسة ضابط/فرد مطلوبة حتى لو لسه شاغرة؛ الصفوف القديمة (معرّفات من غير
+    # علم) بتتعامل كأن الدور موجود — شوف `assignments.command_required`
+    officer_command_required: bool = False
+    personnel_command_required: bool = False
 
     ID_PREFIX = "AS"
 

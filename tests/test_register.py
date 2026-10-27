@@ -66,7 +66,10 @@ def test_each_state_has_its_own_symbol(client):
     التقصيرة والعمل العادي هما بس اللي اتقصدوا يتوحّدوا (اختبار تاني)."""
     codes = {}
     for status in ("غياب", "مرضي", "انتداب"):
-        client.put(f"/api/duty/{DAY}/OFF-001", json={"status": status})
+        body = {"status": status}
+        if status == "انتداب":
+            body.update(status_end=DAY, status_title="تأمين", status_details="مهمة")
+        client.put(f"/api/duty/{DAY}/OFF-001", json=body)
         codes[status] = _cell(_month(client), "OFF-001", DAY)["code"]
     # «فرقة» مصدرها التحاق مسجّل مش حالة يدوية
     course = client.post("/api/courses", json={"name": "فرقة اختبار"}).get_json()
@@ -76,6 +79,14 @@ def test_each_state_has_its_own_symbol(client):
     assert len(set(codes.values())) == 4, codes
     assert codes["غياب"] == "غ" and codes["مرضي"] == "م" and codes["فرقة"] == "ف"
     assert codes["انتداب"] == "ن"
+
+
+def test_mission_status_has_an_explicit_register_symbol(client):
+    client.put(f"/api/duty/{DAY}/OFF-001", json={
+        "status": "مأمورية", "status_end": DAY,
+        "status_title": "تأمين مؤتمر", "status_details": "بالسويس",
+    })
+    assert _cell(_month(client), "OFF-001", DAY)["code"] == "مأ"
 
 
 def test_custom_officer_status_is_counted_as_away(client):

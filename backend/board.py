@@ -18,7 +18,9 @@
 الكتل الثابتة (8-10) بتظهر بصفّيها دايمًا حتى لو شاغرة — الوورد بيطبع
 الصفين في كل يوم، والخانة الفاضية معناها «محتاجة تكليف» مش «مش موجودة».
 """
-from .assignments import forget_seq_if_day_empty, label, officer_states, peek_day
+from .assignments import (
+    command_required, command_vacant, forget_seq_if_day_empty, label, officer_states, peek_day,
+)
 from .checks import day_warnings
 from .confirm import state_of as confirm_state
 from .constants import (
@@ -60,12 +62,13 @@ NON_FREE_SECTIONS = {
 SECTION_COPY_FIELDS = (
     "name", "kind", "section", "shift", "weapon", "time",
     "party", "conscripts", "conscript_count", "note", "counts_in_summary",
-    "mission_transport",
+    "mission_transport", "officer_command_required", "personnel_command_required",
 )
 _SECTION_COPY_DEFAULTS = {
     "name": "", "kind": "", "section": "", "shift": "",
     "weapon": "", "time": "", "party": "", "conscripts": [], "conscript_count": 0,
     "note": "", "counts_in_summary": True, "mission_transport": False,
+    "officer_command_required": False, "personnel_command_required": False,
 }
 
 
@@ -309,6 +312,11 @@ def _row(assignment, people, day):
         "pos": assignment.get("pos") if isinstance(assignment.get("pos"), int)
         and not isinstance(assignment.get("pos"), bool) else None,
         "vacant": not officers and not personnel,
+        # رئاسة ضابط/فرد مطلوبة (صريحة، أو مستنتجة من الصفوف القديمة) وهل هي شاغرة
+        "officer_command_required": command_required(assignment, "officer"),
+        "personnel_command_required": command_required(assignment, "personnel"),
+        "officer_command_vacant": command_vacant(assignment, "officer"),
+        "personnel_command_vacant": command_vacant(assignment, "personnel"),
     }
 
 

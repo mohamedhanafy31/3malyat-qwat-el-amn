@@ -46,6 +46,10 @@ def test_board_does_not_silently_drop_a_typed_person_selection():
     assert "اختر اسم ${singular} من قائمة النتائج قبل الحفظ" in source
     assert "if (personnelIds === null) return;" in source
     assert "personnel_ids: personnelIds" in source
+    assert "return [];" in source, "خيار الرئاسة الفاضي لازم يتحفظ كشاغر"
+    assert "officer_command_required:" in source
+    assert "personnel_command_required:" in source
+    assert "row?.officer_command_required" in source
 
 
 def test_duty_modal_asks_for_an_emergency_end_day(client):
@@ -55,12 +59,30 @@ def test_duty_modal_asks_for_an_emergency_end_day(client):
     html = client.get("/duty").get_data(as_text=True)
     assert 'id="assignStatusEnd"' in html and "حتى يوم" in html
     duty = (root / "static/js/duty.js").read_text(encoding="utf-8")
-    assert 'const BOUNDED_STATUSES = ["طارئة"]' in duty
+    assert 'const BOUNDED_STATUSES = ["طارئة", "مأمورية", "انتداب"]' in duty
     assert "body.status_end = end" in duty
     assert "courseLine(r.course)" in duty
     assert "راحة فرقة" not in duty
     board = (root / "static/js/board.js").read_text(encoding="utf-8")
     assert "function outsiderDetail(" in board and "course.text" in board
+    assert '[span, note].filter(Boolean).join(" — ")' in board
+
+
+def test_board_groups_outsiders_in_operational_order():
+    """الخوارج لا ترجع لجدول مختلط: الراحة مرتبة، والإجازات والفرق
+    تتجمع بأسمائها الفعلية حتى تستوعب الأنواع الجديدة تلقائيًا.
+    """
+    from pathlib import Path
+    source = (Path(__file__).resolve().parent.parent / "static/js/board.js").read_text(encoding="utf-8")
+    assert "function outsiderGroups(" in source
+    assert "outsiderGroupsView(sec.rows)" in source
+    assert 'row.course?.name || "فرقة غير محددة"' in source
+    assert "label: `فرقة: ${name}`" in source
+    weekly = source.index('["أسبوعية", {label: "الراحات الأسبوعية", order: 0}]')
+    half = source.index('["نصف شهرية", {label: "الراحات النصف شهرية", order: 1}]')
+    monthly = source.index('["شهرية", {label: "الراحات الشهرية", order: 2}]')
+    assert weekly < half < monthly
+    assert 'return {key: `leave:${type}`, label: type, kind: "leave", order: 3}' in source
 
 
 @pytest.mark.parametrize("page", PAGES)

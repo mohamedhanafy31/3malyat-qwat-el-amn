@@ -204,7 +204,11 @@ def edit_person(person_id):
             code = str(payload["code"]).strip()
             if not code:
                 raise AbortRequest((jsonify({"error": "رقم الأقدمية مطلوب."}), 400))
-            clash = Repos(data).people.code_taken(category, code, ignore_id=person_id)
+            # الرقم غير المتغيّر مقبول حتى لو البيانات القديمة فيها تكرار
+            # فعلي — الرفض بيبقى بس لما الرقم يتغيّر لرقم شخص تاني على القوة.
+            changed_code = code != str(person.get("code", "")).strip()
+            clash = changed_code and Repos(data).people.code_taken(
+                category, code, ignore_id=person.get("id"))
             if bucket == "active" and clash:
                 raise AbortRequest((jsonify({"error": "رقم الأقدمية مستخدم بالفعل على القوة."}), 409))
         if "join_date" in payload:
