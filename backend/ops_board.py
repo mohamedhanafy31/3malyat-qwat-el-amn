@@ -12,6 +12,7 @@ from .constants import (SECTION_BASIC, SECTION_GREAT, SECTION_SECURITY,
                         SECTION_SUBCAMP, SECTION_TARGETS)
 from .service_catalog import catalog
 from .service_lines import line_for_service, lorry_name
+from . import service_links
 from .service_links import resolve_service_id, service_for_counts_entry
 from .settings import get_setting
 from .text import norm
@@ -41,6 +42,33 @@ def _catalog(data):
     return {e.get("id"): e for e in catalog(data) if e.get("id")}
 
 
+class _BuildContext:
+    """كاش محلي للّقطة؛ عمره طلب بناء واحد بس عشان البيانات متتسرّبش بين المعاملات."""
+    def __init__(self, data):
+        self.data = data
+        self.cats = _catalog(data)
+        self.service_index = {}
+        for position, entry in enumerate(catalog(data)):
+            if not entry.get("id"):
+                continue
+            for key in service_links._keys(entry.get("name")):
+                self.service_index.setdefault(key, (position, entry.get("id")))
+        self.campaigns = {}
+        self.service_ids = {}
+
+    def service_id(self, name):
+        key = str(name or "")
+        if key not in self.service_ids:
+            self.service_ids[key] = resolve_service_id(
+                self.data, key, index=self.service_index)
+        return self.service_ids[key]
+
+    def campaign(self, day):
+        if day not in self.campaigns:
+            self.campaigns[day] = campaign.build_campaign(self.data, day)
+        return self.campaigns[day]
+
+
 def _record(data, day, key):
     try:
         return ((data.get("day_service_runs") or {}).get(day) or {}).get(key) or {}
@@ -62,17 +90,17 @@ def _records(data, day, key):
     return {}, day
 
 
-def _campaign_line(data, day, assignment_id):
-    view = campaign.build_campaign(data, day)
+def _campaign_line(data, day, assignment_id, ctx=None):
+    view = ctx.campaign(day) if ctx else campaign.build_campaign(data, day)
     for row in view.get("lorries", []) + view.get("appointments", []):
         if any(x.get("assignment_id") == assignment_id for x in row.get("attached") or []):
             return row
     return None
 
 
-def _line_info(data, day, service_id, assignment_id=None):
+def _line_info(data, day, service_id, assignment_id=None, ctx=None):
     line = line_for_service(data, service_id) if service_id else None
-    lorry = _campaign_line(data, day, assignment_id) if assignment_id else None
+    lorry = _campaign_line(data, day, assignment_id, ctx) if assignment_id else None
     if not line and lorry:
         # خدمة طوارئ ملحقة بلوري من غير وسم خط: اللوري نفسه هو الخط الظاهر.
         line = {"id": lorry.get("id"), "name": lorry.get("name", ""),
@@ -89,7 +117,7 @@ def _line_info(data, day, service_id, assignment_id=None):
         warning = "الخدمة مرتبطة بلوري مختلف عن لوري الخط"
     if not lorry:
         lorry_id = configured_lorry_id
-        camp = campaign.build_campaign(data, day)
+        camp = ctx.campaign(day) if ctx else campaign.build_campaign(data, day)
         lorry = next((x for x in camp.get("lorries", []) + camp.get("appointments", [])
                       if x.get("id") == lorry_id), None)
     lorry_id = configured_lorry_id
@@ -100,13 +128,14 @@ def _line_info(data, day, service_id, assignment_id=None):
 
 
 def _run(key, name, group, shift, *, report=None, report_text=None, line=None,
-         head="", count=None, weapon="", source="", assignment_id=None):
+         head="", count=None, weapon="", source="", assignment_id=None, catalog_id=None):
     return {"key": key, "name": name, "group": group, "shift": shift,
             "report_time": report, "report_text": report_text or "", "state": "upcoming",
             "hint": None, "out_at": None, "out_by": None, "back_at": None,
             "back_by": None, "line_id": (line or {}).get("id"), "head": head,
             "line": (line or {}).get("line"), "count": count, "weapon": weapon,
             "warning": (line or {}).get("warning"),
+            "catalog_id": catalog_id,
             "sources": [source] if source else [],
             "_groups": {group}, "_line": line, "_assignment_id": assignment_id,
             "_line_name": (line or {}).get("line"), "_lorry": (line or {}).get("lorry"),
@@ -114,7 +143,7 @@ def _run(key, name, group, shift, *, report=None, report_text=None, line=None,
             "_line_warning": (line or {}).get("warning")}
 
 
-def _afraad_service_map(data, day):
+def _afraad_service_map(data, day, ctx=None):
     """ربط صفوف يومية الأفراد بالخدمة؛ 018 خزّن الرابط، والقديم يعتمد الاسم."""
     result = {}
     reference = ((data.get("reference_lists") or {}).get("afraad_basic") or [])
@@ -123,18 +152,18 @@ def _afraad_service_map(data, day):
     linked = {item.get("id"): item.get("service_id") for item in version.get("items") or []
               if item.get("id") and item.get("service_id")}
     for row in basic_rows(data, day):
-        service_id = linked.get(row.get("id")) or resolve_service_id(data, row.get("name"))
+        service_id = linked.get(row.get("id")) or (ctx.service_id(row.get("name")) if ctx else resolve_service_id(data, row.get("name")))
         if service_id:
             result[service_id] = row
     return result
 
 
-def _normalise_count_sources(data, day, cats):
+def _normalise_count_sources(data, day, cats, ctx=None):
     """يكمل حقول الأعداد الناقصة من الكتالوج على النسخة الداخلية فقط."""
     stored = (data.get("service_counts") or {}).get(day)
     entries = stored.get("entries") if stored is not None else (data.get("counts_template") or {}).get("entries")
     for entry in entries or []:
-        service_id = service_for_counts_entry(data, entry)
+        service_id = service_for_counts_entry(data, entry, index=ctx.service_index if ctx else None)
         service = cats.get(service_id) or {}
         if entry.get("count") in (None, "") and service.get("count") not in (None, ""):
             entry["count"] = service["count"]
@@ -184,11 +213,18 @@ def _apply_state(data, day, item, now):
 
 def build_ops(data, day, now=None, _carry=True):
     """يبني لقطة تشغيل؛ النسخة الداخلية تمنع أي دالة مصدر من تعديل `data`."""
-    data = deepcopy(data)
+    internal = deepcopy(data)
+    return _build_ops(internal, day, now, _carry, _BuildContext(internal))
+
+
+def _build_ops(data, day, now=None, _carry=True, ctx=None):
+    # السياق والنسخة الداخلية بيتعملوا مرة واحدة؛ الاستدعاءات المترحّلة بتشاركهم.
+    if ctx is None:
+        ctx = _BuildContext(data)
     now_dt = _when(now)
-    cats = _catalog(data)
+    cats = ctx.cats
     rows = {r.get("id"): r for r in peek_day(data, day)}
-    af_by_service = _afraad_service_map(data, day)
+    af_by_service = _afraad_service_map(data, day, ctx)
     pool = {}
 
     def add_source(name, group, shift, entry_id, svc_id=None, raw_time=None,
@@ -205,7 +241,7 @@ def build_ops(data, day, now=None, _carry=True):
         report = from_schedule or parse_time(raw_report)
         report_text = format_time(report) if report else str(raw_report or "")
         key = f"{svc_id}:{shift}" if svc_id else f"{entry_id}:{shift}"
-        line = _line_info(data, day, svc_id, assignment_id)
+        line = _line_info(data, day, svc_id, assignment_id, ctx)
         catalog_count = (svc or {}).get("count")
         catalog_weapon = (svc or {}).get("weapon")
         if count in (None, ""):
@@ -214,14 +250,14 @@ def build_ops(data, day, now=None, _carry=True):
             weapon = catalog_weapon or ""
         _add(pool, _run(key, name, group, shift, report=report, report_text=report_text,
                         line=line, head=head, count=count, weapon=weapon,
-                        source=source, assignment_id=assignment_id))
+                        source=source, assignment_id=assignment_id, catalog_id=svc_id))
 
     for row in peek_day(data, day):
         section = row.get("section") or ""
         if section != SECTION_BASIC:
             continue
         shift = _shift(row.get("shift"))
-        svc_id = resolve_service_id(data, row.get("name"))
+        svc_id = ctx.service_id(row.get("name"))
         officers = "، ".join(str(x.get("name") or x.get("full_name") or x)
                              for x in row.get("officers", []) if isinstance(x, dict))
         if not officers:
@@ -235,11 +271,11 @@ def build_ops(data, day, now=None, _carry=True):
                    raw_time=row.get("time"), head=officers, source="officers",
                    assignment_id=row.get("id"))
 
-    _normalise_count_sources(data, day, cats)
+    _normalise_count_sources(data, day, cats, ctx)
     built = counts.build(data, day)
     for block, shift in (("basic_am", "am"), ("basic_pm", "pm")):
         for entry in built.get(block, []):
-            svc_id = service_for_counts_entry(data, entry)
+            svc_id = service_for_counts_entry(data, entry, index=ctx.service_index)
             afrow = af_by_service.get(svc_id)
             slot = (afrow or {}).get("morning" if shift == "am" else "night") or {}
             add_source(entry.get("name", ""), "basic", shift, entry.get("id"), svc_id,
@@ -255,7 +291,7 @@ def build_ops(data, day, now=None, _carry=True):
         # بياخدوا نفس المفتاح «None:am» ويفقدوا معادهم وفترتهم.
         ident = entry.get("id") or entry.get("assignment_id")
         raw = rows.get(ident, {})
-        svc_id = service_for_counts_entry(data, entry)
+        svc_id = service_for_counts_entry(data, entry, index=ctx.service_index)
         add_source(entry.get("name", ""), "emergency", _shift(raw.get("shift") or "am"), ident,
                    svc_id, raw_time=raw.get("time"), count=entry.get("count"),
                    weapon=entry.get("weapon", ""), source="emergency", assignment_id=ident)
@@ -272,7 +308,7 @@ def build_ops(data, day, now=None, _carry=True):
         base_day = date.fromisoformat(day)
         for offset in range(1, 4):
             previous = (base_day - timedelta(days=offset)).isoformat()
-            previous_view = build_ops(data, previous, now_dt, _carry=False)
+            previous_view = _build_ops(data, previous, now_dt, _carry=False, ctx=ctx)
             for candidate in previous_view.get("carried", []) + _flatten_runs(previous_view.get("groups", {})):
                 origin = candidate.get("day") or previous
                 ref = f"{origin}/{candidate.get('key')}"
@@ -427,6 +463,50 @@ def undo(data, day, key, actor, now):
     return stored
 
 
+def _time_run(data, day, key):
+    """بيجيب الحد الأدنى من بيانات التشغيل من المصدر، من غير بناء لوحة كاملة."""
+    origin, plain_key = (key.split("/", 1) if isinstance(key, str) and "/" in key
+                         else (day, key))
+    base, _, raw_shift = plain_key.rpartition(":")
+    shift = raw_shift if raw_shift in ("am", "pm") else "am"
+    entries = catalog(data)
+    entry = next((item for item in entries if item.get("id") == base), None)
+    rows = peek_day(data, origin)
+    row = next((item for item in rows if item.get("id") == base), None)
+    found_source = row is not None
+    if row is None:
+        stored = (data.get("service_counts") or {}).get(origin) or {}
+        count_entries = stored.get("entries") if stored else (data.get("counts_template") or {}).get("entries")
+        count_entry = next((item for item in count_entries or []
+                            if (item.get("id") or item.get("assignment_id")) == base), None)
+        if count_entry:
+            row = count_entry
+            found_source = True
+    if row is None and entry:
+        # مفتاح الدليل لازم يكون له مصدر فعلي في التشغيل؛ وجوده في الدليل
+        # لوحده ماكانش كفاية في النسخة القديمة اللي كانت بتدور في build_ops.
+        built = counts.build(data, origin)
+        for block in ("basic_am", "basic_pm", "recurring", "emergency"):
+            for item in built.get(block, []):
+                if service_for_counts_entry(data, item) == base:
+                    row = item
+                    found_source = True
+                    break
+            if found_source:
+                break
+    if row is not None:
+        row_shift = _shift(row.get("shift") or ("صباحية" if shift == "am" else "ليلية"))
+        shift = row_shift
+        if not entry:
+            name = row.get("name") or row.get("label") or ""
+            resolved = resolve_service_id(data, name)
+            entry = next((item for item in entries if item.get("id") == resolved), None)
+    if not entry and not row or (entry and not found_source):
+        return None
+    return {"shift": shift, "catalog_id": (entry or {}).get("id"),
+            "base": base, "row": row, "origin": origin, "key": plain_key}
+
+
 def set_time(data, day, key, hhmm, scope, actor):
     """تعديل معاد الانتظام من الرئيسية.
 
@@ -441,19 +521,17 @@ def set_time(data, day, key, hhmm, scope, actor):
     ok, error = day_status.check_open(data, day)
     if not ok:
         raise ValueError(error)
-    view = build_ops(data, day)
-    # لازم ندوّر في كل التشغيلات — جوّه الخطوط كمان، مش المنفردة بس
-    run = next((r for r in _flatten_runs(view["groups"]) if r["key"] == key), None)
+    run = _time_run(data, day, key)
     if not run:
         raise ValueError("الخدمة غير موجودة.")
-    base = key.rsplit(":", 1)[0]
+    base = run["base"]
     if scope == "default":
-        entry = next((e for e in catalog(data) if e.get("id") == base), None)
+        entry = next((e for e in catalog(data) if e.get("id") == run.get("catalog_id")), None)
         if not entry:
-            raise ValueError("الخدمة غير مرتبطة بدليل الخدمات.")
+            raise ValueError("الخدمة دي مش موجودة في دليل الخدمات، فالتعديل لليوم بس.")
         entry["report_am" if run["shift"] == "am" else "report_pm"] = parsed
     elif scope == "day":
-        rows = peek_day(data, day)
+        rows = peek_day(data, run["origin"])
         # تشغيل مبني على صف لوحة بعينه (AS-…) — أساسي ضباط أو طارئ
         row = next((r for r in rows if r.get("id") == base), None)
         if row is None and base in {e.get("id") for e in catalog(data)}:
@@ -464,6 +542,6 @@ def set_time(data, day, key, hhmm, scope, actor):
         if row is not None:
             row["time"] = format_time(parsed)
         else:
-            data.setdefault("day_service_runs", {}).setdefault(day, {}).setdefault(key, {})["report_override"] = parsed
+            data.setdefault("day_service_runs", {}).setdefault(run["origin"], {}).setdefault(run["key"], {})["report_override"] = parsed
     else:
         raise ValueError("نطاق المعاد غير صحيح.")

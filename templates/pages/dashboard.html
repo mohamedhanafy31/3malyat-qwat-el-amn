@@ -64,10 +64,11 @@
       <fieldset class="ops-scope">
         <legend>نطاق التعديل</legend>
         <label><input type="radio" name="opsTimeScope" value="day" checked> لليوم بس</label>
-        <label><input type="radio" name="opsTimeScope" value="default"> اجعله المعاد الافتراضي</label>
+        <label><input type="radio" name="opsTimeScope" value="default" id="opsTimeDefault"> اجعله المعاد الافتراضي</label>
       </fieldset>
+      <p id="opsTimeHint" class="field-hint hidden"></p>
       <div class="dialog-actions">
-        <button type="submit" class="primary">حفظ المعاد</button>
+        <button type="submit" class="primary" id="opsTimeSubmit">حفظ المعاد</button>
         <button type="button" class="btn" data-close="opsTimeModal">إلغاء</button>
       </div>
     </form>

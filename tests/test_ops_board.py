@@ -1,6 +1,14 @@
 from datetime import datetime
+from copy import deepcopy
 
-from backend.ops_board import build_ops, depart, return_, undo
+import pytest
+
+from backend import store
+from backend import ops_board
+from backend.ops_board import (_BuildContext, _build_ops, build_ops, depart,
+                               return_, set_time, undo)
+from backend.service_links import resolve_service_id
+from backend import campaign
 
 
 def _data():
@@ -192,6 +200,68 @@ def test_board_emergency_rows_get_their_own_key_time_and_shift():
     assert runs["ترحيلة السجن"]["shift"] == "pm"
     assert runs["ترحيلة السجن"]["report_time"] == "22:00"
     assert runs["تأمين مباراة"]["report_time"] == "14:30"
+
+
+def test_optimised_build_is_stable_and_exposes_catalog_id_for_resolved_emergency():
+    data = _data()
+    data["day_assignments"]["2026-10-20"] = [
+        {"id": "AS-7", "section": "الخدمات الطارئة", "name": "خدمة أ",
+         "shift": "صباحية", "time": "8ص", "officer_ids": []},
+    ]
+    now = datetime(2026, 10, 20, 7, 0)
+    first = build_ops(data, "2026-10-20", now)
+    reference_data = deepcopy(data)
+    reference_ctx = _BuildContext(reference_data)
+    # مسار مرجعي لنفس البنية لكن من غير كاش الحملة أو فهرس ربط الأسماء.
+    reference_ctx.campaign = lambda day: campaign.build_campaign(reference_data, day)
+    reference_ctx.service_id = lambda name: resolve_service_id(reference_data, name)
+    reference = _build_ops(reference_data, "2026-10-20", now, True, reference_ctx)
+    assert first == reference
+    run = first["groups"]["emergency"]["single"][0]
+    assert run["catalog_id"] == "SVC-1"
+
+
+def test_set_time_default_resolves_catalog_for_emergency_assignment():
+    data = _data()
+    data["day_assignments"]["2026-10-20"] = [
+        {"id": "AS-9", "section": "الخدمات الطارئة", "name": "خدمة أ",
+         "shift": "صباحية", "time": "8ص", "officer_ids": []},
+    ]
+    set_time(data, "2026-10-20", "AS-9:am", "09:30", "default", "مشغل")
+    assert data["service_catalog"][0]["report_am"] == "09:30"
+
+
+def test_set_time_default_rejects_unresolvable_emergency_cleanly():
+    data = _data()
+    data["day_assignments"]["2026-10-20"] = [
+        {"id": "AS-9", "section": "الخدمات الطارئة", "name": "خدمة مش موجودة",
+         "shift": "صباحية", "time": "8ص", "officer_ids": []},
+    ]
+    with pytest.raises(ValueError, match="مش موجودة في دليل الخدمات"):
+        set_time(data, "2026-10-20", "AS-9:am", "09:30", "default", "مشغل")
+
+
+def test_edit_time_route_builds_response_once(client, monkeypatch):
+    def seed(data):
+        data["service_catalog"] = [{"id": "SVC-1", "name": "خدمة أ",
+                                    "period": "صباحية", "report_am": "08:00", "tags": []}]
+        data["day_assignments"] = {"2026-10-20": [{"id": "AS-9",
+            "section": "الخدمات الطارئة", "name": "خدمة أ", "shift": "صباحية",
+            "time": "8ص", "officer_ids": []}]}
+    store.with_data(seed, ())
+    revision = client.get("/api/ops/2026-10-20").get_json()["revision"]
+    original = ops_board.build_ops
+    calls = []
+
+    def counted(*args, **kwargs):
+        calls.append(1)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(ops_board, "build_ops", counted)
+    response = client.patch("/api/ops/2026-10-20/time", json={
+        "key": "AS-9:am", "time": "09:30", "scope": "day", "revision": revision})
+    assert response.status_code == 200
+    assert len(calls) == 1
 
 
 def test_single_shift_afraad_schedule_does_not_leak_into_night():

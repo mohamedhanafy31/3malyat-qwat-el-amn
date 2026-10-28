@@ -294,15 +294,17 @@
 
   async function mutate(url, body, button, success) {
     if (button?.dataset.pending === "1") return;
+    const originalText = button?.innerHTML;
     if (button) {
       button.dataset.pending = "1";
       button.disabled = true;
       button.classList.add("is-pending");
+      button.innerHTML = '<span class="spinner" aria-hidden="true"></span> جارٍ التنفيذ…';
     }
     let stale = false;
     const out = await api(url, {
       ...jsonReq("POST", {...body, revision: ops.revision, now: new Date().toISOString()}),
-      noLoader: true,
+      loadingLabel: "جارٍ تنفيذ الإجراء…",
       onError: (payload, status) => {
         if (status === 409 && payload.code === "stale_revision") {
           stale = true;
@@ -315,11 +317,12 @@
       delete button.dataset.pending;
       button.disabled = false;
       button.classList.remove("is-pending");
+      button.innerHTML = originalText;
     }
     if (stale) {
       await loadOps();
       showToast("تم تحديث اللوحة من جهاز آخر — أعد المحاولة", true);
-      return;
+      return false;
     }
     if (out) {
       ops = out;
@@ -327,7 +330,9 @@
       renderBoard();
       announce(success);
       showToast(success);
+      return true;
     }
+    return false;
   }
 
   function openLine(mode, line, meta, keys) {
@@ -350,6 +355,15 @@
     $id("opsTimeInput").value = run.report_time || "";
     $id("opsTimeInput").dataset.hhmm = run.report_time || "";
     $id("opsTimeForm").dataset.target = target;
+    const defaultScope = $id("opsTimeDefault");
+    const hint = $id("opsTimeHint");
+    defaultScope.disabled = !run.catalog_id;
+    defaultScope.checked = Boolean(run.catalog_id);
+    $id("opsTimeForm").querySelector('input[value="day"]').checked = !run.catalog_id;
+    hint.textContent = run.catalog_id
+      ? ""
+      : "الخدمة دي مش موجودة في دليل الخدمات، فالتعديل لليوم بس. لو عايزها ميعاد ثابت أضفها من دليل الخدمات.";
+    hint.classList.toggle("hidden", Boolean(run.catalog_id));
     upgradeTimeInputs($id("opsTimeModal"));
     openModal("opsTimeModal");
   }
@@ -381,7 +395,7 @@
     const mode = event.currentTarget.dataset.mode;
     mutate(`/api/ops/${day}/${mode}`, {keys}, $id("opsLineSubmit"),
       mode === "depart" ? "تم تسجيل قيام الخط" : "تم تسجيل عودة الخط")
-      .then(() => closeModal("opsLineModal", true));
+      .then(ok => { if (ok) closeModal("opsLineModal", true); });
   });
 
   $id("opsTimeForm").addEventListener("submit", async event => {
@@ -391,9 +405,16 @@
     if (!time) return showToast("اختر معادًا صحيحًا", true);
     const target = event.currentTarget.dataset.target;
     const scope = document.querySelector('input[name="opsTimeScope"]:checked').value;
+    const submit = $id("opsTimeSubmit");
+    if (submit.dataset.pending === "1") return;
+    const originalText = submit.innerHTML;
+    submit.dataset.pending = "1";
+    submit.disabled = true;
+    submit.classList.add("is-pending");
+    submit.innerHTML = '<span class="spinner" aria-hidden="true"></span> جارٍ التنفيذ…';
     const out = await api(`/api/ops/${day}/time`, {
       ...jsonReq("PATCH", {key: target, time, scope, revision: ops.revision}),
-      noLoader: true,
+      loadingLabel: "جارٍ تنفيذ تعديل المعاد…",
       onError: (payload, status) => {
         // 409 تاني غير «نسخة قديمة» (زي «الخدمة غير موجودة») رسالته بتظهر عادي
         if (status === 409 && payload.code === "stale_revision") {
@@ -412,6 +433,10 @@
       announce("تم تعديل المعاد");
       showToast("تم تعديل المعاد");
     }
+    delete submit.dataset.pending;
+    submit.disabled = false;
+    submit.classList.remove("is-pending");
+    submit.innerHTML = originalText;
   });
 
   document.addEventListener("visibilitychange", () => {
