@@ -184,7 +184,9 @@ def test_custom_section_metadata_preserves_special_and_normal_names():
     runs = {run["name"]: run for run in build_ops(data, "2026-10-20")["runs"]}
     assert runs["بوابة المباراة"]["section_name"] == "خدمات مباراة المصري"
     assert runs["بوابة المباراة"]["section_kind"] == "special"
-    assert runs["تفتيش البوابة"]["section_name"] == "خدمات تفتيشات"
+    # التفتيشات تبع الخدمات الطارئة، مش مجموعة لوحدها
+    assert runs["تفتيش البوابة"]["section_name"] == "الخدمات الطارئة"
+    assert runs["تفتيش البوابة"]["section_id"] == "emergency"
     assert runs["تفتيش البوابة"]["section_kind"] == "emergency"
 
 

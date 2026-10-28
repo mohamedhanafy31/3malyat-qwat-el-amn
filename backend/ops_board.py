@@ -323,8 +323,12 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
         name = section.get("name", "")
         special = service_sections.is_special(name)
         kind = "special" if special else "emergency"
-        section_id = f"{kind}:{norm(name)}"
-        source_section(section_id, service_sections.block_title(name), kind)
+        # الأقسام العادية (التفتيشات، «فرد + مج»…) تبع الخدمات الطارئة نفسها،
+        # مش مجموعة لوحدها بعنوان «خدمات تفتيشات».
+        if special:
+            source_section(f"special:{norm(name)}", service_sections.block_title(name), kind)
+        else:
+            source_section("emergency", "الخدمات الطارئة", "emergency")
         for entry in section.get("rows", []):
             ident = entry.get("id") or entry.get("assignment_id")
             raw = rows.get(ident, {})
