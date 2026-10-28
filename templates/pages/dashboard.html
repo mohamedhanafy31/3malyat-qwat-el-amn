@@ -12,7 +12,32 @@
   <div id="opsCounters" class="ops-counters" aria-label="عدادات التشغيل"></div>
 </section>
 
+<section class="ops-toolbar" id="opsToolbar" aria-label="أدوات لوحة التشغيل">
+  <label class="ops-search-wrap" for="opsSearch">
+    <span class="sr-only">بحث في الخدمات</span>
+    <input id="opsSearch" type="search" autocomplete="off" placeholder="ابحث بالخدمة أو القائم أو الخط…">
+    <kbd>/</kbd>
+  </label>
+  <label class="ops-select-wrap">الفترة
+    <select id="opsShiftFilter" aria-label="فلترة الفترة">
+      <option value="all">الكل</option><option value="am">صباحية</option><option value="pm">ليلية</option>
+    </select>
+  </label>
+  <label class="ops-select-wrap">التجميع
+    <select id="opsGroupBy" aria-label="طريقة التجميع">
+      <option value="time">حسب المعاد</option><option value="line">حسب الخط/اللوري</option><option value="none">بدون تجميع</option>
+    </select>
+  </label>
+  <button type="button" class="ops-now-toggle" id="opsAttentionToggle" aria-pressed="false">تحتاج إجراء الآن</button>
+  <div class="ops-view-toggle" role="group" aria-label="طريقة العرض">
+    <button type="button" data-view="list" aria-pressed="true">قائمة</button>
+    <button type="button" data-view="cards" aria-pressed="false">بطاقات</button>
+  </div>
+  <button type="button" class="btn ops-clear hidden" id="opsClear">مسح الفلاتر</button>
+</section>
+
 <div id="opsLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+<div id="opsAttention" class="ops-attention" aria-live="polite"></div>
 <div id="opsBoard" class="ops-board" aria-busy="true"><div class="ops-loading">جارٍ تحميل لوحة التشغيل…</div></div>
 
 <details class="admin-followup">
@@ -42,12 +67,13 @@
 <div class="modal hidden" id="opsLineModal">
   <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="opsLineTitle">
     <button type="button" class="close" data-close="opsLineModal" aria-label="إغلاق">×</button>
-    <h2 id="opsLineTitle">تشغيل الخط</h2>
+    <h2 id="opsLineTitle">تشغيل الخدمات</h2>
     <p id="opsLineMeta" class="dialog-body"></p>
+    <p id="opsLineWarning" class="field-hint hidden"></p>
     <form id="opsLineForm" novalidate>
       <div id="opsLineChecks" class="ops-checks"></div>
       <div class="dialog-actions">
-        <button type="submit" class="primary" id="opsLineSubmit">قيام الخط</button>
+        <button type="submit" class="primary" id="opsLineSubmit">قيام الخدمات</button>
         <button type="button" class="btn" data-close="opsLineModal">إلغاء</button>
       </div>
     </form>
