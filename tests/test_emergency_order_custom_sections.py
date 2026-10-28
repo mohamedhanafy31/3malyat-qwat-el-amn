@@ -5,7 +5,7 @@ from docx import Document
 from docx.table import _Cell
 
 from backend.afraad import _time_key
-from backend.board_export import build_docx
+from backend.board_export import LAST_FIT, build_docx
 
 DAY = "2026-10-21"
 
@@ -35,7 +35,7 @@ def test_afraad_page_orders_emergency_by_schedule(client):
     assert [row["name"] for row in rows] == ["أولى", "تانية", "ثالثة", "بدون"]
 
 
-def test_board_export_keeps_every_emergency_and_custom_row_in_time_order():
+def test_board_export_separates_special_block_and_keeps_grid_coverage():
     emergency = [_service(f"طارئة {i}", f"{(i % 9) + 1}م") for i in range(12)]
     custom = [_service("تأمين مباراة", "2:30م", "مباراة ش"), _service("الباب الرئيسي", "8ص", "مباراة ش")]
     board = {"date": DAY, "sections": [
@@ -47,7 +47,20 @@ def test_board_export_keeps_every_emergency_and_custom_row_in_time_order():
     for i in range(12):
         assert f"طارئة {i}" in text
     assert "تأمين مباراة" in text and "الباب الرئيسي" in text
-    assert text.index("الباب الرئيسي") < text.index("تأمين مباراة")     # 8ص قبل 2:30م
+    assert text.index("خدمات مباراة ش") < text.index("الباب الرئيسي") < text.index("تأمين مباراة")
+    grid = [int(c.get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}w"))
+            for c in table._tbl.tblGrid]
+    for tr in table._tbl.tr_lst:
+        spans = []
+        for tc in tr.tc_lst:
+            node = tc.tcPr.find("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}gridSpan")
+            spans.append(int(node.get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val")) if node is not None else 1)
+        assert sum(spans) == 5
+    assert any("خدمات مباراة ش" in "".join(t.text or "" for t in tc.iter())
+               and tc.tcPr.find("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}gridSpan").get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val") == "3"
+               for tr in table._tbl.tr_lst for tc in tr.tc_lst
+               if tc.tcPr.find("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}gridSpan") is not None)
+    assert LAST_FIT["ratio"] <= 1
     # لا صفوف حشو: عنوان + 11 صف طوارئ/مخصص + «الاهداف» + عنوان الخوارج + صفّا المعسكر الفرعي
     assert len(table.rows) >= 15
 
@@ -59,3 +72,19 @@ def test_prison_rows_beyond_seven_are_kept():
     text = "\n".join(_cells(document)[1])
     for i in range(9):
         assert f"سجن {i}" in text
+
+
+def test_ordinary_emergency_rows_stay_above_special_blocks_with_targets_row():
+    # مع وجود كتلة أهداف، صف الطوارئ العادي مايتنقلش لصف «الاهداف» تحت كتلة المباراة
+    from backend.board_export import _latest_content
+    emergency = [_service(f"طارئة {i}", f"{i + 1}م") for i in range(4)]
+    custom = [_service("مدرجات", "2م", "مباراة ش")]
+    board = {"date": DAY, "sections": [
+        {"name": "الخدمات الطارئة", "type": "services", "rows": emergency},
+        {"name": "مباراة ش", "type": "services", "rows": custom},
+        {"name": "الأهداف", "type": "targets", "rows": [{"name": "سوميد", "officers": []}]}]}
+    texts = [" ".join(c["text"] for c in row["cells"]) for row in _latest_content(board)]
+    title = next(i for i, t in enumerate(texts) if "خدمات مباراة ش" in t)
+    assert all(any(f"طارئة {i}" in t for t in texts[:title]) for i in range(4))
+    targets_row = next(t for t in texts if t.startswith("الاهداف"))
+    assert "طارئة" not in targets_row

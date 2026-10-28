@@ -29,7 +29,9 @@ from .constants import (
     SECTION_TARGETS, SECTION_TAQSEERA,
 )
 from .afraad import _time_key
+from .board import canonical_section_name
 from .labels import officer_label, personnel_label
+from .service_sections import block_title, is_structural, split_custom_sections
 
 WEEKDAY_BY_INDEX = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
 MONTH_BY_INDEX = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
@@ -653,21 +655,20 @@ def _latest_content(board):
     «الصافي» لا يُطبع في ملف Word، وضابط عظيم/أمن الإدارة يُدرجان داخل
     قائمة «عمل بالادارة» الواحدة بنص دورهما وفترتهما."""
     sections = _presentation_sections(board["sections"])
+    sections = [{**section, "name": canonical_section_name(section.get("name"))}
+                for section in sections]
 
     def rows(name, kind="services"):
         return list(_section_by_name(sections, name, kind).get("rows") or [])
 
     basic, emergency = rows(SECTION_BASIC), rows(SECTION_OCCASIONAL)
-    # أي قسم خدمات المشغّل ضافه بإيده (ماتش، انتشار…) بينضم لجدول الطوارئ —
-    # التفتيشات تفضل على الشاشة بس ولا تدخل ملف Word.
-    # زي يومية الأفراد — والكل مترتب بمعاد الانتظام (ترتيب مستقر لنفس الساعة)
-    known = {SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS, SECTION_PRISON, SECTION_SUBCAMP,
-             SECTION_GREAT, SECTION_SECURITY, SECTION_ADMIN_WORK, SECTION_NET,
-             SECTION_RESTS, SECTION_TAQSEERA, SECTION_INSPECTIONS,
-             SECTION_OUTSIDERS}
-    for section in sections:
-        if section["name"] not in known and section.get("type") == "services":
-            emergency.extend(section.get("rows") or [])
+    custom = [section for section in sections
+              if section.get("type") == "services"
+              and not is_structural(section.get("name"))]
+    ordinary_custom, special_blocks = split_custom_sections(custom, _time_key)
+    # أي قسم عادي (فرد + مج مثلًا) يفضل جوه جدول الطوارئ، أما المباراة/الانتشار
+    # فتظهر بعنوان مستقل. التفتيشات تفضل على الشاشة بس ولا تدخل ملف Word.
+    emergency.extend(ordinary_custom)
     emergency.sort(key=lambda row: _time_key(row.get("time")))
     targets, prison = rows(SECTION_TARGETS, "targets"), rows(SECTION_PRISON)
     subcamp = rows(SECTION_SUBCAMP, "slots")
@@ -694,13 +695,22 @@ def _latest_content(board):
 
     block = bool(targets or prison)
     # صف «الاهداف» بياخد آخر صف طارئ (لو فيه كتلة أهداف/سجن)؛ غير كده الطوارئ كلها فوق
-    top = max(len(basic), len(emergency) - (1 if block else 0), 0)
+    # من غير كتل خاصة: آخر صف طارئ بيتشال لصف الاهداف لو الطوارئ أطول من
+    # الأساسية (السلوك القديم). مع كتل خاصة: كل الطوارئ العادية فوق الكتل،
+    # عشان صف عادي مايتطبعش بعد كتلة المباراة كأنه منها.
+    borrow = block and not special_blocks and len(emergency) > len(basic)
+    ordinary_rows = emergency[:-1] if borrow else emergency
+    top = max(len(basic), len(ordinary_rows), 0)
     result = [_row([_cell("الخدمات الاساسية", 2, True), _cell("الخدمات الطارئة", 3, True)], "title")]
     for i in range(top):
         _group(basic_side(basic[i] if i < len(basic) else None),
-               emergency_side(emergency[i] if i < len(emergency) else None), result)
+               emergency_side(ordinary_rows[i] if i < len(ordinary_rows) else None), result)
+    for special in special_blocks:
+        result.append(_row([_cell("", 2), _cell(block_title(special["name"]), 3, True)], "head"))
+        for row in special["rows"]:
+            _group(None, emergency_side(row), result)
     if block:
-        emg = emergency[top] if len(emergency) > top else None
+        emg = emergency[-1] if borrow else None
         pieces = _manning_pieces(emg) if emg else [""]
         result.append(_row([_cell("الاهداف", 2, True), _cell(name_of(emg), 2),
                             _cell(pieces[0])], "head"))

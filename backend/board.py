@@ -111,6 +111,8 @@ def section_names(data):
 
 SECTION_ALIASES = {
     "خدمات السجن": SECTION_PRISON,
+    "سجن قوات الامن": SECTION_PRISON,
+    "سجن قوات الأمن": SECTION_PRISON,
     "خدمات سجن قوات الامن": SECTION_PRISON,
     "خدمات سجن قوات الأمن": SECTION_PRISON,
     "فرد تأمين فترة ليلة": SECTION_PRISON,

@@ -7,6 +7,8 @@ from math import ceil
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from .afraad import _time_key
+from .service_sections import block_title, split_custom_sections
 from .utils import weekday_name
 
 
@@ -22,19 +24,23 @@ def _rows(payload, key):
 
 
 def _custom_rows(payload):
-    return [row for section in _rows(payload, "custom_sections")
-            for row in _rows(section, "rows")]
+    ordinary, _special = split_custom_sections(_rows(payload, "custom_sections"), _time_key)
+    return ordinary
 
 
 def _emergency_rows(payload):
-    return _rows(payload, "recurring") + _rows(payload, "emergency") + _custom_rows(payload)
+    rows = _rows(payload, "recurring") + _rows(payload, "emergency") + _custom_rows(payload)
+    return sorted(rows, key=lambda row: _time_key(row.get("time")))
 
 
 def compute_totals(payload):
     """Return the numeric values represented by the seven worksheet formulas."""
     am = sum(int(row.get("count") or 0) for row in _rows(payload, "basic_am"))
     pm = sum(int(row.get("count") or 0) for row in _rows(payload, "basic_pm"))
+    _ordinary, special = split_custom_sections(_rows(payload, "custom_sections"), _time_key)
     emergency = sum(int(row.get("count") or 0) for row in _emergency_rows(payload))
+    emergency += sum(int(row.get("count") or 0) for section in special
+                     for row in section["rows"])
     return {"basic_am": am, "basic_pm": pm, "emergency": emergency,
             "grand_total": am + pm + emergency}
 
@@ -113,18 +119,58 @@ def _style_title(ws, row, value):
     ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=8)
 
 
+def _write_emergency_block(ws, title_row, title, rows, *, with_header=False):
+    """يكتب كتلة طوارئ ويعيد موضع إجماليها وموضع الصف التالي."""
+    ws.row_dimensions[title_row].height = 34.5
+    _style_title(ws, title_row, title)
+    if with_header:
+        header = title_row + 1
+        start = header + 1
+        ws.row_dimensions[header].height = 50.25
+        _style_header_row(ws, header, emergency=True)
+    else:
+        header = None
+        start = title_row + 1
+    height = _height(len(rows), EM_MIN if with_header else 1)
+    end = start + height - 1
+    subtotal = end + 1
+    _write_block(ws, rows, start, height, ((2, 3), (4, 5), (6, 7)))
+    if header is not None:
+        if end - 1 >= header:
+            ws.merge_cells(start_row=header, start_column=8, end_row=end - 1, end_column=8)
+        _put_cell(ws.cell(header, 8), "المجموع الكلي", font=Font(name="AF_Aseer", size=16, bold=True),
+                  alignment=Alignment(horizontal="center", vertical="center", wrap_text=True, textRotation=90),
+                  fill=_GRAY_HEADER, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM))
+    for col, letter in ((3, "C"), (5, "E"), (7, "G")):
+        _put_cell(ws.cell(subtotal, col), f"=SUM({letter}{start}:{letter}{end})",
+                  font=Font(name="Arial", size=16, bold=True),
+                  alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
+                  fill=_GRAY_TOTAL, border=_border(_THIN, _THIN, Side(style=None), _MEDIUM),
+                  number_format=r'0;\-0;;@')
+    for col in (2, 4, 6):
+        _put_cell(ws.cell(subtotal, col), "المجموع", font=Font(name="Arial", size=16, bold=True),
+                  alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
+                  fill=_GRAY_TOTAL, border=_border(_MEDIUM if col == 2 else _THIN, _THIN,
+                                                   Side(style=None), _MEDIUM))
+    ws.merge_cells(start_row=end, start_column=8, end_row=subtotal, end_column=8)
+    _put_cell(ws.cell(end, 8), f"=C{subtotal}+E{subtotal}+G{subtotal}",
+              font=Font(name="Arial", size=16, bold=True),
+              alignment=Alignment(horizontal="center", vertical="center", textRotation=90),
+              fill=_GRAY_TOTAL, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM),
+              number_format=r'0;\-0;;@')
+    ws.row_dimensions[subtotal].height = 21.75
+    return subtotal, end, subtotal + 1
+
+
 def build_xlsx(counts_payload):
     """Build a V2-format workbook from the payload returned by ``counts.build``."""
     am, pm = _rows(counts_payload, "basic_am"), _rows(counts_payload, "basic_pm")
     emergency = _emergency_rows(counts_payload)
-    rows_am, rows_pm, rows_em = (_height(len(am), AM_MIN), _height(len(pm), PM_MIN),
-                                 _height(len(emergency), EM_MIN))
+    _ordinary_custom, special_blocks = split_custom_sections(_rows(counts_payload, "custom_sections"), _time_key)
+    rows_am, rows_pm = _height(len(am), AM_MIN), _height(len(pm), PM_MIN)
     am_start, am_end = 4, 3 + rows_am
     pm_header, pm_start, pm_end = am_end + 1, am_end + 2, am_end + 1 + rows_pm
-    emergency_title, emergency_header = pm_end + 2, pm_end + 3
-    emergency_start, emergency_end = emergency_header + 1, emergency_header + rows_em
-    emergency_subtotal = emergency_end + 1
-    grand_start, grand_end = emergency_subtotal + 5, emergency_subtotal + 12
+    emergency_title = pm_end + 2
 
     wb = Workbook()
     ws = wb.active
@@ -138,8 +184,6 @@ def build_xlsx(counts_payload):
     ws.page_margins.left = ws.page_margins.right = 0.25
     ws.page_margins.top = ws.page_margins.bottom = 0.30
     ws.page_margins.header = ws.page_margins.footer = 0
-    used_end = grand_end + 4
-    ws.print_area = f"B2:H{used_end}"
     for col, width in {"A": 2.42578125, "B": 54.0, "C": 14.0, "D": 50.7109375,
                        "E": 14.0, "F": 50.7109375, "G": 15.28515625,
                        "H": 27.42578125}.items():
@@ -168,31 +212,17 @@ def build_xlsx(counts_payload):
               fill=_GRAY_TOTAL, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _THIN), number_format='0" مجند"')
 
     ws.row_dimensions[pm_end + 1].height = 13.5
-    ws.row_dimensions[emergency_title].height = 34.5
-    _style_title(ws, emergency_title, "خدمات الطوارئ")
-    ws.row_dimensions[emergency_header].height = 50.25
-    _style_header_row(ws, emergency_header, emergency=True)
-    _write_block(ws, emergency, emergency_start, rows_em, ((2, 3), (4, 5), (6, 7)))
-    ws.merge_cells(start_row=emergency_header, start_column=8, end_row=emergency_end - 1, end_column=8)
-    _put_cell(ws.cell(emergency_header, 8), "المجموع الكلي", font=Font(name="AF_Aseer", size=16, bold=True),
-              alignment=Alignment(horizontal="center", vertical="center", wrap_text=True, textRotation=90),
-              fill=_GRAY_HEADER, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM))
-    for col, letter in ((3, "C"), (5, "E"), (7, "G")):
-        _put_cell(ws.cell(emergency_subtotal, col), f"=SUM({letter}{emergency_start}:{letter}{emergency_end})",
-                  font=Font(name="Arial", size=16, bold=True), alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
-                  fill=_GRAY_TOTAL, border=_border(_THIN, _THIN, Side(style=None), _MEDIUM), number_format=r'0;\-0;;@')
-    for col in (2, 4, 6):
-        _put_cell(ws.cell(emergency_subtotal, col), "المجموع", font=Font(name="Arial", size=16, bold=True),
-                  alignment=Alignment(horizontal="center", vertical="center", wrap_text=True), fill=_GRAY_TOTAL,
-                  border=_border(_MEDIUM if col == 2 else _THIN, _THIN, Side(style=None), _MEDIUM))
-    ws.merge_cells(start_row=emergency_end, start_column=8, end_row=emergency_subtotal, end_column=8)
-    _put_cell(ws.cell(emergency_end, 8), f"=C{emergency_subtotal}+E{emergency_subtotal}+G{emergency_subtotal}",
-              font=Font(name="Arial", size=16, bold=True),
-              alignment=Alignment(horizontal="center", vertical="center", textRotation=90), fill=_GRAY_TOTAL,
-              border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM), number_format=r'0;\-0;;@')
-
-    ws.row_dimensions[emergency_subtotal].height = 21.75
-    ws.row_dimensions[emergency_subtotal + 4].height = 15.75
+    emergency_subtotal, _emergency_end, next_row = _write_emergency_block(
+        ws, emergency_title, "خدمات الطوارئ", emergency, with_header=True)
+    block_totals = [_emergency_end]
+    for section in special_blocks:
+        subtotal, block_end, next_row = _write_emergency_block(
+            ws, next_row + 1, block_title(section["name"]), section["rows"])
+        block_totals.append(block_end)
+    grand_start, grand_end = next_row + 4, next_row + 11
+    used_end = grand_end + 4
+    ws.print_area = f"B2:H{used_end}"
+    ws.row_dimensions[next_row].height = 15.75
     for row in range(grand_start, grand_end + 1):
         ws.row_dimensions[row].height = 15.0 if row <= grand_start + 1 else 15.75
     for row in range(grand_end + 1, used_end + 1):
@@ -204,7 +234,8 @@ def build_xlsx(counts_payload):
     _put_cell(ws.cell(grand_start, 3), "إجمالي اعداد الخدمات", font=Font(name="Lucida Console", size=22, bold=True),
               alignment=Alignment(horizontal="center", vertical="center", wrap_text=True), fill=_GRAY_TOTAL,
               border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM))
-    _put_cell(ws.cell(grand_start, 6), f"=H{am_start}+H{pm_start}+H{emergency_end}",
+    formula = "=" + "+".join([f"H{am_start}", f"H{pm_start}"] + [f"H{row}" for row in block_totals])
+    _put_cell(ws.cell(grand_start, 6), formula,
               font=Font(name="Arial", size=22, bold=True), alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
               fill=_GRAY_TOTAL, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM), number_format='0" مجند"')
 

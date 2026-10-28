@@ -12,7 +12,7 @@ def _payload(am=1, pm=1, recurring=1, emergency=1, custom=1):
                 for i in range(n)]
     return {"date": "2026-09-29", "basic_am": rows("ص", am), "basic_pm": rows("م", pm),
             "recurring": rows("ت", recurring), "emergency": rows("ي", emergency),
-            "custom_sections": [{"name": "قسم", "rows": rows("خ", custom)}] if custom else []}
+            "custom_sections": [{"name": "فرد + مج", "rows": rows("خ", custom)}] if custom else []}
 
 
 def _sheet(payload):
@@ -72,6 +72,21 @@ def test_compute_totals_matches_all_payload_counts():
     payload = _payload(4, 5, 2, 3, 4)
     assert compute_totals(payload) == {"basic_am": 10, "basic_pm": 15,
                                        "emergency": 19, "grand_total": 44}
+
+
+def test_special_sections_get_separate_titled_blocks_and_grand_total():
+    payload = _payload(0, 0, 1, 1, 0)
+    payload["custom_sections"] = [
+        {"name": "مباراة المصري", "rows": [{"name": "ملعب", "count": 5}]},
+        {"name": "خطة الانتشار", "rows": [{"name": "انتشار", "count": 7}]},
+    ]
+    ws = _sheet(payload)
+    titles = [ws.cell(row, 2).value for row in range(1, ws.max_row + 1)]
+    assert "خدمات مباراة المصري" in titles
+    assert "خدمات خطة الانتشار" in titles
+    assert ws["F49"].value == "=H4+H14+H35+H39+H43"
+    assert ws["C40"].value == "=SUM(C39:C39)"
+    assert ws["C44"].value == "=SUM(C43:C43)"
 
 
 def test_archive_v2_structure_when_reference_exists():
