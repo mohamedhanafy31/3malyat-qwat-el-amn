@@ -116,3 +116,23 @@ def test_past_day_is_read_only(client, frozen_today):
     response = save(client, payload, blank_assignments(payload), "2026-04-10")
     assert response.status_code == 409
     assert "عرضه فقط" in response.get_json()["error"]
+
+
+def test_section_moves_with_commander_post(client):
+    payload = snapshot(client)
+    assignments = blank_assignments(payload)
+    target = payload["targets"][1]["name"]
+    assignments[target] = "OFF-001"
+    assert save(client, payload, assignments).status_code == 200
+
+    officer = next(o for o in load_data(())["officers"] if o["id"] == "OFF-001")
+    assert effective(officer, DAY)["section"] == "الحراسات المشددة"
+    # قبل تاريخ السريان القسم القديم زي ما هو
+    before = effective(officer, "2026-04-09")["section"]
+
+    payload = snapshot(client)
+    assert save(client, payload, blank_assignments(payload)).status_code == 200
+    officer = next(o for o in load_data(())["officers"] if o["id"] == "OFF-001")
+    assert effective(officer, DAY)["section"] == "القوة"
+    assert effective(officer, DAY)["post"] == ""
+    assert effective(officer, "2026-04-09")["section"] == before

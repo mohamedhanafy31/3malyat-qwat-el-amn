@@ -412,6 +412,9 @@ function renderOcrPreview() {
       </div>
     </article>`).join("")
     : emptyState({title: "لم تُستخرج صفوف قابلة للتسكين", hint: "راجع صورة الجدول والملاحظات، وجرّب صورة أوضح أو قصّ الجدول بس."});
+  // الصفوف بتترسم بعد تحميل الصفحة، فـ upgradeSelects الأولانية ماشافتهاش —
+  // من غيرها خانة الفرد والخدمة كانت قايمة عادية من غير كتابة وبحث.
+  upgradeSelects($("#afOcrRows"));
   const warnings = [...new Set([...(AF_OCR?.warnings || []), ...(AF_OCR?.grid?.warnings || [])])];
   $("#afOcrWarnings").innerHTML = warnings.length
     ? `<details class="alert warn ocr-warnings"><summary>ملاحظات القراءة (${warnings.length})</summary><ul>${warnings.map(v => `<li>${esc(v)}</li>`).join("")}</ul></details>` : "";

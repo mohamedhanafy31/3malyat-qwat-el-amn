@@ -4,6 +4,7 @@
 من تاريخ، والثاني تكليف يومي يظل في اليومية التفصيلية.
 """
 from . import changes
+from .constants import SECTION_FORCE, SECTION_GUARDS
 from .board import (
     is_target_commander_post, target_commander_post, target_commanders_for_day,
     target_row_names,
@@ -23,6 +24,7 @@ def view(data, day):
             "id": person["id"], "name": person.get("name", ""),
             "short_name": person.get("short_name", ""),
             "role": state.get("role", ""), "post": state.get("post", ""),
+            "section": state.get("section", "") or SECTION_FORCE,
         })
     return {
         "day": day,
@@ -65,16 +67,22 @@ def apply(data, day, assignments):
     }
     changed = []
     for person in officers:
-        current = effective(person, day).get("post", "")
+        state = effective(person, day)
+        current = state.get("post", "")
+        current_section = state.get("section", "") or SECTION_FORCE
         wanted = desired_post.get(person["id"])
         if wanted is None and not is_target_commander_post(current):
             continue
         wanted = wanted or ""
-        if current == wanted:
+        # القسم بيمشي مع المنصب من نفس تاريخ السريان: قائد الهدف في
+        # «الحراسات المشددة»، واللي اتشال من قيادة هدف يرجع «القوة».
+        wanted_section = SECTION_GUARDS if wanted else SECTION_FORCE
+        if current == wanted and current_section == wanted_section:
             continue
-        record_change(person, day, {"post": wanted})
+        record_change(person, day, {"post": wanted, "section": wanted_section})
         changed.append({"id": person["id"], "name": person.get("name", ""),
-                        "before": current, "after": wanted})
+                        "before": current, "after": wanted,
+                        "section_before": current_section, "section_after": wanted_section})
 
     after = target_commanders_for_day(data, day)
     if changed:

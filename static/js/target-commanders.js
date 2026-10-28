@@ -68,13 +68,16 @@ function syncTargetCommanderState() {
     } else if (same) {
       state.innerHTML = `<span class="chip done">ثابت</span>`;
     } else if (!next) {
-      state.innerHTML = `<span class="chip soon">إخلاء</span>`;
+      state.innerHTML = `<span class="chip soon">إخلاء</span><small>القائد الحالي ينتقل إلى «القوة»</small>`;
       changed += 1;
     } else {
       const officer = TARGET_COMMANDERS.officers.find(item => item.id === next);
       const move = officer?.post && officer.post !== target.post
         ? `<small>من: ${esc(officer.post)}</small>` : "";
-      state.innerHTML = `<span class="chip soon">تغيير</span>${move}`;
+      // القسم بيتغيّر مع المنصب — نوضّحه قبل الحفظ بدل ما يفاجئ المستخدم في صفحة الضباط
+      const section = officer && officer.section !== "الحراسات المشددة"
+        ? `<small>ينتقل إلى «الحراسات المشددة»</small>` : "";
+      state.innerHTML = `<span class="chip soon">تغيير</span>${move}${section}`;
       changed += 1;
     }
     if (next) occupied += 1;
