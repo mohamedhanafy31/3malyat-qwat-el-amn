@@ -30817,7 +30817,44 @@
       "is_driver": true
     }
   ],
-  "service_lines": [],
+  "service_lines": [
+    {
+      "id": "LN-1",
+      "name": "خط فيصل",
+      "tag": "فيصل",
+      "lorry_id": "LOR-3",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    },
+    {
+      "id": "LN-2",
+      "name": "خط الخارجي (كـ109)",
+      "tag": "الخارجي",
+      "lorry_id": "LOR-4",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    },
+    {
+      "id": "LN-3",
+      "name": "خط المحور والمحكمة",
+      "tag": "المحكمة والمحور",
+      "lorry_id": "LOR-1",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    },
+    {
+      "id": "LN-4",
+      "name": "خط الداخلي (القنصلية)",
+      "tag": "الداخلي",
+      "lorry_id": "LOR-2",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    }
+  ],
   "officer_status_periods": [
     {
       "id": "OSP-0001",

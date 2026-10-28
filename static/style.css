@@ -1999,6 +1999,15 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .service-line-head{display:flex;align-items:baseline;gap:var(--s3);padding:0 var(--s5) var(--s1);border-bottom:1px solid var(--line)}
 .service-line-head h2{margin:0;color:var(--navy-950);font-family:var(--font-head);font-size:var(--t-md)}
 .service-line-head span{color:var(--ink-500);font-size:var(--t-sm)}
+.service-lines-card{max-width:760px}.service-lines-kicker{color:var(--ink-500);font-size:var(--t-sm)}
+.service-lines-list{display:grid;gap:var(--s2);margin:var(--s4) 0}.service-line-row{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3);border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface)}
+.service-line-row strong,.service-line-row span{display:block}.service-line-row span{color:var(--ink-500);font-size:var(--t-sm);margin-top:var(--s1)}
+.service-line-form{border-top:1px solid var(--line);padding-top:var(--s4)}.service-line-form h3{margin:0 0 var(--s3);font-family:var(--font-head)}
+.service-line-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3)}.service-line-order-wrap{margin-top:var(--s4)}
+.service-line-order-head{display:flex;justify-content:space-between;gap:var(--s3);align-items:baseline;margin-bottom:var(--s2)}.service-line-members{display:grid;gap:var(--s1);max-height:250px;overflow:auto;padding:var(--s2);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.service-line-member{display:grid;grid-template-columns:2rem 1fr auto;align-items:center;gap:var(--s2);padding:var(--s2);background:var(--surface);border-radius:var(--radius-sm)}.service-line-number{color:var(--ink-500);text-align:center}.service-line-move{display:flex;gap:var(--s1)}
+.service-line-move .mini{min-width:2rem;padding-inline:var(--s1)}.ops-line-actions{display:flex;gap:var(--s2);flex-wrap:wrap}.ops-line-warning{color:var(--warn-800);font-size:var(--t-sm)}
+@media (max-width:640px){.service-line-form-grid{grid-template-columns:1fr}.service-line-row{align-items:flex-start;flex-direction:column}.service-line-row .actions{width:100%}.service-line-order-head{align-items:flex-start;flex-direction:column}.service-lines-card{width:min(100%,calc(100vw - 1.5rem))}}
 .service-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4);
   padding:var(--s4) var(--s5) var(--s6)}
 .service-card{background:var(--surface);border:1px solid var(--line);

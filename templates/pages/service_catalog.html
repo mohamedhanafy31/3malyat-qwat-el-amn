@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block page_actions %}
 <button class="primary" id="addServiceBtn">{{ icon('plus') }} خدمة جديدة</button>
+<button class="btn" id="manageServiceLinesBtn">إدارة خطوط السير</button>
 {% endblock %}
 
 {% block content %}
@@ -25,6 +26,7 @@
 {% include "partials/service_catalog_modal.html" %}
 {% include "partials/service_location_modal.html" %}
 {% include "partials/inspection_modal.html" %}
+{% include "partials/service_lines_modal.html" %}
 {% endblock %}
 
 {% block scripts %}

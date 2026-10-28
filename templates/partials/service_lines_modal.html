@@ -1,0 +1,34 @@
+<div class="modal hidden" id="serviceLinesModal">
+  <div class="modal-card service-lines-card" role="dialog" aria-modal="true" aria-labelledby="serviceLinesTitle">
+    <button type="button" class="close" data-close="serviceLinesModal" aria-label="إغلاق">×</button>
+    <div class="modal-head">
+      <div><span class="service-lines-kicker">تنظيم التشغيل</span><h2 id="serviceLinesTitle">إدارة خطوط السير</h2></div>
+      <button type="button" class="mini" id="newServiceLineBtn">{{ icon('plus') }} خط جديد</button>
+    </div>
+    <div id="serviceLinesList" class="service-lines-list"></div>
+    <form id="serviceLineForm" class="service-line-form" novalidate>
+      <input type="hidden" id="serviceLineId">
+      <h3 id="serviceLineFormTitle">خط سير جديد</h3>
+      <div class="service-line-form-grid">
+        <label><span class="label-text">اسم الخط <span class="req" aria-hidden="true">*</span></span>
+          <input id="serviceLineName" required maxlength="120" placeholder="مثال: خط فيصل"></label>
+        <label><span class="label-text">وسم الخدمات <span class="req" aria-hidden="true">*</span></span>
+          <select id="serviceLineTag" required></select></label>
+        <label><span class="label-text">لوري الحملة</span>
+          <select id="serviceLineLorry"><option value="">بدون لوري</option></select></label>
+        <label>ميعاد القيام الصباحي
+          <input id="serviceLineAm" data-time aria-label="ميعاد القيام الصباحي"></label>
+        <label>ميعاد القيام المسائي
+          <input id="serviceLinePm" data-time aria-label="ميعاد القيام المسائي"></label>
+      </div>
+      <div class="service-line-order-wrap">
+        <div class="service-line-order-head"><strong>ترتيب أعضاء الخط</strong><span class="hint">الخدمات غير الظاهرة هنا تظل في آخر الخط تلقائيًا.</span></div>
+        <div id="serviceLineMembers" class="service-line-members"></div>
+      </div>
+      <div class="actions modal-foot">
+        <button class="primary" type="submit" id="serviceLineSave">حفظ الخط</button>
+        <button type="button" class="btn" data-close="serviceLinesModal">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>

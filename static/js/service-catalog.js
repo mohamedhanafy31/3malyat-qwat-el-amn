@@ -5,7 +5,8 @@
    صور الموقع بترفع كملفات (مش base64) — مباشرة لو صورة، أو تختار صفحة
    من PDF (بيترسم في المتصفح بـPDF.js وتترفع كصورة PNG، السيرفر ملوش أي
    دخل بمعالجة PDF خالص). */
-let CATALOG = [], PERIODS = [], SVC_KINDS = [], SVC_POST_TYPES = [], SVC_TAGS = [], SVC_ENTRY_TAGS = [], SERVICE_LINES = [];
+let CATALOG = [], PERIODS = [], SVC_KINDS = [], SVC_POST_TYPES = [], SVC_TAGS = [], SVC_ENTRY_TAGS = [], SERVICE_LINES = [], SERVICE_LINES_REVISION = "";
+const CAMPAIGN_LORRIES = [["", "بدون لوري"], ["LOR-1", "المحور + المحكمة"], ["LOR-2", "القنصلية"], ["LOR-3", "فيصل"], ["LOR-4", "كـ109"]];
 let INSPECTIONS = {}, INSP_WEEKDAYS = [];
 const SERVICE_PERIOD_LABELS = {
   "صباحية بس": "صباحية فقط",
@@ -116,6 +117,92 @@ function render() {
   }
 }
 
+function lineMembersForTag(tag, order = []) {
+  const available = CATALOG.filter(service => (service.tags || []).includes(tag));
+  const byId = new Map(available.map(service => [service.id, service]));
+  return [...order.filter(id => byId.has(id)).map(id => byId.get(id)),
+    ...available.filter(service => !order.includes(service.id))];
+}
+
+function renderServiceLineMembers() {
+  const tag = $("#serviceLineTag").value;
+  const current = $("#serviceLineId").value
+    ? [...document.querySelectorAll("#serviceLineMembers .service-line-member")].map(x => x.dataset.id)
+    : [];
+  const order = current.length ? current : (SERVICE_LINES.find(line => line.id === $("#serviceLineId").value)?.order || []);
+  const members = lineMembersForTag(tag, order);
+  $("#serviceLineMembers").innerHTML = members.length ? members.map((service, index) => `
+    <div class="service-line-member" data-id="${esc(service.id)}">
+      <span class="service-line-number">${index + 1}</span><span>${esc(service.name)}</span>
+      <span class="service-line-move">
+        <button type="button" class="mini" data-action="moveServiceLineMember" data-id="${esc(service.id)}" data-extra="${dataAttr({direction: "up"})}" ${index ? "" : "disabled"} aria-label="رفع ${esc(service.name)}">↑</button>
+        <button type="button" class="mini" data-action="moveServiceLineMember" data-id="${esc(service.id)}" data-extra="${dataAttr({direction: "down"})}" ${index === members.length - 1 ? "disabled" : ""} aria-label="خفض ${esc(service.name)}">↓</button>
+      </span>
+    </div>`).join("") : `<p class="hint">لا توجد خدمات تحمل هذا الوسم حتى الآن.</p>`;
+}
+
+function renderServiceLinesList() {
+  $("#serviceLinesList").innerHTML = SERVICE_LINES.length ? SERVICE_LINES.map(line => `
+    <div class="service-line-row"><div><strong>${esc(line.name)}</strong><span>${esc(line.lorry_name || "بدون لوري")} · ${line.members.length} خدمة</span></div>
+      <div class="actions"><button type="button" class="mini" data-action="editServiceLine" data-id="${esc(line.id)}">تعديل</button>
+        <button type="button" class="mini danger" data-action="deleteServiceLine" data-id="${esc(line.id)}" data-extra="${dataAttr({name: line.name})}">حذف</button></div>
+    </div>`).join("") : `<p class="hint">لا توجد خطوط سير مسجّلة.</p>`;
+}
+
+function openServiceLine(id = null) {
+  const line = id ? SERVICE_LINES.find(item => item.id === id) : null;
+  $("#serviceLineId").value = line?.id || "";
+  $("#serviceLineFormTitle").textContent = line ? "تعديل خط السير" : "خط سير جديد";
+  fillSelect($("#serviceLineTag"), [["", "— اختَر وسمًا —"], ...SVC_TAGS.map(tag => [tag, `#${tag}`])]);
+  fillSelect($("#serviceLineLorry"), CAMPAIGN_LORRIES);
+  $("#serviceLineName").value = line?.name || "";
+  $("#serviceLineTag").value = line?.tag || "";
+  $("#serviceLineLorry").value = line?.lorry_id || "";
+  setTimeInputValue($("#serviceLineAm"), line?.depart_am || "");
+  setTimeInputValue($("#serviceLinePm"), line?.depart_pm || "");
+  $("#serviceLineMembers").innerHTML = "";
+  renderServiceLineMembers();
+}
+
+function openServiceLines() {
+  renderServiceLinesList();
+  openServiceLine(null);
+  openModal("serviceLinesModal");
+}
+
+ACTIONS.editServiceLine = id => openServiceLine(id);
+ACTIONS.moveServiceLineMember = (id, extra) => {
+  const node = $("#serviceLineMembers").querySelector(`[data-id="${CSS.escape(id)}"]`);
+  const other = node?.[extra.direction === "up" ? "previousElementSibling" : "nextElementSibling"];
+  if (node && other) extra.direction === "up" ? node.parentNode.insertBefore(node, other) : node.parentNode.insertBefore(other, node);
+  renderServiceLineMembers();
+};
+ACTIONS.deleteServiceLine = async (id, extra) => {
+  if (!(await confirmDialog({title: "حذف خط السير", body: `سيُحذف خط «${extra.name}» فقط، وتظل الخدمات وسجل التشغيل كما هما.`, confirmLabel: "حذف الخط", danger: true}))) return;
+  const out = await api(`/api/service-lines/${encodeURIComponent(id)}`, {method: "DELETE", headers: {"Content-Type": "application/json", "X-Requested-With": "fetch",}, body: JSON.stringify({revision: SERVICE_LINES_REVISION})});
+  if (!out) return;
+  SERVICE_LINES = SERVICE_LINES.filter(line => line.id !== id);
+  renderServiceLinesList(); render(); showToast("تم حذف خط السير");
+};
+$("#manageServiceLinesBtn").onclick = openServiceLines;
+$("#newServiceLineBtn").onclick = () => openServiceLine(null);
+$("#serviceLineTag").onchange = renderServiceLineMembers;
+$("#serviceLineForm").onsubmit = async event => {
+  event.preventDefault();
+  const id = $("#serviceLineId").value;
+  const body = {name: $("#serviceLineName").value.trim(), tag: $("#serviceLineTag").value,
+    lorry_id: $("#serviceLineLorry").value, depart_am: $("#serviceLineAm").dataset.hhmm || "",
+    depart_pm: $("#serviceLinePm").dataset.hhmm || "",
+    order: [...document.querySelectorAll("#serviceLineMembers .service-line-member")].map(node => node.dataset.id),
+    revision: SERVICE_LINES_REVISION};
+  const out = await api(id ? `/api/service-lines/${encodeURIComponent(id)}` : "/api/service-lines",
+    jsonReq(id ? "PATCH" : "POST", body));
+  if (!out) return;
+  if (id) SERVICE_LINES = SERVICE_LINES.map(line => line.id === id ? out : line);
+  else SERVICE_LINES.push(out);
+  renderServiceLinesList(); render(); openServiceLine(out.id); showToast("تم حفظ خط السير");
+};
+
 function syncCatalogFilters() {
   fillSelect($("#svcKindFilter"), [["", "كل التصنيفات"], ...SVC_KINDS.map(k => [k, k])], true);
   fillSelect($("#svcPeriodFilter"), [["", "كل الفترات"], ...PERIODS.map(p => [p, servicePeriodLabel(p)])], true);
@@ -165,6 +252,7 @@ async function load() {
   syncCatalogFilters();
   const lines = await api("/api/service-lines");
   SERVICE_LINES = lines?.lines || [];
+  SERVICE_LINES_REVISION = lines?.revision || "";
   render();
 
   const s = await api("/api/inspection-schedule");

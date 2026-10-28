@@ -4,9 +4,10 @@ import uuid
 
 from flask import Blueprint, jsonify, request, send_from_directory
 
+from .. import changes
 from .. import service_catalog as catalog_lib
 from ..repo import Repos
-from ..store import AbortRequest, load_data, with_data
+from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import json_payload
 from .. import service_lines as lines_lib
 from ..constants import CAMPAIGN_LORRIES
@@ -17,14 +18,74 @@ bp = Blueprint("service_catalog", __name__)
 @bp.get("/api/service-lines")
 def list_service_lines():
     data = load_data(())
-    lorries = {x["id"]: x["name"] for x in CAMPAIGN_LORRIES}
-    result = []
-    for line in lines_lib.lines(data):
-        result.append({**line,
-                       "members": [{"id": e.get("id"), "name": e.get("name", "")}
-                                   for e in lines_lib.members(data, line.get("id"))],
-                       "lorry_name": lorries.get(line.get("lorry_id"), "")})
-    return jsonify({"lines": result})
+    return jsonify({"lines": [_line_view(data, line) for line in lines_lib.lines(data)],
+                    "revision": revision(data)})
+
+
+def _line_view(data, line):
+    return {**line,
+            "members": [{"id": e.get("id"), "name": e.get("name", "")}
+                        for e in lines_lib.members(data, line.get("id"))],
+            "lorry_name": lines_lib.lorry_name(line.get("lorry_id"))}
+
+
+def _line_mutation(payload, line_id=None):
+    def mutate(data):
+        stale = stale_revision(data, payload.get("revision"))
+        if stale:
+            raise AbortRequest((jsonify({"error": "تغيّرت بيانات الدليل؛ حدّث الصفحة.",
+                                         "code": "stale_revision", "revision": stale}), 409))
+        entries = lines_lib.lines(data)
+        existing = next((line for line in entries if line.get("id") == line_id), None) if line_id else None
+        if line_id and not existing:
+            raise AbortRequest((jsonify({"error": "خط السير غير موجود."}), 404))
+        before = dict(existing) if existing else None
+        line, error = lines_lib.apply_line(data, payload, existing)
+        if error:
+            raise AbortRequest((jsonify({"error": error}), 400))
+        if existing:
+            existing.clear()
+            existing.update(line)
+            action = "update"
+        else:
+            entries.append(line)
+            action = "create"
+        changes.record(data, "service_line", line["id"], action,
+                       before=before, after=dict(line),
+                       text=f"{'تعديل' if action == 'update' else 'إضافة'} خط سير «{line.get('name', '')}»")
+        return jsonify(_line_view(data, line)), 200 if before else 201
+    return with_data(mutate, ())
+
+
+@bp.post("/api/service-lines")
+def add_service_line():
+    return _line_mutation(json_payload())
+
+
+@bp.patch("/api/service-lines/<line_id>")
+def edit_service_line(line_id):
+    return _line_mutation(json_payload(), line_id)
+
+
+@bp.delete("/api/service-lines/<line_id>")
+def delete_service_line(line_id):
+    payload = json_payload()
+
+    def mutate(data):
+        stale = stale_revision(data, payload.get("revision"))
+        if stale:
+            raise AbortRequest((jsonify({"error": "تغيّرت بيانات الدليل؛ حدّث الصفحة.",
+                                         "code": "stale_revision", "revision": stale}), 409))
+        entries = lines_lib.lines(data)
+        line = next((item for item in entries if item.get("id") == line_id), None)
+        if not line:
+            raise AbortRequest((jsonify({"error": "خط السير غير موجود."}), 404))
+        entries.remove(line)
+        changes.record(data, "service_line", line_id, "delete", before=dict(line),
+                       text=f"حذف خط سير «{line.get('name', '')}»")
+        return jsonify({"ok": True})
+
+    return with_data(mutate, ())
 
 
 @bp.get("/api/service-catalog")

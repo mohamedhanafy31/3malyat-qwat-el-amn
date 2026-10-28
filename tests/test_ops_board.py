@@ -55,6 +55,23 @@ def test_next_is_future_only_and_archive_time_style():
     assert build_ops(data, "2026-10-20", datetime(2026, 10, 20, 21, 0))["next"] is None
 
 
+def test_line_runs_follow_configured_order_and_absent_members_are_not_cards():
+    data = _data()
+    data["service_catalog"] = [
+        {"id": "SVC-1", "name": "أ", "period": "صباحية", "report_am": "08:00", "tags": ["route"]},
+        {"id": "SVC-2", "name": "ب", "period": "صباحية", "report_am": "08:00", "tags": ["route"]},
+        {"id": "SVC-3", "name": "غائب", "period": "صباحية", "report_am": "08:00", "tags": ["route"]},
+    ]
+    data["service_lines"] = [{"id": "LN-1", "name": "خط", "tag": "route", "lorry_id": "LOR-1",
+                               "order": ["SVC-2", "SVC-1", "SVC-3"]}]
+    data["service_counts"]["2026-10-20"]["entries"] = [
+        {"id": "CNT-1", "name": "أ", "service_id": "SVC-1", "block": "صباحية", "count": 1},
+        {"id": "CNT-2", "name": "ب", "service_id": "SVC-2", "block": "صباحية", "count": 1},
+    ]
+    runs = build_ops(data, "2026-10-20")["groups"]["basic"]["am"]["lines"][0]["runs"]
+    assert [run["key"] for run in runs] == ["SVC-2:am", "SVC-1:am"]
+
+
 def test_afraad_link_head_and_catalog_fallbacks():
     data = _data()
     data["reference_lists"] = {"afraad_basic": [{"from": "2026-10-20", "items": [

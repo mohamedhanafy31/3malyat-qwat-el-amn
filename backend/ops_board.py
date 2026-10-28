@@ -82,15 +82,21 @@ def _line_info(data, day, service_id, assignment_id=None):
         line_id = (line or {}).get("id")
     if not line_id:
         return None
+    warning = None
+    attached_lorry_id = (lorry or {}).get("id") if lorry else None
+    configured_lorry_id = (line or {}).get("lorry_id") or (line or {}).get("lorry")
+    if line and attached_lorry_id and configured_lorry_id and attached_lorry_id != configured_lorry_id:
+        warning = "الخدمة مرتبطة بلوري مختلف عن لوري الخط"
     if not lorry:
-        lorry_id = (line or {}).get("lorry_id") or (line or {}).get("lorry")
+        lorry_id = configured_lorry_id
         camp = campaign.build_campaign(data, day)
         lorry = next((x for x in camp.get("lorries", []) + camp.get("appointments", [])
                       if x.get("id") == lorry_id), None)
-    lorry_id = (line or {}).get("lorry_id") or (line or {}).get("lorry")
+    lorry_id = configured_lorry_id
     return {"id": line_id, "line": line.get("name") or line.get("label") or line.get("title") or line_id,
             "lorry": (lorry or {}).get("name") or lorry_name(lorry_id),
-            "driver": (lorry or {}).get("driver"), "vehicle": (lorry or {}).get("vehicle")}
+            "driver": (lorry or {}).get("driver"), "vehicle": (lorry or {}).get("vehicle"),
+            "warning": warning}
 
 
 def _run(key, name, group, shift, *, report=None, report_text=None, line=None,
@@ -100,10 +106,12 @@ def _run(key, name, group, shift, *, report=None, report_text=None, line=None,
             "hint": None, "out_at": None, "out_by": None, "back_at": None,
             "back_by": None, "line_id": (line or {}).get("id"), "head": head,
             "line": (line or {}).get("line"), "count": count, "weapon": weapon,
+            "warning": (line or {}).get("warning"),
             "sources": [source] if source else [],
             "_groups": {group}, "_line": line, "_assignment_id": assignment_id,
             "_line_name": (line or {}).get("line"), "_lorry": (line or {}).get("lorry"),
-            "_driver": (line or {}).get("driver"), "_vehicle": (line or {}).get("vehicle")}
+            "_driver": (line or {}).get("driver"), "_vehicle": (line or {}).get("vehicle"),
+            "_line_warning": (line or {}).get("warning")}
 
 
 def _afraad_service_map(data, day):
@@ -148,6 +156,8 @@ def _add(pool, item):
     old["_groups"] |= item.get("_groups", set())
     old["_line"] = old.get("_line") or item.get("_line")
     old["line_id"] = old.get("line_id") or item.get("line_id")
+    old["warning"] = old.get("warning") or item.get("warning")
+    old["_line_warning"] = old.get("_line_warning") or item.get("_line_warning")
 
 
 def _apply_state(data, day, item, now):
@@ -292,13 +302,13 @@ def build_ops(data, day, now=None, _carry=True):
             else:
                 target["single"].append(item)
     for target in (groups["basic"]["am"], groups["basic"]["pm"], groups["emergency"]):
-        target["lines"] = _line_groups(target["lines"])
+        target["lines"] = _line_groups(data, target["lines"])
         target["single"].sort(key=sort_key)
     groups["officers"].sort(key=sort_key)
     for item in carried:
         item["source_day"] = item.get("_source_day")
     for item in runs + carried:
-        for field in ("_groups", "_line", "_assignment_id", "_source_day", "_line_name", "_lorry", "_driver", "_vehicle"):
+        for field in ("_groups", "_line", "_assignment_id", "_source_day", "_line_name", "_lorry", "_driver", "_vehicle", "_line_warning"):
             item.pop(field, None)
     upcoming = [r for r in runs if r["state"] == "upcoming"]
     now_minutes = now_dt.hour * 60 + now_dt.minute
@@ -326,20 +336,30 @@ def build_ops(data, day, now=None, _carry=True):
                          "carried": len(carried)}, "groups": groups, "carried": carried}
 
 
-def _line_groups(items):
+def _line_groups(data, items):
     grouped = {}
     for item in items:
         line = item.get("line_id")
-        group = grouped.setdefault(line, {"line": "", "lorry": None, "driver": None, "vehicle": None, "runs": []})
+        group = grouped.setdefault(line, {"line_id": line, "line": "", "lorry": None, "driver": None,
+                                          "vehicle": None, "warning": None, "runs": []})
         group["runs"].append(item)
         group["line"] = item.get("_line_name") or line
         group["lorry"] = item.get("_lorry")
         group["driver"] = item.get("_driver")
         group["vehicle"] = item.get("_vehicle")
+        group["warning"] = group.get("warning") or item.get("_line_warning")
     for value in grouped.values():
         run = value["runs"][0]
         value["line"] = value.get("line") or run.get("line_id")
-    return list(grouped.values())
+        value["_order"] = {service_id: index for index, service_id in enumerate(
+            next((line.get("order") or [] for line in data.get("service_lines") or []
+                  if line.get("id") == value.get("line_id")), []))}
+        # line_id is enough for the lookup above; the fallback keeps emergency-only lines stable.
+        value["runs"].sort(key=lambda run: (value["_order"].get(run.get("key", "").rsplit(":", 1)[0], 10**6),
+                                      run.get("report_time") or "99:99"))
+        value.pop("_order", None)
+    line_order = {line.get("id"): index for index, line in enumerate(data.get("service_lines") or [])}
+    return sorted(grouped.values(), key=lambda value: line_order.get(value["runs"][0].get("line_id"), 10**6))
 
 
 def _flatten_runs(groups):

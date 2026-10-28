@@ -165,31 +165,36 @@
 
   function lineMeta(line) {
     // غياب السواق أو العربية معناه إن اللوري مش متسجل في يومية الحملة النهاردة.
-    if (!line.driver && !line.vehicle) {
-      return `<span class="ops-line-missing">لم تُسجَّل بيانات اللوري في يومية الحملة</span>`;
-    }
-    return esc(lineMetaText(line));
+    const bits = [];
+    if (!line.driver && !line.vehicle) bits.push(`<span class="ops-line-missing">لم تُسجَّل بيانات اللوري في يومية الحملة</span>`);
+    else bits.push(esc(lineMetaText(line)));
+    if (line.warning) bits.push(`<span class="ops-line-warning">${esc(line.warning)}</span>`);
+    return bits.join(" · ");
   }
 
   function lineBlock(line, options = {}) {
     const runs = line.runs || [];
     const upcoming = runs.filter(run => run.state === "upcoming");
     const out = runs.filter(run => run.state === "out");
-    const mode = options.forceMode || (upcoming.length ? "depart" : out.length ? "return" : "none");
-    const eligible = mode === "depart" ? upcoming : out;
-    const action = mode === "depart" ? "قيام الخط" : mode === "return" ? "عودة الخط" : "لا توجد حركة";
-    const button = `<button type="button" class="btn ${mode === "return" ? "ok" : ""}"
-      aria-label="${action}: ${esc(line.line || "خط سير")}"
-      data-op="line" data-mode="${mode}"
+    const mode = options.forceMode || null;
+    const actions = mode === "return" ? [{mode: "return", label: "عودة الخط", runs: out}]
+      : mode === "depart" ? [{mode: "depart", label: "قيام الخط", runs: upcoming}]
+      : upcoming.length && out.length
+        ? [{mode: "depart", label: `قيام المتبقي (${upcoming.length})`, runs: upcoming},
+           {mode: "return", label: `عودة القائم (${out.length})`, runs: out}]
+        : upcoming.length ? [{mode: "depart", label: "قيام الخط", runs: upcoming}]
+        : out.length ? [{mode: "return", label: "عودة الخط", runs: out}] : [];
+    const buttons = actions.map(action => `<button type="button" class="btn ${action.mode === "return" ? "ok" : ""}"
+      aria-label="${action.label}: ${esc(line.line || "خط سير")}"
+      data-op="line" data-mode="${action.mode}"
       data-line="${esc(line.line || "خط سير")}"
       data-meta="${esc(lineMetaText(line))}"
-      data-keys="${esc(JSON.stringify(eligible.map(run => actionTarget(run))))}"
-      ${mode === "none" ? "disabled" : ""}>${action}</button>`;
+      data-keys="${esc(JSON.stringify(action.runs.map(run => actionTarget(run))))}">${action.label}</button>`).join("");
 
     return `<section class="ops-line">
       <header class="ops-line-head">
         <div><h3>${esc(line.line || "خط سير")}</h3><p>${lineMeta(line)}</p></div>
-        ${button}
+        <div class="ops-line-actions">${buttons || '<span class="ops-line-idle">لا توجد حركة</span>'}</div>
       </header>
       <div class="ops-grid">${runs.map(run => card(run)).join("")}</div>
     </section>`;
@@ -221,7 +226,7 @@
       }
       const line = lineRuns.get(run.line_id) || {
         line: run.line, lorry: run.lorry, driver: run.driver,
-        vehicle: run.vehicle, runs: [],
+        vehicle: run.vehicle, warning: run.warning, runs: [],
       };
       line.runs.push(run);
       lineRuns.set(run.line_id, line);
