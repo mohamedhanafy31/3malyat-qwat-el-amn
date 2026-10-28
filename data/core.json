@@ -12769,6 +12769,54 @@
       "origin": "auto_weekly"
     },
     {
+      "id": "LV-6853",
+      "person_id": "OFF-002",
+      "type": "أسبوعية",
+      "start": "2026-10-29",
+      "end": "2026-10-29",
+      "return_date": "2026-10-30",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6856",
+      "person_id": "OFF-023",
+      "type": "أسبوعية",
+      "start": "2026-10-29",
+      "end": "2026-10-29",
+      "return_date": "2026-10-30",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6854",
+      "person_id": "OFF-025",
+      "type": "أسبوعية",
+      "start": "2026-10-29",
+      "end": "2026-10-29",
+      "return_date": "2026-10-30",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6857",
+      "person_id": "OFF-048",
+      "type": "أسبوعية",
+      "start": "2026-10-30",
+      "end": "2026-10-30",
+      "return_date": "2026-10-31",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "weekly_extra"
+    },
+    {
       "id": "LV-6838",
       "person_id": "OFF-015",
       "type": "نصف شهرية",
@@ -13929,11 +13977,11 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 286,
+    "CHG": 300,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
-    "LV": 6852,
+    "LV": 6857,
     "CRS": 57,
     "CT": 80,
     "INS": 9,
@@ -13944,7 +13992,7 @@
     "CON": 94,
     "CD": 8,
     "CP": 14,
-    "OSP": 3
+    "OSP": 4
   },
   "counts_template": {
     "entries": [
@@ -18730,6 +18778,328 @@
       },
       "reason": "يوم 2026-10-28",
       "edited_by": "adminstrator"
+    },
+    {
+      "id": "CHG-287",
+      "ts": "2026-10-28T15:26:48",
+      "entity": "duty_move",
+      "entity_id": "IND-095",
+      "action": "assign",
+      "day": "2026-10-27",
+      "text": "معاون ثالث/ احمد محمد محمد خالد: كُلِّف بـ«ازالة فيصل صبح»",
+      "before": {
+        "name": "معاون ثالث/ احمد محمد محمد خالد",
+        "services": []
+      },
+      "after": {
+        "name": "معاون ثالث/ احمد محمد محمد خالد",
+        "services": [
+          "ازالة فيصل صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-288",
+      "ts": "2026-10-28T15:26:48",
+      "entity": "assignment",
+      "entity_id": "AS-0005",
+      "action": "delete",
+      "day": "2026-10-27",
+      "text": "خدمة أُزيلت: «حملة الأمن الوطني صبح»",
+      "before": {
+        "id": "AS-0005",
+        "section": "الخدمات الطارئة",
+        "name": "حملة الأمن الوطني",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "12ظ",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "note": "",
+        "pos": 0,
+        "officer_command_required": false,
+        "personnel_command_required": true
+      },
+      "after": null,
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-289",
+      "ts": "2026-10-28T15:26:48",
+      "entity": "day_confirm",
+      "entity_id": "2026-10-27",
+      "action": "confirm",
+      "day": "2026-10-27",
+      "text": "تأكيد يومية 2026-10-27 — عدد التغييرات: 2",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 2,
+        "count": 28,
+        "at": "2026-10-28T15:26:48",
+        "by": "3malyat_admin",
+        "day": "2026-10-27"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-290",
+      "ts": "2026-10-28T15:31:37",
+      "entity": "leave",
+      "entity_id": "LV-6853",
+      "action": "create",
+      "day": "2026-10-29",
+      "text": "تسجيل تلقائي لراحة أحمد سمير محمد حمدي عباس الأسبوعية يوم الخميس",
+      "before": null,
+      "after": {
+        "id": "LV-6853",
+        "person_id": "OFF-002",
+        "type": "أسبوعية",
+        "start": "2026-10-29",
+        "end": "2026-10-29",
+        "return_date": "2026-10-30",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-291",
+      "ts": "2026-10-28T15:31:37",
+      "entity": "leave",
+      "entity_id": "LV-6854",
+      "action": "create",
+      "day": "2026-10-29",
+      "text": "تسجيل تلقائي لراحة محمد عبد الحميد فتحى نعامة الأسبوعية يوم الخميس",
+      "before": null,
+      "after": {
+        "id": "LV-6854",
+        "person_id": "OFF-025",
+        "type": "أسبوعية",
+        "start": "2026-10-29",
+        "end": "2026-10-29",
+        "return_date": "2026-10-30",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-292",
+      "ts": "2026-10-28T15:31:37",
+      "entity": "leave",
+      "entity_id": "LV-6855",
+      "action": "create",
+      "day": "2026-10-29",
+      "text": "تسجيل تلقائي لراحة محمد مجدي ابراهيم السيد بحر الأسبوعية يوم الخميس",
+      "before": null,
+      "after": {
+        "id": "LV-6855",
+        "person_id": "OFF-048",
+        "type": "أسبوعية",
+        "start": "2026-10-29",
+        "end": "2026-10-29",
+        "return_date": "2026-10-30",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-293",
+      "ts": "2026-10-28T15:31:37",
+      "entity": "leave",
+      "entity_id": "LV-6856",
+      "action": "create",
+      "day": "2026-10-29",
+      "text": "تسجيل تلقائي لراحة محمد أحمد محمد عاطف الأسبوعية يوم الخميس",
+      "before": null,
+      "after": {
+        "id": "LV-6856",
+        "person_id": "OFF-023",
+        "type": "أسبوعية",
+        "start": "2026-10-29",
+        "end": "2026-10-29",
+        "return_date": "2026-10-30",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-294",
+      "ts": "2026-10-28T15:33:22",
+      "entity": "officer_status_period",
+      "entity_id": "OSP-0004",
+      "action": "create",
+      "day": "2026-10-29",
+      "text": "بدء طارئة لـمحمد ميهوب زكي ميهوب من 2026-10-29 حتى 2026-10-29",
+      "before": null,
+      "after": {
+        "id": "OSP-0004",
+        "officer_id": "OFF-031",
+        "status": "طارئة",
+        "start": "2026-10-29",
+        "end": "2026-10-29",
+        "stopped_on": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-295",
+      "ts": "2026-10-28T15:36:12",
+      "entity": "leave",
+      "entity_id": "LV-6855",
+      "action": "cancel",
+      "day": null,
+      "text": "إلغاء راحة محمد مجدي ابراهيم السيد بحر (أسبوعية 2026-10-29 ← 2026-10-29) قبل بدايتها — السبب: تأجيل",
+      "before": {
+        "id": "LV-6855",
+        "person_id": "OFF-048",
+        "type": "أسبوعية",
+        "start": "2026-10-29",
+        "end": "2026-10-29",
+        "return_date": "2026-10-30",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "after": null,
+      "reason": "تأجيل",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-296",
+      "ts": "2026-10-28T15:36:28",
+      "entity": "leave",
+      "entity_id": "LV-6857",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة محمد مجدي ابراهيم السيد بحر (أسبوعية 2026-10-30 ← 2026-10-30)",
+      "before": null,
+      "after": {
+        "id": "LV-6857",
+        "person_id": "OFF-048",
+        "type": "أسبوعية",
+        "start": "2026-10-30",
+        "end": "2026-10-30",
+        "return_date": "2026-10-31",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "weekly_extra"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-297",
+      "ts": "2026-10-28T15:41:35",
+      "entity": "officer_state",
+      "entity_id": "OFF-048",
+      "action": "update",
+      "day": null,
+      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-10-28: تقصيرة",
+      "before": {},
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-298",
+      "ts": "2026-10-28T15:41:57",
+      "entity": "officer_state",
+      "entity_id": "OFF-048",
+      "action": "update",
+      "day": null,
+      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-10-28: إلغاء التقصيرة",
+      "before": {
+        "taqseera": true,
+        "status": "",
+        "note": ""
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-299",
+      "ts": "2026-10-28T15:42:15",
+      "entity": "officer_state",
+      "entity_id": "OFF-048",
+      "action": "update",
+      "day": null,
+      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-10-29: تقصيرة، التشغيل الإضافي: متابعة اعمال التدريب والاستعداد للجنة قوات الأمن",
+      "before": {},
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التدريب والاستعداد للجنة قوات الأمن"
+      },
+      "reason": "يوم 2026-10-29",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-300",
+      "ts": "2026-10-28T15:42:23",
+      "entity": "officer_state",
+      "entity_id": "OFF-048",
+      "action": "update",
+      "day": null,
+      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-10-29: إضافته للعمل بالإدارة",
+      "before": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التدريب والاستعداد للجنة قوات الأمن"
+      },
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التدريب والاستعداد للجنة قوات الأمن",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-10-29",
+      "edited_by": "3malyat_admin"
     }
   ],
   "missions": [],
@@ -19462,7 +19832,8 @@
     "2026-08-01": true,
     "2026-10-21": true,
     "2026-10-27": true,
-    "2026-10-28": true
+    "2026-10-28": true,
+    "2026-10-29": true
   },
   "rest_suspensions": [
     {
@@ -30470,6 +30841,14 @@
       "status": "مرضي",
       "start": "2026-10-28",
       "end": "",
+      "stopped_on": ""
+    },
+    {
+      "id": "OSP-0004",
+      "officer_id": "OFF-031",
+      "status": "طارئة",
+      "start": "2026-10-29",
+      "end": "2026-10-29",
       "stopped_on": ""
     }
   ],

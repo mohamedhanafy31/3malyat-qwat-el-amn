@@ -60,31 +60,6 @@
       "note": ""
     },
     {
-      "id": "AS-0005",
-      "section": "الخدمات الطارئة",
-      "name": "حملة الأمن الوطني",
-      "kind": "خارجية",
-      "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [],
-      "conscripts": [
-        {
-          "class": "مج",
-          "count": 2
-        }
-      ],
-      "conscript_count": 2,
-      "weapon": "آلي",
-      "time": "12ظ",
-      "party": "الامن الوطني",
-      "counts_in_summary": true,
-      "mission_transport": true,
-      "note": "",
-      "pos": 0,
-      "officer_command_required": false,
-      "personnel_command_required": true
-    },
-    {
       "id": "AS-0006",
       "section": "الخدمات الطارئة",
       "name": "حملة الأمن الوطني",
@@ -116,7 +91,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-095"
+      ],
       "conscripts": [
         {
           "class": "وحدة",
@@ -659,7 +636,7 @@
     }
   },
   "confirm": {
-    "at": "2026-10-28T10:35:59",
+    "at": "2026-10-28T15:26:48",
     "by": "3malyat_admin",
     "rows": [
       {
@@ -722,31 +699,6 @@
         "note": ""
       },
       {
-        "id": "AS-0005",
-        "section": "الخدمات الطارئة",
-        "name": "حملة الأمن الوطني",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 2
-          }
-        ],
-        "conscript_count": 2,
-        "weapon": "آلي",
-        "time": "12ظ",
-        "party": "الامن الوطني",
-        "counts_in_summary": true,
-        "mission_transport": true,
-        "note": "",
-        "pos": 0,
-        "officer_command_required": false,
-        "personnel_command_required": true
-      },
-      {
         "id": "AS-0006",
         "section": "الخدمات الطارئة",
         "name": "حملة الأمن الوطني",
@@ -778,7 +730,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-095"
+        ],
         "conscripts": [
           {
             "class": "وحدة",
