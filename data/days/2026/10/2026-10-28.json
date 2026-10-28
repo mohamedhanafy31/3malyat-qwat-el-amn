@@ -1636,14 +1636,21 @@
     "AS-0026:am": {
       "out_at": "2026-10-28T13:20:07+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-10-28T13:20:07+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:48:12+00:00",
+          "by": "adminstrator"
         }
-      ]
+      ],
+      "back_at": "2026-10-28T13:48:12+00:00",
+      "back_by": "adminstrator"
     },
     "AS-0027:am": {
       "out_at": "2026-10-28T13:20:11+00:00",
@@ -1691,14 +1698,21 @@
     "AS-0019:am": {
       "out_at": "2026-10-28T13:20:26+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-10-28T13:20:26+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T14:25:46+00:00",
+          "by": "adminstrator"
         }
-      ]
+      ],
+      "back_at": "2026-10-28T14:25:46+00:00",
+      "back_by": "adminstrator"
     },
     "AS-0022:pm": {
       "out_at": "2026-10-28T13:20:34+00:00",
@@ -1803,14 +1817,216 @@
     "SVC-001:am": {
       "out_at": "2026-10-28T13:22:11+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-10-28T13:22:11+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:48:04+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:48:04+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-016:am": {
+      "out_at": "2026-10-28T13:48:31+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:31+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:48:43+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:48:43+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-019:am": {
+      "out_at": "2026-10-28T13:48:31+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:31+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:48:43+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:48:43+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-022:am": {
+      "out_at": "2026-10-28T13:48:31+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:31+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:48:43+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:48:43+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-024:am": {
+      "out_at": "2026-10-28T13:48:31+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:31+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:48:43+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:48:43+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-004:am": {
+      "out_at": "2026-10-28T13:48:53+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:53+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:49:09+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:49:09+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-007:am": {
+      "out_at": "2026-10-28T13:48:53+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:53+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:49:09+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:49:09+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-010:am": {
+      "out_at": "2026-10-28T13:48:53+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:53+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:49:09+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:49:09+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-013:am": {
+      "out_at": "2026-10-28T13:48:53+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:48:53+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:49:09+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:49:09+00:00",
+      "back_by": "adminstrator"
+    },
+    "SVC-006:am": {
+      "out_at": "2026-10-28T13:49:21+00:00",
+      "out_by": "adminstrator",
+      "state": "out",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:49:21+00:00",
+          "by": "adminstrator"
         }
       ]
+    },
+    "CNT-052:am": {
+      "out_at": "2026-10-28T13:49:48+00:00",
+      "out_by": "adminstrator",
+      "state": "out",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:49:48+00:00",
+          "by": "adminstrator"
+        }
+      ]
+    },
+    "AS-0009:am": {
+      "out_at": "2026-10-28T13:50:01+00:00",
+      "out_by": "adminstrator",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-10-28T13:50:01+00:00",
+          "by": "adminstrator"
+        },
+        {
+          "action": "return",
+          "at": "2026-10-28T13:50:07+00:00",
+          "by": "adminstrator"
+        }
+      ],
+      "back_at": "2026-10-28T13:50:07+00:00",
+      "back_by": "adminstrator"
     }
   }
 }
