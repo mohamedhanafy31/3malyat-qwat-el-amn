@@ -29,7 +29,7 @@ from .constants import (
     SECTION_NET,
     SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY,
     SECTION_SUBCAMP, SECTION_TAQSEERA, SECTION_TARGETS, SHIFTS, SUBCAMP_SERVICES,
-    TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL,
+    TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL, ROLE_SEARCH,
 )
 from .duty import summarise
 from .dated import groups_on, targets_on
@@ -272,7 +272,9 @@ def _roster(data, day):
     from .repo import PeopleRepo, Repos
 
     repo = PeopleRepo(data)
-    medical_ids = set(groups_on(data, day).get(ROLE_MEDICAL) or [])
+    groups = groups_on(data, day)
+    hidden_ids = (set(groups.get(ROLE_MEDICAL) or [])
+                  | set(groups.get(ROLE_SEARCH) or []))
 
     def slim(person):
         role = person.effective(day)["role"] if hasattr(person, "effective") else person.role
@@ -285,7 +287,7 @@ def _roster(data, day):
         return not leave_on(data, person.id, day)
 
     return {"officers": [slim(o) for o in repo.on_force(day, "officers")
-                         if o.id not in medical_ids and not_on_leave(o)],
+                         if o.id not in hidden_ids and not_on_leave(o)],
             "personnel": [slim(p) for p in repo.on_force(day, "personnel") if not_on_leave(p)]}
 
 
@@ -323,6 +325,16 @@ def _row(assignment, people, day, taqseera_ids=()):
         "officer_command_vacant": command_vacant(assignment, "officer"),
         "personnel_command_vacant": command_vacant(assignment, "personnel"),
     }
+
+
+def _hide_officers(row, hidden_ids):
+    """نسخة عرض من الصف من غير ضباط البحث، مع إبقاء التكليف المخزّن زي ما هو."""
+    if not hidden_ids:
+        return row
+    row["officers"] = [p for p in row.get("officers") or [] if p.get("id") not in hidden_ids]
+    row["vacant"] = not row["officers"] and not row.get("personnel")
+    row["officer_command_vacant"] = bool(row.get("officer_command_required")) and not row["officers"]
+    return row
 
 
 # البادئة اللي منصب قائد الهدف الثابت بيتكتب بيها دايمًا («قائد هدف سوميد»)
@@ -649,12 +661,14 @@ def build_board(data, day):
     states = officer_states(data, day)
     taqseera_ids = {officer_id for officer_id, state in states.items()
                     if state.get("taqseera")}
-    medical_ids = set(groups_on(data, day).get(ROLE_MEDICAL) or [])
+    groups = groups_on(data, day)
+    medical_ids = set(groups.get(ROLE_MEDICAL) or [])
+    search_ids = set(groups.get(ROLE_SEARCH) or [])
 
     by_section = {name: [] for name in ASSIGNMENT_SECTIONS}
     for source_order, a in enumerate(peek_day(data, day)):
         section = canonical_section_name(a.get("section") or SECTION_OCCASIONAL)
-        row = _row(a, people, day, taqseera_ids)
+        row = _hide_officers(_row(a, people, day, taqseera_ids), search_ids)
         row["_source_order"] = source_order
         by_section.setdefault(section, []).append(row)
     # الفرز هنا على نسخة العرض فقط. `_source_order` متغير داخلي بيتشال
@@ -668,7 +682,7 @@ def build_board(data, day):
     # (خانة ثابتة محسوبة من منصب الضابط، منفصلة عن `officers` على نفس
     # الصف اللي هو الضابط المعيّن بالهدف فعليًا النهاردة)
     target_commanders = [o for o in _officers_on_force(data, day)
-                         if o["id"] not in medical_ids]
+                         if o["id"] not in medical_ids | search_ids]
     by_section[SECTION_TARGETS] = _target_slots(
         by_section[SECTION_TARGETS], target_commanders, day, data)
 
@@ -678,7 +692,7 @@ def build_board(data, day):
         # ضباط العيادة ليهم عرضهم وحسابهم في يومية الضباط، إنما اليومية
         # التفصيلية ما بتسردهمش في أقسام الضباط المحسوبة حتى لو حالة مكتوبة
         # نقلتهم من «طبية» إلى «الخوارج». صف خدمة محفوظ يفضل ظاهر فوق عادي.
-        if r["id"] in medical_ids:
+        if r["id"] in medical_ids | search_ids:
             continue
         who = {"id": r["id"], "name": r["name"], "role": r["role"],
                "short_name": people.get(r["id"], {}).get("short_name", ""),
@@ -761,6 +775,8 @@ def build_board(data, day):
         sections.append({"name": name, "type": "services", "rows": by_section[name]})
 
     layout_version = "word-2026-09-26" if day >= "2026-09-26" else "word-legacy"
+    warnings = [warning for warning in day_warnings(data, day, full["rows"])
+                if warning.get("officer_id") not in search_ids]
     return {"date": day, "layout_version": layout_version,
             "layout_columns": {
                 "right": [SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT,
@@ -772,4 +788,4 @@ def build_board(data, day):
             # الرسمية الحرة الأول، وبعدها كل اسم مخصّص ظهر في أي يوم حسب
             # أحدث استعمال — عشان القسم اللي اتعمل امبارح يفضل متاح النهاردة.
             "section_names": section_names(data),
-            "warnings": day_warnings(data, day, full["rows"])}
+            "warnings": warnings}

@@ -207,3 +207,18 @@ def test_stored_assignment_keeps_a_clinic_officer_while_new_picking_hides_him(cl
     occasional = next(s for s in board["sections"] if s["name"] == "الخدمات الطارئة")
     row = next(r for r in occasional["rows"] if r["name"] == "خدمة محفوظة")
     assert [o["id"] for o in row["officers"]] == ["OFF-002"]
+
+
+def test_search_officer_is_absent_from_all_board_screen_data(client):
+    saved = client.post(f"/api/assignments/{DAY}", json={
+        "name": "خدمة بحث محفوظة", "kind": "خارجية", "officer_ids": ["OFF-002"],
+    })
+    assert saved.status_code == 201, saved.get_json()
+    assert client.patch("/api/command-groups", json={"بحث": ["OFF-002"]}).status_code == 200
+
+    board = client.get(f"/api/board/{DAY}").get_json()
+
+    assert "OFF-002" not in str(board)
+    occasional = next(s for s in board["sections"] if s["name"] == "الخدمات الطارئة")
+    row = next(r for r in occasional["rows"] if r["name"] == "خدمة بحث محفوظة")
+    assert row["officers"] == [] and row["officer_command_vacant"] is True

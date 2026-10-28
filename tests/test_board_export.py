@@ -109,16 +109,43 @@ def test_generated_roster_uses_shared_person_labels(client):
     assert "نقيب/ محمود علي" in text
 
 
-def test_export_prints_a_required_but_vacant_command_role(client):
-    response = client.post(f"/api/assignments/{DAY}", json={
-        "name": "خدمة شاغرة", "section": "الخدمات أساسية", "kind": "خارجية",
-        "shift": "صباحية", "officer_ids": [], "officer_command_required": True,
-    })
-    assert response.status_code == 201, response.get_json()
-    assert "رئاسة ضابط — شاغر" in _all_text(_download(client))
+def test_export_prints_only_the_role_kind_for_required_vacant_commands(client):
+    for name, field in (("خدمة ضابط شاغرة", "officer_command_required"),
+                        ("خدمة فرد شاغرة", "personnel_command_required")):
+        response = client.post(f"/api/assignments/{DAY}", json={
+            "name": name, "section": "الخدمات أساسية", "kind": "خارجية",
+            "shift": "صباحية", field: True,
+        })
+        assert response.status_code == 201, response.get_json()
+    table = _download(client).tables[0]
+    officer = next(row for row in table.rows if row.cells[0].text.strip() == "خدمة ضابط شاغرة صبح")
+    personnel = next(row for row in table.rows if row.cells[0].text.strip() == "خدمة فرد شاغرة صبح")
+    assert officer.cells[1].text.strip() == "ضابط"
+    assert personnel.cells[1].text.strip() == "فرد"
+    assert "رئاسة" not in _all_text(_download(client))
 
 
-def test_board_file_drops_clinic_and_search_members_but_web_board_keeps_them(client):
+def test_export_prints_assigned_command_people_without_role_prefixes(client):
+    person = client.post("/api/person", json={
+        "type": "personnel", "name": "فرد قيادة اختبار", "code": "902",
+        "phone": "01012345679", "join_date": "2020-01-01", "role": "أمين شرطة",
+    }).get_json()
+    for name, field in (("قيادة ضابط", {"officer_ids": ["OFF-001"]}),
+                        ("قيادة فرد", {"personnel_ids": [person["id"]]})):
+        payload = {"name": name, "section": "الخدمات أساسية", "kind": "خارجية",
+                   "shift": "صباحية", **field}
+        response = client.post(f"/api/assignments/{DAY}", json=payload)
+        assert response.status_code == 201, response.get_json()
+    table = _download(client).tables[0]
+    officer = next(row for row in table.rows if row.cells[0].text.strip() == "قيادة ضابط صبح")
+    personnel = next(row for row in table.rows if row.cells[0].text.strip() == "قيادة فرد صبح")
+    assert officer.cells[1].text.strip() == "عقيد/ أحمد محمد"
+    assert personnel.cells[1].text.strip() == "ا.ش/ فرد قيادة اختبار"
+    assert "رئاسة ضابط" not in _all_text(_download(client))
+    assert "رئاسة فرد" not in _all_text(_download(client))
+
+
+def test_board_file_drops_clinic_and_search_members_and_web_hides_search_only(client):
     clinic, search = "OFF-001", "OFF-002"
     names = {clinic: "عقيد/ أحمد محمد", search: "نقيب/ محمود علي"}
     for name, oid in (("خدمة العيادة", clinic), ("خدمة البحث", search)):
@@ -133,4 +160,4 @@ def test_board_file_drops_clinic_and_search_members_but_web_board_keeps_them(cli
     after = _all_text(_download(client))
     assert label(clinic) not in after and label(search) not in after
     web = str(client.get(f"/api/board/{DAY}").get_json())
-    assert clinic in web and search in web                  # الشاشة تحتفظ بهما
+    assert clinic in web and search not in web              # الطبي كما هو، والبحث مخفي من الشاشة

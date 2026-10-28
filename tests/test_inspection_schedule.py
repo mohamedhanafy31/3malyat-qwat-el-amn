@@ -1,8 +1,12 @@
 """جدول تفتيشات زيارات الأهالي الأسبوعي — إدارة الجدول + تحطيطه التلقائي
 على اليومية التفصيلية أول ما يوم الأسبوع بتاعه يتفتح لأول مرة."""
+import io
 import json
 
+from docx import Document
+
 from backend import store
+from backend.board_export import build_docx
 from backend.utils import weekday_name
 
 SATURDAY = "2026-04-11"    # اتأكد بـ weekday_name تحت — أي تاريخ، مش مهم بالظبط
@@ -73,6 +77,20 @@ def test_inspections_are_seeded_onto_the_board_on_first_open(client):
     assert row["weapon"] == "دونك"
     assert row["conscript_count"] == 5
     assert row["officers"] == [] and row["personnel"] == []
+
+
+def test_inspections_stay_on_screen_but_are_omitted_from_board_export(client):
+    day = SATURDAY
+    _add(client, weekday_name(day), name="تفتيش لا يطبع")
+
+    board = client.get(f"/api/board/{day}").get_json()
+    inspection = next(s for s in board["sections"] if s["name"] == "تفتيشات")
+    assert any(row["name"] == "تفتيش لا يطبع" for row in inspection["rows"])
+
+    document = Document(io.BytesIO(build_docx(board).getvalue()))
+    text = "\n".join(cell.text for table in document.tables for row in table.rows for cell in row.cells)
+    assert "تفتيش لا يطبع" not in text
+    assert "تفتيشات" not in text
 
 
 def test_seeding_only_happens_once_even_if_the_row_is_deleted(client):

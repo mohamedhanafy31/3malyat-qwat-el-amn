@@ -25,7 +25,7 @@ from .export_fit import (PageFitError, TextMeter, estimate_table_height, fit_wid
 
 from .constants import (
     SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_NET, SECTION_OCCASIONAL, SECTION_OUTSIDERS,
-    SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY, SECTION_GREAT, SECTION_SUBCAMP,
+    SECTION_INSPECTIONS, SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY, SECTION_GREAT, SECTION_SUBCAMP,
     SECTION_TARGETS, SECTION_TAQSEERA,
 )
 from .afraad import _time_key
@@ -210,11 +210,11 @@ def _command_text(row, who):
     """نص دور الرئاسة، بما فيه الدور المؤكد الذي ما زال شاغرًا."""
     key = f"{who}_command_required"
     people_key = "officers" if who == "officer" else "personnel"
-    label = "رئاسة ضابط" if who == "officer" else "رئاسة فرد"
+    vacant = "ضابط" if who == "officer" else "فرد"
     people = _people_text(row.get(people_key))
     if not row.get(key) and not people:
         return ""
-    return f"{label}: {people or 'شاغر'}"
+    return people or vacant
 
 
 def _set_rtl_doc(document):
@@ -283,9 +283,9 @@ def _basic_assignees(row):
     if personnel:
         return personnel
     if row.get("officer_command_required"):
-        return ["رئاسة ضابط — شاغر"]
+        return ["ضابط"]
     if row.get("personnel_command_required"):
-        return ["رئاسة فرد — شاغر"]
+        return ["فرد"]
     source = (row.get("source_manning") or "").strip()
     # نص مستورد حرفي فيه رتبة/اسم يظل كما هو (أرشيف)؛ نص القوام الصرف
     # («2 فرد + 2 مج») مكانه الخدمات الطارئة فقط.
@@ -331,11 +331,8 @@ def _compact_manning(row):
         bits.append(_command_text(row, "officer"))
     if row.get("personnel") or row.get("personnel_command_required"):
         # عمود القوام في الورقة أعداد («2فرد + 2 مج») مش أسماء — الأسماء في يومية الأفراد
-        if row.get("personnel"):
-            count = len(row["personnel"])
-            bits.append(f"{count}فرد" if count > 1 else "فرد")
-        else:
-            bits.append("رئاسة فرد — شاغر")
+        count = len(row.get("personnel") or [])
+        bits.append(f"{count}فرد" if count > 1 else "فرد")
     for conscript in row.get("conscripts") or []:
         cls = conscript.get("class") or "مج"
         count = conscript.get("count")
@@ -357,13 +354,13 @@ def _manning_pieces(row):
     rest = []
     if row.get("personnel") or row.get("personnel_command_required"):
         count = len(row.get("personnel") or [])
-        rest.append((f"{count}فرد" if count > 1 else "فرد") if count else "رئاسة فرد — شاغر")
+        rest.append(f"{count}فرد" if count > 1 else "فرد")
     for conscript in row.get("conscripts") or []:
         cls = conscript.get("class") or "مج"
         rest.append(f"{conscript['count']}{cls}" if conscript.get("count") else cls)
     if row.get("conscript_count") and not row.get("conscripts"):
         rest.append(f"{row['conscript_count']}مج")
-    first = " + ".join(filter(None, [f"رئاسة ضابط: {officers[0]}", *rest]))
+    first = " + ".join(filter(None, [officers[0], *rest]))
     return [first, *officers[1:]]
 
 
@@ -661,11 +658,12 @@ def _latest_content(board):
         return list(_section_by_name(sections, name, kind).get("rows") or [])
 
     basic, emergency = rows(SECTION_BASIC), rows(SECTION_OCCASIONAL)
-    # أي قسم خدمات المشغّل ضافه بإيده (ماتش، انتشار، تفتيشات…) بينضم لجدول الطوارئ —
+    # أي قسم خدمات المشغّل ضافه بإيده (ماتش، انتشار…) بينضم لجدول الطوارئ —
+    # التفتيشات تفضل على الشاشة بس ولا تدخل ملف Word.
     # زي يومية الأفراد — والكل مترتب بمعاد الانتظام (ترتيب مستقر لنفس الساعة)
     known = {SECTION_BASIC, SECTION_OCCASIONAL, SECTION_TARGETS, SECTION_PRISON, SECTION_SUBCAMP,
              SECTION_GREAT, SECTION_SECURITY, SECTION_ADMIN_WORK, SECTION_NET,
-             SECTION_RESTS, SECTION_TAQSEERA,
+             SECTION_RESTS, SECTION_TAQSEERA, SECTION_INSPECTIONS,
              SECTION_OUTSIDERS}
     for section in sections:
         if section["name"] not in known and section.get("type") == "services":
@@ -1067,7 +1065,7 @@ def clinic_search_ids(data, day):
 
 
 def strip_clinic_search(board, excluded_ids):
-    """نسخة من اليومية بلا العيادة والبحث (ملف Word فقط، الشاشة لا تتغيّر).
+    """نسخة من اليومية بلا العيادة والبحث لملف Word.
 
     تُحذف: صفوف الضباط (راحات/خارج/عمل بالإدارة/صافي/...) لأعضاء المجموعتين،
     وصفوف الخدمات ذات التصنيف «طبية»، ويُزال هؤلاء الضباط من قوائم ضباط/قادة

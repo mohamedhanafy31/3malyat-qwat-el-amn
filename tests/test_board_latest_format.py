@@ -270,6 +270,53 @@ def test_multi_officer_target_and_emergency_split_too():
     assert any(cell[1] == "restart" for row in rows for cell in row)
 
 
+def test_emergency_manning_keeps_personnel_counts_and_plain_vacant_role_kinds():
+    personnel = [
+        {"id": "P1", "name": "فرد قيادة أول", "role": "أمين شرطة", "category": "personnel"},
+        {"id": "P2", "name": "فرد قيادة ثان", "role": "أمين شرطة", "category": "personnel"},
+    ]
+    assigned = _svc("طارئة مسندة", [_person("O", "ضابط", short="القائد")])
+    assigned["personnel"] = personnel
+    vacant = _svc("طارئة مطلوبة", officer_command_required=True,
+                  personnel_command_required=True)
+
+    text = _texts(_doc(_sections(emergency=[assigned, vacant])))
+
+    assert "رائد/ القائد + 2فرد" in text
+    assert "فرد قيادة" not in text
+    assert "ضابط + فرد" in text
+    assert "رئاسة ضابط" not in text and "رئاسة فرد" not in text and "شاغر" not in text
+
+
+def test_basic_assignees_keep_original_either_or_precedence():
+    officer = _person("O", "ضابط", short="القائد")
+    personnel = {"id": "P", "name": "فرد قيادة", "role": "أمين شرطة",
+                 "category": "personnel"}
+    both = _svc("أساسية", [officer], officer_command_required=True,
+                personnel_command_required=True)
+    both["personnel"] = [personnel]
+    personnel_only = _svc("أساسية فرد")
+    personnel_only["personnel"] = [personnel]
+    vacant_both = _svc("أساسية مطلوبة", officer_command_required=True,
+                       personnel_command_required=True)
+
+    assert board_export._basic_assignees(both) == ["رائد/ القائد"]
+    assert board_export._basic_assignees(personnel_only) == ["ا.ش/ فرد قيادة"]
+    assert board_export._basic_assignees(vacant_both) == ["ضابط"]
+
+
+def test_multi_officer_manning_pieces_keep_personnel_as_a_count():
+    personnel = [
+        {"id": "P1", "name": "فرد أول", "role": "أمين شرطة", "category": "personnel"},
+        {"id": "P2", "name": "فرد ثان", "role": "أمين شرطة", "category": "personnel"},
+    ]
+    row = _svc("طارئة", [_person("O1", "أ", short="أول"),
+                          _person("O2", "ب", short="ثان")])
+    row["personnel"] = personnel
+
+    assert board_export._manning_pieces(row) == ["رائد/ أول + 2فرد", "رائد/ ثان"]
+
+
 def test_great_and_security_officers_listed_flat_under_single_admin_header():
     shifts = lambda name, a, b: [
         {"id": None, "name": name, "shift": "صباحية", "slot": True, "officers": [a] if a else []},
