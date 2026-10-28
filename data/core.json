@@ -9,7 +9,7 @@
       "post": "مدير الاداره",
       "section": "القوة",
       "rest_system": "أسبوعية",
-      "rest_day": "",
+      "rest_day": "الخميس",
       "status": "active",
       "id": "OFF-002",
       "history": [
@@ -78,9 +78,20 @@
           "post": "مدير الاداره",
           "section": "القوة",
           "search_attached": false
+        },
+        {
+          "from": "2026-10-27",
+          "role": "عقيد",
+          "post": "مدير الاداره",
+          "section": "القوة",
+          "search_attached": false,
+          "rest_system": "أسبوعية",
+          "rest_day": "الخميس"
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "أحمد سمير"
     },
     {
       "name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
@@ -91,7 +102,7 @@
       "post": "وكيل الاداره",
       "section": "القوة",
       "rest_system": "أسبوعية",
-      "rest_day": "",
+      "rest_day": "الأحد",
       "status": "active",
       "id": "OFF-027",
       "history": [
@@ -227,9 +238,20 @@
           "post": "وكيل الاداره",
           "section": "القوة",
           "search_attached": false
+        },
+        {
+          "from": "2026-10-27",
+          "role": "عقيد",
+          "post": "وكيل الاداره",
+          "section": "القوة",
+          "search_attached": false,
+          "rest_system": "أسبوعية",
+          "rest_day": "الأحد"
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد فؤاد"
     },
     {
       "name": "اسماعيل محمد عبدالسلام عيسي",
@@ -252,7 +274,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "اسماعيل محمد"
     },
     {
       "name": "محمود عبد الله محمود محمد",
@@ -639,7 +663,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "عبدالرحمن الحسيني"
     },
     {
       "name": "محمد محمد عطية رزق",
@@ -721,7 +747,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد عطية"
     },
     {
       "name": "محمد احمد مصطفي عبدالرازق",
@@ -751,7 +779,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد مصطفي"
     },
     {
       "name": "السعيد محمد احمد عبده إسماعيل",
@@ -907,7 +937,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "السعيد عبده"
     },
     {
       "name": "حسام فتحي رضوان خلف",
@@ -1016,7 +1048,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "حسام رضوان"
     },
     {
       "name": "طاهر سلطان عبد الحليم احمد",
@@ -1075,7 +1109,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "طاهر سلطان"
     },
     {
       "name": "محمد ميهوب زكي ميهوب",
@@ -1149,7 +1185,8 @@
         }
       ],
       "search_attached": false,
-      "weapon_custody": "منع سلاح"
+      "weapon_custody": "منع سلاح",
+      "short_name": "محمد ميهوب"
     },
     {
       "name": "خالد خلف الله خليفة إبراهيم",
@@ -1244,7 +1281,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "خالد خلف الله"
     },
     {
       "name": "محمد ذكي محمود ذكي",
@@ -1312,7 +1351,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد ذكي"
     },
     {
       "name": "محمد عبدالغني ابو العلا محمد",
@@ -1363,7 +1404,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد عبدالغني"
     },
     {
       "name": "جمال احمد آمين محمد",
@@ -1553,7 +1596,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "جمال أمين"
     },
     {
       "name": "محمد عبد الحميد فتحى نعامة",
@@ -1564,7 +1609,7 @@
       "post": "رئيس قسم الأمن والتحريات + رئيس قسم الحملة",
       "section": "القوة",
       "rest_system": "أسبوعية",
-      "rest_day": "",
+      "rest_day": "الخميس",
       "status": "active",
       "id": "OFF-025",
       "history": [
@@ -1660,9 +1705,20 @@
           "post": "رئيس قسم الأمن والتحريات + رئيس قسم الحملة",
           "section": "القوة",
           "search_attached": false
+        },
+        {
+          "from": "2026-10-27",
+          "role": "رائد",
+          "post": "رئيس قسم الأمن والتحريات + رئيس قسم الحملة",
+          "section": "القوة",
+          "search_attached": false,
+          "rest_system": "أسبوعية",
+          "rest_day": "الخميس"
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد نعامة"
     },
     {
       "name": "حمدي احمد جاد الكريم احمد",
@@ -1933,7 +1989,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "حمدي النجار"
     },
     {
       "name": "محمد فتحي بكري مناع",
@@ -1956,7 +2014,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد فتحي مناع"
     },
     {
       "name": "ابراهيم ابو الفرج يحي جبر",
@@ -1993,7 +2053,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "ابراهيم ابو الفرج"
     },
     {
       "name": "احمد محمد محمود السمان",
@@ -2068,7 +2130,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "احمد السمان"
     },
     {
       "name": "محمد مجدي ابراهيم السيد بحر",
@@ -2105,7 +2169,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد بحر"
     },
     {
       "name": "كريم عمرو محمد كمال علام",
@@ -2203,7 +2269,7 @@
     },
     {
       "id": "OFF-099",
-      "name": "شريف زيدان",
+      "name": "شريف محمد زيدان",
       "role": "نقيب",
       "code": "2013/120",
       "phone": "0123542243",
@@ -2234,7 +2300,8 @@
         }
       ],
       "section": "الخوارج",
-      "search_attached": false
+      "search_attached": false,
+      "short_name": "شريف زيدان"
     },
     {
       "name": "طارق احمد فاروق حسن",
@@ -2275,7 +2342,7 @@
       ],
       "search_attached": false,
       "weapon_custody": "",
-      "short_name": ""
+      "short_name": "طارق فاروق"
     },
     {
       "name": "عبدالرحمن طارق محمد خميس",
@@ -2319,7 +2386,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "عبدالرحمن طارق"
     },
     {
       "name": "محمد عبدالعزيز محمود حامد",
@@ -2349,7 +2418,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد عبدالعزيز"
     },
     {
       "name": "علي محمد فاروق محمد",
@@ -2409,7 +2480,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "علي فاروق"
     },
     {
       "name": "محمد أحمد محمد عاطف",
@@ -2563,7 +2636,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد عاطف"
     },
     {
       "name": "احمد فوزي احمد السيد",
@@ -2607,7 +2682,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "احمد فوزي"
     },
     {
       "name": "محمد طارق السيد محمد اللبان",
@@ -2644,7 +2721,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "محمد اللبان"
     },
     {
       "name": "ماركو ماجد اقلاديوس مرقس",
@@ -2674,7 +2753,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "ماركو ماجد"
     },
     {
       "name": "عمر خالد احمد ماهر محمد",
@@ -2712,7 +2793,8 @@
         }
       ],
       "search_attached": false,
-      "weapon_custody": ""
+      "weapon_custody": "",
+      "short_name": "عمر خالد"
     },
     {
       "name": "منتصر بهاء الدين محمد علي",
@@ -2742,7 +2824,9 @@
           "search_attached": false
         }
       ],
-      "search_attached": false
+      "search_attached": false,
+      "weapon_custody": "",
+      "short_name": "منتصر بهاء الدين"
     },
     {
       "id": "OFF-098",
@@ -12619,20 +12703,9 @@
       "id": "LV-6849",
       "person_id": "OFF-040",
       "type": "نصف شهرية",
-      "start": "2026-10-25",
-      "end": "2026-10-27",
-      "return_date": "2026-10-28",
-      "note": "",
-      "special_name": "",
-      "source": ""
-    },
-    {
-      "id": "LV-6833",
-      "person_id": "OFF-031",
-      "type": "نصف شهرية",
-      "start": "2026-10-25",
-      "end": "2026-10-27",
-      "return_date": "2026-10-28",
+      "start": "2026-10-26",
+      "end": "2026-10-28",
+      "return_date": "2026-10-29",
       "note": "",
       "special_name": "",
       "source": ""
@@ -12649,12 +12722,47 @@
       "source": ""
     },
     {
+      "id": "LV-6833",
+      "person_id": "OFF-031",
+      "type": "نصف شهرية",
+      "start": "2026-10-26",
+      "end": "2026-10-28",
+      "return_date": "2026-10-29",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
       "id": "LV-6850",
       "person_id": "OFF-028",
       "type": "أسبوعية",
       "start": "2026-10-27",
       "end": "2026-10-27",
       "return_date": "2026-10-28",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6851",
+      "person_id": "OFF-009",
+      "type": "أسبوعية",
+      "start": "2026-10-28",
+      "end": "2026-10-28",
+      "return_date": "2026-10-29",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6852",
+      "person_id": "OFF-044",
+      "type": "أسبوعية",
+      "start": "2026-10-28",
+      "end": "2026-10-28",
+      "return_date": "2026-10-29",
       "note": "",
       "special_name": "",
       "source": "",
@@ -13821,11 +13929,11 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 233,
+    "CHG": 279,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
-    "LV": 6850,
+    "LV": 6852,
     "CRS": 57,
     "CT": 80,
     "INS": 9,
@@ -13836,7 +13944,7 @@
     "CON": 94,
     "CD": 8,
     "CP": 14,
-    "OSP": 2
+    "OSP": 3
   },
   "counts_template": {
     "entries": [
@@ -17282,6 +17390,1200 @@
       },
       "reason": "يوم 2026-10-27",
       "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-234",
+      "ts": "2026-10-27T14:55:48",
+      "entity": "officer_state",
+      "entity_id": "OFF-048",
+      "action": "update",
+      "day": null,
+      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-10-27: التشغيل الإضافي: متابعة اعمال التدريب والاستعداد للجنة قوات الأمن، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التدريب والاستعداد للجنة قوات الأمن",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-10-27",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-235",
+      "ts": "2026-10-27T15:02:26",
+      "entity": "day_confirm",
+      "entity_id": "2026-10-27",
+      "action": "confirm",
+      "day": "2026-10-27",
+      "text": "تأكيد أول ليومية 2026-10-27 — عدد الخدمات: 25",
+      "before": null,
+      "after": {
+        "first": true,
+        "changes": 0,
+        "count": 25,
+        "at": "2026-10-27T15:02:26",
+        "by": "3malyat_admin",
+        "day": "2026-10-27"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-236",
+      "ts": "2026-10-28T10:28:44",
+      "entity": "day_lock",
+      "entity_id": "2026-10-27",
+      "action": "reopen",
+      "day": "2026-10-27",
+      "text": "فتح استثنائي ليوم 2026-10-27 — السبب: edit",
+      "before": {
+        "closed": true,
+        "auto": true,
+        "reopened": false,
+        "closed_at": "2026-10-28T00:00:00",
+        "closed_by": "",
+        "stage": "closed"
+      },
+      "after": {
+        "closed": false,
+        "reopened_on": "2026-10-28",
+        "reopened_at": "2026-10-28T10:28:44",
+        "reopened_by": "3malyat_admin",
+        "reason": "edit"
+      },
+      "reason": "edit",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-237",
+      "ts": "2026-10-28T10:34:50",
+      "entity": "officer_state",
+      "entity_id": "OFF-044",
+      "action": "update",
+      "day": null,
+      "text": "محمد طارق السيد محمد اللبان في يومية 2026-10-27: التشغيل الإضافي: مُسح، إلغاء إضافته للعمل بالإدارة",
+      "before": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التدريب والاستعداد للجنة قوات الأمن",
+        "admin_work": true
+      },
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-27",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-238",
+      "ts": "2026-10-28T10:35:19",
+      "entity": "officer_state",
+      "entity_id": "OFF-009",
+      "action": "update",
+      "day": null,
+      "text": "السعيد محمد احمد عبده إسماعيل في يومية 2026-10-27: إلغاء إضافته للعمل بالإدارة",
+      "before": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "مشرف اهداف حتي انتهاء مقدم/ طاهر سلطان من المأمورية",
+        "admin_work": true
+      },
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": "",
+        "extra": "مشرف اهداف حتي انتهاء مقدم/ طاهر سلطان من المأمورية"
+      },
+      "reason": "يوم 2026-10-27",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-239",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "IND-031",
+      "action": "assign",
+      "day": "2026-10-27",
+      "text": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن: كُلِّف بـ«ترحيلة مستشفي صبح»",
+      "before": {
+        "name": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن",
+        "services": []
+      },
+      "after": {
+        "name": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن",
+        "services": [
+          "ترحيلة مستشفي صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-240",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "IND-130",
+      "action": "assign",
+      "day": "2026-10-27",
+      "text": "رقيب/ رفعت السيد سعد سلامة: كُلِّف بـ«ترحيلة نيابة عسكرية صبح»",
+      "before": {
+        "name": "رقيب/ رفعت السيد سعد سلامة",
+        "services": []
+      },
+      "after": {
+        "name": "رقيب/ رفعت السيد سعد سلامة",
+        "services": [
+          "ترحيلة نيابة عسكرية صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-241",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "IND-144",
+      "action": "assign",
+      "day": "2026-10-27",
+      "text": "معاون ثالث/ احمد محمد كمال سليم: كُلِّف بـ«ترحيلة حدث وحريم صبح»",
+      "before": {
+        "name": "معاون ثالث/ احمد محمد كمال سليم",
+        "services": []
+      },
+      "after": {
+        "name": "معاون ثالث/ احمد محمد كمال سليم",
+        "services": [
+          "ترحيلة حدث وحريم صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-242",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "IND-192",
+      "action": "assign",
+      "day": "2026-10-27",
+      "text": "أمين شرطة ممتاز ثان/ محمد السيد احمد محمد فايد: كُلِّف بـ«جنائي خاصة صبح»",
+      "before": {
+        "name": "أمين شرطة ممتاز ثان/ محمد السيد احمد محمد فايد",
+        "services": []
+      },
+      "after": {
+        "name": "أمين شرطة ممتاز ثان/ محمد السيد احمد محمد فايد",
+        "services": [
+          "جنائي خاصة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-243",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "OFF-010",
+      "action": "update",
+      "day": "2026-10-27",
+      "text": "رائد/ جمال احمد آمين محمد: كان «ضابط أمن الإدارة صبح، ضابط عظيم الإدارة صبح» ← أصبح «التدخل السريع صبح»",
+      "before": {
+        "name": "رائد/ جمال احمد آمين محمد",
+        "services": [
+          "ضابط أمن الإدارة صبح",
+          "ضابط عظيم الإدارة صبح"
+        ]
+      },
+      "after": {
+        "name": "رائد/ جمال احمد آمين محمد",
+        "services": [
+          "التدخل السريع صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-244",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "OFF-012",
+      "action": "update",
+      "day": "2026-10-27",
+      "text": "رائد/ حمدي احمد جاد الكريم احمد: كان «التدخل السريع صبح» ← أصبح «ضابط عظيم الإدارة صبح»",
+      "before": {
+        "name": "رائد/ حمدي احمد جاد الكريم احمد",
+        "services": [
+          "التدخل السريع صبح"
+        ]
+      },
+      "after": {
+        "name": "رائد/ حمدي احمد جاد الكريم احمد",
+        "services": [
+          "ضابط عظيم الإدارة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-245",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "OFF-016",
+      "action": "update",
+      "day": "2026-10-27",
+      "text": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل: كان «مشرف قول مكبر ليل» ← أصبح «ضابط أمن الإدارة ليل، ضابط عظيم الإدارة ليل»",
+      "before": {
+        "name": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل",
+        "services": [
+          "مشرف قول مكبر ليل"
+        ]
+      },
+      "after": {
+        "name": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل",
+        "services": [
+          "ضابط أمن الإدارة ليل",
+          "ضابط عظيم الإدارة ليل"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-246",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "OFF-025",
+      "action": "update",
+      "day": "2026-10-27",
+      "text": "رائد/ محمد عبد الحميد فتحى نعامة: كان «ترحيلة العاشر صبح» ← أصبح «ضابط أمن الإدارة صبح»",
+      "before": {
+        "name": "رائد/ محمد عبد الحميد فتحى نعامة",
+        "services": [
+          "ترحيلة العاشر صبح"
+        ]
+      },
+      "after": {
+        "name": "رائد/ محمد عبد الحميد فتحى نعامة",
+        "services": [
+          "ضابط أمن الإدارة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-247",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "duty_move",
+      "entity_id": "OFF-043",
+      "action": "update",
+      "day": "2026-10-27",
+      "text": "مقدم/ محمد احمد مصطفي عبدالرازق: كان «ضابط أمن الإدارة ليل، ضابط عظيم الإدارة ليل» ← أصبح «ترحيلة العاشر صبح»",
+      "before": {
+        "name": "مقدم/ محمد احمد مصطفي عبدالرازق",
+        "services": [
+          "ضابط أمن الإدارة ليل",
+          "ضابط عظيم الإدارة ليل"
+        ]
+      },
+      "after": {
+        "name": "مقدم/ محمد احمد مصطفي عبدالرازق",
+        "services": [
+          "ترحيلة العاشر صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-248",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "assignment",
+      "entity_id": "AS-0028",
+      "action": "create",
+      "day": "2026-10-27",
+      "text": "خدمة جديدة: «جنائي خاصة صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0028",
+        "section": "الخدمات الطارئة",
+        "name": "جنائي خاصة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-192"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "سجن فيصل",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 7
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-249",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "assignment",
+      "entity_id": "AS-0029",
+      "action": "create",
+      "day": "2026-10-27",
+      "text": "خدمة جديدة: «ترحيلة نيابة عسكرية صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0029",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة نيابة عسكرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-130"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 8
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-250",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "assignment",
+      "entity_id": "AS-0030",
+      "action": "create",
+      "day": "2026-10-27",
+      "text": "خدمة جديدة: «ترحيلة حدث وحريم صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0030",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة حدث وحريم",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-144"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "سجن عتاقة",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 9
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-251",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "assignment",
+      "entity_id": "AS-0031",
+      "action": "create",
+      "day": "2026-10-27",
+      "text": "خدمة جديدة: «طلبة توريدات المديرية صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0031",
+        "section": "الخدمات الطارئة",
+        "name": "طلبة توريدات المديرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "طلبة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 5,
+        "weapon": "طلبه",
+        "time": "8ص",
+        "party": "المديرية",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 11
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-252",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "assignment",
+      "entity_id": "AS-0032",
+      "action": "create",
+      "day": "2026-10-27",
+      "text": "خدمة جديدة: «ترحيلة مستشفي صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0032",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة مستشفي",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-031"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "آلي",
+        "time": "9ص",
+        "party": "الاربعين",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 10
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-253",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "assignment",
+      "entity_id": "AS-0004",
+      "action": "delete",
+      "day": "2026-10-27",
+      "text": "خدمة أُزيلت: «مشرف قول مكبر ليل»",
+      "before": {
+        "id": "AS-0004",
+        "section": "الخدمات أساسية",
+        "name": "مشرف قول مكبر",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-016"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "note": ""
+      },
+      "after": null,
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-254",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "assignment",
+      "entity_id": "AS-0013",
+      "action": "update",
+      "day": "2026-10-27",
+      "text": "«ترحيلة العاشر صبح» — الانتظام: «6م» ← «7ص»، الجهة: «—» ← «عتاقة»",
+      "before": {
+        "id": "AS-0013",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة العاشر",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-025"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "آلي",
+        "time": "6م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0013",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة العاشر",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-043"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "آلي",
+        "time": "7ص",
+        "party": "عتاقة",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "note": "",
+        "pos": 6,
+        "officer_command_required": true,
+        "personnel_command_required": false
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-255",
+      "ts": "2026-10-28T10:35:59",
+      "entity": "day_confirm",
+      "entity_id": "2026-10-27",
+      "action": "confirm",
+      "day": "2026-10-27",
+      "text": "تأكيد يومية 2026-10-27 — عدد التغييرات: 16",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 16,
+        "count": 29,
+        "at": "2026-10-28T10:35:59",
+        "by": "3malyat_admin",
+        "day": "2026-10-27"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-256",
+      "ts": "2026-10-28T10:43:34",
+      "entity": "leave",
+      "entity_id": "LV-6851",
+      "action": "create",
+      "day": "2026-10-28",
+      "text": "تسجيل تلقائي لراحة السعيد محمد احمد عبده إسماعيل الأسبوعية يوم الأربعاء",
+      "before": null,
+      "after": {
+        "id": "LV-6851",
+        "person_id": "OFF-009",
+        "type": "أسبوعية",
+        "start": "2026-10-28",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-257",
+      "ts": "2026-10-28T10:43:34",
+      "entity": "leave",
+      "entity_id": "LV-6852",
+      "action": "create",
+      "day": "2026-10-28",
+      "text": "تسجيل تلقائي لراحة محمد طارق السيد محمد اللبان الأسبوعية يوم الأربعاء",
+      "before": null,
+      "after": {
+        "id": "LV-6852",
+        "person_id": "OFF-044",
+        "type": "أسبوعية",
+        "start": "2026-10-28",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-258",
+      "ts": "2026-10-28T10:46:14",
+      "entity": "officer_state",
+      "entity_id": "OFF-028",
+      "action": "update",
+      "day": null,
+      "text": "محمد محمد عطية رزق في يومية 2026-10-28: تعديل الحالة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-259",
+      "ts": "2026-10-28T10:46:14",
+      "entity": "officer_status_period",
+      "entity_id": "OSP-0003",
+      "action": "create",
+      "day": "2026-10-28",
+      "text": "بدء حالة مرضي المستمرة لـمحمد محمد عطية رزق من 2026-10-28 حتى إنهائها",
+      "before": null,
+      "after": {
+        "id": "OSP-0003",
+        "officer_id": "OFF-028",
+        "status": "مرضي",
+        "start": "2026-10-28",
+        "end": "",
+        "stopped_on": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-260",
+      "ts": "2026-10-28T10:56:21",
+      "entity": "officer_state",
+      "entity_id": "OFF-002",
+      "action": "update",
+      "day": null,
+      "text": "أحمد سمير محمد حمدي عباس في يومية 2026-10-28: تقصيرة",
+      "before": {},
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-261",
+      "ts": "2026-10-28T10:56:49",
+      "entity": "officer_state",
+      "entity_id": "OFF-025",
+      "action": "update",
+      "day": null,
+      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-10-28: تقصيرة",
+      "before": {},
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-262",
+      "ts": "2026-10-28T10:57:24",
+      "entity": "officer_state",
+      "entity_id": "OFF-023",
+      "action": "update",
+      "day": null,
+      "text": "محمد أحمد محمد عاطف في يومية 2026-10-28: تقصيرة",
+      "before": {},
+      "after": {
+        "taqseera": true,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-263",
+      "ts": "2026-10-28T10:58:19",
+      "entity": "day_confirm",
+      "entity_id": "2026-10-28",
+      "action": "confirm",
+      "day": "2026-10-28",
+      "text": "تأكيد أول ليومية 2026-10-28 — عدد الخدمات: 32",
+      "before": null,
+      "after": {
+        "first": true,
+        "changes": 0,
+        "count": 32,
+        "at": "2026-10-28T10:58:19",
+        "by": "3malyat_admin",
+        "day": "2026-10-28"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-264",
+      "ts": "2026-10-28T11:00:46",
+      "entity": "leave",
+      "entity_id": "LV-6849",
+      "action": "update",
+      "day": null,
+      "text": "تعديل راحة عبدالرحمن طارق محمد خميس: (نصف شهرية 2026-10-25 ← 2026-10-27) ← (نصف شهرية 2026-10-26 ← 2026-10-28)",
+      "before": {
+        "id": "LV-6849",
+        "person_id": "OFF-040",
+        "type": "نصف شهرية",
+        "start": "2026-10-25",
+        "end": "2026-10-27",
+        "return_date": "2026-10-28",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "after": {
+        "id": "LV-6849",
+        "person_id": "OFF-040",
+        "type": "نصف شهرية",
+        "start": "2026-10-26",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-265",
+      "ts": "2026-10-28T11:00:46",
+      "entity": "leave",
+      "entity_id": "LV-6849",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-25، 2026-10-26 — السبب: راحة",
+      "before": {
+        "id": "LV-6849",
+        "person_id": "OFF-040",
+        "type": "نصف شهرية",
+        "start": "2026-10-25",
+        "end": "2026-10-27",
+        "return_date": "2026-10-28",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "after": {
+        "id": "LV-6849",
+        "person_id": "OFF-040",
+        "type": "نصف شهرية",
+        "start": "2026-10-26",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "راحة",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-266",
+      "ts": "2026-10-28T11:01:00",
+      "entity": "leave",
+      "entity_id": "LV-6833",
+      "action": "update",
+      "day": null,
+      "text": "تعديل راحة محمد ميهوب زكي ميهوب: (نصف شهرية 2026-10-25 ← 2026-10-27) ← (نصف شهرية 2026-10-26 ← 2026-10-28)",
+      "before": {
+        "id": "LV-6833",
+        "person_id": "OFF-031",
+        "type": "نصف شهرية",
+        "start": "2026-10-25",
+        "end": "2026-10-27",
+        "return_date": "2026-10-28",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "after": {
+        "id": "LV-6833",
+        "person_id": "OFF-031",
+        "type": "نصف شهرية",
+        "start": "2026-10-26",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-267",
+      "ts": "2026-10-28T11:01:00",
+      "entity": "leave",
+      "entity_id": "LV-6833",
+      "action": "retro",
+      "day": null,
+      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-10-25، 2026-10-26 — السبب: راحة",
+      "before": {
+        "id": "LV-6833",
+        "person_id": "OFF-031",
+        "type": "نصف شهرية",
+        "start": "2026-10-25",
+        "end": "2026-10-27",
+        "return_date": "2026-10-28",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "after": {
+        "id": "LV-6833",
+        "person_id": "OFF-031",
+        "type": "نصف شهرية",
+        "start": "2026-10-26",
+        "end": "2026-10-28",
+        "return_date": "2026-10-29",
+        "note": "",
+        "special_name": "",
+        "source": ""
+      },
+      "reason": "راحة",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-268",
+      "ts": "2026-10-28T11:02:54",
+      "entity": "duty_move",
+      "entity_id": "OFF-019",
+      "action": "assign",
+      "day": "2026-10-28",
+      "text": "رائد/ كريم عمرو محمد كمال علام: كُلِّف بـ«نقطة الامنية بجنيفة صبح»",
+      "before": {
+        "name": "رائد/ كريم عمرو محمد كمال علام",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ كريم عمرو محمد كمال علام",
+        "services": [
+          "نقطة الامنية بجنيفة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-269",
+      "ts": "2026-10-28T11:02:54",
+      "entity": "duty_move",
+      "entity_id": "OFF-039",
+      "action": "assign",
+      "day": "2026-10-28",
+      "text": "نقيب/ طارق احمد فاروق حسن: كُلِّف بـ«كهرباء عتاقة»",
+      "before": {
+        "name": "نقيب/ طارق احمد فاروق حسن",
+        "services": []
+      },
+      "after": {
+        "name": "نقيب/ طارق احمد فاروق حسن",
+        "services": [
+          "كهرباء عتاقة"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-270",
+      "ts": "2026-10-28T11:02:54",
+      "entity": "duty_move",
+      "entity_id": "OFF-042",
+      "action": "update",
+      "day": "2026-10-28",
+      "text": "ملازم أول/ ماركو ماجد اقلاديوس مرقس: كان «كهرباء عتاقة، مرور البوابات صبح، مصر للبترول» ← أصبح «مرور البوابات صبح، مصر للبترول»",
+      "before": {
+        "name": "ملازم أول/ ماركو ماجد اقلاديوس مرقس",
+        "services": [
+          "كهرباء عتاقة",
+          "مرور البوابات صبح",
+          "مصر للبترول"
+        ]
+      },
+      "after": {
+        "name": "ملازم أول/ ماركو ماجد اقلاديوس مرقس",
+        "services": [
+          "مرور البوابات صبح",
+          "مصر للبترول"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-271",
+      "ts": "2026-10-28T11:02:54",
+      "entity": "assignment",
+      "entity_id": "AS-0034",
+      "action": "create",
+      "day": "2026-10-28",
+      "text": "خدمة جديدة: «نقطة الامنية بجنيفة صبح» في الخدمات أساسية",
+      "before": null,
+      "after": {
+        "id": "AS-0034",
+        "section": "الخدمات أساسية",
+        "name": "نقطة الامنية بجنيفة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-019"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8ص",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-272",
+      "ts": "2026-10-28T11:02:54",
+      "entity": "day_confirm",
+      "entity_id": "2026-10-28",
+      "action": "confirm",
+      "day": "2026-10-28",
+      "text": "تأكيد يومية 2026-10-28 — عدد التغييرات: 4",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 4,
+        "count": 33,
+        "at": "2026-10-28T11:02:54",
+        "by": "3malyat_admin",
+        "day": "2026-10-28"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-273",
+      "ts": "2026-10-28T11:03:41",
+      "entity": "officer_state",
+      "entity_id": "OFF-019",
+      "action": "update",
+      "day": null,
+      "text": "كريم عمرو محمد كمال علام في يومية 2026-10-28: التشغيل الإضافي: نقطة الامنية بجنيفة فترة صباحية",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "نقطة الامنية بجنيفة فترة صباحية"
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-274",
+      "ts": "2026-10-28T11:08:28",
+      "entity": "duty_move",
+      "entity_id": "OFF-002",
+      "action": "assign",
+      "day": "2026-10-28",
+      "text": "عقيد/ أحمد سمير محمد حمدي عباس: كُلِّف بـ«مرافقة جماهير المصري من كمين 109 صبح»",
+      "before": {
+        "name": "عقيد/ أحمد سمير محمد حمدي عباس",
+        "services": []
+      },
+      "after": {
+        "name": "عقيد/ أحمد سمير محمد حمدي عباس",
+        "services": [
+          "مرافقة جماهير المصري من كمين 109 صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-275",
+      "ts": "2026-10-28T11:08:28",
+      "entity": "duty_move",
+      "entity_id": "OFF-019",
+      "action": "unassign",
+      "day": "2026-10-28",
+      "text": "رائد/ كريم عمرو محمد كمال علام: أُزيل من «نقطة الامنية بجنيفة صبح» — بلا خدمة",
+      "before": {
+        "name": "رائد/ كريم عمرو محمد كمال علام",
+        "services": [
+          "نقطة الامنية بجنيفة صبح"
+        ]
+      },
+      "after": {
+        "name": "رائد/ كريم عمرو محمد كمال علام",
+        "services": []
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-276",
+      "ts": "2026-10-28T11:08:28",
+      "entity": "assignment",
+      "entity_id": "AS-0035",
+      "action": "create",
+      "day": "2026-10-28",
+      "text": "خدمة جديدة: «مرافقة جماهير المصري من كمين 109 صبح» في مباراة المصري * البنك الاهلي باستاد السويس",
+      "before": null,
+      "after": {
+        "id": "AS-0035",
+        "section": "مباراة المصري * البنك الاهلي باستاد السويس",
+        "name": "مرافقة جماهير المصري من كمين 109",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-002"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "2م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 5
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-277",
+      "ts": "2026-10-28T11:08:28",
+      "entity": "assignment",
+      "entity_id": "AS-0034",
+      "action": "delete",
+      "day": "2026-10-28",
+      "text": "خدمة أُزيلت: «نقطة الامنية بجنيفة صبح»",
+      "before": {
+        "id": "AS-0034",
+        "section": "الخدمات أساسية",
+        "name": "نقطة الامنية بجنيفة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-019"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8ص",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": null,
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-278",
+      "ts": "2026-10-28T11:08:28",
+      "entity": "day_confirm",
+      "entity_id": "2026-10-28",
+      "action": "confirm",
+      "day": "2026-10-28",
+      "text": "تأكيد يومية 2026-10-28 — عدد التغييرات: 4",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 4,
+        "count": 33,
+        "at": "2026-10-28T11:08:28",
+        "by": "3malyat_admin",
+        "day": "2026-10-28"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-279",
+      "ts": "2026-10-28T11:10:35",
+      "entity": "officer_state",
+      "entity_id": "OFF-030",
+      "action": "update",
+      "day": null,
+      "text": "محمد مصطفي محمد احمد في يومية 2026-10-28: التشغيل الإضافي: انتداب شمال سيناء",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "انتداب شمال سيناء"
+      },
+      "reason": "يوم 2026-10-28",
+      "edited_by": "3malyat_admin"
     }
   ],
   "missions": [],
@@ -18013,7 +19315,8 @@
     "2025-06-21": true,
     "2026-08-01": true,
     "2026-10-21": true,
-    "2026-10-27": true
+    "2026-10-27": true,
+    "2026-10-28": true
   },
   "rest_suspensions": [
     {
@@ -29014,6 +30317,14 @@
       "start": "2026-10-25",
       "end": "2026-10-26",
       "stopped_on": "2026-10-27"
+    },
+    {
+      "id": "OSP-0003",
+      "officer_id": "OFF-028",
+      "status": "مرضي",
+      "start": "2026-10-28",
+      "end": "",
+      "stopped_on": ""
     }
   ]
 }
