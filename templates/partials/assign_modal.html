@@ -17,6 +17,32 @@
     </div>
     <form id="assignForm" novalidate>
       <input type="hidden" id="assignPerson">
+      <fieldset class="assign-special hidden" id="assignResearch">
+        <legend>تعيين خدمة</legend>
+        <p class="hint">خدمة ضابط البحث في اليوم ده فقط، ومابتتورّثش لليوم التالي.</p>
+        <div class="grid">
+          <label>اسم الخدمة
+            <input id="assignResearchService" maxlength="500" placeholder="مثال: متابعة تحريات">
+          </label>
+          <label>معاد الانتظام <small>اختَر المعاد من لوحة الساعة — ويمكن تركه فارغًا</small>
+            <input id="assignResearchTime" data-time aria-label="معاد انتظام خدمة البحث">
+          </label>
+        </div>
+      </fieldset>
+      <fieldset class="assign-special hidden" id="assignMedical">
+        <legend>حالة الطبي</legend>
+        <p class="hint" id="assignMedicalHint">الاختيار يستمر في الأيام التالية لحد ما يتغيّر.</p>
+        <div class="seg-toggle" role="radiogroup" aria-label="حالة ضابط الطبي">
+          <label><input type="radio" name="assignMedicalState" value="عمل"><span>عمل</span></label>
+          <label><input type="radio" name="assignMedicalState" value="راحة"><span>راحة</span></label>
+          <label><input type="radio" name="assignMedicalState" value="انتداب"><span>انتداب</span></label>
+        </div>
+        <label class="hidden assign-medical-text" id="assignMedicalTextRow">نص الانتداب
+          <small>يظهر كنص التشغيل في اليومية؛ لو تُرك فارغًا يظهر «انتداب»</small>
+          <textarea id="assignMedicalText" maxlength="500" rows="3"
+                    placeholder="اكتب جهة أو تفاصيل الانتداب"></textarea>
+        </label>
+      </fieldset>
       <div class="grid">
         <label>حالة خاصة <small>اختر تصنيفًا موجودًا أو اكتب تصنيفًا جديدًا؛ يظهر في جدول الإجمالي ويُحفظ للمرات القادمة</small>
           <select id="assignStatus" data-combo-custom data-combo-custom-label="تصنيف جديد"

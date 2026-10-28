@@ -1057,7 +1057,8 @@ def assemble():
 
 _DAY_STEM = re.compile(r"\d{4}-\d{2}-\d{2}")
 _CORE_LISTS = ("leaves", "service_tags", "courses", "course_terms", "vehicles",
-               "service_lines", "conscripts", "officer_status_periods")
+               "service_lines", "conscripts", "officer_status_periods",
+               "officer_medical_states")
 _CORE_DICTS = ("command", "command_groups", "id_seq")
 _DAY_TYPES = {
     "assignments": list,

@@ -145,6 +145,19 @@ ACTIONS.openAssign = id => {
   $("#assignStatusTitle").value = period && DETAILED_STATUSES.includes(period.status) ? (period.title || "") : "";
   $("#assignStatusDetails").value = period && DETAILED_STATUSES.includes(period.status) ? (period.details || "") : "";
   updatePersistentHint();
+  $("#assignResearch").classList.toggle("hidden", !row.research);
+  $("#assignResearchService").value = row.research_service || "";
+  setTimeInputValue($("#assignResearchTime"), row.research_time || "");
+  $("#assignMedical").classList.toggle("hidden", !row.medical);
+  if (row.medical) {
+    const medical = document.querySelector(`input[name="assignMedicalState"][value="${row.medical_state || "عمل"}"]`);
+    if (medical) medical.checked = true;
+    $("#assignMedicalText").value = row.medical_deputation_text || "";
+    $("#assignMedicalHint").textContent = row.medical_state_from
+      ? `الحالة سارية من ${fmt(row.medical_state_from)} وتستمر لحد ما تتغيّر.`
+      : "الحالة الافتراضية «عمل»، والاختيار يستمر في الأيام التالية لحد ما يتغيّر.";
+    updateMedicalFields();
+  }
   $("#assignTaq").checked = !!row.taqseera;
   $("#assignExtra").value = row.extra || "";
   // النص القديم الكامل بيظهر بس لو موجود — الأيام الجديدة مفيهاش غير الإضافي
@@ -237,10 +250,32 @@ function updatePersistentHint() {
 }
 $("#assignStatus").addEventListener("change", updatePersistentHint);
 
+function updateMedicalFields() {
+  const value = document.querySelector('input[name="assignMedicalState"]:checked')?.value || "عمل";
+  $("#assignMedicalTextRow").classList.toggle("hidden", value !== "انتداب");
+  updateAssignPreview();
+}
+$$('input[name="assignMedicalState"]').forEach(input => input.addEventListener("change", updateMedicalFields));
+
 /* معاينة النص الكامل زي ما هيتطبع: خدمته التلقائية (أو النص القديم) + الإضافي */
 function updateAssignPreview() {
   const row = DUTY?.rows.find(r => r.id === $("#assignPerson").value);
   if (!row) return;
+  if (!row.leave && !row.status) {
+    if (row.medical) {
+      const state = document.querySelector('input[name="assignMedicalState"]:checked')?.value || "عمل";
+      const text = state === "انتداب" ? ($("#assignMedicalText").value.trim() || "انتداب") : state;
+      $("#assignPreview").textContent = `النص الكامل: ${text}`;
+      return;
+    }
+    if (row.research) {
+      const service = $("#assignResearchService").value.trim();
+      const time = $("#assignResearchTime").value.trim();
+      const text = service ? `${service}${time ? ` — انتظام ${time}` : ""}` : "تشغيله ـــــــــــــــــــــ";
+      $("#assignPreview").textContent = `النص الكامل: ${text}`;
+      return;
+    }
+  }
   const note = $("#assignNote").value.trim();
   // نفس صياغة الباك إند (`duty.service_line`): الأهداف «عمل بهدف …»
   const line = s => {
@@ -254,6 +289,9 @@ function updateAssignPreview() {
 }
 $("#assignExtra").oninput = updateAssignPreview;
 $("#assignNote").oninput = updateAssignPreview;
+$("#assignResearchService").oninput = updateAssignPreview;
+$("#assignResearchTime").addEventListener("change", updateAssignPreview);
+$("#assignMedicalText").oninput = updateAssignPreview;
 
 $("#assignForm").onsubmit = async e => {
   e.preventDefault();
@@ -269,6 +307,20 @@ $("#assignForm").onsubmit = async e => {
   const body = {taqseera: $("#assignTaq").checked, status, note: $("#assignNote").value,
     extra: $("#assignExtra").value,
     admin_work: automaticAdmin ? !!row.admin_work : $("#assignAdmin").checked};
+  if (row?.research) {
+    const service = $("#assignResearchService").value.trim();
+    const time = $("#assignResearchTime").value.trim();
+    if (!service && time) {
+      showToast("اكتب اسم خدمة البحث قبل معاد الانتظام", true);
+      $("#assignResearchService").focus(); return;
+    }
+    body.research_service = service;
+    body.research_time = service ? time : "";
+  }
+  if (row?.medical) {
+    body.medical_state = document.querySelector('input[name="assignMedicalState"]:checked')?.value || "عمل";
+    body.medical_deputation_text = body.medical_state === "انتداب" ? $("#assignMedicalText").value : "";
+  }
   if (BOUNDED_STATUSES.includes(status)) {
     const end = $("#assignStatusEnd").value;
     if (!end) { showToast(`حدد «حتى يوم» لحالة ${status}`, true); $("#assignStatusEnd").focus(); return; }

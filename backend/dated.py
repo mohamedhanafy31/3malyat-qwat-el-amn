@@ -5,6 +5,9 @@ import re
 from .constants import COMMAND_ROLES, GROUP_ROLES, TARGETS_FIRST, TARGET_NAMES
 
 
+MEDICAL_STATES = ("عمل", "راحة", "انتداب")
+
+
 def _entry_on(entries, day):
     """آخر نسخة سارية، وأقدم نسخة للأيام السابقة لبداية السجل."""
     entries = [e for e in (entries or []) if isinstance(e, dict)]
@@ -26,6 +29,52 @@ def groups_on(data, day):
     source = (entry or {}).get("groups") if entry else data.get("command_groups")
     source = source or {}
     return {role: list(source.get(role) or []) for role in GROUP_ROLES}
+
+
+def medical_state_on(data, officer_id, day):
+    """آخر حالة طبية سارية للضابط في اليوم؛ الافتراضي «عمل».
+
+    السجل مؤرّخ في ``core.json`` بدل البحث للخلف في ملفات الأيام. كده قراءة
+    يوم واحد بتراجع قائمة تغييرات صغيرة ومحمّلة أصلًا، ومابتفتحش تاريخ
+    اليوميات كله عشان تورّث قيمة امبارح.
+    """
+    rows = [row for row in (data.get("officer_medical_states") or [])
+            if isinstance(row, dict) and row.get("officer_id") == officer_id
+            and (row.get("from") or "") <= day]
+    row = max(rows, key=lambda item: item.get("from") or "", default=None)
+    return {
+        "state": (row or {}).get("state") or "عمل",
+        "deputation_text": (row or {}).get("deputation_text") or "",
+        "from": (row or {}).get("from") or "",
+    }
+
+
+def record_medical_state_change(data, officer_id, effective_from, state,
+                                deputation_text=""):
+    """يضيف/يستبدل اختيار الطبي الساري ابتداءً من يوم محدد."""
+    history = data.setdefault("officer_medical_states", [])
+    value = {"officer_id": officer_id, "from": effective_from, "state": state}
+    if state == "انتداب" and deputation_text:
+        value["deputation_text"] = deputation_text
+    row = next((item for item in history
+                if item.get("officer_id") == officer_id
+                and item.get("from") == effective_from), None)
+    if row is None:
+        history.append(value)
+    else:
+        row.clear()
+        row.update(value)
+    history.sort(key=lambda item: (item.get("from") or "", item.get("officer_id") or ""))
+    return value
+
+
+def drop_medical_states(data, officer_id):
+    """تنظيف سجل الطبي عند الحذف النهائي للضابط."""
+    history = data.setdefault("officer_medical_states", [])
+    kept = [row for row in history if row.get("officer_id") != officer_id]
+    removed = len(history) - len(kept)
+    history[:] = kept
+    return removed
 
 
 def record_command_change(data, effective_from, *, command=None, groups=None):

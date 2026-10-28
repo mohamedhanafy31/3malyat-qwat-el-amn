@@ -882,6 +882,12 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
   background:var(--navy-50);border-inline-start:3px solid var(--navy-300);line-height:1.6}
 .status-behavior-hint.is-persistent{background:var(--warn-100);color:var(--warn-800)!important;
   border-inline-start-color:var(--warn-700);font-weight:600!important}
+.assign-special{min-width:0;margin:0 0 var(--s4);padding:var(--s3);border:1px solid var(--line);
+  border-radius:var(--radius-md);background:var(--navy-50)}
+.assign-special legend{padding:0 var(--s2);font-family:var(--font-head);font-weight:700;
+  color:var(--navy-900)}
+.assign-special>.hint{margin:0 0 var(--s3)}
+.assign-medical-text{margin-top:var(--s3)}
 @media(max-width:700px){
   .assign-state-card{grid-template-columns:32px minmax(0,1fr);gap:var(--s2)}
   .assign-state-icon{width:32px;height:32px}

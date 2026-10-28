@@ -21,6 +21,10 @@ from .. import changes
 from .. import day_status
 from ..assignments import (assignments_of, is_legacy_status, officer_state, officer_statuses,
                            remember_officer_status, set_officer_state)
+from ..clocktime import format_time, parse_time
+from ..constants import ROLE_MEDICAL, ROLE_SEARCH
+from ..dated import (MEDICAL_STATES, groups_on, medical_state_on,
+                     record_medical_state_change)
 from ..duty import operational_text, summarise
 from ..duty_export import build_docx
 from ..daily_view import build as build_daily_view
@@ -53,6 +57,10 @@ def _state_text(name, day, before, after):
     if bool(before.get("admin_work")) != bool(after.get("admin_work")):
         parts.append("إضافته للعمل بالإدارة" if after.get("admin_work")
                      else "إلغاء إضافته للعمل بالإدارة")
+    if (before.get("research_service") or "") != (after.get("research_service") or ""):
+        parts.append(f"خدمة البحث: {after.get('research_service') or 'مُسحت'}")
+    if (before.get("research_time") or "") != (after.get("research_time") or ""):
+        parts.append(f"انتظام البحث: {after.get('research_time') or 'مُسح'}")
     return f"{name} في يومية {day}: " + "، ".join(parts or ["تعديل الحالة"])
 
 
@@ -130,6 +138,23 @@ def set_state(day, person_id):
     # قفل الطول قبل التطبيع عشان نص طويل بمسافات مايعدّيش
     if len(status_title) > 4 * 120 or len(status_details) > 4 * 300:
         return jsonify({"error": "اسم أو تفاصيل الحالة أطول من الحد المسموح."}), 400
+    research_service = str(payload.get("research_service", "") or "").strip()
+    if len(research_service) > MAX_LEN["note"]:
+        return jsonify({"error": f"اسم خدمة البحث أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
+    research_time = str(payload.get("research_time", "") or "").strip()
+    if research_time:
+        parsed = parse_time(research_time)
+        if parsed is None:
+            return jsonify({"error": "اختر معاد الانتظام من لوحة الساعة."}), 400
+        research_time = format_time(parsed)
+    medical_state = str(payload.get("medical_state", "") or "").strip()
+    medical_text = str(payload.get("medical_deputation_text", "") or "").strip()
+    if "medical_deputation_text" in payload and "medical_state" not in payload:
+        return jsonify({"error": "اختر حالة الطبي مع نص الانتداب."}), 400
+    if "medical_state" in payload and medical_state not in MEDICAL_STATES:
+        return jsonify({"error": "حالة الطبي يجب أن تكون عمل أو راحة أو انتداب."}), 400
+    if len(medical_text) > MAX_LEN["note"]:
+        return jsonify({"error": f"نص انتداب الطبي أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
 
     def mutate(data):
         stale = stale_revision(data, payload.get("revision"), [day])
@@ -145,11 +170,26 @@ def set_state(day, person_id):
         officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
         if not officer:
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
+        groups = groups_on(data, day)
+        is_research = person_id in (groups.get(ROLE_SEARCH) or [])
+        is_medical = person_id in (groups.get(ROLE_MEDICAL) or [])
+        if ({"research_service", "research_time"} & payload.keys()) and not is_research:
+            raise AbortRequest((jsonify({"error": "الضابط ليس ضمن مجموعة البحث في هذا اليوم."}), 400))
+        if ({"medical_state", "medical_deputation_text"} & payload.keys()) and not is_medical:
+            raise AbortRequest((jsonify({"error": "الضابط ليس ضمن مجموعة الطبي في هذا اليوم."}), 400))
         # الحقل اللي مش مبعوت في الطلب مابيتغيّرش. قبل كده كانت القيم
         # التلاتة بتتكتب دايمًا، فطلب فيه `taqseera` بس كان بيمسح الحالة
         # والملاحظة المسجّلين — الواجهة بتبعت التلاتة فما بانش، لكن أي
         # سكربت أو نداء خارجي كان بيفقد بيانات من غير ما يعرف.
         before = dict(officer_state(data, day, person_id))
+        projected_research = (research_service if "research_service" in payload
+                              else before.get("research_service", ""))
+        saved_research_time = research_time if "research_time" in payload else None
+        # مسح اسم الخدمة يمسح ميعادها معاه؛ ماينفعش نخزن انتظام بلا خدمة.
+        if "research_service" in payload and not projected_research:
+            saved_research_time = ""
+        elif "research_time" in payload and research_time and not projected_research:
+            raise AbortRequest((jsonify({"error": "اكتب اسم خدمة البحث قبل معاد الانتظام."}), 400))
         if payload.get("admin_work"):
             projected_note = note if "note" in payload else before.get("note", "")
             projected_extra = extra if "extra" in payload else before.get("extra", "")
@@ -197,11 +237,26 @@ def set_state(day, person_id):
             status=stored_status if "status" in payload else None,
             note=note if "note" in payload else None,
             extra=extra if "extra" in payload else None,
-            admin_work=bool(payload["admin_work"]) if "admin_work" in payload else None)
+            admin_work=bool(payload["admin_work"]) if "admin_work" in payload else None,
+            research_service=research_service if "research_service" in payload else None,
+            research_time=saved_research_time)
         if before != dict(after):
             changes.record(data, "officer_state", person_id, "update",
                            before=before, after=dict(after), reason=f"يوم {day}",
                            text=_state_text(officer.get("name", ""), day, before, after))
+        if "medical_state" in payload:
+            medical_before = medical_state_on(data, person_id, day)
+            medical_after = record_medical_state_change(
+                data, person_id, day, medical_state,
+                medical_text if medical_state == "انتداب" else "")
+            if medical_before != medical_after:
+                changes.record(
+                    data, "officer_medical_state", f"{person_id}:{day}", "update",
+                    before=medical_before, after=medical_after, day=day,
+                    text=(f"حالة الطبي لـ{officer.get('name', '')} من {day}: "
+                          f"{medical_state}"
+                          + (f" — {medical_text}" if medical_state == "انتداب" and medical_text else "")),
+                )
         if period_changed:
             updated = period_before.get("id") == period_after["id"]
             changes.record(
@@ -340,7 +395,7 @@ def clear_state(day, person_id):
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
         before = dict(officer_state(data, day, person_id))
         set_officer_state(data, day, person_id, taqseera=False, status="", note="",
-                          extra="", admin_work=False)
+                          extra="", admin_work=False, research_service="", research_time="")
         if before:
             changes.record(data, "officer_state", person_id, "delete",
                            before=before, reason=f"يوم {day}",

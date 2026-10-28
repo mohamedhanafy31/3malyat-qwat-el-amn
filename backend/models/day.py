@@ -134,6 +134,9 @@ class OfficerDayState(Model):
     # الضابط ده نصه التشغيلي الكامل بيتضاف كمان في «عمل بالإدارة» على
     # اللوحة، ويفضل في مكان خدمته زي ما هو.
     admin_work: bool = False
+    # تكليف ضابط البحث لليوم ده فقط — مفيش توريث لليوم اللي بعده.
+    research_service: str = ""
+    research_time: str = ""
 
     def _check(self, errors):
         from ..assignments import MAX_OFFICER_STATUS_LENGTH
@@ -141,11 +144,14 @@ class OfficerDayState(Model):
             errors.append(f"تصنيف الحالة أطول من الحد المسموح ({MAX_OFFICER_STATUS_LENGTH} حرفًا).")
         max_length(errors, self.note, "note")
         max_length(errors, self.extra, "note")
+        max_length(errors, self.research_service, "note")
+        max_length(errors, self.research_time, "name")
 
     @property
     def empty(self):
         return not (self.taqseera or text(self.status) or text(self.note) or self.medical
-                    or text(self.extra) or self.admin_work)
+                    or text(self.extra) or self.admin_work or text(self.research_service)
+                    or text(self.research_time))
 
 
 @dataclass

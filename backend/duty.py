@@ -15,8 +15,9 @@
 """
 from .assignments import assignments_of, officer_state, officer_statuses
 from .courses import by_id as courses_by_id, term_on
-from .constants import LEAVE_BUCKET, ROLE_MEDICAL, SECTION_TARGETS, SHIFTS, TARGETS_FIRST
-from .dated import command_on, groups_on
+from .constants import (LEAVE_BUCKET, ROLE_MEDICAL, ROLE_SEARCH, SECTION_TARGETS,
+                        SHIFTS, TARGETS_FIRST)
+from .dated import command_on, groups_on, medical_state_on
 from .leaves import leave_label, leave_on
 from .people import effective, officers_on
 from .status_periods import active_on as persistent_status_on
@@ -82,7 +83,8 @@ def _empty_summary(force, statuses=()):
     }
 
 
-def _bucket(kinds, leave, state, medical, search_attached, course=None):
+def _bucket(kinds, leave, state, medical, search_attached, course=None,
+            medical_state="عمل"):
     """-> (المجموعة، الخانة الفرعية) لضابط واحد. القواعد بترتيب PRIORITY."""
     # حالة مكتوبة بالإيد لليوم ده بالذات بتغلب أي افتراض
     status = state.get("status") or ""
@@ -90,11 +92,15 @@ def _bucket(kinds, leave, state, medical, search_attached, course=None):
         # انتداب/غياب/مرضي/فرقة/طارئة — كلها خانات موجودة في جدول الوورد
         return ("خوارج", status)
 
-    # ضابط العيادة بيفضل في عمود «الطبية» حتى وهو في راحة — الوورد بيكتب
-    # «راحة» في خانة الطبية مش في خانة الخوارج (يومية 31/8: محمود عبد الله
-    # تشغيله «عمل» → طبية/موجود، ومحمد وليد «راحة» → طبية/راحة).
+    # الإجازة الفعلية لضابط الطبي أقوى من اختياره الموروث، وبتفضل في عمود
+    # الطبية/راحة زي السلوك القديم. بعد كده «انتداب» الطبي يروح خوارج،
+    # و«راحة» تفضل داخل الطبية.
     if medical:
-        return ("طبية", "راحة" if leave else "موجود")
+        if leave:
+            return ("طبية", "راحة")
+        if medical_state == "انتداب":
+            return ("خوارج", "انتداب")
+        return ("طبية", "راحة" if medical_state == "راحة" else "موجود")
 
     if leave:
         return ("خوارج", LEAVE_BUCKET.get(leave["type"], "راحة"))
@@ -145,6 +151,15 @@ def operational_text(services, note, extra):
         base = " + ".join(line for line in map(service_line, services or []) if line)
     extra = str(extra or "").strip()
     return " + ".join(part for part in (base, extra) if part)
+
+
+def research_text(service, regularity_time):
+    """تشغيل ضابط البحث لليوم؛ الفاضي له النص الثابت المطلوب في اليومية."""
+    service = str(service or "").strip()
+    regularity_time = str(regularity_time or "").strip()
+    if not service:
+        return "تشغيله ـــــــــــــــــــــ"
+    return f"{service} — انتظام {regularity_time}" if regularity_time else service
 
 
 def _dmy(iso):
@@ -231,16 +246,43 @@ def officer_row(data, day, o, catalog=None):
     # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في
     # قايمة «الصافي» بالاسم في كل مرة.
     kinds = [(it["kind"], it["shift"]) for it in items if it["counted"]]
-    medical = (o["id"] in (groups_on(data, day).get(ROLE_MEDICAL) or [])
-               or any(k == "طبية" for k, _ in kinds))
+    groups = groups_on(data, day)
+    medical = o["id"] in (groups.get(ROLE_MEDICAL) or [])
+    medical_bucket = medical or any(k == "طبية" for k, _ in kinds)
+    research = o["id"] in (groups.get(ROLE_SEARCH) or [])
+    medical_choice = medical_state_on(data, o["id"], day) if medical else {
+        "state": "", "deputation_text": "", "from": ""}
 
-    group, sub = _bucket(kinds, leave, effective_state, medical,
-                         eff["search_attached"], term)
+    group, sub = _bucket(kinds, leave, effective_state, medical_bucket,
+                         eff["search_attached"], term, medical_choice["state"])
+    text = operational_text(items, state.get("note", ""), state.get("extra", ""))
+    # الحالات الخاصة والإجازات الفعلية تفضل صاحبة الأولوية في الشاشة والوورد.
+    # لو الضابط عضو في المجموعتين معًا، الطبي هو التصنيف الأقوى زي `_bucket`.
+    if not effective_state.get("status") and not leave:
+        if medical:
+            choice = medical_choice["state"]
+            if choice == "انتداب":
+                text = medical_choice["deputation_text"] or "انتداب"
+            elif choice == "راحة":
+                text = "راحة"
+            else:
+                # «عمل» مابيمسحش تشغيله المكتوب (خدمة/ملاحظة/إضافي)
+                text = text or "عمل"
+        elif research:
+            text = research_text(state.get("research_service", ""),
+                                 state.get("research_time", ""))
     return {
         "id": o["id"], "name": o.get("name", ""), "short_name": o.get("short_name", ""),
         "phone": o.get("phone", ""),
         "role": eff["role"], "post": eff["post"], "section": eff["section"],
         "search_attached": eff["search_attached"],
+        "research": research,
+        "research_service": state.get("research_service", ""),
+        "research_time": state.get("research_time", ""),
+        "medical": medical,
+        "medical_state": medical_choice["state"],
+        "medical_deputation_text": medical_choice["deputation_text"],
+        "medical_state_from": medical_choice["from"],
         "rest_system": eff["rest_system"], "rest_day": eff["rest_day"],
         "group": group, "bucket": sub,
         "services": items,
@@ -254,7 +296,7 @@ def officer_row(data, day, o, catalog=None):
         "extra": state.get("extra", ""),
         "admin_work": bool(state.get("admin_work")),
         # النص التشغيلي الكامل (خدمته + اليدوي) والنص اليدوي بس
-        "text": operational_text(items, state.get("note", ""), state.get("extra", "")),
+        "text": text,
         "manual": manual_text(state.get("note", ""), state.get("extra", "")),
         "leave": ({"id": leave.get("id"), "type": leave_label(leave),
                    "raw_type": leave["type"], "start": leave["start"],
