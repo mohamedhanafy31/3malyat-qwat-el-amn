@@ -57,14 +57,19 @@ def record_change(person, effective_from, changes, fields=None):
                         **{f: person.get(f, False if f == "search_attached" else "")
                            for f in fields}})
 
-    latest = max(history, key=lambda h: h.get("from") or "")
-    merged = {**{f: latest.get(f, person.get(f, False if f == "search_attached" else ""))
+    same_day = next((h for h in history if h.get("from") == effective_from), None)
+    # المقارنة والدمج لازم يكونا مع السجل الساري **في تاريخ
+    # التغيير**، مش آخر سجل مستقبلي. ده مهم لمنصب قائد هدف مجدول
+    # من دلوقتي وبعده ترقية مسجلة مقدمًا: الترقية لا تتسحبش للخلف.
+    applicable = [h for h in history if (h.get("from") or "") <= effective_from]
+    base = same_day or (max(applicable, key=lambda h: h.get("from") or "") if applicable
+                        else min(history, key=lambda h: h.get("from") or ""))
+    merged = {**{f: base.get(f, person.get(f, False if f == "search_attached" else ""))
                  for f in fields}, **changes}
-    if all(merged[f] == latest.get(f, person.get(f, False if f == "search_attached" else ""))
+    if all(merged[f] == base.get(f, person.get(f, False if f == "search_attached" else ""))
            for f in fields):
         return                                  # مفيش تغيير فعلي
 
-    same_day = next((h for h in history if h.get("from") == effective_from), None)
     if same_day:
         same_day.update(merged)                 # تصحيح لنفس تاريخ السريان
     else:

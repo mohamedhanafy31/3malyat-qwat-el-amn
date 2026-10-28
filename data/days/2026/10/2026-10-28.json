@@ -783,13 +783,9 @@
       "taqseera": false,
       "status": "",
       "note": "",
-      "extra": "نقطة الامنية بجنيفة فترة صباحية"
-    },
-    "OFF-030": {
-      "taqseera": false,
-      "status": "",
-      "note": "",
-      "extra": "انتداب شمال سيناء"
+      "extra": "نقطة الامنية بجنيفة فترة صباحية",
+      "research_service": "نقطة تفتيش جنيفة",
+      "research_time": "8ص"
     }
   },
   "confirm": {

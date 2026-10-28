@@ -149,6 +149,10 @@ def bootstrap(page):
                             "archive": repos.people.bucket("personnel", "archive")},
                         "counts": _counts(data)})
 
+    if page == "target_commanders":
+        # الكشف نفسه مؤرخ ويأتي من API مستقل؛ bootstrap للقائمة فقط.
+        return jsonify({"meta": meta, "counts": _counts(data)})
+
     if page in ("duty", "register"):
         # الاتنين محتاجين قايمة الأيام بس (لتحديد آخر يوم افتراضي) — لا
         # كتالوج خدمات ولا مؤشر ضباط/أفراد، بيوصلهم كل حاجة جاهزة من

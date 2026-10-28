@@ -240,7 +240,10 @@ def set_state(day, person_id):
             admin_work=bool(payload["admin_work"]) if "admin_work" in payload else None,
             research_service=research_service if "research_service" in payload else None,
             research_time=saved_research_time)
-        if before != dict(after):
+        # المقارنة على القيم الفعلية بس: حفظ حالة الطبي لوحدها كان بيسجّل
+        # «تعديل الحالة» فاضي لأن السجل الراجع فيه false/"" بدل ما يكون فاضي.
+        if ({k: v for k, v in before.items() if v}
+                != {k: v for k, v in dict(after).items() if v}):
             changes.record(data, "officer_state", person_id, "update",
                            before=before, after=dict(after), reason=f"يوم {day}",
                            text=_state_text(officer.get("name", ""), day, before, after))

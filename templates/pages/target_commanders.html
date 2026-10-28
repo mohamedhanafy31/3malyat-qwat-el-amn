@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block page_actions %}
+<button class="primary" id="saveTargetCommanders" disabled>{{ icon('check') }} حفظ التعيينات</button>
+{% endblock %}
+
+{% block content %}
+<section class="panel target-commanders-sheet" aria-labelledby="targetCommandersTitle">
+  <div class="toolbar target-commanders-toolbar">
+    <div class="tb-group">
+      <label class="field-inline" for="targetCommandersDay">تاريخ السريان</label>
+      <input type="date" id="targetCommandersDay" class="select" aria-describedby="targetCommandersDateHint">
+    </div>
+    <button type="button" class="mini" id="reloadTargetCommanders">إعادة التحميل</button>
+    <span class="muted" id="targetCommandersDateHint">التغيير يظهر في اليومية بدءًا من هذا اليوم.</span>
+  </div>
+
+  <div class="target-commanders-note">
+    <span class="target-commanders-mark" aria-hidden="true">ق</span>
+    <div>
+      <strong id="targetCommandersTitle">القائد الثابت غير الضابط المعيّن يوميًا</strong>
+      <p>هذه الصفحة تغيّر منصب قائد الهدف. أما من يغطي الهدف في يوم معين فيتغيّر من اليومية التفصيلية.</p>
+    </div>
+  </div>
+
+  <div class="mtable-wrap">
+    <table class="mtable target-commanders-table">
+      <thead><tr>
+        <th>الهدف</th>
+        <th>القائد الحالي</th>
+        <th>القائد الجديد</th>
+        <th>حالة الصف</th>
+      </tr></thead>
+      <tbody id="targetCommanderRows"><tr><td colspan="4">{{ skeleton('rows', 4) }}</td></tr></tbody>
+    </table>
+  </div>
+  <div class="target-commanders-foot">
+    <span id="targetCommandersSummary">جاري تحميل الكشف…</span>
+    <span class="muted">اختر «شاغر» لإخلاء الهدف.</span>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/target-commanders.js') }}"></script>
+{% endblock %}

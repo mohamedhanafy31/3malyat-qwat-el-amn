@@ -1,8 +1,10 @@
 """الصفحات المنفصلة و bootstrap المخصوص لكل صفحة."""
 import pytest
 
-PAGES = ["dashboard", "officers", "personnel", "duty", "board", "counts", "leaves", "vehicles", "drivers", "campaign"]
+PAGES = ["dashboard", "officers", "personnel", "target_commanders", "duty", "board",
+         "counts", "leaves", "vehicles", "drivers", "campaign"]
 URLS = {"dashboard": "/", "officers": "/officers", "personnel": "/personnel",
+        "target_commanders": "/target-commanders",
         "duty": "/duty", "board": "/board", "counts": "/counts", "leaves": "/leaves",
         "vehicles": "/vehicles", "drivers": "/drivers", "campaign": "/campaign"}
 

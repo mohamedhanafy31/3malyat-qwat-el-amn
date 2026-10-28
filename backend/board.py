@@ -347,6 +347,23 @@ _COMMANDER_PREFIX = "قائد هدف"
 _TARGETS_SUPERVISOR_POST = "رئيس قسم الحراسات المشددة"
 
 
+def target_commander_post(name):
+    """المنصب الرسمي الذي يجعل الضابط قائدًا لهذا الهدف."""
+    return (_TARGETS_SUPERVISOR_POST if name == TARGETS_FIRST
+            else f"{_COMMANDER_PREFIX} {str(name or '').strip()}")
+
+
+def is_target_commander_post(value):
+    """هل المنصب من مناصب قيادة الأهداف؟
+
+    نقبل أي هدف تاريخي يبدأ بنفس البادئة، حتى يستطيع الحفظ إخلاء
+    منصب هدف حُذف من القائمة المرجعية بدل أن يظل معلّقًا على الضابط.
+    """
+    post = norm(value)
+    prefix = norm(_COMMANDER_PREFIX)
+    return post == norm(_TARGETS_SUPERVISOR_POST) or post.startswith(prefix + " ")
+
+
 def _officers_on_force(data, day):
     """الضباط اللي كانوا فعلًا على القوة في اليوم ده — مش أي ضابط اتسجّل
     يومًا في السيستم. قادة الأهداف بتتاخد من الضباط الحاليين بس، عشان
@@ -375,8 +392,6 @@ def _target_commanders(officers, name, day):
     ضابطين (الأرشيف فيه حالة كده لهدف «عيون موسي» ولرئيس قسم الحراسات
     المشددة نفسه)، وده بيتعرض زي ما هو بدل ما نختار واحد عشوائي ونخبي الغلط.
     """
-    from .text import norm
-
     if name == TARGETS_FIRST:
         needle, prefix = norm(_TARGETS_SUPERVISOR_POST), ""
     else:
@@ -390,6 +405,14 @@ def _target_commanders(officers, name, day):
                         "role": effective(p, day)["role"], "short_name": p.get("short_name", ""),
                         "category": "officers"})
     return out
+
+
+def target_commanders_for_day(data, day):
+    """قائمة الأهداف وقادتها الثابتين في يوم، بلا تكليفات اليوم."""
+    officers = _officers_on_force(data, day)
+    return [{"name": name, "post": target_commander_post(name),
+             "commanders": _target_commanders(officers, name, day)}
+            for name in target_row_names(data, day)]
 
 
 def _blank_target(name, day, officers):

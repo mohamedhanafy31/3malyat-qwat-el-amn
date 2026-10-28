@@ -36,6 +36,17 @@ def test_officer_rest_and_individual_grade_are_effective_by_day():
     assert effective(individual, "2026-01-01")["role"] == "أمين شرطة أول"
 
 
+def test_inserting_a_dated_change_does_not_pull_a_later_record_backwards():
+    officer = {"id": "OFF-899", "join_date": "2023-01-01", "role": "نقيب",
+               "post": "", "section": "القوة", "search_attached": False,
+               "rest_system": "أسبوعية", "rest_day": "السبت"}
+    record_change(officer, "2027-01-01", {"role": "رائد"})
+    record_change(officer, "2026-04-10", {"post": "قائد هدف سوميد"})
+    assert effective(officer, "2026-04-10")["role"] == "نقيب"
+    assert effective(officer, "2026-04-10")["post"] == "قائد هدف سوميد"
+    assert effective(officer, "2027-01-01")["role"] == "رائد"
+
+
 def _dated_data():
     return {
         "officers": [

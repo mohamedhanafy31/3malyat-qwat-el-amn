@@ -14,6 +14,8 @@ PAGES = {
     "dashboard": ("dashboard.html", "الرئيسية", "نظرة عامة على القوة والتشغيل اليومي"),
     "officers": ("force.html", "الضباط", "سجل الضباط والأرشيف"),
     "personnel": ("force.html", "الأفراد", "سجل الأفراد والأرشيف"),
+    "target_commanders": ("target_commanders.html", "قادة الأهداف",
+                          "تعيين القائد الثابت لكل هدف بتاريخ سريان"),
     "duty": ("duty.html", "يومية الضباط", "تشغيل الضباط اليومي وجدول الإجمالي"),
     "duty_stats": ("duty_stats.html", "إحصائيات التشغيل",
                     "توازن وانتظام التشغيل الفعلي — عدالة التوزيع، تغطية الأهداف، والتقصيرات"),
@@ -73,6 +75,11 @@ def officers():
 @bp.get("/personnel")
 def personnel():
     return _render("personnel")
+
+
+@bp.get("/target-commanders")
+def target_commanders():
+    return _render("target_commanders")
 
 
 @bp.get("/duty")
