@@ -6,9 +6,14 @@
 <div id="clockWarning"></div>
 <div id="restSuspension"></div>
 
-<section class="ops-strip" aria-label="ملخص التشغيل المباشر">
+<section class="ops-strip" id="opsStrip" tabindex="-1" aria-label="ملخص التشغيل المباشر">
   <div class="ops-clock"><span class="ops-eyebrow">الوقت الآن</span><strong id="opsClock">--:--</strong></div>
   <div class="ops-next" aria-live="polite"><span class="ops-eyebrow">التالية</span><div id="opsNext">جارٍ تحميل لوحة التشغيل…</div></div>
+  <div class="ops-sync" id="opsSync" role="status" aria-live="polite">
+    <span class="ops-eyebrow">المزامنة</span>
+    <span id="opsLastUpdated">آخر تحديث —</span>
+    <button type="button" class="ops-refresh-now hidden" id="opsRefreshNow">تحديث الآن</button>
+  </div>
   <div id="opsCounters" class="ops-counters" aria-label="عدادات التشغيل"></div>
 </section>
 
@@ -43,6 +48,13 @@
     <button type="button" data-view="cards" aria-pressed="false">بطاقات</button>
   </div>
   <button type="button" class="btn ops-clear hidden" id="opsClear">مسح الفلاتر</button>
+  <button type="button" class="btn ops-help-toggle" id="opsShortcutsToggle" aria-expanded="false" aria-controls="opsShortcutsHelp">اختصارات لوحة المفاتيح</button>
+  <div class="ops-shortcuts-help hidden" id="opsShortcutsHelp" role="dialog" aria-label="اختصارات لوحة المفاتيح">
+    <strong>اختصارات لوحة المفاتيح</strong>
+    <span><kbd>/</kbd> بحث · <kbd>↑</kbd><kbd>↓</kbd> تنقّل بين الصفوف</span>
+    <span><kbd>Enter</kbd> الإجراء الأساسي · <kbd>Shift</kbd>+<kbd>F10</kbd> قائمة الصف</span>
+    <span><kbd>F6</kbd> التنقّل بين مناطق اللوحة · <kbd>Space</kbd> طيّ المجموعة</span>
+  </div>
 </section>
 
 <div id="opsLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>

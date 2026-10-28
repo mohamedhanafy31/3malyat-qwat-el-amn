@@ -14,6 +14,11 @@
   let filters = {query: "", states: new Set(prefs.states || []), types: new Set(prefs.types || []),
     lines: new Set(prefs.lines || []), timeWindow: prefs.timeWindow || "all", attention: Boolean(prefs.attention)};
   const pendingTargets = new Set();
+  const pendingLabels = new Map();
+  const pendingTimers = new Map();
+  const rowErrors = new Map();
+  let lastRefreshOkAt = 0;
+  let keyboardZone = 0;
 
   const $id = id => document.getElementById(id);
   const shiftText = {am: "صباحية", pm: "ليلية"};
@@ -156,6 +161,52 @@
 
   function actionLabel(action) { return action === "depart" ? "قيام" : action === "return" ? "عودة" : ""; }
 
+  function pendingLabel(target) { return pendingLabels.get(target) || "جارٍ التسجيل…"; }
+  function isModalOpen() { return Boolean(document.querySelector(".modal:not(.hidden)")); }
+  function currentRunElement(target) { return document.querySelector(`[data-run-key="${CSS.escape(String(target))}"]`); }
+  function rememberFocus() {
+    const active = document.activeElement;
+    return {target: active?.closest?.("[data-run-key]")?.dataset.runKey || null, scroll: window.scrollY};
+  }
+  function restoreFocus(snapshot, preferredTarget) {
+    window.scrollTo({top: snapshot.scroll, behavior: "auto"});
+    const target = snapshot.target || preferredTarget;
+    const el = target ? currentRunElement(target) : document.querySelector("[data-run-key]");
+    if (el) { el.focus({preventScroll: true}); return; }
+    document.querySelector("[data-run-key]")?.focus({preventScroll: true});
+  }
+  function syncPendingDom(targets) {
+    for (const target of targets) {
+      const el = currentRunElement(target);
+      if (!el) continue;
+      const busy = pendingTargets.has(target);
+      el.setAttribute("aria-busy", String(busy));
+      el.querySelectorAll("button").forEach(button => {
+        button.disabled = busy;
+        button.setAttribute("aria-disabled", String(busy));
+      });
+      const action = el.querySelector(`[data-target="${CSS.escape(String(target))}"][data-op="depart"], [data-target="${CSS.escape(String(target))}"][data-op="return"]`);
+      if (action && busy) action.innerHTML = `<span class="spinner" aria-hidden="true"></span> ${esc(pendingLabel(target))}`;
+      if (action && !busy) action.innerHTML = esc(actionLabel(action.dataset.op));
+    }
+  }
+  function slowNotice(target) {
+    const el = currentRunElement(target);
+    if (!el || !pendingTargets.has(target)) return;
+    const host = el.querySelector(".ops-row-status, .ops-card-meta") || el;
+    if (!host.querySelector(".ops-slow")) host.insertAdjacentHTML("beforeend", `<small class="ops-slow">الاتصال بطيء — ما زال التسجيل جاريًا</small>`);
+    const dialog = document.querySelector(".modal:not(.hidden) .dialog-actions");
+    if (dialog && !dialog.querySelector(".ops-dialog-slow")) dialog.insertAdjacentHTML("beforebegin", `<p class="ops-dialog-slow ops-slow">الاتصال بطيء — ما زال التسجيل جاريًا</p>`);
+  }
+  function clearPending(targets) {
+    targets.forEach(target => {
+      pendingTargets.delete(target); pendingLabels.delete(target);
+      clearTimeout(pendingTimers.get(target)); pendingTimers.delete(target);
+    });
+    document.querySelectorAll(".ops-dialog-slow").forEach(item => item.remove());
+    syncPendingDom(targets);
+  }
+
   function runContext(run) {
     // من غير خط: الـfallback كان `run` نفسه فاسم الخدمة كان بيطلع كأنه اسم الخط
     const meta = run.line_meta || {};
@@ -188,7 +239,7 @@
       {label: "تعديل المعاد", action: "opsEditTime", id: target},
     ], {label: `إجراءات ${runLabel(run)}`});
 
-    return `<article class="ops-card ops-state-${state}" data-run-key="${esc(target)}" data-state="${state}"
+    return `<article class="ops-card ops-state-${state}" data-run-key="${esc(target)}" data-state="${state}" tabindex="-1"
         aria-busy="${pendingTargets.has(target)}">
       <div class="ops-card-head">
         <div class="ops-card-name" title="${esc(run.name || "")}">
@@ -201,8 +252,8 @@
       </div>
       <div class="ops-card-meta">
         <span class="ops-report">${esc(run.report_text || run.report_time || "بدون معاد")}</span>
-        <span class="ops-status-label">${statusText[state]}</span>
-      </div>
+        <span class="ops-status-label">${statusText[state]}</span>${pendingTargets.has(target) ? `<small class="ops-pending-label">${esc(pendingLabel(target))}</small>` : ""}
+      </div>${rowErrors.has(target) ? `<p class="ops-row-error" role="alert">${esc(rowErrors.get(target))}</p>` : ""}
       <div class="ops-card-detail">
         <span title="${esc(details)}">${esc(details)}</span>
         ${run.day ? `<span class="ops-carried-meta">${esc(carriedMeta(run))}</span>` : ""}
@@ -287,15 +338,15 @@
     const undoable = lastChange && Date.now() - new Date(lastChange).getTime() <= 300000;
     const menu = rowMenu([undoable ? {label: "تراجع", action: "opsUndo", id: target, danger: true} : null,
       {label: "تعديل المعاد", action: "opsEditTime", id: target}], {label: `إجراءات ${runLabel(run)}`});
-    return `<tr class="ops-row ops-state-${state}" data-run-key="${esc(target)}" aria-busy="${pendingTargets.has(target)}">
-      <td class="ops-row-status"><span>${statusText[state]}</span></td>
+    return `<tr class="ops-row ops-state-${state}" data-run-key="${esc(target)}" tabindex="-1" aria-busy="${pendingTargets.has(target)}">
+      <td class="ops-row-status"><span>${statusText[state]}</span>${pendingTargets.has(target) ? `<small class="ops-pending-label">${esc(pendingLabel(target))}</small>` : ""}</td>
       <th scope="row"><strong>${esc(run.name || "خدمة")}</strong><small>${esc(runContext(run))}</small></th>
       <td class="ops-row-time">${esc(run.report_text || run.report_time || "—")}</td>
       <td>${esc(shiftText[run.shift] || run.shift || "—")}</td>
       <td class="ops-row-head">${esc(run.head || "غير مسجّل")}</td>
       <td>${esc(run.count == null || run.count === "" ? "—" : `${run.count}${run.weapon ? ` · ${run.weapon}` : ""}`)}</td>
       <td class="ops-row-context">${esc(runContext(run))}</td>
-      <td class="ops-row-action">${action ? `<button type="button" class="primary ops-action" data-op="${action}" data-target="${esc(target)}">${actionLabel(action)}</button>` : `<span class="ops-times">${esc(run.back_at?.slice(11, 16) || "")}</span>`}${menu}</td>
+      <td class="ops-row-action">${action ? `<button type="button" class="primary ops-action" data-op="${action}" data-target="${esc(target)}">${pendingTargets.has(target) ? `<span class="spinner" aria-hidden="true"></span> ${esc(pendingLabel(target))}` : actionLabel(action)}</button>` : `<span class="ops-times">${esc(run.back_at?.slice(11, 16) || "")}</span>`}${menu}${rowErrors.has(target) ? `<span class="ops-row-error" role="alert">${esc(rowErrors.get(target))}</span>` : ""}</td>
     </tr>`;
   }
 
@@ -330,6 +381,92 @@
     paintAttention();
     updateToolbar();
     paintClock();
+    setRovingRows();
+  }
+
+  function setRovingRows(preferred) {
+    const rows = [...document.querySelectorAll("#opsBoard [data-run-key]")];
+    if (!rows.length) return;
+    const current = preferred || document.activeElement?.closest?.("[data-run-key]")?.dataset.runKey;
+    rows.forEach((el, index) => { el.tabIndex = (current && el.dataset.runKey === current) || (!current && index === 0) ? 0 : -1; });
+  }
+
+  function updateGroupDom(group, affectedTargets) {
+    let section = document.querySelector(`#opsBoard .ops-group[data-group-id="${CSS.escape(String(group.id))}"]`);
+    if (!section) {
+      const holder = document.createElement("div");
+      holder.innerHTML = groupMarkup(group);
+      section = holder.firstElementChild;
+      const ordered = [...document.querySelectorAll("#opsBoard .ops-group")].find(item => item.dataset.groupId.localeCompare(String(group.id), "ar") > 0);
+      $id("opsBoard").insertBefore(section, ordered || null);
+      return section;
+    }
+    const oldBody = section.querySelector(".ops-group-body");
+    const oldHeader = section.querySelector(".ops-group-header");
+    const holder = document.createElement("div");
+    holder.innerHTML = groupMarkup(group);
+    const fresh = holder.firstElementChild;
+    oldHeader.replaceWith(fresh.querySelector(".ops-group-header"));
+    const freshBody = fresh.querySelector(".ops-group-body");
+    // محتوى الجدول بيتحدث للصفوف المتأثرة فقط؛ جسم المجموعة الجديد يستخدم
+    // كمرجع ترتيب، لكننا لا نستبدل الصفوف الموجودة حتى تفضل القائمة المفتوحة.
+    for (const run of group.runs) {
+      const target = actionTarget(run);
+      const current = section.querySelector(`[data-run-key="${CSS.escape(String(target))}"]`);
+      const desired = fresh.querySelector(`[data-run-key="${CSS.escape(String(target))}"]`);
+      if (current && desired && affectedTargets.has(target)) current.replaceWith(desired);
+      else if (!current && desired) {
+        const body = section.querySelector("tbody") || section.querySelector(".ops-grid");
+        body?.appendChild(desired);
+      }
+    }
+    if (oldBody && !section.querySelector("[data-run-key]")) section.remove();
+    return section;
+  }
+
+  function reconcileBoard(previousRuns, affectedTargets, focusSnapshot) {
+    const current = allRuns();
+    const visible = current.filter(matchesFilters).sort((a, b) => {
+      const ca = displayState(a) === "carried" ? 0 : 1, cb = displayState(b) === "carried" ? 0 : 1;
+      return ca - cb || (minutes(a.report_time) ?? 9999) - (minutes(b.report_time) ?? 9999);
+    });
+    const groups = groupRuns(visible);
+    const oldElements = new Map([...document.querySelectorAll("#opsBoard [data-run-key]")].map(el => [el.dataset.runKey, el]));
+    if (affectedTargets.size && document.querySelector("#rowMenuPopup:not(.hidden)")) document.querySelector("#rowMenuPopup").classList.add("hidden");
+    affectedTargets.forEach(target => oldElements.get(String(target))?.remove());
+    for (const group of groups) {
+      const totals = Object.fromEntries(groupRuns(current).map(item => [item.id, item.runs.length]));
+      group.total = totals[group.id] || group.runs.length;
+      const section = updateGroupDom(group, affectedTargets);
+      for (const run of group.runs.filter(item => affectedTargets.has(actionTarget(item)))) {
+        const target = actionTarget(run);
+        if (section.querySelector(`[data-run-key="${CSS.escape(String(target))}"]`)) continue;
+        const holder = document.createElement("div"); holder.innerHTML = viewMode() === "cards" ? card(run) : row(run);
+        const body = section.querySelector("tbody") || section.querySelector(".ops-grid");
+        body?.appendChild(holder.firstElementChild);
+      }
+    }
+    groups.forEach(group => {
+      const section = document.querySelector(`#opsBoard .ops-group[data-group-id="${CSS.escape(String(group.id))}"]`);
+      if (section) $id("opsBoard").appendChild(section);
+    });
+    document.querySelectorAll("#opsBoard .ops-group").forEach(section => {
+      if (!section.querySelector("[data-run-key]")) section.remove();
+    });
+    if (!visible.length) $id("opsBoard").innerHTML = renderEmptyResult();
+    paintCounters(); paintAttention(); updateToolbar(); paintClock(); setRovingRows(focusSnapshot?.target);
+    restoreFocus(focusSnapshot || {scroll: window.scrollY}, affectedTargets[0]);
+  }
+
+  function paintSync() {
+    const label = $id("opsLastUpdated");
+    if (!label) return;
+    const age = lastRefreshOkAt ? Math.max(0, Math.floor((Date.now() - lastRefreshOkAt) / 1000)) : Infinity;
+    const time = lastRefreshOkAt ? new Date(lastRefreshOkAt).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit", second: "2-digit"}) : "—";
+    const stale = age > 90;
+    label.textContent = stale ? `لم يتم التحديث منذ ${age < 3600 ? `${Math.floor(age / 60)} دقيقة` : "مدة طويلة"}` : `آخر تحديث ${time}`;
+    $id("opsSync")?.classList.toggle("is-stale", stale);
+    $id("opsRefreshNow")?.classList.toggle("hidden", !stale);
   }
 
   function renderEmptyResult() {
@@ -362,34 +499,47 @@
 
   async function loadOps() {
     const next = await api(`/api/ops/${day}`, {noLoader: true});
-    if (!next) return;
+    if (!next) { paintSync(); return; }
     // التحديث الدوري مايعيدش رسم اللوحة لو مفيش حاجة اتغيّرت — إعادة الرسم
     // بتقفل أي قايمة ⋯ مفتوحة وبتضيّع مكان التركيز من الكيبورد كل 30 ثانية.
     // التلميحات (جهّز/متأخرة) بتتحسب على السيرفر بالدقيقة، فبنقارنها برضه.
     const sig = data => JSON.stringify([data.revision, data.counters, data.next?.key]);
+    const previous = ops;
     const changed = !ops || sig(ops) !== sig(next);
     ops = next;
+    lastRefreshOkAt = Date.now(); paintSync();
     if (!changed) return;
-    paintCounters();
-    renderBoard();
+    const before = new Map((previous ? allRuns() : []).map(run => [actionTarget(run), run]));
+    const after = new Map(allRuns().map(run => [actionTarget(run), run]));
+    const affected = new Set([...before.keys(), ...after.keys()].filter(key => JSON.stringify(before.get(key)) !== JSON.stringify(after.get(key))));
+    // الرسم الكامل (أول تحميل) لازم يرسم العدادات والسطر العلوي كمان —
+    // reconcileBoard بيرسمهم لوحده، لكن renderBoard لأ.
+    if (!previous || !document.querySelector("#opsBoard [data-run-key]")) {
+      renderBoard(); paintCounters(); paintAttention(); paintClock();
+    } else reconcileBoard(before, affected, rememberFocus());
   }
 
-  async function mutate(url, body, button, success) {
+  async function mutate(url, body, button, success, method = "POST") {
     if (button?.dataset.pending === "1") return;
     const targets = body.keys || (body.key ? [body.key] : []);
-    targets.forEach(target => pendingTargets.add(target));
+    const action = url.endsWith("/return") || body.mode === "return" ? "return" : url.endsWith("/time") ? "time" : url.endsWith("/undo") ? "undo" : "depart";
+    const busyText = action === "return" ? "جارٍ تسجيل العودة…" : action === "time" ? "جارٍ حفظ تعديل المعاد…" : action === "undo" ? "جارٍ التراجع…" : "جارٍ تسجيل القيام…";
+    targets.forEach(target => {
+      pendingTargets.add(target); pendingLabels.set(target, busyText);
+      pendingTimers.set(target, setTimeout(() => slowNotice(target), 3000));
+    });
     const originalText = button?.innerHTML;
+    syncPendingDom(targets);
     if (button) {
       button.dataset.pending = "1";
       button.disabled = true;
       button.classList.add("is-pending");
-      button.innerHTML = '<span class="spinner" aria-hidden="true"></span> جارٍ التنفيذ…';
+      button.innerHTML = `<span class="spinner" aria-hidden="true"></span> ${esc(targets.length > 1 ? busyText : busyText)}`;
     }
-    targets.forEach(target => pendingTargets.delete(target));
     let stale = false;
     const out = await api(url, {
-      ...jsonReq("POST", {...body, revision: ops.revision, now: new Date().toISOString()}),
-      loadingLabel: "جارٍ تنفيذ الإجراء…",
+      ...jsonReq(method, {...body, revision: ops.revision, now: new Date().toISOString()}),
+      loadingLabel: busyText,
       onError: (payload, status) => {
         if (status === 409 && payload.code === "stale_revision") {
           stale = true;
@@ -404,19 +554,33 @@
       button.classList.remove("is-pending");
       button.innerHTML = originalText;
     }
+    clearPending(targets);
     if (stale) {
       await loadOps();
       showToast("تم تحديث اللوحة من جهاز آخر — أعد المحاولة", true);
       return false;
     }
     if (out) {
+      const snapshot = rememberFocus();
+      const previous = new Map(allRuns().map(run => [actionTarget(run), run]));
       ops = out;
-      paintCounters();
-      renderBoard();
+      const after = new Map(allRuns().map(run => [actionTarget(run), run]));
+      const changedTargets = new Set(targets);
+      for (const key of new Set([...previous.keys(), ...after.keys()])) {
+        if (JSON.stringify(previous.get(key)) !== JSON.stringify(after.get(key))) changedTargets.add(key);
+      }
+      rowErrors.clear();
+      reconcileBoard(previous, changedTargets, snapshot);
       announce(success);
       showToast(success);
       return true;
     }
+    targets.forEach(target => {
+      rowErrors.set(target, "فشل التسجيل — حاول مرة أخرى");
+      const el = currentRunElement(target);
+      if (el && !el.querySelector(".ops-row-error")) el.insertAdjacentHTML("beforeend", `<span class="ops-row-error" role="alert">فشل التسجيل — حاول مرة أخرى</span>`);
+    });
+    showToast("فشل التسجيل — لم تتغير اليومية", true);
     return false;
   }
 
@@ -523,9 +687,60 @@
     if (attention) { filters.states = new Set([attention.dataset.attentionState]); filters.attention = false; savePrefs(); paintCounters(); renderBoard(); }
   });
   document.addEventListener("keydown", event => {
-    if (event.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName)) { event.preventDefault(); $id("opsSearch").focus(); }
-    if (event.key === "Escape" && document.activeElement === $id("opsSearch") && filters.query) { filters.query = ""; renderBoard(); }
+    const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName) || event.target.isContentEditable;
+    if (event.key === "Escape") {
+      if (isModalOpen()) return;
+      if (filters.query) { filters.query = ""; renderBoard(); event.preventDefault(); return; }
+      const panel = $id("opsFiltersPanel"), help = $id("opsShortcutsHelp");
+      if (panel && !panel.classList.contains("hidden")) { panel.classList.add("hidden"); $id("opsFiltersToggle").setAttribute("aria-expanded", "false"); event.preventDefault(); return; }
+      if (help && !help.classList.contains("hidden")) { help.classList.add("hidden"); $id("opsShortcutsToggle").setAttribute("aria-expanded", "false"); event.preventDefault(); }
+      return;
+    }
+    if (typing || isModalOpen()) return;
+    // event.code عشان الكيبورد العربي: نفس الزرار بيكتب «ظ» مش «/»
+    if (event.key === "/" || event.code === "Slash") { event.preventDefault(); $id("opsSearch").focus(); return; }
+    if (event.key === "F6") {
+      event.preventDefault();
+      const zones = [$id("opsStrip"), $id("opsToolbar"), $id("opsBoard"), document.querySelector(".admin-followup")].filter(Boolean);
+      keyboardZone = (keyboardZone + (event.shiftKey ? zones.length - 1 : 1)) % zones.length;
+      const focusable = zones[keyboardZone].querySelector("button, input, select, summary, [tabindex]") || zones[keyboardZone];
+      focusable.setAttribute("tabindex", focusable.tabIndex < 0 ? "-1" : String(focusable.tabIndex)); focusable.focus(); return;
+    }
+    const focused = event.target.closest?.("#opsBoard [data-run-key]");
+    if (focused && ["ArrowDown", "ArrowUp"].includes(event.key)) {
+      event.preventDefault();
+      const rows = [...document.querySelectorAll("#opsBoard [data-run-key]")];
+      const next = rows[Math.max(0, Math.min(rows.length - 1, rows.indexOf(focused) + (event.key === "ArrowDown" ? 1 : -1)))];
+      setRovingFocus(next); return;
+    }
+    if (focused && event.key === "Enter") {
+      const action = focused.querySelector(".ops-action:not([disabled])");
+      if (action) { event.preventDefault(); action.click(); }
+    }
+    if (focused && (event.key === "F10" && event.shiftKey || event.key === "ContextMenu")) {
+      event.preventDefault(); focused.querySelector(".row-menu-btn")?.click();
+    }
+    const groupToggle = event.target.closest?.(".ops-group-toggle");
+    if (groupToggle && event.key === " ") { event.preventDefault(); groupToggle.click(); }
   });
+
+  function setRovingFocus(el) {
+    if (!el) return;
+    document.querySelectorAll("#opsBoard [data-run-key]").forEach(item => { item.tabIndex = item === el ? 0 : -1; });
+    el.focus({preventScroll: true});
+  }
+
+  document.addEventListener("focusin", event => {
+    const rowEl = event.target.closest?.("#opsBoard [data-run-key]");
+    if (rowEl) setRovingFocus(rowEl);
+  });
+
+  $id("opsShortcutsToggle").addEventListener("click", event => {
+    const help = $id("opsShortcutsHelp");
+    help.classList.toggle("hidden");
+    event.currentTarget.setAttribute("aria-expanded", String(!help.classList.contains("hidden")));
+  });
+  $id("opsRefreshNow").addEventListener("click", () => loadOps());
 
   $id("opsLineForm").addEventListener("submit", event => {
     event.preventDefault();
@@ -546,43 +761,15 @@
     const target = event.currentTarget.dataset.target;
     const scope = document.querySelector('input[name="opsTimeScope"]:checked').value;
     const submit = $id("opsTimeSubmit");
-    if (submit.dataset.pending === "1") return;
-    const originalText = submit.innerHTML;
-    submit.dataset.pending = "1";
-    submit.disabled = true;
-    submit.classList.add("is-pending");
-    submit.innerHTML = '<span class="spinner" aria-hidden="true"></span> جارٍ التنفيذ…';
-    const out = await api(`/api/ops/${day}/time`, {
-      ...jsonReq("PATCH", {key: target, time, scope, revision: ops.revision}),
-      loadingLabel: "جارٍ تنفيذ تعديل المعاد…",
-      onError: (payload, status) => {
-        // 409 تاني غير «نسخة قديمة» (زي «الخدمة غير موجودة») رسالته بتظهر عادي
-        if (status === 409 && payload.code === "stale_revision") {
-          loadOps();
-          showToast("تم تحديث اللوحة من جهاز آخر — أعد المحاولة", true);
-          return true;
-        }
-        return false;
-      },
-    });
-    if (out) {
-      ops = out;
-      paintCounters();
-      renderBoard();
-      closeModal("opsTimeModal", true);
-      announce("تم تعديل المعاد");
-      showToast("تم تعديل المعاد");
-    }
-    delete submit.dataset.pending;
-    submit.disabled = false;
-    submit.classList.remove("is-pending");
-    submit.innerHTML = originalText;
+    const ok = await mutate(`/api/ops/${day}/time`, {key: target, time, scope}, submit, "تم تعديل المعاد", "PATCH");
+    if (ok) closeModal("opsTimeModal", true);
   });
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) loadOps();
   });
   setInterval(() => { if (!document.hidden) loadOps(); }, 30000);
+  setInterval(paintSync, 1000);
   setInterval(paintClock, 1000);
 
   await loadOps();
