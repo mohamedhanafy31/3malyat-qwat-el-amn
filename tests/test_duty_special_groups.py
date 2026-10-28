@@ -117,7 +117,7 @@ def test_real_leave_overrides_inherited_medical_deputation(client, data_file):
     assert row["leave"]["raw_type"] == "أسبوعية"
     assert (row["group"], row["bucket"]) == ("طبية", "راحة")
     assert row["text"] == ""
-    assert _daily_text(row) == row["leave"]["type"]
+    assert _daily_text(row) == "راحة أسبوعية"
 
 
 def test_special_fields_are_rejected_for_officers_outside_the_groups(client):

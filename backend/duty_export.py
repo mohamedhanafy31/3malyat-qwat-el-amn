@@ -8,7 +8,7 @@
 طويلة فقط (8 ثم 7pt) كما يفعل من يكتب الملف يدويًا، وليس على الجدول كله.
 """
 from copy import deepcopy
-from datetime import date
+from datetime import date, timedelta
 from io import BytesIO
 from pathlib import Path
 
@@ -73,6 +73,36 @@ def _status_period_text(row):
     return f"{status} من {start} حتى {end}" if start else f"{status} حتى {end}"
 
 
+def _leave_text(leave):
+    """صياغة الراحة داخل «التشغيل اليومي» في ملف Word بس."""
+    raw_type = str((leave or {}).get("raw_type") or "").strip()
+    if raw_type == "أسبوعية":
+        return "راحة أسبوعية"
+
+    label = str((leave or {}).get("type") or raw_type or "راحة").strip()
+    label = {
+        "نصف شهرية": "راحة نصف شهرية",
+        "شهرية": "راحة شهرية",
+        "مجمعة": "راحة مجمعة",
+    }.get(raw_type, label)
+
+    def short_day(value):
+        try:
+            parsed = date.fromisoformat(str(value or ""))
+        except ValueError:
+            return str(value or "")
+        return f"{parsed.day}/{parsed.month}"
+
+    return_date = (leave or {}).get("return_date")
+    if not return_date:
+        try:
+            return_date = (date.fromisoformat(str((leave or {}).get("end") or ""))
+                           + timedelta(days=1)).isoformat()
+        except ValueError:
+            return_date = ""
+    return f"{label} (من {short_day((leave or {}).get('start'))} والعودة {short_day(return_date)})"
+
+
 def _daily_text(row):
     """«التشغيل اليومي»: الخدمة التلقائية من اللوحة + التشغيل الإضافي اليدوي."""
     # الفرقة المحسوبة من سجل الالتحاق ليس لها حالة يومية مكتوبة؛ من دون
@@ -88,7 +118,7 @@ def _daily_text(row):
     if row.get("text"):
         return row["text"]
     if row.get("leave"):
-        return row["leave"].get("type") or "راحة"
+        return _leave_text(row["leave"])
     return row.get("status") or row.get("group") or "عمل"
 
 
