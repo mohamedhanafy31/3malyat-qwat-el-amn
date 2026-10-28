@@ -5,6 +5,7 @@
 """
 DAY = "2026-04-10"
 OTHER_DAY = "2026-04-11"
+SECTION_SUBCAMP = "ضابط عظيم وأمن المعسكر الفرعي"
 
 
 def _add(client, day=DAY, **over):
@@ -248,16 +249,28 @@ def test_outside_director_is_not_duplicated_in_admin_work(client):
 
 # ---------- قواعد اتقاست على جدول الإجمالي في الوورد ----------
 
-def test_subcamp_service_leaves_the_officer_in_net(client):
-    """قوة المعسكر الفرعي مالهاش خانة في جدول إجمالي الإدارة: الوورد كتب
-    ضابط «نوبتجي المعسكر الفرعي» في قايمة «الصافي» بالاسم في 11 يوم من 11."""
-    _add(client, officer_ids=["OFF-002"], kind="داخلية", counts_in_summary=False)
+def test_subcamp_service_gets_its_own_summary_bucket(client):
+    """المعسكر الفرعي خانة مستقلة، ولا يدخل الصافي أو أعداد الداخلية."""
+    _add(client, officer_ids=["OFF-002"], kind="داخلية", section=SECTION_SUBCAMP,
+         counts_in_summary=False)
     s = _summary(client)
     assert s["داخلية"]["صباحية"] == 0
-    assert s["صافي"] == 2, "الخدمة بتظهر على اللوحة لكن مابتحركش الضابط"
+    assert s["معسكر فرعي"] == 1
+    assert s["صافي"] == 1
+    assert _row(client, "OFF-002")["group"] == "معسكر فرعي"
     assert s["balanced"] is True
     # ولسه ظاهرة على اللوحة عادي
-    assert len(_section(client, "الخدمات أساسية")["rows"]) == 1
+    assert any(row["id"] for row in _section(client, SECTION_SUBCAMP)["rows"])
+
+
+def test_subcamp_service_loses_to_taqseera(client):
+    _add(client, officer_ids=["OFF-002"], kind="داخلية", section=SECTION_SUBCAMP,
+         counts_in_summary=False)
+    client.put(f"/api/duty/{DAY}/OFF-002", json={"taqseera": True})
+    summary = _summary(client)
+    assert summary["معسكر فرعي"] == 0
+    assert summary["خوارج"]["تقصيرة"] == 1
+    assert _row(client, "OFF-002")["group"] == "خوارج"
 
 
 # ---------- سلّم أولويات خانة الإجمالي ----------

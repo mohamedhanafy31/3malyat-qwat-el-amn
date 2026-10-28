@@ -1391,6 +1391,9 @@ body.sidebar-open{overflow:hidden}
   background:var(--surface)}
 .sum-group h4{margin:0 0 var(--s1);font-size:var(--t-xs);color:var(--ink-500);font-family:var(--font-body)}
 .sum-tiles{display:flex;gap:var(--s2)}
+/* «N معسكر فرعي» سطر تحت أرقام الداخلية، زي الصف السفلي في جدول الورد */
+.sum-tiles:has(.sum-note){flex-wrap:wrap}
+.sum-note{flex-basis:100%;font-size:var(--t-xs);font-weight:700;color:var(--navy-700)}
 .sum-tile{display:flex;flex-direction:column;align-items:center;min-width:36px}
 .sum-group.single{display:flex;flex-direction:column;align-items:center;justify-content:space-between}
 .sum-group.single b{font-size:var(--t-lg);color:var(--navy-950);font-variant-numeric:tabular-nums}

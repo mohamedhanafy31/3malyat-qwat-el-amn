@@ -5,7 +5,8 @@ import pytest
 from docx import Document
 from docx.oxml.ns import qn
 
-from backend.duty_export import LAST_FIT, _daily_text, build_docx
+from backend.duty_export import (LAST_FIT, _daily_text, _sparse_summary,
+                                  _summary_values, build_docx)
 from tools.fidelity.duty import _structure, load_docx
 
 
@@ -79,6 +80,19 @@ def test_summary_has_patrol_and_mission_columns_in_real_order():
     summary["حراسات"] = 8
     values = [c.text for c in _build({**_duty(), "summary": summary}).tables[1].rows[2].cells]
     assert values[9] == "2" and values[13] == "3" and values[15] == "8"
+
+
+def test_summary_writes_search_and_subcamp_in_their_morning_columns():
+    summary = _summary()
+    summary["خارجية"]["صباحية"] = 3
+    summary["خارجية"]["بحث"] = 1
+    summary["معسكر فرعي"] = 1
+    values = _summary_values(summary)
+    assert values[1] == "3 + 1 بحث"
+    assert values[3] == "0"  # المعسكر الفرعي في الصف اللي تحت، مش جنب الرقم
+    rows = [{"group": "معسكر فرعي"}, {"group": "خوارج",
+             "services": [{"name": "نوبتجي المعسكر الفرعي"}]}]
+    assert _sparse_summary(rows)[0] == "1 معسكر فرعي"
 
 
 def test_row_heights_are_at_least_never_exact_and_row_15_matches_real():

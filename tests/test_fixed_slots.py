@@ -51,16 +51,15 @@ def test_security_slot_gets_its_own_fixed_name(client):
     assert stored["name"] == "ضابط أمن الإدارة"
 
 
-def test_subcamp_slot_does_not_count_toward_the_totals_table(client):
-    """المعسكر الفرعي مالوش خانة في جدول الإجمالي — الضابط بيفضل في
-    الصافي حتى وهو نوبتجي، عكس ضابط عظيم/أمن الإدارة."""
+def test_subcamp_slot_has_a_totals_bucket(client):
+    """نوبتجي المعسكر الفرعي له خانة مستقلة، لا الصافي."""
     _set_slot(client, SECTION_SUBCAMP, "صباحية", ["OFF-001"])
     row = _slot_row(client, SECTION_SUBCAMP, "صباحية")
     assert row["name"] == "نوبتجي المعسكر الفرعي"
 
     duty_row = next(r for r in client.get(f"/api/duty/{DAY}").get_json()["rows"]
                     if r["id"] == "OFF-001")
-    assert duty_row["group"] == "صافي"
+    assert duty_row["group"] == "معسكر فرعي"
 
 
 def test_great_slot_does_count_toward_the_totals_table(client):

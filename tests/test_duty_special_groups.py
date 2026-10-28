@@ -65,6 +65,42 @@ def test_research_service_is_daily_and_can_be_saved_then_cleared(client, data_fi
     assert cleared_row["text"] == "تشغيله ـــــــــــــــــــــ"
 
 
+def test_research_member_without_service_counts_in_search_and_not_net(client, data_file):
+    _set_groups(data_file, search=["OFF-001"])
+    duty = client.get("/api/duty/2026-03-01").get_json()
+    assert duty["summary"]["خارجية"]["بحث"] == 1
+    assert duty["summary"]["صافي"] == 1
+    assert "عقيد/ أحمد محمد" not in duty["summary"]["net_names"]
+
+
+def test_research_member_on_ordinary_leave_stays_in_search(client, data_file):
+    _set_groups(data_file, search=["OFF-001"])
+    assert client.post("/api/leaves", json={
+        "person_id": "OFF-001", "type": "أسبوعية",
+        "start": "2026-03-01", "end": "2026-03-01",
+    }).status_code == 201
+    summary = client.get("/api/duty/2026-03-01").get_json()["summary"]
+    assert summary["خارجية"]["بحث"] == 1
+    assert summary["خوارج"]["راحة"] == 0
+
+
+def test_official_status_beats_research(client, data_file):
+    _set_groups(data_file, search=["OFF-001"])
+    assert client.put("/api/duty/2026-03-01/OFF-001", json={"status": "غياب"}).status_code == 200
+    summary = client.get("/api/duty/2026-03-01").get_json()["summary"]
+    assert summary["خوارج"]["غياب"] == 1
+    assert summary["خارجية"]["بحث"] == 0
+
+
+def test_group_member_and_search_attachment_are_counted_once(client, data_file):
+    _set_groups(data_file, search=["OFF-001"])
+    assert client.patch("/api/person/OFF-001", json={
+        "search_attached": True, "effective_from": "2026-03-01",
+    }).status_code == 200
+    summary = client.get("/api/duty/2026-03-01").get_json()["summary"]
+    assert summary["خارجية"]["بحث"] == 1
+
+
 def test_medical_state_inherits_until_an_explicit_change(client, data_file):
     _set_groups(data_file, medical=["OFF-002"])
 

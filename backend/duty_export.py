@@ -19,7 +19,7 @@ from docx.table import _Cell
 
 from .board_export import WEEKDAY_BY_INDEX, order_xml_children
 from .constants import (OFFICER_SECTIONS, SECTION_FORCE, SECTION_GUARDS,
-                        SECTION_OUTSIDE, SECTION_SUBCAMP, SUBCAMP_SERVICES)
+                        SECTION_OUTSIDE)
 from .export_fit import PageFitError, TextMeter, usable_height_pt
 from .labels import RANK_SHORT, officer_label
 
@@ -233,10 +233,14 @@ def _summary_values(summary):
     medical, outside = summary["طبية"], summary["خوارج"]
     morning = str(external["صباحية"])
     if external.get("بحث"):
-        morning += f"+ {external['بحث']} بحث"
+        morning = (f"{morning} + {external['بحث']} بحث" if external["صباحية"]
+                   else f"{external['بحث']} بحث")
+    # «N معسكر فرعي» بيتكتب في الصف اللي تحت الداخلية (`_sparse_summary`)،
+    # مش جنب الرقم — غير كده كان بيتطبع مرتين.
+    internal_morning = str(internal["صباحية"])
     fixed_outside = {"تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب", "مأمورية"}
     other_emergency = sum(value for key, value in outside.items() if key not in fixed_outside)
-    return [summary["أصل القوة"], morning, external["ليلية"], internal["صباحية"],
+    return [summary["أصل القوة"], morning, external["ليلية"], internal_morning,
             internal["ليلية"], medical["موجود"], medical["راحة"], outside["تقصيرة"],
             outside["راحة"], outside["طارئة"] + other_emergency, outside["غياب"], outside["مرضي"],
             outside["فرقة"], outside.get("مأمورية", 0), outside["انتداب"], summary["حراسات"]]
@@ -254,13 +258,9 @@ def _net_names(rows):
 
 
 def _sparse_summary(rows):
-    subcamp = 0
+    subcamp = sum(1 for row in rows if row.get("group") == "معسكر فرعي")
     deputed = False
     for row in rows:
-        services = row.get("services") or []
-        if any(service.get("name") in SUBCAMP_SERVICES or
-               service.get("section") == SECTION_SUBCAMP for service in services):
-            subcamp += 1
         deputed = deputed or row.get("status") == "انتداب"
     return (f"{subcamp} معسكر فرعي" if subcamp else ""), ("منتدب" if deputed else "")
 

@@ -5,7 +5,7 @@
 
 جدول الإجمالي في الوورد (موجود في يوميات 17/8 وطالع، 22 يوم):
 
-    أصل القوة | خارجية (صباحية|ليلية|+N بحث) | داخلية (صباحية|ليلية)
+    أصل القوة | خارجية (صباحية|ليلية|+N بحث) | داخلية (صباحية|ليلية|+N معسكر فرعي)
     | طبية (موجود|راحة) | خوارج (تقصيرة|راحة|طارئة|غياب|مرضي|فرقة|انتداب)
     | الحراسات المشددة | الصافي (N) + الأسماء
 
@@ -15,8 +15,8 @@
 """
 from .assignments import assignments_of, officer_state, officer_statuses
 from .courses import by_id as courses_by_id, term_on
-from .constants import (LEAVE_BUCKET, ROLE_MEDICAL, ROLE_SEARCH, SECTION_TARGETS,
-                        SHIFTS, TARGETS_FIRST)
+from .constants import (LEAVE_BUCKET, ROLE_MEDICAL, ROLE_SEARCH, SECTION_SUBCAMP,
+                        SECTION_TARGETS, SHIFTS, SUBCAMP_SERVICES, TARGETS_FIRST)
 from .dated import command_on, groups_on, medical_state_on
 from .leaves import leave_label, leave_on
 from .people import effective, officers_on
@@ -32,20 +32,21 @@ from .status_periods import public as status_period_public
 #   2. ضابط العيادة           عضو في منصب «طبي» الجماعي في قيادة الإدارة، أو خدمة
 #                             اليوم تصنيفها «طبية» — بيفضل في عمود الطبية
 #                             حتى وهو في راحة
-#   3. راحة مسجّلة
+#   3. راحة مسجّلة             إلا لو الضابط بحث؛ البحث له وسمه في الخارجية
 #   4. تقصيرة                 بتغلب الخدمة **والحراسة** — الضابط اشتغل وخرج بدري
-#   5. حراسات                 قائد الهدف حراسة مهما كان ترتيب خدماته
+#   5. بحث                    عضوية بحث أو search_attached، حتى من غير خدمة أو مع راحة
 #   6. أول خدمة اتحط عليها    الخانة اللي اتحط فيها الأول هي اللي تتحسب
 #   7. فرقة                   مدى الالتحاق بيملا الأيام الفاضية بس
-#   8. صافي
-PRIORITY = ("حالة مكتوبة", "طبية", "راحة", "تقصيرة",
-            "حراسات", "أول خدمة اتحط عليها", "فرقة", "صافي")
+#   8. معسكر فرعي             لو ده شغله الوحيد، وقبل الصافي
+#   9. صافي
+PRIORITY = ("حالة مكتوبة", "طبية", "راحة", "تقصيرة", "بحث",
+            "حراسات", "أول خدمة اتحط عليها", "فرقة", "معسكر فرعي", "صافي")
 
 # لما التكليف نفسه مالوش فترة مسجّلة
 DEFAULT_SHIFT = "صباحية"
 
 
-def _first_cell(kinds, search_attached):
+def _first_cell(kinds):
     """-> (المجموعة، الخانة) لضابط عليه خدمة أو أكتر.
 
     الحراسات بتغلب أي ترتيب: قائد الهدف بيتحسب حراسات حتى لو الهدف مش أول
@@ -62,10 +63,6 @@ def _first_cell(kinds, search_attached):
                        (None, None))
     if kind is None:
         return ("صافي", None)
-    # وسم «+N بحث» تابع لجهة تشغيل الضابط، وبيظهر بس لما يكون على خدمة
-    # خارجية — في 20/8 كان على خدمة داخلية والورد حسبه داخلية بلا وسم
-    if kind == "خارجية" and search_attached:
-        return ("خارجية", "بحث")
     return (kind, shift if shift in SHIFTS else DEFAULT_SHIFT)
 
 
@@ -79,11 +76,12 @@ def _empty_summary(force, statuses=()):
         "طبية": {"موجود": 0, "راحة": 0},
         "خوارج": {key: 0 for key in outside},
         "حراسات": 0,
+        "معسكر فرعي": 0,
         "صافي": 0,
     }
 
 
-def _bucket(kinds, leave, state, medical, search_attached, course=None,
+def _bucket(kinds, leave, state, medical, research, subcamp=False, course=None,
             medical_state="عمل"):
     """-> (المجموعة، الخانة الفرعية) لضابط واحد. القواعد بترتيب PRIORITY."""
     # حالة مكتوبة بالإيد لليوم ده بالذات بتغلب أي افتراض
@@ -102,21 +100,30 @@ def _bucket(kinds, leave, state, medical, search_attached, course=None,
             return ("خوارج", "انتداب")
         return ("طبية", "راحة" if medical_state == "راحة" else "موجود")
 
-    if leave:
+    # الراحة تفضل أقوى من التقصيرة والخدمة في القاعدة القديمة؛ البحث وحده
+    # استثناء الوورد، لأنه يظل «بحث» حتى وهو في راحة عادية.
+    if leave and not research:
         return ("خوارج", LEAVE_BUCKET.get(leave["type"], "راحة"))
     if state.get("taqseera"):
         return ("خوارج", "تقصيرة")
-
-    if kinds:
-        return _first_cell(kinds, search_attached)
 
     # الالتحاق بفرقة بيغطي أيامه لوحده — زي الراحة — بدل ما الكلمة تتكتب
     # في تشغيل كل يوم. لكنه **مابيلغيش تكليف مسجّل**: المدة بتيجي من نص
     # مكتوب مرة واحدة («من 22/8 حتى 3/9») وساعات الضابط بيرجع بدري أو
     # الفرقة بتتأجل، والدليل على كده إنه ظاهر على خدمة في اليوم ده.
     # المكتوب لليوم بعينه أقوى من المدى المستنتج.
-    if course:
+    if course and not kinds and not leave:
         return ("خوارج", "فرقة")
+    # البحث بيتحسب حتى من غير خدمة، ومع الراحة العادية كمان. الحالات
+    # المكتوبة والطبي والتقصيرة والفرقة اتحسمت فوقه، زي precedence الوورد.
+    if research:
+        return ("خارجية", "بحث")
+    if kinds:
+        return _first_cell(kinds)
+    # خدمة المعسكر الفرعي لا تدخل في الخدمات العددية ولا الصافي؛ لها خانة
+    # مستقلة في الإجمالي، بشرط ألا يكون للضابط تصنيف أقوى.
+    if subcamp:
+        return ("معسكر فرعي", None)
     return ("صافي", None)
 
 
@@ -241,20 +248,26 @@ def officer_row(data, day, o, catalog=None):
                       "kind": a.get("kind") or "خارجية", "shift": a.get("shift", ""),
                       "section": a.get("section", ""),
                       "counted": a.get("counts_in_summary", True)})
-    # خدمات المعسكر الفرعي بتظهر على اللوحة لكن مابتحرّكش الضابط من
-    # «الصافي» في جدول الإجمالي — قوة المعسكر الفرعي مالهاش خانة في
-    # جدول الإدارة. مقيس على 11 يوم: الوورد بيكتب ضابط النوبتجي في
-    # قايمة «الصافي» بالاسم في كل مرة.
+    # خدمة المعسكر الفرعي لا تتحسب كخدمة عادية، لكن لها خانة مستقلة إذا كانت
+    # هي الشغل الوحيد للضابط. أي خدمة محسوبة أو حالة أقوى تغلبها.
     kinds = [(it["kind"], it["shift"]) for it in items if it["counted"]]
+    subcamp = bool(items) and all(
+        not item["counted"] and (item["section"] == SECTION_SUBCAMP or
+                                  item["name"] in SUBCAMP_SERVICES)
+        for item in items
+    )
     groups = groups_on(data, day)
     medical = o["id"] in (groups.get(ROLE_MEDICAL) or [])
     medical_bucket = medical or any(k == "طبية" for k, _ in kinds)
+    # عضو مجموعة «بحث» = تعيين خدمته من زرار الحالة ونصّه «تشغيله ـــ».
+    # العدّ في «+N بحث» أوسع: العضوية أو search_attached.
     research = o["id"] in (groups.get(ROLE_SEARCH) or [])
+    counts_as_research = research or bool(eff["search_attached"])
     medical_choice = medical_state_on(data, o["id"], day) if medical else {
         "state": "", "deputation_text": "", "from": ""}
 
     group, sub = _bucket(kinds, leave, effective_state, medical_bucket,
-                         eff["search_attached"], term, medical_choice["state"])
+                         counts_as_research, subcamp, term, medical_choice["state"])
     text = operational_text(items, state.get("note", ""), state.get("extra", ""))
     # الحالات الخاصة والإجازات الفعلية تفضل صاحبة الأولوية في الشاشة والوورد.
     # لو الضابط عضو في المجموعتين معًا، الطبي هو التصنيف الأقوى زي `_bucket`.
@@ -336,7 +349,7 @@ def summarise(data, day):
 
     counted = (sum(s["خارجية"].values()) + sum(s["داخلية"].values())
                + sum(s["طبية"].values()) + sum(s["خوارج"].values())
-               + s["حراسات"] + s["صافي"])
+               + s["حراسات"] + s["معسكر فرعي"] + s["صافي"])
     s["net_names"] = net_names
     s["counted"] = counted
     s["balanced"] = counted == s["أصل القوة"]
