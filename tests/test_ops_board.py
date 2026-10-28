@@ -35,6 +35,9 @@ def test_shared_run_is_one_state_and_exclusions_are_not_sources():
     assert view["groups"]["officers"][0]["key"] == "SVC-1:am"
     assert view["groups"]["basic"]["am"]["single"][0]["key"] == "SVC-1:am"
     assert all(r["name"] != "هدف" for r in view["groups"]["officers"])
+    shared = next(run for run in view["runs"] if run["key"] == "SVC-1:am")
+    assert shared["types"] == ["officers", "basic"]
+    assert sum(run["key"] == "SVC-1:am" for run in view["runs"]) == 1
 
 
 def test_transitions_and_undo():
@@ -78,6 +81,8 @@ def test_line_runs_follow_configured_order_and_absent_members_are_not_cards():
     ]
     runs = build_ops(data, "2026-10-20")["groups"]["basic"]["am"]["lines"][0]["runs"]
     assert [run["key"] for run in runs] == ["SVC-2:am", "SVC-1:am"]
+    assert runs[0]["line_meta"] == {"line_id": "LN-1", "name": "خط", "lorry": "المحور + المحكمة",
+                                     "driver": None, "vehicle": None, "warning": None}
 
 
 def test_afraad_link_head_and_catalog_fallbacks():
@@ -155,6 +160,32 @@ def test_returning_carried_ref_leaves_today_same_key_upcoming():
     assert today["state"] == "upcoming"
     assert all(run["key"] != key for run in view["carried"])
     assert data["day_service_runs"]["2026-10-19"][key]["back_at"]
+
+
+def test_canonical_runs_keep_carried_identity_distinct_from_today():
+    data = _cross_day_data()
+    key = "SVC-001:pm"
+    depart(data, "2026-10-19", [key], "مشغل", datetime(2026, 10, 19, 17, 1))
+    view = build_ops(data, "2026-10-20", datetime(2026, 10, 20, 8, 0))
+    identities = {run.get("ref") or run["key"] for run in view["runs"]}
+    assert key in identities
+    assert "2026-10-19/" + key in identities
+    assert len(view["runs"]) == len(identities)
+
+
+def test_custom_section_metadata_preserves_special_and_normal_names():
+    data = _data()
+    data["day_assignments"]["2026-10-20"] = [
+        {"id": "SP-1", "section": "خدمات مباراة المصري", "name": "بوابة المباراة",
+         "shift": "صباحية", "time": "8ص", "officer_ids": [], "conscript_count": 2},
+        {"id": "IN-1", "section": "تفتيشات", "name": "تفتيش البوابة",
+         "shift": "ليلية", "time": "10م", "officer_ids": [], "conscript_count": 1},
+    ]
+    runs = {run["name"]: run for run in build_ops(data, "2026-10-20")["runs"]}
+    assert runs["بوابة المباراة"]["section_name"] == "خدمات مباراة المصري"
+    assert runs["بوابة المباراة"]["section_kind"] == "special"
+    assert runs["تفتيش البوابة"]["section_name"] == "خدمات تفتيشات"
+    assert runs["تفتيش البوابة"]["section_kind"] == "emergency"
 
 
 def test_set_time_finds_line_runs_and_stores_catalog_default_as_hhmm(monkeypatch):

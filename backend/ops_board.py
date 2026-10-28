@@ -12,6 +12,7 @@ from .constants import (SECTION_BASIC, SECTION_GREAT, SECTION_SECURITY,
                         SECTION_SUBCAMP, SECTION_TARGETS)
 from .service_catalog import catalog
 from .service_lines import line_for_service, lorry_name
+from . import service_sections
 from . import service_links
 from .service_links import resolve_service_id, service_for_counts_entry
 from .settings import get_setting
@@ -128,13 +129,22 @@ def _line_info(data, day, service_id, assignment_id=None, ctx=None):
 
 
 def _run(key, name, group, shift, *, report=None, report_text=None, line=None,
-         head="", count=None, weapon="", source="", assignment_id=None, catalog_id=None):
+         head="", count=None, weapon="", source="", assignment_id=None, catalog_id=None,
+         section_id=None, section_name=None, section_kind=None, types=None):
     return {"key": key, "name": name, "group": group, "shift": shift,
             "report_time": report, "report_text": report_text or "", "state": "upcoming",
             "hint": None, "out_at": None, "out_by": None, "back_at": None,
             "back_by": None, "line_id": (line or {}).get("id"), "head": head,
             "line": (line or {}).get("line"), "count": count, "weapon": weapon,
             "warning": (line or {}).get("warning"),
+            "types": list(dict.fromkeys(types or [group])),
+            "section_id": section_id or group,
+            "section_name": section_name or group,
+            "section_kind": section_kind or group,
+            "line_meta": ({"line_id": line.get("id"), "name": line.get("line"),
+                           "lorry": line.get("lorry"), "driver": line.get("driver"),
+                           "vehicle": line.get("vehicle"), "warning": line.get("warning")}
+                          if line else None),
             "catalog_id": catalog_id,
             "sources": [source] if source else [],
             "_groups": {group}, "_line": line, "_assignment_id": assignment_id,
@@ -187,6 +197,8 @@ def _add(pool, item):
     old["line_id"] = old.get("line_id") or item.get("line_id")
     old["warning"] = old.get("warning") or item.get("warning")
     old["_line_warning"] = old.get("_line_warning") or item.get("_line_warning")
+    old["types"] = list(dict.fromkeys((old.get("types") or []) + (item.get("types") or [])))
+    old["line_meta"] = old.get("line_meta") or item.get("line_meta")
 
 
 def _apply_state(data, day, item, now):
@@ -248,14 +260,25 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
             count = catalog_count
         if weapon in (None, ""):
             weapon = catalog_weapon or ""
+        section_id = add_source.section_id
+        section_name = add_source.section_name
+        section_kind = add_source.section_kind
         _add(pool, _run(key, name, group, shift, report=report, report_text=report_text,
                         line=line, head=head, count=count, weapon=weapon,
-                        source=source, assignment_id=assignment_id, catalog_id=svc_id))
+                        source=source, assignment_id=assignment_id, catalog_id=svc_id,
+                        section_id=section_id, section_name=section_name,
+                        section_kind=section_kind, types=[group]))
+
+    def source_section(section_id, section_name, section_kind):
+        add_source.section_id = section_id
+        add_source.section_name = section_name
+        add_source.section_kind = section_kind
 
     for row in peek_day(data, day):
         section = row.get("section") or ""
         if section != SECTION_BASIC:
             continue
+        source_section("officers", "خدمات الضباط الأساسية", "officers")
         shift = _shift(row.get("shift"))
         svc_id = ctx.service_id(row.get("name"))
         officers = "، ".join(str(x.get("name") or x.get("full_name") or x)
@@ -274,6 +297,7 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
     _normalise_count_sources(data, day, cats, ctx)
     built = counts.build(data, day)
     for block, shift in (("basic_am", "am"), ("basic_pm", "pm")):
+        source_section("basic", "الخدمات الأساسية", "basic")
         for entry in built.get(block, []):
             svc_id = service_for_counts_entry(data, entry, index=ctx.service_index)
             afrow = af_by_service.get(svc_id)
@@ -283,9 +307,8 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
                        head=slot.get("full_name") or slot.get("name", ""),
                        count=entry.get("count"), weapon=entry.get("weapon", ""), source=block)
 
-    emergency = list(built.get("recurring", [])) + list(built.get("emergency", []))
-    emergency += [row for section in built.get("custom_sections", []) for row in section.get("rows", [])]
-    for entry in emergency:
+    source_section("emergency", "الخدمات الطارئة", "emergency")
+    for entry in list(built.get("recurring", [])) + list(built.get("emergency", [])):
         # صفوف الاعداد المتكررة ليها `id` (CNT-…)؛ صفوف الطوارئ المحسوبة من
         # اللوحة جاية من counts بـ`assignment_id` بس — من غيره كلهم كانوا
         # بياخدوا نفس المفتاح «None:am» ويفقدوا معادهم وفترتهم.
@@ -295,6 +318,20 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
         add_source(entry.get("name", ""), "emergency", _shift(raw.get("shift") or "am"), ident,
                    svc_id, raw_time=raw.get("time"), count=entry.get("count"),
                    weapon=entry.get("weapon", ""), source="emergency", assignment_id=ident)
+
+    for section in built.get("custom_sections", []):
+        name = section.get("name", "")
+        special = service_sections.is_special(name)
+        kind = "special" if special else "emergency"
+        section_id = f"{kind}:{norm(name)}"
+        source_section(section_id, service_sections.block_title(name), kind)
+        for entry in section.get("rows", []):
+            ident = entry.get("id") or entry.get("assignment_id")
+            raw = rows.get(ident, {})
+            svc_id = service_for_counts_entry(data, entry, index=ctx.service_index)
+            add_source(entry.get("name", ""), kind, _shift(raw.get("shift") or entry.get("shift") or "am"), ident,
+                       svc_id, raw_time=raw.get("time"), count=entry.get("count"),
+                       weapon=entry.get("weapon", ""), source=kind, assignment_id=ident)
 
     for item in pool.values():
         _apply_state(data, day, item, now_dt)
@@ -344,6 +381,9 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
     for item in carried:
         item["source_day"] = item.get("_source_day")
     for item in runs + carried:
+        item["line_meta"] = item.get("line_meta") or (None if not item.get("line_id") else {
+            "line_id": item.get("line_id"), "name": item.get("line"), "lorry": item.get("lorry"),
+            "driver": item.get("driver"), "vehicle": item.get("vehicle"), "warning": item.get("warning")})
         for field in ("_groups", "_line", "_assignment_id", "_source_day", "_line_name", "_lorry", "_driver", "_vehicle", "_line_warning"):
             item.pop(field, None)
     upcoming = [r for r in runs if r["state"] == "upcoming"]
@@ -363,13 +403,22 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
         next_value["minutes_left"] = minutes_left
         if next_value.get("line_id"):
             next_value["line"] = next_value.get("line") or next_value["line_id"]
+    canonical = []
+    seen = set()
+    for item in runs + carried:
+        identity = item.get("ref") or item.get("key")
+        if identity in seen:
+            continue
+        seen.add(identity)
+        canonical.append(item)
     return {"date": day, "now": now_dt.isoformat(timespec="minutes"),
             "prep_minutes": int(get_setting("ops_prep_minutes", 90) or 90),
             "next": next_value,
             "counters": {"upcoming": sum(r["state"] == "upcoming" for r in runs),
                          "prep": sum(r["hint"] == "prep" for r in runs), "late": sum(r["hint"] == "late" for r in runs),
                          "out": sum(r["state"] == "out" for r in runs), "back": sum(r["state"] == "back" for r in runs),
-                         "carried": len(carried)}, "groups": groups, "carried": carried}
+                         "carried": len(carried)}, "groups": groups, "carried": carried,
+            "runs": canonical}
 
 
 def _line_groups(data, items):

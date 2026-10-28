@@ -7,10 +7,12 @@
   const day = curDate();
   const userKey = document.getElementById("userChipWrap")?.dataset.userId || "anonymous";
   const prefKey = `opsBoardPrefs:v2:${userKey}`;
-  const defaults = {view: "list", groupBy: "time", shift: "all", states: [], attention: false, collapsed: {}};
+  const defaults = {view: "list", groupBy: "time", shift: "all", states: [], types: [], lines: [],
+    timeWindow: "all", attention: false, collapsed: {}};
   let prefs = loadPrefs();
   let activeShift = prefs.shift || "all";
-  let filters = {query: "", states: new Set(prefs.states || []), attention: Boolean(prefs.attention)};
+  let filters = {query: "", states: new Set(prefs.states || []), types: new Set(prefs.types || []),
+    lines: new Set(prefs.lines || []), timeWindow: prefs.timeWindow || "all", attention: Boolean(prefs.attention)};
   const pendingTargets = new Set();
 
   const $id = id => document.getElementById(id);
@@ -33,7 +35,8 @@
   }
 
   function savePrefs() {
-    try { localStorage.setItem(prefKey, JSON.stringify({...prefs, shift: activeShift, states: [...filters.states], attention: filters.attention})); }
+    try { localStorage.setItem(prefKey, JSON.stringify({...prefs, shift: activeShift, states: [...filters.states],
+      types: [...filters.types], lines: [...filters.lines], timeWindow: filters.timeWindow, attention: filters.attention})); }
     catch (_error) { /* التخزين المحلي ممكن يكون مقفول في وضع التصفح الخاص. */ }
   }
 
@@ -47,9 +50,11 @@
 
   function mergeRun(old, run) {
     const merged = {...old};
-    for (const key of ["line_id", "line", "lorry", "driver", "vehicle", "warning"]) {
+    for (const key of ["line_id", "line", "lorry", "driver", "vehicle", "warning", "section_id", "section_name", "section_kind"]) {
       if (!merged[key] && run[key]) merged[key] = run[key];
     }
+    merged.types = [...new Set([...(old.types || []), ...(run.types || [])])];
+    merged.line_meta = merged.line_meta || run.line_meta || null;
     merged.sources = [...new Set([...(old.sources || []), ...(run.sources || [])])];
     return merged;
   }
@@ -78,6 +83,7 @@
   }
 
   function allRuns() {
+    if (Array.isArray(ops?.runs)) return ops.runs.map(run => ({...run}));
     const map = new Map();
     for (const run of ops?.carried || []) map.set(runIdentity(run), {...run});
     for (const run of flattenRunsWithContext(ops)) {
@@ -150,7 +156,12 @@
 
   function actionLabel(action) { return action === "depart" ? "قيام" : action === "return" ? "عودة" : ""; }
 
-  function runContext(run) { return [run.line, run.lorry ? `لوري ${run.lorry}` : "", run.category].filter(Boolean).join(" · ") || "بلا خط"; }
+  function runContext(run) {
+    // من غير خط: الـfallback كان `run` نفسه فاسم الخدمة كان بيطلع كأنه اسم الخط
+    const meta = run.line_meta || {};
+    return [meta.name || run.line, meta.lorry ? `لوري ${meta.lorry}` : "", meta.driver,
+      meta.vehicle, run.section_name || run.category].filter(Boolean).join(" · ") || "بلا خط";
+  }
 
   function card(run) {
     const state = displayState(run);
@@ -220,13 +231,24 @@
   }
 
   function normaliseArabic(value) { return String(value || "").toLowerCase().normalize("NFKD").replace(/[\u064B-\u065F\u0670]/g, "").replace(/[إأآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/ـ/g, ""); }
-  function searchText(run) { return normaliseArabic([run.name, run.head, run.line, run.lorry, run.weapon, run.report_text, run.report_time, run.category].join(" ")); }
+  function searchText(run) { return normaliseArabic([run.name, run.head, run.line, run.lorry, run.weapon, run.report_text, run.report_time, run.category, run.section_name, run.line_meta?.name, run.line_meta?.driver, run.line_meta?.vehicle].join(" ")); }
+  function lineKey(run) { return run.line_meta?.line_id || run.line_id || "none"; }
+  function timeMatches(run) {
+    if (filters.timeWindow === "all") return true;
+    if (filters.timeWindow === "none") return !run.report_time;
+    if (!run.report_time) return false;
+    const delta = minutes(run.report_time) - (new Date().getHours() * 60 + new Date().getMinutes());
+    return delta >= 0 && delta <= Number(filters.timeWindow);
+  }
   function matchesFilters(run) {
     const state = displayState(run);
     if (activeShift !== "all" && run.shift !== activeShift) return false;
     if (filters.states.size && !filters.states.has(state)) return false;
     if (!filters.states.size && state === "back") return false;
     if (filters.attention && !["late", "prep", "carried"].includes(state)) return false;
+    if (filters.types.size && ![...(run.types || [])].some(type => filters.types.has(type))) return false;
+    if (filters.lines.size && !filters.lines.has(lineKey(run))) return false;
+    if (!timeMatches(run)) return false;
     const terms = normaliseArabic(filters.query).split(/\s+/).filter(Boolean);
     return terms.every(term => searchText(run).includes(term));
   }
@@ -235,13 +257,20 @@
     if (prefs.groupBy === "none") return [{id: "all", title: "كل الخدمات", runs}];
     const groups = new Map();
     for (const run of runs) {
-      const id = prefs.groupBy === "line" ? (run.line_id || "none") : (run.report_time || "none");
-      const title = prefs.groupBy === "line" ? (run.line || "بلا خط") : (run.report_text || run.report_time || "بدون معاد");
+      const id = prefs.groupBy === "line" ? lineKey(run)
+        : prefs.groupBy === "section" ? (run.section_id || "emergency")
+        : prefs.groupBy === "state" ? displayState(run)
+        : (run.report_time || "none");
+      const title = prefs.groupBy === "line" ? (run.line_meta?.name || run.line || "بلا خط")
+        : prefs.groupBy === "section" ? (run.section_name || "الخدمات")
+        : prefs.groupBy === "state" ? statusText[displayState(run)]
+        : (run.report_text || run.report_time || "بدون معاد");
       if (!groups.has(id)) groups.set(id, {id, title, runs: []});
       groups.get(id).runs.push(run);
     }
     return [...groups.values()].sort((a, b) => prefs.groupBy === "time"
       ? (minutes(a.runs[0].report_time) ?? 9999) - (minutes(b.runs[0].report_time) ?? 9999)
+      : prefs.groupBy === "state" ? ["carried", "late", "prep", "out", "upcoming", "back"].indexOf(displayState(a.runs[0])) - ["carried", "late", "prep", "out", "upcoming", "back"].indexOf(displayState(b.runs[0]))
       : a.title.localeCompare(b.title, "ar"));
   }
 
@@ -265,6 +294,7 @@
       <td>${esc(shiftText[run.shift] || run.shift || "—")}</td>
       <td class="ops-row-head">${esc(run.head || "غير مسجّل")}</td>
       <td>${esc(run.count == null || run.count === "" ? "—" : `${run.count}${run.weapon ? ` · ${run.weapon}` : ""}`)}</td>
+      <td class="ops-row-context">${esc(runContext(run))}</td>
       <td class="ops-row-action">${action ? `<button type="button" class="primary ops-action" data-op="${action}" data-target="${esc(target)}">${actionLabel(action)}</button>` : `<span class="ops-times">${esc(run.back_at?.slice(11, 16) || "")}</span>`}${menu}</td>
     </tr>`;
   }
@@ -276,7 +306,7 @@
     const actions = [];
     if (eligibleDepart.length) actions.push(`<button type="button" class="btn" data-op="line" data-mode="depart" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleDepart.map(actionTarget)))}">قيام الكل (${eligibleDepart.length})</button>`);
     if (eligibleReturn.length) actions.push(`<button type="button" class="btn ok" data-op="line" data-mode="return" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleReturn.map(actionTarget)))}">عودة الكل (${eligibleReturn.length})</button>`);
-    const body = viewMode() === "cards" ? `<div class="ops-grid">${group.runs.map(card).join("")}</div>` : `<div class="ops-table-wrap"><table class="ops-list"><thead><tr><th>الحالة</th><th>الخدمة</th><th>المعاد</th><th>الفترة</th><th>القائم بها</th><th>القوام</th><th>الإجراء</th></tr></thead><tbody>${group.runs.map(row).join("")}</tbody></table></div>`;
+    const body = viewMode() === "cards" ? `<div class="ops-grid">${group.runs.map(card).join("")}</div>` : `<div class="ops-table-wrap"><table class="ops-list"><colgroup><col class="ops-col-status"><col class="ops-col-service"><col class="ops-col-time"><col class="ops-col-shift"><col class="ops-col-person"><col class="ops-col-count"><col class="ops-col-context"><col class="ops-col-action"></colgroup><thead><tr><th>الحالة</th><th>الخدمة</th><th>المعاد</th><th>الفترة</th><th>القائم بها</th><th>القوام</th><th>الخط / القسم</th><th>الإجراء</th></tr></thead><tbody>${group.runs.map(row).join("")}</tbody></table></div>`;
     return `<section class="ops-group ${collapsed ? "is-collapsed" : ""}" data-group-id="${esc(group.id)}">
       <div class="ops-group-header"><button type="button" class="ops-group-toggle" aria-expanded="${!collapsed}" data-op="collapse" data-group="${esc(group.id)}"><span aria-hidden="true">${collapsed ? "›" : "⌄"}</span><strong>${esc(group.title)}</strong><span class="ops-group-count">${group.runs.length}/${group.total || group.runs.length}</span><small>${esc(stateSummary(group.runs))}</small></button><div class="ops-group-actions">${actions.join("")}</div></div>
       <div class="ops-group-body">${body}</div>
@@ -318,7 +348,16 @@
     $id("opsGroupBy").value = prefs.groupBy;
     $id("opsAttentionToggle").setAttribute("aria-pressed", String(filters.attention));
     document.querySelectorAll("[data-view]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.view === viewMode())));
-    $id("opsClear").classList.toggle("hidden", !(filters.query || filters.states.size || filters.attention || activeShift !== "all"));
+    const filterCount = filters.types.size + filters.lines.size + (filters.timeWindow !== "all" ? 1 : 0)
+      + filters.states.size + (filters.attention ? 1 : 0) + (filters.query ? 1 : 0) + (activeShift !== "all" ? 1 : 0);
+    $id("opsFiltersToggle").textContent = filterCount ? `فلاتر نشطة: ${filterCount}` : "فلاتر";
+    $id("opsTimeWindow").value = filters.timeWindow;
+    document.querySelectorAll("[data-filter-type]").forEach(input => { input.checked = filters.types.has(input.dataset.filterType); });
+    const lineValues = new Map();
+    for (const run of allRuns()) lineValues.set(lineKey(run), run.line_meta?.name || run.line || "بلا خط");
+    $id("opsLineFilters").innerHTML = [...lineValues.entries()].sort((a, b) => a[1].localeCompare(b[1], "ar"))
+      .map(([key, label]) => `<button type="button" class="ops-filter-chip ${filters.lines.has(key) ? "is-selected" : ""}" data-filter-line="${esc(key)}" aria-pressed="${filters.lines.has(key)}">${esc(label)}</button>`).join("");
+    $id("opsClear").classList.toggle("hidden", !(filters.query || filters.states.size || filters.attention || activeShift !== "all" || filterCount));
   }
 
   async function loadOps() {
@@ -446,7 +485,7 @@
   });
 
   function clearFilters() {
-    filters = {query: "", states: new Set(), attention: false}; activeShift = "all"; savePrefs(); renderBoard(); paintCounters();
+    filters = {query: "", states: new Set(), types: new Set(), lines: new Set(), timeWindow: "all", attention: false}; activeShift = "all"; savePrefs(); renderBoard(); paintCounters();
   }
 
   $id("opsSearch").addEventListener("input", event => { filters.query = event.target.value; renderBoard(); });
@@ -454,6 +493,27 @@
   $id("opsShiftFilter").addEventListener("change", event => { activeShift = event.target.value; savePrefs(); renderBoard(); });
   $id("opsGroupBy").addEventListener("change", event => { prefs.groupBy = event.target.value; savePrefs(); renderBoard(); });
   $id("opsAttentionToggle").addEventListener("click", () => { filters.attention = !filters.attention; savePrefs(); renderBoard(); });
+  $id("opsFiltersToggle").addEventListener("click", event => {
+    const panel = $id("opsFiltersPanel");
+    panel.classList.toggle("hidden");
+    event.currentTarget.setAttribute("aria-expanded", String(!panel.classList.contains("hidden")));
+  });
+  document.addEventListener("change", event => {
+    if (event.target.matches("[data-filter-type]")) {
+      const type = event.target.dataset.filterType;
+      event.target.checked ? filters.types.add(type) : filters.types.delete(type);
+      savePrefs(); renderBoard();
+    } else if (event.target.id === "opsTimeWindow") {
+      filters.timeWindow = event.target.value; savePrefs(); renderBoard();
+    }
+  });
+  document.addEventListener("click", event => {
+    const line = event.target.closest("[data-filter-line]");
+    if (!line) return;
+    const key = line.dataset.filterLine;
+    filters.lines.has(key) ? filters.lines.delete(key) : filters.lines.add(key);
+    savePrefs(); renderBoard();
+  });
   $id("opsClear").addEventListener("click", clearFilters);
   document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => { prefs.view = button.dataset.view; savePrefs(); renderBoard(); }));
   document.addEventListener("click", event => {

@@ -25,9 +25,18 @@
   </label>
   <label class="ops-select-wrap">التجميع
     <select id="opsGroupBy" aria-label="طريقة التجميع">
-      <option value="time">حسب المعاد</option><option value="line">حسب الخط/اللوري</option><option value="none">بدون تجميع</option>
+      <option value="time">حسب المعاد</option><option value="line">حسب الخط/اللوري</option>
+      <option value="section">حسب القسم/المناسبة</option><option value="state">حسب الحالة</option><option value="none">بدون تجميع</option>
     </select>
   </label>
+  <div class="ops-filter-popover">
+    <button type="button" class="btn" id="opsFiltersToggle" aria-expanded="false">فلاتر</button>
+    <div id="opsFiltersPanel" class="ops-filters-panel hidden" role="dialog" aria-label="فلاتر لوحة التشغيل">
+      <fieldset><legend>النوع</legend><label><input type="checkbox" data-filter-type="officers"> ضباط</label><label><input type="checkbox" data-filter-type="basic"> أساسية</label><label><input type="checkbox" data-filter-type="emergency"> طارئة</label><label><input type="checkbox" data-filter-type="special"> مناسبة</label></fieldset>
+      <fieldset><legend>الخط / اللوري</legend><div id="opsLineFilters" class="ops-filter-chips"></div></fieldset>
+      <fieldset><legend>المعاد</legend><select id="opsTimeWindow" aria-label="نافذة المعاد"><option value="all">كل اليوم</option><option value="120">خلال ساعتين</option><option value="240">خلال 4 ساعات</option><option value="none">بدون معاد</option></select></fieldset>
+    </div>
+  </div>
   <button type="button" class="ops-now-toggle" id="opsAttentionToggle" aria-pressed="false">تحتاج إجراء الآن</button>
   <div class="ops-view-toggle" role="group" aria-label="طريقة العرض">
     <button type="button" data-view="list" aria-pressed="true">قائمة</button>
