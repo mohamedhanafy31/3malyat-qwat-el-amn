@@ -38,6 +38,9 @@ DEFAULT_DATA = {
     "conscripts": [],
     "command": {role: None for role in COMMAND_ROLES},
     "command_groups": {role: [] for role in GROUP_ROLES},
+    # مدخلات يومية الانتظام محفوظة في الـcore لأنها تخص اليوم لكن توريثها
+    # محتاج يراجع الأيام السابقة من غير ما يفتح ملفاتها اليومية كلها.
+    "regularity_inputs": {},
     "id_seq": {},
 }
 

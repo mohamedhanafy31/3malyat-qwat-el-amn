@@ -35,6 +35,47 @@ DEFAULT_NOTES = [
 ]
 
 
+def default_inputs():
+    """نسخة مستقلة من اختيارات اليومية الافتراضية."""
+    return {"officer_extra": {}, "big_column_supervisors": {},
+            "notes": list(DEFAULT_NOTES), "operations_chief": ""}
+
+
+def effective_inputs(data, day):
+    """مدخلات اليوم، أو آخر مدخلات سابقة محفوظة، أو الافتراضي."""
+    entries = data.get("regularity_inputs") or {}
+    own = entries.get(day)
+    source_day = day if isinstance(own, dict) else None
+    if source_day is None:
+        previous = [key for key, value in entries.items()
+                    if isinstance(value, dict) and str(key) < day]
+        source_day = max(previous) if previous else None
+    value = entries.get(source_day) if source_day else None
+    result = default_inputs()
+    if isinstance(value, dict):
+        result["officer_extra"] = dict(value.get("officer_extra") or {})
+        result["big_column_supervisors"] = dict(value.get("big_column_supervisors") or {})
+        result["notes"] = list(value.get("notes") or DEFAULT_NOTES)
+        result["operations_chief"] = str(value.get("operations_chief") or "")
+    return result, source_day
+
+
+def saved_inputs(data, day):
+    """القيمة الخاصة باليوم فقط، للتمييز بين الحفظ والتوريث."""
+    value = (data.get("regularity_inputs") or {}).get(day)
+    return value if isinstance(value, dict) else None
+
+
+def save_inputs(data, day, value):
+    """يحفظ تخصيص اليوم في طبقة اليومية الرسمية."""
+    data.setdefault("regularity_inputs", {})[day] = value
+
+
+def clear_inputs(data, day):
+    """يمسح تخصيص اليوم، فتعود اليومية للتوريث."""
+    data.setdefault("regularity_inputs", {}).pop(day, None)
+
+
 def _text(value):
     return str(value or "").strip()
 
@@ -263,7 +304,9 @@ def build(data, day, inputs=None):
         rows.extend(_assignment_row(data, day, assignment, order))
     _ambulance_row(data, day, rows)
     rows.sort(key=lambda row: (row["time_key"], row["order"]))
-    warnings = [warning for row in rows for warning in row.get("warnings") or []]
+    # كل تحذير بيتقال على أنهي خدمة، وإلا «المركبة غير مسجلة.» لوحدها ملهاش لازمة
+    warnings = [f"{row.get('service', '')} ({row.get('time', '')}): {warning}"
+                for row in rows for warning in row.get("warnings") or []]
     signatories = {}
     command = command_on(data, day)
     for key, ident in (("director", command.get("مدير الإدارة")), ("deputy", command.get("وكيل الإدارة"))):

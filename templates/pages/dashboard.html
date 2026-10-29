@@ -7,6 +7,49 @@
 <div id="clockWarning"></div>
 <div id="restSuspension"></div>
 
+<details class="regularity-panel" id="regularityPanel">
+  <summary><span>بيانات يومية الانتظام</span><small>إضافات وتوقيعات تصدير Word</small></summary>
+  <div class="regularity-body" id="regularityBody">
+    <div class="regularity-toolbar">
+      <p class="field-hint" id="regularityInheritance"></p>
+      <span class="regularity-status" id="regularityStatus" role="status" aria-live="polite"></span>
+    </div>
+    <div class="regularity-grid">
+      <fieldset class="regularity-fieldset">
+        <legend>مشرف القول المكبر</legend>
+        <label>صباحي<select id="regularityAmSupervisor" data-combo-custom-option="none"></select></label>
+        <label>ليلي<select id="regularityPmSupervisor" data-combo-custom-option="none"></select></label>
+        <small class="field-hint">اترك الاختيار فارغًا لاستخدام الضابط الظاهر في اللوحة التفصيلية.</small>
+      </fieldset>
+      <fieldset class="regularity-fieldset">
+        <legend>نص إضافي للمدير والوكيل</legend>
+        <label id="regularityDirectorLabel">المدير<input id="regularityDirectorExtra" maxlength="500" placeholder="مثال: المرور التعقبي من 5م حتى 10م"></label>
+        <label id="regularityDeputyLabel">الوكيل<input id="regularityDeputyExtra" maxlength="500" placeholder="مثال: المرور التعقبي من 5م حتى 10م"></label>
+      </fieldset>
+      <fieldset class="regularity-fieldset regularity-notes-fieldset">
+        <legend>الملاحظات</legend>
+        <ol id="regularityNotes" class="regularity-notes"></ol>
+        <div class="regularity-note-actions">
+          <button type="button" class="btn" id="regularityAddNote">إضافة ملاحظة</button>
+          <button type="button" class="btn" id="regularityRestoreNotes">استرجاع الافتراضي</button>
+        </div>
+      </fieldset>
+      <fieldset class="regularity-fieldset">
+        <legend>رئيس قسم العمليات</legend>
+        <label>الضابط<select id="regularityOperationsChief" data-combo-custom-option="none"></select></label>
+      </fieldset>
+    </div>
+    <div class="regularity-preview">
+      <h3>تنبيهات المعاينة</h3>
+      <ul id="regularityWarnings" class="regularity-warnings"><li>جارٍ تحميل المعاينة…</li></ul>
+    </div>
+    <div class="dialog-actions regularity-actions">
+      <button type="button" class="primary" id="regularitySave">حفظ</button>
+      <button type="button" class="btn" id="regularityReset">مسح تخصيص هذا اليوم</button>
+    </div>
+  </div>
+</details>
+
 <section class="ops-strip" id="opsStrip" tabindex="-1" aria-label="ملخص التشغيل المباشر">
   <div class="ops-clock"><span class="ops-eyebrow">الوقت الآن</span><strong id="opsClock">--:--</strong></div>
   <div class="ops-next" aria-live="polite"><span class="ops-eyebrow">التالية</span><div id="opsNext">جارٍ تحميل لوحة التشغيل…</div></div>

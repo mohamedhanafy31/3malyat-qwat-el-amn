@@ -18,6 +18,8 @@
   const pendingLabels = new Map();
   const pendingTimers = new Map();
   const rowErrors = new Map();
+  let regularity = null;
+  let regularityDirty = false;
   let lastRefreshOkAt = 0;
   let keyboardZone = 0;
 
@@ -44,6 +46,104 @@
     try { localStorage.setItem(prefKey, JSON.stringify({...prefs, shift: activeShift, states: [...filters.states],
       types: [...filters.types], lines: [...filters.lines], timeWindow: filters.timeWindow, attention: filters.attention})); }
     catch (_error) { /* التخزين المحلي ممكن يكون مقفول في وضع التصفح الخاص. */ }
+  }
+
+  function markRegularityDirty() {
+    regularityDirty = true;
+    const status = $id("regularityStatus");
+    if (status) { status.textContent = "تغييرات غير محفوظة"; status.classList.add("is-dirty"); }
+  }
+
+  function regularitySelect(id, options, selected, emptyLabel = "استخدم التفصيلية") {
+    const select = $id(id);
+    if (!select) return;
+    select.innerHTML = `<option value="">${esc(emptyLabel)}</option>` + options.map(item =>
+      `<option value="${esc(item.id)}">${esc(item.rank ? `${item.rank} / ${item.name}` : item.name)}</option>`).join("");
+    select.value = selected || "";
+    if (select._comboInput) _cbSync(select);
+  }
+
+  function regularityNotes(values) {
+    const list = $id("regularityNotes");
+    list.innerHTML = (values || []).map((value, index) => `<li class="regularity-note">
+      <input type="text" maxlength="500" value="${esc(value)}" aria-label="الملاحظة ${index + 1}">
+      <span class="regularity-note-tools">
+        <button type="button" class="btn" data-regularity-note="up" ${index ? "" : "disabled"}>أعلى</button>
+        <button type="button" class="btn" data-regularity-note="down" ${index === values.length - 1 ? "" : ""}>أسفل</button>
+        <button type="button" class="btn" data-regularity-note="remove">حذف</button>
+      </span></li>`).join("");
+    list.querySelectorAll("[data-regularity-note=down]").forEach((button, index) => {
+      button.disabled = index === list.children.length - 1;
+    });
+  }
+
+  function regularityNoteValues() {
+    return [...document.querySelectorAll("#regularityNotes input")].map(input => input.value);
+  }
+
+  function renderRegularity(result) {
+    regularity = result;
+    const inputs = result.inputs || {};
+    const officers = result.officers || [];
+    const command = result.command || {};
+    regularitySelect("regularityAmSupervisor", officers, inputs.big_column_supervisors?.am);
+    regularitySelect("regularityPmSupervisor", officers, inputs.big_column_supervisors?.pm);
+    regularitySelect("regularityOperationsChief", officers, inputs.operations_chief, "الافتراضي (رئيس قسم العمليات الحالي)");
+    $id("regularityDirectorExtra").value = inputs.officer_extra?.[command["مدير الإدارة"]] || "";
+    $id("regularityDeputyExtra").value = inputs.officer_extra?.[command["وكيل الإدارة"]] || "";
+    const director = officers.find(item => item.id === command["مدير الإدارة"]);
+    const deputy = officers.find(item => item.id === command["وكيل الإدارة"]);
+    $id("regularityDirectorLabel").firstChild.textContent = `نص ${director?.name || "المدير"}`;
+    $id("regularityDeputyLabel").firstChild.textContent = `نص ${deputy?.name || "الوكيل"}`;
+    regularityNotes(inputs.notes || []);
+    const inherited = $id("regularityInheritance");
+    // inherited_from بيساوي اليوم نفسه لو مدخلاته محفوظة له — ده مش توريث
+    const fromOther = result.inherited_from && result.inherited_from !== day;
+    inherited.textContent = fromOther ? `مورّث من يوم ${fmt(result.inherited_from)}` : "";
+    inherited.classList.toggle("hidden", !fromOther);
+    const warnings = result.preview?.warnings || [];
+    $id("regularityWarnings").innerHTML = warnings.length
+      ? warnings.map(item => `<li>${esc(item)}</li>`).join("")
+      : "";
+    regularityDirty = false;
+    $id("regularityStatus").textContent = `عدد صفوف الخدمات: ${result.preview?.service_rows ?? 0}`;
+    $id("regularityStatus").classList.remove("is-dirty");
+  }
+
+  function regularityPayload() {
+    const command = regularity?.command || {};
+    const extra = {};
+    if (command["مدير الإدارة"] && $id("regularityDirectorExtra").value.trim()) extra[command["مدير الإدارة"]] = $id("regularityDirectorExtra").value.trim();
+    if (command["وكيل الإدارة"] && $id("regularityDeputyExtra").value.trim()) extra[command["وكيل الإدارة"]] = $id("regularityDeputyExtra").value.trim();
+    const value = id => $id(id).value;
+    return {officer_extra: extra,
+      big_column_supervisors: {am: value("regularityAmSupervisor"), pm: value("regularityPmSupervisor")},
+      notes: regularityNoteValues(), operations_chief: value("regularityOperationsChief")};
+  }
+
+  async function saveRegularity(reset = false) {
+    const button = $id(reset ? "regularityReset" : "regularitySave");
+    if (button.dataset.pending === "1") return;
+    button.dataset.pending = "1"; button.disabled = true;
+    const original = button.innerHTML;
+    button.innerHTML = `<span class="spinner" aria-hidden="true"></span> جارٍ الحفظ…`;
+    const body = reset ? {reset: true, revision: regularity.revision}
+      : {inputs: regularityPayload(), revision: regularity.revision};
+    const out = await api(`/api/ops/${day}/regularity`, {
+      ...jsonReq("PUT", body), loadingLabel: "جارٍ حفظ بيانات يومية الانتظام…",
+      onError: (payload, status) => status === 409 && payload.code === "stale_revision",
+    });
+    button.innerHTML = original; button.disabled = false; delete button.dataset.pending;
+    if (!out) return;
+    renderRegularity(out);
+    showToast(reset ? "تم مسح تخصيص اليوم واسترجاع التوريث" : "تم حفظ بيانات يومية الانتظام");
+  }
+
+  async function loadRegularity() {
+    const out = await api(`/api/ops/${day}/regularity`, {noLoader: true});
+    if (!out) return;
+    renderRegularity(out);
+    upgradeSelects($id("regularityBody"));
   }
 
   function stateKey(run) {
@@ -743,6 +843,44 @@
   });
   $id("opsRefreshNow").addEventListener("click", () => loadOps());
 
+  const regularityPanel = $id("regularityPanel");
+  if (prefs.collapsed.regularity === undefined) prefs.collapsed.regularity = true;
+  regularityPanel.open = !prefs.collapsed.regularity;
+  regularityPanel.addEventListener("toggle", () => {
+    prefs.collapsed.regularity = !regularityPanel.open; savePrefs();
+  });
+  $id("regularitySave").addEventListener("click", () => saveRegularity());
+  $id("regularityReset").addEventListener("click", () => saveRegularity(true));
+  $id("regularityAddNote").addEventListener("click", () => {
+    const values = regularityNoteValues();
+    if (values.length >= 12) return showToast("لا يمكن إضافة أكثر من 12 ملاحظة", true);
+    values.push(""); regularityNotes(values); markRegularityDirty();
+    $id("regularityNotes").lastElementChild?.querySelector("input")?.focus();
+  });
+  $id("regularityRestoreNotes").addEventListener("click", () => {
+    regularityNotes(regularity.defaults.notes); markRegularityDirty();
+  });
+  $id("regularityBody").addEventListener("input", event => {
+    if (event.target.matches("input")) markRegularityDirty();
+  });
+  $id("regularityBody").addEventListener("change", event => {
+    if (event.target.matches("select")) markRegularityDirty();
+  });
+  $id("regularityNotes").addEventListener("click", event => {
+    const button = event.target.closest("[data-regularity-note]");
+    if (!button) return;
+    const item = button.closest("li"), all = [...item.parentElement.children], index = all.indexOf(item);
+    const values = regularityNoteValues();
+    if (button.dataset.regularityNote === "remove") values.splice(index, 1);
+    if (button.dataset.regularityNote === "up" && index > 0) [values[index - 1], values[index]] = [values[index], values[index - 1]];
+    if (button.dataset.regularityNote === "down" && index < values.length - 1) [values[index + 1], values[index]] = [values[index], values[index + 1]];
+    regularityNotes(values); markRegularityDirty();
+  });
+  window.addEventListener("beforeunload", event => {
+    if (!regularityDirty) return;
+    event.preventDefault(); event.returnValue = "";
+  });
+
   $id("opsLineForm").addEventListener("submit", event => {
     event.preventDefault();
     const keys = [...event.currentTarget.querySelectorAll("input:checked")]
@@ -774,6 +912,7 @@
   setInterval(paintClock, 1000);
 
   await loadOps();
+  await loadRegularity();
   renderAdmin(d);
 })();
 
