@@ -1443,6 +1443,13 @@ body.sidebar-open{overflow:hidden}
 .campaign-post-driver{width:100%;min-width:140px}
 .campaign-plates{width:100%;font-family:var(--font-mono,monospace);line-height:1.7}
 .campaign-plates-card .actions{margin-top:var(--s3);justify-content:flex-start}
+.campaign-service-vehicles-modal{width:min(760px,100%)}
+.campaign-service-vehicle{border:1px solid var(--line-200);padding:var(--s3);margin-block:var(--s3);border-radius:var(--r2)}
+.campaign-service-vehicle-head{display:flex;gap:var(--s3);align-items:end}
+.campaign-service-vehicle-head label{flex:1}
+.campaign-service-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--s2)}
+.campaign-service-vehicle fieldset{border:0;margin:var(--s3) 0 0;padding:0}
+.campaign-service-vehicle legend{font-weight:700;margin-bottom:var(--s2)}
 .muted-text{color:var(--ink-500);font-size:var(--t-sm)}
 /* بطاقات الأرقام في الرئيسية روابط لصفحاتها */
 .stat-link{display:block;text-decoration:none;color:inherit;transition:border-color .12s,background .12s}

@@ -102,6 +102,7 @@ def _campaign_line(data, day, assignment_id, ctx=None):
 def _line_info(data, day, service_id, assignment_id=None, ctx=None):
     line = line_for_service(data, service_id) if service_id else None
     lorry = _campaign_line(data, day, assignment_id, ctx) if assignment_id else None
+    service_vehicle_rows = campaign.service_vehicles(data, day, assignment_id) if assignment_id else []
     if not line and lorry:
         # خدمة طوارئ ملحقة بلوري من غير وسم خط: اللوري نفسه هو الخط الظاهر.
         line = {"id": lorry.get("id"), "name": lorry.get("name", ""),
@@ -109,7 +110,7 @@ def _line_info(data, day, service_id, assignment_id=None, ctx=None):
         line_id = line["id"]
     else:
         line_id = (line or {}).get("id")
-    if not line_id:
+    if not line_id and not service_vehicle_rows:
         return None
     warning = None
     attached_lorry_id = (lorry or {}).get("id") if lorry else None
@@ -122,9 +123,14 @@ def _line_info(data, day, service_id, assignment_id=None, ctx=None):
         lorry = next((x for x in camp.get("lorries", []) + camp.get("appointments", [])
                       if x.get("id") == lorry_id), None)
     lorry_id = configured_lorry_id
-    return {"id": line_id, "line": line.get("name") or line.get("label") or line.get("title") or line_id,
+    direct_vehicle = next((item for item in service_vehicle_rows if item.get("source") == "direct"), None)
+    effective_vehicle = (direct_vehicle or next(iter(service_vehicle_rows), None) or {}).get("vehicle")
+    if effective_vehicle is None and lorry:
+        effective_vehicle = lorry.get("vehicle")
+    return {"id": line_id, "line": (line or {}).get("name") or (line or {}).get("label") or
+            (line or {}).get("title") or (assignment_id or line_id),
             "lorry": (lorry or {}).get("name") or lorry_name(lorry_id),
-            "driver": (lorry or {}).get("driver"), "vehicle": (lorry or {}).get("vehicle"),
+            "driver": (lorry or {}).get("driver"), "vehicle": effective_vehicle,
             "warning": warning}
 
 

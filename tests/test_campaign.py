@@ -50,6 +50,62 @@ def test_campaign_fixed_rows_assignment_and_attach(client):
     assert client.delete(f"/api/conscripts/{conscript['id']}").status_code == 200
 
 
+def test_campaign_service_reads_legacy_vehicle_and_saves_split_people(client):
+    day = "2026-07-10"
+    first, second = _person(client, "فرد أول", "992"), _person(client, "فرد ثان", "993")
+    assignment = _assignment(client, day, "خدمة مركبتين")
+    assert client.patch(f"/api/assignments/{day}/{assignment['id']}", json={
+        "personnel_ids": [first["id"], second["id"]]}).status_code == 200
+    vehicle_a, vehicle_b = _vehicle(client), _vehicle(client, plate_number="4998")
+    # الشكل القديم بيتقري كمركبة واحدة وبكل أفراد التكليف.
+    from backend import store, campaign
+    data = store.load_data(lambda view: {day})
+    data.setdefault("day_campaign", {}).setdefault(day, {}).setdefault("services", {})[assignment["id"]] = {
+        "vehicle_id": vehicle_a["id"]}
+    assert [item["vehicle_id"] for item in campaign.service_vehicles(data, day, assignment["id"])] == [vehicle_a["id"]]
+    response = client.put(f"/api/campaign/{day}/service/{assignment['id']}", json={
+        "vehicles": [{"vehicle_id": vehicle_a["id"], "personnel_ids": [first["id"]]},
+                     {"vehicle_id": vehicle_b["id"], "personnel_ids": [second["id"]]}]})
+    assert response.status_code == 200, response.get_json()
+    row = next(item for item in response.get_json()["services"] if item["id"] == assignment["id"])
+    assert [item["vehicle_id"] for item in row["vehicles"]] == [vehicle_a["id"], vehicle_b["id"]]
+    assert [item["personnel_ids"] for item in row["vehicles"]] == [[first["id"]], [second["id"]]]
+
+
+def test_campaign_service_vehicle_validation_rejects_duplicates_and_foreign_people(client):
+    day = "2026-07-10"
+    person = _person(client, "فرد الخدمة", "994")
+    foreign = _person(client, "فرد غريب", "995")
+    assignment = _assignment(client, day, "خدمة تحقق")
+    assert client.patch(f"/api/assignments/{day}/{assignment['id']}", json={
+        "personnel_ids": [person["id"]]}).status_code == 200
+    vehicle = _vehicle(client)
+    base = f"/api/campaign/{day}/service/{assignment['id']}"
+    duplicate = client.put(base, json={"vehicles": [{"vehicle_id": vehicle["id"]}, {"vehicle_id": vehicle["id"]}]})
+    assert duplicate.status_code == 400 and "تكرار" in duplicate.get_json()["error"]
+    foreign_response = client.put(base, json={"vehicles": [{"vehicle_id": vehicle["id"], "personnel_ids": [foreign["id"]]}]})
+    assert foreign_response.status_code == 400 and "الخدمة" in foreign_response.get_json()["error"]
+
+
+def test_campaign_service_resolver_returns_direct_and_lorry_plates():
+    from backend import campaign
+    data = {
+        "vehicles": [
+            {"id": "VEH-1", "plate_series": "ب12", "plate_number": "1001", "type": "بيك اب"},
+            {"id": "VEH-2", "plate_series": "ب13", "plate_number": "2002", "type": "بيك اب"},
+        ],
+        "day_assignments": {"2026-07-10": [{"id": "AS-1", "name": "خدمة", "section": "الخدمات الطارئة",
+                                               "personnel_ids": [], "officer_ids": []}]},
+        "day_campaign": {"2026-07-10": {"services": {"AS-1": {"vehicles": [{"vehicle_id": "VEH-1"}]}},
+                                          "lorries": {"LOR-1": {"vehicle_id": "VEH-2",
+                                                                    "attached": [{"assignment_id": "AS-1"}]}}}},
+        "personnel": [], "officers": [], "conscripts": [], "reference_lists": {},
+    }
+    rows = campaign.service_vehicles(data, "2026-07-10", "AS-1")
+    assert [(row["source"], row["plate"]) for row in rows] == [
+        ("direct", "ب12/1001"), ("lorry", "ب13/2002")]
+
+
 def test_campaign_appointment_lorries_assign_attach_and_inherit(client):
     first, later = "2026-07-10", "2026-07-11"
     vehicle = _vehicle(client)

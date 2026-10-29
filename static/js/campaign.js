@@ -71,12 +71,26 @@ function serviceCell(row, allowAttach) {
 
 function campaignRow(row, allowAttach) {
   const driver = row.driver;
+  if (row.kind === "service") return serviceCampaignRow(row);
   return `<tr class="campaign-row${row.warnings?.length ? " has-warning" : ""}">
     <td class="name">${serviceCell(row, allowAttach)}</td>
     <td>${driverOptions(row)}</td>
     <td dir="ltr">${vehicleOptions(row)}</td>
     <td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${row.vehicle ? `<div class="sub">${esc(row.vehicle.model || "")}${row.vehicle.origin === "external" ? `${row.vehicle.model ? " — " : ""}خارجية: ${esc(row.vehicle.party)}` : ""}</div>` : ""}</div></td>
     <td class="col-actions">${row.kind === "daily" ? rowMenu([{action: "removeCampaignDaily", id: row.id, extra: {name: row.name}, label: "إزالة", danger: true}]) : "—"}</td>
+  </tr>`;
+}
+
+function serviceCampaignRow(row) {
+  const vehicles = row.vehicles || [];
+  const plates = vehicles.map(item => item.vehicle?.plate || item.vehicle_id).filter(Boolean);
+  const vehicleSummary = plates.length ? plates.join(" + ") : "بدون مركبة مباشرة";
+  return `<tr class="campaign-row${row.warnings?.length ? " has-warning" : ""}">
+    <td class="name"><div class="campaign-service-name"><strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}</div></td>
+    <td>${driverOptions(row)}</td>
+    <td dir="ltr"><div class="campaign-vehicle-cell"><span class="sub">${esc(vehicleSummary)}</span><button type="button" class="mini btn-xs" data-action="openCampaignServiceVehicles" data-id="${esc(row.id)}">${icon("edit")} مركبات وأفراد</button></div></td>
+    <td><span class="muted-text">${vehicles.length ? `${vehicles.length} مركبة مباشرة` : "الإلحاق باللوري فقط"}</span></td>
+    <td class="col-actions">—</td>
   </tr>`;
 }
 
@@ -154,11 +168,63 @@ function render() {
     const save = () => saveRow(rowBy(input.dataset.postDriver), {driver_text: input.value});
     input.addEventListener("change", save); input.addEventListener("blur", save);
   });
+  wrap.querySelectorAll("button[data-action='openCampaignServiceVehicles']").forEach(button => {
+    button.onclick = () => openServiceVehicles(rowBy(button.dataset.id));
+  });
   $("#saveCampaignPlates").onclick = async () => {
     const lines = $("#campaignPlates").value.split(/\n/).map(line => line.split(/[ ,،]+/).map(v => v.trim()).filter(Boolean)).filter(row => row.length);
     const out = await api(`/api/campaign/${DAY}/plates`, {...jsonReq("PUT", {rows: lines, revision: CAMPAIGN.revision}), onError: staleReload});
     if (out) { CAMPAIGN = out; render(); showToast("تم حفظ سجل اللوحات"); }
   };
+}
+
+function serviceVehicleEditor(row) {
+  const options = (CAMPAIGN.pickers?.vehicles || []).map(vehicle =>
+    `<option value="${esc(vehicle.id)}">${esc(vehicle.label)}${vehicle.status === "disabled" ? " (معطلة)" : ""}</option>`).join("");
+  const people = row.people || [];
+  return (row.vehicles || []).map((item, index) => `<div class="campaign-service-vehicle" data-service-vehicle-index="${index}">
+    <div class="campaign-service-vehicle-head"><label>المركبة <select data-service-vehicle="${index}" aria-label="مركبة الخدمة ${index + 1}"><option value="">اختر مركبة</option>${options}</select></label><button type="button" class="mini danger" data-remove-service-vehicle="${index}">إزالة</button></div>
+    <fieldset><legend>أفراد الخدمة في المركبة</legend><div class="campaign-service-people">${people.length ? people.map(person => {
+      const key = person.category === "officers" ? "officer_ids" : "personnel_ids";
+      const checked = (item[key] || []).includes(person.id);
+      return `<label class="check-label"><input type="checkbox" data-service-person="${index}" data-person-key="${key}" value="${esc(person.id)}"${checked ? " checked" : ""}>${esc(person.role ? `${person.role}/ ${person.name}` : person.name)}</label>`;
+    }).join("") : "<span class='muted-text'>لا يوجد أفراد أو ضباط مسجلون على التكليف.</span>"}</div></fieldset>
+  </div>`).join("");
+}
+
+function openServiceVehicles(row) {
+  const state = {row, vehicles: (row.vehicles || []).map(item => ({...item, vehicle: undefined}))};
+  const modal = $("#campaignServiceVehiclesModal");
+  const renderEditor = () => {
+    modal.querySelector("[data-service-vehicles-body]").innerHTML = serviceVehicleEditor({...row, vehicles: state.vehicles});
+    modal.querySelectorAll("select[data-service-vehicle]").forEach(select => {
+      const item = state.vehicles[Number(select.dataset.serviceVehicle)];
+      select.value = item.vehicle_id || "";
+    });
+    upgradeSelects(modal);
+    modal.querySelectorAll("select[data-service-vehicle]").forEach(select => select.onchange = () => {
+      state.vehicles[Number(select.dataset.serviceVehicle)].vehicle_id = select.value;
+    });
+    modal.querySelectorAll("input[data-service-person]").forEach(input => input.onchange = () => {
+      const item = state.vehicles[Number(input.dataset.servicePerson)];
+      const key = input.dataset.personKey;
+      const ids = new Set(item[key] || []);
+      input.checked ? ids.add(input.value) : ids.delete(input.value);
+      item[key] = [...ids];
+    });
+    modal.querySelectorAll("button[data-remove-service-vehicle]").forEach(button => button.onclick = async () => {
+      if (!(await confirmDialog({title: "إزالة المركبة", body: "هتتشال المركبة دي وتوزيع أفرادها من الخدمة.", confirmLabel: "إزالة", danger: true}))) return;
+      state.vehicles.splice(Number(button.dataset.removeServiceVehicle), 1); renderEditor();
+    });
+  };
+  modal.querySelector("[data-service-vehicles-title]").textContent = `مركبات «${row.name}» وأفرادها`;
+  modal.querySelector("[data-add-service-vehicle]").onclick = () => { state.vehicles.push({vehicle_id: "", personnel_ids: [], officer_ids: []}); renderEditor(); };
+  modal.querySelector("[data-save-service-vehicles]").onclick = async () => {
+    const vehicles = state.vehicles.map(item => ({vehicle_id: item.vehicle_id, personnel_ids: item.personnel_ids || [], officer_ids: item.officer_ids || []}));
+    const out = await api(`/api/campaign/${DAY}/service/${encodeURIComponent(row.id)}`, {...jsonReq("PUT", {vehicles, revision: CAMPAIGN.revision}), onError: staleReload});
+    if (out) { CAMPAIGN = out; closeModal("campaignServiceVehiclesModal", true); render(); showToast("تم حفظ مركبات الخدمة"); }
+  };
+  renderEditor(); openModal("campaignServiceVehiclesModal");
 }
 
 async function loadDay(day) {

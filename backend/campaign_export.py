@@ -177,7 +177,14 @@ def build_docx(campaign):
                ["م", "الخدمة", "السائق", "رقم المركبة", "نوع المركبة"],
                size=10, fill=FILL)
     delivery = list(campaign.get("lorries") or [])
-    delivery += list(campaign.get("services") or [])
+    for service in campaign.get("services") or []:
+        vehicles = service.get("service_vehicles") or []
+        if not vehicles:
+            delivery.append(service)
+            continue
+        for item in vehicles:
+            delivery.append({**service, "vehicle": item.get("vehicle"),
+                             "driver": item.get("driver") or service.get("driver")})
     delivery += list(campaign.get("daily") or [])
     delivery += list(campaign.get("appointments") or [])
     delivery_specs = []

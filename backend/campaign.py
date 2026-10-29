@@ -3,6 +3,7 @@ from copy import deepcopy
 
 from . import fleet
 from .afraad import occasional_rows
+from .assignments import peek_day
 from .constants import APPOINTMENT_LORRIES, CAMPAIGN_LORRIES, VEHICLE_TYPES
 from .dated import (afraad_basic_on, campaign_daily_on, campaign_posts_on,
                     record_campaign_daily_change, record_campaign_posts_change)
@@ -18,7 +19,7 @@ def referenced_vehicle_days(data, vehicle_id):
     days = []
     for day, sheet in (data.get("day_campaign") or {}).items():
         for section in ("lorries", "services", "daily", "posts"):
-            if any((entry or {}).get("vehicle_id") == vehicle_id
+            if any(_entry_vehicle_ids(entry) and vehicle_id in _entry_vehicle_ids(entry)
                    for entry in ((sheet or {}).get(section) or {}).values()
                    if isinstance(entry, dict)):
                 days.append(day)
@@ -72,6 +73,103 @@ def _vehicle(data, vehicle_id):
             "origin": vehicle.origin, "party": vehicle.party, "archived": vehicle.archived}
 
 
+def _entry_vehicle_ids(entry):
+    """بيجمع مراجع المركبات القديمة والجديدة عشان الحذف يفضل آمن."""
+    if not isinstance(entry, dict):
+        return []
+    values = []
+    if entry.get("vehicle_id"):
+        values.append(str(entry["vehicle_id"]))
+    for item in entry.get("vehicles") or []:
+        if isinstance(item, dict) and item.get("vehicle_id"):
+            values.append(str(item["vehicle_id"]))
+    return list(dict.fromkeys(values))
+
+
+def _assignment(data, day, assignment_id):
+    return next((row for row in peek_day(data, day)
+                 if row.get("id") == assignment_id), None)
+
+
+def _assignment_people(assignment):
+    assignment = assignment or {}
+    return {
+        "personnel_ids": list(dict.fromkeys(str(value).strip() for value in
+                                            assignment.get("personnel_ids") or [] if str(value).strip())),
+        "officer_ids": list(dict.fromkeys(str(value).strip() for value in
+                                          assignment.get("officer_ids") or [] if str(value).strip())),
+    }
+
+
+def _direct_service_entries(data, day, assignment_id, raw=None):
+    """بيوحّد الشكل القديم والجديد للقراءة، من غير ما يكتب في البيانات."""
+    raw = raw or {}
+    people = _assignment_people(_assignment(data, day, assignment_id))
+    if isinstance(raw.get("vehicles"), list):
+        return [dict(item) for item in raw["vehicles"] if isinstance(item, dict)]
+    if raw.get("vehicle_id"):
+        return [{"vehicle_id": raw["vehicle_id"], **people,
+                 **({"driver": deepcopy(raw["driver"])} if raw.get("driver") else {})}]
+    return []
+
+
+def _person_view(data, ident, category):
+    raw, found, _ = PeopleRepo(data).locate(ident)
+    if raw is None or found != category:
+        return None
+    return {"id": ident, "name": raw.get("name", ""), "role": raw.get("role", ""),
+            "category": category}
+
+
+def _vehicle_people(data, item, assignment_people):
+    people = []
+    for category, key in (("personnel", "personnel_ids"), ("officers", "officer_ids")):
+        allowed = set(assignment_people[key])
+        for ident in item.get(key) or []:
+            ident = str(ident).strip()
+            if ident in allowed:
+                person = _person_view(data, ident, category)
+                if person:
+                    people.append(person)
+    return people
+
+
+def service_vehicles(data, day, assignment_id):
+    """المركبات الفعلية للخدمة بترتيبها: المباشر الأول ثم لوري الإلحاق."""
+    assignment = _assignment(data, day, assignment_id)
+    if not assignment:
+        return []
+    assignment_people = _assignment_people(assignment)
+    sheet = (data.get("day_campaign") or {}).get(day) or {}
+    result = []
+    raw = (sheet.get("services") or {}).get(assignment_id) or {}
+    for item in _direct_service_entries(data, day, assignment_id, raw):
+        vehicle = _vehicle(data, item.get("vehicle_id"))
+        if not vehicle:
+            continue
+        result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"], "plate": vehicle["plate"],
+                       "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])),
+                       "people": _vehicle_people(data, item, assignment_people),
+                       "source": "direct", "driver": _driver(data, item.get("driver"))})
+    for lorry_id, lorry in ((sheet.get("lorries") or {}).items()):
+        if not any(item.get("assignment_id") == assignment_id
+                   for item in (lorry or {}).get("attached") or []):
+            continue
+        vehicle = _vehicle(data, (lorry or {}).get("vehicle_id"))
+        if not vehicle:
+            continue
+        result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"], "plate": vehicle["plate"],
+                       "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])),
+                       "people": [_person_view(data, ident, category)
+                                  for category, key in (("personnel", "personnel_ids"),
+                                                        ("officers", "officer_ids"))
+                                  for ident in assignment_people[key]
+                                  if _person_view(data, ident, category)],
+                       "source": "lorry", "lorry_id": lorry_id,
+                       "driver": _driver(data, (lorry or {}).get("driver"))})
+    return result
+
+
 def _validate_driver(data, value):
     if value in (None, ""):
         return None, None
@@ -109,6 +207,52 @@ def _apply(data, target, payload):
     return None
 
 
+def _validate_service_vehicles(data, day, assignment_id, values):
+    if not isinstance(values, list):
+        return None, "قائمة مركبات الخدمة غير صحيحة."
+    assignment = _assignment(data, day, assignment_id)
+    allowed = _assignment_people(assignment)
+    allowed_all = {"personnel": set(allowed["personnel_ids"]),
+                   "officers": set(allowed["officer_ids"])}
+    attached_vehicles = {
+        (lorry or {}).get("vehicle_id")
+        for lorry in ((data.get("day_campaign") or {}).get(day, {}).get("lorries") or {}).values()
+        if any(item.get("assignment_id") == assignment_id
+               for item in (lorry or {}).get("attached") or [])
+    }
+    seen_vehicles, seen_people, cleaned = set(), set(), []
+    for item in values:
+        if not isinstance(item, dict):
+            return None, "بيانات مركبة الخدمة غير صحيحة."
+        vehicle_id = str(item.get("vehicle_id") or "").strip()
+        if not vehicle_id or not VehicleRepo(data).find(vehicle_id):
+            return None, "المركبة غير موجودة."
+        if vehicle_id in seen_vehicles or vehicle_id in attached_vehicles:
+            return None, "لا يمكن تكرار المركبة في نفس الخدمة."
+        seen_vehicles.add(vehicle_id)
+        clean = {"vehicle_id": vehicle_id}
+        for category, key in (("personnel", "personnel_ids"), ("officers", "officer_ids")):
+            ids = item.get(key) or []
+            if not isinstance(ids, list):
+                return None, "قائمة أفراد المركبة غير صحيحة."
+            ids = list(dict.fromkeys(str(value).strip() for value in ids if str(value).strip()))
+            if any(ident not in allowed_all[category] for ident in ids):
+                return None, "الشخص المحدد ليس ضمن أفراد الخدمة."
+            if any(ident in seen_people for ident in ids):
+                return None, "لا يمكن توزيع الشخص على أكثر من مركبة في الخدمة."
+            seen_people.update(ids)
+            if ids:
+                clean[key] = ids
+        if "driver" in item:
+            driver, error = _validate_driver(data, item.get("driver"))
+            if error:
+                return None, error
+            if driver:
+                clean["driver"] = driver
+        cleaned.append(clean)
+    return cleaned, None
+
+
 def _post_apply(data, target, payload):
     if "vehicle_id" in payload:
         vid = str(payload.get("vehicle_id") or "").strip()
@@ -134,7 +278,7 @@ def _clean(data, day):
         for ident, entry in (value.get(key) or {}).items():
             if not entry:
                 continue
-            if entry.get("attached") or "vehicle_id" in entry or "driver" in entry:
+            if entry.get("attached") or "vehicle_id" in entry or "vehicles" in entry or "driver" in entry:
                 kept[ident] = entry
         value[key] = kept
     posts = {}
@@ -165,9 +309,34 @@ def set_service(data, day, assignment_id, payload):
     if not any(r.get("id") == assignment_id for r in occasional_rows(data, day)):
         return "الخدمة غير موجودة في هذا اليوم.", 404
     target = _raw(data, day).setdefault("services", {}).setdefault(assignment_id, {})
+    if "vehicles" in payload:
+        vehicles, error = _validate_service_vehicles(data, day, assignment_id, payload.get("vehicles"))
+        if error:
+            return error, 400
+        target.pop("vehicle_id", None)
+        target["vehicles"] = vehicles
+        if "driver" in payload:
+            value, error = _validate_driver(data, payload.get("driver"))
+            if error:
+                return error, 400
+            target["driver"] = value or {}
+        _clean(data, day)
+        return None, None
+    # تدفق الشاشة القديم بيفضل شغال، بس التخزين بيتحوّل للشكل الجديد فورًا.
+    if "vehicle_id" in payload:
+        vid = str(payload.get("vehicle_id") or "").strip()
+        people = _assignment_people(_assignment(data, day, assignment_id))
+        converted = [{"vehicle_id": vid, **people}] if vid else []
+        payload = {**payload, "vehicles": converted}
     error = _apply(data, target, payload)
     if error:
         return error, 400
+    if "vehicles" in payload:
+        vehicles, error = _validate_service_vehicles(data, day, assignment_id, payload["vehicles"])
+        if error:
+            return error, 400
+        target.pop("vehicle_id", None)
+        target["vehicles"] = vehicles
     _clean(data, day)
     return None, None
 
@@ -366,6 +535,10 @@ def _merge_inherited(previous_entry, current_entry):
     for key in ("vehicle_id", "driver", "driver_text", "plate_text", "type_text", "basic_entry_id"):
         if key in current_entry:
             merged[key] = deepcopy(current_entry[key])
+    if "vehicles" in previous_entry:
+        merged["vehicles"] = deepcopy(previous_entry["vehicles"])
+    if "vehicles" in current_entry:
+        merged["vehicles"] = deepcopy(current_entry["vehicles"])
     if "attached" in current_entry:
         merged["attached"] = deepcopy(current_entry["attached"])
     return merged
@@ -377,7 +550,7 @@ def _inherited(previous_entry, current_entry, previous_day):
     previous_entry = previous_entry or {}
     current_entry = current_entry or {}
     return any(key in previous_entry and key not in current_entry
-               for key in ("vehicle_id", "driver", "driver_text", "plate_text", "type_text"))
+               for key in ("vehicle_id", "vehicles", "driver", "driver_text", "plate_text", "type_text"))
 
 
 def _attached_rows(raw, assignments):
@@ -393,7 +566,18 @@ def _attached_rows(raw, assignments):
     return attached
 
 
-def _row_view(data, ident, kind, name, raw, inherited, attached=None):
+def _row_view(data, ident, kind, name, raw, inherited, attached=None, assignment=None, day=None):
+    direct = _direct_service_entries(data, day, ident, raw) if kind == "service" else []
+    direct_view = []
+    for item in direct:
+        vehicle = _vehicle(data, item.get("vehicle_id"))
+        if not vehicle:
+            continue
+        direct_view.append({"vehicle": vehicle,
+                            "vehicle_id": vehicle["id"],
+                            "personnel_ids": list(item.get("personnel_ids") or []),
+                            "officer_ids": list(item.get("officer_ids") or []),
+                            "driver": _driver(data, item.get("driver"))})
     return {
         "id": ident,
         "kind": kind,
@@ -401,7 +585,15 @@ def _row_view(data, ident, kind, name, raw, inherited, attached=None):
         "base_name": name.split(" + ", 1)[0],
         "attached": attached if kind == "lorry" else [],
         "driver": _driver(data, raw.get("driver")),
-        "vehicle": _vehicle(data, raw.get("vehicle_id")),
+        "vehicle": (_vehicle(data, raw.get("vehicle_id")) or
+                    ((direct_view[0] or {}).get("vehicle") if direct_view else None)),
+        "vehicles": direct_view,
+        "people": [{"id": person.get("id"), "name": person.get("name", ""),
+                    "role": person.get("role", ""), "category": "personnel"}
+                   for person in (assignment or {}).get("personnel", [])]
+                  + [{"id": person.get("id"), "name": person.get("name", ""),
+                     "role": person.get("role", ""), "category": "officers"}
+                     for person in (assignment or {}).get("officers", [])],
         "inherited": inherited,
         "warnings": [],
     }
@@ -458,13 +650,17 @@ def build_campaign(data, day):
 
     rows_s = []
     for assignment in assignments.values():
-        if assignment.get("id") in attached_ids:
-            continue
         raw = (current.get("services") or {}).get(assignment["id"], {})
+        has_direct = bool(_direct_service_entries(data, day, assignment["id"], raw))
+        if assignment.get("id") in attached_ids and not has_direct:
+            continue
         rows_s.append(_row_view(
             data, assignment["id"], "service",
             assignment.get("name") or assignment.get("label") or "", raw, False,
+            assignment=assignment, day=day,
         ))
+    for row in rows_s:
+        row["service_vehicles"] = service_vehicles(data, day, row["id"])
 
     rows_d = [
         _row_view(

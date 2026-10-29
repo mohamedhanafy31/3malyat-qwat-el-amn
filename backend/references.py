@@ -91,6 +91,10 @@ def person_references(data):
             for ident, value in (sheet.get(section) or {}).items():
                 if value.get("vehicle_id"):
                     yield f"day_campaign[{day}][{section}][{ident}].vehicle_id", "vehicle", value["vehicle_id"]
+                for index, item in enumerate(value.get("vehicles") or []):
+                    if isinstance(item, dict) and item.get("vehicle_id"):
+                        yield (f"day_campaign[{day}][{section}][{ident}].vehicles[{index}].vehicle_id",
+                               "vehicle", item["vehicle_id"])
                 driver = value.get("driver") or {}
                 if driver.get("kind") == "personnel" and driver.get("id"):
                     yield f"day_campaign[{day}][{section}][{ident}].driver", "individual", driver["id"]

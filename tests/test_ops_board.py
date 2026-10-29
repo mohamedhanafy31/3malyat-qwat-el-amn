@@ -66,6 +66,18 @@ def test_next_is_future_only_and_archive_time_style():
     assert build_ops(data, "2026-10-20", datetime(2026, 10, 20, 21, 0))["next"] is None
 
 
+def test_ops_board_carries_direct_campaign_service_vehicle():
+    data = _data()
+    data["vehicles"] = [{"id": "VEH-1", "plate_series": "ب12", "plate_number": "1001",
+                         "type": "بيك اب", "status": "operational", "origin": "internal"}]
+    data["day_assignments"]["2026-10-20"] = [{"id": "AS-1", "section": "الخدمات الطارئة",
+        "name": "خدمة أ", "shift": "صباحية", "time": "8ص", "officer_ids": [],
+        "personnel_ids": []}]
+    data["day_campaign"]["2026-10-20"] = {"services": {"AS-1": {"vehicles": [{"vehicle_id": "VEH-1"}]} }}
+    run = next(item for item in build_ops(data, "2026-10-20")["runs"] if item["name"] == "خدمة أ")
+    assert run["line_meta"]["vehicle"]["plate"] == "ب12/1001"
+
+
 def test_line_runs_follow_configured_order_and_absent_members_are_not_cards():
     data = _data()
     data["service_catalog"] = [
