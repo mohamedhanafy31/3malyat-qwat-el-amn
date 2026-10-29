@@ -2,13 +2,13 @@
 import re
 
 _DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
-_TIME = re.compile(r"(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(ص|ظ|م|ليل)?")
+_TIME = re.compile(r"(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(ص|ظ|م|ليل|ل)?")
 
 
 def _minutes(hour, minute, suffix):
     if not 0 <= minute <= 59 or not 0 <= hour <= 23:
         return None
-    if suffix == "ليل":
+    if suffix in ("ليل", "ل"):
         hour = hour % 12
     elif suffix in ("ص", "ظ"):
         hour = 12 if hour == 12 else hour % 12
@@ -41,6 +41,23 @@ def format_time(value):
     if hour == 0:
         return "12 ليل" if minute == 0 else f"12:{minute:02d}ليل"
     if hour == 12:
+        shown, suffix = 12, "ظ"
+    elif hour < 12:
+        shown, suffix = hour, "ص"
+    else:
+        shown, suffix = hour - 12, "م"
+    return f"{shown if minute == 0 else f'{shown}:{minute:02d}'}{suffix}"
+
+
+def compact_time(value):
+    """صيغة الانتظام الرسمية المختصرة: 6ص، 12ظ، 5م، 12ل."""
+    parsed = parse_time(value)
+    if parsed is None:
+        return ""
+    hour, minute = map(int, parsed.split(":"))
+    if hour == 0:
+        shown, suffix = 12, "ل"
+    elif hour == 12:
         shown, suffix = 12, "ظ"
     elif hour < 12:
         shown, suffix = hour, "ص"

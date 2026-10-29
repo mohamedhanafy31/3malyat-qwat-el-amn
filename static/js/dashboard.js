@@ -5,6 +5,7 @@
 
   let ops = null;
   const day = curDate();
+  window.exportDocxUrl = () => `/api/ops/${day}/regularity.docx`;
   const userKey = document.getElementById("userChipWrap")?.dataset.userId || "anonymous";
   const prefKey = `opsBoardPrefs:v2:${userKey}`;
   const defaults = {view: "list", groupBy: "time", shift: "all", states: [], types: [], lines: [],

@@ -1,10 +1,14 @@
 """API لوحة تشغيل الخدمات."""
+from copy import deepcopy
 from datetime import date, timedelta
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, send_file
 
 from .. import day_status, ops_board
+from ..regularity import build as build_regularity
+from ..regularity_export import build_docx as build_regularity_docx
 from ..auth import current_actor
+from ..day_open import needs_prepare, prepare
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import canonical_day, json_payload
 
@@ -29,6 +33,29 @@ def get_ops(day):
     result = ops_board.build_ops(data, day)
     result["revision"] = revision(data, _scope(day))
     return jsonify(result)
+
+
+@bp.get("/api/ops/<day>/regularity.docx")
+def export_regularity_docx(day):
+    """يومية انتظام الخدمات الرسمية من نفس لقطة اليوم والبيانات السابقة."""
+    day = _day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    data = load_data(_scope(day))
+    # نفس معاينة اليومية التفصيلية: لو اليوم لسه ما اتجهزش (التفتيشات من
+    # الجدول الأسبوعي…) نجهّزه على نسخة في الذاكرة من غير ما نكتب حاجة،
+    # وإلا التصدير قبل فتح التفصيلية كان بيطلع من غير التفتيشات.
+    if needs_prepare(data, day, include_inspections=True):
+        data = deepcopy(data)
+        prepare(data, day, include_inspections=True)
+    # مدخلات الصفحة الرئيسية مؤجلة؛ الـbuilder يقبلها اختياريًا عندما تُضاف
+    # طبقة حفظها اليومية، لكن التصدير الحالي يستخدم defaults فقط.
+    payload = build_regularity(data, day)
+    payload["day"] = day
+    buf = build_regularity_docx(payload)
+    day_number = str(date.fromisoformat(day).day)
+    return send_file(buf, as_attachment=True, download_name=f"{day_number}..docx",
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 def _mutate(day, body, fn, *, check_revision=True):
