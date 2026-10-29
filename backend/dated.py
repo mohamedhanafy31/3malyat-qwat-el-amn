@@ -138,7 +138,11 @@ def afraad_basic_on(data, day):
         name = str(item.get("name") or "").strip()
         item_id = stable.get(name, str(item.get("id") or "").strip())
         if item_id and name:
-            items.append({"id": item_id, "name": name})
+            value = {"id": item_id, "name": name}
+            for key in ("location_text", "conscript_count"):
+                if key in item:
+                    value[key] = item[key]
+            items.append(value)
     return items
 
 

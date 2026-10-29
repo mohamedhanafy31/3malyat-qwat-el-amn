@@ -29,7 +29,7 @@ from .constants import (
     SECTION_NET,
     SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_PRISON, SECTION_RESTS, SECTION_SECURITY,
     SECTION_SUBCAMP, SECTION_TAQSEERA, SECTION_TARGETS, SHIFTS, SUBCAMP_SERVICES,
-    TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL, ROLE_SEARCH,
+    TARGET_NAMES, TARGETS_FIRST, ROLE_MEDICAL, ROLE_SEARCH, canonical_section_name,
 )
 from .duty import summarise
 from .dated import groups_on, targets_on
@@ -107,25 +107,6 @@ def section_names(data):
     if prison_seen:
         official.append(SECTION_PRISON)
     return [*official, *custom]
-
-
-SECTION_ALIASES = {
-    "خدمات السجن": SECTION_PRISON,
-    "سجن قوات الامن": SECTION_PRISON,
-    "سجن قوات الأمن": SECTION_PRISON,
-    "خدمات سجن قوات الامن": SECTION_PRISON,
-    "خدمات سجن قوات الأمن": SECTION_PRISON,
-    "فرد تأمين فترة ليلة": SECTION_PRISON,
-    "فرد تأمين فترة ليلية": SECTION_PRISON,
-    "فرد تامين فتره ليله": SECTION_PRISON,
-    "فرد تامين فتره ليليه": SECTION_PRISON,
-}
-
-
-def canonical_section_name(value):
-    """Return the supported display name for historical prison-section aliases."""
-    raw = str(value or "").strip()
-    return SECTION_ALIASES.get(raw, raw)
 
 
 def _copyable_row(row):

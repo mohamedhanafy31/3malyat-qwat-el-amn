@@ -4,10 +4,11 @@ from copy import deepcopy
 from . import fleet
 from .afraad import occasional_rows
 from .constants import APPOINTMENT_LORRIES, CAMPAIGN_LORRIES, VEHICLE_TYPES
-from .dated import (campaign_daily_on, campaign_posts_on,
+from .dated import (afraad_basic_on, campaign_daily_on, campaign_posts_on,
                     record_campaign_daily_change, record_campaign_posts_change)
 from .repo import ConscriptRepo, PeopleRepo, VehicleRepo
 from .store import reserve_id
+from .text import norm
 
 
 ALL_LORRIES = CAMPAIGN_LORRIES + APPOINTMENT_LORRIES
@@ -175,6 +176,11 @@ def set_daily(data, day, row_id, payload):
     if row_id not in {x["id"] for x in campaign_daily_on(data, day)}:
         return "القول اليومي غير موجود.", 404
     target = _raw(data, day).setdefault("daily", {}).setdefault(row_id, {})
+    if "basic_entry_id" in payload:
+        linked, error = _resolve_basic_entry(data, day, payload.get("basic_entry_id"), target.get("name"))
+        if error:
+            return error, 400
+        target["basic_entry_id"] = linked
     error = _apply(data, target, payload)
     if error:
         return error, 400
@@ -223,14 +229,34 @@ def detach_service(data, day, lorry_id, item):
     return None, None
 
 
-def add_daily_row(data, day, name):
+def _resolve_basic_entry(data, day, entry_id, name):
+    basics = afraad_basic_on(data, day)
+    if entry_id:
+        ident = str(entry_id).strip()
+        if any(item.get("id") == ident for item in basics):
+            return ident, None
+        return None, "الخدمة الأساسية المرتبطة غير موجودة في هذا اليوم."
+    wanted = norm(name)
+    matches = [item for item in basics
+               if norm(item.get("name")) == wanted
+               or norm(str(name or "").removeprefix("ارتكاز ")) == norm(item.get("name"))]
+    return (matches[0]["id"], None) if len(matches) == 1 else ("", None)
+
+
+def add_daily_row(data, day, name, basic_entry_id=None):
     name = str(name or "").strip()
     if not name:
         return None, "اسم القول مطلوب.", 400
     items = campaign_daily_on(data, day)
     existing = [{"id": i.get("id")} for versions in ((data.get("reference_lists") or {}).get("campaign_daily") or []) for i in versions.get("items") or []]
     ident = reserve_id(data, "CD", existing)
-    items.append({"id": ident, "name": name})
+    linked, error = _resolve_basic_entry(data, day, basic_entry_id, name)
+    if error:
+        return None, error, 400
+    item = {"id": ident, "name": name}
+    if linked:
+        item["basic_entry_id"] = linked
+    items.append(item)
     record_campaign_daily_change(data, day, items)
     return ident, None, None
 
@@ -334,10 +360,10 @@ def _merge_inherited(previous_entry, current_entry):
     current_entry = current_entry or {}
     merged = {
         key: deepcopy(previous_entry[key])
-        for key in ("vehicle_id", "driver", "driver_text", "plate_text", "type_text")
+        for key in ("vehicle_id", "driver", "driver_text", "plate_text", "type_text", "basic_entry_id")
         if key in previous_entry
     }
-    for key in ("vehicle_id", "driver", "driver_text", "plate_text", "type_text"):
+    for key in ("vehicle_id", "driver", "driver_text", "plate_text", "type_text", "basic_entry_id"):
         if key in current_entry:
             merged[key] = deepcopy(current_entry[key])
     if "attached" in current_entry:
@@ -393,6 +419,8 @@ def build_campaign(data, day):
     }
 
     daily_items = campaign_daily_on(data, day)
+    basic_items = afraad_basic_on(data, day)
+    basic_by_id = {item["id"]: item for item in basic_items}
     current_daily = current.get("daily") or {}
     previous_daily = previous.get("daily") or {}
     daily_data = {
@@ -445,6 +473,18 @@ def build_campaign(data, day):
         )
         for item in daily_items
     ]
+    for row, item in zip(rows_d, daily_items):
+        linked = basic_by_id.get(item.get("basic_entry_id"))
+        if linked is None:
+            wanted = norm(item.get("name"))
+            matches = [candidate for candidate in basic_items
+                       if norm(candidate.get("name")) == wanted
+                       or norm(str(item.get("name") or "").removeprefix("ارتكاز ")) == norm(candidate.get("name"))]
+            linked = matches[0] if len(matches) == 1 else None
+        effective_id = daily_data[item["id"]].get("basic_entry_id") or item.get("basic_entry_id")
+        linked = basic_by_id.get(effective_id) or linked
+        row["basic_entry_id"] = linked.get("id") if linked else ""
+        row["basic_service"] = linked
 
     post_items = campaign_posts_on(data, day)
     current_posts = current.get("posts") or {}
@@ -502,7 +542,8 @@ def build_campaign(data, day):
         "plates": plates_view,
         "warnings": warnings,
         "pickers": {"vehicles": vehicles, "types": VEHICLE_TYPES,
-                    "drivers": fleet.drivers_on(data, day), "attachable": attachable},
+                    "drivers": fleet.drivers_on(data, day), "attachable": attachable,
+                    "basic_services": basic_items},
     }
 
 

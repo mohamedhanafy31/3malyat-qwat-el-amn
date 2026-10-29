@@ -191,7 +191,7 @@ ACTIONS.detachCampaignService = async (id, extra) => {
   const out = await api(`/api/campaign/${DAY}/lorry/${encodeURIComponent(row.id)}/service`, {...jsonReq("DELETE", body), onError: staleReload});
   if (out) { CAMPAIGN = out; render(); showToast("تمت إزالة الخدمة"); }
 };
-ACTIONS.openCampaignDaily = () => { $("#campaignDailyName").value = ""; openModal("campaignDailyModal"); };
+ACTIONS.openCampaignDaily = () => { $("#campaignDailyName").value = ""; $("#campaignDailyBasic").innerHTML = `<option value="">بدون ربط</option>${(CAMPAIGN.pickers?.basic_services || []).map(item => `<option value="${esc(item.id)}">${esc(item.name)}</option>`).join("")}`; openModal("campaignDailyModal"); };
 function openPostModal(row = null) {
   $("#campaignPostId").value = row?.id || "";
   $("#campaignPostName").value = row?.name || "";
@@ -229,8 +229,9 @@ $("#campaignAttachForm").onsubmit = async event => {
 $("#campaignDailyForm").onsubmit = async event => {
   event.preventDefault();
   const name = $("#campaignDailyName").value.trim();
+  const basic_entry_id = $("#campaignDailyBasic").value;
   if (!name) return;
-  const out = await api(`/api/campaign/${DAY}/daily-rows`, {...jsonReq("POST", {name, revision: CAMPAIGN.revision}), onError: staleReload});
+  const out = await api(`/api/campaign/${DAY}/daily-rows`, {...jsonReq("POST", {name, basic_entry_id, revision: CAMPAIGN.revision}), onError: staleReload});
   if (out) { CAMPAIGN = out; closeModal("campaignDailyModal", true); render(); showToast("تمت إضافة القول"); }
 };
 

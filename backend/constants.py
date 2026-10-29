@@ -78,6 +78,25 @@ SECTION_GREAT = "ضابط عظيم الإدارة"
 SECTION_SECURITY = "ضابط الأمن بالإدارة"
 SECTION_PRISON = "خدمات سجن قوات الأمن"
 
+# أسماء قديمة لقسم السجن؛ لازم تتوحّد قبل أي فلترة بين اليوميات.
+SECTION_ALIASES = {
+    "خدمات السجن": SECTION_PRISON,
+    "سجن قوات الامن": SECTION_PRISON,
+    "سجن قوات الأمن": SECTION_PRISON,
+    "خدمات سجن قوات الامن": SECTION_PRISON,
+    "خدمات سجن قوات الأمن": SECTION_PRISON,
+    "فرد تأمين فترة ليلة": SECTION_PRISON,
+    "فرد تأمين فترة ليلية": SECTION_PRISON,
+    "فرد تامين فتره ليله": SECTION_PRISON,
+    "فرد تامين فتره ليليه": SECTION_PRISON,
+}
+
+
+def canonical_section_name(value):
+    """توحيد أسماء الأقسام التاريخية قبل المقارنة أو التجميع."""
+    raw = str(value or "").strip()
+    return SECTION_ALIASES.get(raw, raw)
+
 # قسم تفتيشات زيارات الأهالي — مش من الستة الرسمية ولا مسجّل في
 # `ASSIGNMENT_SECTIONS`؛ قسم حر زي أي قسم مخصّص المشغّل يكتبه بإيده
 # (`backend/board.py` بيتعامل مع أي قسم مش مسجّل تلقائيًا)، بس الاسم هنا

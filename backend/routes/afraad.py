@@ -5,7 +5,7 @@ from flask import Blueprint, jsonify, request, send_file
 from .. import day_status
 from ..dated import afraad_basic_on
 from ..afraad import (add_basic_service, build_afraad, remove_basic_service,
-                       set_basic_entry)
+                       set_basic_entry, update_basic_service)
 from .. import ocr_samples
 from ..afraad_ocr import analyze_image, apply_rows
 from ..afraad_export import build_docx
@@ -109,6 +109,13 @@ def add_afraad_basic_service(day):
     body = json_payload()
     return _write_basic_list(day, body, lambda data: add_basic_service(
         data, canonical_day(day), body.get("name")))
+
+
+@bp.put("/api/afraad/<day>/basic-services/<entry_id>")
+def put_afraad_basic_definition(day, entry_id):
+    body = json_payload()
+    return _write_basic_list(day, body, lambda data: update_basic_service(
+        data, canonical_day(day), entry_id, body))
 
 
 @bp.delete("/api/afraad/<day>/basic-services/<entry_id>")

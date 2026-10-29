@@ -118,7 +118,7 @@ def add_daily(day):
 
 
 def _add(data, day, body):
-    ident, error, status = campaign.add_daily_row(data, day, body.get("name"))
+    ident, error, status = campaign.add_daily_row(data, day, body.get("name"), body.get("basic_entry_id"))
     return error, status
 
 

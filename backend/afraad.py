@@ -16,12 +16,13 @@ import re
 
 from .assignments import peek_day
 from .board import ASSIGNMENT_SECTIONS, _display_key, _people_index, _row
-from .constants import SECTION_BASIC, SECTION_OCCASIONAL
+from .constants import SECTION_BASIC, SECTION_OCCASIONAL, SECTION_PRISON, canonical_section_name
 from .dated import afraad_basic_on, record_afraad_basic_change
 from .labels import officer_label
 from .repo import PeopleRepo
 from .store import reserve_id
 from .text import core_service_name, norm, norm_name
+from .utils import MAX_LEN
 
 # أسماء وترتيب البداية للخدمات الأساسية الـ22 في `22-6-2026 افراد.docx`.
 # القائمة مؤرخة ويمكن تعديلها من صفحة الأفراد. «كمين 109» في
@@ -111,8 +112,15 @@ def basic_rows(data, day):
         inherited = [field for field in _CARRY_FIELDS if field not in ov and old.get(field)]
         morning = _slot(data, ov, "morning")
         night = _slot(data, ov, "night")
+        description = ov.get("count", old.get("count", entry.get("count", "")))
+        numeric_count = entry.get("conscript_count")
+        if numeric_count is None:
+            matches = re.findall(r"\((\d+)\s*مجند\)", str(description))
+            numeric_count = int(matches[0]) if len(matches) == 1 else None
         rows.append({
             "id": entry["id"], "name": entry["name"],
+            "location_text": entry.get("location_text", ""),
+            "conscript_count": numeric_count,
             "count": ov.get("count", old.get("count", "")),
             "weapon": ov.get("weapon", old.get("weapon", "")),
             "morning": morning, "night": night,
@@ -161,6 +169,28 @@ def set_basic_entry(data, day, entry_id, payload):
     return ov, None, None
 
 
+def update_basic_service(data, day, entry_id, payload):
+    """تعديل المكان والعدد المنظمين في تعريف الخدمة الأساسية."""
+    target = next((e for e in afraad_basic_on(data, day) if e["id"] == entry_id), None)
+    if target is None:
+        return None, "هذه الخدمة ليست من الخدمات الأساسية الثابتة.", 404
+    if "location_text" in payload:
+        location = str(payload.get("location_text") or "").strip()
+        if len(location) > MAX_LEN["party"]:
+            return None, f"المكان أطول من الحد المسموح ({MAX_LEN['party']} حرف).", 400
+        target["location_text"] = location
+    if "conscript_count" in payload:
+        value = payload.get("conscript_count")
+        if value in (None, ""):
+            target.pop("conscript_count", None)
+        elif isinstance(value, bool) or (isinstance(value, int) and value >= 0) or (isinstance(value, str) and value.isdigit()):
+            target["conscript_count"] = int(value)
+        else:
+            return None, "عدد المجندين لازم يكون رقمًا صحيحًا غير سالب.", 400
+    _forward_basic_change(data, day, lambda items: [target if item["id"] == entry_id else item for item in items])
+    return target, None, None
+
+
 _TIME_RE = re.compile(r"(\d{1,2})(?:\s*[:.]\s*(\d{2}))?\s*(ص|ظ|م|ليل|ل)?(?![\w\u0600-\u06ff])|(\d{1,2})(?:\s*[:.]\s*(\d{2}))?\s*(ص|ظ|م|ليل|ل)")
 NO_TIME = 48 * 60
 
@@ -194,8 +224,10 @@ def occasional_rows(data, day):
     people = _people_index(data)
     rows = []
     for a in peek_day(data, day):
-        section = a.get("section") or SECTION_OCCASIONAL
+        section = canonical_section_name(a.get("section") or SECTION_OCCASIONAL)
         if section in ASSIGNMENT_SECTIONS and section != SECTION_OCCASIONAL:
+            continue
+        if section == SECTION_PRISON:
             continue
         rows.append(_row(a, people, day))
     rows.sort(key=lambda r: _time_key(r.get("time")))

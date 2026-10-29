@@ -167,12 +167,21 @@ ACTIONS.openAfEntry = id => openAfEntry(id);
 
 function renderBasicModal() {
   $("#afBasicEffective").textContent = `التعديل يسري من يوم ${fmt(DAY)} وما بعده`;
-  $("#afBasicList").innerHTML = (AF.basic || []).map(row => `<div class="list-row"><span>${esc(row.name)}</span><button type="button" class="mini bad" data-basic-remove="${esc(row.id)}">حذف</button></div>`).join("");
+  $("#afBasicList").innerHTML = (AF.basic || []).map(row => `<div class="list-row"><span>${esc(row.name)}</span><input data-basic-location="${esc(row.id)}" maxlength="120" value="${esc(row.location_text || "")}" placeholder="المكان"><input data-basic-count="${esc(row.id)}" type="number" min="0" step="1" value="${row.conscript_count ?? ""}" placeholder="عدد المجندين"><button type="button" class="mini" data-basic-save="${esc(row.id)}">حفظ</button><button type="button" class="mini bad" data-basic-remove="${esc(row.id)}">حذف</button></div>`).join("");
 }
 
 $("#afBasicOpen").onclick = () => { renderBasicModal(); openModal("afBasicModal"); };
 $("#afBasicList").onclick = async event => {
   const button = event.target.closest("[data-basic-remove]");
+  const save = event.target.closest("[data-basic-save]");
+  if (save) {
+    const id = save.dataset.basicSave;
+    const count = $(`[data-basic-count="${CSS.escape(id)}"]`).value;
+    const location_text = $(`[data-basic-location="${CSS.escape(id)}"]`).value.trim();
+    const out = await api(`/api/afraad/${DAY}/basic-services/${encodeURIComponent(id)}`, jsonReq("PUT", {location_text, conscript_count: count, revision: AF.revision}));
+    if (out) { AF = out; render(); renderBasicModal(); showToast("تم حفظ تعريف الخدمة"); }
+    return;
+  }
   if (!button) return;
   const row = AF.basic.find(item => item.id === button.dataset.basicRemove);
   if (!row || !(await confirmDialog({title: "إزالة الخدمة الأساسية", body: `هتتشال «${row.name}» من اليوم ورايح، وبيتم مسح البيانات المُدخلة ليها في اليوم ده.`, confirmLabel: "إزالة", danger: true}))) return;

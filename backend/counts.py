@@ -33,6 +33,7 @@ from .assignments import peek_day as peek_assignments
 from .constants import (
     SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_SECURITY,
     SECTION_SUBCAMP, SECTION_TARGETS,
+    SECTION_PRISON, canonical_section_name,
 )
 from .day_status import status_of
 from .store import reserve_id
@@ -41,7 +42,7 @@ from .store import reserve_id
 # «خدمات» أصلًا هنا (الأهداف والكتل التنظيمية الثابتة) — أي قسم غيرهم على
 # اللوحة (الطوارئ أو مخصّص) بيتحسب في هذه الصفحة.
 _NOT_COUNTABLE_HERE = {SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP,
-                       SECTION_GREAT, SECTION_SECURITY}
+                       SECTION_GREAT, SECTION_SECURITY, SECTION_PRISON}
 
 BLOCKS = ["صباحية", "ليلية", "طوارئ"]
 
@@ -258,7 +259,8 @@ def emergency_rows(data, day):
     عددها كانت بتختفي من الورقة بدل ما تفكّره إنها ناقصة — والنتيجة ورقة
     طوارئ فاضية تمامًا في كل يوم.
     """
-    rows = [r for r in peek_assignments(data, day) if r.get("section") == SECTION_OCCASIONAL]
+    rows = [r for r in peek_assignments(data, day)
+            if canonical_section_name(r.get("section") or SECTION_OCCASIONAL) == SECTION_OCCASIONAL]
     return _rows_for(rows)
 
 
@@ -274,7 +276,7 @@ def custom_sections(data, day):
     """
     by_section = {}
     for row in peek_assignments(data, day):
-        section = row.get("section") or SECTION_OCCASIONAL
+        section = canonical_section_name(row.get("section") or SECTION_OCCASIONAL)
         if section == SECTION_OCCASIONAL or section in _NOT_COUNTABLE_HERE:
             continue
         by_section.setdefault(section, []).append(row)
