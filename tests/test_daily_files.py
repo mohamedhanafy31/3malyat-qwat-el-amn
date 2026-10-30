@@ -8,12 +8,13 @@ from backend import daily_files
 def test_daily_names_and_archive_patterns():
     names = daily_files.file_names("2026-09-28")
     assert names["board"] == "28.docx"
+    assert names["regularity"] == "28..docx"
     assert names["afraad"] == "28-9-2026 افراد.docx"
-    for value in ("28.docx", "28.pdf", "28-9-2026.docx",
+    for value in ("28.docx", "28.pdf", "28..docx", "28-9-2026.docx",
                   "28-9-2026 افراد.pdf", "يومية الحملة عن يوم 28-9-2026.pdf",
                   "اعداد الخدمات يوم 27-9-2026.xlsx"):
         assert daily_files.is_daily_file(value)
-    for value in ("28..docx", "~$-2026.docx", "خط تشكيل صبح.docx", "ارقام الافراد.docx",
+    for value in ("~$-2026.docx", "خط تشكيل صبح.docx", "ارقام الافراد.docx",
                   "داتا افراد.docx", "أمر خدمة يوم 28-9-2026.docx"):
         assert not daily_files.is_daily_file(value)
 
@@ -33,6 +34,8 @@ def test_clone_gap_and_write(monkeypatch, tmp_path):
     assert set(daily_files.file_names("2026-09-30").values()) <= {
         p.name for p in folder.iterdir()
     }
+    assert (folder / "30..docx").read_bytes() == b"regularity"
+    assert (folder / "30.docx").read_bytes() == b"board"
 
 
 def test_clone_excludes_real_archive_names_at_all_levels(monkeypatch, tmp_path):
@@ -45,7 +48,7 @@ def test_clone_excludes_real_archive_names_at_all_levels(monkeypatch, tmp_path):
         "يومية الحملة عن يوم 28-9-2026.pdf",
         "اعداد الخدمات يوم 27-9-2026.xlsx", "~$-2026.docx",
         "خط تشكيل صبح.docx", "ارقام الافراد.docx", "داتا افراد.docx",
-        "أمر خدمة يوم 28-9-2026.docx", "28..docx",
+        "أمر خدمة يوم 28-9-2026.docx",
     ]
     for name in names:
         (source / name).write_text(name)
@@ -57,7 +60,7 @@ def test_clone_excludes_real_archive_names_at_all_levels(monkeypatch, tmp_path):
 
     assert cloned == source
     assert not warnings
-    assert (target / "28..docx").exists()
+    assert not (target / "28..docx").exists()
     assert (target / "خط تشكيل صبح.docx").exists()
     assert (target / "اضافات" / "28.docx").exists()
     for name in names:

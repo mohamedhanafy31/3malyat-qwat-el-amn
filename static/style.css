@@ -2166,6 +2166,11 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .regularity-fieldset legend{padding-inline:var(--s1);font-weight:800;color:var(--navy-800)}
 .regularity-fieldset label{display:flex;align-items:center;gap:var(--s3);margin:0;font-weight:700}
 .regularity-fieldset label input,.regularity-fieldset label select{flex:1;min-width:0}
+.regularity-supervisor-period{display:grid;grid-template-columns:auto repeat(3,minmax(0,1fr));align-items:end;gap:var(--s2);padding-bottom:var(--s2);border-bottom:1px solid var(--line)}
+.regularity-supervisor-period:last-of-type{border-bottom:0;padding-bottom:0}
+.regularity-supervisor-period>strong{padding-bottom:.55rem;color:var(--navy-800)}
+.regularity-supervisor-period label{display:block;font-size:var(--t-sm)}
+.regularity-supervisor-period label input{display:block;width:100%;margin-top:var(--s1)}
 .regularity-notes-fieldset{grid-column:1/-1}
 .regularity-notes{display:flex;flex-direction:column;gap:var(--s2);margin:0;padding-inline-start:1.5rem}
 .regularity-note{display:flex;align-items:center;gap:var(--s2)}
@@ -2179,7 +2184,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .regularity-warnings:empty::after{content:"لا توجد تنبيهات في المعاينة.";color:var(--ok-800)}
 .regularity-status{color:var(--ink-500);font-size:var(--t-sm)}
 .regularity-status.is-dirty{color:var(--warn-800);font-weight:700}
-@media(max-width:760px){.regularity-grid{grid-template-columns:1fr}.regularity-notes-fieldset{grid-column:auto}.regularity-toolbar{align-items:flex-start;flex-direction:column}}
+@media(max-width:760px){.regularity-grid{grid-template-columns:1fr}.regularity-notes-fieldset{grid-column:auto}.regularity-toolbar{align-items:flex-start;flex-direction:column}.regularity-supervisor-period{grid-template-columns:1fr 1fr}.regularity-supervisor-period>strong{grid-column:1/-1}}
 .ops-checks{display:flex;flex-direction:column;gap:var(--s1);max-height:300px;overflow:auto;margin-bottom:var(--s3)}
 .ops-checks label{display:flex;flex-direction:row;align-items:center;gap:var(--s2);margin:0;font-weight:400;padding:var(--s2);border:1px solid transparent;border-radius:var(--radius-sm);cursor:pointer}
 .ops-checks label:hover{background:var(--navy-50);border-color:var(--line)}

@@ -4,7 +4,9 @@
   if (!d) return;
 
   let ops = null;
-  const day = curDate();
+  const today = curDate();
+  const requestedDay = new URLSearchParams(location.search).get("day");
+  let day = /^\d{4}-\d{2}-\d{2}$/.test(requestedDay || "") ? requestedDay : today;
   window.exportDocxUrl = () => `/api/ops/${day}/regularity.docx`;
   const userKey = document.getElementById("userChipWrap")?.dataset.userId || "anonymous";
   const prefKey = `opsBoardPrefs:v2:${userKey}`;
@@ -54,13 +56,13 @@
     if (status) { status.textContent = "تغييرات غير محفوظة"; status.classList.add("is-dirty"); }
   }
 
-  function regularitySelect(id, options, selected, emptyLabel = "استخدم التفصيلية") {
-    const select = $id(id);
-    if (!select) return;
-    select.innerHTML = `<option value="">${esc(emptyLabel)}</option>` + options.map(item =>
-      `<option value="${esc(item.id)}">${esc(item.rank ? `${item.rank} / ${item.name}` : item.name)}</option>`).join("");
-    select.value = selected || "";
-    if (select._comboInput) _cbSync(select);
+  const supervisorFields = {am: ["regularityAmRank", "regularityAmName", "regularityAmPhone"],
+    pm: ["regularityPmRank", "regularityPmName", "regularityPmPhone"]};
+
+  function setSupervisor(shift, value) {
+    const fields = supervisorFields[shift];
+    const row = value && typeof value === "object" ? value : {};
+    fields.forEach((id, index) => { $id(id).value = row[["rank", "name", "phone"][index]] || ""; });
   }
 
   function regularityNotes(values) {
@@ -84,27 +86,27 @@
   function renderRegularity(result) {
     regularity = result;
     const inputs = result.inputs || {};
-    const officers = result.officers || [];
     const command = result.command || {};
-    regularitySelect("regularityAmSupervisor", officers, inputs.big_column_supervisors?.am);
-    regularitySelect("regularityPmSupervisor", officers, inputs.big_column_supervisors?.pm);
-    regularitySelect("regularityOperationsChief", officers, inputs.operations_chief, "الافتراضي (رئيس قسم العمليات الحالي)");
+    setSupervisor("am", inputs.big_column_supervisors?.am);
+    setSupervisor("pm", inputs.big_column_supervisors?.pm);
     $id("regularityDirectorExtra").value = inputs.officer_extra?.[command["مدير الإدارة"]] || "";
     $id("regularityDeputyExtra").value = inputs.officer_extra?.[command["وكيل الإدارة"]] || "";
-    const director = officers.find(item => item.id === command["مدير الإدارة"]);
-    const deputy = officers.find(item => item.id === command["وكيل الإدارة"]);
-    $id("regularityDirectorLabel").firstChild.textContent = `نص ${director?.name || "المدير"}`;
-    $id("regularityDeputyLabel").firstChild.textContent = `نص ${deputy?.name || "الوكيل"}`;
+    const officer = id => (result.officers || []).find(item => item.id === id);
+    const director = officer(command["مدير الإدارة"]);
+    const deputy = officer(command["وكيل الإدارة"]);
+    [["regularityDirectorLabel", "regularityDirectorExtra", director],
+      ["regularityDeputyLabel", "regularityDeputyExtra", deputy]].forEach(([labelId, inputId, person]) => {
+        const label = $id(labelId), input = $id(inputId), visible = Boolean(person);
+        label.classList.toggle("hidden", !visible); input.disabled = !visible;
+        label.firstChild.textContent = visible ? `نص ${person.rank || ""}/ ${person.name}` : "";
+        if (!visible) input.value = "";
+      });
     regularityNotes(inputs.notes || []);
     const inherited = $id("regularityInheritance");
     // inherited_from بيساوي اليوم نفسه لو مدخلاته محفوظة له — ده مش توريث
     const fromOther = result.inherited_from && result.inherited_from !== day;
     inherited.textContent = fromOther ? `مورّث من يوم ${fmt(result.inherited_from)}` : "";
     inherited.classList.toggle("hidden", !fromOther);
-    const warnings = result.preview?.warnings || [];
-    $id("regularityWarnings").innerHTML = warnings.length
-      ? warnings.map(item => `<li>${esc(item)}</li>`).join("")
-      : "";
     regularityDirty = false;
     $id("regularityStatus").textContent = `عدد صفوف الخدمات: ${result.preview?.service_rows ?? 0}`;
     $id("regularityStatus").classList.remove("is-dirty");
@@ -115,10 +117,14 @@
     const extra = {};
     if (command["مدير الإدارة"] && $id("regularityDirectorExtra").value.trim()) extra[command["مدير الإدارة"]] = $id("regularityDirectorExtra").value.trim();
     if (command["وكيل الإدارة"] && $id("regularityDeputyExtra").value.trim()) extra[command["وكيل الإدارة"]] = $id("regularityDeputyExtra").value.trim();
-    const value = id => $id(id).value;
+    const value = id => $id(id).value.trim();
+    const supervisor = shift => {
+      const [rank, name, phone] = supervisorFields[shift].map(value);
+      return {rank, name, phone};
+    };
     return {officer_extra: extra,
-      big_column_supervisors: {am: value("regularityAmSupervisor"), pm: value("regularityPmSupervisor")},
-      notes: regularityNoteValues(), operations_chief: value("regularityOperationsChief")};
+      big_column_supervisors: {am: supervisor("am"), pm: supervisor("pm")},
+      notes: regularityNoteValues()};
   }
 
   async function saveRegularity(reset = false) {
@@ -143,7 +149,6 @@
     const out = await api(`/api/ops/${day}/regularity`, {noLoader: true});
     if (!out) return;
     renderRegularity(out);
-    upgradeSelects($id("regularityBody"));
   }
 
   function stateKey(run) {
@@ -211,11 +216,44 @@
     return hours ? `بعد ${hours}س ${minutesLeft}د` : `بعد ${minutesLeft} دقيقة`;
   }
 
+  function paintDayContext() {
+    const input = $id("dashboardDate");
+    if (input) input.value = day;
+    const warning = $id("dashboardDayWarning");
+    const historical = day !== today;
+    if (warning) {
+      warning.textContent = historical ? `عرض يوم ${fmt(day)}` : "";
+      warning.classList.toggle("hidden", !historical);
+    }
+    $id("opsNext")?.classList.toggle("ops-next-hidden", historical);
+  }
+
+  async function setDay(nextDay, {replace = false} = {}) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDay) || nextDay === day) return;
+    if (regularityDirty && !window.confirm("توجد تغييرات غير محفوظة في بيانات الانتظام. هل تريد تغيير اليوم؟")) return;
+    pendingTimers.forEach(timer => clearTimeout(timer));
+    pendingTargets.clear(); pendingLabels.clear(); pendingTimers.clear(); rowErrors.clear();
+    closeModal("opsLineModal", false); closeModal("opsTimeModal", false);
+    day = nextDay; ops = null; regularity = null; regularityDirty = false;
+    filters = {query: "", states: new Set(), types: new Set(), lines: new Set(), timeWindow: "all", attention: false};
+    activeShift = "all"; prefs.collapsed = {};
+    const url = new URL(location.href);
+    if (day === today) url.searchParams.delete("day"); else url.searchParams.set("day", day);
+    history[replace ? "replaceState" : "pushState"]({}, "", url);
+    paintDayContext(); updateToolbar(); paintCounters();
+    $id("opsBoard").setAttribute("aria-busy", "true");
+    $id("opsBoard").innerHTML = `<div class="ops-loading">جارٍ تحميل لوحة التشغيل…</div>`;
+    $id("opsNext").textContent = day === today ? "جارٍ تحميل لوحة التشغيل…" : "—";
+    await loadOps();
+    await loadRegularity();
+  }
+
   function paintClock() {
     const now = new Date();
     $id("opsClock").textContent = now.toLocaleTimeString("en-GB", {
       hour: "2-digit", minute: "2-digit", second: "2-digit",
     });
+    if (day !== today) { $id("opsNext").textContent = "—"; return; }
     if (!ops) return;
 
     const next = ops.next;
@@ -842,6 +880,15 @@
     event.currentTarget.setAttribute("aria-expanded", String(!help.classList.contains("hidden")));
   });
   $id("opsRefreshNow").addEventListener("click", () => loadOps());
+  $id("dayPrev").addEventListener("click", () => setDay(addDays(day, -1)));
+  $id("dayNext").addEventListener("click", () => setDay(addDays(day, 1)));
+  $id("dayToday").addEventListener("click", () => setDay(today));
+  $id("dashboardDate").addEventListener("change", event => setDay(event.target.value));
+  window.addEventListener("popstate", () => {
+    const value = new URLSearchParams(location.search).get("day") || today;
+    setDay(value, {replace: true});
+  });
+  paintDayContext();
 
   const regularityPanel = $id("regularityPanel");
   if (prefs.collapsed.regularity === undefined) prefs.collapsed.regularity = true;

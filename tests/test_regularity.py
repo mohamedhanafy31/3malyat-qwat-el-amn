@@ -185,16 +185,16 @@ def test_supervisory_switch_big_column_override_notes_and_signatories():
     data = data_for([assignment("قول مكبر", section="الخدمات أساسية", id="AS-B", shift="صباحية",
                                 officer_ids=["OFF-4"], personnel_ids=[])])
     data["day_officers"][DAY] = {"OFF-1": {"status": "غياب"}}
-    inputs = {"big_column_supervisors": {"am": "OFF-3"},
-              "notes": ["ملاحظة واحدة"], "operations_chief": "OFF-4"}
+    inputs = {"big_column_supervisors": {"am": {"rank": "مقدم", "name": "أحمد هلال", "phone": "0102"}},
+              "notes": ["ملاحظة واحدة"]}
     payload = build(data, DAY, inputs)
     assert payload["officer_rows"][0]["id"] == "OFF-2"
-    assert any(row["id"] == "OFF-3" and "مشرف القول المكبر" in row["service"]
+    assert any(row["name"] == "أحمد هلال (0102)" and "مشرف القول المكبر" in row["service"]
                for row in payload["officer_rows"])
     assert not any(row["id"] == "OFF-4" and "مشرف القول المكبر" in row["service"]
                    for row in payload["officer_rows"])
     assert payload["notes"] == ["ملاحظة واحدة"]
-    assert payload["signatories"]["operations"]["name"] == "ضابط خدمة"
+    assert payload["signatories"]["operations"]["name"] == "رئيس عمليات"
     assert build(data_for([]), DAY)["notes"] == DEFAULT_NOTES
     assert build(data_for([]), DAY)["signatories"]["operations"]["name"] == "رئيس عمليات"
 
@@ -205,6 +205,16 @@ def test_dashboard_export_contract(client):
     dashboard_js = Path("static/js/dashboard.js").read_text(encoding="utf-8")
     assert "window.exportDocxUrl" in dashboard_js
     assert "/api/ops/${day}/regularity.docx" in dashboard_js
+
+
+def test_dashboard_day_navigation_and_regularitiy_ui_contract(client):
+    html = client.get("/?day=2026-10-20").get_data(as_text=True)
+    assert 'id="dashboardDate"' in html and 'id="dayPrev"' in html
+    assert 'id="dashboardDayWarning"' in html
+    assert "regularityWarnings" not in html and "regularityOperationsChief" not in html
+    dashboard_js = Path("static/js/dashboard.js").read_text(encoding="utf-8")
+    assert "new URLSearchParams(location.search).get(\"day\")" in dashboard_js
+    assert "/api/ops/${day}" in dashboard_js
 
 
 def test_regularity_route_download_and_invalid_day(client):

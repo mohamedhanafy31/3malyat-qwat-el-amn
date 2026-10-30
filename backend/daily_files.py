@@ -1,7 +1,7 @@
-"""إدارة مجلد الأرشيف اليومي والملفات الخمسة
+"""إدارة مجلد الأرشيف اليومي والملفات الستة
 التي يولدها النظام.
 
-المجلد يحاكي أرشيف المشغّلين، بينما الملفات الخمسة تُبنى
+المجلد يحاكي أرشيف المشغّلين، بينما الملفات اليومية تُبنى
 من بيانات النظام.
 """
 
@@ -21,9 +21,10 @@ from .settings import get_setting
 from .store import ALL_CORE_KEYS
 
 LOG = logging.getLogger(__name__)
-KINDS = ("board", "duty", "afraad", "campaign", "counts")
+KINDS = ("board", "duty", "afraad", "campaign", "counts", "regularity")
 _PATTERNS = {
     "board": re.compile(r"^\d+\.(?:docx|pdf)$"),
+    "regularity": re.compile(r"^\d+\.\.docx$"),
     "duty": re.compile(r"^\d+-\d+-\d{4}\.(?:docx|pdf)$"),
     "afraad": re.compile(r"^\d+-\d+-\d{4} افراد\.(?:docx|pdf)$"),
     "campaign": re.compile(r"^يومية الحملة"),
@@ -100,11 +101,12 @@ def day_folder(day):
 
 
 def file_names(day):
-    """الأسماء القانونية للأنواع الخمسة."""
+    """الأسماء القانونية للملفات اليومية."""
     value, _year, month, number = _date_parts(day)
     year = str(value.year)
     return {
         "board": f"{number}.docx",
+        "regularity": f"{number}..docx",
         "duty": f"{number}-{month}-{year}.docx",
         "afraad": f"{number}-{month}-{year} افراد.docx",
         "campaign": f"يومية الحملة عن يوم {number}-{month}-{year}.docx",
@@ -142,7 +144,7 @@ def _nearest_previous_folder(day):
 
 
 def _clone_into(source, target, *, only_missing=False):
-    """ينسخ محتوى فولدر اليوم السابق ما عدا اليوميات الخمسة و`~$`/tmp.
+    """ينسخ محتوى فولدر اليوم السابق ما عدا اليوميات و`~$`/tmp.
 
     `only_missing`: مايكتبش فوق ملف موجود (دمج، للتهجير مرة واحدة).
     أخطاء الملفات الفردية بتتجمّع ومابتمنعش نسخ الباقي.

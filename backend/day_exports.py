@@ -1,4 +1,4 @@
-"""مولدات موحّدة للملفات الخمسة في أرشيف اليوم."""
+"""مولدات موحّدة لملفات أرشيف اليوم."""
 
 from copy import deepcopy
 
@@ -11,6 +11,8 @@ from .campaign_export import build_docx as build_campaign_docx
 from .day_open import needs_prepare, prepare
 from .duty import summarise
 from .duty_export import build_docx as build_duty_docx
+from .regularity import build as build_regularity, effective_inputs
+from .regularity_export import build_docx as build_regularity_docx
 from .store import load_data
 from .utils import around
 
@@ -71,3 +73,15 @@ def build_counts_bytes(day):
         raise RuntimeError("مولد أعداد الخدمات غير متاح بعد") from exc
 
     return _bytes(build_xlsx(counts.build(load_data([day]), day)))
+
+
+def build_regularity_bytes(day):
+    """يبني يومية الانتظام من نفس تجهيز الذاكرة المستخدم في مسار التصدير."""
+    data = load_data(around(day, 0, -1, -2, -3))
+    preview = deepcopy(data)
+    if needs_prepare(data, day, include_inspections=True):
+        prepare(preview, day, include_inspections=True)
+    inputs, _ = effective_inputs(preview, day)
+    payload = build_regularity(preview, day, inputs)
+    payload["day"] = day
+    return _bytes(build_regularity_docx(payload))

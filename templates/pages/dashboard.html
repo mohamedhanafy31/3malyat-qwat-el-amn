@@ -2,10 +2,20 @@
 
 {% block alerts %}{% endblock %}
 {% block export %}docx{% endblock %}
+{% block page_actions %}<span id="dashboardDayWarning" class="day-warning hidden" role="status"></span>{% endblock %}
 
 {% block content %}
 <div id="clockWarning"></div>
 <div id="restSuspension"></div>
+
+<div class="toolbar dashboard-day-toolbar" id="dashboardDayBar">
+  <div class="tb-group" role="group" aria-label="التنقل بين الأيام">
+    <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
+    <input type="date" id="dashboardDate" class="select" aria-label="يوم التشغيل">
+    <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
+    <button class="mini day-jump" id="dayToday">اليوم</button>
+  </div>
+</div>
 
 <details class="regularity-panel" id="regularityPanel">
   <summary><span>بيانات يومية الانتظام</span><small>إضافات وتوقيعات تصدير Word</small></summary>
@@ -17,14 +27,14 @@
     <div class="regularity-grid">
       <fieldset class="regularity-fieldset">
         <legend>مشرف القول المكبر</legend>
-        <label>صباحي<select id="regularityAmSupervisor" data-combo-custom-option="none"></select></label>
-        <label>ليلي<select id="regularityPmSupervisor" data-combo-custom-option="none"></select></label>
-        <small class="field-hint">اترك الاختيار فارغًا لاستخدام الضابط الظاهر في اللوحة التفصيلية.</small>
+        <div class="regularity-supervisor-period"><strong>صباحي</strong><label>الرتبة<input id="regularityAmRank" maxlength="120" placeholder="مقدم"></label><label>الاسم<input id="regularityAmName" maxlength="120" placeholder="أحمد هلال السملاوي"></label><label>الهاتف (اختياري)<input id="regularityAmPhone" maxlength="30" placeholder="رقم الهاتف"></label></div>
+        <div class="regularity-supervisor-period"><strong>ليلي</strong><label>الرتبة<input id="regularityPmRank" maxlength="120" placeholder="مقدم"></label><label>الاسم<input id="regularityPmName" maxlength="120" placeholder="أحمد هلال السملاوي"></label><label>الهاتف (اختياري)<input id="regularityPmPhone" maxlength="30" placeholder="رقم الهاتف"></label></div>
+        <small class="field-hint">اترك الاسم فارغًا لاستخدام ضابط القول المكبر الظاهر في التفصيلية.</small>
       </fieldset>
       <fieldset class="regularity-fieldset">
         <legend>نص إضافي للمدير والوكيل</legend>
-        <label id="regularityDirectorLabel">المدير<input id="regularityDirectorExtra" maxlength="500" placeholder="مثال: المرور التعقبي من 5م حتى 10م"></label>
-        <label id="regularityDeputyLabel">الوكيل<input id="regularityDeputyExtra" maxlength="500" placeholder="مثال: المرور التعقبي من 5م حتى 10م"></label>
+        <label id="regularityDirectorLabel">نص المدير<input id="regularityDirectorExtra" maxlength="500" placeholder="مثال: المرور التعقبي من 5م حتى 10م"></label>
+        <label id="regularityDeputyLabel">نص الوكيل<input id="regularityDeputyExtra" maxlength="500" placeholder="مثال: المرور التعقبي من 5م حتى 10م"></label>
       </fieldset>
       <fieldset class="regularity-fieldset regularity-notes-fieldset">
         <legend>الملاحظات</legend>
@@ -34,14 +44,6 @@
           <button type="button" class="btn" id="regularityRestoreNotes">استرجاع الافتراضي</button>
         </div>
       </fieldset>
-      <fieldset class="regularity-fieldset">
-        <legend>رئيس قسم العمليات</legend>
-        <label>الضابط<select id="regularityOperationsChief" data-combo-custom-option="none"></select></label>
-      </fieldset>
-    </div>
-    <div class="regularity-preview">
-      <h3>تنبيهات المعاينة</h3>
-      <ul id="regularityWarnings" class="regularity-warnings"><li>جارٍ تحميل المعاينة…</li></ul>
     </div>
     <div class="dialog-actions regularity-actions">
       <button type="button" class="primary" id="regularitySave">حفظ</button>

@@ -38,7 +38,19 @@ DEFAULT_NOTES = [
 def default_inputs():
     """نسخة مستقلة من اختيارات اليومية الافتراضية."""
     return {"officer_extra": {}, "big_column_supervisors": {},
-            "notes": list(DEFAULT_NOTES), "operations_chief": ""}
+            "notes": list(DEFAULT_NOTES)}
+
+
+def _supervisor_value(data, day, value):
+    """يطبع مشرف القول المكبر لشكل النص الجديد، ويقرأ id القديم."""
+    if isinstance(value, dict):
+        return {key: _text(value.get(key)) for key in ("rank", "name", "phone")}
+    person = _officer(data, day, value) if value else None
+    if not person:
+        return {"rank": "", "name": "", "phone": ""}
+    return {"rank": _text(person.get("role")),
+            "name": _text(person.get("short_name") or person.get("name")),
+            "phone": _text(person.get("phone"))}
 
 
 def effective_inputs(data, day):
@@ -54,9 +66,13 @@ def effective_inputs(data, day):
     result = default_inputs()
     if isinstance(value, dict):
         result["officer_extra"] = dict(value.get("officer_extra") or {})
-        result["big_column_supervisors"] = dict(value.get("big_column_supervisors") or {})
+        supervisors = value.get("big_column_supervisors") or {}
+        result["big_column_supervisors"] = {
+            shift: _supervisor_value(data, day, supervisors.get(shift))
+            for shift in ("am", "pm")
+            if supervisors.get(shift)
+        }
         result["notes"] = list(value.get("notes") or DEFAULT_NOTES)
-        result["operations_chief"] = str(value.get("operations_chief") or "")
     return result, source_day
 
 
@@ -263,8 +279,9 @@ def _officer_rows(data, day, inputs):
         result.append({"rank": person.get("role", ""), "name": name, "service": text,
                        "id": person["id"], "kind": "basic"})
     overrides = inputs.get("big_column_supervisors") or {}
-    override_people = {key: _officer(data, day, ident)
-                       for key, ident in overrides.items() if ident}
+    override_people = {key: value for key, value in overrides.items()
+                       if key in {"am", "pm"} and isinstance(value, dict)
+                       and _text(value.get("name"))}
     if override_people:
         # مدخلات اليومية هي override حقيقي، مش fallback فقط: نشيل صف القول
         # المكبر لنفس الفترة من اللوحة ونضع الضابط المحدد في inputs مكانه.
@@ -280,21 +297,27 @@ def _officer_rows(data, day, inputs):
                 continue
             kept.append(row)
         result = kept
-    existing = set()
     for shift, key, hours in (("صباحية", "am", '"8 ص الي 8 م"'), ("ليلية", "pm", '"8 م الي 8 ص"')):
-        person = _officer(data, day, overrides.get(key))
-        if person and person["id"] not in existing:
+        person = override_people.get(key)
+        if person and (person.get("rank") or person.get("name")):
+            label = _text(person.get("name"))
+            if _text(person.get("phone")):
+                label = f"{label} ({_text(person.get('phone'))})"
             result.insert(2 if key == "am" else 3,
-                          {"rank": person.get("role", ""),
-                           "name": f"{person.get('short_name') or person.get('name', '')} ({person.get('phone', '')})" if person.get("phone") else person.get("short_name") or person.get("name", ""),
+                          {"rank": _text(person.get("rank")), "name": label,
                            "service": f"مشرف القول المكبر فترة {shift} {hours}",
-                           "id": person["id"], "kind": "big-column"})
-            existing.add(person["id"])
+                           "id": None, "kind": "big-column"})
     return result
 
 
 def build(data, day, inputs=None):
-    inputs = inputs or {}
+    inputs = dict(inputs or {})
+    raw_supervisors = inputs.get("big_column_supervisors") or {}
+    inputs["big_column_supervisors"] = {
+        shift: _supervisor_value(data, day, raw_supervisors.get(shift))
+        for shift in ("am", "pm")
+        if raw_supervisors.get(shift)
+    }
     rows = []
     excluded = _STRUCTURAL | {SECTION_PRISON}
     for order, assignment in enumerate(peek_day(data, day)):
@@ -313,12 +336,12 @@ def build(data, day, inputs=None):
         person = _officer(data, day, ident)
         signatories[key] = {"rank": person.get("role", "") if person else "عقيد",
                             "name": (person.get("short_name") or " ".join(person.get("name", "").split()[:2])) if person else PLACEHOLDER}
-    chief = _officer(data, day, inputs.get("operations_chief"))
-    if chief is None:
-        for person in officers_on(data, day):
-            if "رئيس قسم العمليات" in _text(effective(person, day).get("post")):
-                chief = {**person, **effective(person, day)}
-                break
+    chief = None
+    chief_post = norm("رئيس قسم العمليات")
+    for person in officers_on(data, day):
+        if chief_post in norm(effective(person, day).get("post")):
+            chief = {**person, **effective(person, day)}
+            break
     signatories["operations"] = {"rank": chief.get("role", "رائد") if chief else "رائد",
                                   "name": ((chief.get("short_name") or " ".join(chief.get("name", "").split()[:2])) if chief else "محمد بحر")}
     d = date.fromisoformat(day)

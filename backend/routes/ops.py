@@ -32,7 +32,7 @@ def _day(raw):
 def _regularity_preview(data, day, inputs):
     payload = build_regularity(data, day, inputs)
     return {"officer_rows": payload["officer_rows"], "notes": payload["notes"],
-            "signatories": payload["signatories"], "warnings": payload["warnings"],
+            "signatories": payload["signatories"],
             "service_rows": len(payload["service_rows"])}
 
 
@@ -73,12 +73,27 @@ def _validate_regularity_inputs(data, day, body):
     if not isinstance(supervisors, dict) or set(supervisors) - {"am", "pm"}:
         return None, "اختيارات مشرف القول المكبر غير صحيحة."
     clean_supervisors = {}
-    for shift, ident in supervisors.items():
-        ident = str(ident or "").strip()
-        if ident and ident not in on_force:
-            return None, "مشرف القول المكبر يجب أن يكون ضابطًا على القوة في اليوم."
-        if ident:
-            clean_supervisors[shift] = ident
+    for shift, value in supervisors.items():
+        # نقبل id القديم هنا عشان السجلات القديمة تفضل قابلة للحفظ، لكن أي
+        # قيمة جديدة بتتخزن كنص حر، لأن المشرف غالبًا من خارج الإدارة.
+        if isinstance(value, str):
+            ident = value.strip()
+            if ident and ident not in on_force:
+                return None, "بيانات مشرف القول المكبر غير صحيحة."
+            if ident:
+                clean_supervisors[shift] = ident
+            continue
+        if not isinstance(value, dict):
+            return None, "بيانات مشرف القول المكبر غير صحيحة."
+        clean = {}
+        for key in ("rank", "name", "phone"):
+            text = str(value.get(key) or "").strip()
+            limit = MAX_LEN["phone"] if key == "phone" else MAX_LEN["name"]
+            if len(text) > limit:
+                return None, "بيانات مشرف القول المكبر أطول من الحد المسموح."
+            clean[key] = text
+        if clean["name"]:
+            clean_supervisors[shift] = clean
     notes = raw.get("notes")
     if not isinstance(notes, list) or len(notes) > 12:
         return None, "اكتب 12 ملاحظة أو أقل."
@@ -90,11 +105,8 @@ def _validate_regularity_inputs(data, day, body):
         if len(text) > MAX_LEN["note"]:
             return None, f"الملاحظة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."
         clean_notes.append(text)
-    chief = str(raw.get("operations_chief") or "").strip()
-    if chief and chief not in on_force:
-        return None, "رئيس قسم العمليات يجب أن يكون ضابطًا على القوة في اليوم."
     return {"officer_extra": clean_extra, "big_column_supervisors": clean_supervisors,
-            "notes": clean_notes, "operations_chief": chief}, None
+            "notes": clean_notes}, None
 
 
 @bp.get("/api/ops/<day>")

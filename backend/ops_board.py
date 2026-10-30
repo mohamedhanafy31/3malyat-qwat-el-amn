@@ -220,7 +220,9 @@ def _apply_state(data, day, item, now):
         item["state"] = "back"
     elif record.get("out_at"):
         item["state"] = "out"
-    if item["state"] == "upcoming" and item.get("report_time"):
+    # «جهّز/متأخرة» بالمقارنة مع ساعة دلوقتي — ليها معنى في يوم النهاردة بس؛
+    # من غير الشرط ده يوم قديم أو جاي كان بيطلع «متأخرة» حسب ساعة الجهاز.
+    if item["state"] == "upcoming" and item.get("report_time") and day == now.date().isoformat():
         current = now.hour * 60 + now.minute
         hh, mm = (int(x) for x in item["report_time"].split(":"))
         delta = hh * 60 + mm - current
