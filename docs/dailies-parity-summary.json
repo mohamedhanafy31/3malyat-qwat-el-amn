@@ -1,0 +1,101 @@
+{
+  "range": {"from": "2026-08-01", "to": "2026-10-22"},
+  "measurement": {
+    "unit": "field",
+    "layout_excluded_from_match_rate": true,
+    "data_mismatch_records": 20079,
+    "fields_compared": 82436,
+    "fields_matched": 48243,
+    "fields_mismatched": 34193,
+    "match_rate": 0.585218,
+    "layout_differences": 91,
+    "layout_by_type": {"five_column_packing": 74, "targets_order": 17}
+  },
+  "kinds": {
+    "board": {
+      "found": 82, "compared": 82, "skipped": 1,
+      "skip_reasons": {"archive_missing": 1},
+      "mismatch_records": 3335, "layout_differences": 91,
+      "totals": {"compared": 7652, "matched": 2781, "mismatched": 4871},
+      "match_rate": 0.363434,
+      "fields": {
+        "service": {"compared": 3826, "matched": 1635, "mismatched": 2191},
+        "value": {"compared": 3826, "matched": 1146, "mismatched": 2680}
+      }
+    },
+    "duty": {
+      "found": 83, "compared": 83, "skipped": 0, "skip_reasons": {},
+      "mismatch_records": 3113, "layout_differences": 0,
+      "totals": {"compared": 18173, "matched": 14348, "mismatched": 3825},
+      "match_rate": 0.789523,
+      "fields": {
+        "assigned": {"compared": 2788, "matched": 2681, "mismatched": 107},
+        "counted": {"compared": 1411, "matched": 465, "mismatched": 946},
+        "daily": {"compared": 2788, "matched": 2294, "mismatched": 494},
+        "displayed": {"compared": 1411, "matched": 493, "mismatched": 918},
+        "metric": {"compared": 1411, "matched": 803, "mismatched": 608},
+        "name": {"compared": 2788, "matched": 2756, "mismatched": 32},
+        "rank": {"compared": 2788, "matched": 2780, "mismatched": 8},
+        "rest": {"compared": 2788, "matched": 2076, "mismatched": 712}
+      }
+    },
+    "afraad": {
+      "found": 81, "compared": 81, "skipped": 2,
+      "skip_reasons": {"archive_missing": 2},
+      "mismatch_records": 5437, "layout_differences": 0,
+      "totals": {"compared": 18084, "matched": 10061, "mismatched": 8023},
+      "match_rate": 0.556348,
+      "fields": {
+        "morning": {"compared": 1814, "matched": 402, "mismatched": 1412},
+        "night": {"compared": 1814, "matched": 543, "mismatched": 1271},
+        "person": {"compared": 1440, "matched": 407, "mismatched": 1033},
+        "service": {"compared": 3254, "matched": 2033, "mismatched": 1221},
+        "strength": {"compared": 3254, "matched": 2150, "mismatched": 1104},
+        "time": {"compared": 3254, "matched": 2154, "mismatched": 1100},
+        "weapon": {"compared": 3254, "matched": 2372, "mismatched": 882}
+      }
+    },
+    "campaign": {
+      "found": 82, "compared": 82, "skipped": 1,
+      "skip_reasons": {"archive_missing": 1},
+      "mismatch_records": 3610, "layout_differences": 0,
+      "totals": {"compared": 15035, "matched": 8251, "mismatched": 6784},
+      "match_rate": 0.548786,
+      "fields": {
+        "driver": {"compared": 3411, "matched": 1649, "mismatched": 1762},
+        "plate": {"compared": 4802, "matched": 3114, "mismatched": 1688},
+        "service": {"compared": 3411, "matched": 1625, "mismatched": 1786},
+        "vehicle": {"compared": 3411, "matched": 1863, "mismatched": 1548}
+      }
+    },
+    "counts": {
+      "found": 79, "compared": 79, "skipped": 4,
+      "skip_reasons": {"archive_missing": 4},
+      "mismatch_records": 1650, "layout_differences": 0,
+      "totals": {"compared": 11784, "matched": 8701, "mismatched": 3083},
+      "match_rate": 0.738374,
+      "fields": {
+        "count": {"compared": 5892, "matched": 4434, "mismatched": 1458},
+        "service": {"compared": 5892, "matched": 4267, "mismatched": 1625}
+      }
+    },
+    "regularity": {
+      "found": 79, "compared": 73, "skipped": 10,
+      "skip_reasons": {"archive_missing": 4, "comparison_error": 6},
+      "mismatch_records": 2934, "layout_differences": 0,
+      "totals": {"compared": 11708, "matched": 4101, "mismatched": 7607},
+      "match_rate": 0.350273,
+      "fields": {
+        "count": {"compared": 1376, "matched": 542, "mismatched": 834},
+        "name": {"compared": 790, "matched": 406, "mismatched": 384},
+        "person": {"compared": 1376, "matched": 249, "mismatched": 1127},
+        "phone": {"compared": 1208, "matched": 374, "mismatched": 834},
+        "place": {"compared": 1376, "matched": 582, "mismatched": 794},
+        "rank": {"compared": 790, "matched": 419, "mismatched": 371},
+        "service": {"compared": 2166, "matched": 746, "mismatched": 1420},
+        "time": {"compared": 1376, "matched": 611, "mismatched": 765},
+        "vehicle": {"compared": 1250, "matched": 172, "mismatched": 1078}
+      }
+    }
+  }
+}
