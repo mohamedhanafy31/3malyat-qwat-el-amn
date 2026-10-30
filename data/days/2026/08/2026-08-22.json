@@ -1793,53 +1793,109 @@
     },
     "services": {
       "AS-0024": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "text",
           "name": "اشرف عبدالعاطي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [
+              "IND-137"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0022": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "مصطفى الزماني"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-044"
+            ]
+          }
+        ]
       },
       "AS-0028": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0029": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "ابراهيم على"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-116"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0030": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "name": "اشرف حامد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0031": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "محمد نزيه"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-052"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0032": {
-        "vehicle_id": "VEH-063",
         "driver": {
           "kind": "conscript",
           "id": "CON-006"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-063",
+            "personnel_ids": [
+              "IND-095"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

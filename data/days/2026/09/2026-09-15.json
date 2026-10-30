@@ -1777,21 +1777,45 @@
     },
     "services": {
       "AS-0006": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "text",
           "name": "عبدالمنعم أحمد عشماوي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [
+              "IND-133"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0033": {
-        "vehicle_id": "VEH-009"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-013"
+            ]
+          }
+        ]
       },
       "AS-0031": {
-        "vehicle_id": "VEH-006",
         "driver": {
           "kind": "conscript",
           "id": "CON-004"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-006",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-036"
+            ]
+          }
+        ]
       },
       "AS-0008": {
         "driver": {
@@ -1806,22 +1830,44 @@
         }
       },
       "AS-0011": {
-        "vehicle_id": "VEH-035"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-188"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0012": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "أحمد محمود عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-100"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0013": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "محمد احمد حسن طوسن"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

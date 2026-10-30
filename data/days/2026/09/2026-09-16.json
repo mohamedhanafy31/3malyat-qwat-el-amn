@@ -1578,33 +1578,65 @@
     },
     "services": {
       "AS-0006": {
-        "vehicle_id": "VEH-010",
         "driver": {
           "kind": "personnel",
           "id": "IND-067"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [
+              "IND-133"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0008": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "name": "السيد ناصر السيد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-019"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0011": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "احمد فاروق عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-105"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0012": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "محمد احمد حسن طوسن"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-021"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

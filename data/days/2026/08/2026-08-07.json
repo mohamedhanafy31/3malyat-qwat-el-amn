@@ -1433,35 +1433,75 @@
     },
     "services": {
       "AS-0029": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "personnel",
           "id": "IND-023"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-040"
+            ]
+          }
+        ]
       },
       "AS-0030": {
-        "vehicle_id": "VEH-012",
         "driver": {
           "kind": "text",
           "name": "محمد عطية"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-044"
+            ]
+          }
+        ]
       },
       "AS-0027": {
-        "vehicle_id": "VEH-035"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-123"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0031": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-036"
+            ]
+          }
+        ]
       },
       "AS-0032": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "احمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-134"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0010": {
         "driver": {

@@ -1395,18 +1395,34 @@
     },
     "services": {
       "AS-0023": {
-        "vehicle_id": "VEH-013",
         "driver": {
           "kind": "text",
           "name": "محمد شبل"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-013",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-010"
+            ]
+          }
+        ]
       },
       "AS-0024": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "personnel",
           "id": "IND-178"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [
+              "IND-144"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0027": {
         "driver": {
@@ -1415,25 +1431,47 @@
         }
       },
       "AS-0025": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "عبدالرحمن زكي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-015"
+            ]
+          }
+        ]
       },
       "AS-0026": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "احمد الجزار"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0006": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "name": "أحمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

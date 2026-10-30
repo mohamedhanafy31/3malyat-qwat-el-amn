@@ -1447,40 +1447,82 @@
     },
     "services": {
       "AS-0027": {
-        "vehicle_id": "VEH-013",
         "driver": {
           "kind": "personnel",
           "id": "IND-067"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-013",
+            "personnel_ids": [
+              "IND-134"
+            ],
+            "officer_ids": [
+              "OFF-031"
+            ]
+          }
+        ]
       },
       "AS-0005": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0028": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "conscript",
           "id": "CON-031"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-124"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0029": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "السيد عبدالناصر عبدالعزيز عليان"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-011"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0030": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "احمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-181"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0004": {
         "driver": {

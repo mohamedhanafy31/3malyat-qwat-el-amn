@@ -1331,33 +1331,65 @@
     },
     "services": {
       "AS-0021": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "text",
           "name": "اشرف عبدالعاطي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-041"
+            ]
+          }
+        ]
       },
       "AS-0007": {
-        "vehicle_id": "VEH-013",
         "driver": {
           "kind": "personnel",
           "id": "IND-071"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-013",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-044"
+            ]
+          }
+        ]
       },
       "AS-0006": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-024"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0022": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "معاذ هدايات سامي محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-036"
+            ]
+          }
+        ]
       }
     },
     "daily": {

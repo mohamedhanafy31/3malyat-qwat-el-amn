@@ -1655,18 +1655,34 @@
     },
     "services": {
       "AS-0011": {
-        "vehicle_id": "VEH-012",
         "driver": {
           "kind": "text",
           "name": "احمد شعبان"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [
+              "IND-127"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0009": {
-        "vehicle_id": "VEH-011",
         "driver": {
           "kind": "text",
           "name": "محمد السيد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-011",
+            "personnel_ids": [
+              "IND-144"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0010": {
         "driver": {
@@ -1675,33 +1691,63 @@
         }
       },
       "AS-0012": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "كريم نور الدين"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0013": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "عبدالله محمد عبداللطيف حسين"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-034"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0014": {
-        "vehicle_id": "VEH-028",
         "driver": {
           "kind": "text",
           "name": "محمود بدر"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-028",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0015": {
-        "vehicle_id": "VEH-034",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-034",
+            "personnel_ids": [
+              "IND-059"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0016": {
         "driver": {

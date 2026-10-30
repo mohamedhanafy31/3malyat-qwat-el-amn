@@ -1493,25 +1493,49 @@
     },
     "services": {
       "AS-0028": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "personnel",
           "id": "IND-023"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-043"
+            ]
+          }
+        ]
       },
       "AS-0029": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "محمد بركات"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-045"
+            ]
+          }
+        ]
       },
       "AS-0006": {
-        "vehicle_id": "VEH-063",
         "driver": {
           "kind": "conscript",
           "id": "CON-031"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-063",
+            "personnel_ids": [
+              "IND-123"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0034": {
         "driver": {

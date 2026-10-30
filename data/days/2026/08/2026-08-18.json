@@ -1593,35 +1593,73 @@
     },
     "services": {
       "AS-0021": {
-        "vehicle_id": "VEH-010",
         "driver": {
           "kind": "personnel",
           "id": "IND-173"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [
+              "IND-120"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0029": {
-        "vehicle_id": "VEH-012"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0024": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "conscript",
           "id": "CON-006"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-100"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0005": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-019"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0026": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "name": "محمد تركي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-039"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

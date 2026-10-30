@@ -1393,39 +1393,79 @@
     },
     "services": {
       "AS-0024": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "personnel",
           "id": "IND-173"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-010"
+            ]
+          }
+        ]
       },
       "AS-0025": {
-        "vehicle_id": "VEH-010",
         "driver": {
           "kind": "personnel",
           "id": "IND-071"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-037"
+            ]
+          }
+        ]
       },
       "AS-0026": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "محمد بركات"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-042"
+            ]
+          }
+        ]
       },
       "AS-0027": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "احمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-100"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0007": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "مصطفي بكر"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-135"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

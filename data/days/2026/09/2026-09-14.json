@@ -1471,11 +1471,20 @@
     },
     "services": {
       "AS-0007": {
-        "vehicle_id": "VEH-017",
         "driver": {
           "kind": "personnel",
           "id": "IND-086"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-017",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-015",
+              "OFF-048"
+            ]
+          }
+        ]
       },
       "AS-0006": {
         "driver": {
@@ -1484,32 +1493,64 @@
         }
       },
       "AS-0009": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "عبدالرحمن ذكي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0010": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "أحمد محمود عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-045"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0011": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "محمد أحمد طوسون"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-191"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0012": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "name": "محمد أحمد تركي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-042"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

@@ -1630,68 +1630,140 @@
     },
     "services": {
       "AS-0024": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "text",
           "name": "احمد شعبان"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-010"
+            ]
+          }
+        ]
       },
       "AS-0021": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "يوسف ياسر"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-044"
+            ]
+          }
+        ]
       },
       "AS-0022": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "احمد الجزار"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-100"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0025": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "يوسف ياسر"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-038"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0026": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "عبدالرحمن ذكي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-015"
+            ]
+          }
+        ]
       },
       "AS-0027": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "معاذ هدايات سامي محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-044"
+            ]
+          }
+        ]
       },
       "AS-0028": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "name": "احمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-172"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0029": {
-        "vehicle_id": "VEH-063",
         "driver": {
           "kind": "text",
           "name": "اشرف حامد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-063",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-041"
+            ]
+          }
+        ]
       },
       "AS-0020": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "conscript",
           "id": "CON-010"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-021"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

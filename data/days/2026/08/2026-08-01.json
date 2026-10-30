@@ -1551,26 +1551,50 @@
         }
       },
       "AS-0028": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "conscript",
           "id": "CON-031"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0029": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "السيد عبدالناصر عبدالعزيز عليان"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-124"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0030": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "name": "محمد عباس"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-024"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0031": {
         "driver": {
@@ -1585,11 +1609,19 @@
         }
       },
       "AS-0033": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-027"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

@@ -1900,18 +1900,34 @@
     },
     "services": {
       "AS-0007": {
-        "vehicle_id": "VEH-010",
         "driver": {
           "kind": "personnel",
           "id": "IND-071"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [
+              "IND-120"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0043": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "احمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-021"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0012": {
         "driver": {
@@ -1920,25 +1936,49 @@
         }
       },
       "AS-0013": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "رفعت وليد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-022"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0014": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "سيف"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-044"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0015": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "name": "محمد نزيه"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

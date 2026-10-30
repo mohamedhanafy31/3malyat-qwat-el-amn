@@ -1853,55 +1853,123 @@
         }
       },
       "AS-0039": {
-        "vehicle_id": "VEH-046"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-046",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0042": {
-        "vehicle_id": "VEH-046"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-046",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-023"
+            ]
+          }
+        ]
       },
       "AS-0044": {
-        "vehicle_id": "VEH-046"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-046",
+            "personnel_ids": [
+              "IND-121"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0028": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-036"
+            ]
+          }
+        ]
       },
       "AS-0034": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "name": "محمود عطية"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0035": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "سيف السيد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-123"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0036": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "كريم"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0010": {
-        "vehicle_id": "VEH-063",
         "driver": {
           "kind": "text",
           "name": "محمد نزيه"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-063",
+            "personnel_ids": [
+              "IND-110"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0038": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "مصطفي الزماني"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-175"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

@@ -1165,24 +1165,60 @@
     },
     "services": {
       "AS-0008": {
-        "vehicle_id": "VEH-010"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [
+              "IND-133"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0010": {
-        "vehicle_id": "VEH-010"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0005": {
-        "vehicle_id": "VEH-013",
         "driver": {
           "kind": "text",
           "name": "محمد عطية محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-013",
+            "personnel_ids": [
+              "IND-128"
+            ],
+            "officer_ids": [
+              "OFF-036"
+            ]
+          }
+        ]
       },
       "AS-0002": {
-        "vehicle_id": "VEH-046",
         "driver": {
           "kind": "personnel",
           "id": "IND-067"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-046",
+            "personnel_ids": [
+              "IND-125",
+              "IND-120"
+            ],
+            "officer_ids": [
+              "OFF-027",
+              "OFF-043"
+            ]
+          }
+        ]
       },
       "AS-0003": {
         "driver": {
@@ -1197,19 +1233,35 @@
         }
       },
       "AS-0006": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "محمد احمد نزيه محمد عبدالعزيز"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-044"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0007": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "باهر محمد سعد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-022"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

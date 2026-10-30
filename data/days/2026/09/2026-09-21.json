@@ -1449,40 +1449,81 @@
     },
     "services": {
       "AS-0010": {
-        "vehicle_id": "VEH-012",
         "driver": {
           "kind": "personnel",
           "id": "IND-023"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [
+              "IND-127"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0011": {
-        "vehicle_id": "VEH-046",
         "driver": {
           "kind": "text",
           "name": "محمد فرنسا"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-046",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-016",
+              "OFF-048"
+            ]
+          }
+        ]
       },
       "AS-0009": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "personnel",
           "id": "IND-173"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [
+              "IND-137"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0012": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "معاذ هدايات سامي محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-106"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0014": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "كريم نور"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-100"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0018": {
         "driver": {

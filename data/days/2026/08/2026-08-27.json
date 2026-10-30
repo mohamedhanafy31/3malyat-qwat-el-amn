@@ -1059,25 +1059,47 @@
     },
     "services": {
       "AS-0008": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "name": "محمود عطية"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-175"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0009": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "ابراهيم علي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0007": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "كريم نورالدين"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-036"
+            ]
+          }
+        ]
       }
     },
     "daily": {

@@ -1462,12 +1462,20 @@
     },
     "services": {
       "AS-0012": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "معاذ هدايات سامي محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-002"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0011": {
         "driver": {
@@ -1476,11 +1484,19 @@
         }
       },
       "AS-0013": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "محمد احمد طوسون"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-135"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0007": {
         "driver": {

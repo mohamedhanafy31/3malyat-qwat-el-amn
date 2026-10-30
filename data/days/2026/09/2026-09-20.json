@@ -1094,11 +1094,19 @@
     },
     "services": {
       "AS-0010": {
-        "vehicle_id": "VEH-013",
         "driver": {
           "kind": "text",
           "name": "محمد عطية"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-013",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-031"
+            ]
+          }
+        ]
       },
       "AS-0011": {
         "driver": {
@@ -1126,11 +1134,19 @@
         }
       },
       "AS-0022": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "ابراهي علي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-051"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0017": {
         "driver": {

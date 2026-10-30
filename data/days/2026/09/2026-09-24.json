@@ -1487,7 +1487,15 @@
         }
       },
       "AS-0009": {
-        "vehicle_id": "VEH-010"
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [
+              "IND-034"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0018": {
         "driver": {
@@ -1496,25 +1504,49 @@
         }
       },
       "AS-0013": {
-        "vehicle_id": "VEH-034",
         "driver": {
           "kind": "text",
           "name": "ابراهيم علي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-034",
+            "personnel_ids": [
+              "IND-144"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0015": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "personnel",
           "id": "IND-087"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-181"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0016": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "محمود عطية"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-034"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

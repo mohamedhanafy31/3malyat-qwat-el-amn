@@ -1591,11 +1591,19 @@
     },
     "services": {
       "AS-0008": {
-        "vehicle_id": "VEH-011",
         "driver": {
           "kind": "text",
           "name": "عبدالمنعم عشماوي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-011",
+            "personnel_ids": [
+              "IND-137"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0009": {
         "driver": {
@@ -1610,33 +1618,65 @@
         }
       },
       "AS-0012": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "عبدالله محمد عبداللطيف حسين"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-144"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0013": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "name": "نصر محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-107"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0015": {
-        "vehicle_id": "VEH-034",
         "driver": {
           "kind": "text",
           "name": "محمود بدر"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-034",
+            "personnel_ids": [
+              "IND-114"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0011": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "محمد احمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-034"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

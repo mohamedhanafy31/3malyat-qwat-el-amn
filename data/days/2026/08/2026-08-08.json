@@ -1054,54 +1054,103 @@
     },
     "services": {
       "AS-0032": {
-        "vehicle_id": "VEH-010",
         "driver": {
           "kind": "text",
           "name": "محمد عطية"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-036",
+              "OFF-043"
+            ]
+          }
+        ]
       },
       "AS-0034": {
-        "vehicle_id": "VEH-012",
         "driver": {
           "kind": "personnel",
           "id": "IND-067"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [
+              "IND-126"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0033": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "مصطفي الزمني"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-045"
+            ]
+          }
+        ]
       },
       "AS-0035": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "text",
           "name": "عبدالرحمن ذكي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0036": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "وفيق وجدي ولسن بدير"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0037": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "text",
           "name": "احمد الكناني"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0038": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "name": "احمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0005": {
         "driver": {

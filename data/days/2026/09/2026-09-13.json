@@ -1485,55 +1485,114 @@
     },
     "services": {
       "AS-0006": {
-        "vehicle_id": "VEH-010",
         "driver": {
           "kind": "personnel",
           "id": "IND-078"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [
+              "IND-133"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0008": {
-        "vehicle_id": "VEH-012",
         "driver": {
           "kind": "personnel",
           "id": "IND-180"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [
+              "IND-099"
+            ],
+            "officer_ids": [
+              "OFF-015"
+            ]
+          }
+        ]
       },
       "AS-0007": {
-        "vehicle_id": "VEH-012",
         "driver": {
           "kind": "personnel",
           "id": "IND-180"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [
+              "IND-126",
+              "IND-103"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0009": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "عبدالرحمن محمد ذكي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-052"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0010": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "معاذ هدايات سامي محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-179"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0011": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "محمد احمد حسن طوسن"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-034"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0012": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "محمد التركي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-189"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

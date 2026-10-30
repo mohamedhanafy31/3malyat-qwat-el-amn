@@ -1668,69 +1668,141 @@
     },
     "services": {
       "AS-0029": {
-        "vehicle_id": "VEH-010",
         "driver": {
           "kind": "text",
           "name": "عبدالمنعم عشماوي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-010",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-010"
+            ]
+          }
+        ]
       },
       "AS-0037": {
-        "vehicle_id": "VEH-012",
         "driver": {
           "kind": "text",
           "name": "محمد الفلكي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-012",
+            "personnel_ids": [
+              "IND-090"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0028": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "احمد عزام"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-044"
+            ]
+          }
+        ]
       },
       "AS-0031": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "وفيق وجدي ولسن بدير"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-003"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0032": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "مصطفي الزماني"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-096"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0033": {
-        "vehicle_id": "VEH-035",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "عبدالرحمن عماد ابو المجد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-035",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0034": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "احمد الجزار"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-051"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0035": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "name": "مصطفي ديشا"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-123"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0027": {
-        "vehicle_id": "VEH-063",
         "driver": {
           "kind": "text",
           "name": "عبدالرحمن تركي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-063",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-018"
+            ]
+          }
+        ]
       },
       "AS-0030": {
         "driver": {

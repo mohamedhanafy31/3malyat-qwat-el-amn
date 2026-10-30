@@ -1476,11 +1476,19 @@
     },
     "services": {
       "AS-0015": {
-        "vehicle_id": "VEH-011",
         "driver": {
           "kind": "personnel",
           "id": "IND-071"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-011",
+            "personnel_ids": [
+              "IND-127"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0009": {
         "driver": {
@@ -1503,18 +1511,34 @@
         }
       },
       "AS-0014": {
-        "vehicle_id": "VEH-038",
         "driver": {
           "kind": "text",
           "name": "محمد احمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-038",
+            "personnel_ids": [
+              "IND-095"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0013": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "name": "محمد علي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-191"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0006": {
         "driver": {

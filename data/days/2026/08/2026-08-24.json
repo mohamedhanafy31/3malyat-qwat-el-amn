@@ -1576,47 +1576,96 @@
     },
     "services": {
       "AS-0031": {
-        "vehicle_id": "VEH-009",
         "driver": {
           "kind": "text",
           "name": "عبدالمنعم عشماوي"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-009",
+            "personnel_ids": [
+              "IND-137"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0030": {
-        "vehicle_id": "VEH-046",
         "driver": {
           "kind": "personnel",
           "id": "IND-082"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-046",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-015",
+              "OFF-048"
+            ]
+          }
+        ]
       },
       "AS-0028": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "مصطفى الزماني"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [],
+            "officer_ids": [
+              "OFF-018"
+            ]
+          }
+        ]
       },
       "AS-0032": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "conscript",
           "id": "CON-018"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0011": {
-        "vehicle_id": "VEH-036",
         "driver": {
           "kind": "text",
           "name": "ابراهيم على"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-003"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0034": {
-        "vehicle_id": "VEH-068",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "مؤمن محمد صبحي محمد"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-068",
+            "personnel_ids": [
+              "IND-110"
+            ],
+            "officer_ids": []
+          }
+        ]
       }
     },
     "daily": {

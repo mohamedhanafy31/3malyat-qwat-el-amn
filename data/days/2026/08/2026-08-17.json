@@ -1608,11 +1608,19 @@
     },
     "services": {
       "AS-0022": {
-        "vehicle_id": "VEH-008",
         "driver": {
           "kind": "personnel",
           "id": "IND-071"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-008",
+            "personnel_ids": [
+              "IND-120"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0026": {
         "driver": {
@@ -1621,26 +1629,50 @@
         }
       },
       "AS-0027": {
-        "vehicle_id": "VEH-064",
         "driver": {
           "kind": "text",
           "name": "محمد بركات"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-124"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0028": {
-        "vehicle_id": "VEH-037",
         "driver": {
           "kind": "text",
           "name": "معاذ هاديان"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-037",
+            "personnel_ids": [
+              "IND-044"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0029": {
-        "vehicle_id": "VEH-040",
         "driver": {
           "kind": "text",
           "id": "",
           "name": "وفيق وجدي ولسن بدير"
-        }
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-019"
+            ],
+            "officer_ids": []
+          }
+        ]
       },
       "AS-0031": {
         "driver": {
