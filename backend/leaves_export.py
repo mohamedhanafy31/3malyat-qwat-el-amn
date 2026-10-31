@@ -171,7 +171,7 @@ def _save(doc):
 
 
 def _short_name(person):
-    return str(person.get("short_name") or first_words(person.get("name"), 2)).strip()
+    return str(person.get("short_name") or first_words(person.get("name"), 2, glue=True)).strip()
 
 
 def _rank(role):

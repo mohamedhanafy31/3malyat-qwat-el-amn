@@ -36,7 +36,9 @@ from .constants import (
     SECTION_PRISON, canonical_section_name,
 )
 from .day_status import status_of
+from .service_sections import is_special
 from .store import reserve_id
+from .text import norm
 
 # الأقسام اللي عددها له مصدر تاني (الأساسية بيها القالب الدائم) أو مش
 # «خدمات» أصلًا هنا (الأهداف والكتل التنظيمية الثابتة) — أي قسم غيرهم على
@@ -298,6 +300,13 @@ def set_board_count(data, day, assignment_id, count):
     return None, "الخدمة غير موجودة في اليومية التفصيلية."
 
 
+def _stored_list_is_official(data, day):
+    """يوم مستورد من الأرشيف وعنده نسخة أعداد محفوظة = الورقة الرسمية نفسها."""
+    from .imports import is_imported
+
+    return (data.get("service_counts") or {}).get(day) is not None and is_imported(data, day)
+
+
 def build(data, day):
     """المخرج الكامل لصفحة اعداد الخدمات — الأساسية والطوارئ شبه الثابتة من
     نسخة عمل اليوم، والطوارئ اليومي وأي قسم مخصّص من اللوحة، مع الإجماليات
@@ -308,6 +317,18 @@ def build(data, day):
     recurring = [e for e in entries if e["block"] == "طوارئ"]
     emergency = emergency_rows(data, day)
     custom = custom_sections(data, day)
+    if _stored_list_is_official(data, day):
+        # يوم مستورد من الأرشيف: قايمة الأعداد المحفوظة هي نفسها ورقة الإكسل
+        # الرسمية (فحصنا 79 ملف: صفوف الطوارئ المشتقة من التكليفات كانت بتكرّر
+        # نفس الخدمات بأسماء اللوحة، وبتزوّد 751 صف مش في الورقة). المشتق من
+        # اللوحة يتشال، والأقسام الخاصة (مباراة…) بتفضل بلوكها المستقل.
+        emergency = []
+        custom = [sec for sec in custom if is_special(sec["name"])]
+    else:
+        # يوم حيّ: الصف المكتوب في القايمة المحفوظة وعلى اللوحة بنفس الاسم
+        # يتعدّ مرة واحدة (الصف المحفوظ هو اللي بيتحسب).
+        listed = {norm(e["name"]) for e in recurring}
+        emergency = [r for r in emergency if norm(r["name"]) not in listed]
 
     basic_am_total = sum(e["count"] for e in basic_am)
     basic_pm_total = sum(e["count"] for e in basic_pm)

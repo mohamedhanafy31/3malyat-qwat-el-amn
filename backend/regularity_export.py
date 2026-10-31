@@ -13,7 +13,9 @@ from .export_fit import PageFitError, TextMeter, estimate_table_height
 
 TEMPLATE = Path(__file__).with_name("docx_templates") / "service_regularity.docx"
 LAST_FIT = {}
-_SIZES = (12, 11, 10, 9, 8)
+# أصغر خط 7pt: ستة أيام (23-29 خدمة) ما كانتش بتدخل صفحة واحدة عند 8pt،
+# والأرشيف نفسه بيكتبها بـ8-9pt مع نصوص أقصر. الصفحة الواحدة إلزامية.
+_SIZES = (12, 11, 10, 9, 8.5, 8, 7.5, 7)
 
 
 def _set_cell(cell, text, size):
@@ -37,7 +39,7 @@ def _set_cell(cell, text, size):
                 if node is None:
                     from docx.oxml import OxmlElement
                     node = OxmlElement(tag); rpr.append(node)
-                node.set(qn("w:val"), str(size * 2))
+                node.set(qn("w:val"), str(int(round(size * 2))))
 
 
 def _row(table, prototype, values, size, note=False):
@@ -61,9 +63,9 @@ def _row(table, prototype, values, size, note=False):
             r = OxmlElement("w:r"); t = OxmlElement("w:t"); t.text = str(text or "")
             r.append(t); p.append(r)
         for node in tc.iter(qn("w:sz")):
-            node.set(qn("w:val"), str(size * 2))
+            node.set(qn("w:val"), str(int(round(size * 2))))
         for node in tc.iter(qn("w:szCs")):
-            node.set(qn("w:val"), str(size * 2))
+            node.set(qn("w:val"), str(int(round(size * 2))))
     return tr
 
 
@@ -78,9 +80,9 @@ def _set_row_text(tr, values, size, note=False):
         texts[0].text = str(text or "")
         for node in texts[1:]: node.text = ""
         for node in tc.iter(qn("w:sz")):
-            node.set(qn("w:val"), str(size * 2))
+            node.set(qn("w:val"), str(int(round(size * 2))))
         for node in tc.iter(qn("w:szCs")):
-            node.set(qn("w:val"), str(size * 2))
+            node.set(qn("w:val"), str(int(round(size * 2))))
 
 
 def _signature_boxes(document, payload):

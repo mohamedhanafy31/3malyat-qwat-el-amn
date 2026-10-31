@@ -384,8 +384,10 @@ def _officer_desc(section_name, row):
 
 
 def leave_text(leave_type, start, end, return_date):
-    """نص الراحة/الإجازة المطبوع: «راحة شهرية من 17/9 والعودة 22/9» أو
-    «إجازة مصيف من 11/9 والعودة 16/9». الأسبوعية يوم واحد فبتتكتب من غير مدة."""
+    """نص الراحة/الإجازة المطبوع: «راحة شهرية (من 17/9 عودة 22/9)» أو
+    «إجازة مصيف (من 11/9 عودة 16/9)». الأسبوعية يوم واحد فبتتكتب من غير مدة.
+    صيغة لوحات الأرشيف: بين أقواس و«عودة» من غير واو (أغسطس–سبتمبر كلها،
+    وآخر أيام أكتوبر 20 و22). يومية الضباط ليها صيغتها المطلوبة «والعودة»."""
     kind = str(leave_type or "").strip() or "راحة"
     label = kind if kind.startswith(("إجازة", "اجازة", "راحة")) or kind in ("مرضي", "طارئة") \
         else f"راحة {kind}"
@@ -397,8 +399,9 @@ def leave_text(leave_type, start, end, return_date):
             back = (date.fromisoformat(end) + timedelta(days=1)).isoformat()
         except ValueError:
             back = ""
-    text = f"{label} من {_fmt_date(start)}"
-    return f"{text} والعودة {_fmt_date(back)}" if back else text
+    text = f"من {_fmt_date(start)}"
+    text = f"{text} عودة {_fmt_date(back)}" if back else text
+    return f"{label} ({text})"
 
 
 def status_period_text(period):

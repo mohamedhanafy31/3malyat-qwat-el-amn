@@ -30,3 +30,11 @@ def test_officer_short_name_and_fallback():
 def test_dispatches_by_category():
     assert person_label({"role": "رقيب", "name": "فرد طويل الاسم"}, "personnel") == "ا.ش/ فرد طويل الاسم"
     assert person_label({"role": "نقيب", "name": "ضابط طويل الاسم", "short_name": "مختصر"}, "officers") == "نقيب/ مختصر"
+
+
+def test_abd_compound_names_count_as_one_name():
+    # الأرشيف بيكتب «محمد عبد العزيز» كاسمين (555 اسم ضابط في لوحات أغسطس–أكتوبر)
+    assert officer_label({"role": "رائد", "name": "محمد عبد العزيز محمد يحيي"}) == "رائد/ محمد عبد العزيز"
+    assert first_words("عبد الله عبد الفتاح خليل", 2, glue=True) == "عبد الله عبد الفتاح"
+    assert first_words("احمد عبد", 3, glue=True) == "احمد عبد"
+    assert first_words("عبد الله عبد الفتاح خليل", 2) == "عبد الله"   # الأفراد: العد القديم

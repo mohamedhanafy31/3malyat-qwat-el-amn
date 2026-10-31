@@ -379,3 +379,38 @@ def test_an_extremely_long_section_name_is_refused(client):
     r = client.post(f"/api/assignments/{DAY}",
                     json={"name": "خدمة", "kind": "خارجية", "section": "س" * 61})
     assert r.status_code == 400
+
+
+def _counts_data(imported):
+    day = "2026-09-10"
+    row = {"id": "ASG-1", "name": "المحكمة", "section": "الخدمات الطارئة",
+           "conscript_count": 5, "party": "", "shift": "صباحية"}
+    extra = {"id": "ASG-2", "name": "ترحيلة العاشر", "section": "الخدمات الطارئة",
+             "conscript_count": 2, "party": "عتاقة", "shift": "صباحية"}
+    data = {"day_assignments": {day: [row, extra]},
+            "service_counts": {day: {"entries": [
+                {"id": "C1", "name": "المحكمة", "block": "طوارئ", "count": 5, "party": "",
+                 "weapon": "", "order": 0}]}},
+            "day_status": {}}
+    if imported:
+        data["day_import"] = {day: {"source": "archive"}}
+    return data, day
+
+
+def test_imported_day_counts_list_is_the_stored_sheet_only():
+    from backend import counts
+
+    data, day = _counts_data(imported=True)
+    built = counts.build(data, day)
+    assert [e["name"] for e in built["recurring"]] == ["المحكمة"]
+    assert built["emergency"] == []
+    assert built["totals"]["emergency"] == 5
+
+
+def test_live_day_does_not_double_count_a_service_already_in_the_list():
+    from backend import counts
+
+    data, day = _counts_data(imported=False)
+    built = counts.build(data, day)
+    assert [r["name"] for r in built["emergency"]] == ["ترحيلة العاشر"]
+    assert built["totals"]["emergency"] == 7

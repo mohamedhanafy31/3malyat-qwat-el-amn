@@ -10,11 +10,11 @@ from backend.board_export import build_docx, leave_text, status_period_text
 
 
 def test_leave_text_formats_rest_and_vacation_with_dates():
-    assert leave_text("شهرية", "2026-09-17", "2026-09-21", "2026-09-22") == "راحة شهرية من 17/9 والعودة 22/9"
-    assert leave_text("نصف شهرية", "2026-09-08", "2026-09-10", None) == "راحة نصف شهرية من 8/9 والعودة 11/9"
-    assert leave_text("إجازة مصيف", "2026-09-11", "2026-09-15", "2026-09-16") == "إجازة مصيف من 11/9 والعودة 16/9"
+    assert leave_text("شهرية", "2026-09-17", "2026-09-21", "2026-09-22") == "راحة شهرية (من 17/9 عودة 22/9)"
+    assert leave_text("نصف شهرية", "2026-09-08", "2026-09-10", None) == "راحة نصف شهرية (من 8/9 عودة 11/9)"
+    assert leave_text("إجازة مصيف", "2026-09-11", "2026-09-15", "2026-09-16") == "إجازة مصيف (من 11/9 عودة 16/9)"
     assert leave_text("أسبوعية", "2026-09-21", "2026-09-21", None) == "راحة أسبوعية"
-    assert leave_text("شهرية", "2026-12-30", "2026-12-31", None) == "راحة شهرية من 30/12 والعودة 1/1"
+    assert leave_text("شهرية", "2026-12-30", "2026-12-31", None) == "راحة شهرية (من 30/12 عودة 1/1)"
 
 
 def test_status_period_text_hides_stop_wording_for_open_statuses():
@@ -50,8 +50,8 @@ def test_export_prints_rest_dates_vacations_and_has_no_taqseera_section():
                   {"id": "O4", "name": "د", "role": "نقيب", "note": "", "text": "على خدمة",
                    "has_service": True}])
     _document, text = _tail_text(board)
-    assert "راحة شهرية من 8/9 والعودة 15/9" in text
-    assert "إجازة طارئة من 21/9 والعودة 22/9" in text
+    assert "راحة شهرية (من 8/9 عودة 15/9)" in text
+    assert "إجازة طارئة (من 21/9 عودة 22/9)" in text
     assert "التقصيرات" not in text and "تقصيرة" not in text
     assert "متابعة عنابر" not in text
     assert "على خدمة" not in text
