@@ -1551,7 +1551,8 @@
         "vehicle_id": "VEH-012",
         "driver": {
           "kind": "personnel",
-          "id": "IND-173"
+          "id": "IND-173",
+          "display": "سامح فهمي"
         },
         "attached": [
           {
@@ -1570,7 +1571,8 @@
         "vehicle_id": "VEH-018",
         "driver": {
           "kind": "personnel",
-          "id": "IND-071"
+          "id": "IND-071",
+          "display": "مصطفي عبدالعزيز"
         },
         "attached": [
           {
@@ -1586,7 +1588,8 @@
       "AS-0010": {
         "driver": {
           "kind": "personnel",
-          "id": "IND-067"
+          "id": "IND-067",
+          "display": "محمود عبدالعاطي"
         },
         "vehicles": [
           {
@@ -1692,31 +1695,33 @@
       "CD-001": {
         "vehicle_id": "VEH-031",
         "driver": {
-          "kind": "text",
-          "name": "يوسف ياسر"
+          "kind": "conscript",
+          "id": "CON-093",
+          "display": "يوسف ياسر"
         }
       },
       "CD-002": {
         "vehicle_id": "VEH-030",
         "driver": {
           "kind": "conscript",
-          "id": "CON-018"
+          "id": "CON-018",
+          "display": "صلاح احمد"
         }
       },
       "CD-008": {
         "vehicle_id": "VEH-036",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "عمر محمد السيد صادق"
+          "kind": "conscript",
+          "id": "CON-070",
+          "display": "عمر محمد"
         }
       },
       "CD-003": {
         "vehicle_id": "VEH-033",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "طارق علي شحاتة سيد"
+          "kind": "personnel",
+          "id": "IND-022",
+          "display": "طارق علي"
         }
       },
       "CD-004": {
@@ -1736,8 +1741,9 @@
       },
       "CD-006": {
         "driver": {
-          "kind": "text",
-          "name": "السيد ناصر"
+          "kind": "conscript",
+          "id": "CON-086",
+          "display": "السيد ناصر"
         }
       }
     },

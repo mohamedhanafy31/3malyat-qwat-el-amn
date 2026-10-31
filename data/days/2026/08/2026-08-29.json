@@ -1600,7 +1600,8 @@
         "vehicle_id": "VEH-013",
         "driver": {
           "kind": "personnel",
-          "id": "IND-082"
+          "id": "IND-082",
+          "display": "شريف محمد"
         },
         "attached": [
           {
@@ -1611,15 +1612,17 @@
       "LOR-2": {
         "vehicle_id": "VEH-008",
         "driver": {
-          "kind": "text",
-          "name": "احمد شعبان"
+          "kind": "personnel",
+          "id": "IND-085",
+          "display": "احمد شعبان"
         }
       },
       "LOR-4": {
         "vehicle_id": "VEH-018",
         "driver": {
-          "kind": "text",
-          "name": "محمد الفلكي"
+          "kind": "personnel",
+          "id": "IND-090",
+          "display": "محمد الفلكي"
         },
         "attached": [
           {
@@ -1685,8 +1688,9 @@
       },
       "AS-0010": {
         "driver": {
-          "kind": "text",
-          "name": "محمد بركات"
+          "kind": "conscript",
+          "id": "CON-035",
+          "display": "محمد بركات"
         },
         "vehicles": [
           {
@@ -1700,8 +1704,9 @@
       },
       "AS-0011": {
         "driver": {
-          "kind": "text",
-          "name": "احمد عزام"
+          "kind": "conscript",
+          "id": "CON-030",
+          "display": "احمد عزام"
         },
         "vehicles": [
           {
@@ -1729,7 +1734,8 @@
       "AS-0018": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-018"
+          "id": "CON-018",
+          "display": "صلاح احمد"
         },
         "vehicles": [
           {
@@ -1755,6 +1761,13 @@
             "officer_ids": []
           }
         ]
+      },
+      "AS-0014": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-031",
+          "display": "جمال خالد"
+        }
       }
     },
     "daily": {
@@ -1790,8 +1803,9 @@
       "CD-004": {
         "vehicle_id": "VEH-032",
         "driver": {
-          "kind": "text",
-          "name": "يوسف ياسر"
+          "kind": "conscript",
+          "id": "CON-093",
+          "display": "يوسف ياسر"
         }
       },
       "CD-005": {
@@ -1804,8 +1818,9 @@
       },
       "CD-006": {
         "driver": {
-          "kind": "text",
-          "name": "السيد ناصر"
+          "kind": "conscript",
+          "id": "CON-086",
+          "display": "السيد ناصر"
         }
       }
     },

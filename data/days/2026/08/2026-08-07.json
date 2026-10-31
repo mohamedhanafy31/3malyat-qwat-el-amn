@@ -1406,28 +1406,32 @@
         "vehicle_id": "VEH-013",
         "driver": {
           "kind": "personnel",
-          "id": "IND-067"
+          "id": "IND-067",
+          "display": "محمود عبدالعاطي"
         }
       },
       "LOR-2": {
         "vehicle_id": "VEH-018",
         "driver": {
-          "kind": "text",
-          "name": "محمد الفلكي"
+          "kind": "personnel",
+          "id": "IND-090",
+          "display": "محمد الفلكي"
         }
       },
       "LOR-4": {
         "vehicle_id": "VEH-017",
         "driver": {
           "kind": "personnel",
-          "id": "IND-089"
+          "id": "IND-089",
+          "display": "احمد جودة"
         }
       },
       "LOR-3": {
         "vehicle_id": "VEH-008",
         "driver": {
-          "kind": "text",
-          "name": "محمد عبدالكريم"
+          "kind": "personnel",
+          "id": "IND-101",
+          "display": "محمد عبدالكريم"
         }
       }
     },
@@ -1435,7 +1439,8 @@
       "AS-0029": {
         "driver": {
           "kind": "personnel",
-          "id": "IND-023"
+          "id": "IND-023",
+          "display": "علي وحيد"
         },
         "vehicles": [
           {
@@ -1476,7 +1481,8 @@
       "AS-0031": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-018"
+          "id": "CON-018",
+          "display": "صلاح احمد"
         },
         "vehicles": [
           {
@@ -1490,8 +1496,9 @@
       },
       "AS-0032": {
         "driver": {
-          "kind": "text",
-          "name": "احمد عزام"
+          "kind": "conscript",
+          "id": "CON-030",
+          "display": "احمد عزام"
         },
         "vehicles": [
           {
@@ -1536,24 +1543,25 @@
       "CD-003": {
         "vehicle_id": "VEH-033",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "طارق علي شحاتة سيد"
+          "kind": "personnel",
+          "id": "IND-022",
+          "display": "طارق علي"
         }
       },
       "CD-004": {
         "vehicle_id": "VEH-032",
         "driver": {
-          "kind": "text",
-          "name": "يوسف ياسر"
+          "kind": "conscript",
+          "id": "CON-093",
+          "display": "يوسف ياسر"
         }
       },
       "CD-005": {
         "vehicle_id": "VEH-003",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "يحي غريب عطية"
+          "kind": "conscript",
+          "id": "CON-065",
+          "display": "يحي غريب"
         }
       },
       "CD-006": {

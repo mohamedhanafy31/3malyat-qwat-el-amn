@@ -1506,8 +1506,9 @@
       "LOR-1": {
         "vehicle_id": "VEH-012",
         "driver": {
-          "kind": "text",
-          "name": "مصطفي طلبة"
+          "kind": "personnel",
+          "id": "IND-086",
+          "display": "مصطفي طلبة"
         },
         "attached": [
           {
@@ -1518,8 +1519,9 @@
       "LOR-2": {
         "vehicle_id": "VEH-010",
         "driver": {
-          "kind": "text",
-          "name": "احمد شعبان"
+          "kind": "personnel",
+          "id": "IND-085",
+          "display": "احمد شعبان"
         }
       },
       "LOR-4": {
@@ -1553,7 +1555,8 @@
       "AS-0028": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-031"
+          "id": "CON-031",
+          "display": "جمال خالد"
         },
         "vehicles": [
           {
@@ -1598,8 +1601,9 @@
       },
       "AS-0031": {
         "driver": {
-          "kind": "text",
-          "name": "احمد عزام"
+          "kind": "conscript",
+          "id": "CON-030",
+          "display": "احمد عزام"
         }
       },
       "AS-0032": {
@@ -1611,7 +1615,8 @@
       "AS-0033": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-018"
+          "id": "CON-018",
+          "display": "صلاح احمد"
         },
         "vehicles": [
           {
@@ -1622,6 +1627,13 @@
             "officer_ids": []
           }
         ]
+      },
+      "AS-0024": {
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-083",
+          "display": "محمود مبارك"
+        }
       }
     },
     "daily": {
@@ -1642,9 +1654,9 @@
       "CD-003": {
         "vehicle_id": "VEH-033",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "طارق علي شحاتة سيد"
+          "kind": "personnel",
+          "id": "IND-022",
+          "display": "طارق علي"
         }
       },
       "CD-004": {
@@ -1657,9 +1669,9 @@
       "CD-005": {
         "vehicle_id": "VEH-003",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "يحي غريب عطية"
+          "kind": "conscript",
+          "id": "CON-065",
+          "display": "يحي غريب"
         }
       },
       "CD-006": {

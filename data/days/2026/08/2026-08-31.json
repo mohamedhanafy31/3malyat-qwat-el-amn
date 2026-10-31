@@ -1412,8 +1412,9 @@
       },
       "CD-006": {
         "driver": {
-          "kind": "text",
-          "name": "السيد ناصر"
+          "kind": "conscript",
+          "id": "CON-086",
+          "display": "السيد ناصر"
         }
       }
     },

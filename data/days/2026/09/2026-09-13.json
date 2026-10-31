@@ -1448,7 +1448,8 @@
         "vehicle_id": "VEH-013",
         "driver": {
           "kind": "personnel",
-          "id": "IND-178"
+          "id": "IND-178",
+          "display": "محمد سامى محي الدين"
         },
         "attached": [
           {
@@ -1467,7 +1468,8 @@
         "vehicle_id": "VEH-017",
         "driver": {
           "kind": "personnel",
-          "id": "IND-086"
+          "id": "IND-086",
+          "display": "مصطفي احمد طلبة"
         },
         "attached": [
           {
@@ -1478,8 +1480,9 @@
       "LOR-4": {
         "vehicle_id": "VEH-018",
         "driver": {
-          "kind": "text",
-          "name": "محمد رمضان شبل"
+          "kind": "personnel",
+          "id": "IND-122",
+          "display": "محمد رمضان شبل"
         }
       }
     },
@@ -1487,7 +1490,8 @@
       "AS-0006": {
         "driver": {
           "kind": "personnel",
-          "id": "IND-078"
+          "id": "IND-078",
+          "display": "عبدالمنعم احمد علي"
         },
         "vehicles": [
           {
@@ -1502,7 +1506,8 @@
       "AS-0008": {
         "driver": {
           "kind": "personnel",
-          "id": "IND-180"
+          "id": "IND-180",
+          "display": "احمد السعيد عبدالرازق"
         },
         "vehicles": [
           {
@@ -1519,7 +1524,8 @@
       "AS-0007": {
         "driver": {
           "kind": "personnel",
-          "id": "IND-180"
+          "id": "IND-180",
+          "display": "احمد السعيد عبدالرازق"
         },
         "vehicles": [
           {
@@ -1565,9 +1571,9 @@
       },
       "AS-0011": {
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "محمد احمد حسن طوسن"
+          "kind": "conscript",
+          "id": "CON-050",
+          "display": "محمد أحمد حسن"
         },
         "vehicles": [
           {
@@ -1600,14 +1606,16 @@
         "vehicle_id": "VEH-031",
         "driver": {
           "kind": "conscript",
-          "id": "CON-010"
+          "id": "CON-010",
+          "display": "محمود سعيد محمد"
         }
       },
       "CD-002": {
         "vehicle_id": "VEH-030",
         "driver": {
-          "kind": "text",
-          "name": "يوسف ياسر انور"
+          "kind": "conscript",
+          "id": "CON-093",
+          "display": "يوسف ياسر انور"
         }
       },
       "CD-008": {
@@ -1643,7 +1651,8 @@
       "CD-006": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-005"
+          "id": "CON-005",
+          "display": "استيفن مجدي"
         }
       }
     },

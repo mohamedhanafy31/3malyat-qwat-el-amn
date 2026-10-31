@@ -1515,15 +1515,17 @@
       "LOR-1": {
         "vehicle_id": "VEH-012",
         "driver": {
-          "kind": "text",
-          "name": "احمد شعبان"
+          "kind": "personnel",
+          "id": "IND-085",
+          "display": "احمد شعبان"
         }
       },
       "LOR-2": {
         "vehicle_id": "VEH-017",
         "driver": {
-          "kind": "text",
-          "name": "مصطفي طلبة"
+          "kind": "personnel",
+          "id": "IND-086",
+          "display": "مصطفي طلبة"
         }
       },
       "LOR-3": {
@@ -1565,7 +1567,8 @@
       "AS-0009": {
         "driver": {
           "kind": "personnel",
-          "id": "IND-082"
+          "id": "IND-082",
+          "display": "شريف محمد"
         },
         "vehicles": [
           {
@@ -1577,21 +1580,30 @@
             ]
           }
         ]
+      },
+      "AS-0017": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-035",
+          "display": "محمد بركات"
+        }
       }
     },
     "daily": {
       "CD-001": {
         "vehicle_id": "VEH-031",
         "driver": {
-          "kind": "text",
-          "name": "احمد الجزار"
+          "kind": "conscript",
+          "id": "CON-036",
+          "display": "احمد الجزار"
         }
       },
       "CD-002": {
         "vehicle_id": "VEH-030",
         "driver": {
           "kind": "conscript",
-          "id": "CON-018"
+          "id": "CON-018",
+          "display": "صلاح احمد"
         }
       },
       "CD-008": {
@@ -1604,16 +1616,17 @@
       "CD-003": {
         "vehicle_id": "VEH-033",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "طارق علي شحاتة سيد"
+          "kind": "personnel",
+          "id": "IND-022",
+          "display": "طارق علي"
         }
       },
       "CD-004": {
         "vehicle_id": "VEH-032",
         "driver": {
-          "kind": "text",
-          "name": "يوسف ياسر"
+          "kind": "conscript",
+          "id": "CON-093",
+          "display": "يوسف ياسر"
         }
       },
       "CD-005": {

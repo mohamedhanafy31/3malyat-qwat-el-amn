@@ -1571,8 +1571,9 @@
       "LOR-1": {
         "vehicle_id": "VEH-012",
         "driver": {
-          "kind": "text",
-          "name": "احمد شعبان"
+          "kind": "personnel",
+          "id": "IND-085",
+          "display": "احمد شعبان"
         }
       },
       "LOR-2": {
@@ -1591,7 +1592,8 @@
         "vehicle_id": "VEH-017",
         "driver": {
           "kind": "personnel",
-          "id": "IND-082"
+          "id": "IND-082",
+          "display": "شريف محمد"
         }
       },
       "LOR-3": {
@@ -1620,8 +1622,9 @@
       },
       "AS-0031": {
         "driver": {
-          "kind": "text",
-          "name": "مصطفى طلبة"
+          "kind": "personnel",
+          "id": "IND-086",
+          "display": "مصطفى طلبة"
         },
         "vehicles": [
           {
@@ -1680,8 +1683,9 @@
       },
       "AS-0011": {
         "driver": {
-          "kind": "text",
-          "name": "عبدالرحمن البحيرى"
+          "kind": "conscript",
+          "id": "CON-046",
+          "display": "عبدالرحمن البحيرى"
         },
         "vehicles": [
           {
@@ -1699,7 +1703,8 @@
         "vehicle_id": "VEH-031",
         "driver": {
           "kind": "conscript",
-          "id": "CON-004"
+          "id": "CON-004",
+          "display": "عمرو رافت"
         }
       },
       "CD-002": {
@@ -1712,8 +1717,9 @@
       "CD-008": {
         "vehicle_id": "VEH-036",
         "driver": {
-          "kind": "text",
-          "name": "محمد تركي"
+          "kind": "conscript",
+          "id": "CON-021",
+          "display": "محمد تركي"
         }
       },
       "CD-003": {
@@ -1727,7 +1733,8 @@
         "vehicle_id": "VEH-032",
         "driver": {
           "kind": "conscript",
-          "id": "CON-010"
+          "id": "CON-010",
+          "display": "محمود سعيد"
         }
       },
       "CD-005": {

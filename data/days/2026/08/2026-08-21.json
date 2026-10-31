@@ -1624,28 +1624,32 @@
         "vehicle_id": "VEH-013",
         "driver": {
           "kind": "personnel",
-          "id": "IND-067"
+          "id": "IND-067",
+          "display": "محمود عبدالعاطي"
         }
       },
       "LOR-2": {
         "vehicle_id": "VEH-008",
         "driver": {
           "kind": "personnel",
-          "id": "IND-173"
+          "id": "IND-173",
+          "display": "سامح فهمي"
         }
       },
       "LOR-4": {
         "vehicle_id": "VEH-017",
         "driver": {
           "kind": "personnel",
-          "id": "IND-088"
+          "id": "IND-088",
+          "display": "امير طلبة"
         }
       },
       "LOR-3": {
         "vehicle_id": "VEH-018",
         "driver": {
-          "kind": "text",
-          "name": "محمد عبدالكريم"
+          "kind": "personnel",
+          "id": "IND-101",
+          "display": "محمد عبدالكريم"
         }
       }
     },
@@ -1716,7 +1720,8 @@
         "vehicle_id": "VEH-031",
         "driver": {
           "kind": "conscript",
-          "id": "CON-010"
+          "id": "CON-010",
+          "display": "محمود سعيد"
         }
       },
       "CD-002": {
@@ -1729,8 +1734,9 @@
       "CD-008": {
         "vehicle_id": "VEH-038",
         "driver": {
-          "kind": "text",
-          "name": "محمد تركي"
+          "kind": "conscript",
+          "id": "CON-021",
+          "display": "محمد تركي"
         }
       },
       "CD-003": {

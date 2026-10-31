@@ -1273,9 +1273,117 @@
         "driver_text": "مجند \" قوات الامن\" صبح , ليل"
       }
     },
-    "lorries": {},
-    "services": {},
-    "daily": {}
+    "lorries": {
+      "LOR-1": {
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-023",
+          "display": "على وحيد على"
+        }
+      },
+      "LOR-2": {
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-071",
+          "display": "مصطفى عبدالعزيز"
+        },
+        "attached": [
+          {
+            "assignment_id": "AS-0001"
+          }
+        ]
+      },
+      "LOR-3": {
+        "attached": [
+          {
+            "assignment_id": "AS-0002"
+          }
+        ]
+      }
+    },
+    "services": {
+      "AS-0024": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-010",
+          "display": "محمود سعيد"
+        }
+      },
+      "AS-0025": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-004",
+          "display": "عمرو رافت"
+        },
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-034",
+            "personnel_ids": [
+              "IND-100"
+            ],
+            "officer_ids": [],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-004"
+            }
+          }
+        ]
+      },
+      "AS-0026": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-018",
+          "display": "صلاح احمد"
+        }
+      }
+    },
+    "daily": {
+      "CD-001": {
+        "vehicle_id": "VEH-031",
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-069",
+          "display": "نور محمد"
+        },
+        "basic_entry_id": "AFB-03"
+      },
+      "CD-002": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-076",
+          "display": "محمود خلف"
+        },
+        "basic_entry_id": "AFB-03"
+      },
+      "CD-003": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-005",
+          "display": "استيفن مجدي"
+        }
+      },
+      "CD-004": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-072",
+          "display": "نصر محمد"
+        }
+      },
+      "CD-005": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-065",
+          "display": "يحي غريب"
+        }
+      },
+      "CD-006": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-066",
+          "display": "يوسف اشرف"
+        }
+      }
+    }
   },
   "service_runs": {
     "SVC-004:am": {

@@ -1625,7 +1625,8 @@
         "vehicle_id": "VEH-013",
         "driver": {
           "kind": "personnel",
-          "id": "IND-071"
+          "id": "IND-071",
+          "display": "مصطفى عبدالعزيز"
         },
         "attached": [
           {
@@ -1649,7 +1650,8 @@
         "vehicle_id": "VEH-017",
         "driver": {
           "kind": "personnel",
-          "id": "IND-067"
+          "id": "IND-067",
+          "display": "محمود عبدالعاطي"
         }
       },
       "LOR-3": {
@@ -1698,9 +1700,9 @@
       },
       "AS-0027": {
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "عمر محمد السيد صادق"
+          "kind": "conscript",
+          "id": "CON-070",
+          "display": "عمر محمد"
         },
         "vehicles": [
           {
@@ -1715,7 +1717,8 @@
       "AS-0024": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-018"
+          "id": "CON-018",
+          "display": "صلاح احمد"
         },
         "vehicles": [
           {
@@ -1729,8 +1732,9 @@
       },
       "AS-0028": {
         "driver": {
-          "kind": "text",
-          "name": "عبدالرحمن البحيرى"
+          "kind": "conscript",
+          "id": "CON-046",
+          "display": "عبدالرحمن البحيرى"
         }
       },
       "AS-0029": {
@@ -1741,8 +1745,9 @@
       },
       "AS-0030": {
         "driver": {
-          "kind": "text",
-          "name": "محمد تركي"
+          "kind": "conscript",
+          "id": "CON-021",
+          "display": "محمد تركي"
         },
         "vehicles": [
           {
@@ -1775,7 +1780,8 @@
         "vehicle_id": "VEH-031",
         "driver": {
           "kind": "conscript",
-          "id": "CON-010"
+          "id": "CON-010",
+          "display": "محمود سعيد"
         }
       },
       "CD-002": {

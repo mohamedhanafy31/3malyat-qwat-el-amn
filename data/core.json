@@ -13977,7 +13977,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 300,
+    "CHG": 301,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -19100,6 +19100,24 @@
       },
       "reason": "يوم 2026-10-29",
       "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-301",
+      "ts": "2026-10-31T20:13:01",
+      "entity": "import",
+      "entity_id": "resolve-025",
+      "action": "batch",
+      "day": null,
+      "text": "حل بنود الاستيراد (resolve-025): 665 تعديل، 61 تعارض اتسابوا",
+      "before": null,
+      "after": {
+        "linked_high": 413,
+        "other_links": 30,
+        "left_empty": 889,
+        "conflicts_untouched": 61
+      },
+      "reason": "",
+      "edited_by": "النظام"
     }
   ],
   "missions": [],

@@ -1543,15 +1543,17 @@
       "LOR-1": {
         "vehicle_id": "VEH-013",
         "driver": {
-          "kind": "text",
-          "name": "مصطفى طلبة"
+          "kind": "personnel",
+          "id": "IND-086",
+          "display": "مصطفى طلبة"
         }
       },
       "LOR-2": {
         "vehicle_id": "VEH-008",
         "driver": {
-          "kind": "text",
-          "name": "احمد شعبان"
+          "kind": "personnel",
+          "id": "IND-085",
+          "display": "احمد شعبان"
         }
       },
       "LOR-4": {
@@ -1593,7 +1595,8 @@
       "AS-0030": {
         "driver": {
           "kind": "personnel",
-          "id": "IND-082"
+          "id": "IND-082",
+          "display": "شريف محمد"
         },
         "vehicles": [
           {
@@ -1624,7 +1627,8 @@
       "AS-0032": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-018"
+          "id": "CON-018",
+          "display": "صلاح احمد"
         },
         "vehicles": [
           {
@@ -1673,7 +1677,8 @@
         "vehicle_id": "VEH-031",
         "driver": {
           "kind": "conscript",
-          "id": "CON-010"
+          "id": "CON-010",
+          "display": "محمود سعيد"
         }
       },
       "CD-002": {

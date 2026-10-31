@@ -1041,7 +1041,8 @@
         "vehicle_id": "VEH-017",
         "driver": {
           "kind": "personnel",
-          "id": "IND-082"
+          "id": "IND-082",
+          "display": "شريف محمد"
         },
         "attached": [
           {
@@ -1060,8 +1061,9 @@
     "services": {
       "AS-0008": {
         "driver": {
-          "kind": "text",
-          "name": "محمود عطية"
+          "kind": "conscript",
+          "id": "CON-053",
+          "display": "محمود عطية"
         },
         "vehicles": [
           {
@@ -1100,6 +1102,13 @@
             ]
           }
         ]
+      },
+      "AS-0029": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-004",
+          "display": "عمرو رأفت"
+        }
       }
     },
     "daily": {
@@ -1113,16 +1122,17 @@
       "CD-002": {
         "vehicle_id": "VEH-030",
         "driver": {
-          "kind": "text",
-          "id": "",
-          "name": "عبدالله محمد عبداللطيف حسين"
+          "kind": "conscript",
+          "id": "CON-067",
+          "display": "عبدالله محمود"
         }
       },
       "CD-008": {
         "vehicle_id": "VEH-036",
         "driver": {
-          "kind": "text",
-          "name": "محمد تركي"
+          "kind": "conscript",
+          "id": "CON-021",
+          "display": "محمد تركي"
         }
       },
       "CD-003": {
@@ -1136,7 +1146,8 @@
         "vehicle_id": "VEH-032",
         "driver": {
           "kind": "conscript",
-          "id": "CON-010"
+          "id": "CON-010",
+          "display": "محمود سعيد"
         }
       },
       "CD-005": {
