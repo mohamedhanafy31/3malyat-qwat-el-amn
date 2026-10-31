@@ -112,7 +112,8 @@ def _row_spec(values, spans, size=9):
 def _driver_text(row):
     """اسم السائق زي الأرشيف: أول كلمتين من غير رتبة، مهما كان نوع السائق."""
     driver = row.get("driver") or {}
-    name = first_words(driver.get("name"), DRIVER_NAME_WORDS, glue=True)
+    # الأيام المستوردة بتحتفظ باسم الأرشيف (display) عشان التصدير يطلع زي الأصل.
+    name = first_words(driver.get("display") or driver.get("name"), DRIVER_NAME_WORDS, glue=True)
     return name or "ـــــ"
 
 

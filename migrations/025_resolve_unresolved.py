@@ -40,6 +40,32 @@ def _options():
     return parser.parse_known_args(sys.argv[1:])[0]
 
 
+_INHERITED_KEYS = ("lorries", "daily", "posts", "plates")
+
+
+def _seed_day(data: dict[str, Any], day: str) -> bool:
+    """يوم مالوش سجل حملة بيورث سجل آخر يوم قبله. لو هنكتب فيه لازم نبدأ بنسخة من
+    الموروث، وإلا السجل الجديد الناقص يقطع التوريث عن الأيام اللي بعده (المركبات تختفي)."""
+    days = data.setdefault("day_campaign", {})
+    if day in days:
+        return False
+    previous = max((d for d in days if d < day), default=None)
+    seed: dict[str, Any] = {}
+    for key in _INHERITED_KEYS:
+        value = (days.get(previous) or {}).get(key) if previous else None
+        if value is None:
+            continue
+        value = deepcopy(value)
+        if key != "plates":
+            # attached مش بيتورث في build_campaign، فمانسخهوش.
+            for entry in value.values():
+                if isinstance(entry, dict):
+                    entry.pop("attached", None)
+        seed[key] = value
+    days[day] = seed
+    return True
+
+
 def _current(data: dict[str, Any], day: str, path: tuple[str, ...]) -> Any:
     raw = (data.get("day_campaign") or {}).get(day) or {}
     return campaign._legacy_view(raw, path)
@@ -74,11 +100,13 @@ def _campaign_pass(data: dict[str, Any], root: Path, start: str, end: str | None
     conflicts: list[dict[str, Any]] = []
     changes: list[dict[str, Any]] = []
     diverged: list[dict[str, Any]] = []
-    for day, source in files.items():
+    for day, source in sorted(files.items()):
         sheet = campaign.extract_file(source)
         if sheet.get("error"):
             unresolved.append({"day": day, "kind": "file", "row": source.name, "reason": sheet["error"]})
             continue
+        seeded = _seed_day(data, day)
+        before_changes = len(changes)
         plan = campaign.build_plan(data, day, sheet, fleet, best_effort_plates=True)
         strict = campaign.build_plan(data, day, sheet, fleet, best_effort_plates=False)
         strict_vehicle_paths = {op.path for op in strict.ops if op.path[-1] in {"vehicle_id", "vehicles"}}
@@ -98,6 +126,15 @@ def _campaign_pass(data: dict[str, Any], root: Path, start: str, end: str | None
             if category == "vehicle" and op.path in strict_vehicle_paths:
                 allowed = False
             if not allowed:
+                # سائق مربوط بنفس الشخص من غير اسم الأرشيف -> نحفظ اسم الأرشيف للطباعة بس.
+                if (category == "person" and isinstance(current, dict) and isinstance(op.value, dict)
+                        and current.get("kind") == op.value.get("kind") and current.get("id")
+                        and current.get("id") == op.value.get("id") and not current.get("display")
+                        and str(op.archive or "").strip()):
+                    campaign._set(data.setdefault("day_campaign", {}).setdefault(day, {}), op.path,
+                                  {**current, "display": str(op.archive).strip()})
+                    counts["display_kept"] += 1
+                    changes.append({"day": day, "path": "/".join(op.path), "category": "display"})
                 continue
             if category == "person":
                 match = resolve_person(data, op.archive, day, role="conscript-driver", service=op.row)
@@ -109,8 +146,15 @@ def _campaign_pass(data: dict[str, Any], root: Path, start: str, end: str | None
                                "reason": match.reason, "row": op.row})
             else:
                 counts[f"linked_{category}"] += 1
-            campaign._set(data.setdefault("day_campaign", {}).setdefault(day, {}), op.path, op.value)
+            value = op.value
+            if category == "person" and str(op.archive or "").strip():
+                # الربط بالشخص، والطباعة باسم الأرشيف زي الأصل.
+                value = {**op.value, "display": str(op.archive).strip()}
+            campaign._set(data.setdefault("day_campaign", {}).setdefault(day, {}), op.path, value)
             changes.append({"day": day, "path": "/".join(op.path), "category": category})
+        if seeded and len(changes) == before_changes:
+            # مفيش تعديل فعلي؛ نرجّع اليوم يورث زي ما كان.
+            data["day_campaign"].pop(day, None)
         unresolved.extend(plan.unresolved)
     return {"counts": counts, "medium": medium, "unresolved": unresolved,
             "conflicts": conflicts, "changes": changes, "diverged": diverged}

@@ -31,3 +31,14 @@ def test_dry_run_no_change_and_idempotent_when_no_candidates(monkeypatch, tmp_pa
     with pytest.raises(migration.AlreadyDone):
         migration.migrate(data, options)
     assert data == original
+
+
+def test_seeding_a_day_keeps_inherited_vehicles_for_following_days():
+    data = {"day_campaign": {"2026-09-30": {
+        "lorries": {"LOR-1": {"vehicle_id": "VEH-1", "attached": [{"assignment_id": "AS-9"}]}},
+        "plates": {"rows": [["1/ب"]]}}}}
+    assert migration._seed_day(data, "2026-10-01")
+    seeded = data["day_campaign"]["2026-10-01"]
+    assert seeded["lorries"]["LOR-1"] == {"vehicle_id": "VEH-1"}
+    assert seeded["plates"] == {"rows": [["1/ب"]]}
+    assert not migration._seed_day(data, "2026-10-01")

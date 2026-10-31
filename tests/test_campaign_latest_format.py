@@ -121,3 +121,11 @@ def test_empty_appointment_lorries_are_not_printed():
                     "attached": [{"name": "تفتيش"}]}
     rows = _delivery_rows(_payload(appointments=[empty, with_driver, with_vehicle, with_service]))
     assert [r[1] for r in rows] == ["الأربعين", "الإدارة الجديدة", "المديرية + تفتيش"]
+
+
+def test_driver_prints_archive_display_name_when_kept():
+    from backend.campaign_export import _driver_text
+    row = {"driver": {"kind": "personnel", "id": "IND-1", "name": "احمد محمود فاروق محمد عزام", "display": "احمد عزام"}}
+    assert _driver_text(row) == "احمد عزام"
+    row["driver"]["display"] = ""
+    assert _driver_text(row) == "احمد محمود"

@@ -55,12 +55,13 @@ def _driver(data, value):
         if raw is None or category != "personnel":
             return None
         return {"kind": kind, "id": ident, "name": raw.get("name", ""), "phone": raw.get("phone", ""),
-                "role": raw.get("role", "")}
+                "role": raw.get("role", ""), "display": str(value.get("display") or "").strip()}
     if kind == "conscript":
         person = ConscriptRepo(data).find(ident)
         if not person:
             return None
-        return {"kind": kind, "id": ident, "name": person.name, "phone": person.phone}
+        return {"kind": kind, "id": ident, "name": person.name, "phone": person.phone,
+                "display": str(value.get("display") or "").strip()}
     return {"kind": "text", "id": "", "name": str(value.get("name") or "").strip(), "phone": ""}
 
 
