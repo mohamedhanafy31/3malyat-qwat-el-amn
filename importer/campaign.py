@@ -36,8 +36,10 @@ from backend.constants import APPOINTMENT_LORRIES, CAMPAIGN_LORRIES
 from backend.dated import afraad_basic_on, campaign_daily_on, campaign_posts_on
 from backend.repo import ConscriptRepo, PeopleRepo, VehicleRepo
 from backend.text import core_service_name, norm, norm_name
+from backend.service_equivalence import compare_service_names, service_key, services_equivalent
 
 from .textnorm import clean_text, dates_in_text
+from .person_match import resolve_person
 
 VERSION = "1"
 DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
@@ -165,7 +167,8 @@ class FleetIndex:
 
     def __init__(self, data: dict[str, Any]) -> None:
         self.by_number: dict[str, list[Any]] = {}
-        for vehicle in VehicleRepo(data).all():
+        self.vehicles = list(VehicleRepo(data).all())
+        for vehicle in self.vehicles:
             self.by_number.setdefault(re.sub(r"\D", "", vehicle.plate_number.translate(DIGITS)), []).append(vehicle)
 
     @staticmethod
@@ -175,13 +178,25 @@ class FleetIndex:
             return re.sub(r"\D", "", have) == wanted[1:]
         return not wanted or have == wanted
 
-    def resolve(self, text: Any) -> dict[str, Any]:
+    def resolve(self, text: Any, best_effort: bool = False) -> dict[str, Any]:
         """-> {status: ok|none|unregistered|ambiguous|series-mismatch, vehicle_id?, plate?}."""
         plate = parse_plate(text)
         if plate is None:
             return {"status": "none"}
         candidates = self.by_number.get(plate["number"], [])
         if not candidates:
+            if best_effort:
+                ranked = []
+                for vehicle in self.vehicles:
+                    number = re.sub(r"\D", "", vehicle.plate_number.translate(DIGITS))
+                    number_score = SequenceMatcher(None, plate["number"], number).ratio()
+                    series_score = SequenceMatcher(None, norm(plate["series"].lstrip("#")),
+                                                   norm(vehicle.plate_series)).ratio() if plate["series"] else .5
+                    ranked.append((number_score * .78 + series_score * .22, vehicle))
+                ranked.sort(key=lambda item: item[0], reverse=True)
+                if ranked and ranked[0][0] >= .78 and (len(ranked) == 1 or ranked[0][0] - ranked[1][0] >= .08):
+                    return {"status": "ok", "vehicle_id": ranked[0][1].id, "plate": plate,
+                            "confidence": "medium", "reason": "أرقام اللوحة الأقرب والسلسلة فكت التعادل"}
             return {"status": "unregistered", "plate": plate}
         exact = [v for v in candidates if self._series_ok(plate["series"], v.plate_series)]
         if len(exact) == 1:
@@ -189,6 +204,14 @@ class FleetIndex:
         if len(exact) > 1:
             return {"status": "ambiguous", "plate": plate,
                     "candidates": [v.plate for v in exact]}
+        # الرقم هو المرساة الأقوى. لو السلسلة فيها غلطة حرف/رقم واحدة
+        # ومركبة واحدة بس الأقرب بوضوح، نربطها بدل ما نسيبها فاضية.
+        wanted = plate["series"].lstrip("#")
+        ranked = sorted(((SequenceMatcher(None, norm(wanted), norm(v.plate_series)).ratio(), v)
+                         for v in candidates), key=lambda item: item[0], reverse=True)
+        if best_effort and ranked and ranked[0][0] >= 0.55 and (len(ranked) == 1 or ranked[0][0] - ranked[1][0] >= 0.20):
+            return {"status": "ok", "vehicle_id": ranked[0][1].id, "plate": plate,
+                    "confidence": "medium", "reason": "رقم اللوحة مطابق والسلسلة الأقرب وحيدة"}
         return {"status": "series-mismatch", "plate": plate,
                 "candidates": [v.plate for v in candidates]}
 
@@ -210,6 +233,7 @@ class DriverIndex:
     """سائقين اليوم (أفراد بوظيفة سائق + مجندين سواقين) ثم باقي القوة كاحتياط أشد."""
 
     def __init__(self, data: dict[str, Any], day: str) -> None:
+        self.data, self.day = data, day
         pools = fleet.drivers_on(data, day)
         self.primary = [("personnel", item["id"], item["name"]) for item in pools["personnel"]]
         self.primary += [("conscript", item["id"], item["name"]) for item in pools["conscripts"]]
@@ -219,29 +243,34 @@ class DriverIndex:
         self.fallback += [("conscript", c.id, c.name) for c in ConscriptRepo(data).all()
                           if ("conscript", c.id) not in seen]
 
-    def resolve(self, text: str) -> dict[str, Any]:
+    def _neighbours(self, service: str) -> set[str]:
+        out: set[str] = set()
+        for delta in (-1, 1):
+            other = (dt.date.fromisoformat(self.day) + dt.timedelta(days=delta)).isoformat()
+            assignments = {row["id"]: row for row in occasional_rows(self.data, other)
+                           if services_equivalent(service, row.get("name") or row.get("label"))}
+            sheet = (self.data.get("day_campaign") or {}).get(other) or {}
+            for aid in assignments:
+                value = ((sheet.get("services") or {}).get(aid) or {}).get("driver") or {}
+                if value.get("kind") in {"personnel", "conscript"} and value.get("id"):
+                    out.add(value["id"])
+        return out
+
+    def resolve(self, text: str, service: str = "") -> dict[str, Any]:
         """-> {status: linked|text|ambiguous|none, value?, candidates?}. القيمة نص حر لو مفيش مطابقة مؤكدة."""
         text = clean_text(text)
         if _blank(text):
             return {"status": "none"}
         wanted = _name_tokens(text)
         as_text = {"kind": "text", "id": "", "name": text}
-        if len(wanted) < 2:
-            return {"status": "text", "value": as_text, "reason": "اسم أقل من كلمتين"}
-        for pool, floor, minimum in ((self.primary, 0.85, 2), (self.fallback, 0.9, 3)):
-            if len(wanted) < minimum:
-                continue
-            hits = [(kind, ident, name) for kind, ident, name in pool
-                    if _tokens_match(wanted, _name_tokens(name), floor)]
-            exact = [h for h in hits if _name_tokens(h[2]) == wanted]
-            hits = exact or hits
-            if len(hits) == 1:
-                kind, ident, name = hits[0]
-                return {"status": "linked", "value": {"kind": kind, "id": ident}, "name": name}
-            if len(hits) > 1:
-                return {"status": "ambiguous", "value": as_text,
-                        "candidates": [f"{h[1]} {h[2]}" for h in hits[:4]]}
-        return {"status": "text", "value": as_text, "reason": "لا مطابقة في سواقين اليوم"}
+        found = resolve_person(self.data, text, self.day, role="conscript-driver", service=service,
+                               neighbouring_ids=self._neighbours(service))
+        if found.person_id:
+            return {"status": "linked", "value": {"kind": found.kind, "id": found.person_id},
+                    "name": found.name, "confidence": found.confidence, "reason": found.reason}
+        ambiguous = found.reason.startswith("تعادل") and found.score >= 0.80
+        return {"status": "ambiguous" if ambiguous else "text", "value": as_text,
+                "reason": found.reason, "candidates": list(found.candidates)}
 
 
 # ───────────────────────── مطابقة الصفوف ─────────────────────────
@@ -340,9 +369,11 @@ class DayPlan:
 class DayResolver:
     """يحوّل صفوف الأرشيف ليوم واحد لعمليات على حقول day_campaign."""
 
-    def __init__(self, data: dict[str, Any], day: str, fleet_index: FleetIndex) -> None:
+    def __init__(self, data: dict[str, Any], day: str, fleet_index: FleetIndex,
+                 best_effort_plates: bool = False) -> None:
         self.data, self.day = data, day
         self.fleet = fleet_index
+        self.best_effort_plates = best_effort_plates
         self.drivers = DriverIndex(data, day)
         self.plan = DayPlan(day)
         self.assignments = occasional_rows(data, day)
@@ -356,7 +387,7 @@ class DayResolver:
         if _blank(plate_text):
             return None
         self.plan.stats["plates"] += 1
-        found = self.fleet.resolve(plate_text)
+        found = self.fleet.resolve(plate_text, best_effort=self.best_effort_plates)
         if found["status"] == "ok":
             self.plan.stats["plates_resolved"] += 1
             return found["vehicle_id"]
@@ -369,7 +400,7 @@ class DayResolver:
         return None
 
     def _driver(self, row: str, driver_text: str) -> dict[str, Any] | None:
-        found = self.drivers.resolve(driver_text)
+        found = self.drivers.resolve(driver_text, row)
         if found["status"] == "none":
             return None
         stats = self.plan.stats
@@ -472,6 +503,9 @@ class DayResolver:
         for alias, canonical in DAILY_ALIASES.items():
             if key_of(alias) in wanted:
                 wanted = key_of(canonical)
+        exact = [item for item in items if item["id"] not in taken and services_equivalent(first, item["name"])]
+        if len(exact) == 1:
+            return exact[0]
         best = [(service_score(wanted, item["name"]), item) for item in items if item["id"] not in taken]
         best = [pair for pair in best if pair[0] >= DAILY_MIN_SCORE]
         best.sort(key=lambda pair: -pair[0])
@@ -484,7 +518,9 @@ class DayResolver:
             return                                       # القايمة نفسها رابطاها وصالحة
         wanted = key_of(item["name"])
         stripped = key_of(str(item["name"]).removeprefix("ارتكاز "))
-        matches = [b for b in basics if key_of(b.get("name", "")) in (wanted, stripped)]
+        matches = [b for b in basics if key_of(b.get("name", "")) in (wanted, stripped)
+                   or services_equivalent(b.get("name", ""), item["name"])
+                   or services_equivalent(b.get("name", ""), str(item["name"]).removeprefix("ارتكاز "))]
         if len(matches) == 1:
             self._add(("daily", item["id"], "basic_entry_id"), matches[0]["id"], item["name"], archive_name)
         elif item.get("basic_entry_id") or "ارتكاز" in str(item["name"]) or len(matches) > 1:
@@ -504,6 +540,13 @@ class DayResolver:
     def _service_for(self, part: str, row_name: str, claim: bool) -> dict[str, Any] | None:
         hint = _shift_hint(row_name) or _shift_hint(part)
         stamp = _time_of(part) or _time_of(row_name)
+        equivalent = [a for a in self.assignments
+                      if services_equivalent(part, a.get("name") or a.get("label") or "")]
+        if len(equivalent) == 1 and (not claim or equivalent[0]["id"] not in self.used_assignments):
+            chosen = equivalent[0]
+            if claim:
+                self.used_assignments.add(chosen["id"])
+            return chosen
         scored = sorted(((max(service_score(part, a.get("name") or ""), service_score(part, a.get("label") or "")), a)
                          for a in self.assignments), key=lambda pair: -pair[0])
         if not scored or scored[0][0] < SERVICE_MIN_SCORE:
@@ -697,8 +740,9 @@ def merge_plan(data: dict[str, Any], plan: DayPlan, names: dict[str, str] | None
 
 # ───────────────────────── تشغيل كامل ─────────────────────────
 
-def build_plan(data: dict[str, Any], day: str, sheet: dict[str, Any], fleet_index: FleetIndex) -> DayPlan:
-    resolver = DayResolver(data, day, fleet_index)
+def build_plan(data: dict[str, Any], day: str, sheet: dict[str, Any], fleet_index: FleetIndex,
+               best_effort_plates: bool = False) -> DayPlan:
+    resolver = DayResolver(data, day, fleet_index, best_effort_plates=best_effort_plates)
     resolver.plan.source = sheet.get("path", "")
     resolver.posts(sheet.get("posts") or [])
     resolver.delivery(sheet.get("delivery") or [])

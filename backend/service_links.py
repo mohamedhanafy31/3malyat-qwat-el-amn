@@ -1,6 +1,7 @@
 """حل ربط أسماء الخدمات الحرة بهوية دليل الخدمات."""
 from .service_catalog import catalog
 from .text import core_service_name, norm
+from .service_equivalence import service_key, services_equivalent
 from functools import lru_cache
 
 # كل مجموعة = أسماء لنفس الخدمة اتكتبت بأشكال مختلفة في القوايم. أي اسم من
@@ -48,7 +49,7 @@ def resolve_service_id(data, name, index=None):
         hits = [index[key] for key in wanted if key in index]
         return min(hits)[1] if hits else None
     for entry in catalog(data):
-        if _keys(entry.get("name")) & wanted:
+        if _keys(entry.get("name")) & wanted or services_equivalent(entry.get("name"), name):
             return entry.get("id")
     return None
 

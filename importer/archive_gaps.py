@@ -38,10 +38,12 @@ from backend.dated import command_on, targets_on
 from backend.people import effective
 from backend.repo import PeopleRepo
 from backend.utils import MAX_LEN
+from backend.service_equivalence import services_equivalent
 
 from .extract import _extract_board, read_docx_raw
 from .normalize import name_compatible, normalize_rank
 from .textnorm import clean_text, dates_in_text, norm, norm_name
+from .person_match import resolve_person
 
 VERSION = "1"
 W = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
@@ -232,6 +234,7 @@ class OfficerIndex:
     """ضباط القوة في اليوم، بمطابقة الاسم المختصر (أول اسمين) وبالرتبة لفك التعادل."""
 
     def __init__(self, data: dict[str, Any], day: str) -> None:
+        self.data, self.day = data, day
         self.items: list[dict[str, Any]] = []
         for raw in PeopleRepo(data).raw_on_force(day, "officers"):
             eff = {**raw, **effective(raw, day)}
@@ -244,6 +247,14 @@ class OfficerIndex:
 
     def resolve(self, name: str, rank: str = "", only: set[str] | None = None) -> dict[str, Any]:
         """-> {status: ok|none|ambiguous, id?, label?}."""
+        if only is None:
+            found = resolve_person(self.data, " ".join(part for part in (rank, name) if part),
+                                   self.day, role="officer")
+            if found.person_id:
+                return {"status": "ok", "id": found.person_id, "label": self.label(found.person_id),
+                        "confidence": found.confidence, "reason": found.reason}
+            return {"status": "ambiguous" if found.candidates else "none",
+                    "candidates": list(found.candidates)}
         tokens = norm_name(name).split()
         if len(tokens) < 2:
             return {"status": "none"}
@@ -660,6 +671,9 @@ def canonical_target(data: dict[str, Any], day: str, service: str) -> str | None
     exact = [n for n in names if norm(n) == key]
     if exact:
         return exact[0]
+    equivalent = [n for n in names if services_equivalent(n, service)]
+    if len(equivalent) == 1:
+        return equivalent[0]
     loose = [n for n in names if key and (key in norm(n) or norm(n) in key)]
     return loose[0] if len(loose) == 1 else None
 

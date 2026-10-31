@@ -11,6 +11,7 @@ import json
 import re
 import sys
 import unicodedata
+from functools import lru_cache
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 from difflib import SequenceMatcher
@@ -30,6 +31,11 @@ ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234
 DIACRITICS = re.compile(r"[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]")
 PLACEHOLDER = re.compile(r"^[\s\-_ـ‐‑‒–—―.\/،؛:]*$")
 DATE_RE = re.compile(r"(?<!\d)(\d{1,2})\s*[-/]\s*(\d{1,2})\s*[-/]\s*(20\d{2})(?!\d)")
+_COMPARE_DATA: dict[str, Any] = {}
+_COMPARE_DAY = ""
+_COMPARE_EXACT: dict[str, str | None] = {}
+_COMPARE_PREFIX: dict[tuple[str, ...], str | None] = {}
+_COMPARE_FIRST: set[str] = set()
 
 
 def normalize_arabic(value: object) -> str:
@@ -103,6 +109,53 @@ def _compare_value(result: dict[str, Any], section: str, row_key: str, field: st
     })
 
 
+@lru_cache(maxsize=8192)
+def _resolved_identity_cached(day: str, text: str) -> str | None:
+    value = text
+    if not normalize_arabic(value) or not _COMPARE_DATA or not _COMPARE_DAY:
+        return None
+    from importer.person_match import _rank_and_name, resolve_person
+    # الرتبة والتليفون بيتشالوا قبل المفتاح (ا.ش/ اسم)، وإلا الاسم مايتلقاش.
+    exact_key = _person_identity(_rank_and_name(value)[1] or value)
+    if exact_key in _COMPARE_EXACT:
+        return _COMPARE_EXACT[exact_key]
+    tokens = exact_key.split()
+    prefix = tuple(tokens[:2])
+    if len(prefix) == 2 and prefix in _COMPARE_PREFIX:
+        return _COMPARE_PREFIX[prefix]
+    if not tokens or tokens[0] not in _COMPARE_FIRST:
+        return None
+    matches = [resolve_person(_COMPARE_DATA, str(value), day, role=role)
+               for role in ("officer", "personnel", "conscript-driver")]
+    matches = [match for match in matches if match.person_id]
+    if not matches:
+        return None
+    matches.sort(key=lambda match: (-match.score, match.person_id or ""))
+    if len(matches) > 1 and matches[0].person_id != matches[1].person_id and abs(matches[0].score - matches[1].score) < .015:
+        return None
+    return matches[0].person_id
+
+
+def _resolved_identity(value: object) -> str | None:
+    return _resolved_identity_cached(_COMPARE_DAY, str(value or ""))
+
+
+def _compare_person_identity(result: dict[str, Any], field: str, archive: object, system: object) -> None:
+    """مقياس منفصل: الهوية لو النص اتحل، والنص كاحتياطي لو ماتحلش."""
+    left, right = _resolved_identity(archive), _resolved_identity(system)
+    key = field + "_identity"
+    stats = result["fields"].setdefault(key, {"compared": 0, "matched": 0, "mismatched": 0,
+                                                "resolved": 0, "text_fallback": 0})
+    stats["compared"] += 1
+    if left and right:
+        stats["resolved"] += 1
+        matched = left == right
+    else:
+        stats["text_fallback"] += 1
+        matched = normalize_arabic(archive) == normalize_arabic(system)
+    stats["matched" if matched else "mismatched"] += 1
+
+
 def _key(row: dict[str, Any], fields: tuple[str, ...]) -> str:
     # نحافظ على حدود الكلمات عشان نعرف نطابق الاسم المختصر
     # «خالد خلف» بالاسم الكامل «خالد خلف الله».
@@ -130,13 +183,14 @@ def _key_similarity(left: str, right: str) -> float:
 
 def _service_identity(value: object) -> str:
     """مفتاح الخدمة بعد فصل الزمن/الجهة اللي لهم حقول مستقلة."""
-    from backend.text import core_service_name
+    from backend.service_equivalence import service_parts
 
     raw = re.sub(r"\([^)]*\)\s*$", " ", str(value or ""))
-    key = normalize_arabic(core_service_name(raw))
-    key = re.sub(r"\bالقول\b", "قول", key)
-    key = key.replace("ترحيه نيابه", "ترحيله نيابه")
-    return key
+    parts = list(service_parts(raw))
+    if len(parts) > 1 and "افطار" in parts:
+        parts.remove("افطار")
+    key = " + ".join(parts)
+    return key.replace("ترحيه نيابه", "ترحيله نيابه")
 
 
 def _person_identity(value: object) -> str:
@@ -187,7 +241,8 @@ def match_rows(archive_rows: list[dict[str, Any]], system_rows: list[dict[str, A
 def _compare_rows(result: dict[str, Any], section: str, archive_rows: list[dict[str, Any]],
                   system_rows: list[dict[str, Any]], key_fields: tuple[str, ...],
                   fields: tuple[str, ...], *, fuzzy: bool = True,
-                  match_value_fields: tuple[str, ...] | None = None) -> None:
+                  match_value_fields: tuple[str, ...] | None = None,
+                  person_fields: tuple[str, ...] = ()) -> None:
     occurrences: Counter[str] = Counter()
     value_fields = match_value_fields or tuple(field for field in fields if field not in key_fields)
     for archive, system in match_rows(archive_rows, system_rows, key_fields,
@@ -220,6 +275,8 @@ def _compare_rows(result: dict[str, Any], section: str, archive_rows: list[dict[
             _compare_value(result, section, row_key, field,
                            archive.get(field, "") if archive else "",
                            system.get(field, "") if system else "")
+            if field in person_fields:
+                _compare_person_identity(result, field, archive.get(field, ""), system.get(field, ""))
 
 
 _BOARD_SECTIONS = {
@@ -337,7 +394,8 @@ def compare_board(day: str, archive, system_bytes: bytes) -> dict[str, Any]:
     left, right = _board_rows(archive), _board_rows(system_bytes)
     for section in sorted(set(left["sections"]) | set(right["sections"])):
         _compare_rows(result, section, left["sections"].get(section, []),
-                      right["sections"].get(section, []), ("identity",), ("service", "value"))
+                      right["sections"].get(section, []), ("identity",), ("service", "value"),
+                      person_fields=("value",))
     # تختيم نصفي اللوحة على نفس صف Word اختلاف layout فقط. نقيسه
     # بين العناصر الموجودة في النسختين عشان الناقص مايتحسبش layout كمان.
     left_items = {f"{section}|{_key(row, ('service',))}" for section, entries in left["sections"].items() for row in entries}
@@ -397,7 +455,7 @@ def compare_duty(day: str, archive, system_bytes: bytes) -> dict[str, Any]:
     for row in left_officers + right_officers:
         row["identity"] = _person_identity(row.get("name"))
     _compare_rows(result, "officers", left_officers, right_officers,
-                  ("identity",), ("rank", "name", "assigned", "daily", "rest"))
+                  ("identity",), ("rank", "name", "assigned", "daily", "rest"), person_fields=("name",))
     _compare_rows(result, "summary", _duty_summary(archive), _duty_summary(system_bytes),
                   ("index",), ("metric", "counted", "displayed"), fuzzy=False)
     return result
@@ -436,7 +494,7 @@ def compare_afraad(day: str, archive, system_bytes: bytes) -> dict[str, Any]:
     _compare_rows(result, "basic", left["basic"], right["basic"], ("identity",),
                   ("service", "morning", "night", "strength", "weapon", "time"))
     _compare_rows(result, "emergency", left["emergency"], right["emergency"], ("identity",),
-                  ("service", "person", "strength", "weapon", "time"))
+                  ("service", "person", "strength", "weapon", "time"), person_fields=("person",))
     return result
 
 
@@ -470,7 +528,8 @@ def compare_campaign(day: str, archive, system_bytes: bytes) -> dict[str, Any]:
     for section in ("checkpoints", "delivery"):
         _compare_rows(result, section, left[section], right[section], ("identity",),
                       ("service", "driver", "plate", "vehicle"),
-                      match_value_fields=("plate_key", "plate_key", "plate_key", "driver", "vehicle"))
+                      match_value_fields=("plate_key", "plate_key", "plate_key", "driver", "vehicle"),
+                      person_fields=("driver",))
     _compare_rows(result, "plates", left["plates"], right["plates"], ("plate_key",), ("plate",))
     return result
 
@@ -547,9 +606,10 @@ def compare_regularity(day: str, archive, system_bytes: bytes) -> dict[str, Any]
         for row in side["officers"]:
             row["identity"] = _person_identity(row.get("name"))
     _compare_rows(result, "services", left["services"], right["services"], ("identity", "time"),
-                  ("service", "person", "phone", "vehicle", "place", "time", "count"))
+                  ("service", "person", "phone", "vehicle", "place", "time", "count"),
+                  person_fields=("person",))
     _compare_rows(result, "officers", left["officers"], right["officers"], ("identity",),
-                  ("rank", "name", "service"))
+                  ("rank", "name", "service"), person_fields=("name",))
     return result
 
 
@@ -663,6 +723,7 @@ def summarize(results: list[dict[str, Any]], start: str, end: str, kinds: list[s
 
 
 def run(start: str, end: str | None, kinds: list[str], archive_root: Path) -> dict[str, Any]:
+    global _COMPARE_DATA, _COMPARE_DAY, _COMPARE_EXACT, _COMPARE_PREFIX, _COMPARE_FIRST
     inventory, ignored = discover_archive(archive_root)
     available_days = sorted(day for day, _kind in inventory if day >= start)
     if end is None:
@@ -670,8 +731,26 @@ def run(start: str, end: str | None, kinds: list[str], archive_root: Path) -> di
             raise RuntimeError("مفيش ملفات أرشيف في النطاق")
         end = available_days[-1]
     from backend import day_exports
+    from backend import store
+    _COMPARE_DATA = store.assemble()
+    exact: dict[str, set[str]] = defaultdict(set)
+    prefixes: dict[tuple[str, ...], set[str]] = defaultdict(set)
+    for group in ("officers", "personnel", "conscripts"):
+        for person in _COMPARE_DATA.get(group) or []:
+            for label in (person.get("name"), person.get("short_name"), person.get("nickname")):
+                if label:
+                    key = _person_identity(label)
+                    exact[key].add(person.get("id"))
+                    words = key.split()
+                    if len(words) >= 2:
+                        prefixes[tuple(words[:2])].add(person.get("id"))
+    _COMPARE_EXACT = {key: next(iter(ids)) if len(ids) == 1 else None for key, ids in exact.items()}
+    _COMPARE_PREFIX = {key: next(iter(ids)) if len(ids) == 1 else None for key, ids in prefixes.items()}
+    _COMPARE_FIRST = {key[0] for key in prefixes}
+    _resolved_identity_cached.cache_clear()
     results = []
     for day in _days(start, end):
+        _COMPARE_DAY = day
         for kind in kinds:
             archive = inventory.get((day, kind))
             if archive is None:
