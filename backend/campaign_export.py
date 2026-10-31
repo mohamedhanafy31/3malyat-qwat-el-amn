@@ -1,4 +1,5 @@
 """تصدير «يومية المركبات» بصيغة الأرشيف الأحدث."""
+import re
 from datetime import date
 from io import BytesIO
 
@@ -11,7 +12,7 @@ from docx.shared import Cm, Pt
 
 from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font, style_tables_bold_rtl
 from .export_fit import apply_fit_to_docx_table, fit_table, usable_height_pt
-from .labels import personnel_label
+from .labels import first_words
 
 LAST_FIT = {}
 GRID_WIDTHS = [693, 514, 1416, 1268, 148, 1217, 342, 420, 1139,
@@ -20,6 +21,14 @@ CHECKPOINT_SPANS = [1, 3, 4, 3, 4]
 DELIVERY_SPANS = [1, 3, 4, 3, 4]
 FONT = "Sultan bold"
 FILL = "F2F2F2"
+# قواعد الطباعة اللي ثبتت من أرشيف 82 يوم (أغسطس–أكتوبر 2026):
+# - السائق اسمين بدون رتبة (1,076 من 1,418 اسم؛ الثلاثي 305 والرباعي 36، والرتبة 0).
+DRIVER_NAME_WORDS = 2
+# - رقم لوحة الخدمات/اللواري من غير سلسلة (880 صف) أكتر من «ب13/9416» (469 صف).
+#   ظهور السلسلة بيجي في فترات متصلة (8-13/8 و13-24/9 و6-21/10): غيّر القيمة دي لو
+#   اتحوّل الأرشيف كله للصيغة الأطول.
+DELIVERY_PLATE_WITH_SERIES = False
+# - لوريات المأموريات الثابتة مالهاش صف في الأرشيف إلا لو اتكلّفت فعلًا.
 
 
 def _set_borders(table):
@@ -101,10 +110,31 @@ def _row_spec(values, spans, size=9):
 
 
 def _driver_text(row):
+    """اسم السائق زي الأرشيف: أول كلمتين من غير رتبة، مهما كان نوع السائق."""
     driver = row.get("driver") or {}
-    if driver.get("kind") == "personnel":
-        return personnel_label(driver)
-    return driver.get("name") or "ـــــ"
+    name = first_words(driver.get("name"), DRIVER_NAME_WORDS, glue=True)
+    return name or "ـــــ"
+
+
+def _has_content(item):
+    """هل اللوري/الصف فيه تكليف فعلي (سائق أو مركبة أو خدمة مضافة)؟"""
+    driver = item.get("driver") or {}
+    return bool(str(driver.get("name") or "").strip() or item.get("vehicle")
+                or item.get("attached") or item.get("vehicles"))
+
+
+def _service_label(item):
+    """صياغة اسم الخدمة زي الأرشيف: «كـــ 109» و«A + B» بمسافات، والساعة بعد الاسم.
+    الجهة بين علامتي تنصيص ماتتطبعش هنا (طباعتها نزّلت التطابق 61.2% → 60.6%)."""
+    name = str(item.get("name") or "")
+    name = re.sub(r"كـ+\s*109", "كـــ 109", name)
+    name = re.sub(r"\s*\+\s*", " + ", name)
+    # «مستشفى 1» / «نيابة عامة 1»: الرقم عداد تمييز داخلي والأرشيف مابيطبعوش
+    name = re.sub(r"\s+1$", "", " ".join(name.split()))
+    time = " ".join(str(item.get("time") or "").split())
+    if time and time not in name:
+        name = f"{name} {time}"
+    return name
 
 
 def _post_plate(post):
@@ -126,6 +156,8 @@ def _post_type(post):
 
 def _delivery_plate(row):
     plate = (row.get("vehicle") or {}).get("plate") or ""
+    if DELIVERY_PLATE_WITH_SERIES:
+        return plate
     return plate.split("/", 1)[-1] if plate else ""
 
 
@@ -186,10 +218,10 @@ def build_docx(campaign):
             delivery.append({**service, "vehicle": item.get("vehicle"),
                              "driver": item.get("driver") or service.get("driver")})
     delivery += list(campaign.get("daily") or [])
-    delivery += list(campaign.get("appointments") or [])
+    delivery += [item for item in campaign.get("appointments") or [] if _has_content(item)]
     delivery_specs = []
     for item in delivery:
-        values = ["", item.get("name") or "", _driver_text(item),
+        values = ["", _service_label(item), _driver_text(item),
                   _delivery_plate(item), _delivery_type(item)]
         delivery_specs.append(_row_spec(values, DELIVERY_SPANS))
         _merge_row(table.add_row(), DELIVERY_SPANS, values)

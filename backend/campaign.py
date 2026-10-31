@@ -594,6 +594,8 @@ def _row_view(data, ident, kind, name, raw, inherited, attached=None, assignment
                   + [{"id": person.get("id"), "name": person.get("name", ""),
                      "role": person.get("role", ""), "category": "officers"}
                      for person in (assignment or {}).get("officers", [])],
+        "time": (assignment or {}).get("time", ""),
+        "party": (assignment or {}).get("party", ""),
         "inherited": inherited,
         "warnings": [],
     }

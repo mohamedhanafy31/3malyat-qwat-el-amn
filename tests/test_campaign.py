@@ -411,7 +411,7 @@ def test_campaign_post_write_guards(client):
     assert client.put("/api/campaign/2026-07-11/plates", json={"revision": "old", "rows": []}).get_json()["code"] == "stale_revision"
 
 
-def test_export_prints_personnel_driver_with_short_label(client):
+def test_export_prints_personnel_driver_two_words_without_rank(client):
     day = "2026-07-10"
     person = client.post("/api/person", json={
         "type": "personnel", "name": "محمد عطية منصور نصار", "code": "9301", "phone": "01010101010",
@@ -420,4 +420,5 @@ def test_export_prints_personnel_driver_with_short_label(client):
                       json={"driver": {"kind": "personnel", "id": person["id"]}}).status_code == 200
     doc = Document(__import__("io").BytesIO(client.get(f"/api/campaign/{day}/export.docx").data))
     text = " ".join(c.text for t in doc.tables for r in t.rows for c in r.cells)
-    assert "م.ش/ محمد عطية منصور" in text and "نصار" not in text
+    # الأرشيف بيطبع السائق اسمين من غير رتبة (1,076 من 1,418 اسم، والرتبة 0)
+    assert "محمد عطية" in text and "منصور" not in text and "م.ش/" not in text

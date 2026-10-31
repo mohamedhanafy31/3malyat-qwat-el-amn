@@ -55,3 +55,69 @@ def test_latest_format_worst_case_fits():
                "plates": {"rows": [["x"] * 7] * 3}}
     Document(BytesIO(build_docx(payload).read()))
     assert LAST_FIT["ratio"] <= .94
+
+
+def _delivery_rows(payload):
+    doc = Document(BytesIO(build_docx(payload).read()))
+    rows = doc.tables[0].rows
+    start = next(i for i, row in enumerate(rows) if row.cells[0].text == "م"
+                 and row.cells[1].text == "الخدمة") + 1
+    return [[c.text for c in dict.fromkeys(row.cells)] for row in rows[start:]]
+
+
+def _payload(**extra):
+    base = {"date": "2026-09-29", "posts": [], "lorries": [], "services": [],
+            "daily": [], "appointments": [], "plates": {"rows": []}}
+    base.update(extra)
+    return base
+
+
+def test_driver_name_is_two_words_without_rank():
+    # الأرشيف: اسمين بدون رتبة (1,076 من 1,418 اسم)، «عبد X» كلمة واحدة
+    lorries = [
+        {"name": "فيصل", "driver": {"kind": "personnel", "name": "محمود عبدالعاطي ابراهيم حسن", "role": "أمين شرطة"}},
+        {"name": "القنصلية", "driver": {"kind": "personnel", "name": "علي وحيد علي", "role": "معاون أمن"}},
+        {"name": "x", "driver": {"kind": "conscript", "name": "محمد عبد الرحمن سيد"}},
+        {"name": "y", "driver": {"kind": "text", "name": "طارق"}},
+        {"name": "z", "driver": None},
+    ]
+    rows = _delivery_rows(_payload(lorries=lorries))
+    assert [r[2] for r in rows] == ["محمود عبدالعاطي", "علي وحيد", "محمد عبد الرحمن", "طارق", "ـــــ"]
+
+
+def test_delivery_plate_is_bare_number_by_default():
+    lorry = {"name": "فيصل", "driver": None,
+             "vehicle": {"plate": "ب13/9416", "type": "لوري", "origin": "internal"}}
+    assert _delivery_rows(_payload(lorries=[lorry]))[0][3] == "9416"
+
+
+def test_delivery_plate_series_switch(monkeypatch):
+    from backend import campaign_export
+    monkeypatch.setattr(campaign_export, "DELIVERY_PLATE_WITH_SERIES", True)
+    lorry = {"name": "فيصل", "driver": None,
+             "vehicle": {"plate": "ب13/9416", "type": "لوري", "origin": "internal"}}
+    assert _delivery_rows(_payload(lorries=[lorry]))[0][3] == "ب13/9416"
+
+
+def test_service_label_wording_matches_archive():
+    lorries = [{"name": "كـ109"}, {"name": "المحور+المحكمة"},
+               {"name": "فيصل + كـ109 +تفتيش الجناين"}]
+    services = [{"name": "ترحيلة العاشر", "time": "7ص", "driver": None, "vehicle": None},
+                {"name": "مستشفى 9ص", "time": "9ص", "driver": None, "vehicle": None},
+                {"name": "قول السلام", "time": "", "driver": None, "vehicle": None},
+                {"name": "نيابة عامة 1", "time": "8ص", "party": "عتاقة", "driver": None, "vehicle": None}]
+    labels = [r[1] for r in _delivery_rows(_payload(lorries=lorries, services=services))]
+    assert labels == ["كـــ 109", "المحور + المحكمة", "فيصل + كـــ 109 + تفتيش الجناين",
+                      "ترحيلة العاشر 7ص", "مستشفى 9ص", "قول السلام", "نيابة عامة 8ص"]
+
+
+def test_empty_appointment_lorries_are_not_printed():
+    empty = {"name": "المديرية", "driver": None, "vehicle": None, "attached": []}
+    with_driver = {"name": "الأربعين", "driver": {"kind": "text", "name": "سائق جديد"},
+                   "vehicle": None, "attached": []}
+    with_vehicle = {"name": "الإدارة الجديدة", "driver": None, "attached": [],
+                    "vehicle": {"plate": "ب15/5217", "type": "لوري", "origin": "internal"}}
+    with_service = {"name": "المديرية + تفتيش", "driver": None, "vehicle": None,
+                    "attached": [{"name": "تفتيش"}]}
+    rows = _delivery_rows(_payload(appointments=[empty, with_driver, with_vehicle, with_service]))
+    assert [r[1] for r in rows] == ["الأربعين", "الإدارة الجديدة", "المديرية + تفتيش"]
