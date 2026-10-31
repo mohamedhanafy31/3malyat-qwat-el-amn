@@ -20,7 +20,8 @@
 الصفين في كل يوم، والخانة الفاضية معناها «محتاجة تكليف» مش «مش موجودة».
 """
 from .assignments import (
-    command_required, command_vacant, forget_seq_if_day_empty, label, officer_states, peek_day,
+    clean_periods, command_required, command_vacant, forget_seq_if_day_empty, label,
+    officer_states, peek_day, period_label, set_periods, valid_periods,
 )
 from .checks import day_warnings
 from .confirm import state_of as confirm_state
@@ -279,6 +280,13 @@ def _row(assignment, people, day, taqseera_ids=()):
     1,034 صف خدمات طارئة في الأرشيف قوامها أفراد ومجندين من غير ضابط."""
     officers = [_person(people, oid, day, taqseera_ids)
                 for oid in assignment.get("officer_ids") or []]
+    # هدف متغطي بضابطين بالتقسيم الزمني: كل ضابط بيشيل فترته («حتى 4م» /
+    # «من 4م») بترتيب الفترات، والباقي بيفضل زي ما هو
+    periods = valid_periods(assignment)
+    if periods:
+        by_id = {o["id"]: o for o in officers}
+        officers = [{**by_id[p["officer_id"]], **{k: p[k] for k in ("until", "from") if k in p},
+                     "period_label": period_label(p)} for p in periods]
     personnel = [_person(people, pid, day, taqseera_ids)
                  for pid in assignment.get("personnel_ids") or []]
     return {
@@ -291,6 +299,7 @@ def _row(assignment, people, day, taqseera_ids=()):
         "source_manning": assignment.get("source_manning", ""),
         "shift": assignment.get("shift", ""),
         "officers": officers,
+        "periods": periods,
         "personnel": personnel,
         "conscripts": assignment.get("conscripts") or [],
         "conscript_count": int(assignment.get("conscript_count") or 0),
@@ -404,7 +413,7 @@ def _blank_target(name, day, officers):
     return {
         "id": None, "name": name, "kind": "حراسات", "section": SECTION_TARGETS,
         "label": name, "shift": "",
-        "officers": [], "personnel": [], "conscripts": [], "conscript_count": 0,
+        "officers": [], "periods": [], "personnel": [], "conscripts": [], "conscript_count": 0,
         "weapon": "", "time": "", "party": "", "note": "",
         "commander": _target_commanders(officers, name, day),
         "vacant": True, "placeholder": True,
@@ -457,7 +466,7 @@ def target_rows_for_day(data, day):
     return _target_slots(rows, _officers_on_force(data, day), day, data)
 
 
-def set_target_officers(data, day, name, officer_ids):
+def set_target_officers(data, day, name, officer_ids, periods=None):
     """بيعيّن (أو يشيل) الضابط المعيّن بهدف من الأهداف الثابتة الثمانية.
 
     القائد خانة ثابتة محسوبة من منصب الضابط (`_target_commanders`) —
@@ -468,6 +477,11 @@ def set_target_officers(data, day, name, officer_ids):
     فاضي بلا فايدة — هدف من غير حد معيّن أصلًا بيتعرض كخانة شاغرة من
     القايمة الثابتة، مش محتاج سجل مخزّن.
 
+    `periods` (اختياري): تقسيم التغطية بالوقت [{officer_id, until},
+    {officer_id, from}] — الضابطين بيتحطوا في `officer_ids` بترتيب الفترات
+    فكل القراء القدام يفضلوا شايفينهم. None = من غير تقسيم جديد (وأي تقسيم
+    قديم بيتشال لو الضباط المبعوتين اتغيّروا)، [] = إلغاء التقسيم صراحةً.
+
     بترجّع (row, error, status).
     """
     from .assignments import blank, clean_people, for_day, new_id
@@ -475,9 +489,16 @@ def set_target_officers(data, day, name, officer_ids):
     if name not in target_row_names(data, day):
         return None, f"«{name}» ليس من الأهداف الثابتة — قائمة الأهداف مغلقة.", 400
 
-    ids, err, status = clean_people(data, day, officer_ids, "officers")
-    if err:
-        return None, err, status
+    if periods:
+        periods, ids, err, status = clean_periods(data, day, periods)
+        if err:
+            return None, err, status
+        if officer_ids is not None and set(clean_people(data, day, officer_ids, "officers")[0] or []) != set(ids):
+            return None, "الضباط المختارون لا يطابقون فترات الهدف.", 400
+    else:
+        ids, err, status = clean_people(data, day, officer_ids, "officers")
+        if err:
+            return None, err, status
 
     entries = for_day(data, day)
     row = next((r for r in entries if r.get("section") == SECTION_TARGETS
@@ -493,6 +514,10 @@ def set_target_officers(data, day, name, officer_ids):
         row = blank(new_id(data, day, entries), name, SECTION_TARGETS, kind="حراسات")
         entries.append(row)
     row["officer_ids"] = ids
+    if periods or periods == []:
+        set_periods(row, periods)
+    elif row.get("periods") and not valid_periods(row):
+        set_periods(row, [])
     return row, None, None
 
 
@@ -728,9 +753,17 @@ def build_board(data, day):
 
         # مدير ووكيل الإدارة هما الوحيدان اللذان يظهران تلقائيًا في عمل
         # بالإدارة، بنص المنصب التنظيمي نفسه. أي ضابط آخر يحتاج العلامة
-        # الصريحة من يومية الضباط. الخوارج الحقيقية استُبعدت فوق.
+        # الصريحة من يومية الضباط أو نص «عمل بالإدارة» الحر. الخوارج
+        # الحقيقية استُبعدت فوق.
+        # النص الحر (`admin_work_text`) لو اتكتب هو النص بالظبط — بيغلب
+        # نص المنصب التلقائي والنص التشغيلي المركّب، فمفيش تكرار بين
+        # الخدمة/الملاحظة/الإضافي وبينه، وبيكفي لوحده من غير العلامة.
+        free_text = r.get("admin_work_text") or ""
         if r.get("command_role") in (ROLE_DIRECTOR, ROLE_DEPUTY):
-            admin_work.append({**who, "text": r["command_role"], "automatic": True})
+            admin_work.append({**who, "text": free_text or r["command_role"], "automatic": True,
+                               **({"free_text": True} if free_text else {})})
+        elif free_text:
+            admin_work.append({**who, "text": free_text, "added": True, "free_text": True})
         elif r["admin_work"]:
             # اتعلّم من يومية الضباط «إضافة للعمل بالإدارة»: نصه التشغيلي الكامل
             # (خدمته + اليدوي) بيظهر هنا كمان، وهو فاضل في مكان خدمته زي ما هو

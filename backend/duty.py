@@ -308,6 +308,8 @@ def officer_row(data, day, o, catalog=None):
         "persistent_status": status_period_public(persistent),
         "extra": state.get("extra", ""),
         "admin_work": bool(state.get("admin_work")),
+        # نص «عمل بالإدارة» الحر — بيدخل الضابط تحت القسم بالنص ده بالظبط
+        "admin_work_text": state.get("admin_work_text", ""),
         # النص التشغيلي الكامل (خدمته + اليدوي) والنص اليدوي بس
         "text": text,
         "manual": manual_text(state.get("note", ""), state.get("extra", "")),

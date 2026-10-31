@@ -28,8 +28,9 @@ const nameOf = list => p => `${p.role ? p.role + "/ " : ""}${p.name}`;
 /* ---------- العرض ---------- */
 const taqseeraMark = person => person?.taqseera
   ? ` <b class="taqseera-mark" title="تقصيرة" aria-label="تقصيرة">+ ت</b>` : "";
+/* هدف متغطّي بضابطين بالتقسيم الزمني: «حتى 4م» / «من 4م» بعد الاسم وقبل + ت */
 const chips = (list, cls) => list.map(p =>
-  `<span class="chip ${cls}">${esc(nameOf()(p))}${taqseeraMark(p)}</span>`).join(" ");
+  `<span class="chip ${cls}">${esc(nameOf()(p))}${p.period_label ? " " + esc(p.period_label) : ""}${taqseeraMark(p)}</span>`).join(" ");
 const conChips = cons => (cons || []).map(c =>
   `<span class="chip w">${esc(c.class || "مجند")}${c.count ? " ×" + c.count : ""}</span>`).join(" ");
 
@@ -57,7 +58,7 @@ function targetSlotRow(row) {
     <td class="wrap">${assigned}</td>
     <td class="col-actions"><div class="actions">
       <button class="mini${row.vacant ? " ok" : ""}" data-action="openTargetAssign"
-        data-id="${esc(row.name)}" data-extra="${dataAttr({officers: row.officers})}"
+        data-id="${esc(row.name)}" data-extra="${dataAttr({officers: row.officers, periods: row.periods || []})}"
       >${row.vacant ? "تعيين" : "تعديل"}</button>
     </div></td></tr>`;
 }
@@ -774,10 +775,30 @@ function _openAssignModal(endpoint, title, extra, showCommanderNote) {
   $("#tgEndpoint").value = endpoint;
   $("#targetModalTitle").textContent = title;
   $("#tgCommanderNote").classList.toggle("hidden", !showCommanderNote);
-  fillMulti($("#tgOfficers"), [...roster.officers, ...current],
-            (extra.officers || []).map(o => o.id));
+  const choices = [...roster.officers, ...current];
+  fillMulti($("#tgOfficers"), choices, (extra.officers || []).map(o => o.id));
+  // تقسيم التغطية بالوقت للأهداف بس (مش الكتل الثابتة)
+  $("#tgSplitWrap").classList.toggle("hidden", !showCommanderNote);
+  const [first, second] = extra.periods || [];
+  const pick = (el, chosen) => {
+    el.innerHTML = choices.map(p =>
+      `<option value="${esc(p.id)}" ${p.id === chosen ? "selected" : ""}>${esc(nameOf()(p))}</option>`).join("");
+    if (!chosen) el.selectedIndex = -1;
+  };
+  pick($("#tgFirst"), first?.officer_id);
+  pick($("#tgSecond"), second?.officer_id);
+  setTimeInputValue($("#tgSplitAt"), first?.until || "");
+  $("#tgSplit").checked = !!(first && second);
+  syncSplitFields();
   openModal("targetModal");
 }
+
+function syncSplitFields() {
+  const on = $("#tgSplit").checked;
+  $("#tgSplitFields").classList.toggle("hidden", !on);
+  $("#tgOfficers").closest("label").classList.toggle("hidden", on);
+}
+$("#tgSplit").addEventListener("change", syncSplitFields);
 
 function openTargetAssign(name, extra) {
   _openAssignModal(`/api/board/${DAY}/target/${encodeURIComponent(name)}`,
@@ -794,8 +815,20 @@ ACTIONS.openSlotAssign = (section, extra) => openSlotAssign(section, extra);
 
 $("#targetForm").onsubmit = async e => {
   e.preventDefault();
-  const officer_ids = readMulti($("#tgOfficers"));
-  const out = await api($("#tgEndpoint").value, jsonReq("PUT", {officer_ids}));
+  const body = {officer_ids: readMulti($("#tgOfficers"))};
+  if (!$("#tgSplitWrap").classList.contains("hidden")) {
+    if ($("#tgSplit").checked) {
+      const first = $("#tgFirst").value, second = $("#tgSecond").value;
+      const at = $("#tgSplitAt").dataset.hhmm;
+      if (!first || !second || first === second) { showToast("اختر ضابطين مختلفين للتقسيم", true); return; }
+      if (!at) { showToast("اختر وقت التقسيم من لوحة الساعة", true); return; }
+      body.periods = [{officer_id: first, until: at}, {officer_id: second, from: at}];
+      body.officer_ids = [first, second];
+    } else {
+      body.periods = [];   // إلغاء أي تقسيم قديم صراحةً
+    }
+  }
+  const out = await api($("#tgEndpoint").value, jsonReq("PUT", body));
   if (!out) return;
   BOARD = out; closeModal("targetModal", true); showToast("تم الحفظ"); render();
 };

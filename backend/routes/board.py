@@ -270,7 +270,9 @@ def set_target(day, name):
         ok, err = day_status.check_open(data, day)
         if not ok:
             raise AbortRequest((jsonify({"error": err}), 409))
-        _row, error, status = set_target_officers(data, day, name, payload.get("officer_ids"))
+        _row, error, status = set_target_officers(
+            data, day, name, payload.get("officer_ids"),
+            periods=payload["periods"] if "periods" in payload else None)
         if error:
             raise AbortRequest((jsonify({"error": error}), status))
         return jsonify(build_board(data, day))

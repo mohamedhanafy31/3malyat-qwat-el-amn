@@ -39,6 +39,9 @@ from .utils import too_long
 from .dated import targets_on
 from .clocktime import format_time, parse_time
 
+# هدف واحد يتغطّى بضابطين على الأكتر في اليوم (تقسيم بالوقت)
+MAX_PERIODS = 2
+
 # القسم على اللوحة حر — أي اسم المشغّل يكتبه بيبقى قسم مستقل (لليوم ده بس،
 # `backend/board.py` هو اللي بيفسّره). الأسماء المحجوزة دي استثناء: هي عناوين
 # محسوبة من حالة الضباط مش خدمات مخزّنة، فلو خدمة اتسمّت بنفس اسم واحد منهم
@@ -119,7 +122,7 @@ def officer_state(data, day, officer_id):
 
 def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=None,
                       extra=None, admin_work=None, research_service=None,
-                      research_time=None):
+                      research_time=None, admin_work_text=None):
     """حالة الضابط (تقصيرة/انتداب/غياب/مرضي/فرقة/طارئة/ملاحظة/تشغيل إضافي/
     إضافة للعمل بالإدارة). السجل بيتشال لما يفضّى عشان الملف ما يمتلئش
     بمدخلات فاضية. الحقل اللي مش مبعوت (None) مابيتغيّرش."""
@@ -135,17 +138,20 @@ def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=No
         entry["extra"] = extra
     if admin_work is not None:
         entry["admin_work"] = bool(admin_work)
+    if admin_work_text is not None:
+        entry["admin_work_text"] = admin_work_text
     if research_service is not None:
         entry["research_service"] = research_service
     if research_time is not None:
         entry["research_time"] = research_time
     # الحقول الاختيارية مابيتخزّنوش فاضيين — ملفات الأيام القديمة تفضل بنفس شكلها
-    for optional in ("extra", "admin_work", "research_service", "research_time"):
+    for optional in ("extra", "admin_work", "admin_work_text", "research_service",
+                     "research_time"):
         if not entry.get(optional):
             entry.pop(optional, None)
 
     if not any((entry.get("taqseera"), entry.get("status"), entry.get("note"),
-                entry.get("extra"), entry.get("admin_work"),
+                entry.get("extra"), entry.get("admin_work"), entry.get("admin_work_text"),
                 entry.get("research_service"), entry.get("research_time"))):
         states.pop(officer_id, None)
     else:
@@ -246,6 +252,71 @@ def clean_conscripts(raw):
             continue
         out.append({"class": cls, "count": count})
     return out, None
+
+
+def valid_periods(row):
+    """فترتا تغطية الهدف المخزّنتان لو لسه متسقتين مع `officer_ids`، وإلا [].
+
+    `officer_ids` هي الحقيقة اللي كل القراء (يومية الضباط، الإحصاء، الانتظام)
+    بيعتمدوا عليها؛ `periods` بس بتقول مين قبل الوقت ومين بعده. لو حد غيّر
+    `officer_ids` من مكان تاني (شيل ضابط مثلًا) والفترات اتفضلت قديمة،
+    بنتجاهلها بدل ما نعرض تقسيم لضابط مش على الخدمة."""
+    periods = row.get("periods")
+    if not isinstance(periods, list) or len(periods) != MAX_PERIODS:
+        return []
+    ids = [p.get("officer_id") if isinstance(p, dict) else None for p in periods]
+    if (len(set(ids)) != MAX_PERIODS
+            or set(ids) != set(row.get("officer_ids") or [])
+            or parse_time((periods[0] or {}).get("until")) is None
+            or parse_time((periods[1] or {}).get("from")) is None):
+        return []
+    return [dict(p) for p in periods]
+
+
+def period_label(period):
+    """«حتى 4م» / «من 4م» — صيغة الورقة الرسمية."""
+    if period.get("until"):
+        return f"حتى {format_time(period['until'])}"
+    return f"من {format_time(period['from'])}"
+
+
+def clean_periods(data, day, raw):
+    """تقسيم تغطية هدف بالوقت: ضابطين بالظبط، الأول «حتى» وقت والتاني «من»
+    نفس الوقت. بترجع (القايمة, officer_ids, error, status). فاضية/None =
+    مفيش تقسيم."""
+    if raw is None or raw == []:
+        return [], None, None, None
+    if not isinstance(raw, list) or any(not isinstance(p, dict) for p in raw):
+        return None, None, "فترات التغطية غير صحيحة.", 400
+    if len(raw) > MAX_PERIODS:
+        return None, None, "أقصى عدد لفترات تغطية الهدف فترتان.", 400
+    if len(raw) != MAX_PERIODS:
+        return None, None, "تقسيم الهدف بالوقت يحتاج ضابطين: الأول حتى وقت والثاني من نفس الوقت.", 400
+    first, second = raw
+    if first.get("from") or second.get("until") or not first.get("until") or not second.get("from"):
+        return None, None, "الفترة الأولى «حتى» وقت والثانية «من» نفس الوقت.", 400
+    until, start = parse_time(first["until"]), parse_time(second["from"])
+    if until is None or start is None:
+        return None, None, "وقت التقسيم غير صحيح.", 400
+    if until != start:
+        return None, None, "وقت نهاية الفترة الأولى يجب أن يساوي بداية الثانية.", 400
+    if until == "00:00":
+        return None, None, "وقت التقسيم لا يمكن أن يكون منتصف الليل.", 400
+    ids = [str(first.get("officer_id") or "").strip(), str(second.get("officer_id") or "").strip()]
+    if not all(ids) or ids[0] == ids[1]:
+        return None, None, "اختر ضابطين مختلفين لفترتي الهدف.", 400
+    clean, err, status = clean_people(data, day, ids, "officers")
+    if err:
+        return None, None, err, status
+    return [{"officer_id": ids[0], "until": until}, {"officer_id": ids[1], "from": start}], clean, None, None
+
+
+def set_periods(row, periods):
+    """تخزين الفترات على الصف (مفتاح `periods` ما بيتخزّنش فاضي)."""
+    if periods:
+        row["periods"] = periods
+    else:
+        row.pop("periods", None)
 
 
 def blank(assignment_id, name, section, **over):
@@ -416,6 +487,17 @@ def apply_assignment(data, day, row, payload):
         if err:
             return None, err, status
         row["officer_ids"] = ids
+    if "periods" in payload:
+        periods, ids, err, status = clean_periods(data, day, payload["periods"])
+        if err:
+            return None, err, status
+        if periods and row.get("section") != SECTION_TARGETS:
+            return None, "التقسيم بالوقت خاص بالأهداف فقط.", 400
+        if periods and "officer_ids" in payload and set(row.get("officer_ids") or []) != set(ids):
+            return None, "الضباط المختارون لا يطابقون فترات الهدف.", 400
+        if periods:
+            row["officer_ids"] = ids
+        set_periods(row, periods)
     if "personnel_ids" in payload:
         ids, err, status = clean_people(data, day, payload["personnel_ids"], "personnel")
         if err:
@@ -467,6 +549,11 @@ def apply_assignment(data, day, row, payload):
                 row[ids_key] = []
         elif row.get(ids_key):
             row[flag] = True
+
+    # أي تعديل على الضباط من غير فترات جديدة بيشيل التقسيم القديم لو بقى
+    # مش متسق مع الضباط المختارين
+    if row.get("periods") and not valid_periods(row):
+        set_periods(row, [])
 
     if row.get("section") == SECTION_TARGETS:
         if row.get("name") not in set(targets_on(data, day)):

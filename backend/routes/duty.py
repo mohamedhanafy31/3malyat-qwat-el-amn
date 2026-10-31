@@ -57,6 +57,8 @@ def _state_text(name, day, before, after):
     if bool(before.get("admin_work")) != bool(after.get("admin_work")):
         parts.append("إضافته للعمل بالإدارة" if after.get("admin_work")
                      else "إلغاء إضافته للعمل بالإدارة")
+    if (before.get("admin_work_text") or "") != (after.get("admin_work_text") or ""):
+        parts.append(f"نص عمل بالإدارة: {after.get('admin_work_text') or 'مُسح'}")
     if (before.get("research_service") or "") != (after.get("research_service") or ""):
         parts.append(f"خدمة البحث: {after.get('research_service') or 'مُسحت'}")
     if (before.get("research_time") or "") != (after.get("research_time") or ""):
@@ -130,6 +132,9 @@ def set_state(day, person_id):
     extra = str(payload.get("extra", "") or "").strip()
     if len(extra) > MAX_LEN["note"]:
         return jsonify({"error": f"التشغيل الإضافي أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
+    admin_work_text = " ".join(str(payload.get("admin_work_text", "") or "").split())
+    if len(admin_work_text) > MAX_LEN["note"]:
+        return jsonify({"error": f"نص عمل بالإدارة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
     status_end = str(payload.get("status_end", "") or "").strip()
     if status_end and status not in PERIOD_STATUSES:
         return jsonify({"error": "يوم النهاية (حتى يوم) خاص بحالات «طارئة» و«مأمورية» و«انتداب»."}), 400
@@ -190,7 +195,10 @@ def set_state(day, person_id):
             saved_research_time = ""
         elif "research_time" in payload and research_time and not projected_research:
             raise AbortRequest((jsonify({"error": "اكتب اسم خدمة البحث قبل معاد الانتظام."}), 400))
-        if payload.get("admin_work"):
+        projected_admin_text = (admin_work_text if "admin_work_text" in payload
+                                else before.get("admin_work_text", ""))
+        # العلامة من غير نص حر محتاجة نص تشغيلي يتنقل؛ النص الحر نفسه كفاية
+        if payload.get("admin_work") and not projected_admin_text:
             projected_note = note if "note" in payload else before.get("note", "")
             projected_extra = extra if "extra" in payload else before.get("extra", "")
             if not operational_text(assignments_of(data, day, person_id),
@@ -238,6 +246,7 @@ def set_state(day, person_id):
             note=note if "note" in payload else None,
             extra=extra if "extra" in payload else None,
             admin_work=bool(payload["admin_work"]) if "admin_work" in payload else None,
+            admin_work_text=admin_work_text if "admin_work_text" in payload else None,
             research_service=research_service if "research_service" in payload else None,
             research_time=saved_research_time)
         # المقارنة على القيم الفعلية بس: حفظ حالة الطبي لوحدها كان بيسجّل
@@ -398,7 +407,8 @@ def clear_state(day, person_id):
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
         before = dict(officer_state(data, day, person_id))
         set_officer_state(data, day, person_id, taqseera=False, status="", note="",
-                          extra="", admin_work=False, research_service="", research_time="")
+                          extra="", admin_work=False, admin_work_text="",
+                          research_service="", research_time="")
         if before:
             changes.record(data, "officer_state", person_id, "delete",
                            before=before, reason=f"يوم {day}",

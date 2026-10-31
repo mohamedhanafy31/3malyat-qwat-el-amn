@@ -113,7 +113,7 @@ function officerRow(r) {
     <td class="wrap">${esc(r.post) || "<span class='muted'>—</span>"}</td>
     <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
     <td>${grp}</td>
-    <td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}${r.admin_work ? ' <span class="chip m" title="يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية">+ عمل بالإدارة</span>' : ""}</td>
+    <td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}${r.admin_work || r.admin_work_text ? ' <span class="chip m" title="يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية">+ عمل بالإدارة</span>' : ""}</td>
     <td><button class="mini" data-action="openAssign" data-id="${esc(r.id)}">الحالة</button></td>
   </tr>`;
 }
@@ -175,6 +175,8 @@ ACTIONS.openAssign = id => {
   const outside = row.group === "خوارج" && row.bucket !== "تقصيرة";
   const automaticAdmin = ["مدير الإدارة", "وكيل الإدارة"].includes(row.command_role);
   const net = row.group === "صافي" || (row.bucket === "تقصيرة" && !row.services.length);
+  $("#assignAdminText").value = row.admin_work_text || "";
+  $("#assignAdminText").disabled = outside;
   $("#assignAdmin").checked = !outside && (automaticAdmin || !!row.admin_work);
   $("#assignAdmin").disabled = outside || automaticAdmin;
   $("#assignAdminHint").textContent = outside
@@ -304,7 +306,8 @@ $("#assignForm").onsubmit = async e => {
   const status = $("#assignStatus").value;
   const row = DUTY.rows.find(r => r.id === $("#assignPerson").value);
   const automaticAdmin = ["مدير الإدارة", "وكيل الإدارة"].includes(row?.command_role);
-  if (!automaticAdmin && $("#assignAdmin").checked
+  const adminText = $("#assignAdminText").value.trim();
+  if (!automaticAdmin && $("#assignAdmin").checked && !adminText
       && ![$("#assignNote").value.trim(), $("#assignExtra").value.trim(), ...(row?.services || []).map(s => s.name)]
         .some(Boolean)) {
     showToast("اكتب النص التشغيلي قبل إضافة الضابط إلى عمل بالإدارة", true);
@@ -313,6 +316,7 @@ $("#assignForm").onsubmit = async e => {
   const body = {taqseera: $("#assignTaq").checked, status, note: $("#assignNote").value,
     extra: $("#assignExtra").value,
     admin_work: automaticAdmin ? !!row.admin_work : $("#assignAdmin").checked};
+  if (!$("#assignAdminText").disabled) body.admin_work_text = adminText;
   if (row?.research) {
     const service = $("#assignResearchService").value.trim();
     const time = $("#assignResearchTime").value.trim();

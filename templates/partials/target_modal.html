@@ -9,6 +9,23 @@
       <label>الضابط المعيّن اليوم <small>واحد أو أكثر — اتركها فارغة لإلغاء التعيين</small>
         <select id="tgOfficers" multiple size="6"></select>
       </label>
+      <div id="tgSplitWrap" class="hidden">
+        <label class="checkline">
+          <input type="checkbox" id="tgSplit">
+          <span>تقسيم التغطية بالوقت <small class="block-hint">ضابطان على نفس الهدف: الأول حتى وقت والثاني من نفس الوقت (مثال: حتى 4م / من 4م)</small></span>
+        </label>
+        <div class="grid hidden" id="tgSplitFields">
+          <label>الضابط الأول (حتى)
+            <select id="tgFirst" aria-label="الضابط الأول حتى وقت التقسيم"></select>
+          </label>
+          <label>وقت التقسيم <small>اختَر الوقت من لوحة الساعة</small>
+            <input id="tgSplitAt" data-time aria-label="وقت تقسيم التغطية">
+          </label>
+          <label>الضابط الثاني (من)
+            <select id="tgSecond" aria-label="الضابط الثاني من وقت التقسيم"></select>
+          </label>
+        </div>
+      </div>
       <p class="muted modal-save-note" id="tgCommanderNote">
         قائد الهدف العام خانة ثابتة تُحدَّد وفق منصب الضابط — يمكنك تعديلها من صفحة
         «بيانات الضابط» إذا أردت تغييرها.

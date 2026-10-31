@@ -58,6 +58,7 @@ TRACKED = {
     "conscripts": "فئات المجندين",
     "conscript_count": "عدد المجندين",
     "counts_in_summary": "يُحتسب في الإجمالي",
+    "periods": "تقسيم تغطية الهدف بالوقت",
 }
 
 

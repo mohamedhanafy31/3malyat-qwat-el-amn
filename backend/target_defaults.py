@@ -2,7 +2,7 @@
 from datetime import date, timedelta
 
 from . import day_status
-from .assignments import officer_states, peek_day
+from .assignments import officer_states, peek_day, valid_periods
 from .constants import ROLE_MEDICAL, SECTION_TARGETS, TARGET_NAMES, TARGETS_FIRST
 from .dated import groups_on, targets_on
 from .leaves import leave_on
@@ -43,7 +43,10 @@ def _target_map(rows, targets):
         bucket = out.get(name)
         if bucket is None:
             bucket = unknown.setdefault(name, [])
-        for officer_id in row.get("officer_ids") or []:
+        # التقسيم الزمني ليوم واحد: اللي بيغطي آخر اليوم هو اللي بيكمّل لبكرة
+        periods = valid_periods(row)
+        officer_ids = [periods[-1]["officer_id"]] if periods else row.get("officer_ids") or []
+        for officer_id in officer_ids:
             officer_id = str(officer_id).strip()
             if officer_id and officer_id not in bucket:
                 bucket.append(officer_id)

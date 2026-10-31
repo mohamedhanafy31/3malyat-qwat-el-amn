@@ -71,6 +71,9 @@ class Assignment(Model):
     # علم) بتتعامل كأن الدور موجود — شوف `assignments.command_required`
     officer_command_required: bool = False
     personnel_command_required: bool = False
+    # تقسيم تغطية هدف بالوقت: [{officer_id, until}, {officer_id, from}] —
+    # الاتنين دايمًا موجودين في `officer_ids` برضه (شوف `assignments.clean_periods`)
+    periods: list = field(default_factory=list)
 
     ID_PREFIX = "AS"
 
@@ -134,6 +137,9 @@ class OfficerDayState(Model):
     # الضابط ده نصه التشغيلي الكامل بيتضاف كمان في «عمل بالإدارة» على
     # اللوحة، ويفضل في مكان خدمته زي ما هو.
     admin_work: bool = False
+    # نص «عمل بالإدارة» الحر لليوم ده (زي ما بيتطبع في الورقة الرسمية). لو
+    # اتكتب، الضابط بيظهر تحت «عمل بالإدارة» بالنص ده بالظبط.
+    admin_work_text: str = ""
     # تكليف ضابط البحث لليوم ده فقط — مفيش توريث لليوم اللي بعده.
     research_service: str = ""
     research_time: str = ""
@@ -144,13 +150,15 @@ class OfficerDayState(Model):
             errors.append(f"تصنيف الحالة أطول من الحد المسموح ({MAX_OFFICER_STATUS_LENGTH} حرفًا).")
         max_length(errors, self.note, "note")
         max_length(errors, self.extra, "note")
+        max_length(errors, self.admin_work_text, "note")
         max_length(errors, self.research_service, "note")
         max_length(errors, self.research_time, "name")
 
     @property
     def empty(self):
         return not (self.taqseera or text(self.status) or text(self.note) or self.medical
-                    or text(self.extra) or self.admin_work or text(self.research_service)
+                    or text(self.extra) or self.admin_work or text(self.admin_work_text)
+                    or text(self.research_service)
                     or text(self.research_time))
 
 

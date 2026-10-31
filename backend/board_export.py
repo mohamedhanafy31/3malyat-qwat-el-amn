@@ -196,6 +196,9 @@ def _fmt_date(iso):
 def _who(person):
     person = person or {}
     label = officer_label(person) if person.get("category") != "personnel" else personnel_label(person)
+    # ضابط الهدف المقسوم بالوقت: «… حتى 4م» / «… من 4م» قبل علامة التقصيرة
+    if label and person.get("period_label"):
+        label = f"{label} {person['period_label']}"
     return f"{label} + ت" if label and person.get("taqseera") else label
 
 
@@ -1096,6 +1099,9 @@ def strip_clinic_search(board, excluded_ids):
             for key in ("officers", "commander", "personnel"):
                 if isinstance(row.get(key), list):
                     row[key] = [p for p in row[key] if (p or {}).get("id") not in excluded]
+            if isinstance(row.get("periods"), list):
+                row["periods"] = [p for p in row["periods"]
+                                  if (p or {}).get("officer_id") not in excluded]
             rows.append(row)
         sections.append({**section, "rows": rows})
     return {**board, "sections": sections}
