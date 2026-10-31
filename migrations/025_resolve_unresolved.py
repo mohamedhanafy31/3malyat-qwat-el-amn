@@ -101,11 +101,12 @@ def _campaign_pass(data: dict[str, Any], root: Path, start: str, end: str | None
                 continue
             if category == "person":
                 match = resolve_person(data, op.archive, day, role="conscript-driver", service=op.row)
-                confidence = match.confidence if match.person_id == op.value.get("id") else "medium"
-                counts[f"linked_{confidence}"] += 1
-                if confidence == "medium" and match.person_id:
-                    medium.append({"day": day, "archive": op.archive, "chosen": match.name,
-                                   "reason": match.reason, "row": op.row})
+                # لو المحلل المحافظ مش مؤكد نفس الهوية يبقى فيه شك -> مايتربطش.
+                if match.person_id != op.value.get("id"):
+                    continue
+                counts["linked_high"] += 1
+                medium.append({"day": day, "archive": op.archive, "chosen": match.name,
+                               "reason": match.reason, "row": op.row})
             else:
                 counts[f"linked_{category}"] += 1
             campaign._set(data.setdefault("day_campaign", {}).setdefault(day, {}), op.path, op.value)
@@ -200,9 +201,8 @@ def _gaps_pass(data: dict[str, Any], root: Path, start: str, end: str | None) ->
                 changes.append({"day": day, "path": f"{op.category}/{op.key}", "category": "archive_gap"})
                 raw = op.label or op.archive
                 match = resolve_person(data, raw, day, role="officer")
-                level = match.confidence if match.person_id else "medium"
-                confidence[f"linked_{level}"] += 1
-                if level == "medium" and match.person_id:
+                if match.person_id:
+                    confidence["linked_high"] += 1
                     medium.append({"day": day, "archive": raw, "chosen": match.name,
                                    "reason": match.reason, "row": op.label})
             elif op.status == "conflict" and newly_resolved:
@@ -230,13 +230,14 @@ def _preview(result: dict[str, Any], mode: str) -> str:
     risky = sorted(grouped.values(), key=lambda item: (-item["days"], item["archive"]))
     lines = ["# معاينة حل بنود الاستيراد 025", "",
              f"- الوضع: **{mode}** — الدفعة `resolve-025`.",
-             f"- ربط هويات ثقة عالية: **{counts['linked_high']}**.",
-             f"- ربط هويات ثقة متوسطة: **{counts['linked_medium']}** ({len(grouped)} تخمين مختلف).",
+             f"- روابط الأشخاص: **{counts['linked_high']}** على {len(grouped)} اسم مختلف؛ "
+             "الربط محافظ (تليفون / اسم مؤكد يدويًا / كل الكلمات كاملة وبنفس الترتيب والاسم الأول مطابق ومرشح وحيد) "
+             "وأي شك بيفضل فاضي، ومفيش ثقة متوسطة.",
              f"- ربط خدمات: **{counts['linked_service']}**، لوحات: **{counts['linked_vehicle']}**، "
              f"روابط الارتكاز/القايمة: **{counts['linked_basic_entry']}**.",
              f"- اتسابت فاضية/غير محلولة: **{len(unresolved)}**.",
              f"- تعارضات ماتلمستش: **{len(conflicts)}**؛ وتخمينات جديدة اختلفت عن سائق مربوط (ماتلمستش): **{len(diverged)}**.",
-             f"- إجمالي التعديلات: **{len(result['changes'])}** (هويات {counts['linked_high'] + counts['linked_medium']} + غيرها {other}).",
+             f"- إجمالي التعديلات: **{len(result['changes'])}** (هويات {counts['linked_high']} + غيرها {other}).",
              "", "## تفاصيل غير المحلول حسب السبب", ""]
     reasons = Counter(str(item.get("reason") or item.get("kind") or "غير محدد") for item in unresolved)
     lines += ["| السبب | العدد |", "|---|---|"]
@@ -253,10 +254,10 @@ def _preview(result: dict[str, Any], mode: str) -> str:
                   "| اليوم | الصف | الموجود | الأرشيف |", "|---|---|---|---|"]
         for item in diverged:
             lines.append(f"| {item['day']} | {_cell(item['row'])} | {_cell(item['current'])} | {_cell(item['archive'])} |")
-    lines += ["", "## تخمينات متوسطة الثقة للمراجعة", "",
-              "الأكثر تكرارًا الأول؛ العمود الأخير عدد الأيام اللي اتربط فيها نفس التخمين.", "",
-              "| أول يوم | النص في الأرشيف | الشخص المختار | السبب | أيام |", "|---|---|---|---|---|"]
-    for item in risky[:60]:
+    lines += ["", "## كل روابط الأشخاص للمراجعة", "",
+              "كل اسم مختلف في صف؛ العمود الأخير عدد الأيام/الصفوف اللي اتربط فيها نفس الاسم.", "",
+              "| أول يوم | النص في الأرشيف | الشخص المختار | القاعدة | أيام |", "|---|---|---|---|---|"]
+    for item in risky:
         lines.append(f"| {item['day']} | {_cell(item['archive'])} | {_cell(item['chosen'])} | "
                      f"{_cell(item['reason'])} | {item['days']} |")
     if not risky:
@@ -297,12 +298,12 @@ def migrate(data, options=None):
         raise AlreadyDone(f"مفيش بنود نصية/فاضية جديدة تتحل (التعارضات المتسابة: {len(result['conflicts'])}).")
     from backend import changes
     changes.record(data, "import", BATCH, "batch",
-                   after={"linked_high": counts["linked_high"], "linked_medium": counts["linked_medium"],
+                   after={"linked_high": counts["linked_high"],
                           "other_links": counts["linked_service"] + counts["linked_vehicle"] + counts["linked_basic_entry"],
                           "left_empty": len(result["unresolved"]), "conflicts_untouched": len(result["conflicts"])},
                    text=f"حل بنود الاستيراد ({BATCH}): {len(result['changes'])} تعديل، "
                         f"{len(result['conflicts'])} تعارض اتسابوا")
-    return [f"هويات اتربطت: عالي {counts['linked_high']}، متوسط {counts['linked_medium']}.",
+    return [f"هويات اتربطت (محافظ): {counts['linked_high']}.",
             f"خدمات/لوحات/روابط: {counts['linked_service'] + counts['linked_vehicle'] + counts['linked_basic_entry']}.",
             f"اللي فضل غير محلول: {len(result['unresolved'])}. تعارضات اتسابت: {len(result['conflicts'])}.",
             f"إجمالي التعديلات: {len(result['changes'])}."]

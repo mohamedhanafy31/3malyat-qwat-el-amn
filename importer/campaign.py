@@ -185,18 +185,6 @@ class FleetIndex:
             return {"status": "none"}
         candidates = self.by_number.get(plate["number"], [])
         if not candidates:
-            if best_effort:
-                ranked = []
-                for vehicle in self.vehicles:
-                    number = re.sub(r"\D", "", vehicle.plate_number.translate(DIGITS))
-                    number_score = SequenceMatcher(None, plate["number"], number).ratio()
-                    series_score = SequenceMatcher(None, norm(plate["series"].lstrip("#")),
-                                                   norm(vehicle.plate_series)).ratio() if plate["series"] else .5
-                    ranked.append((number_score * .78 + series_score * .22, vehicle))
-                ranked.sort(key=lambda item: item[0], reverse=True)
-                if ranked and ranked[0][0] >= .78 and (len(ranked) == 1 or ranked[0][0] - ranked[1][0] >= .08):
-                    return {"status": "ok", "vehicle_id": ranked[0][1].id, "plate": plate,
-                            "confidence": "medium", "reason": "أرقام اللوحة الأقرب والسلسلة فكت التعادل"}
             return {"status": "unregistered", "plate": plate}
         exact = [v for v in candidates if self._series_ok(plate["series"], v.plate_series)]
         if len(exact) == 1:
@@ -206,12 +194,9 @@ class FleetIndex:
                     "candidates": [v.plate for v in exact]}
         # الرقم هو المرساة الأقوى. لو السلسلة فيها غلطة حرف/رقم واحدة
         # ومركبة واحدة بس الأقرب بوضوح، نربطها بدل ما نسيبها فاضية.
-        wanted = plate["series"].lstrip("#")
-        ranked = sorted(((SequenceMatcher(None, norm(wanted), norm(v.plate_series)).ratio(), v)
-                         for v in candidates), key=lambda item: item[0], reverse=True)
-        if best_effort and ranked and ranked[0][0] >= 0.55 and (len(ranked) == 1 or ranked[0][0] - ranked[1][0] >= 0.20):
-            return {"status": "ok", "vehicle_id": ranked[0][1].id, "plate": plate,
-                    "confidence": "medium", "reason": "رقم اللوحة مطابق والسلسلة الأقرب وحيدة"}
+        if best_effort and len(candidates) == 1:
+            return {"status": "ok", "vehicle_id": candidates[0].id, "plate": plate,
+                    "confidence": "medium", "reason": "رقم اللوحة كامل وحيد في السجل (السلسلة مختلفة)"}
         return {"status": "series-mismatch", "plate": plate,
                 "candidates": [v.plate for v in candidates]}
 

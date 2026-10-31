@@ -247,14 +247,6 @@ class OfficerIndex:
 
     def resolve(self, name: str, rank: str = "", only: set[str] | None = None) -> dict[str, Any]:
         """-> {status: ok|none|ambiguous, id?, label?}."""
-        if only is None:
-            found = resolve_person(self.data, " ".join(part for part in (rank, name) if part),
-                                   self.day, role="officer")
-            if found.person_id:
-                return {"status": "ok", "id": found.person_id, "label": self.label(found.person_id),
-                        "confidence": found.confidence, "reason": found.reason}
-            return {"status": "ambiguous" if found.candidates else "none",
-                    "candidates": list(found.candidates)}
         tokens = norm_name(name).split()
         if len(tokens) < 2:
             return {"status": "none"}

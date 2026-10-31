@@ -3,11 +3,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from difflib import SequenceMatcher
 from typing import Any, Iterable
 
-from backend.people import effective
-from backend.text import norm, norm_name
+from backend.text import norm_name
 
 from .normalize import normalize_phones, normalize_rank
 from .textnorm import clean_text
@@ -45,11 +43,6 @@ def _canonical_rank(raw: str) -> str:
     return _RANK_ABBREV.get(compact) or normalize_rank(raw)["value"]
 
 
-def _rank_compatible(person_rank: str, wanted: str) -> bool:
-    have, want = norm(normalize_rank(person_rank)["value"]), norm(wanted)
-    return have == want or have.startswith(want + " ")
-
-
 def _rank_and_name(raw: str) -> tuple[str, str, tuple[str, ...]]:
     text = clean_text(raw)
     phones = tuple(normalize_phones(text)["value"])
@@ -64,29 +57,6 @@ def _rank_and_name(raw: str) -> tuple[str, str, tuple[str, ...]]:
 
 def _person_tokens(value: str) -> list[str]:
     return norm_name(value).split()
-
-
-def _ordered_overlap(wanted: list[str], have: list[str]) -> tuple[float, float]:
-    if not wanted or not have:
-        return 0.0, 0.0
-    used: set[int] = set()
-    similarities: list[float] = []
-    last = -1
-    ordered = 0
-    for token in wanted:
-        choices = [(SequenceMatcher(None, token, other).ratio(), index)
-                   for index, other in enumerate(have) if index not in used]
-        score, index = max(choices, default=(0.0, -1))
-        if score >= 0.55:
-            used.add(index)
-            similarities.append(score)
-            if index > last:
-                ordered += 1
-                last = index
-    overlap = len(similarities) / len(wanted)
-    fuzzy = sum(similarities) / len(wanted) if similarities else 0.0
-    order = ordered / len(wanted)
-    return overlap * 0.55 + fuzzy * 0.3 + order * 0.15, fuzzy
 
 
 def _on_force(person: dict[str, Any], day: str) -> bool:
@@ -108,70 +78,74 @@ def _people(data: dict[str, Any], role: str) -> Iterable[tuple[str, dict[str, An
                 yield kind, person
 
 
+# أسماء مؤكدة من المالك يدويًا (الاسم المكتوب في الأرشيف بعد التطبيع -> هوية).
+# أي إضافة هنا لازم تكون بتأكيد صريح من المالك؛ الاسم بيتطابق كامل مش جزئي.
+MANUAL_ALIASES: dict[str, str] = {
+    norm_name("محمد فرنسا"): "IND-087",
+}
+
+
+def _is_subsequence(wanted: list[str], have: list[str]) -> bool:
+    """كل كلمة مطلوبة موجودة كاملة وبنفس الترتيب في الاسم (تخطّي كلمات مسموح)."""
+    position = 0
+    for token in wanted:
+        try:
+            position = have.index(token, position) + 1
+        except ValueError:
+            return False
+    return True
+
+
+def _none(reason: str, candidates: tuple[str, ...] = (), score: float = 0.0) -> PersonMatch:
+    return PersonMatch(None, None, "", "none", score, 0.0, reason, candidates)
+
+
 def resolve_person(data: dict[str, Any], raw: str, day: str, *, role: str = "personnel",
                    service: str = "", neighbouring_ids: Iterable[str] = ()) -> PersonMatch:
-    """يرجّع هوية لو فيه متصدر واضح، ويسيب التعادل الحقيقي فاضي."""
+    """ربط محافظ: تليفون مطابق، أو اسم مؤكد يدويًا، أو كل كلمات الاسم كاملة
+    وبنفس الترتيب وأول كلمة هي الاسم الأول ومرشح واحد بس. أي شك -> فاضي.
+
+    الاستمرارية (نفس الخدمة في يوم مجاور) والتشابه التقريبي والكنية مش بتربط.
+    ``neighbouring_ids`` و``service`` بيتقبلوا للتوافق بس ومابيأثروش.
+    """
     rank, wanted_name, phones = _rank_and_name(raw)
     wanted = _person_tokens(wanted_name)
     if not wanted and not phones:
-        return PersonMatch(None, None, "", "none", 0.0, 0.0, "مفيش اسم أو تليفون صالح")
-    neighbours = set(neighbouring_ids)
-    if len(wanted) < 2 and not phones and not neighbours:
-        return PersonMatch(None, None, "", "none", 0.0, 0.0, "الاسم أقل من كلمتين")
-    scored: list[tuple[float, str, str, dict[str, Any], list[str]]] = []
-    for kind, person in _people(data, role):
-        candidate_names = [person.get("name", ""), person.get("short_name", ""),
-                           person.get("nickname", "")]
-        candidate_names = [name for name in candidate_names if name]
-        phone_values = normalize_phones(" ".join([str(person.get("phone", "")),
-                                                   *map(str, person.get("other_phones") or [])]))["value"]
-        if phones and set(phones) & set(phone_values):
-            return PersonMatch(person["id"], kind, person["name"], "high", 1.0, 1.0,
-                               "تليفون مطابق بالظبط")
-        best_name, best_pair = "", (0.0, 0.0)
-        for name in candidate_names:
-            pair = _ordered_overlap(wanted, _person_tokens(name))
-            if pair > best_pair:
-                best_name, best_pair = name, pair
-        name_score, fuzzy = best_pair
-        reasons = [f"الاسم {name_score:.2f}"]
-        score = name_score * 0.72
-        if any(norm_name(name) == wanted_name for name in candidate_names):
-            score += 0.18
-            reasons.append("الاسم المسجل مطابق بالظبط")
-        person_rank = person.get("role", "")
-        if kind == "officer":
-            try:
-                person_rank = effective(person, day).get("role") or person_rank
-            except (TypeError, ValueError):
-                pass
-        if rank:
-            compatible = _rank_compatible(person_rank, rank)
-            score += 0.14 if compatible else -0.10
-            reasons.append("الرتبة مطابقة" if compatible else "الرتبة مختلفة")
-        if _on_force(person, day):
-            score += 0.07
-            reasons.append("على القوة")
-        if person["id"] in neighbours:
-            score += 0.13
-            reasons.append("نفس الخدمة في يوم مجاور")
-        if best_name and best_name != person.get("name"):
-            reasons.append("الاسم المختصر")
-        scored.append((score, person["id"], kind, person, reasons))
-    scored.sort(key=lambda item: (-item[0], item[1]))
-    if not scored:
-        return PersonMatch(None, None, "", "none", 0.0, 0.0, "مفيش مرشحين في الفئة")
-    top = scored[0]
-    runner = scored[1][0] if len(scored) > 1 else 0.0
-    margin = top[0] - runner
-    needed = 0.05 if rank and "الرتبة مختلفة" in top[4] else 0.015
-    tied = len(scored) > 1 and margin < needed
-    # المالك سمح بالتخمين، فالحد متواضع؛ التعادل بعد كل الإشارات فقط هو الممنوع.
-    accepted = top[0] >= 0.55 and not tied
-    candidates = tuple(f"{item[1]} {item[3]['name']} ({item[0]:.2f})" for item in scored[:4])
-    if not accepted:
-        reason = "تعادل بعد كل الإشارات" if tied else f"الأول مش متفوق بوضوح (الفارق {margin:.2f})"
-        return PersonMatch(None, None, "", "none", top[0], margin, reason, candidates)
-    confidence = "high" if top[0] >= 0.84 and margin >= 0.10 else "medium"
-    reason = "، ".join(top[4]) + f"؛ الفارق {margin:.2f}"
-    return PersonMatch(top[1], top[2], top[3]["name"], confidence, top[0], margin, reason, candidates)
+        return _none("مفيش اسم أو تليفون صالح")
+    pool = [(kind, person) for kind, person in _people(data, role) if _on_force(person, day)]
+    if phones:
+        hits = []
+        for kind, person in pool:
+            values = normalize_phones(" ".join([str(person.get("phone", "")),
+                                                *map(str, person.get("other_phones") or [])]))["value"]
+            if set(phones) & set(values):
+                hits.append((kind, person))
+        if len(hits) == 1:
+            kind, person = hits[0]
+            return PersonMatch(person["id"], kind, person["name"], "high", 1.0, 1.0, "تليفون مطابق بالظبط")
+        if len(hits) > 1:
+            return _none("تعادل: التليفون عند أكتر من شخص",
+                         tuple(f"{p['id']} {p['name']}" for _, p in hits[:4]), 0.9)
+    if not wanted:
+        return _none("مفيش اسم صالح")
+    alias_id = MANUAL_ALIASES.get(" ".join(wanted))
+    if alias_id:
+        for kind, person in pool:
+            if person["id"] == alias_id:
+                return PersonMatch(person["id"], kind, person["name"], "high", 1.0, 1.0,
+                                   "اسم مؤكد يدويًا من المالك")
+    if len(wanted) < 2:
+        return _none("الاسم أقل من كلمتين")
+    hits = []
+    for kind, person in pool:
+        have = _person_tokens(person["name"])
+        if have and have[0] == wanted[0] and _is_subsequence(wanted, have):
+            hits.append((kind, person))
+    if len(hits) == 1:
+        kind, person = hits[0]
+        return PersonMatch(person["id"], kind, person["name"], "high", 1.0, 1.0,
+                           "كل كلمات الاسم كاملة وبنفس الترتيب والاسم الأول مطابق ومرشح وحيد")
+    if len(hits) > 1:
+        return _none("تعادل: أكتر من شخص بنفس الاسم",
+                     tuple(f"{p['id']} {p['name']}" for _, p in hits[:4]), 0.9)
+    return _none("مفيش اسم مطابق بكلمات كاملة")
