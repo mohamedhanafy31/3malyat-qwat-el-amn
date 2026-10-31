@@ -190,8 +190,10 @@ def test_admin_work_text_is_not_duplicated_with_service_or_flag(client):
         "extra": "إضافي", "admin_work": True, "admin_work_text": TEXT})
     rows = [r for r in _admin_rows(client) if r["id"] == "OFF-002"]
     assert len(rows) == 1 and rows[0]["text"] == TEXT
-    # يومية الضباط لسه بنصها التشغيلي المعتاد
-    assert "تدخل سريع" in _duty_row(client, "OFF-002")["text"]
+    # في يومية الضباط نص «عمل بالإدارة» بيتكتب كتشغيل الضابط زي الأرشيف
+    # (كان مكتوب في الملاحظة قبل الحقل المستقل)، ومن غير تكرار
+    duty_text = _duty_row(client, "OFF-002")["text"]
+    assert TEXT in duty_text and duty_text.count(TEXT) == 1
 
 
 def test_admin_work_text_alone_needs_no_flag_and_no_operational_text(client):
