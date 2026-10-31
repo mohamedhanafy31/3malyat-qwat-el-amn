@@ -268,7 +268,13 @@ def officer_row(data, day, o, catalog=None):
 
     group, sub = _bucket(kinds, leave, effective_state, medical_bucket,
                          counts_as_research, subcamp, term, medical_choice["state"])
-    text = operational_text(items, state.get("note", ""), state.get("extra", ""))
+    # نص «عمل بالإدارة» جزء من تشغيل الضابط في يوميته كمان — قبل الحقل
+    # المستقل كان مكتوب في الملاحظة، ونقله ماينفعش يشيله من يومية الضباط.
+    note = state.get("note", "")
+    admin_text = state.get("admin_work_text", "")
+    if admin_text and admin_text not in note:
+        note = " + ".join(part for part in (note, admin_text) if part)
+    text = operational_text(items, note, state.get("extra", ""))
     # الحالات الخاصة والإجازات الفعلية تفضل صاحبة الأولوية في الشاشة والوورد.
     # لو الضابط عضو في المجموعتين معًا، الطبي هو التصنيف الأقوى زي `_bucket`.
     if not effective_state.get("status") and not leave:
