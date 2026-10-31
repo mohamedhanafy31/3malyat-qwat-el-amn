@@ -47,6 +47,8 @@ def _options():
     parser.add_argument("--report", type=Path, default=None)
     parser.add_argument("--write", action="store_true")
     parser.add_argument("--no-day-import", action="store_true", help="ماتستوردش الأيام الناقصة بالكامل")
+    parser.add_argument("--no-source-doc-copy", action="store_true",
+                        help="للنسخ المؤقتة: استورد اليوم من غير نسخ Word تحت data/source_docs")
     parser.add_argument("--decisions", type=Path, default=None, help="مجلد قرارات الهويات/المرادفات (للاستيراد الكامل)")
     parser.add_argument("--after-rate", default=None, help="نص نسب التطابق بعد الاستيراد يتكتب في التقرير بس")
     return parser.parse_known_args(sys.argv[1:])[0]
@@ -113,6 +115,7 @@ def _copy_source_docs():
 
 
 if __name__ == "__main__":
+    options = _options()
     run(from_schema=6, to_schema=6, migrate=migrate, title="استيراد فجوات الأرشيف (انتظام/عمل بالإدارة/تقسيم أهداف/يوم ناقص)")
-    if "--write" in sys.argv and PENDING_SOURCE_DOCS:
+    if "--write" in sys.argv and PENDING_SOURCE_DOCS and not options.no_source_doc_copy:
         _copy_source_docs()

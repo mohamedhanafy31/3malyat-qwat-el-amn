@@ -16,6 +16,11 @@ LAST_FIT = {}
 # أصغر خط 7pt: ستة أيام (23-29 خدمة) ما كانتش بتدخل صفحة واحدة عند 8pt،
 # والأرشيف نفسه بيكتبها بـ8-9pt مع نصوص أقصر. الصفحة الواحدة إلزامية.
 _SIZES = (12, 11, 10, 9, 8.5, 8, 7.5, 7)
+# الـ74 القديمة كانت بتحسب فراغ العنوان/التوقيعات بتحفظ زايد. مع صفوف
+# الملاحظات الطويلة بتاعة 023 الفرق ده كان بيرفض 22/8 عند 7pt بـحوالي 3pt،
+# مع إن الصفوف نفسها سطر واحد. القيمة دي مقاسة على القالب الفعلي، وفضلنا
+# نفصلها عن حساب الصفوف عشان يفضل محافظ وواضح.
+_FIXED_PAGE_CHROME_PT = 70
 
 
 def _set_cell(cell, text, size):
@@ -126,7 +131,7 @@ def _fit(payload, table1, table2):
         b = [[{**cell, "size_pt": size} for cell in row] for row in rows2]
         h1 = estimate_table_height(a, w1, meter)[0] if a else 0
         h2 = estimate_table_height(b, w2, meter)[0] if b else 0
-        if h1 + h2 + 74 <= usable * .96:
+        if h1 + h2 + _FIXED_PAGE_CHROME_PT <= usable * .96:
             return size, h1 + h2
     raise PageFitError("تعذر احتواء يومية انتظام الخدمات في صفحة واحدة؛ قلل عدد الصفوف أو طول النصوص.")
 

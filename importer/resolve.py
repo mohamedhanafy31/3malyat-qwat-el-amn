@@ -956,7 +956,8 @@ def _largest(details: list[dict[str, Any]], limit: int = 20) -> list[dict[str, A
 
 
 def run_resolve(ledger: Ledger, state: dict[str, Any], start: dt.date | None = None,
-                end: dt.date | None = None, *, resume: bool = False) -> dict[str, Any]:
+                end: dt.date | None = None, *, resume: bool = False,
+                decision_source: Path | None = None) -> dict[str, Any]:
     output = ledger.staging_path("resolve")
     prior = state.get("stages", {}).get("resolve", {})
     if resume and prior.get("status") == "complete" and output.exists():
@@ -981,8 +982,11 @@ def run_resolve(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
     decisions_dir = ledger.root / "decisions"
     review_dir.mkdir(parents=True, exist_ok=True)
     decisions_dir.mkdir(parents=True, exist_ok=True)
-    officer_decisions = _read_decisions(decisions_dir / "officers.csv")
-    personnel_decisions = _read_decisions(decisions_dir / "personnel.csv")
+    # إعادة استخراج 024 بتقرأ قرارات الهويات الأصلية read-only، وتكتب
+    # ناتج التشغيلة في ledger المؤقت. كده مابننسخش data/import للـtemp.
+    read_dir = Path(decision_source) if decision_source else decisions_dir
+    officer_decisions = _read_decisions(read_dir / "officers.csv")
+    personnel_decisions = _read_decisions(read_dir / "personnel.csv")
 
     def details_for(result: Resolution, kind: str, decisions: dict[str, dict[str, str]]) -> list[dict[str, Any]]:
         events = defaultdict(list)

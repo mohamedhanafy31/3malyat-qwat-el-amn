@@ -651,7 +651,8 @@ def _coverage(rows: list[dict[str, Any]], stats: dict[str, PhraseStats]) -> dict
 
 
 def run_aliases(ledger: Ledger, state: dict[str, Any], start: dt.date | None = None,
-                end: dt.date | None = None, *, resume: bool = False) -> dict[str, Any]:
+                end: dt.date | None = None, *, resume: bool = False,
+                decision_source: Path | None = None) -> dict[str, Any]:
     source = ledger.staging_path("normalize")
     validate_path = ledger.staging_path("validate")
     if not source.exists():
@@ -668,7 +669,8 @@ def run_aliases(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
     review_dir, decisions_dir = ledger.root / "review", ledger.root / "decisions"
     review_dir.mkdir(parents=True, exist_ok=True)
     decisions_dir.mkdir(parents=True, exist_ok=True)
-    decisions = _csv_read(decisions_dir / "aliases.csv", ("key",))
+    read_dir = Path(decision_source) if decision_source else decisions_dir
+    decisions = _csv_read(read_dir / "aliases.csv", ("key",))
     rows = []
     for key, stats in sorted(phrases.items(), key=lambda pair: (-pair[1].count, pair[0])):
         proposal = propose_alias(stats.examples.most_common(1)[0][0], vocabulary)
@@ -690,7 +692,7 @@ def run_aliases(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
                [{"key": row["key"], **decisions.get((row["key"],), {})} for row in rows] + orphans)
     special_sections = {item.section for item in vocabulary if item.section not in CANONICAL_SECTIONS}
     events = detect_events(records, validations, special_sections)
-    event_decisions = _csv_read(decisions_dir / "events.csv", ("date", "event title"))
+    event_decisions = _csv_read(read_dir / "events.csv", ("date", "event title"))
     _rebind_event_decisions(events, event_decisions)
     final_events = []
     for event in events:
