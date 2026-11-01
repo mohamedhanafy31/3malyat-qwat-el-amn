@@ -15,6 +15,11 @@
     if (night) night.href = `/api/ops/${day}/formation-night.docx`;
   };
   updateFormationLinks();
+  // خطّا التشكيل بيعدّوا على المعاينة زي زرار Word بالظبط.
+  ["formationMorningExport", "formationNightExport"].forEach(id => document.getElementById(id)?.addEventListener("click", event => {
+    event.preventDefault();
+    previewExport(event.currentTarget.getAttribute("href"), event.currentTarget.textContent.trim());
+  }));
   const userKey = document.getElementById("userChipWrap")?.dataset.userId || "anonymous";
   const prefKey = `opsBoardPrefs:v2:${userKey}`;
   const defaults = {view: "list", groupBy: "time", shift: "all", states: [], types: [], lines: [],
@@ -33,6 +38,15 @@
   let keyboardZone = 0;
 
   const $id = id => document.getElementById(id);
+  // زرار Word اللي بيعمله export.js بيتنقل لمجموعة «ملفات اليوم» جنب خطّي التشكيل.
+  const exportButton = document.querySelector(".page-actions .export-btn");
+  if (exportButton && $id("dayFiles")) {
+    exportButton.querySelector("span").textContent = "يومية الانتظام";
+    $id("dayFiles").insertBefore(exportButton, $id("formationMorningExport"));
+  }
+  // تحذير اليوم مكانه تحت عنوان الصفحة زي باقي الصفحات.
+  const titlesBox = document.querySelector(".page-head .titles");
+  if (titlesBox && $id("dashboardDayWarning")) titlesBox.append($id("dashboardDayWarning"));
   const shiftText = {am: "صباحية", pm: "ليلية"};
   const statusText = {upcoming: "قادمة", out: "بالخارج", back: "عادت", prep: "تجهّز", late: "متأخرة", carried: "مترحّلة"};
 
@@ -229,7 +243,7 @@
     const warning = $id("dashboardDayWarning");
     const historical = day !== today;
     if (warning) {
-      warning.textContent = historical ? `عرض يوم ${fmt(day)}` : "";
+      warning.textContent = historical ? `تعمل الآن على يوم ${day < today ? "سابق" : "قادم"}: ${fmt(day)}` : "";
       warning.classList.toggle("hidden", !historical);
     }
     $id("opsNext")?.classList.toggle("ops-next-hidden", historical);
@@ -251,7 +265,7 @@
     paintDayContext(); updateToolbar(); paintCounters();
     $id("opsBoard").setAttribute("aria-busy", "true");
     $id("opsBoard").innerHTML = `<div class="ops-loading">جارٍ تحميل لوحة التشغيل…</div>`;
-    $id("opsNext").textContent = day === today ? "جارٍ تحميل لوحة التشغيل…" : "—";
+    setNext(day === today ? "جارٍ تحميل لوحة التشغيل…" : "—");
     await loadOps();
     await loadRegularity();
   }
@@ -261,27 +275,29 @@
     $id("opsClock").textContent = now.toLocaleTimeString("en-GB", {
       hour: "2-digit", minute: "2-digit", second: "2-digit",
     });
-    if (day !== today) { $id("opsNext").textContent = "—"; return; }
+    if (day !== today) { setNext("—"); return; }
     if (!ops) return;
 
     const next = ops.next;
     if (!next) {
-      $id("opsNext").innerHTML =
-        `<span class="ops-next-empty">لا توجد خدمة قادمة اليوم</span>`;
+      setNext(`<span class="ops-next-empty">لا توجد خدمة قادمة اليوم</span>`);
       return;
     }
     const current = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
     const delta = minutes(next.report_time) - current;
     const label = next.line || runLabel(next);
-    $id("opsNext").innerHTML = `
-      <strong>${esc(label)}</strong>
-      <span>${esc(next.report_text || next.report_time || "")}
-        <b>${esc(formatCountdown(Math.max(0, Math.ceil(delta))))}</b>
-      </span>`;
+    setNext(`<strong>${esc(label)}</strong><span>${esc(next.report_text || next.report_time || "")}<b>${esc(formatCountdown(Math.max(0, Math.ceil(delta))))}</b></span>`);
+  }
+
+  // «التالية» منطقة حية: بتتكتب لما المحتوى يتغير بس، مش كل ثانية، عشان قارئ الشاشة.
+  function setNext(html) {
+    const el = $id("opsNext");
+    if (el.dataset.html === html) return;
+    el.dataset.html = html; el.innerHTML = html;
   }
 
   function paintCounters() {
-    const counters = ops.counters || {};
+    const counters = ops?.counters || {};
     const items = [
       ["upcoming", "قادمة"], ["prep", "تجهّز"], ["late", "متأخرة"],
       ["out", "بالخارج"], ["back", "عادت"], ["carried", "مترحّلة"],
@@ -399,7 +415,7 @@
       </div>
       <div class="ops-card-meta">
         <span class="ops-report">${esc(run.report_text || run.report_time || "بدون معاد")}</span>
-        <span class="ops-status-label">${statusText[state]}</span>${pendingTargets.has(target) ? `<small class="ops-pending-label">${esc(pendingLabel(target))}</small>` : ""}
+        <span class="ops-status-label ops-badge">${statusText[state]}</span>${pendingTargets.has(target) ? `<small class="ops-pending-label">${esc(pendingLabel(target))}</small>` : ""}
       </div>${rowErrors.has(target) ? `<p class="ops-row-error" role="alert">${esc(rowErrors.get(target))}</p>` : ""}
       <div class="ops-card-detail">
         <span title="${esc(details)}">${esc(details)}</span>
@@ -486,14 +502,12 @@
     const menu = rowMenu([undoable ? {label: "تراجع", action: "opsUndo", id: target, danger: true} : null,
       {label: "تعديل المعاد", action: "opsEditTime", id: target}], {label: `إجراءات ${runLabel(run)}`});
     return `<tr class="ops-row ops-state-${state}" data-run-key="${esc(target)}" tabindex="-1" aria-busy="${pendingTargets.has(target)}">
-      <td class="ops-row-status"><span>${statusText[state]}</span>${pendingTargets.has(target) ? `<small class="ops-pending-label">${esc(pendingLabel(target))}</small>` : ""}</td>
-      <th scope="row"><strong>${esc(run.name || "خدمة")}</strong><small>${esc(runContext(run))}</small></th>
       <td class="ops-row-time">${esc(run.report_text || run.report_time || "—")}</td>
-      <td>${esc(shiftText[run.shift] || run.shift || "—")}</td>
-      <td class="ops-row-head">${esc(run.head || "غير مسجّل")}</td>
-      <td>${esc(run.count == null || run.count === "" ? "—" : `${run.count}${run.weapon ? ` · ${run.weapon}` : ""}`)}</td>
-      <td class="ops-row-context">${esc(runContext(run))}</td>
-      <td class="ops-row-action">${action ? `<button type="button" class="primary ops-action" data-op="${action}" data-target="${esc(target)}">${pendingTargets.has(target) ? `<span class="spinner" aria-hidden="true"></span> ${esc(pendingLabel(target))}` : actionLabel(action)}</button>` : `<span class="ops-times">${esc(run.back_at?.slice(11, 16) || "")}</span>`}${menu}${rowErrors.has(target) ? `<span class="ops-row-error" role="alert">${esc(rowErrors.get(target))}</span>` : ""}</td>
+      <th scope="row"><strong>${esc(run.name || "خدمة")}<span class="ops-shift-tag ops-shift-${esc(run.shift || "")}">${esc(shiftText[run.shift] || run.shift || "")}</span></strong><small title="${esc(runContext(run))}">${esc(runContext(run))}</small></th>
+      <td class="ops-row-head${run.head ? "" : " is-missing"}" title="${esc(run.head || "")}">${esc(run.head || "غير مسجّل")}</td>
+      <td class="ops-row-count">${esc(run.count == null || run.count === "" ? "—" : `${run.count}${run.weapon ? ` · ${run.weapon}` : ""}`)}</td>
+      <td class="ops-row-status"><span class="ops-badge">${statusText[state]}</span>${pendingTargets.has(target) ? `<small class="ops-pending-label">${esc(pendingLabel(target))}</small>` : ""}</td>
+      <td class="ops-row-action">${action ? `<button type="button" class="primary ops-action" data-op="${action}" data-target="${esc(target)}" aria-label="${actionLabel(action)}: ${esc(runLabel(run))}">${pendingTargets.has(target) ? `<span class="spinner" aria-hidden="true"></span> ${esc(pendingLabel(target))}` : actionLabel(action)}</button>` : `<span class="ops-times">${esc(run.back_at?.slice(11, 16) || "")}</span>`}${menu}${rowErrors.has(target) ? `<span class="ops-row-error" role="alert">${esc(rowErrors.get(target))}</span>` : ""}</td>
     </tr>`;
   }
 
@@ -504,14 +518,14 @@
     const actions = [];
     if (eligibleDepart.length) actions.push(`<button type="button" class="btn" data-op="line" data-mode="depart" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleDepart.map(actionTarget)))}">قيام الكل (${eligibleDepart.length})</button>`);
     if (eligibleReturn.length) actions.push(`<button type="button" class="btn ok" data-op="line" data-mode="return" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleReturn.map(actionTarget)))}">عودة الكل (${eligibleReturn.length})</button>`);
-    const body = viewMode() === "cards" ? `<div class="ops-grid">${group.runs.map(card).join("")}</div>` : `<div class="ops-table-wrap"><table class="ops-list"><colgroup><col class="ops-col-status"><col class="ops-col-service"><col class="ops-col-time"><col class="ops-col-shift"><col class="ops-col-person"><col class="ops-col-count"><col class="ops-col-context"><col class="ops-col-action"></colgroup><thead><tr><th>الحالة</th><th>الخدمة</th><th>المعاد</th><th>الفترة</th><th>القائم بها</th><th>القوام</th><th>الخط / القسم</th><th>الإجراء</th></tr></thead><tbody>${group.runs.map(row).join("")}</tbody></table></div>`;
+    const body = viewMode() === "cards" ? `<div class="ops-grid">${group.runs.map(card).join("")}</div>` : `<div class="ops-table-wrap"><table class="ops-list"><colgroup><col class="ops-col-time"><col class="ops-col-service"><col class="ops-col-person"><col class="ops-col-count"><col class="ops-col-status"><col class="ops-col-action"></colgroup><thead><tr><th>المعاد</th><th>الخدمة</th><th>القائم بها</th><th>القوام</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>${group.runs.map(row).join("")}</tbody></table></div>`;
     return `<section class="ops-group ${collapsed ? "is-collapsed" : ""}" data-group-id="${esc(group.id)}">
-      <div class="ops-group-header"><button type="button" class="ops-group-toggle" aria-expanded="${!collapsed}" data-op="collapse" data-group="${esc(group.id)}"><span aria-hidden="true">${collapsed ? "›" : "⌄"}</span><strong>${esc(group.title)}</strong><span class="ops-group-count">${group.runs.length}/${group.total || group.runs.length}</span><small>${esc(stateSummary(group.runs))}</small></button><div class="ops-group-actions">${actions.join("")}</div></div>
+      <div class="ops-group-header"><button type="button" class="ops-group-toggle" aria-expanded="${!collapsed}" data-op="collapse" data-group="${esc(group.id)}"><span aria-hidden="true">${collapsed ? "›" : "⌄"}</span><strong>${esc(group.title)}</strong><span class="ops-group-count">${(group.total || group.runs.length) > group.runs.length ? `${group.runs.length} من ${group.total}` : countLabel(group.runs.length, "خدمة")}</span><small>${esc(stateSummary(group.runs))}</small></button><div class="ops-group-actions">${actions.join("")}</div></div>
       <div class="ops-group-body">${body}</div>
     </section>`;
   }
 
-  function viewMode() { return window.matchMedia("(max-width: 760px)").matches ? "cards" : prefs.view; }
+  function viewMode() { return window.matchMedia("(max-width: 920px)").matches ? "cards" : prefs.view; }
 
   function renderBoard() {
     const current = allRuns();
@@ -622,8 +636,13 @@
   }
 
   function paintAttention() {
-    const counters = ops.counters || {};
-    $id("opsAttention").innerHTML = `<span>إجراء الآن:</span> <button type="button" data-attention-state="late">${counters.late || 0} متأخرة</button> · <button type="button" data-attention-state="prep">${counters.prep || 0} تجهّز</button> · <button type="button" data-attention-state="carried">${counters.carried || 0} مترحّلة</button>`;
+    // «المطلوب الآن» بقى زرار واحد في شريط الأدوات بعدده؛ السطر القديم اتلغى.
+    const counters = ops?.counters || {};
+    const total = (counters.late || 0) + (counters.prep || 0) + (counters.carried || 0);
+    const button = $id("opsAttentionToggle");
+    button.innerHTML = `المطلوب الآن <b>${total}</b>`;
+    button.classList.toggle("has-items", total > 0);
+    button.setAttribute("aria-label", `اعرض المطلوب الآن: ${total} (متأخرة وتجهّز ومترحّلة)`);
   }
 
   function updateToolbar() {
@@ -631,6 +650,7 @@
     $id("opsShiftFilter").value = activeShift;
     $id("opsGroupBy").value = prefs.groupBy;
     $id("opsAttentionToggle").setAttribute("aria-pressed", String(filters.attention));
+    paintAttention();
     document.querySelectorAll("[data-view]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.view === viewMode())));
     const filterCount = filters.types.size + filters.lines.size + (filters.timeWindow !== "all" ? 1 : 0)
       + filters.states.size + (filters.attention ? 1 : 0) + (filters.query ? 1 : 0) + (activeShift !== "all" ? 1 : 0);
@@ -670,6 +690,16 @@
     if (button?.dataset.pending === "1") return;
     const targets = body.keys || (body.key ? [body.key] : []);
     const action = url.endsWith("/return") || body.mode === "return" ? "return" : url.endsWith("/time") ? "time" : url.endsWith("/undo") ? "undo" : "depart";
+    // العمل على يوم غير النهاردة بيطلب تأكيد، إلا لو المدير قفل التأكيد من صفحة الحسابات.
+    if (day !== today && META.settings?.ops_confirm_other_days !== false) {
+      const verb = {depart: "تسجيل القيام", return: "تسجيل العودة", time: "تعديل المعاد", undo: "التراجع"}[action];
+      const ok = await confirmDialog({
+        title: `${verb} على يوم ${day < today ? "سابق" : "قادم"}`,
+        body: `أنت تعمل على يوم ${dayName(day)} ${fmt(day)} وليس اليوم. هل تريد ${verb}${targets.length > 1 ? ` لعدد ${targets.length} خدمات` : ""}؟`,
+        confirmLabel: verb,
+      });
+      if (!ok) return false;
+    }
     const busyText = action === "return" ? "جارٍ تسجيل العودة…" : action === "time" ? "جارٍ حفظ تعديل المعاد…" : action === "undo" ? "جارٍ التراجع…" : "جارٍ تسجيل القيام…";
     targets.forEach(target => {
       pendingTargets.add(target); pendingLabels.set(target, busyText);
@@ -804,10 +834,28 @@
   $id("opsShiftFilter").addEventListener("change", event => { activeShift = event.target.value; savePrefs(); renderBoard(); });
   $id("opsGroupBy").addEventListener("change", event => { prefs.groupBy = event.target.value; savePrefs(); renderBoard(); });
   $id("opsAttentionToggle").addEventListener("click", () => { filters.attention = !filters.attention; savePrefs(); renderBoard(); });
-  $id("opsFiltersToggle").addEventListener("click", event => {
-    const panel = $id("opsFiltersPanel");
-    panel.classList.toggle("hidden");
-    event.currentTarget.setAttribute("aria-expanded", String(!panel.classList.contains("hidden")));
+  // القوايم المنبثقة (فلاتر/العرض/الاختصارات): واحدة مفتوحة بس، وتتقفل بالضغط برّه أو Escape.
+  const popovers = [["opsFiltersToggle", "opsFiltersPanel"], ["opsViewToggle", "opsViewPanel"], ["opsShortcutsToggle", "opsShortcutsHelp"]];
+  function closePopovers(except, {focus = false} = {}) {
+    let closed = false;
+    for (const [buttonId, panelId] of popovers) {
+      if (buttonId === except || $id(panelId).classList.contains("hidden")) continue;
+      $id(panelId).classList.add("hidden"); $id(buttonId).setAttribute("aria-expanded", "false");
+      if (focus) $id(buttonId).focus();
+      closed = true;
+    }
+    return closed;
+  }
+  for (const [buttonId, panelId] of popovers) {
+    $id(buttonId).addEventListener("click", () => {
+      closePopovers(buttonId);
+      const panel = $id(panelId);
+      panel.classList.toggle("hidden");
+      $id(buttonId).setAttribute("aria-expanded", String(!panel.classList.contains("hidden")));
+    });
+  }
+  document.addEventListener("click", event => {
+    if (!event.target.closest(".ops-filter-popover, #opsShortcutsHelp, #opsShortcutsToggle")) closePopovers();
   });
   document.addEventListener("change", event => {
     if (event.target.matches("[data-filter-type]")) {
@@ -838,9 +886,7 @@
     if (event.key === "Escape") {
       if (isModalOpen()) return;
       if (filters.query) { filters.query = ""; renderBoard(); event.preventDefault(); return; }
-      const panel = $id("opsFiltersPanel"), help = $id("opsShortcutsHelp");
-      if (panel && !panel.classList.contains("hidden")) { panel.classList.add("hidden"); $id("opsFiltersToggle").setAttribute("aria-expanded", "false"); event.preventDefault(); return; }
-      if (help && !help.classList.contains("hidden")) { help.classList.add("hidden"); $id("opsShortcutsToggle").setAttribute("aria-expanded", "false"); event.preventDefault(); }
+      if (closePopovers(null, {focus: true})) event.preventDefault();
       return;
     }
     if (typing || isModalOpen()) return;
@@ -882,11 +928,6 @@
     if (rowEl) setRovingFocus(rowEl);
   });
 
-  $id("opsShortcutsToggle").addEventListener("click", event => {
-    const help = $id("opsShortcutsHelp");
-    help.classList.toggle("hidden");
-    event.currentTarget.setAttribute("aria-expanded", String(!help.classList.contains("hidden")));
-  });
   $id("opsRefreshNow").addEventListener("click", () => loadOps());
   $id("dayPrev").addEventListener("click", () => setDay(addDays(day, -1)));
   $id("dayNext").addEventListener("click", () => setDay(addDays(day, 1)));
@@ -898,11 +939,29 @@
   });
   paintDayContext();
 
+  // ارتفاع الشريط المباشر وشريط الأدوات بيتغير مع عرض الشاشة؛ بنقيسه بدل أرقام ثابتة
+  // عشان شريط الأدوات ورأس الجدول اللاصقين مايركبوش على بعض.
+  if ("ResizeObserver" in window) {
+    const measure = () => {
+      document.documentElement.style.setProperty("--ops-strip-h", `${$id("opsStrip").offsetHeight}px`);
+      document.documentElement.style.setProperty("--ops-toolbar-h", `${$id("opsToolbar").offsetHeight}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe($id("opsStrip")); observer.observe($id("opsToolbar"));
+    measure();
+  }
+
   const regularityPanel = $id("regularityPanel");
   if (prefs.collapsed.regularity === undefined) prefs.collapsed.regularity = true;
   regularityPanel.open = !prefs.collapsed.regularity;
   regularityPanel.addEventListener("toggle", () => {
     prefs.collapsed.regularity = !regularityPanel.open; savePrefs();
+  });
+  $id("regularityJump")?.addEventListener("click", event => {
+    event.preventDefault();
+    regularityPanel.open = true;
+    regularityPanel.scrollIntoView({behavior: "smooth", block: "start"});
+    regularityPanel.querySelector("summary").focus({preventScroll: true});
   });
   $id("regularitySave").addEventListener("click", () => saveRegularity());
   $id("regularityReset").addEventListener("click", () => saveRegularity(true));
@@ -1017,6 +1076,15 @@ function renderAdmin(d) {
   $("#dashTasks").innerHTML = confirmTask +
     (vacant ? task("warn", `<b>الخدمات الشاغرة غدًا: ${countLabel(vacant, "خدمة")}</b>`, "/board", "تعيين") : task("ok", "لا توجد خدمات شاغرة غدًا", "", "")) +
     (returning ? task("muted", `العائدون من الراحة خلال ${countLabel(3, "يوم")}: ${countLabel(returning, "ضابط")}`, "/leaves", "سجل الراحات") : task("muted", `لا يعود أحد من الراحة خلال ${countLabel(3, "يوم")}`, "", ""));
+
+  // عنوان «متابعة إدارية» بيقول فيه كام حاجة مطلوبة، وبيتفتح لوحده لو فيه حاجة.
+  const pendingAdmin = (!confirm.confirmed && confirm.count ? 1 : confirm.pending ? 1 : 0) + (vacant ? 1 : 0);
+  const adminSummary = $("#adminFollowupSummary");
+  if (adminSummary) {
+    adminSummary.textContent = pendingAdmin ? `يحتاج متابعة: ${countLabel(pendingAdmin, {one: "بند واحد", two: "بندان", few: "بنود", many: "بندًا", sing: "بند"})}` : "لا يوجد ما يحتاج متابعة";
+    adminSummary.classList.toggle("has-items", pendingAdmin > 0);
+    if (pendingAdmin) $("#adminFollowup").open = true;
+  }
 
   const entities = {leave: "راحة", mission: "مأمورية", officer_state: "حالة ضابط", assignment: "خدمة", duty_move: "حركة ضابط/فرد", person: "بيانات فرد/ضابط"};
   const actions = {create: "إضافة", update: "تعديل", delete: "حذف"};

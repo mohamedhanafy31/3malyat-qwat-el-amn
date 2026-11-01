@@ -52,6 +52,9 @@ def _required_capability(path):
         return "view_logs"
     if path == "/users" or path == "/api/users" or path.startswith("/api/users/"):
         return "manage_users"
+    # قراءة الإعدادات مفتوحة (اللوحة الرئيسية محتاجاها)، وتعديلها للمدير بس.
+    if path == "/api/settings" and request.method not in ("GET", "HEAD"):
+        return "manage_users"
     if path == "/api/day-files/refresh-range":
         return "manage_files"
     return None

@@ -22,3 +22,8 @@ pytesseract>=0.3.13,<0.4
 
 # للتطوير بس (تشغيل tests/) — مش مطلوبة على جهاز التشغيل
 # pytest>=8
+
+# معاينة ملفات التصدير قبل التحميل (backend/export_preview.py) على جهاز التشغيل:
+# pywin32 بيشغّل Word/Excel نفسهم فالمعاينة مطابقة للطباعة، وPyMuPDF بيحوّل الـPDF صور.
+pywin32>=306; sys_platform == "win32"
+PyMuPDF>=1.24,<2; sys_platform == "win32"

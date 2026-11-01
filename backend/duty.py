@@ -21,6 +21,7 @@ from .dated import command_on, groups_on, medical_state_on
 from .leaves import leave_label, leave_on
 from .people import effective, officers_on
 from .status_periods import active_on as persistent_status_on
+from .signatures import signatories
 from .status_periods import public as status_period_public
 
 # سلّم أولويات خانة الإجمالي — أول قاعدة تنطبق هي اللي بتاخد الضابط.
@@ -362,4 +363,5 @@ def summarise(data, day):
     s["counted"] = counted
     s["balanced"] = counted == s["أصل القوة"]
     return {"date": day, "summary": s, "rows": rows,
-            "officer_statuses": officer_statuses(data)}
+            "officer_statuses": officer_statuses(data),
+            "signatories": signatories(data, day)}

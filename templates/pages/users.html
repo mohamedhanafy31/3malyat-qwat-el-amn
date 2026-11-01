@@ -30,6 +30,15 @@
 
   <div id="usersWrap" data-mobile-cards>{{ skeleton("rows", 6) }}</div>
 </div>
+
+<section class="panel system-settings" aria-labelledby="systemSettingsTitle">
+  <h3 id="systemSettingsTitle">إعدادات التشغيل</h3>
+  <label class="check-label system-setting">
+    <input type="checkbox" id="settingConfirmOtherDays" disabled>
+    <span>طلب تأكيد قبل القيام أو العودة أو تعديل المعاد على يوم غير اليوم الحالي</span>
+  </label>
+  <p class="field-hint">بيحمي من التسجيل بالغلط لما تكون الصفحة الرئيسية مفتوحة على يوم سابق أو قادم.</p>
+</section>
 {% endblock %}
 
 {% block modals %}

@@ -10,6 +10,7 @@ from docx.shared import Pt
 
 from .board_export import WEEKDAY_BY_INDEX, order_xml_children
 from .export_fit import PageFitError, TextMeter, estimate_table_height
+from .signatures import fill_boxes
 
 TEMPLATE = Path(__file__).with_name("docx_templates") / "service_regularity.docx"
 LAST_FIT = {}
@@ -90,28 +91,6 @@ def _set_row_text(tr, values, size, note=False):
             node.set(qn("w:val"), str(int(round(size * 2))))
 
 
-def _signature_boxes(document, payload):
-    names = payload.get("signatories") or {}
-    labels = {"مدير إدارة": names.get("director") or {},
-              "وكيل إدارة": names.get("deputy") or {},
-              "رئيس ق": names.get("operations") or {}}
-    for box in document.part.element.iter(qn("w:txbxContent")):
-        joined = "".join(node.text or "" for node in box.iter(qn("w:t")))
-        item = next((v for key, v in labels.items() if key in joined), None)
-        if item is None:
-            continue
-        if "مدير" in joined:
-            text = f"مدير إدارة قـــوات الأمن\n{item.get('rank', '')} /\n({item.get('name', '')})"
-        elif "وكي" in joined:
-            text = f"وكيـل إدارة قوات الأمن\n{item.get('rank', '')}/\n({item.get('name', '')})"
-        else:
-            text = f"رئيس قســم العمليات\n{item.get('rank', '')}/\n({item.get('name', '')})"
-        nodes = list(box.iter(qn("w:t")))
-        if nodes:
-            nodes[0].text = text
-            for node in nodes[1:]: node.text = ""
-
-
 def _fit(payload, table1, table2):
     rows1 = [[{"text": "م", "size_pt": 10}, {"text": r["service"], "size_pt": 10},
               {"text": r["people"], "size_pt": 10}, {"text": r["phone"], "size_pt": 10},
@@ -168,7 +147,7 @@ def build_docx(payload):
                     paragraph.runs[0].text = title
                     for run in paragraph.runs[1:]: run.text = ""
                 break
-    _signature_boxes(document, payload)
+    fill_boxes(document, payload.get("signatories") or {})
     order_xml_children(document)
     LAST_FIT.clear(); LAST_FIT.update(size_pt=fit_size, total_pt=total, page_count=1)
     buf = BytesIO(); document.save(buf); buf.seek(0); return buf

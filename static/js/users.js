@@ -368,6 +368,27 @@ $("#userResetPasswordForm").onsubmit = async e => {
   }
 };
 
+// ── إعدادات التشغيل (للمدير بس؛ الصفحة نفسها محمية) ──
+(async () => {
+  const box = $("#settingConfirmOtherDays");
+  if (!box) return;
+  const res = await api("/api/settings", {noLoader: true});
+  if (!res) return;
+  box.checked = res.settings.ops_confirm_other_days;
+  box.disabled = false;
+  box.addEventListener("change", async () => {
+    box.disabled = true;
+    const out = await api("/api/settings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ops_confirm_other_days: box.checked}),
+    });
+    box.disabled = false;
+    if (!out) { box.checked = !box.checked; return; }
+    showToast(box.checked ? "تم تفعيل التأكيد على الأيام غير الحالية" : "تم إيقاف التأكيد على الأيام غير الحالية");
+  });
+})();
+
 // ── تسجيل الإجراءات في ACTIONS ──
 ACTIONS.editUser = id => openEditModal(id);
 ACTIONS.toggleUser = id => toggleUserActive(id);

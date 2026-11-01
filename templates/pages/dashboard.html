@@ -2,7 +2,13 @@
 
 {% block alerts %}{% endblock %}
 {% block export %}docx{% endblock %}
-{% block page_actions %}<span id="dashboardDayWarning" class="day-warning hidden" role="status"></span>{% endblock %}
+{% block page_actions %}<span id="dashboardDayWarning" class="day-warning hidden" role="status"></span>
+<div class="day-files" id="dayFiles" role="group" aria-labelledby="dayFilesLabel">
+  <span class="day-files-label" id="dayFilesLabel">ملفات اليوم</span>
+  <a class="btn" id="formationMorningExport" href="#">{{ icon('download') }}<span>خط تشكيل صبح</span></a>
+  <a class="btn" id="formationNightExport" href="#">{{ icon('download') }}<span>خط تشكيل ليل</span></a>
+  <a class="day-files-setup" id="regularityJump" href="#regularityPanel">إعداد يومية الانتظام</a>
+</div>{% endblock %}
 
 {% block content %}
 <div id="clockWarning"></div>
@@ -17,8 +23,70 @@
   </div>
 </div>
 
+<section class="ops-strip" id="opsStrip" tabindex="-1" aria-label="ملخص التشغيل المباشر">
+  <div class="ops-clock"><span class="ops-eyebrow">الوقت الآن</span><strong id="opsClock">--:--</strong></div>
+  <div class="ops-next" aria-live="polite"><span class="ops-eyebrow">التالية</span><div id="opsNext">جارٍ تحميل لوحة التشغيل…</div></div>
+  <div class="ops-sync" id="opsSync" role="status" aria-live="polite">
+    <span class="ops-eyebrow">المزامنة</span>
+    <span id="opsLastUpdated">آخر تحديث —</span>
+    <button type="button" class="ops-refresh-now hidden" id="opsRefreshNow">تحديث الآن</button>
+  </div>
+  <div id="opsCounters" class="ops-counters" aria-label="عدادات التشغيل"></div>
+</section>
+
+<section class="ops-toolbar" id="opsToolbar" aria-label="أدوات لوحة التشغيل">
+  <button type="button" class="ops-now-toggle" id="opsAttentionToggle" aria-pressed="false">المطلوب الآن</button>
+  <label class="ops-search-wrap" for="opsSearch">
+    <span class="sr-only">بحث في الخدمات</span>
+    <input id="opsSearch" type="search" autocomplete="off" placeholder="ابحث بالخدمة أو القائم أو الخط…">
+    <kbd class="kbd-only">/</kbd>
+  </label>
+  <label class="ops-select-wrap"><span class="sr-only">الفترة</span>
+    <select id="opsShiftFilter" aria-label="فلترة الفترة">
+      <option value="all">كل الفترات</option><option value="am">صباحية</option><option value="pm">ليلية</option>
+    </select>
+  </label>
+  <div class="ops-filter-popover">
+    <button type="button" class="btn" id="opsFiltersToggle" aria-expanded="false" aria-controls="opsFiltersPanel">فلاتر</button>
+    <div id="opsFiltersPanel" class="ops-filters-panel hidden" role="dialog" aria-label="فلاتر لوحة التشغيل">
+      <fieldset><legend>النوع</legend><label><input type="checkbox" data-filter-type="officers"> ضباط</label><label><input type="checkbox" data-filter-type="basic"> أساسية</label><label><input type="checkbox" data-filter-type="emergency"> طارئة</label><label><input type="checkbox" data-filter-type="special"> مناسبة</label></fieldset>
+      <fieldset><legend>الخط / اللوري</legend><div id="opsLineFilters" class="ops-filter-chips"></div></fieldset>
+      <fieldset><legend>المعاد</legend><select id="opsTimeWindow" aria-label="نافذة المعاد"><option value="all">كل اليوم</option><option value="120">خلال ساعتين</option><option value="240">خلال 4 ساعات</option><option value="none">بدون معاد</option></select></fieldset>
+    </div>
+  </div>
+  <div class="ops-filter-popover">
+    <button type="button" class="btn" id="opsViewToggle" aria-expanded="false" aria-controls="opsViewPanel">العرض</button>
+    <div id="opsViewPanel" class="ops-filters-panel ops-view-panel hidden" role="dialog" aria-label="طريقة العرض والتجميع">
+      <fieldset><legend>التجميع</legend>
+        <select id="opsGroupBy" aria-label="طريقة التجميع">
+          <option value="time">حسب المعاد</option><option value="line">حسب الخط/اللوري</option>
+          <option value="section">حسب القسم/المناسبة</option><option value="state">حسب الحالة</option><option value="none">بدون تجميع</option>
+        </select>
+      </fieldset>
+      <fieldset><legend>الشكل</legend>
+        <div class="ops-view-toggle" role="group" aria-label="طريقة العرض">
+          <button type="button" data-view="list" aria-pressed="true">قائمة</button>
+          <button type="button" data-view="cards" aria-pressed="false">بطاقات</button>
+        </div>
+      </fieldset>
+    </div>
+  </div>
+  <button type="button" class="btn ops-clear hidden" id="opsClear">مسح الفلاتر</button>
+  <button type="button" class="btn ops-help-toggle kbd-only" id="opsShortcutsToggle" aria-expanded="false" aria-controls="opsShortcutsHelp">اختصارات</button>
+  <div class="ops-shortcuts-help hidden" id="opsShortcutsHelp" role="dialog" aria-label="اختصارات لوحة المفاتيح">
+    <strong>اختصارات لوحة المفاتيح</strong>
+    <span><kbd>/</kbd> بحث · <kbd>↑</kbd><kbd>↓</kbd> تنقّل بين الصفوف</span>
+    <span><kbd>Enter</kbd> الإجراء الأساسي · <kbd>Shift</kbd>+<kbd>F10</kbd> قائمة الصف</span>
+    <span><kbd>F6</kbd> التنقّل بين مناطق اللوحة · <kbd>Space</kbd> طيّ المجموعة</span>
+  </div>
+</section>
+
+<div id="opsLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+<div id="opsAttention" class="ops-attention hidden"></div>
+<div id="opsBoard" class="ops-board" aria-busy="true"><div class="ops-loading">جارٍ تحميل لوحة التشغيل…</div></div>
+
 <details class="regularity-panel" id="regularityPanel">
-  <summary><span>بيانات يومية الانتظام</span><small>إضافات وتوقيعات تصدير Word</small></summary>
+  <summary><span>إعداد يومية الانتظام</span><small>المشرفون والإضافات والملاحظات المطبوعة في الملف</small></summary>
   <div class="regularity-body" id="regularityBody">
     <div class="regularity-toolbar">
       <p class="field-hint" id="regularityInheritance"></p>
@@ -41,74 +109,19 @@
         <ol id="regularityNotes" class="regularity-notes"></ol>
         <div class="regularity-note-actions">
           <button type="button" class="btn" id="regularityAddNote">إضافة ملاحظة</button>
-          <button type="button" class="btn" id="regularityRestoreNotes">استرجاع الافتراضي</button>
+          <button type="button" class="btn" id="regularityRestoreNotes">استعادة الملاحظات الافتراضية</button>
         </div>
       </fieldset>
     </div>
     <div class="dialog-actions regularity-actions">
       <button type="button" class="primary" id="regularitySave">حفظ</button>
-      <button type="button" class="btn" id="regularityReset">مسح تخصيص هذا اليوم</button>
+      <button type="button" class="btn" id="regularityReset">استعادة بيانات اليوم الافتراضية</button>
     </div>
   </div>
 </details>
 
-<section class="ops-strip" id="opsStrip" tabindex="-1" aria-label="ملخص التشغيل المباشر">
-  <div class="ops-clock"><span class="ops-eyebrow">الوقت الآن</span><strong id="opsClock">--:--</strong></div>
-  <div class="ops-next" aria-live="polite"><span class="ops-eyebrow">التالية</span><div id="opsNext">جارٍ تحميل لوحة التشغيل…</div></div>
-  <div class="ops-sync" id="opsSync" role="status" aria-live="polite">
-    <span class="ops-eyebrow">المزامنة</span>
-    <span id="opsLastUpdated">آخر تحديث —</span>
-    <button type="button" class="ops-refresh-now hidden" id="opsRefreshNow">تحديث الآن</button>
-  </div>
-  <div id="opsCounters" class="ops-counters" aria-label="عدادات التشغيل"></div>
-</section>
-
-<section class="ops-toolbar" id="opsToolbar" aria-label="أدوات لوحة التشغيل">
-  <label class="ops-search-wrap" for="opsSearch">
-    <span class="sr-only">بحث في الخدمات</span>
-    <input id="opsSearch" type="search" autocomplete="off" placeholder="ابحث بالخدمة أو القائم أو الخط…">
-    <kbd>/</kbd>
-  </label>
-  <label class="ops-select-wrap">الفترة
-    <select id="opsShiftFilter" aria-label="فلترة الفترة">
-      <option value="all">الكل</option><option value="am">صباحية</option><option value="pm">ليلية</option>
-    </select>
-  </label>
-  <label class="ops-select-wrap">التجميع
-    <select id="opsGroupBy" aria-label="طريقة التجميع">
-      <option value="time">حسب المعاد</option><option value="line">حسب الخط/اللوري</option>
-      <option value="section">حسب القسم/المناسبة</option><option value="state">حسب الحالة</option><option value="none">بدون تجميع</option>
-    </select>
-  </label>
-  <div class="ops-filter-popover">
-    <button type="button" class="btn" id="opsFiltersToggle" aria-expanded="false">فلاتر</button>
-    <div id="opsFiltersPanel" class="ops-filters-panel hidden" role="dialog" aria-label="فلاتر لوحة التشغيل">
-      <fieldset><legend>النوع</legend><label><input type="checkbox" data-filter-type="officers"> ضباط</label><label><input type="checkbox" data-filter-type="basic"> أساسية</label><label><input type="checkbox" data-filter-type="emergency"> طارئة</label><label><input type="checkbox" data-filter-type="special"> مناسبة</label></fieldset>
-      <fieldset><legend>الخط / اللوري</legend><div id="opsLineFilters" class="ops-filter-chips"></div></fieldset>
-      <fieldset><legend>المعاد</legend><select id="opsTimeWindow" aria-label="نافذة المعاد"><option value="all">كل اليوم</option><option value="120">خلال ساعتين</option><option value="240">خلال 4 ساعات</option><option value="none">بدون معاد</option></select></fieldset>
-    </div>
-  </div>
-  <button type="button" class="ops-now-toggle" id="opsAttentionToggle" aria-pressed="false">تحتاج إجراء الآن</button>
-  <div class="ops-view-toggle" role="group" aria-label="طريقة العرض">
-    <button type="button" data-view="list" aria-pressed="true">قائمة</button>
-    <button type="button" data-view="cards" aria-pressed="false">بطاقات</button>
-  </div>
-  <button type="button" class="btn ops-clear hidden" id="opsClear">مسح الفلاتر</button>
-  <button type="button" class="btn ops-help-toggle" id="opsShortcutsToggle" aria-expanded="false" aria-controls="opsShortcutsHelp">اختصارات لوحة المفاتيح</button>
-  <div class="ops-shortcuts-help hidden" id="opsShortcutsHelp" role="dialog" aria-label="اختصارات لوحة المفاتيح">
-    <strong>اختصارات لوحة المفاتيح</strong>
-    <span><kbd>/</kbd> بحث · <kbd>↑</kbd><kbd>↓</kbd> تنقّل بين الصفوف</span>
-    <span><kbd>Enter</kbd> الإجراء الأساسي · <kbd>Shift</kbd>+<kbd>F10</kbd> قائمة الصف</span>
-    <span><kbd>F6</kbd> التنقّل بين مناطق اللوحة · <kbd>Space</kbd> طيّ المجموعة</span>
-  </div>
-</section>
-
-<div id="opsLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-<div id="opsAttention" class="ops-attention" aria-live="polite"></div>
-<div id="opsBoard" class="ops-board" aria-busy="true"><div class="ops-loading">جارٍ تحميل لوحة التشغيل…</div></div>
-
-<details class="admin-followup">
-  <summary>متابعة إدارية <span>القوة، التقصيرة، التأكيد، والقادم</span></summary>
+<details class="admin-followup" id="adminFollowup">
+  <summary>متابعة إدارية <span id="adminFollowupSummary">القوة، التقصيرة، التأكيد، والقادم</span></summary>
   <div class="admin-followup-body">
     <div id="dashStats" class="stats">{{ skeleton("stats", 4) }}</div>
     <div id="alerts"><div class="alert-skel skel" aria-hidden="true"></div></div>
@@ -118,8 +131,6 @@
           <a class="btn" href="{{ url_for('pages.board') }}">اليومية التفصيلية</a>
           <a class="btn" href="{{ url_for('pages.duty') }}">يومية الضباط</a>
           <a class="btn" href="{{ url_for('pages.counts') }}">أعداد الخدمات</a>
-          <a class="btn" id="formationMorningExport" href="#">خط تشكيل صبح</a>
-          <a class="btn" id="formationNightExport" href="#">خط تشكيل ليل</a>
         </span>
       </h3>
       <div class="body"><ul class="task-list" id="dashTasks">{{ skeleton("tasks", 3) }}</ul><div class="recent-changes" id="dashChanges">{{ skeleton("changes", 5) }}</div></div>

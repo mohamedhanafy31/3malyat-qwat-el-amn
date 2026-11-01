@@ -18,8 +18,9 @@ from .dated import command_on
 from .duty import officer_row
 from .labels import officer_label, personnel_label
 from .leaves import leave_on
-from .people import effective, officers_on
+from .people import effective
 from .repo import ConscriptRepo, PeopleRepo
+from .signatures import signatories as build_signatories
 from .text import core_service_name, norm
 from .board_export import WEEKDAY_BY_INDEX
 
@@ -330,20 +331,7 @@ def build(data, day, inputs=None):
     # كل تحذير بيتقال على أنهي خدمة، وإلا «المركبة غير مسجلة.» لوحدها ملهاش لازمة
     warnings = [f"{row.get('service', '')} ({row.get('time', '')}): {warning}"
                 for row in rows for warning in row.get("warnings") or []]
-    signatories = {}
-    command = command_on(data, day)
-    for key, ident in (("director", command.get("مدير الإدارة")), ("deputy", command.get("وكيل الإدارة"))):
-        person = _officer(data, day, ident)
-        signatories[key] = {"rank": person.get("role", "") if person else "عقيد",
-                            "name": (person.get("short_name") or " ".join(person.get("name", "").split()[:2])) if person else PLACEHOLDER}
-    chief = None
-    chief_post = norm("رئيس قسم العمليات")
-    for person in officers_on(data, day):
-        if chief_post in norm(effective(person, day).get("post")):
-            chief = {**person, **effective(person, day)}
-            break
-    signatories["operations"] = {"rank": chief.get("role", "رائد") if chief else "رائد",
-                                  "name": ((chief.get("short_name") or " ".join(chief.get("name", "").split()[:2])) if chief else "محمد بحر")}
+    signatories = build_signatories(data, day)
     d = date.fromisoformat(day)
     title = f"يومية انتظام الخدمات عن يوم {WEEKDAY_BY_INDEX[d.weekday()]} الموافق {d.day}/{d.month}/{d.year}م"
     return {"title": title, "service_rows": rows,

@@ -296,9 +296,9 @@ function reportDate() {
 
 $("#leavesReportDate").value = curDate();
 $("#exportMonthlyLeaves").onclick = () => {
-  window.location.assign(`/api/leaves/monthly/export.docx?on=${encodeURIComponent(reportDate())}`);
+  previewExport(`/api/leaves/monthly/export.docx?on=${encodeURIComponent(reportDate())}`, "كشف الراحات الشهري");
 };
 $("#exportWeeklyLeaves").onclick = () => {
-  window.location.assign(`/api/leaves/weekly/export.docx?on=${encodeURIComponent(reportDate())}`);
+  previewExport(`/api/leaves/weekly/export.docx?on=${encodeURIComponent(reportDate())}`, "الكشف الأسبوعي");
 };
 load();

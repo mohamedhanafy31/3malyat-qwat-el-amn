@@ -23,6 +23,8 @@ from ..store import ALL_DAYS, load_data
 from ..upcoming import build as build_upcoming
 from ..auth import can
 
+from .system_settings import public_settings
+
 bp = Blueprint("meta", __name__)
 
 
@@ -46,6 +48,7 @@ def _meta(data):
         "command_groups": Repos(data).config.groups(),
         "rest_suspension": rest_suspension.summary(data),
         "today": date.today().isoformat(),
+        "settings": public_settings(),
     }
 
 

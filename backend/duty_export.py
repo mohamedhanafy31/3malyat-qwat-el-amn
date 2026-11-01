@@ -21,6 +21,7 @@ from .board_export import WEEKDAY_BY_INDEX, order_xml_children
 from .constants import (OFFICER_SECTIONS, SECTION_FORCE, SECTION_GUARDS,
                         SECTION_OUTSIDE)
 from .export_fit import PageFitError, TextMeter, usable_height_pt
+from .signatures import fill_boxes
 from .labels import RANK_SHORT, officer_label
 
 TEMPLATE = Path(__file__).with_name("docx_templates") / "duty_roster.docx"
@@ -394,6 +395,7 @@ def _plan_fit(document, values, names):
 def build_docx(duty):
     document = Document(TEMPLATE)
     _set_title(document, duty["date"])
+    fill_boxes(document, duty.get("signatories") or {})
 
     table = document.tables[0]
     grouped = dict(_grouped_rows(duty["rows"]))

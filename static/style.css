@@ -2257,6 +2257,81 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ops-shortcuts-help{position:absolute;inset-inline-end:var(--s3);top:calc(100% + var(--s2));z-index:25;display:flex;flex-direction:column;gap:var(--s1);width:min(330px,calc(100vw - 2rem));padding:var(--s3);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-md);color:var(--ink-700);font-size:var(--t-xs)}
 .ops-shortcuts-help strong{color:var(--navy-950);font-size:var(--t-sm)}.ops-shortcuts-help kbd{margin-inline:2px;padding:1px 4px;background:var(--surface-sunken);border:1px solid var(--line-strong);border-radius:3px;font-family:var(--font-num)}.ops-help-toggle{margin-inline-start:auto}
 
+/* Phase 4: مراجعة الواجهة — الترتيب: اليوم ← الشريط المباشر ← الأدوات ← اللوحة ← إعداد الانتظام ← المتابعة.
+   حواف «الدفتر» (radius-sm بدون ظلال) جوّه لوحة التشغيل بس. */
+.day-files{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);padding:var(--s1) var(--s1) var(--s1) var(--s3);border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface)}
+.day-files-label{color:var(--ink-500);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
+.day-files .btn{display:inline-flex;align-items:center;gap:var(--s1);height:var(--control-h)}
+.day-files-setup{color:var(--navy-700);font-size:var(--t-xs);text-decoration:underline;text-underline-offset:3px;white-space:nowrap;padding-inline:var(--s1)}
+.day-files-setup:hover{color:var(--navy-950)}
+.page-head .titles .day-warning.hidden{display:none}
+.ops-toolbar{top:calc(var(--topbar-h) + var(--ops-strip-h, 78px));margin:0 0 var(--s4);padding:var(--s2) var(--s3);border-radius:var(--radius-sm);box-shadow:none;border-bottom:2px solid var(--line-strong)}
+.ops-now-toggle{display:inline-flex;align-items:center;gap:var(--s2)}
+.ops-now-toggle b{min-width:1.6em;padding:0 6px;border-radius:var(--radius-sm);background:var(--surface-sunken);color:var(--ink-700);font-family:var(--font-num);text-align:center}
+.ops-now-toggle.has-items{border-color:var(--warn-500);color:var(--warn-800)}
+.ops-now-toggle.has-items b{background:var(--warn-500);color:var(--on-dark)}
+.ops-now-toggle[aria-pressed=true] b{background:var(--on-dark);color:var(--navy-900)}
+/* الـkbd اتجاهه ltr عالميًا، فـinset-inline-end كان بيحطّه يمين فوق أول النص */
+.ops-search-wrap kbd{inset-inline-end:auto;right:auto;left:var(--s2)}
+.ops-search-wrap input{padding-right:var(--s3)}
+.ops-view-panel{width:min(260px,calc(100vw - 2rem))}
+.ops-view-panel select{width:100%}
+.ops-view-panel .ops-view-toggle{width:100%}.ops-view-panel .ops-view-toggle button{flex:1}
+/* الجدول: المعاد | الخدمة | القائم | القوام | الحالة | الإجراء — الحالة جنب الزرار علطول */
+.ops-list{min-width:760px}
+.ops-list .ops-col-time{width:6.5rem}.ops-list .ops-col-service{width:auto}.ops-list .ops-col-person{width:20%}
+.ops-list .ops-col-count{width:8.5rem}.ops-list .ops-col-status{width:7rem}.ops-list .ops-col-action{width:9rem}
+.ops-list thead th{top:calc(var(--topbar-h) + var(--ops-strip-h, 78px) + var(--ops-toolbar-h, 54px))}
+.ops-list tbody th small{max-width:none}
+.ops-row-time{font-size:var(--t-base)!important;color:var(--navy-950)}
+.ops-shift-tag{display:inline-block;margin-inline-start:var(--s2);padding:0 6px;border:1px solid var(--line);border-radius:var(--radius-sm);color:var(--ink-500);font-size:var(--t-xs);font-weight:400;vertical-align:1px}
+.ops-row-head{max-width:none}.ops-row-head.is-missing{color:var(--ink-500)}
+.ops-row-count{font-family:var(--font-num);white-space:nowrap}
+.ops-badge{display:inline-block;padding:2px var(--s2);border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface-sunken);color:var(--ink-700);font-size:var(--t-xs);font-weight:700;line-height:1.5;white-space:nowrap}
+.ops-board .ops-state-late .ops-badge{background:var(--bad-100);border-color:var(--bad-300);color:var(--bad-700)}
+.ops-board .ops-state-prep .ops-badge{background:var(--warn-100);border-color:var(--warn-300);color:var(--warn-800)}
+.ops-board .ops-state-carried .ops-badge{background:var(--warn-50);border-color:var(--warn-500);color:var(--warn-800)}
+.ops-board .ops-state-out .ops-badge{background:var(--navy-100);border-color:var(--navy-200);color:var(--navy-800)}
+.ops-board .ops-state-back .ops-badge{background:var(--ok-100);border-color:var(--ok-300);color:var(--ok-700)}
+.ops-board .ops-row.ops-state-carried{box-shadow:inset -4px 0 var(--warn-500)}
+.ops-board .ops-view-cards .ops-state-carried,.ops-board .ops-view-list .ops-state-carried{border-inline-start-color:var(--warn-500)}
+.ops-board .ops-state-back{opacity:1}
+.ops-board .ops-state-back th strong,.ops-board .ops-state-back .ops-card-name{color:var(--ink-700);font-weight:400}
+.ops-group-header{border-radius:var(--radius-sm) var(--radius-sm) 0 0;box-shadow:none}
+.ops-group-body{border-radius:0 0 var(--radius-sm) var(--radius-sm)}
+.ops-group-toggle{flex-wrap:wrap;row-gap:2px}
+.ops-group-toggle small{white-space:normal;overflow:visible;flex-basis:auto}
+.ops-group-count{direction:rtl;font-family:inherit;font-size:var(--t-xs);color:var(--ink-500)}
+.ops-group-actions .btn{font-size:var(--t-xs)}
+.ops-card{border-radius:var(--radius-sm);box-shadow:none}
+.ops-board{gap:var(--s4)}
+.regularity-panel{margin-top:var(--s6);border-radius:var(--radius-sm);box-shadow:none}
+.admin-followup summary span.has-items{color:var(--warn-800);font-weight:700}
+@media(max-width:760px){
+  .ops-toolbar{position:static}
+  .page-actions{width:100%}
+  .day-files{width:100%}
+  .day-files .btn{flex:1 1 auto;justify-content:center}
+}
+@media(max-width:600px){
+  .ops-sync:not(.is-stale){display:none}
+}
+
+/* معاينة ملفات التصدير قبل التحميل */
+.export-preview-card{width:min(980px,96vw)}
+.export-preview-meta{margin:0 0 var(--s3);color:var(--ink-700);font-size:var(--t-sm)}
+.export-preview-meta.is-error{color:var(--bad-700);font-weight:700}
+.export-preview-pages{display:flex;flex-direction:column;align-items:center;gap:var(--s4);max-height:min(68vh,900px);overflow:auto;padding:var(--s4);background:var(--navy-50);border:1px solid var(--line);border-radius:var(--radius-sm)}
+.export-preview-page{margin:0;display:flex;flex-direction:column;align-items:center;gap:var(--s1)}
+.export-preview-page img{display:block;width:100%;max-width:820px;height:auto;background:#fff;border:1px solid var(--line-strong);box-shadow:0 1px 3px var(--shadow-edge)}
+.export-preview-page figcaption{color:var(--ink-500);font-size:var(--t-xs)}
+.export-preview-loading{display:flex;justify-content:center;padding:var(--s7)}
+.export-preview-note{margin:var(--s2) 0 0}
+.system-settings{margin-top:var(--s5)}
+.system-settings h3{margin:0 0 var(--s3);color:var(--navy-950);font-size:var(--t-base)}
+.system-setting{white-space:normal;align-items:flex-start}
+.system-setting input{margin-top:3px}
+
 /* ═══════════════════ ㉗ الموبايل واللمس ═══════════════════ */
 /* مساحة الضغط: 30px كانت أصغر من طرف الإصبع — الزراير الصغيرة والقوايم
    ولينكات القائمة الجانبية بتكبر على شاشات اللمس والشاشات الضيقة بس،
