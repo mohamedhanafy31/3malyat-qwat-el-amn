@@ -1,4 +1,4 @@
-"""تصدير ورقة ملء خط التشكيل، بنفس منطق ورقة الأرشيف."""
+"""تصدير ورقة ملء خط التشكيل: كل خدمة عنوان وتحتها خانة لكل مجند بعدد القوام."""
 from io import BytesIO
 
 from docx import Document
@@ -14,9 +14,16 @@ from .export_fit import PageFitError, TextMeter
 
 LAST_FIT = {}
 FONT = "Bahnschrift SemiBold"
-LINE_FACTOR = 1.3
-GAP_PT = 10
+LINE_FACTOR = 1.3        # ارتفاع السطر كنسبة من حجم الخط (ثابت EXACTLY عشان الملاءمة تبقى مضمونة)
+ROW_PAD = .25            # مسافة رأسية جوه كل صف كنسبة من حجم الخط
+GAP_PT = 8              # عرض العمود الفاصل بين الأقسام
+MAX_SIZE, MIN_SIZE = 14.0, 6.5
+BIG_STRENGTH = 15        # الخدمة اللي قوامها 15 أو أكتر بتروح الصفحة المنفصلة
+HEADERS = ("الاسم", "التسليح", "رقم السلاح")
+COLORS = {"header": "BFBFBF", "title": "DEEAF6", "section": "F4B183"}
 
+
+# ---------- XML helpers ----------
 
 def _child(parent, tag):
     node = parent.find(qn("w:" + tag))
@@ -36,61 +43,62 @@ def _bidi_table(table):
     props = table._tbl.tblPr
     if props.find(qn("w:bidiVisual")) is None:
         props.append(OxmlElement("w:bidiVisual"))
-    table.alignment = WD_TABLE_ALIGNMENT.RIGHT
+    table.alignment = WD_TABLE_ALIGNMENT.CENTER
     table.autofit = False
     _child(props, "tblLayout").set(qn("w:type"), "fixed")
 
 
-def _cell_margins(cell, horizontal=2, vertical=0):
-    tcpr = cell._tc.get_or_add_tcPr()
-    mar = _child(tcpr, "tcMar")
-    for side, value in (("top", vertical), ("bottom", vertical),
-                        ("start", horizontal), ("end", horizontal)):
-        node = mar.find(qn("w:" + side))
-        if node is None:
-            node = OxmlElement("w:" + side)
-            mar.append(node)
+def _set_grid(table, widths):
+    for col, width in zip(table._tbl.tblGrid.findall(qn("w:gridCol")), widths):
+        col.set(qn("w:w"), str(max(1, int(round(width * 20)))))
+
+
+def _cell_margins(cell, horizontal=60):
+    mar = _child(cell._tc.get_or_add_tcPr(), "tcMar")
+    for side, value in (("top", 0), ("bottom", 0), ("start", horizontal), ("end", horizontal)):
+        node = _child(mar, side)
         node.set(qn("w:w"), str(value))
         node.set(qn("w:type"), "dxa")
 
 
-def _no_borders(cell):
-    tcpr = cell._tc.get_or_add_tcPr()
-    borders = _child(tcpr, "tcBorders")
-    for side in ("top", "left", "bottom", "right", "insideH", "insideV"):
-        node = borders.find(qn("w:" + side))
-        if node is None:
-            node = OxmlElement("w:" + side)
-            borders.append(node)
-        node.set(qn("w:val"), "nil")
+def _borders(cell, *, top=4, bottom=4, sides=4):
+    """حدود الخلية بسماكة بالثُمن نقطة؛ 0 = من غير حد."""
+    borders = _child(cell._tc.get_or_add_tcPr(), "tcBorders")
+    for side, size in (("top", top), ("start", sides), ("left", sides), ("bottom", bottom),
+                       ("end", sides), ("right", sides)):
+        node = _child(borders, side)
+        if size:
+            node.set(qn("w:val"), "single")
+            node.set(qn("w:sz"), str(size))
+            node.set(qn("w:space"), "0")
+            node.set(qn("w:color"), "000000")
+        else:
+            node.set(qn("w:val"), "nil")
 
 
-def _shade(cell, fill="D9EAD3"):
-    tcpr = cell._tc.get_or_add_tcPr()
-    shd = _child(tcpr, "shd")
+def _shade(cell, fill):
+    shd = _child(cell._tc.get_or_add_tcPr(), "shd")
     shd.set(qn("w:val"), "clear")
     shd.set(qn("w:color"), "auto")
     shd.set(qn("w:fill"), fill)
 
 
-def _set_text(cell, text, size, *, bold=False, no_wrap=False,
-              align=WD_ALIGN_PARAGRAPH.CENTER):
+def _set_text(cell, text, size, *, bold=False, center=True):
+    """center=False يعني من أول السطر (اليمين) في فقرة RTL: من غير jc خالص زي ملف الأرشيف،
+    لأن Word بيقرا left/right في الفقرة العربي بالعكس."""
     cell.text = str(text or "")
     cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
     _cell_margins(cell)
-    tcpr = cell._tc.get_or_add_tcPr()
-    nowrap = tcpr.find(qn("w:noWrap"))
-    if no_wrap and nowrap is None:
-        tcpr.append(OxmlElement("w:noWrap"))
     for paragraph in cell.paragraphs:
-        paragraph.alignment = align
+        if center:
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
         ppr = paragraph._p.get_or_add_pPr()
         if ppr.find(qn("w:bidi")) is None:
             ppr.append(OxmlElement("w:bidi"))
-        paragraph.paragraph_format.space_before = Pt(0)
-        paragraph.paragraph_format.space_after = Pt(0)
-        paragraph.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
-        paragraph.paragraph_format.line_spacing = Pt(size * LINE_FACTOR)
+        fmt = paragraph.paragraph_format
+        fmt.space_before = fmt.space_after = Pt(0)
+        fmt.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+        fmt.line_spacing = Pt(size * LINE_FACTOR)
         for run in paragraph.runs:
             set_run_font(run, FONT, size, bold)
             rpr = run._r.get_or_add_rPr()
@@ -98,15 +106,24 @@ def _set_text(cell, text, size, *, bold=False, no_wrap=False,
                 rpr.append(OxmlElement("w:rtl"))
 
 
-def _widths(page_width, sets):
-    """الاسم بيتكتب بالإيد فواخد أكبر مساحة، والتسليح ورقم السلاح عرض كفاية للكتابة."""
-    pane = (page_width - GAP_PT * (sets - 1)) / sets
-    return [pane * .5, pane * .25, pane * .25]
+def _paragraph(document, text, size, *, page_break=False, before=0, after=4):
+    paragraph = document.add_paragraph()
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    paragraph._p.get_or_add_pPr().append(OxmlElement("w:bidi"))
+    fmt = paragraph.paragraph_format
+    fmt.page_break_before = page_break
+    fmt.space_before, fmt.space_after = Pt(before), Pt(after)
+    fmt.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+    fmt.line_spacing = Pt(size * LINE_FACTOR)
+    run = paragraph.add_run(text)
+    set_run_font(run, FONT, size, True)
+    run._r.get_or_add_rPr().append(OxmlElement("w:rtl"))
+    return paragraph
 
 
-def _unit_rows(block, *, section=False):
-    if section:
-        return [{"type": "section", "text": "خدمات طارئة قبل 12ظ"}]
+# ---------- المحتوى ----------
+
+def _block_rows(block):
     title = block["title"]
     if block["kind"] == "emergency":
         title = f"{title} ({block['time'] or 'بدون ميعاد'})"
@@ -119,189 +136,180 @@ def _unit_rows(block, *, section=False):
 
 
 def _units(dto):
-    blocks = dto.get("blocks") or []
-    units = []
-    emergency_seen = False
-    for block in blocks:
+    """وحدات مترتبة، كل وحدة قايمة صفوف. عنوان الطوارئ وحدة لوحده."""
+    units, emergency_seen = [], False
+    for block in dto.get("blocks") or []:
         if (dto["shift"] == "morning" and block["kind"] == "emergency" and not emergency_seen
                 and not dto.get("big_page")):
-            units.append(("section", None))
+            units.append([{"type": "section", "text": "خدمات طارئة قبل 12ظ"}])
             emergency_seen = True
-        units.append(("block", block))
-    return [(_unit_rows(value, section=True) if kind == "section" else _unit_rows(value),
-             len(_unit_rows(value, section=True)) if kind == "section" else 1 + int(value["count"]))
-            for kind, value in units]
+        units.append(_block_rows(block))
+    return units
 
 
 def _cut_big_units(units, limit):
-    """خدمة قوامها أكبر من عمود كامل (زي ندوة 80 مجند) بتتقسم، والجزء التاني عنوانه «(تابع)»."""
+    """خدمة قوامها أكبر من عمود كامل بتتقسم، والجزء التاني عنوانه «(تابع)»."""
     out = []
-    for items, rows in units:
-        if rows <= limit or items[0]["type"] != "title":
-            out.append((items, rows))
+    for unit in units:
+        if len(unit) <= limit or unit[0]["type"] != "title":
+            out.append(unit)
             continue
-        title, slots = items[0], items[1:]
+        title, slots = unit[0], unit[1:]
         step = max(1, limit - 1)
         for start in range(0, len(slots), step):
             head = title if start == 0 else {"type": "title", "text": f"{title['text']} (تابع)"}
-            piece = [head] + slots[start:start + step]
-            out.append((piece, len(piece)))
+            out.append([head] + slots[start:start + step])
     return out
 
 
-def _pack(units, capacity):
-    """يملا الأعمدة بالترتيب، وكل عمود لحد capacity صف."""
-    panes, used = [[]], 0
-    for items, rows in units:
-        if panes[-1] and used + rows > capacity:
-            panes.append([]); used = 0
-        panes[-1].append(items); used += rows
-    return panes
-
-
-def _split_panes(dto, sets):
-    """أقل ارتفاع عمود ممكن مع الحفاظ على ترتيب الخدمات؛ الخدمة الضخمة بس هي اللي تتقسم."""
-    units = _units(dto)
-    total = sum(rows for _items, rows in units)
+def _split_panes(units, sets):
+    """أقل ارتفاع قسم (بعدد الصفوف) مع الحفاظ على ترتيب الخدمات؛ كل قسم بيبدأ برؤوس الأعمدة."""
+    total = sum(len(unit) for unit in units)
     capacity = max(1, (total + sets - 1) // sets)
     while True:
-        panes = _pack(_cut_big_units(units, capacity), capacity)
+        panes, used = [[]], 0
+        for unit in _cut_big_units(units, capacity):
+            if panes[-1] and used + len(unit) > capacity:
+                panes.append([])
+                used = 0
+            panes[-1].append(unit)
+            used += len(unit)
         if len(panes) <= sets:
-            return panes + [[] for _ in range(sets - len(panes))]
+            panes += [[] for _ in range(sets - len(panes))]
+            return [[{"type": "header"}] + [row for unit in pane for row in unit] if pane else []
+                    for pane in panes]
         capacity += 1
 
 
-MAX_SIZE, MIN_SIZE = 12.0, 6.5
+# ---------- الملاءمة ----------
+
+def _widths(page_width, sets):
+    """الاسم بيتكتب بالإيد فواخد أكبر مساحة."""
+    pane = (page_width - GAP_PT * (sets - 1)) / sets
+    return [pane * .50, pane * .26, pane * .24]
 
 
-COMFORT_SIZE = 8.0  # لو عمودين بيدّوا خط أصغر من كده، نجرّب 3 أو 4 أعمدة بخط أكبر
+def _row_height(row, size, pane_width, meter):
+    line = size * LINE_FACTOR
+    if row["type"] in ("title", "section"):
+        # اسم الخدمة بيلف على كذا سطر والخلية تطول بدل ما الخط يصغر.
+        room = max(1.0, (pane_width - 8) * .85)
+        lines = max(1, len(meter.wrap_lines(row["text"], room, size, True, FONT)))
+        return lines * line + ROW_PAD * size
+    return line + ROW_PAD * size
+
+
+def _heights(panes, widths, size, meter):
+    pane_width = sum(widths)
+    base = size * (LINE_FACTOR + ROW_PAD)
+    return [max((_row_height(pane[index], size, pane_width, meter)
+                 for pane in panes if index < len(pane)), default=base)
+            for index in range(max(len(pane) for pane in panes))]
+
+
+SETS = 4  # ورقة بالعرض فيها 4 جداول جنب بعض (طلب المالك)
 
 
 def _fit(dto, page_width, usable_height):
-    """ارتفاع الصف = المساحة المتاحة ÷ أطول عمود، والخط بيتناسب معاه (لحد 12pt)."""
-    options = []
-    for sets in (2, 3, 4):
-        widths = _widths(page_width, sets)
-        panes = _split_panes(dto, sets)
-        max_rows = max((sum(len(unit) for unit in pane) for pane in panes), default=1) or 1
-        row_height = min(MAX_SIZE * LINE_FACTOR + 2, usable_height * .98 / max_rows)
-        size = min(MAX_SIZE, int((row_height - 1.5) / LINE_FACTOR * 2) / 2)
-        option = (sets, widths, panes, size, row_height, max_rows * row_height / usable_height, max_rows)
-        if size >= COMFORT_SIZE:
-            return option
-        if size >= MIN_SIZE:
-            options.append(option)
-    if options:
-        return max(options, key=lambda item: (item[3], -item[0]))
-    raise PageFitError("تعذر احتواء خط التشكيل في صفحة واحدة حتى بعد تقسيمه إلى أربعة أقسام؛ راجع عدد الخدمات أو أسماءها.")
+    """أكبر خط (لحد 12) يخلّي الجداول الأربعة تدخل الصفحة."""
+    meter = TextMeter()
+    widths = _widths(page_width, SETS)
+    panes = _split_panes(_units(dto), SETS)
+    size = MAX_SIZE
+    while size >= MIN_SIZE:
+        heights = _heights(panes, widths, size, meter)
+        if sum(heights) <= usable_height:
+            return SETS, widths, panes, size, heights, sum(heights) / usable_height
+        size -= .5
+    raise PageFitError("تعذر احتواء خط التشكيل في صفحة واحدة؛ راجع عدد الخدمات أو أسماءها.")
 
 
-def _title_size(text, width, size, meter):
-    """العنوان سطر واحد دايمًا؛ لو طويل بنصغّر خطه هو بس."""
-    need = meter.text_width(text, size, True, FONT)
-    room = max(1.0, (width - 6) * .75)  # هامش أمان: المقياس التقريبي بيقلل عرض العربي شوية
+# ---------- الكتابة ----------
+
+_METER = TextMeter()
+
+
+def _fitted(text, width, size, bold=False):
+    """النص القصير (رأس عمود/تسليح) سطر واحد: لو مش داخل بنصغّر خطه هو بس."""
+    room = max(1.0, (width - 8) * .75)
+    need = _METER.text_width(str(text or ""), size, bold, FONT)
     return size if need <= room else max(5.0, int(size * room / need * 2) / 2)
 
 
-def _set_grid(table, widths):
-    grid = table._tbl.tblGrid
-    cols = grid.findall(qn("w:gridCol"))
-    while len(cols) < len(widths):
-        node = OxmlElement("w:gridCol")
-        grid.append(node)
-        cols.append(node)
-    for col, width in zip(cols, widths):
-        col.set(qn("w:w"), str(max(1, int(round(width * 20)))))
+def _write_pane_row(cells, item, size, widths):
+    kind = item["type"] if item else "blank"
+    if kind == "slot":
+        for index, (cell, value, width) in enumerate(zip(cells, item["values"], widths)):
+            # خانة الاسم من أول السطر عشان يتكتب جنب الرقم؛ الباقي في النص.
+            _set_text(cell, value, _fitted(value, width, size), center=index != 0)
+            _borders(cell, top=2, bottom=2)
+    elif kind == "header":
+        for cell, value, width in zip(cells, HEADERS, widths):
+            _set_text(cell, value, _fitted(value, width, size, True), bold=True)
+            _shade(cell, COLORS["header"])
+            _borders(cell, top=12, bottom=8)
+    elif kind in ("title", "section"):
+        merged = cells[0].merge(cells[-1])
+        _set_text(merged, item["text"], size, bold=True)
+        _shade(merged, COLORS[kind])
+        _borders(merged, top=12, bottom=4)
+    else:
+        for cell in cells:
+            _set_text(cell, "", size)
+            _borders(cell, top=0, bottom=0, sides=0)
 
 
 def _add_sheet(document, dto, heading, page_break=False):
-    """صفحة كاملة: عنوان + جدول الخانات + سطر الإجمالي. بترجع بيانات الملاءمة."""
+    """صفحة كاملة: عنوان + جدول الخانات + سطر الإجمالي."""
     section = document.sections[0]
-    title = document.add_paragraph()
-    title.paragraph_format.page_break_before = page_break
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    ppr = title._p.get_or_add_pPr()
-    ppr.append(OxmlElement("w:bidi"))
-    title.paragraph_format.space_after = Pt(4)
-    title.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
-    title.paragraph_format.line_spacing = Pt(18.2)
-    run = title.add_run(heading)
-    set_run_font(run, FONT, 14, True)
-    run._r.get_or_add_rPr().append(OxmlElement("w:rtl"))
-
+    _paragraph(document, heading, 14, page_break=page_break)
     page_width = section.page_width.pt - section.left_margin.pt - section.right_margin.pt
     page_height = section.page_height.pt - section.top_margin.pt - section.bottom_margin.pt
-    usable_height = page_height - (18.2 + 4) - (10 + 3) - 12
-    sets, widths, panes, size, row_height, ratio, max_rows = _fit(dto, page_width, usable_height)
-    meter = TextMeter()
-    grid_widths = []
+    usable = page_height - (14 * LINE_FACTOR + 4) - (10 * LINE_FACTOR + 4) - 10
+    sets, widths, panes, size, heights, ratio = _fit(dto, page_width, usable)
+
+    grid = []
     for index in range(sets):
         if index:
-            grid_widths.append(GAP_PT)
-        grid_widths.extend(widths)
-    total_rows = max_rows
-    table = document.add_table(rows=total_rows, cols=len(grid_widths))
+            grid.append(GAP_PT)
+        grid.extend(widths)
+    table = document.add_table(rows=len(heights), cols=len(grid))
     _bidi_table(table)
-    table.style = "Table Grid"
-    _set_grid(table, grid_widths)
-    flat_panes = [[row for unit in pane for row in unit] for pane in panes]
-    for row_index, row in enumerate(table.rows):
+    _set_grid(table, grid)
+    for row_index, (row, height) in enumerate(zip(table.rows, heights)):
         row.height_rule = WD_ROW_HEIGHT_RULE.EXACTLY
-        row.height = Pt(row_height)
+        row.height = Pt(height)
+        cells = row.cells
+        for cell, width in zip(cells, grid):
+            cell.width = Pt(width)
         col = 0
-        for pane_index, pane_rows in enumerate(flat_panes):
+        for pane_index, pane in enumerate(panes):
             if pane_index:
-                gap = row.cells[col]
-                _set_text(gap, "", size, no_wrap=True)
-                _no_borders(gap)
+                _set_text(cells[col], "", size)
+                _borders(cells[col], top=0, bottom=0, sides=0)
                 col += 1
-            item = pane_rows[row_index] if row_index < len(pane_rows) else {"type": "blank"}
-            if item["type"] == "slot":
-                for index, (value, width) in enumerate(zip(item["values"], widths)):
-                    cell = row.cells[col]
-                    _set_text(cell, value, size, no_wrap=True,
-                              align=WD_ALIGN_PARAGRAPH.RIGHT if index == 0 else WD_ALIGN_PARAGRAPH.CENTER)
-                    cell.width = Pt(width)
-                    col += 1
-            elif item["type"] in {"title", "section"}:
-                cell = row.cells[col]
-                merged = cell
-                for extra in range(1, 3):
-                    merged = merged.merge(row.cells[col + extra])
-                _set_text(merged, item["text"], _title_size(item["text"], sum(widths), size, meter),
-                          bold=True, no_wrap=True, align=WD_ALIGN_PARAGRAPH.RIGHT)
-                _shade(merged, "D9EAD3" if item["type"] == "title" else "EDEDED")
-                col += 3
-            else:
-                for _ in widths:
-                    cell = row.cells[col]
-                    _set_text(cell, "", size, no_wrap=True)
-                    _no_borders(cell)
-                    col += 1
-
-    total = document.add_paragraph()
-    total.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    ppr = total._p.get_or_add_pPr(); ppr.append(OxmlElement("w:bidi"))
-    total.paragraph_format.space_before = Pt(3)
-    total.paragraph_format.line_spacing_rule = WD_LINE_SPACING.EXACTLY
-    total.paragraph_format.line_spacing = Pt(10)
+            _write_pane_row(cells[col:col + 3], pane[row_index] if row_index < len(pane) else None, size, widths)
+            col += 3
     blocks = dto.get("blocks") or []
-    run = total.add_run(f"الإجمالي: {len(blocks)} خدمة / {sum(int(b['count']) for b in blocks)} مجند")
-    set_run_font(run, FONT, min(size + 1, 10), True)
-    run._r.get_or_add_rPr().append(OxmlElement("w:rtl"))
+    _paragraph(document, f"الإجمالي: {len(blocks)} خدمة / {sum(int(b['count']) for b in blocks)} مجند",
+               10, before=4, after=0)
     return {"size_pt": size, "ratio": ratio, "halves": sets}
 
 
-BIG_STRENGTH = 15  # الخدمة اللي قوامها 15 أو أكتر بتروح الصفحة المنفصلة
-
-
 def build_docx(dto):
+    if dto.get("shift") == "night":
+        # الليل على قالب ملف الأرشيف نفسه (طلب المالك)، مش التنسيق الجديد.
+        from . import formation_night_export
+        output = formation_night_export.build_docx(dto)
+        LAST_FIT.clear()
+        LAST_FIT.update(formation_night_export.LAST_FIT)
+        return output
     document = Document()
     section = document.sections[0]
-    section.orientation = WD_ORIENT.PORTRAIT
-    section.page_width, section.page_height = Inches(8.27), Inches(11.69)
-    section.left_margin = section.right_margin = Inches(.28)
-    section.top_margin = section.bottom_margin = Inches(.25)
+    section.orientation = WD_ORIENT.LANDSCAPE
+    section.page_width, section.page_height = Inches(11.69), Inches(8.27)
+    section.left_margin = section.right_margin = Inches(.3)
+    section.top_margin = section.bottom_margin = Inches(.3)
     _bidi_document(document)
     blocks = dto.get("blocks") or []
     small = [b for b in blocks if int(b.get("count") or 0) < BIG_STRENGTH]

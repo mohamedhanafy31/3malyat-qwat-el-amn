@@ -87,7 +87,8 @@ def build(data, day, shift):
                 warnings.append(f"الخدمة «{row.get('name', '')}» بدون ميعاد؛ اتضافت في مجموعة بدون ميعاد.")
             else:
                 minutes = int(parsed[:2]) * 60 + int(parsed[3:])
-                if minutes >= 12 * 60:
+                # الصبح من 4ص لحد قبل 12ظ؛ مواعيد الليل (12 ليل، 2ل…) مش من خط الصبح.
+                if minutes >= 12 * 60 or minutes < 4 * 60:
                     continue
                 time = format_time(parsed).replace(" ", "")
             count_row = _find_count(official, row.get("name"), "طوارئ")

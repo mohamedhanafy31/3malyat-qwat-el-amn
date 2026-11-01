@@ -43,28 +43,42 @@ def test_dto_slots_weapons_time_boundary_and_no_time():
     assert result["title"] == "خط تشكيل صباحي عن يوم الثلاثاء الموافق 20/10/2026م"
 
 
-def test_docx_portrait_rtl_title_slots_and_emergency_section():
+def test_morning_docx_landscape_four_tables_rtl_title_slots_and_emergency_section():
     output = build_docx(build(_data(), DAY, "morning"))
     document = Document(BytesIO(output.getvalue()))
-    assert document.sections[0].orientation == 0
+    assert document.sections[0].orientation == 1  # بالعرض
     table = document.tables[0]
-    assert len(table.columns) == 7
-    rows = [[cell.text for cell in row.cells] for row in table.rows]
-    texts = [cell for row in rows for cell in row]
+    assert len(table.columns) == 4 * 3 + 3  # 4 جداول × (الاسم/التسليح/رقم السلاح) + 3 فواصل
+    texts = [cell.text for row in table.rows for cell in row.cells]
     assert "1-" in texts and "2-" in texts and "3-" in texts
-    assert "طارئة 11 (11:59ص)" in texts
-    assert "خدمات طارئة قبل 12ظ" in texts
+    assert "طارئة 11 (11:59ص)" in texts and "خدمات طارئة قبل 12ظ" in texts
+    assert "الاسم" in texts and "رقم السلاح" in texts
     xml = _xml(output)
-    assert xml.count("bidiVisual") >= 1
+    assert "bidiVisual" in xml
     assert "خط تشكيل صباحي عن يوم الثلاثاء الموافق 20/10/2026م" in xml
 
 
-def test_night_uses_basic_pm_and_totals():
+def test_morning_excludes_night_times():
+    data = _data()
+    data["day_assignments"][DAY].append({"id": "A4", "name": "حملة ليل", "section": "الخدمات الطارئة",
+                                         "shift": "صباحية", "time": "12 ليل", "conscript_count": 4})
+    names = [b["name"] for b in build(data, DAY, "morning")["blocks"]]
+    assert "حملة ليل" not in names
+
+
+def test_night_uses_archive_template_and_basic_pm_strength():
     result = build(_data(), DAY, "night")
     assert [b["name"] for b in result["blocks"]] == ["ليلية خدمة"]
     assert result["blocks"][0]["weapons"] == ["آلي", "كلبش"]
     output = build_docx(result)
-    assert LAST_FIT["page_count"] == 1 and LAST_FIT["halves"] == 2
+    document = Document(BytesIO(output.getvalue()))
+    table = document.tables[0]
+    assert document.sections[0].orientation == 0  # زي ملف الأرشيف
+    texts = [cell.text for row in table.rows for cell in row.cells]
+    # العنوان الأول بنفس شكل القالب: الخدمة + «التسليح» + «رقم السلاح»، وتحته خانتين بعدد القوام.
+    assert texts[:3] == ["ليلية خدمة", "التسليح", "رقم السلاح"]
+    assert "1-" in texts and "2-" in texts and "3-" not in texts
+    assert LAST_FIT["page_count"] == 1
 
 
 def _blocks(n, count=1):
@@ -72,32 +86,31 @@ def _blocks(n, count=1):
              "weapons": ["آلي"] * count, "kind": "basic", "time": ""} for i in range(n)]
 
 
-def test_more_columns_instead_of_tiny_font():
-    dto = {"title": "اختبار", "shift": "night", "day": DAY, "blocks": _blocks(120),
-           "totals": {"services": 120, "conscripts": 120}, "warnings": []}
+def test_heavy_morning_shrinks_font_but_stays_one_page():
+    dto = {"title": "اختبار", "shift": "morning", "day": DAY, "blocks": _blocks(80),
+           "totals": {"services": 80, "conscripts": 80}, "warnings": []}
     build_docx(dto)
-    assert LAST_FIT["page_count"] == 1
-    assert LAST_FIT["halves"] in (3, 4) and LAST_FIT["size_pt"] >= 6.5
+    assert LAST_FIT["page_count"] == 1 and LAST_FIT["halves"] == 4
+    assert 6.5 <= LAST_FIT["size_pt"] < 12
 
 
 def test_big_services_go_to_a_separate_page_and_split_with_continuation():
-    blocks = _blocks(3) + [{"name": "ندوة", "title": "ندوة", "count": 80, "weapons": [],
+    blocks = _blocks(3) + [{"name": "ندوة", "title": "ندوة", "count": 120, "weapons": [],
                             "kind": "basic", "time": ""}]
-    dto = {"title": "خط تشكيل صباحي عن يوم الأربعاء الموافق 26/8/2026م", "shift": "night", "day": DAY,
-           "blocks": blocks, "totals": {"services": 4, "conscripts": 83}, "warnings": []}
+    dto = {"title": "خط تشكيل صباحي عن يوم الأربعاء الموافق 26/8/2026م", "shift": "morning", "day": DAY,
+           "blocks": blocks, "totals": {"services": 4, "conscripts": 123}, "warnings": []}
     output = build_docx(dto)
     assert LAST_FIT["page_count"] == 2
-    text = output.getvalue()
-    document = Document(BytesIO(text))
+    document = Document(BytesIO(output.getvalue()))
     cells = {cell.text for table in document.tables for row in table.rows for cell in row.cells}
-    assert "ندوة (تابع)" in cells and "15" not in cells
+    assert "ندوة (تابع)" in cells
     assert any("(الخدمات الكبيرة)" in p.text for p in document.paragraphs)
     first_page = {cell.text for row in document.tables[0].rows for cell in row.cells}
     assert "ندوة" not in first_page
 
 
 def test_impossible_page_raises():
-    heavy = {"title": "اختبار", "shift": "night", "day": DAY, "blocks": _blocks(400),
+    heavy = {"title": "اختبار", "shift": "morning", "day": DAY, "blocks": _blocks(400),
              "totals": {"services": 400, "conscripts": 400}, "warnings": []}
     try:
         build_docx(heavy)
