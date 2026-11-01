@@ -13,6 +13,8 @@ from .duty import summarise
 from .duty_export import build_docx as build_duty_docx
 from .regularity import build as build_regularity, effective_inputs
 from .regularity_export import build_docx as build_regularity_docx
+from .formation import build as build_formation
+from .formation_export import build_docx as build_formation_docx
 from .store import load_data
 from .utils import around
 
@@ -85,3 +87,13 @@ def build_regularity_bytes(day):
     payload = build_regularity(preview, day, inputs)
     payload["day"] = day
     return _bytes(build_regularity_docx(payload))
+
+
+def build_formation_morning_bytes(day):
+    data = load_data(around(day, -1, 0))
+    return _bytes(build_formation_docx(build_formation(data, day, "morning")))
+
+
+def build_formation_night_bytes(day):
+    data = load_data(around(day, -1, 0))
+    return _bytes(build_formation_docx(build_formation(data, day, "night")))

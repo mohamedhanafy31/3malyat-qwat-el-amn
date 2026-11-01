@@ -26,7 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-KINDS = ("board", "duty", "afraad", "campaign", "counts", "regularity")
+KINDS = ("board", "duty", "afraad", "campaign", "counts", "regularity",
+         "formation_morning", "formation_night")
 ARABIC_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹", "01234567890123456789")
 DIACRITICS = re.compile(r"[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]")
 PLACEHOLDER = re.compile(r"^[\s\-_ـ‐‑‒–—―.\/،؛:]*$")
@@ -613,9 +614,31 @@ def compare_regularity(day: str, archive, system_bytes: bytes) -> dict[str, Any]
     return result
 
 
+def compare_formation(day: str, archive, system_bytes: bytes, *, night=False) -> dict[str, Any]:
+    result = _result(day, "formation_night" if night else "formation_morning")
+    # الصباح تقرير قياس فقط: شكل الأرشيف القديم مش مرجع اعتماد للتصميم الجديد.
+    if not night:
+        result["status"] = "report_only"
+        return result
+    archive_rows = _rows(archive, 0)[1:]
+    generated_rows = _rows(system_bytes, 0)[1:]
+    for rows in (archive_rows, generated_rows):
+        for row in rows:
+            row[:] = (row + ["", "", ""])[:3]
+    _compare_rows(result, "services",
+                  [{"identity": _service_identity(r[0]), "service": r[0], "count": r[1], "weapon": r[2]}
+                   for r in archive_rows if r[0] and normalize_arabic(r[0]) != normalize_arabic("الإجمالي")],
+                  [{"identity": _service_identity(r[0]), "service": r[0], "count": r[1], "weapon": r[2]}
+                   for r in generated_rows if r[0] and normalize_arabic(r[0]) != normalize_arabic("الإجمالي")],
+                  ("identity",), ("service", "count", "weapon"))
+    return result
+
+
 COMPARATORS: dict[str, Callable[[str, Any, bytes], dict[str, Any]]] = {
     "board": compare_board, "duty": compare_duty, "afraad": compare_afraad,
     "campaign": compare_campaign, "counts": compare_counts, "regularity": compare_regularity,
+    "formation_morning": lambda day, archive, generated: compare_formation(day, archive, generated),
+    "formation_night": lambda day, archive, generated: compare_formation(day, archive, generated, night=True),
 }
 
 
@@ -633,6 +656,10 @@ def _kind_for_name(name: str) -> str | None:
         return "campaign"
     if name.startswith("اعداد الخدمات") and Path(name).suffix.lower() in {".xlsx", ".docx", ".doc"}:
         return "counts"
+    if name == "خط تشكيل صبح.docx":
+        return "formation_morning"
+    if name == "خط تشكيل ليل.docx":
+        return "formation_night"
     if re.fullmatch(r"\d+\.docx", name):
         return "board"
     return None
@@ -646,7 +673,7 @@ def _named_day(path: Path, kind: str, archive_root: Path) -> str | None:
             return date(int(hit.group(3)), int(hit.group(2)), int(hit.group(1))).isoformat()
         except ValueError:
             return None
-    if kind in {"board", "regularity"}:
+    if kind in {"board", "regularity", "formation_morning", "formation_night"}:
         day_hit = re.match(r"(\d+)", translated)
         try:
             month = int(path.parent.parent.name)

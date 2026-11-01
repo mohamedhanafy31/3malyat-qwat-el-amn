@@ -21,7 +21,8 @@ from .settings import get_setting
 from .store import ALL_CORE_KEYS
 
 LOG = logging.getLogger(__name__)
-KINDS = ("board", "duty", "afraad", "campaign", "counts", "regularity")
+KINDS = ("board", "duty", "afraad", "campaign", "counts", "regularity",
+         "formation_morning", "formation_night")
 _PATTERNS = {
     "board": re.compile(r"^\d+\.(?:docx|pdf)$"),
     "regularity": re.compile(r"^\d+\.\.docx$"),
@@ -29,6 +30,8 @@ _PATTERNS = {
     "afraad": re.compile(r"^\d+-\d+-\d{4} افراد\.(?:docx|pdf)$"),
     "campaign": re.compile(r"^يومية الحملة"),
     "counts": re.compile(r"^اعداد الخدمات"),
+    "formation_morning": re.compile(r"^خط تشكيل صبح\.docx$"),
+    "formation_night": re.compile(r"^خط تشكيل ليل\.docx$"),
 }
 _TEMP_NAMES = {"desktop.ini", "Thumbs.db"}
 # أقسام اليوم اللي بتدل إن حد اشتغل على اليوم ده فعلًا. التهيئة التلقائية
@@ -111,6 +114,8 @@ def file_names(day):
         "afraad": f"{number}-{month}-{year} افراد.docx",
         "campaign": f"يومية الحملة عن يوم {number}-{month}-{year}.docx",
         "counts": f"اعداد الخدمات يوم {number}-{month}-{year}.xlsx",
+        "formation_morning": "خط تشكيل صبح.docx",
+        "formation_night": "خط تشكيل ليل.docx",
     }
 
 

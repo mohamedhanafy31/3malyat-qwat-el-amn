@@ -464,7 +464,16 @@ def _extract_counts_xlsx(doc: dict[str, Any], path: Path) -> list[dict[str, Any]
                     if norm(name) in joined:
                         block = name
                 if any(value != "" for value in values) or formulas:
-                    kind = "counts_total" if formulas or "المجموع" in joined or "الاجمالي" in joined else "counts_row"
+                    # بعض ملفات Excel القديمة بتحط معادلة الإجمالي في آخر
+                    # صف من صفوف الخدمات نفسها. وجود المعادلة لوحده مش معناه
+                    # إن الصف إجمالي؛ لو فيه أزواج خدمة/عدد، لازم نحتفظ به.
+                    has_service_pair = any(
+                        values[index].strip() and re.fullmatch(r"\s*\d+\s*", values[index + 1] or "")
+                        for index in range(len(values) - 1)
+                    )
+                    kind = ("counts_total" if (not has_service_pair and
+                                                (formulas or "المجموع" in joined or "الاجمالي" in joined))
+                            else "counts_row")
                     records.append(_provenance(doc, record_type=kind, raw_cells=values,
                                                table=sheet_index, row=ri - 1, columns=columns,
                                                sheet=sheet_name, block=block, formulas=formulas))

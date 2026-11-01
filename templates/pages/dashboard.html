@@ -118,6 +118,8 @@
           <a class="btn" href="{{ url_for('pages.board') }}">اليومية التفصيلية</a>
           <a class="btn" href="{{ url_for('pages.duty') }}">يومية الضباط</a>
           <a class="btn" href="{{ url_for('pages.counts') }}">أعداد الخدمات</a>
+          <a class="btn" id="formationMorningExport" href="#">خط تشكيل صبح</a>
+          <a class="btn" id="formationNightExport" href="#">خط تشكيل ليل</a>
         </span>
       </h3>
       <div class="body"><ul class="task-list" id="dashTasks">{{ skeleton("tasks", 3) }}</ul><div class="recent-changes" id="dashChanges">{{ skeleton("changes", 5) }}</div></div>

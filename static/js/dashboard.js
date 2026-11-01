@@ -8,6 +8,13 @@
   const requestedDay = new URLSearchParams(location.search).get("day");
   let day = /^\d{4}-\d{2}-\d{2}$/.test(requestedDay || "") ? requestedDay : today;
   window.exportDocxUrl = () => `/api/ops/${day}/regularity.docx`;
+  const updateFormationLinks = () => {
+    const morning = document.getElementById("formationMorningExport");
+    const night = document.getElementById("formationNightExport");
+    if (morning) morning.href = `/api/ops/${day}/formation-morning.docx`;
+    if (night) night.href = `/api/ops/${day}/formation-night.docx`;
+  };
+  updateFormationLinks();
   const userKey = document.getElementById("userChipWrap")?.dataset.userId || "anonymous";
   const prefKey = `opsBoardPrefs:v2:${userKey}`;
   const defaults = {view: "list", groupBy: "time", shift: "all", states: [], types: [], lines: [],
@@ -235,6 +242,7 @@
     pendingTargets.clear(); pendingLabels.clear(); pendingTimers.clear(); rowErrors.clear();
     closeModal("opsLineModal", false); closeModal("opsTimeModal", false);
     day = nextDay; ops = null; regularity = null; regularityDirty = false;
+    updateFormationLinks();
     filters = {query: "", states: new Set(), types: new Set(), lines: new Set(), timeWindow: "all", attention: false};
     activeShift = "all"; prefs.collapsed = {};
     const url = new URL(location.href);

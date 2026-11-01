@@ -10,6 +10,8 @@ from ..regularity import (build as build_regularity,
                            clear_inputs, default_inputs, effective_inputs,
                            saved_inputs, save_inputs)
 from ..regularity_export import build_docx as build_regularity_docx
+from ..formation import build as build_formation
+from ..formation_export import build_docx as build_formation_docx
 from ..auth import current_actor
 from ..day_open import needs_prepare, prepare
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
@@ -140,6 +142,29 @@ def export_regularity_docx(day):
     day_number = str(date.fromisoformat(day).day)
     return send_file(buf, as_attachment=True, download_name=f"{day_number}..docx",
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+def _export_formation(day, shift, filename):
+    day = _day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    data = load_data(_scope(day))
+    if needs_prepare(data, day, include_inspections=True):
+        data = deepcopy(data)
+        prepare(data, day, include_inspections=True)
+    return send_file(build_formation_docx(build_formation(data, day, shift)),
+                     as_attachment=True, download_name=filename,
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+@bp.get("/api/ops/<day>/formation-morning.docx")
+def export_formation_morning_docx(day):
+    return _export_formation(day, "morning", "خط تشكيل صبح.docx")
+
+
+@bp.get("/api/ops/<day>/formation-night.docx")
+def export_formation_night_docx(day):
+    return _export_formation(day, "night", "خط تشكيل ليل.docx")
 
 
 @bp.get("/api/ops/<day>/regularity")
