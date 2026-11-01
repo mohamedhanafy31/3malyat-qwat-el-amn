@@ -13977,7 +13977,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 301,
+    "CHG": 302,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -19115,6 +19115,22 @@
         "other_links": 30,
         "left_empty": 889,
         "conflicts_untouched": 61
+      },
+      "reason": "",
+      "edited_by": "النظام"
+    },
+    {
+      "id": "CHG-302",
+      "ts": "2026-11-01T07:43:18",
+      "entity": "import",
+      "entity_id": "counts-026",
+      "action": "batch",
+      "day": null,
+      "text": "استكمال صفوف الأعداد (counts-026): إضافة 481 صف",
+      "before": null,
+      "after": {
+        "days": 68,
+        "rows_added": 481
       },
       "reason": "",
       "edited_by": "النظام"
