@@ -26,13 +26,14 @@ def test_basic_section_always_has_the_22_fixed_services_in_order(client):
     assert len(BASIC_SERVICE_NAMES) == 22
 
 
-def test_basic_entries_start_vacant_with_no_details(client):
+def test_basic_entries_start_vacant_with_default_details(client):
     d = client.get(f"/api/afraad/{DAY}").get_json()
     row = d["basic"][0]
     assert row["id"] == FIRST_ID and row["name"] == "مدرعة المديرية"
     assert row["morning"] == {"name": "", "phone": ""}
     assert row["night"] == {"name": "", "phone": ""}
-    assert row["count"] == "" and row["weapon"] == "" and row["schedule"] == ""
+    assert row["count"] and row["weapon"] and row["schedule"]
+    assert set(row["default_fields"]) == {"count", "weapon", "schedule"}
 
 
 def test_setting_a_basic_entry_is_scoped_to_one_day(client):

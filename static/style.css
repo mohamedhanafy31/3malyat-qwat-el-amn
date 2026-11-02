@@ -2262,6 +2262,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .day-files{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);padding:var(--s1) var(--s1) var(--s1) var(--s3);border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface)}
 .day-files-label{color:var(--ink-500);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
 .day-files .btn{display:inline-flex;align-items:center;gap:var(--s1);height:var(--control-h)}
+.day-files [data-special-formation] span{max-width:26ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .day-files-setup{color:var(--navy-700);font-size:var(--t-xs);text-decoration:underline;text-underline-offset:3px;white-space:nowrap;padding-inline:var(--s1)}
 .day-files-setup:hover{color:var(--navy-950)}
 .page-head .titles .day-warning.hidden{display:none}

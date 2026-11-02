@@ -1,6 +1,7 @@
 {# صفحة واحدة بتخدم الضباط والأفراد — نفس الجدول والأدوات، بيختلفوا في
    الأعمدة وكرت القيادة، وده متحدد من data-page في <body>. #}
 {% extends "base.html" %}
+{% block export %}docx{% endblock %}
 {% block page_actions %}
 {% if page == 'personnel' %}<button class="btn" id="importPersonnelBtn">استيراد كشف Word</button><input class="hidden" type="file" id="importPersonnelFile" accept=".doc,application/msword">{% endif %}
 <button class="primary" id="addBtn">{{ icon('plus') }} {{ 'إضافة ضابط' if page == 'officers' else 'إضافة فرد' }}</button>
@@ -62,6 +63,7 @@
 {% block modals %}
   {% include "partials/person_modal.html" %}
   {% include "partials/remove_modal.html" %}
+  {% include "partials/people_export_modal.html" %}
   {% if page == 'personnel' %}{% include "partials/roster_import_modal.html" %}{% endif %}
   {% if page == 'officers' %}{% include "partials/leave_modal.html" %}{% include "partials/stop_leave_modal.html" %}{% endif %}
 {% endblock %}

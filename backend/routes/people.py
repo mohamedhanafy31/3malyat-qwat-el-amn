@@ -1,13 +1,16 @@
 """القوة — إضافة/تعديل/إخراج/استعادة/حذف الضباط والأفراد."""
 from datetime import date
 
-from flask import Blueprint, jsonify
+from io import BytesIO
+from urllib.parse import quote
+
+from flask import Blueprint, jsonify, request, send_file
 
 from ..constants import (
     COMMAND_ROLES, EDITABLE, GROUP_ROLES, OFFICER_ROLES, OFFICER_SECTIONS,
     PERSONNEL_FAMILIES,
 )
-from .. import changes, day_status, retro
+from .. import changes, daily_files, day_status, people_export, retro
 from ..dated import command_on, record_command_change
 from ..references import cascade_delete
 from ..repo import Repos
@@ -15,7 +18,7 @@ from ..people import (
     HISTORY_FIELDS, PERSONNEL_HISTORY_FIELDS, cleanup_outside_window, record_change,
     effective, service_window_conflicts, valid_rest,
 )
-from ..store import AbortRequest, with_data
+from ..store import AbortRequest, load_data, with_data
 from ..utils import (
     MAX_LEN, canonical_day, category_for, check_lengths, json_payload, valid_phone,
 )
@@ -472,3 +475,36 @@ def delete_archive_record(person_id):
         return jsonify({"ok": True})
 
     return with_data(mutate, _person_scope(person_id))
+
+
+@bp.get("/api/people/<category>/export.docx")
+def export_people(category):
+    """كشف Word بالضباط أو الأفراد اللي على القوة. نسخة منه بتتحفظ في فولدر
+    آخر يوم في أرشيف الملفات اليومية (لو الأرشيف فيه أيام)."""
+    if category not in people_export.COLUMNS:
+        return jsonify({"error": "نوع الكشف غير معروف."}), 404
+    raw_columns = request.args.get("columns")
+    selected = None if raw_columns is None or not raw_columns.strip() else raw_columns.split(",")
+    known = {column["key"] for column in people_export.export_columns(category)}
+    unknown = sorted({key for key in (selected or []) if key not in known})
+    if unknown:
+        return jsonify({"error": f"أعمدة غير معروفة: {'، '.join(unknown)}"}), 400
+    day = day_status.today_iso()
+    content = people_export.build_docx(load_data([]), category, day, selected)
+    name = people_export.file_name(category, day)
+    response = send_file(BytesIO(content), as_attachment=True, download_name=name,
+                         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    folder = daily_files.latest_day_folder()
+    if folder is not None:
+        (folder / name).write_bytes(content)
+        saved = (folder / name).relative_to(daily_files.root()).as_posix()
+        response.headers["X-Saved-To"] = quote(saved)
+    return response
+
+
+@bp.get("/api/people/<category>/export-columns")
+def people_export_columns(category):
+    """أسماء أعمدة كشف Word لمنتقي الواجهة."""
+    if category not in people_export.COLUMNS:
+        return jsonify({"error": "نوع الكشف غير معروف."}), 404
+    return jsonify(people_export.export_columns(category))

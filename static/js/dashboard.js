@@ -5,8 +5,8 @@
 
   let ops = null;
   const today = curDate();
-  const requestedDay = new URLSearchParams(location.search).get("day");
-  let day = /^\d{4}-\d{2}-\d{2}$/.test(requestedDay || "") ? requestedDay : today;
+  let day = workDay();
+  rememberWorkDay(day);
   window.exportDocxUrl = () => `/api/ops/${day}/regularity.docx`;
   const updateFormationLinks = () => {
     const morning = document.getElementById("formationMorningExport");
@@ -15,6 +15,29 @@
     if (night) night.href = `/api/ops/${day}/formation-night.docx`;
   };
   updateFormationLinks();
+  // خط تشكيل لكل مناسبة خاصة في اليوم (مباراة، انتشار…) — زرار لكل قسم مخصّص.
+  let specialSig = "";
+  const paintSpecialFormations = (list = []) => {
+    const sig = JSON.stringify([day, list]);
+    if (sig === specialSig) return;
+    specialSig = sig;
+    document.querySelectorAll("#dayFiles [data-special-formation]").forEach(link => link.remove());
+    const anchor = document.getElementById("regularityJump");
+    // لكل مناسبة ملفين: خط التشكيل ويومية الانتظام بتاعتها (بالعرض).
+    list.forEach(item => [["special-formation", "خط تشكيل"], ["special-regularity", "يومية انتظام"]].forEach(([route, label]) => {
+      const link = document.createElement("a");
+      link.className = "btn";
+      link.dataset.specialFormation = item.name;
+      link.href = `/api/ops/${day}/${route}.docx?section=${encodeURIComponent(item.name)}`;
+      link.title = `${label} ${item.name} — ${item.posts} خدمة`;
+      link.innerHTML = `${icon("download")}<span>${label} <bdi>${esc(item.name)}</bdi></span>`;
+      link.addEventListener("click", event => {
+        event.preventDefault();
+        previewExport(link.getAttribute("href"), `${label} ${item.name}`);
+      });
+      anchor ? anchor.before(link) : document.getElementById("dayFiles")?.append(link);
+    }));
+  };
   // خطّا التشكيل بيعدّوا على المعاينة زي زرار Word بالظبط.
   ["formationMorningExport", "formationNightExport"].forEach(id => document.getElementById(id)?.addEventListener("click", event => {
     event.preventDefault();
@@ -256,7 +279,9 @@
     pendingTargets.clear(); pendingLabels.clear(); pendingTimers.clear(); rowErrors.clear();
     closeModal("opsLineModal", false); closeModal("opsTimeModal", false);
     day = nextDay; ops = null; regularity = null; regularityDirty = false;
+    rememberWorkDay(day);
     updateFormationLinks();
+    paintSpecialFormations([]);
     filters = {query: "", states: new Set(), types: new Set(), lines: new Set(), timeWindow: "all", attention: false};
     activeShift = "all"; prefs.collapsed = {};
     const url = new URL(location.href);
@@ -674,6 +699,7 @@
     const previous = ops;
     const changed = !ops || sig(ops) !== sig(next);
     ops = next;
+    paintSpecialFormations(next.special_formations || []);
     lastRefreshOkAt = Date.now(); paintSync();
     if (!changed) return;
     const before = new Map((previous ? allRuns() : []).map(run => [actionTarget(run), run]));

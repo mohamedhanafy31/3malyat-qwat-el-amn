@@ -8,27 +8,25 @@ from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Pt
+from docx.shared import Cm, Pt, Twips
 
 from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font, style_tables_bold_rtl
-from .export_fit import apply_fit_to_docx_table, fit_table, usable_height_pt
-from .labels import first_words
+from .labels import personnel_rank_abbr
 
-LAST_FIT = {}
 GRID_WIDTHS = [693, 514, 1416, 1268, 148, 1217, 342, 420, 1139,
                342, 334, 887, 408, 1109, 8]
-CHECKPOINT_SPANS = [1, 3, 4, 3, 4]
-DELIVERY_SPANS = [1, 3, 4, 3, 4]
+# التنسيق الغالب في أرشيف سبتمبر وأكتوبر 2026 (54 ملف): جدول واحد بيكمّل على
+# صفحة تانية عادي — مفيش تصغير لصفحة واحدة.
+CHECKPOINT_SPANS = [1, 3, 4, 3, 4]               # 583 صف
+DELIVERY_SPANS = [1, 5, 4, 3, 2]                 # 1,038 صف
+DRIVER_ONLY_SPANS = [1, 5, 9]                    # «سائق بورتوفيق»: سائق من غير مركبة (55 صف)
+PLATE_SPANS = [2, 1, 2, 2, 2, 3, 3]              # سجل اللوحات (154 صف، آخر عمود 8 twips بيتضم للأخير)
 FONT = "Sultan bold"
 FILL = "F2F2F2"
-# قواعد الطباعة اللي ثبتت من أرشيف 82 يوم (أغسطس–أكتوبر 2026):
-# - السائق اسمين بدون رتبة (1,076 من 1,418 اسم؛ الثلاثي 305 والرباعي 36، والرتبة 0).
-DRIVER_NAME_WORDS = 2
-# - رقم لوحة الخدمات/اللواري من غير سلسلة (880 صف) أكتر من «ب13/9416» (469 صف).
-#   ظهور السلسلة بيجي في فترات متصلة (8-13/8 و13-24/9 و6-21/10): غيّر القيمة دي لو
-#   اتحوّل الأرشيف كله للصيغة الأطول.
-DELIVERY_PLATE_WITH_SERIES = False
-# - لوريات المأموريات الثابتة مالهاش صف في الأرشيف إلا لو اتكلّفت فعلًا.
+TITLE_PT, POST_PT, HEADING_PT, DELIVERY_PT, PLATE_PT = 14, 9, 9, 11, 11
+# رقم لوحة خطوط السير بالسلسلة «ب15/5217» (طلب المالك؛ الأرشيف كان متقسّم بين الصيغتين).
+DELIVERY_PLATE_WITH_SERIES = True
+# لوريات المأموريات الثابتة مالهاش صف في الأرشيف إلا لو اتكلّفت فعلًا.
 
 
 def _set_borders(table):
@@ -62,6 +60,14 @@ def _set_grid(table):
         grid.append(col)
     table.autofit = False
     table._tbl.tblPr.append(OxmlElement("w:bidiVisual"))
+    # هوامش الخانات صفر زي الأرشيف — من غيرها اللوحة «ب13/9416» بتلف على سطرين.
+    margins = OxmlElement("w:tblCellMar")
+    for side in ("left", "right"):
+        node = OxmlElement(f"w:{side}")
+        node.set(qn("w:w"), "0")
+        node.set(qn("w:type"), "dxa")
+        margins.append(node)
+    table._tbl.tblPr.append(margins)
 
 
 def _shade(cell, fill):
@@ -80,6 +86,9 @@ def _cell(cell, text="", *, size=9, bold=True, fill=None):
     cell.text = ""
     cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
     paragraph = cell.paragraphs[0]
+    # cell.text = "" بيسيب run فاضي بخط Arial 10 بيكبّر ارتفاع السطر عن مقاس الأرشيف.
+    for empty in paragraph._p.findall(qn("w:r")):
+        paragraph._p.remove(empty)
     paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
     ppr = paragraph._p.get_or_add_pPr()
     if ppr.find(qn("w:bidi")) is None:
@@ -93,28 +102,30 @@ def _cell(cell, text="", *, size=9, bold=True, fill=None):
         _shade(cell, fill)
 
 
-def _merge_row(row, spans, values, *, size=9, fill=None):
+def _merge_row(row, spans, values, *, size=9, fill=None, number_fill=FILL):
+    """خانة «م» (أول خانة) متظللة في كل صف زي الأرشيف."""
     cells = row.cells
     offset = 0
-    for span, value in zip(spans, values):
+    for index, (span, value) in enumerate(zip(spans, values)):
         cell = cells[offset]
         for extra in cells[offset + 1:offset + span]:
             cell = cell.merge(extra)
-        _cell(cell, value, size=size, fill=fill)
+        _cell(cell, value, size=size, fill=fill or (number_fill if index == 0 and len(spans) > 1 else None))
         offset += span
 
 
-def _row_spec(values, spans, size=9):
-    return [{"text": value or "", "colspan": span, "size_pt": size,
-             "bold": True, "font": FONT} for value, span in zip(values, spans)]
-
-
 def _driver_text(row):
-    """اسم السائق زي الأرشيف: أول كلمتين من غير رتبة، مهما كان نوع السائق."""
+    """السائق بالرتبة والاسم كامل: الأفراد «ا.ش/» أو «م.ش/» والمجند «مجند/».
+    السائق المكتوب نص حر بيطلع زي ما اتكتب."""
     driver = row.get("driver") or {}
-    # الأيام المستوردة بتحتفظ باسم الأرشيف (display) عشان التصدير يطلع زي الأصل.
-    name = first_words(driver.get("display") or driver.get("name"), DRIVER_NAME_WORDS, glue=True)
-    return name or "ـــــ"
+    name = " ".join(re.sub(r"ـ", "", str(driver.get("name") or driver.get("display") or "")).split())
+    if not name:
+        return "ـــــ"
+    if driver.get("kind") == "personnel":
+        return f"{personnel_rank_abbr(driver.get('role'))}/ {name}"
+    if driver.get("kind") == "conscript":
+        return f"مجند/ {name}"
+    return name
 
 
 def _has_content(item):
@@ -170,13 +181,20 @@ def _delivery_type(row):
     return value
 
 
+def _sync_cell_widths(table):
+    """عرض كل خانة = مجموع أعمدة الشبكة اللي بتغطيها. الدمج في python-docx بيسيب
+    tcW قديم، وLibreOffice بيرسم بيه فالخانة كانت بتضيق وتلف اللوحة على سطرين."""
+    for tr in table._tbl.tr_lst:
+        column = 0
+        for tc in tr.tc_lst:
+            span = tc.grid_span
+            tc.width = Twips(sum(GRID_WIDTHS[column:column + span]))
+            column += span
+
+
 def _plate_row(table, values):
     row = table.add_row()
-    # سجل اللوحات سبع خلايا مستقلة، كما في صيغة latest.
-    for cell in list(row._tr.findall(qn("w:tc")))[7:]:
-        row._tr.remove(cell)
-    for cell, value in zip(row.cells, list(values)[:7]):
-        _cell(cell, value, size=9)
+    _merge_row(row, PLATE_SPANS, list(values)[:len(PLATE_SPANS)], size=PLATE_PT, number_fill=None)
     return row
 
 
@@ -192,23 +210,17 @@ def build_docx(campaign):
     _set_borders(table)
     d = date.fromisoformat(campaign["date"])
     title = f"يومية المركبات اليوم {WEEKDAY_BY_INDEX[d.weekday()]} {d.day}/{d.month}/{d.year}م"
-    _merge_row(table.add_row(), [15], [title], size=14)
+    _merge_row(table.add_row(), [15], [title], size=TITLE_PT)
     _merge_row(table.add_row(), CHECKPOINT_SPANS,
-               ["م", "مركبات الإرتكازات", "السائق", "رقم المركبة", "نوع المركبة"],
-               size=10, fill=FILL)
-    posts = campaign.get("posts") or []
-    post_specs = []
-    for post in posts:
+               ["م", "مركبات الإرتكازات", "السائق", "رقم المركبة", "نوع المركبة"], size=HEADING_PT)
+    for post in campaign.get("posts") or []:
         values = [post.get("number", ""), post.get("name", ""),
-                  post.get("driver_text") or "ـــــ", _post_plate(post),
-                  _post_type(post)]
-        post_specs.append(_row_spec(values, CHECKPOINT_SPANS))
-        _merge_row(table.add_row(), CHECKPOINT_SPANS, values)
+                  post.get("driver_text") or "ـــــ", _post_plate(post), _post_type(post)]
+        _merge_row(table.add_row(), CHECKPOINT_SPANS, values, size=POST_PT)
     divider = "خطــــــــــوط سيــــــــــر توصيــــــــــل الخدمــــــــــات"
-    _merge_row(table.add_row(), [15], [divider], size=10)
+    _merge_row(table.add_row(), [15], [divider], size=HEADING_PT, fill=FILL)
     _merge_row(table.add_row(), DELIVERY_SPANS,
-               ["م", "الخدمة", "السائق", "رقم المركبة", "نوع المركبة"],
-               size=10, fill=FILL)
+               ["م", "الخدمة", "السائق", "رقم المركبة", "نوع المركبة"], size=HEADING_PT)
     delivery = list(campaign.get("lorries") or [])
     for service in campaign.get("services") or []:
         vehicles = service.get("service_vehicles") or []
@@ -218,33 +230,19 @@ def build_docx(campaign):
         for item in vehicles:
             delivery.append({**service, "vehicle": item.get("vehicle"),
                              "driver": item.get("driver") or service.get("driver")})
-    delivery += list(campaign.get("daily") or [])
+    delivery += [{**item, "_daily": True} for item in campaign.get("daily") or []]
     delivery += [item for item in campaign.get("appointments") or [] if _has_content(item)]
-    delivery_specs = []
-    for item in delivery:
-        values = ["", _service_label(item), _driver_text(item),
-                  _delivery_plate(item), _delivery_type(item)]
-        delivery_specs.append(_row_spec(values, DELIVERY_SPANS))
-        _merge_row(table.add_row(), DELIVERY_SPANS, values)
-    plate_rows = (campaign.get("plates") or {}).get("rows") or []
-    for values in plate_rows:
+    for number, item in enumerate(delivery, 1):
+        plate, kind = _delivery_plate(item), _delivery_type(item)
+        # «سائق بورتوفيق» وأمثاله: سائق يومي من غير مركبة، اسمه على عرض الصف (زي الأرشيف).
+        if item.get("_daily") and not plate and not kind and (item.get("driver") or {}).get("name"):
+            values, spans = [f"{number}.", _service_label(item), _driver_text(item)], DRIVER_ONLY_SPANS
+        else:
+            values, spans = [f"{number}.", _service_label(item), _driver_text(item), plate, kind], DELIVERY_SPANS
+        _merge_row(table.add_row(), spans, values, size=DELIVERY_PT)
+    for values in (campaign.get("plates") or {}).get("rows") or []:
         _plate_row(table, values)
-    fit_rows = [_row_spec([title], [15], 14),
-                 _row_spec(["م", "مركبات الإرتكازات", "السائق", "رقم المركبة", "نوع المركبة"],
-                           CHECKPOINT_SPANS, 10)]
-    fit_rows += post_specs + [_row_spec([divider], [15], 10),
-                               _row_spec(["م", "الخدمة", "السائق", "رقم المركبة", "نوع المركبة"],
-                                         DELIVERY_SPANS, 10)]
-    fit_rows += delivery_specs
-    fit_rows += [[{"text": value or "", "size_pt": 9, "bold": True, "font": FONT}
-                  for value in list(values)[:7]] for values in plate_rows]
-    widths_pt = [width * 72 / 1440 for width in GRID_WIDTHS]
-    fit = fit_table({"rows": fit_rows, "grid_widths_pt": widths_pt},
-                    usable_height_pt(section))
-    apply_fit_to_docx_table(table, fit)
-    LAST_FIT.clear()
-    LAST_FIT.update(scale=fit.scale, ratio=fit.ratio, total_pt=fit.total_pt,
-                    usable_pt=fit.usable_pt)
+    _sync_cell_widths(table)
     style_tables_bold_rtl(doc)
     output = BytesIO()
     doc.save(output)

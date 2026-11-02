@@ -105,6 +105,6 @@ $("#missionNext").onclick = () => loadMissionDay(addDays(MISSION_DAY || curDate(
 async function load() {
   const data = await bootstrap();
   if (!data) return;
-  loadMissionDay(curDate());
+  loadMissionDay(workDay());
 }
 load();

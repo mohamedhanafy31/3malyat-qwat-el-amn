@@ -6,7 +6,8 @@ from pathlib import Path
 
 from docx import Document
 from docx.oxml.ns import qn
-from docx.shared import Pt
+from docx.oxml import OxmlElement
+from docx.shared import Pt, Twips
 
 from .board_export import WEEKDAY_BY_INDEX, order_xml_children
 from .export_fit import PageFitError, TextMeter, estimate_table_height
@@ -151,3 +152,105 @@ def build_docx(payload):
     order_xml_children(document)
     LAST_FIT.clear(); LAST_FIT.update(size_pt=fit_size, total_pt=total, page_count=1)
     buf = BytesIO(); document.save(buf); buf.seek(0); return buf
+
+
+# يومية انتظام الخدمات الخاصة: نفس القالب، ورقة بالعرض، جدول الخدمات بس
+# (من غير جدول الضباط والملاحظات) والتوقيعات. بتكمّل على كذا صفحة عادي.
+SPECIAL_SIZE_PT = 11
+_LANDSCAPE = {"w": 16838, "h": 11906, "side_margin": 1100}
+# م | الخدمة | قائم للخدمة | الهاتف | المركبة | مكان الانتظام | ساعة الانتظام | عدد المجندين (= 14638)
+_LANDSCAPE_GRID = (600, 3000, 3100, 1750, 1600, 2188, 1200, 1200)
+
+
+def _set_header_title(document, title):
+    for paragraph in document.sections[0].header.paragraphs:
+        if paragraph.runs:
+            paragraph.runs[0].text = title
+            for run in paragraph.runs[1:]:
+                run.text = ""
+            return
+
+
+def _landscape(document, table):
+    """يقلب الصفحة بالعرض ويمدّ جدول الخدمات وخانات التوقيع على العرض الجديد."""
+    sect = document.sections[0]._sectPr
+    size = sect.find(qn("w:pgSz"))
+    size.set(qn("w:w"), str(_LANDSCAPE["w"]))
+    size.set(qn("w:h"), str(_LANDSCAPE["h"]))
+    size.set(qn("w:orient"), "landscape")
+    margins = sect.find(qn("w:pgMar"))
+    margins.set(qn("w:left"), str(_LANDSCAPE["side_margin"]))
+    margins.set(qn("w:right"), str(_LANDSCAPE["side_margin"]))
+    tbl = table._tbl
+    widths = list(_LANDSCAPE_GRID)
+    for col, width in zip(tbl.tblGrid.findall(qn("w:gridCol")), widths):
+        col.set(qn("w:w"), str(width))
+    tbl.tblPr.find(qn("w:tblW")).set(qn("w:w"), str(sum(widths)))
+    float_pos = tbl.tblPr.find(qn("w:tblpPr"))
+    if float_pos is not None:              # جدول عايم في القالب؛ هنا جدول عادي متوسّط
+        tbl.tblPr.remove(float_pos)
+    for tr in tbl.tr_lst:
+        column = 0
+        for tc in tr.tc_lst:
+            span = tc.grid_span
+            tc.width = Twips(sum(widths[column:column + span]))
+            column += span
+    _spread_signatures(document)
+
+
+def _spread_signatures(document):
+    """التوقيعات الثلاثة تحت الجدول على عرض الورقة: شمال / نص / يمين بنفس ترتيبها
+    في القالب، والسطور الفاضية اللي كانت تحت جدول الضباط بتتشال."""
+    wp = "{http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing}"
+    body = document.element.body
+    anchors = list(body.iter(wp + "anchor"))
+    anchors.sort(key=lambda node: int(node.find(wp + "positionH").findtext(wp + "posOffset") or 0))
+    for anchor, side in zip(anchors, ("left", "center", "right")):
+        horizontal = anchor.find(wp + "positionH")
+        horizontal.set("relativeFrom", "margin")
+        for child in list(horizontal):
+            horizontal.remove(child)
+        align = OxmlElement("wp:align")
+        align.text = side
+        horizontal.append(align)
+        offset = anchor.find(wp + "positionV").find(wp + "posOffset")
+        if offset is not None:
+            offset.text = "180000"
+    for paragraph in list(body.findall(qn("w:p"))):
+        if not list(paragraph.iter(wp + "anchor")) and not "".join(paragraph.itertext()).strip():
+            body.remove(paragraph)
+
+
+def build_special_docx(payload):
+    document = Document(TEMPLATE)
+    table1, table2 = document.tables[:2]
+    proto = deepcopy(table1._tbl.tr_lst[1])
+    for tr in list(table1._tbl.tr_lst[1:]):
+        table1._tbl.remove(tr)
+    table2._tbl.getparent().remove(table2._tbl)
+    for row in payload.get("service_rows") or []:
+        table1._tbl.append(_row(table1, proto, ["", row["service"], row["people"], row["phone"],
+                                                row["vehicle"], row["place"], row["time"], row["count"]],
+                                SPECIAL_SIZE_PT))
+    # مسافة الفقرات الافتراضية في القالب (بعد الفقرة + 1.15 سطر) كانت بتخلي الصف
+    # نص بوصة وتدخّل 7 خدمات بس في الصفحة.
+    for paragraph in table1._tbl.iter(qn("w:p")):
+        ppr = paragraph.get_or_add_pPr()
+        spacing = ppr.find(qn("w:spacing"))
+        if spacing is None:
+            spacing = OxmlElement("w:spacing")
+            ppr.append(spacing)
+        spacing.set(qn("w:before"), "0")
+        spacing.set(qn("w:after"), "0")
+        spacing.set(qn("w:line"), "240")
+        spacing.set(qn("w:lineRule"), "auto")
+    # عنوان الجدول يتكرر أول كل صفحة لو الخدمات كملت على صفحة تانية.
+    header_pr = table1._tbl.tr_lst[0].get_or_add_trPr()
+    if header_pr.find(qn("w:tblHeader")) is None:
+        header_pr.append(OxmlElement("w:tblHeader"))
+    _landscape(document, table1)
+    _set_header_title(document, payload.get("title") or "")
+    fill_boxes(document, payload.get("signatories") or {})
+    order_xml_children(document)
+    buf = BytesIO(); document.save(buf); buf.seek(0); return buf
+

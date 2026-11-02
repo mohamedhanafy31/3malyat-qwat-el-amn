@@ -20,8 +20,10 @@ function personCell(p) {
 }
 
 function basicRow(r) {
-  const inherited = r.inherited_fields?.length
-    ? `<div class="sub">موروث من ${fmt(r.inherited_from)}</div>` : "";
+  const sources = [];
+  if (r.inherited_fields?.length) sources.push(`موروث من ${fmt(r.inherited_from)}`);
+  if (r.default_fields?.length) sources.push("قيم افتراضية من آخر يومية أفراد");
+  const inherited = sources.length ? `<div class="sub">${sources.join(" • ")}</div>` : "";
   return `<tr>
     <td class="name">${esc(r.name)}</td>
     <td>${personCell(r.morning)}</td>
@@ -658,6 +660,6 @@ $("#afOcrApply").onclick = async () => {
 async function load() {
   const d = await bootstrap();
   if (!d) return;
-  loadDay(curDate());
+  loadDay(workDay());
 }
 load();

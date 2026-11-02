@@ -12,7 +12,9 @@
 أي قسم مخصّص المشغّل كتبه بإيده على اللوحة (زي «خدمات انتشار» أو «خدمات
 مباراة») بينضم لنفس جدول الطوارئ هنا تحت — عين `counts.py` بالظبط.
 """
+import json
 import re
+from pathlib import Path
 
 from .assignments import peek_day
 from .board import ASSIGNMENT_SECTIONS, _display_key, _people_index, _row
@@ -72,6 +74,20 @@ def _overrides(data, day):
 
 
 _CARRY_FIELDS = ("count", "weapon", "schedule")
+_DEFAULTS_FILE = Path(__file__).with_name("afraad_defaults.json")
+
+
+def _default_services():
+    """القيم الثابتة المستخرجة من آخر كشف أفراد، مفهرسة بالاسم المطبّع."""
+    try:
+        raw = json.loads(_DEFAULTS_FILE.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return {}
+    services = raw.get("services") if isinstance(raw, dict) else {}
+    if not isinstance(services, dict):
+        return {}
+    return {norm(core_service_name(name)): values for name, values in services.items()
+            if isinstance(values, dict)}
 
 
 def _previous_overrides(data, day):
@@ -101,18 +117,31 @@ def _slot(data, values, shift):
 
 
 def basic_rows(data, day):
-    """صفوف الخدمات الأساسية الـ22 الثابتة — كل حاجة فيها (القائم بها/
-    التليفون/القوام/التسليح/الانتظام) بتيجي من نسخة اليوم ده بس."""
+    """القائم بها لليوم نفسه؛ القوام/التسليح/الانتظام من اليوم،
+    أو آخر يوم سابق، أو افتراضيات آخر كشف أفراد بالترتيب."""
     overrides = (data.get("day_afraad") or {}).get(day) or {}
     previous_day, previous = _previous_overrides(data, day)
+    defaults = _default_services()
     rows = []
     for entry in afraad_basic_on(data, day):
         ov = overrides.get(entry["id"], {})
         old = previous.get(entry["id"], {})
-        inherited = [field for field in _CARRY_FIELDS if field not in ov and old.get(field)]
+        default = defaults.get(norm(core_service_name(entry["name"])), {})
+        inherited, defaulted, values = [], [], {}
+        for field in _CARRY_FIELDS:
+            if field in ov:
+                values[field] = ov[field]
+            elif field in old:
+                values[field] = old[field]
+                inherited.append(field)
+            elif field in default:
+                values[field] = default[field]
+                defaulted.append(field)
+            else:
+                values[field] = ""
         morning = _slot(data, ov, "morning")
         night = _slot(data, ov, "night")
-        description = ov.get("count", old.get("count", entry.get("count", "")))
+        description = values["count"] or entry.get("count", "")
         numeric_count = entry.get("conscript_count")
         if numeric_count is None:
             matches = re.findall(r"\((\d+)\s*مجند\)", str(description))
@@ -121,12 +150,13 @@ def basic_rows(data, day):
             "id": entry["id"], "name": entry["name"],
             "location_text": entry.get("location_text", ""),
             "conscript_count": numeric_count,
-            "count": ov.get("count", old.get("count", "")),
-            "weapon": ov.get("weapon", old.get("weapon", "")),
+            "count": values["count"],
+            "weapon": values["weapon"],
             "morning": morning, "night": night,
-            "schedule": ov.get("schedule", old.get("schedule", "")),
+            "schedule": values["schedule"],
             "inherited_from": previous_day if inherited else "",
             "inherited_fields": inherited,
+            "default_fields": defaulted,
         })
     return rows
 

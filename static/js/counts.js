@@ -262,6 +262,6 @@ $("#countForm").onsubmit = async e => {
 async function load() {
   const d = await bootstrap();
   if (!d) return;
-  loadDay(curDate());
+  loadDay(workDay());
 }
 load();

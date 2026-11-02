@@ -168,7 +168,8 @@ ACTIONS.openAssign = id => {
   $("#assignExtra").value = row.extra || "";
   // النص القديم الكامل بيظهر بس لو موجود — الأيام الجديدة مفيهاش غير الإضافي
   $("#assignNote").value = row.note || "";
-  $("#assignNoteRow").classList.toggle("hidden", !row.note);
+  $("#assignNoteRow").dataset.legacy = row.note ? "1" : "";
+  updateStatusTextField($("#assignStatus").value, DETAILED_STATUSES.includes($("#assignStatus").value));
   // التقصيرة علامة على تشغيل الضابط وليست «خارج» في اليومية التفصيلية.
   // مدير/وكيل الإدارة يظهران تلقائيًا، وباقي الصافي يمكن نقله لعمل الإدارة
   // صراحةً بعد كتابة نصه التشغيلي.
@@ -250,6 +251,7 @@ function updatePersistentHint() {
   $("#assignDetailsRow").classList.toggle("hidden", !detailed);
   $("#assignStatusTitle").required = detailed;
   $("#assignStatusDetails").required = detailed;
+  updateStatusTextField(value, detailed);
   hint.textContent = continuous
     ? `حالة «${value}» تبدأ من هذا اليوم وتستمر تلقائيًا حتى إنهائها.`
     : bounded ? `حالة «${value}» من هذا اليوم حتى اليوم المحدد، وتنتهي تلقائيًا بعده.`
@@ -257,6 +259,22 @@ function updatePersistentHint() {
     : "مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد؛ باقي الحالات ليوم واحد.";
 }
 $("#assignStatus").addEventListener("change", updatePersistentHint);
+
+/* حالة خوارج من غير اسم/تفاصيل خاصة بيها (أي تصنيف غير المأمورية والانتداب):
+   «نص الحالة» هو اللي بيظهر للضابط في اليومية التفصيلية (الخوارج) ويومية
+   الضباط. التصنيف الجديد لازم يتكتب له نص. */
+function updateStatusTextField(value, detailed) {
+  const row = $("#assignNoteRow"), input = $("#assignNote");
+  const statusText = !!value && !detailed;
+  const isNew = statusText && !(META.officer_statuses || []).includes(value);
+  row.classList.toggle("hidden", !statusText && !row.dataset.legacy);
+  $("#assignNoteLabel").textContent = statusText ? "نص الحالة" : "نص التشغيل الكامل المحفوظ";
+  $("#assignNoteHint").textContent = statusText
+    ? `يظهر للضابط في الخوارج في اليومية التفصيلية ويومية الضباط${isNew ? " — مطلوب مع التصنيف الجديد" : "؛ لو فاضي يظهر اسم الحالة"}`
+    : "نص قديم بيحل محل الخدمة التلقائية — امسحه لو عايز الخدمة تظهر لوحدها";
+  input.required = isNew;
+  input.placeholder = statusText ? `مثال: ${value} بمديرية الأمن` : "";
+}
 
 function updateMedicalFields() {
   const value = document.querySelector('input[name="assignMedicalState"]:checked')?.value || "عمل";
@@ -370,7 +388,7 @@ async function load() {
   const d = await bootstrap();
   if (!d) return;
   const days = d.days || [];
-  $("#dutyDate").value = days.includes(curDate()) ? curDate() : (days[days.length - 1] || curDate());
+  $("#dutyDate").value = workDay();
   loadDay($("#dutyDate").value);
 }
 load();

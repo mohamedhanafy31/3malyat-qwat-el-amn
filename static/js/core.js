@@ -60,7 +60,32 @@ const fmtShort=d=>{
 /* اليوم بالتفصيل (الأربعاء 21 أكتوبر 2026) — نفس الصيغة في العنوان وفي نوافذ
    تأكيد/فتح اليوم، عشان المستخدم يشوف بالظبط أنهي يوم بيأكّده */
 const dayLabel=s=>s?`${dayName(s)} ${fmt(s)}`:"-";
-function setPageDay(day){
+/* يوم العمل واحد على مستوى الصفحات كلها: أي صفحة يوم (الرئيسية، التفصيلية،
+   الضباط، الأفراد، الحملة، الأعداد، المأموريات) بتفتح على آخر يوم اتفتح في أي
+   صفحة منهم. بيرجع للنهاردة لوحده لما اليوم الفعلي يتغيّر (فتح الصبح الجديد
+   مايفضلش على يوم امبارح). ?day= في الرابط بيغلب. */
+const WORK_DAY_KEY="workDay:v1";
+const _localToday=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`};
+function workDay(){
+  const today=(typeof META!=="undefined"&&META.today)||_localToday();
+  const fromUrl=new URLSearchParams(location.search).get("day");
+  if(/^\d{4}-\d{2}-\d{2}$/.test(fromUrl||"")) return fromUrl;
+  try{
+    const saved=JSON.parse(localStorage.getItem(WORK_DAY_KEY)||"null");
+    if(saved&&saved.on===today&&/^\d{4}-\d{2}-\d{2}$/.test(saved.day||"")) return saved.day;
+  }catch(err){}
+  return today;
+}
+function rememberWorkDay(day){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day||"")) return;
+  const today=(typeof META!=="undefined"&&META.today)||_localToday();
+  try{
+    if(day===today) localStorage.removeItem(WORK_DAY_KEY);
+    else localStorage.setItem(WORK_DAY_KEY,JSON.stringify({day,on:today}));
+  }catch(err){}
+}
+function setPageDay(day,remember=true){
+  if(remember) rememberWorkDay(day);
   const titles=document.querySelector(".page-head .titles");
   const p=titles?.querySelector("p");
   if(!p||!day) return;
@@ -2297,8 +2322,7 @@ window.addEventListener("resize", () => requestAnimationFrame(_syncAllFades));
    رسم، عشان السطر اللي بيطول بيه العنوان مايزقّش الصفحة بعد التحميل */
 if ($("#dutyDate")) {
   // META لسه ماوصلش هنا، وtoISOString بالتوقيت العالمي (بعد نص الليل بيبقى امبارح)
-  const d = new Date();
-  setPageDay(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+  setPageDay(workDay(), false);
 }
 
 /* صفحات زي المراجعة والمستخدمين مابتندهش bootstrap، فالتاريخ بنملاه من الساعة

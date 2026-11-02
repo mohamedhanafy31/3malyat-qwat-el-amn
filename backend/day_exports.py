@@ -97,3 +97,36 @@ def build_formation_morning_bytes(day):
 def build_formation_night_bytes(day):
     data = load_data(around(day, -1, 0))
     return _bytes(build_formation_docx(build_formation(data, day, "night")))
+
+
+def _special_data(day):
+    data = load_data(around(day, -1, 0))
+    if needs_prepare(data, day, include_inspections=True):
+        data = deepcopy(data)
+        prepare(data, day, include_inspections=True)
+    return data
+
+
+def special_groups(day):
+    """أسماء مجموعات الخدمات الخاصة (الأقسام المخصّصة) في اليوم."""
+    from .special_formation import sections
+    return [item["name"] for item in sections(_special_data(day), day)]
+
+
+def build_special_formation_bytes(day, section):
+    """-> (اسم الملف، bytes) لخط تشكيل مجموعة خدمات خاصة."""
+    from .special_formation import build, file_name
+    from .special_formation_export import build_docx
+    payload = build(_special_data(day), day, section)
+    return file_name(payload["section"]), _bytes(build_docx(payload))
+
+
+def build_special_regularity_bytes(day, section):
+    """-> (اسم الملف، bytes) ليومية انتظام مجموعة خدمات خاصة."""
+    from .regularity import build_special
+    from .regularity_export import build_special_docx
+    from .special_formation import file_name
+    payload = build_special(_special_data(day), day, section)
+    name = file_name(payload["section"]).replace("خط تشكيل ", "يومية انتظام ", 1)
+    return name, _bytes(build_special_docx(payload))
+

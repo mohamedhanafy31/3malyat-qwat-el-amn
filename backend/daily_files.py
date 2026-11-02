@@ -119,6 +119,33 @@ def file_names(day):
     }
 
 
+def _day_of_folder(folder):
+    """اليوم بتاع فولدر «سنة/شهر/يوم» تحت الجذر، أو None."""
+    try:
+        year, month, number = Path(folder).relative_to(root()).parts[-3:]
+        return date(int(year), int(month), int(number)).isoformat()
+    except (ValueError, TypeError):
+        return None
+
+
+def latest_day_folder():
+    """آخر فولدر يوم «سنة/شهر/يوم» موجود فعلًا في الأرشيف، أو None."""
+    base = root()
+    days = []
+    for folder in base.glob("*/*/*"):
+        day = _day_of_folder(folder) if folder.is_dir() else None
+        if day:
+            days.append((day, folder))
+    return max(days)[1] if days else None
+
+
+def generated_special(day):
+    """أسماء ملفات الخدمات الخاصة اللي السيستم ولّدها لليوم ده (من الـmanifest).
+    بنتتبعها بالاسم بدل نمط عام عشان ملف حطه المشغّل بإيده (زي «خط تشكيل
+    صبح محدث») مايتمسحش ولا يتعامل كيومية."""
+    return list((_manifest().get(day) or {}).get("special") or [])
+
+
 def is_daily_file(name):
     """هل الاسم ينتمي إلى أحد أنماط الملفات اليومية؟"""
     return any(pattern.match(str(name)) for pattern in _PATTERNS.values())
@@ -149,6 +176,11 @@ def _nearest_previous_folder(day):
 
 
 def _clone_into(source, target, *, only_missing=False):
+    skip = set(generated_special(_day_of_folder(source) or ""))
+    return _clone_files(source, target, only_missing=only_missing, skip=skip)
+
+
+def _clone_files(source, target, *, only_missing=False, skip=()):
     """ينسخ محتوى فولدر اليوم السابق ما عدا اليوميات و`~$`/tmp.
 
     `only_missing`: مايكتبش فوق ملف موجود (دمج، للتهجير مرة واحدة).
@@ -158,7 +190,8 @@ def _clone_into(source, target, *, only_missing=False):
     for item in sorted(source.rglob("*")):
         relative = item.relative_to(source)
         destination = target / relative
-        if item.is_file() and _excluded(item, relative):
+        if item.is_file() and (_excluded(item, relative)
+                               or (relative.parent == Path(".") and item.name in skip)):
             continue
         try:
             if item.is_dir():
@@ -302,12 +335,18 @@ def write_day_files(day, kinds=None, *, require_data=False):
                 "error": str(exc),
             }
 
+    special_names = None
+    if kinds is None or "special" in kinds:
+        special_names = _write_special(day, folder, files)
+
     try:
         signature = store.day_index().signature(day)
         manifest = _manifest()
+        previous_special = (manifest.get(day) or {}).get("special") or []
         manifest[day] = {
             "sig": _manifest_signature(signature),
             "at": datetime.now().isoformat(timespec="seconds"),
+            "special": special_names if special_names is not None else previous_special,
         }
         _write_manifest(manifest)
     except Exception:
@@ -320,6 +359,36 @@ def write_day_files(day, kinds=None, *, require_data=False):
         warnings=tuple(warnings),
         files=files,
     )
+
+
+def _write_special(day, folder, files):
+    """خط تشكيل ويومية انتظام لكل مجموعة خدمات خاصة (مباراة، خطة انتشار…).
+    الملفات القديمة اللي السيستم كان عاملها لمناسبة اتشالت أو اتغيّر اسمها
+    بتتمسح؛ أي ملف تاني في الفولدر مايتلمسش."""
+    from . import day_exports
+
+    written = []
+    try:
+        groups = day_exports.special_groups(day)
+    except Exception as exc:
+        LOG.exception("فشل قراءة الخدمات الخاصة لليوم %s", day)
+        files["special"] = {"ok": False, "path": str(folder), "bytes": 0, "error": str(exc)}
+        return None
+    for section in groups:
+        for kind, builder in (("special_formation", day_exports.build_special_formation_bytes),
+                              ("special_regularity", day_exports.build_special_regularity_bytes)):
+            try:
+                name, data = builder(day, section)
+                path = folder / name
+                _write_one(path, data)
+                written.append(name)
+                files[f"{kind}:{section}"] = {"ok": True, "path": str(path), "bytes": len(data), "error": None}
+            except Exception as exc:
+                LOG.exception("فشل توليد %s «%s» لليوم %s", kind, section, day)
+                files[f"{kind}:{section}"] = {"ok": False, "path": str(folder), "bytes": 0, "error": str(exc)}
+    for stale in set(generated_special(day)) - set(written):
+        (folder / stale).unlink(missing_ok=True)
+    return written
 
 
 class DailyFilesWorker:

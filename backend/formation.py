@@ -47,6 +47,12 @@ def _slot_weapons(value, count):
     return [parts[min(index, len(parts) - 1)] for index in range(count)]
 
 
+def slot_count(row):
+    """عدد خانات المجندين = خانة «عدد المجندين» في الخدمة. لو فاضية بنحط خانة
+    فاضية واحدة عشان كل خدمة يبقى ليها مكان مجند في الخط."""
+    return max(1, int(row.get("conscript_count") or 0))
+
+
 def _block(name, count, weapon, kind, time=""):
     count = max(0, int(count or 0))
     return {"name": name or "", "title": name or "", "count": count,
@@ -92,7 +98,10 @@ def build(data, day, shift):
                     continue
                 time = format_time(parsed).replace(" ", "")
             count_row = _find_count(official, row.get("name"), "طوارئ")
-            count = int((count_row or {}).get("count") if count_row else row.get("conscript_count") or 0)
+            count = int((count_row or {}).get("count") or 0) if count_row else int(row.get("conscript_count") or 0)
+            if count <= 0:
+                warnings.append(f"الخدمة «{row.get('name', '')}» عدد مجنديها مش مكتوب؛ اتحطت خانة فاضية.")
+                count = 1
             live_count = int(row.get("conscript_count") or 0)
             if count_row and live_count not in {0, count}:
                 warnings.append(f"اختلاف عدد «{row.get('name', '')}»: اتاخد العدد الرسمي {count}.")

@@ -2,16 +2,19 @@
 from copy import deepcopy
 from datetime import date, timedelta
 
-from flask import Blueprint, jsonify, send_file
+from flask import Blueprint, jsonify, request, send_file
 
 from .. import day_status, ops_board
 from .. import changes
 from ..regularity import (build as build_regularity,
                            clear_inputs, default_inputs, effective_inputs,
                            saved_inputs, save_inputs)
-from ..regularity_export import build_docx as build_regularity_docx
+from ..regularity import build_special as build_special_regularity
+from ..regularity_export import build_docx as build_regularity_docx, build_special_docx as build_special_regularity_docx
 from ..formation import build as build_formation
 from ..formation_export import build_docx as build_formation_docx
+from .. import special_formation
+from ..special_formation_export import build_docx as build_special_formation_docx
 from ..auth import current_actor
 from ..day_open import needs_prepare, prepare
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
@@ -118,6 +121,7 @@ def get_ops(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     data = load_data(_scope(day))
     result = ops_board.build_ops(data, day)
+    result["special_formations"] = special_formation.sections(data, day)
     result["revision"] = revision(data, _scope(day))
     return jsonify(result)
 
@@ -165,6 +169,42 @@ def export_formation_morning_docx(day):
 @bp.get("/api/ops/<day>/formation-night.docx")
 def export_formation_night_docx(day):
     return _export_formation(day, "night", "خط تشكيل ليل.docx")
+
+
+@bp.get("/api/ops/<day>/special-formation.docx")
+def export_special_formation_docx(day):
+    """خط تشكيل مناسبة خاصة واحدة (?section=اسم القسم المخصّص)."""
+    day = _day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    section = request.args.get("section", "")
+    data = load_data(_scope(day))
+    try:
+        payload = special_formation.build(data, day, section)
+    except LookupError:
+        return jsonify({"error": "المناسبة دي مش موجودة في اليوم ده."}), 404
+    return send_file(build_special_formation_docx(payload), as_attachment=True,
+                     download_name=special_formation.file_name(payload["section"]),
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+@bp.get("/api/ops/<day>/special-regularity.docx")
+def export_special_regularity_docx(day):
+    """يومية انتظام مجموعة خدمات خاصة واحدة (?section=اسم القسم المخصّص)، بالعرض."""
+    day = _day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    section = request.args.get("section", "")
+    if not special_formation.is_event(" ".join(section.split())):
+        return jsonify({"error": "المناسبة دي مش موجودة في اليوم ده."}), 404
+    data = load_data(_scope(day))
+    try:
+        payload = build_special_regularity(data, day, section)
+    except LookupError:
+        return jsonify({"error": "المناسبة دي مش موجودة في اليوم ده."}), 404
+    name = special_formation.file_name(payload["section"]).replace("خط تشكيل ", "يومية انتظام ", 1)
+    return send_file(build_special_regularity_docx(payload), as_attachment=True, download_name=name,
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 @bp.get("/api/ops/<day>/regularity")

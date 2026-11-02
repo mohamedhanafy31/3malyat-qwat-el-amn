@@ -5,6 +5,64 @@ const IS_OFF = PAGE === "officers";
 let LIST = {active: [], archive: []}, BUCKET = "active";
 let COMMAND = {}, COMMAND_GROUPS = {};
 if (!IS_OFF) setupRosterImport({kind: "personnel", buttonId: "importPersonnelBtn", inputId: "importPersonnelFile", onApplied: load});
+window.exportDocxUrl = () => `/api/people/${IS_OFF ? "officers" : "personnel"}/export.docx`;
+const PEOPLE_EXPORT_CATEGORY = IS_OFF ? "officers" : "personnel";
+const PEOPLE_EXPORT_STORAGE = `people-export-columns:${PEOPLE_EXPORT_CATEGORY}`;
+let PEOPLE_EXPORT_COLUMNS = null, PEOPLE_EXPORT_CONTEXT = null;
+
+function savedExportColumns(allKeys) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PEOPLE_EXPORT_STORAGE));
+    if (Array.isArray(saved)) {
+      const valid = saved.filter(key => allKeys.includes(key));
+      if (valid.length) return new Set(valid);
+    }
+  } catch (_error) { /* التخزين اختياري؛ منعُه ما يعطّلش التصدير. */ }
+  return new Set(allKeys);
+}
+
+function renderExportColumns(columns) {
+  const holder = $("#peopleExportColumns");
+  const selected = savedExportColumns(columns.map(column => column.key));
+  holder.innerHTML = columns.map(column => `<label>
+    <input type="checkbox" value="${esc(column.key)}" ${selected.has(column.key) ? "checked" : ""}>
+    <span>${esc(column.title)}</span></label>`).join("");
+  const sync = () => { $("#peopleExportApply").disabled = !holder.querySelector("input:checked"); };
+  holder.querySelectorAll("input").forEach(input => { input.onchange = sync; });
+  sync();
+}
+
+window.beforeExport = async context => {
+  PEOPLE_EXPORT_CONTEXT = context;
+  try {
+    if (!PEOPLE_EXPORT_COLUMNS) {
+      const response = await fetch(`/api/people/${PEOPLE_EXPORT_CATEGORY}/export-columns`,
+        {credentials: "same-origin"});
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || "تعذّر تحميل أعمدة الكشف.");
+      }
+      PEOPLE_EXPORT_COLUMNS = await response.json();
+    }
+    renderExportColumns(PEOPLE_EXPORT_COLUMNS);
+    openModal("peopleExportModal");
+  } catch (error) {
+    showToast(error.message || "تعذّر فتح خيارات التصدير.", true);
+  }
+};
+
+$("#peopleExportApply").onclick = () => {
+  const selected = [...$("#peopleExportColumns").querySelectorAll("input:checked")]
+    .map(input => input.value);
+  if (!selected.length || !PEOPLE_EXPORT_CONTEXT) return;
+  try { localStorage.setItem(PEOPLE_EXPORT_STORAGE, JSON.stringify(selected)); }
+  catch (_error) { /* نفس الاختيار يفضل شغال في الجلسة الحالية. */ }
+  const context = PEOPLE_EXPORT_CONTEXT;
+  const separator = context.url.includes("?") ? "&" : "?";
+  closeModal("peopleExportModal", true);
+  context.preview(`${context.url}${separator}columns=${encodeURIComponent(selected.join(","))}`,
+    context.label);
+};
 
 const readMulti = el => [...el.selectedOptions].map(o => o.value);
 const personById = id => [...LIST.active, ...LIST.archive].find(p => p.id === id);

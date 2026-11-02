@@ -70,7 +70,7 @@ async function previewExport(url, label = "") {
   download.onclick = null;
   openModal("exportPreviewModal");
 
-  let blob, name;
+  let blob, name, savedTo;
   try {
     const response = await fetch(url, {credentials: "same-origin"});
     if (!response.ok) {
@@ -78,6 +78,7 @@ async function previewExport(url, label = "") {
       throw new Error(body.error || "تعذّر تجهيز الملف.");
     }
     name = _exportFileName(response, url);
+    savedTo = decodeURIComponent(response.headers.get("X-Saved-To") || "");
     blob = await response.blob();
   } catch (error) {
     if (modal._token !== token) return;
@@ -122,6 +123,7 @@ async function previewExport(url, label = "") {
     note.classList.toggle("hidden", !approximate);
     if (modal._token !== token) return;
     meta.textContent = count === 1 ? "صفحة واحدة — راجع الشكل ثم حمّل الملف." : `${count} صفحات — راجع الشكل ثم حمّل الملف.`;
+    if (savedTo) meta.textContent += ` واتحفظت نسخة في الأرشيف: ${savedTo}`;
   } catch (error) {
     if (modal._token !== token) return;
     pages.innerHTML = "";
@@ -147,7 +149,12 @@ window.previewExport = previewExport;
     const url = typeof window[urlName] === "function" ? window[urlName]() : null;
     // زرار الصفحة ممكن يكون متسمّي باسم الملف (زي «يومية الانتظام» في الرئيسية).
     const text = document.querySelector(`[data-action="${actionName}"] span`)?.textContent.trim();
-    previewExport(url, text && !text.startsWith("تصدير") ? text : "");
+    const label = text && !text.startsWith("تصدير") ? text : "";
+    if (typeof window.beforeExport === "function") {
+      window.beforeExport({url, label, preview: previewExport});
+      return;
+    }
+    previewExport(url, label);
   }
 
   ACTIONS[actionName] = exportFile;

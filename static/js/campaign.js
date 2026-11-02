@@ -322,4 +322,4 @@ document.addEventListener("keydown", event => {
   event.preventDefault(); loadDay(addDays($("#dutyDate").value || curDate(), event.key === "PageUp" ? -1 : 1));
 });
 
-(async () => { if (await bootstrap()) loadDay(curDate()); })();
+(async () => { if (await bootstrap()) loadDay(workDay()); })();

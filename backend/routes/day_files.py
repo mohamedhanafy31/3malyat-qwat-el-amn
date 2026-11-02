@@ -11,18 +11,19 @@ from ..utils import canonical_day, json_payload
 bp = Blueprint("day_files", __name__)
 
 
-def _file_rows(folder):
+def _file_rows(folder, day=None):
     rows = []
     if not folder.is_dir():
         return rows
+    special = set(daily_files.generated_special(day)) if day else set()
     for path in folder.iterdir():
-        if not path.is_file() or not daily_files.is_daily_file(path.name):
+        if not path.is_file() or not (daily_files.is_daily_file(path.name) or path.name in special):
             continue
         stat = path.stat()
         kind = next(
             (name for name, pattern in daily_files._PATTERNS.items()
              if pattern.match(path.name)),
-            "",
+            "special" if path.name in special else "",
         )
         rows.append({
             "kind": kind,
@@ -47,7 +48,7 @@ def status(day):
         "day": day,
         "folder": str(folder),
         "exists": folder.is_dir(),
-        "files": _file_rows(folder),
+        "files": _file_rows(folder, day),
         "last_generated": manifest.get(day, {}).get("at"),
         "pending": pending,
         "managed_from": daily_files.managed_from(),

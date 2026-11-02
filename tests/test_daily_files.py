@@ -281,3 +281,41 @@ def test_request_refresh_enqueues_only_when_running(monkeypatch):
     monkeypatch.setattr(daily_files, "_worker", Fake())
     monkeypatch.setattr(daily_files, "enabled", lambda: True)
     assert daily_files.request_refresh(["2026-10-02"]) is True and queued == ["2026-10-02"]
+
+
+def test_refresh_writes_special_files_per_group_and_tracks_them(monkeypatch, tmp_path):
+    root = tmp_path / "archive"
+    monkeypatch.setenv("DAILY_FILES_ROOT", str(root))
+    from backend import day_exports
+    for kind in daily_files.KINDS:
+        monkeypatch.setattr(day_exports, f"build_{kind}_bytes", lambda _day, k=kind: k.encode())
+    groups = ["مباراة المصري", "خطة الانتشار"]
+    monkeypatch.setattr(day_exports, "special_groups", lambda _day: list(groups))
+    monkeypatch.setattr(day_exports, "build_special_formation_bytes",
+                        lambda _day, section: (f"خط تشكيل {section}.docx", b"f"))
+    monkeypatch.setattr(day_exports, "build_special_regularity_bytes",
+                        lambda _day, section: (f"يومية انتظام {section}.docx", b"r"))
+    day = "2026-10-20"
+    folder, _, _ = daily_files.ensure_day_folder(day)
+    (folder / "خط تشكيل صبح محدث.docx").write_bytes(b"manual")   # ملف المشغّل
+    result = daily_files.write_day_files(day)
+    names = {p.name for p in folder.iterdir()}
+    expected = {"خط تشكيل مباراة المصري.docx", "يومية انتظام مباراة المصري.docx",
+                "خط تشكيل خطة الانتشار.docx", "يومية انتظام خطة الانتشار.docx"}
+    assert expected <= names
+    assert all(value["ok"] for value in result.files.values())
+    assert set(daily_files.generated_special(day)) == expected
+
+    # المناسبة اتشالت: ملفاتها القديمة بتتمسح، وملف المشغّل يفضل.
+    groups.remove("خطة الانتشار")
+    daily_files.write_day_files(day)
+    names = {p.name for p in folder.iterdir()}
+    assert "خط تشكيل خطة الانتشار.docx" not in names and "يومية انتظام خطة الانتشار.docx" not in names
+    assert "خط تشكيل صبح محدث.docx" in names and "خط تشكيل مباراة المصري.docx" in names
+
+    # فولدر اليوم اللي بعده مابياخدش ملفات الخدمات الخاصة بتاعة امبارح.
+    next_folder, cloned, _ = daily_files.ensure_day_folder("2026-10-21")
+    assert cloned == folder
+    next_names = {p.name for p in next_folder.iterdir()}
+    assert "خط تشكيل مباراة المصري.docx" not in next_names
+    assert "خط تشكيل صبح محدث.docx" in next_names

@@ -126,3 +126,18 @@ def test_formation_routes_return_canonical_download_names(client):
         response = client.get(f"/api/ops/{DAY}/{route}.docx")
         assert response.status_code == 200
         assert unquote(response.headers["Content-Disposition"].split("filename*=")[-1].removeprefix("UTF-8''")) == name
+
+
+def test_emergency_count_comes_only_from_the_count_field_with_one_blank_slot_minimum():
+    data = _data()
+    data["day_assignments"][DAY] = [
+        {"id": "B1", "name": "ترحيلة الاسماعيلية", "section": "الخدمات الطارئة", "time": "8ص",
+         "conscript_count": 0, "conscripts": [{"class": "مج", "count": 1}], "weapon": "آلي"},
+        {"id": "B2", "name": "جنائي خاصة", "section": "الخدمات الطارئة", "time": "8ص",
+         "conscript_count": 0, "weapon": "آلي"},
+    ]
+    blocks = {block["name"]: block for block in build(data, DAY, "morning")["blocks"]}
+    # القوام («1 مج») مش بيتحسب؛ خانة فاضية واحدة لحد ما العدد يتكتب.
+    assert blocks["ترحيلة الاسماعيلية"]["count"] == 1 and blocks["ترحيلة الاسماعيلية"]["weapons"] == ["آلي"]
+    assert blocks["جنائي خاصة"]["count"] == 1
+

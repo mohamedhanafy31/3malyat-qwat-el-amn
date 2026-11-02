@@ -338,3 +338,25 @@ def build(data, day, inputs=None):
             "officer_rows": _officer_rows(data, day, inputs),
             "notes": list(inputs.get("notes") or DEFAULT_NOTES), "signatories": signatories,
             "warnings": list(dict.fromkeys(warnings))}
+
+
+def build_special(data, day, section):
+    """يومية انتظام لمجموعة خدمات خاصة واحدة (قسم مخصّص زي مباراة أو خطة انتشار):
+    نفس صفوف جدول الخدمات في اليومية العادية بس لخدمات القسم ده، والتوقيعات.
+    ``LookupError`` لو القسم مالوش خدمات في اليوم."""
+    section = " ".join(str(section or "").split())
+    rows = []
+    for order, assignment in enumerate(peek_day(data, day)):
+        if canonical_section_name(assignment.get("section")) == section:
+            rows.extend(_assignment_row(data, day, assignment, order))
+    if not rows:
+        raise LookupError(section)
+    rows.sort(key=lambda row: (row["time_key"], row["order"]))
+    warnings = [f"{row.get('service', '')} ({row.get('time', '')}): {warning}"
+                for row in rows for warning in row.get("warnings") or []]
+    d = date.fromisoformat(day)
+    title = (f"يومية انتظام خدمات {section} عن يوم {WEEKDAY_BY_INDEX[d.weekday()]} "
+             f"الموافق {d.day}/{d.month}/{d.year}م")
+    return {"title": title, "section": section, "day": day, "service_rows": rows,
+            "signatories": build_signatories(data, day), "warnings": list(dict.fromkeys(warnings))}
+

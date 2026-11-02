@@ -345,6 +345,10 @@ def summarise(data, day):
     for o in officers:
         row = officer_row(data, day, o, catalog)
         row["command_role"] = command_roles.get(row["id"], "")
+        # مدير/وكيل الإدارة من غير خدمة ولا نص تشغيلي: اسم منصبه بدل «صافي».
+        if (row["command_role"] in ("مدير الإدارة", "وكيل الإدارة") and not row["text"]
+                and row["group"] == "صافي" and not row.get("leave")):
+            row["text"] = row["command_role"]
         group, sub = row["group"], row["bucket"]
         if sub is None:
             s[group] += 1

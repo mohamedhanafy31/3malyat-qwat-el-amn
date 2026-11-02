@@ -2,20 +2,8 @@
    اسم الخدمة حر بيكتبه المشغّل على الخانة نفسها، والتصنيف (خارجية/داخلية/
    حراسات/طبية) بيتحدد معاه — مفيش كتالوج منفصل يتربط بيه. */
 let BOARD = null, DAY = null;
-const BOARD_DAY_KEY = "board:last-selected-day";
 let SECTION_HISTORY = null, SECTION_HISTORY_TIMER = null, SECTION_HISTORY_SEQ = 0;
 let SELECTED_ROW_ID = null, MOVING_ROW = false, ENTRY_AFTER_ID = null;
-
-function savedBoardDay() {
-  try {
-    const value = localStorage.getItem(BOARD_DAY_KEY) || "";
-    return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
-  } catch (_) { return ""; }
-}
-
-function rememberBoardDay(day) {
-  try { localStorage.setItem(BOARD_DAY_KEY, day); } catch (_) {}
-}
 
 /* زرار «Word» العام (export.js) بيلف أي صفحة كـHTML متلبّس .doc — هنا
    لازم يبقى ملف Word حقيقي بنفس شكل الورقة الرسمية (نفس التقسيمة
@@ -949,7 +937,7 @@ $("#btnConfirmAll").onclick = confirmAllUnconfirmed;
 async function loadDay(day) {
   const b = await api(`/api/board/${day}`); if (!b) return;
   if (DAY && day !== DAY) SELECTED_ROW_ID = null;
-  BOARD = b; DAY = day; rememberBoardDay(day); $("#dutyDate").value = day; setPageDay(day); render();
+  BOARD = b; DAY = day; $("#dutyDate").value = day; setPageDay(day); render();
   renderRestStrip($("#restStrip"), day);
   renderConfirmBadge();
   loadDayStatus();
@@ -1124,8 +1112,6 @@ async function load() {
   const d = await bootstrap();
   if (!d) return;
   const days = d.days || [];
-  const saved = savedBoardDay();
-  const initial = saved || (days.includes(curDate()) ? curDate() : (days[days.length - 1] || curDate()));
-  loadDay(initial);
+  loadDay(workDay());
 }
 load();

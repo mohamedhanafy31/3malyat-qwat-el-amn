@@ -27,7 +27,10 @@ def data_for(assignments=None):
         "personnel": [person("IND-1", "فرد أحمد", "معاون")], "conscripts": [],
         "command": {"مدير الإدارة": "OFF-1", "وكيل الإدارة": "OFF-2"},
         "command_history": [], "day_assignments": {DAY: assignments or []},
-        "day_officers": {}, "leaves": [], "day_afraad": {}, "day_campaign": {},
+        "day_officers": {}, "leaves": [],
+        # الاختبار بيرتب التكليفات نفسها؛ الفراغ الصريح يمنع معاد
+        # الإسعاف الافتراضي من إدخالها وسط الصفوف.
+        "day_afraad": {DAY: {"AFB-19": {"schedule": ""}}}, "day_campaign": {},
         "reference_lists": {"afraad_basic": [{"from": "", "items": [
             {"id": "AFB-19", "name": "الإسعاف", "location_text": "الحماية المدنية", "conscript_count": 3}
         ]}], "campaign_daily": [{"from": "", "items": []}]},
