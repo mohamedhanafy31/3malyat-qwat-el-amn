@@ -1,0 +1,136 @@
+{
+  "afraad_basic": {
+    "AFB-01": {
+      "morning_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
+      "morning_phone": "01033838675",
+      "night_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
+      "night_phone": "01033838675",
+      "morning_person_id": "IND-171",
+      "night_person_id": "IND-171"
+    },
+    "AFB-02": {
+      "morning_name": "أمين شرطة ثالث/ محمد السيد عبدالرحيم عفيفي",
+      "morning_phone": "01002699784",
+      "night_name": "أمين شرطة ثالث/ محمد السيد عبدالرحيم عفيفي",
+      "night_phone": "01002699784",
+      "morning_person_id": "IND-011",
+      "night_person_id": "IND-011"
+    },
+    "AFB-03": {
+      "morning_name": "معاون ثالث/ احمد فتحي عبدالمعبود",
+      "morning_phone": "01014695751",
+      "night_name": "معاون ثالث/ احمد فتحي عبدالمعبود",
+      "night_phone": "01014695751",
+      "morning_person_id": "IND-036",
+      "night_person_id": "IND-036"
+    },
+    "AFB-04": {
+      "morning_name": "معاون ثالث/ اسلام عبده معتمد محمد",
+      "morning_phone": "01008124662",
+      "night_name": "أمين شرطة ممتاز/ عبد الحفيظ محمد عبد الحفيظ",
+      "night_phone": "01022846573",
+      "morning_person_id": "IND-024",
+      "night_person_id": "IND-002"
+    },
+    "AFB-05": {
+      "morning_name": "معاون ثالث/ السيد علي السيد علي محمد",
+      "morning_phone": "01003696246",
+      "night_name": "معاون ثالث/ احمد عبدالعال حسين عبدالعال",
+      "night_phone": "01009645703",
+      "morning_person_id": "IND-033",
+      "night_person_id": "IND-025"
+    },
+    "AFB-06": {
+      "morning_name": "مساعد ثالث/ عبدالرؤوف محمد السيد ماضي",
+      "morning_phone": "01098090512",
+      "night_name": "معاون ثالث/ السيد علي السيد علي محمد",
+      "night_phone": "01003696246",
+      "morning_person_id": "IND-016",
+      "night_person_id": "IND-033"
+    },
+    "AFB-07": {
+      "morning_name": "أمين شرطة ثالث/ عبده حنيدق محمد عبدالعال",
+      "morning_phone": "01157798848",
+      "night_name": "أمين شرطة أول/ مصطفي محمد محمد ابراهيم",
+      "night_phone": "01115114645",
+      "morning_person_id": "IND-010",
+      "night_person_id": "IND-182"
+    },
+    "AFB-08": {
+      "morning_name": "معاون ثالث/ علي احمد علي عبدالعال",
+      "morning_phone": "01019209437",
+      "night_name": "أمين شرطة ممتاز ثان/ محمد عبدالهادي علي حسين",
+      "night_phone": "01009806341",
+      "morning_person_id": "IND-040",
+      "night_person_id": "IND-003"
+    },
+    "AFB-11": {
+      "morning_name": "أمين شرطة ثالث/ جمال صالح قرني محمد",
+      "morning_phone": "01154482370",
+      "night_name": "معاون ثالث/ طارق حسين علي عبدالعال",
+      "night_phone": "01204094231",
+      "morning_person_id": "IND-008",
+      "night_person_id": "IND-022"
+    },
+    "AFB-12": {
+      "morning_name": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن",
+      "morning_phone": "01066871634",
+      "night_name": "معاون ثالث/ محمود ايمن محمد امام",
+      "night_phone": "01125386932",
+      "morning_person_id": "IND-031",
+      "night_person_id": "IND-029"
+    },
+    "AFB-13": {
+      "morning_name": "معاون ثالث/ محمد احمد محمد عبدالفتاح",
+      "morning_phone": "01099707239",
+      "night_name": "معاون ثالث/ صابر حسين اسماعيل حسين",
+      "night_phone": "01024502026",
+      "morning_person_id": "IND-030",
+      "night_person_id": "IND-028"
+    },
+    "AFB-16": {
+      "morning_name": "رقيب أول/ عادل احمد ابراهيم سالم",
+      "morning_phone": "01550782863",
+      "morning_person_id": "IND-019"
+    },
+    "AFB-17": {
+      "morning_name": "معاون ثالث/ علي جمال صابر علي",
+      "morning_phone": "01018035331",
+      "morning_person_id": "IND-046"
+    },
+    "AFB-18": {
+      "morning_name": "معاون ثالث/ عماد عبدالهادي عبدالهادي",
+      "morning_phone": "01090622103",
+      "night_name": "معاون ثالث/ عماد عبدالهادي عبدالهادي",
+      "night_phone": "01090622103",
+      "morning_person_id": "IND-035",
+      "night_person_id": "IND-035"
+    },
+    "AFB-19": {
+      "morning_name": "أمين شرطة ثان/ احمد صبري سيد احمد",
+      "morning_phone": "01122158140",
+      "morning_person_id": "IND-004"
+    },
+    "AFB-20": {
+      "morning_name": "معاون ثالث/ عبدالفتاح علي عبدالفتاح محمد",
+      "morning_phone": "01016819448",
+      "night_name": "معاون ثالث/ عبدالفتاح علي عبدالفتاح محمد",
+      "night_phone": "01016819448",
+      "morning_person_id": "IND-060",
+      "night_person_id": "IND-060"
+    },
+    "AFB-21": {
+      "morning_name": "أمين شرطة ثان/ الشحات ابراهيم ابراهيم سليمان",
+      "morning_phone": "01012402009",
+      "night_name": "معاون ثالث/ اسلام عبده معتمد محمد",
+      "night_phone": "01008124662",
+      "morning_person_id": "IND-007",
+      "night_person_id": "IND-024"
+    },
+    "AFB-22": {
+      "night_name": "معاون ثالث/ محمد الهادي احمد رجب",
+      "night_phone": "01094086113",
+      "night_person_id": "IND-043"
+    }
+  }
+}
