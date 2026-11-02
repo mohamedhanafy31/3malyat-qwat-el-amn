@@ -29,3 +29,26 @@ def test_missing_ocr_is_optional_and_descriptive(tmp_path):
     info = ocr_setup.status(tmp_path, {}, which=lambda _name: None)
     assert info["ready"] is False
     assert "not found" in ocr_setup.describe(info)
+
+
+def test_indra_offline_setup_uses_isolated_env_wheels_and_local_models(tmp_path):
+    (tmp_path / "requirements-indra-ocr.txt").write_text("indra-ocr==1.1.2\n")
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append((command, kwargs))
+        return SimpleNamespace(returncode=0)
+
+    info = ocr_setup.setup_indra(
+        root=tmp_path,
+        python="host-python",
+        offline=True,
+        run=run,
+    )
+
+    assert info["ready"] is True
+    assert calls[0][0] == ["host-python", "-m", "venv", str(tmp_path / ".venv-indra")]
+    assert "--no-index" in calls[1][0]
+    assert str(tmp_path / "wheels") in calls[1][0]
+    assert calls[2][1]["env"]["INDRA_OCR_MODEL_DIR"] == str(tmp_path / "vendor/indra-models")
+    assert calls[2][1]["env"]["HF_HUB_OFFLINE"] == "1"

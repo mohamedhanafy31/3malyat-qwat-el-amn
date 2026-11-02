@@ -43,13 +43,13 @@ ARABIC_MODEL_URL = (
 )
 
 TOP_LEVEL_FILES = {
-    "app.py", "serve.py", "requirements.txt", "README.md", "DEPLOYMENT.md",
+    "app.py", "serve.py", "requirements.txt", "requirements-indra-ocr.txt", "README.md", "DEPLOYMENT.md",
     "OPEN_SYSTEM.vbs", "CLOSE_SYSTEM.vbs",
     "START_SYSTEM.bat", "STOP_SYSTEM.bat", "SETUP_OFFLINE.bat", "BACKUPS.bat",
     "SETUP_PHONE_ACCESS.bat", "run_windows.bat",
     "personnel-system.service.example",
 }
-INCLUDE_DIRS = ("backend", "templates", "static", "importer", "migrations", "tools", "wheels", "runtime", "data")
+INCLUDE_DIRS = ("backend", "templates", "static", "importer", "migrations", "tools", "wheels", "runtime", "vendor", "data")
 EXCLUDED_PARTS = {
     "__pycache__", ".pytest_cache", "import", "source_docs", "daily_files",
     "ocr_samples", "logs", "backups",
@@ -144,6 +144,13 @@ def prepare_wheels(work: Path) -> None:
         "-r", str(ROOT / "requirements.txt"),
     ]
     subprocess.run(command, check=True)
+    indra_command = [
+        sys.executable, "-m", "pip", "download", "--only-binary=:all:",
+        "--platform", "win_amd64", "--python-version", "3.11",
+        "--implementation", "cp", "--abi", "cp311", "--dest", str(target),
+        "-r", str(ROOT / "requirements-indra-ocr.txt"),
+    ]
+    subprocess.run(indra_command, check=True)
     wheels = list(target.glob("*.whl"))
     if not wheels:
         raise RuntimeError("pip did not produce any wheels")

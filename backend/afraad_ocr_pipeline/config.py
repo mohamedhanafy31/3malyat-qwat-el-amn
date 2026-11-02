@@ -23,20 +23,26 @@ class PipelineConfig:
     max_upload_bytes: int = 10 * 1024 * 1024
     tesseract_timeout: int = 20
     paddle_timeout: int = 180
+    indra_timeout: int = 60
     tesseract_lang: str = "ara"
     tesseract_cell_psm: int = 7
     tesseract_multiline_psm: int = 6
     tesseract_raw_psm: int = 3
     use_paddle_fallback: bool = True
     paddle_python: str | None = None
+    use_indra: bool = True
+    indra_python: str | None = None
 
     @classmethod
     def from_env(cls) -> "PipelineConfig":
         config = cls()
         config.paddle_python = os.environ.get("PADDLE_PYTHON") or None
+        config.indra_python = os.environ.get("INDRA_PYTHON") or None
+        config.use_indra = os.environ.get("INDRA_OCR", "1").lower() not in {
+            "0", "false", "no", "off"
+        }
         config.use_paddle_fallback = os.environ.get(
             "OCR_DISABLE_PADDLE", "0"
         ).lower() not in {"1", "true", "yes"}
         return config
-
 

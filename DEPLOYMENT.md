@@ -73,7 +73,8 @@ PREPARE_ONLINE.bat
 python tools\prepare_offline_bundle.py --archive
 ```
 
-ميزة قراءة صورة «يومية الأفراد» تحتاج **محرك Tesseract نفسه** مع لغة العربية
+ميزة قراءة صورة «يومية الأفراد» تستخدم **Indra OCR** كمحرك
+أساسي للصفحة الكاملة، وتحتفظ بـ **Tesseract** مع لغة العربية
 `ara`؛ لذلك الحزمة النهائية تحمل المثبّت وملف اللغة، و`SETUP_OFFLINE.bat`
 يثبتهما من غير إنترنت في مسار Tesseract القياسي ويضيف ملف العربية. قد يظهر
 طلب صلاحية Windows مرة واحدة أثناء هذه الخطوة. لو فشل تثبيته يظهر تحذير فقط:
@@ -81,6 +82,28 @@ python tools\prepare_offline_bundle.py --archive
 تشغيل `SETUP_OFFLINE.bat`.
 ويمكن بدلًا منه تشغيل PaddleOCR من بيئة مستقلة وضبط متغير `PADDLE_PYTHON`
 لمسار Python الخاص بها.
+
+### تجهيز Indra OCR للتشغيل بدون إنترنت
+
+على جهاز التحضير المتصل بالإنترنت، وبعد تجهيز عجلات Windows، نفّذ:
+
+```bat
+py -3.11 tools\ocr_setup.py setup-indra
+```
+
+الأمر ينشئ `.venv-indra` منفصلة، ويثبّت `indra-ocr==1.1.2`،
+وينسخ النماذج إلى `vendor\indra-models`. لا تنقل `.venv-indra`
+بين الأجهزة؛ انقل مجلد `wheels\`، وملف `requirements-indra-ocr.txt`،
+ومجلد `vendor\indra-models` مع المشروع. على جهاز Windows المعزول نفّذ:
+
+```bat
+py -3.11 tools\ocr_setup.py setup-indra --offline
+```
+
+التشغيل يكتشف `.venv-indra\Scripts\python.exe` تلقائيًا، ويستخدم
+`vendor\indra-models` بدون اتصال. يمكن تحديد مسار آخر بمتغيري
+`INDRA_PYTHON` و`INDRA_OCR_MODEL_DIR`، أو تعطيل Indra فقط بـ`INDRA_OCR=0`
+مع بقاء Tesseract/Paddle كاحتياطي.
 
 ### الطريقة B: نزّل ملف Offline Release من GitHub
 من صفحة **Releases** على GitHub نزّل الملف المسمى
