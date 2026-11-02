@@ -1,5 +1,6 @@
 import ssl
 import subprocess
+import json
 from pathlib import Path
 
 from tools import offline_env, prepare_offline_bundle
@@ -110,6 +111,13 @@ def test_offline_dependency_and_ocr_contract_is_complete():
     assert 'if exist "%ROOT%tools\\tesseract\\tessdata\\ara.traineddata"' in start
     assert 'set "TESSDATA_PREFIX=%ROOT%tools\\tesseract\\tessdata"' in start
     assert "optional" in setup.lower()
+    assert "setup-indra --offline" in setup
+    assert "wheels\\indra\\indra_ocr-*.whl" in setup
+    assert "vendor\\indra-models\\det.onnx" in setup
+    assert "photo import falls back to Tesseract" in setup
+    assert setup.index("setup-indra --offline") < setup.index('[6/8] Verifying dependencies')
+    indra_failure = setup.index(":indra_failed")
+    assert "goto show_failure" not in setup[indra_failure:setup.index(":verify", indra_failure)]
 
 
 def test_startup_uses_application_readiness_marker_not_root_http():
@@ -184,3 +192,41 @@ def test_asset_directory_swap_can_roll_back(tmp_path):
     assert (target / "version.txt").read_text(encoding="ascii") == "new"
     prepare_offline_bundle.rollback_directories([(target, kept)])
     assert (target / "version.txt").read_text(encoding="ascii") == "old"
+
+
+def test_indra_model_snapshot_uses_pinned_api_and_exact_default_files(tmp_path):
+    calls = []
+
+    def download(url, target):
+        calls.append((url, target))
+        if url == prepare_offline_bundle.indra_api_url():
+            target.write_text(json.dumps({"siblings": [
+                {"rfilename": name}
+                for name in (*prepare_offline_bundle.INDRA_MODEL_FILES, "mathcls.onnx")
+            ]}), encoding="utf-8")
+        else:
+            target.write_bytes(b"model")
+
+    prepare_offline_bundle.prepare_indra_models(tmp_path, downloader=download)
+
+    assert calls[0][0] == (
+        "https://huggingface.co/api/models/datalab-to/indra-ocr/revision/v1.1.0"
+    )
+    downloaded = {target.name for _url, target in calls[1:]}
+    assert downloaded == set(prepare_offline_bundle.INDRA_MODEL_FILES)
+    assert all("/resolve/v1.1.0/" in url for url, _target in calls[1:])
+    assert "mathcls.onnx" not in downloaded
+
+
+def test_release_files_include_prepared_indra_models_and_site(tmp_path, monkeypatch):
+    (tmp_path / "vendor" / "indra-models").mkdir(parents=True)
+    (tmp_path / "vendor" / "indra-site" / "indra_ocr").mkdir(parents=True)
+    (tmp_path / "vendor" / "indra-models" / "det.onnx").write_bytes(b"model")
+    (tmp_path / "vendor" / "indra-site" / "indra_ocr" / "__init__.py").write_text("")
+    monkeypatch.setattr(prepare_offline_bundle, "ROOT", tmp_path)
+
+    names = {path.relative_to(tmp_path).as_posix()
+             for path in prepare_offline_bundle.release_files()}
+
+    assert "vendor/indra-models/det.onnx" in names
+    assert "vendor/indra-site/indra_ocr/__init__.py" in names

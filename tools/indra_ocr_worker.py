@@ -1,26 +1,36 @@
-"""Indra OCR worker; this file runs only inside the isolated Indra venv."""
+"""Indra OCR worker with an optional project-local package target."""
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 import time
 
-import cv2
-import indra_ocr
 
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--site-dir")
+    parser.add_argument("--check", action="store_true")
+    parser.add_argument("input_image", nargs="?")
+    args = parser.parse_args(argv)
+    if args.site_dir:
+        sys.path.insert(0, args.site_dir)
 
-def main() -> int:
-    if len(sys.argv) != 2:
-        print("Usage: indra_ocr_worker.py INPUT_IMAGE", file=sys.stderr)
-        return 2
-    image = cv2.imread(sys.argv[1], cv2.IMREAD_GRAYSCALE)
+    import cv2
+    import indra_ocr
+
+    converter = indra_ocr.load(threads=4)
+    if args.check:
+        return 0
+    if not args.input_image:
+        parser.error("INPUT_IMAGE is required unless --check is used")
+    image = cv2.imread(args.input_image, cv2.IMREAD_GRAYSCALE)
     if image is None:
         print(json.dumps({"lines": [], "error": "صورة غير صالحة"}, ensure_ascii=False))
         return 0
 
     started = time.perf_counter()
-    converter = indra_ocr.load(threads=4)
     page = converter.ocr(image, turn=True)
     payload = {
         "lines": [

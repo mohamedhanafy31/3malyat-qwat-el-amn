@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Locate and check the OPTIONAL Tesseract engine used for image OCR.
 
-OCR is one feature of the personnel system, never a startup requirement:
-this tool always reports and, for `status`, exits 1 when OCR is not ready,
-and the batch files turn that into a warning and carry on.
+OCR is one feature of the personnel system, never a startup requirement.
+For `status`, the exit code continues to describe Tesseract readiness only;
+Indra readiness is printed as an additional informational line.
 
     python tools/ocr_setup.py status [--quiet]      # exit 0 ready, 1 unavailable
     python tools/ocr_setup.py find                  # print the executable path
@@ -30,6 +30,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EXE_NAME = "tesseract.exe"
 LANGUAGE = "ara"
+INDRA_MODEL_FILES = (
+    "det.onnx", "lm.npz", "lm_cjk.npz", "lm_world.npz", "meta.json",
+    "order.onnx", "orient.onnx", "rec.onnx", "rec_cjk.onnx", "rec_rtl.onnx",
+    "rec_world.onnx", "script.onnx",
+)
 
 
 def project_exe(root=None):
@@ -139,46 +144,66 @@ def describe(info):
     return f"unavailable ({info['reason']})"
 
 
+def indra_status(root=None, python=None):
+    """Cheap readiness check; model loading is reserved for setup/worker runs."""
+    root = Path(root or ROOT)
+    site = root / "vendor" / "indra-site"
+    models = root / "vendor" / "indra-models"
+    missing = [name for name in INDRA_MODEL_FILES if not (models / name).is_file()]
+    result = {
+        "ready": False,
+        "reason": "",
+        "python": str(python or sys.executable),
+        "site": str(site),
+        "models": str(models),
+    }
+    if not site.joinpath("indra_ocr").is_dir():
+        result["reason"] = "vendor/indra-site is not installed"
+        return result
+    if missing:
+        result["reason"] = "model files are missing: " + ", ".join(missing)
+        return result
+    result["ready"] = True
+    return result
+
+
+def describe_indra(info):
+    if info["ready"]:
+        return f"ready ({info['site']}; models: {info['models']})"
+    return f"unavailable ({info['reason']})"
+
+
 def setup_indra(root=None, python=None, wheelhouse=None, model_dir=None,
                 offline=False, run=subprocess.run):
-    """Create the optional isolated Indra environment and prepare local models."""
+    """Install Indra into a worker-only target using the application's Python."""
     root = Path(root or ROOT)
     source_python = str(python or sys.executable)
-    environment = root / ".venv-indra"
+    site = root / "vendor" / "indra-site"
     models = Path(model_dir) if model_dir else root / "vendor" / "indra-models"
-    wheels = Path(wheelhouse) if wheelhouse else root / "wheels"
+    wheels = Path(wheelhouse) if wheelhouse else root / "wheels" / "indra"
     requirements = root / "requirements-indra-ocr.txt"
-    created = run([source_python, "-m", "venv", str(environment)], check=False)
-    if created.returncode != 0:
-        return {"ready": False, "reason": "could not create .venv-indra"}
-    indra_python = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
-    install = [str(indra_python), "-m", "pip", "install"]
+    worker = root / "tools" / "indra_ocr_worker.py"
+    install = [source_python, "-m", "pip", "install", "--upgrade", "--ignore-installed"]
     if offline:
         install.extend(["--no-index", "--find-links", str(wheels)])
-    install.extend(["-r", str(requirements)])
+    install.extend(["--target", str(site), "-r", str(requirements)])
     installed = run(install, check=False)
     if installed.returncode != 0:
         return {"ready": False, "reason": "could not install indra-ocr"}
 
-    models.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
+    env["INDRA_OCR_MODEL_DIR"] = str(models)
     if offline:
-        env["INDRA_OCR_MODEL_DIR"] = str(models)
         env["HF_HUB_OFFLINE"] = "1"
-        script = "import indra_ocr; indra_ocr.load(threads=4)"
-    else:
-        # Download through the package, then copy the pinned model snapshot locally.
-        script = (
-            "from pathlib import Path; import shutil; "
-            "from indra_ocr.models import model_dir; "
-            f"dst=Path({str(models)!r}); src=model_dir(); "
-            "[shutil.copy2(p, dst/p.name) for p in src.iterdir() if p.is_file()]; "
-            "import indra_ocr; indra_ocr.load(path=dst, threads=4)"
-        )
-    checked = run([str(indra_python), "-c", script], env=env, check=False)
+    checked = run(
+        [source_python, str(worker), "--site-dir", str(site), "--check"],
+        env=env,
+        check=False,
+    )
     if checked.returncode != 0:
         return {"ready": False, "reason": "Indra models are unavailable or invalid"}
-    return {"ready": True, "python": str(indra_python), "models": str(models), "reason": ""}
+    return {"ready": True, "python": source_python, "site": str(site),
+            "models": str(models), "reason": ""}
 
 
 def main(argv=None):
@@ -217,6 +242,9 @@ def main(argv=None):
     info = status()
     if not args.quiet:
         print(("[OK] OCR " if info["ready"] else "[WARNING] OCR ") + describe(info))
+        indra = indra_status()
+        print(("[OK] Indra OCR " if indra["ready"] else "[INFO] Indra OCR ")
+              + describe_indra(indra))
         if not info["ready"]:
             print("Image OCR is unavailable. The personnel system itself works without it.")
     return 0 if info["ready"] else 1

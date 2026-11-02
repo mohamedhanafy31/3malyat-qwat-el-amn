@@ -1,4 +1,5 @@
 import json
+import sys
 from types import SimpleNamespace
 
 import numpy as np
@@ -7,6 +8,7 @@ from backend.afraad_ocr_pipeline import indra_engine, pipeline
 from backend.afraad_ocr_pipeline.config import PipelineConfig
 from backend.afraad_ocr_pipeline.indra_engine import IndraLine, IndraPage
 from backend.afraad_ocr_pipeline.models import Cell, GridResult, OCRResult
+from tools import indra_ocr_worker
 
 
 def _grid(ok=True, cells=None):
@@ -123,3 +125,37 @@ def test_indra_engine_reads_worker_json_and_passes_model_dir(tmp_path, monkeypat
     assert result.lines[0].box == (1.0, 2.0, 3.0, 4.0)
     assert seen["env"]["INDRA_OCR_MODEL_DIR"] == str(tmp_path / "models")
     assert seen["timeout"] == 60
+
+
+def test_indra_engine_passes_project_site_to_worker(tmp_path, monkeypatch):
+    fake_module = tmp_path / "backend" / "afraad_ocr_pipeline" / "indra_engine.py"
+    fake_module.parent.mkdir(parents=True)
+    fake_module.write_text("", encoding="ascii")
+    site = tmp_path / "vendor" / "indra-site"
+    site.mkdir(parents=True)
+    seen = {}
+
+    def run(command, **kwargs):
+        seen["command"] = command
+        return SimpleNamespace(returncode=0, stdout='{"lines": []}', stderr="")
+
+    monkeypatch.setattr(indra_engine, "__file__", str(fake_module))
+    monkeypatch.setattr(indra_engine.subprocess, "run", run)
+    indra_engine.recognize_page(np.zeros((10, 10), np.uint8), PipelineConfig())
+
+    command = seen["command"]
+    assert command[0] == sys.executable
+    assert command[2:4] == ["--site-dir", str(site)]
+
+
+def test_worker_inserts_site_before_importing_indra(tmp_path, monkeypatch):
+    loaded = []
+    fake_indra = SimpleNamespace(load=lambda threads: loaded.append(threads) or object())
+    monkeypatch.setitem(sys.modules, "indra_ocr", fake_indra)
+    monkeypatch.setitem(sys.modules, "cv2", SimpleNamespace())
+
+    assert indra_ocr_worker.main(["--site-dir", str(tmp_path), "--check"]) == 0
+
+    assert sys.path[0] == str(tmp_path)
+    assert loaded == [4]
+    sys.path.pop(0)

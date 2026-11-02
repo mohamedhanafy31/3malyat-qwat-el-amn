@@ -31,7 +31,7 @@ call "%ROOT%tools\deploy_console.bat" step "[3/5] Downloading Windows runtime an
 call "%ROOT%tools\deploy_console.bat" info "Internet is required. This can take several minutes. The previous runtime is kept until the new one is verified."
 %SYSPY% "%ROOT%tools\prepare_offline_bundle.py" >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto failed
-call "%ROOT%tools\deploy_console.bat" ok "Python, wheels, Arabic OCR files, and checksums are ready."
+call "%ROOT%tools\deploy_console.bat" ok "Python, wheels, Tesseract files, Indra models, and checksums are ready."
 
 call "%ROOT%tools\deploy_console.bat" step "[4/5] Configuring this downloaded project..."
 set "PERSONNEL_SETUP_FROM_PREPARE=1"

@@ -31,8 +31,10 @@ def test_missing_ocr_is_optional_and_descriptive(tmp_path):
     assert "not found" in ocr_setup.describe(info)
 
 
-def test_indra_offline_setup_uses_isolated_env_wheels_and_local_models(tmp_path):
+def test_indra_offline_setup_uses_target_wheels_and_local_models(tmp_path):
     (tmp_path / "requirements-indra-ocr.txt").write_text("indra-ocr==1.1.2\n")
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools" / "indra_ocr_worker.py").write_text("", encoding="ascii")
     calls = []
 
     def run(command, **kwargs):
@@ -47,8 +49,30 @@ def test_indra_offline_setup_uses_isolated_env_wheels_and_local_models(tmp_path)
     )
 
     assert info["ready"] is True
-    assert calls[0][0] == ["host-python", "-m", "venv", str(tmp_path / ".venv-indra")]
-    assert "--no-index" in calls[1][0]
-    assert str(tmp_path / "wheels") in calls[1][0]
-    assert calls[2][1]["env"]["INDRA_OCR_MODEL_DIR"] == str(tmp_path / "vendor/indra-models")
-    assert calls[2][1]["env"]["HF_HUB_OFFLINE"] == "1"
+    install = calls[0][0]
+    assert install[:4] == ["host-python", "-m", "pip", "install"]
+    assert "--ignore-installed" in install
+    assert "--no-index" in install
+    assert str(tmp_path / "wheels/indra") in install
+    assert install[install.index("--target") + 1] == str(tmp_path / "vendor/indra-site")
+    assert calls[1][0] == [
+        "host-python", str(tmp_path / "tools/indra_ocr_worker.py"),
+        "--site-dir", str(tmp_path / "vendor/indra-site"), "--check",
+    ]
+    assert calls[1][1]["env"]["INDRA_OCR_MODEL_DIR"] == str(tmp_path / "vendor/indra-models")
+    assert calls[1][1]["env"]["HF_HUB_OFFLINE"] == "1"
+
+
+def test_status_reports_indra_readiness(tmp_path):
+    site = tmp_path / "vendor" / "indra-site" / "indra_ocr"
+    site.mkdir(parents=True)
+    models = tmp_path / "vendor" / "indra-models"
+    models.mkdir()
+    for name in ocr_setup.INDRA_MODEL_FILES:
+        (models / name).write_bytes(b"model")
+
+    info = ocr_setup.indra_status(tmp_path, python="runtime-python")
+
+    assert info["ready"] is True
+    assert info["python"] == "runtime-python"
+    assert "vendor/indra-site" in ocr_setup.describe_indra(info)

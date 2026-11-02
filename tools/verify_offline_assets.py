@@ -2,12 +2,10 @@
 """Verify every downloaded offline runtime asset before installation.
 
 The checksum manifest must be complete for the prepared-clone contract, not
-merely non-empty: the embedded runtime executables, at least one wheel, and the
-Tesseract installer together with the Arabic model (listed together, and listed
-whenever those files exist on disk) must all be present and match. Every wheel
-or installer on disk must also be listed, because setup installs everything it
-finds. Failures always name the offending file; --quiet only hides the success
-line. Standard library only.
+merely non-empty: the embedded runtime executables, wheels, Tesseract assets,
+and pinned Indra model snapshot must all be present and match. Every prepared
+file on disk must also be listed. Failures always name the offending file;
+--quiet only hides the success line. Standard library only.
 """
 from __future__ import annotations
 
@@ -22,12 +20,18 @@ MANIFEST = ROOT / "OFFLINE_ASSETS.sha256"
 
 # python311._pth is deliberately rewritten by setup (project root + site-packages),
 # so it is never part of the manifest.
-ALLOWED_PREFIXES = ("runtime/", "wheels/", "tools/offline_installers/")
+ALLOWED_PREFIXES = ("runtime/", "wheels/", "tools/offline_installers/",
+                    "vendor/indra-models/")
 REQUIRED_RUNTIME = ("runtime/python.exe", "runtime/pythonw.exe")
 RUNTIME_DLL = re.compile(r"runtime/python3\d+\.dll", re.IGNORECASE)
 TESSERACT_INSTALLER = re.compile(r"tools/offline_installers/tesseract-ocr-w64-setup-.+\.exe",
                                  re.IGNORECASE)
 ARABIC_MODEL = "tools/offline_installers/ara.traineddata"
+INDRA_MODELS = (
+    "det.onnx", "lm.npz", "lm_cjk.npz", "lm_world.npz", "meta.json",
+    "order.onnx", "orient.onnx", "rec.onnx", "rec_cjk.onnx", "rec_rtl.onnx",
+    "rec_world.onnx", "script.onnx",
+)
 _HEX64 = re.compile(r"[0-9a-f]{64}")
 
 
@@ -112,8 +116,23 @@ def completeness_problems(entries, root: Path):
         if ARABIC_MODEL not in entries:
             problems.append(f"Manifest is incomplete: missing {ARABIC_MODEL}")
 
-    for folder, pattern in (("wheels", "*.whl"),
-                            ("tools/offline_installers", "*")):
+    indra_prefix = "vendor/indra-models/"
+    disk_indra = root / "vendor" / "indra-models"
+    if any(name.startswith(indra_prefix) for name in entries) or disk_indra.is_dir():
+        if not any(name.startswith("wheels/pip-") and name.endswith(".whl")
+                   for name in entries):
+            problems.append("Manifest is incomplete: embedded Python needs a pip wheel for Indra")
+        if not any(name.startswith("wheels/indra/indra_ocr-") and name.endswith(".whl")
+                   for name in entries):
+            problems.append("Manifest is incomplete: missing the Indra OCR wheel")
+        for name in INDRA_MODELS:
+            relative = indra_prefix + name
+            if relative not in entries:
+                problems.append(f"Manifest is incomplete: missing {relative}")
+
+    for folder, pattern in (("wheels", "**/*.whl"),
+                            ("tools/offline_installers", "*"),
+                            ("vendor/indra-models", "*")):
         base = root / folder
         if not base.is_dir():
             continue

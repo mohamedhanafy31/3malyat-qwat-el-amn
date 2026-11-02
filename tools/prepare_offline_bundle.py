@@ -10,15 +10,18 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.request
 import zipfile
 from datetime import date
 from pathlib import Path
+from urllib.parse import quote
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -32,6 +35,7 @@ IS_WINDOWS = os.name == "nt"
 PYTHON_VERSION = "3.11.9"
 PYTHON_ARCHIVE = f"python-{PYTHON_VERSION}-embed-amd64.zip"
 PYTHON_URL = f"https://www.python.org/ftp/python/{PYTHON_VERSION}/{PYTHON_ARCHIVE}"
+PIP_VERSION = "24.3.1"
 TESSERACT_VERSION = "5.5.0.20241111"
 TESSERACT_INSTALLER = f"tesseract-ocr-w64-setup-{TESSERACT_VERSION}.exe"
 TESSERACT_URL = (
@@ -40,6 +44,23 @@ TESSERACT_URL = (
 )
 ARABIC_MODEL_URL = (
     "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/ara.traineddata"
+)
+DOWNLOAD_ATTEMPTS = 3
+INDRA_HF_REPO = "datalab-to/indra-ocr"
+INDRA_HF_REVISION = "v1.1.0"
+INDRA_MODEL_FILES = (
+    "det.onnx",
+    "lm.npz",
+    "lm_cjk.npz",
+    "lm_world.npz",
+    "meta.json",
+    "order.onnx",
+    "orient.onnx",
+    "rec.onnx",
+    "rec_cjk.onnx",
+    "rec_rtl.onnx",
+    "rec_world.onnx",
+    "script.onnx",
 )
 
 TOP_LEVEL_FILES = {
@@ -110,14 +131,20 @@ def download(url: str, target: Path) -> None:
     partial = target.with_suffix(target.suffix + ".part")
     partial.unlink(missing_ok=True)
     request = urllib.request.Request(url, headers={"User-Agent": "personnel-system-offline-builder/1"})
-    try:
-        with urllib.request.urlopen(request, timeout=120) as response, partial.open("wb") as output:
-            shutil.copyfileobj(response, output, length=1024 * 1024)
-    except Exception:
-        partial.unlink(missing_ok=True)
-        if not IS_WINDOWS:
-            raise
-        _windows_system_download(url, partial)
+    # Slow links stall mid-file; retry a few times before the Windows fallbacks.
+    for attempt in range(1, DOWNLOAD_ATTEMPTS + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response, partial.open("wb") as output:
+                shutil.copyfileobj(response, output, length=1024 * 1024)
+            break
+        except Exception:
+            partial.unlink(missing_ok=True)
+            if attempt < DOWNLOAD_ATTEMPTS:
+                time.sleep(2 * attempt)
+                continue
+            if not IS_WINDOWS:
+                raise
+            _windows_system_download(url, partial)
     if partial.stat().st_size == 0:
         raise RuntimeError(f"Downloaded an empty file: {url}")
     os.replace(partial, target)
@@ -144,14 +171,23 @@ def prepare_wheels(work: Path) -> None:
         "-r", str(ROOT / "requirements.txt"),
     ]
     subprocess.run(command, check=True)
+    pip_command = [
+        sys.executable, "-m", "pip", "download", "--only-binary=:all:",
+        "--platform", "win_amd64", "--python-version", "3.11",
+        "--implementation", "cp", "--abi", "cp311", "--no-deps",
+        "--dest", str(target), f"pip=={PIP_VERSION}",
+    ]
+    subprocess.run(pip_command, check=True)
+    indra_target = target / "indra"
+    indra_target.mkdir()
     indra_command = [
         sys.executable, "-m", "pip", "download", "--only-binary=:all:",
         "--platform", "win_amd64", "--python-version", "3.11",
-        "--implementation", "cp", "--abi", "cp311", "--dest", str(target),
+        "--implementation", "cp", "--abi", "cp311", "--dest", str(indra_target),
         "-r", str(ROOT / "requirements-indra-ocr.txt"),
     ]
     subprocess.run(indra_command, check=True)
-    wheels = list(target.glob("*.whl"))
+    wheels = list(target.rglob("*.whl"))
     if not wheels:
         raise RuntimeError("pip did not produce any wheels")
     for wheel in wheels:
@@ -166,6 +202,38 @@ def prepare_ocr(work: Path) -> None:
     download(ARABIC_MODEL_URL, target / "ara.traineddata")
 
 
+def indra_api_url(repo=INDRA_HF_REPO, revision=INDRA_HF_REVISION) -> str:
+    return ("https://huggingface.co/api/models/"
+            f"{quote(repo, safe='/')}/revision/{quote(revision, safe='')}")
+
+
+def indra_resolve_url(filename: str, repo=INDRA_HF_REPO,
+                      revision=INDRA_HF_REVISION) -> str:
+    return (f"https://huggingface.co/{quote(repo, safe='/')}/resolve/"
+            f"{quote(revision, safe='')}/{quote(filename, safe='/')}")
+
+
+def prepare_indra_models(work: Path, downloader=download) -> None:
+    """Download the pinned default Indra snapshot using only the stdlib."""
+    metadata = work / "indra-model-snapshot.json"
+    downloader(indra_api_url(), metadata)
+    try:
+        payload = json.loads(metadata.read_text(encoding="utf-8"))
+        available = {
+            item.get("rfilename") for item in payload.get("siblings", [])
+            if isinstance(item, dict)
+        }
+    except (OSError, UnicodeError, ValueError, AttributeError) as exc:
+        raise RuntimeError("The Indra model API returned invalid metadata") from exc
+    missing = [name for name in INDRA_MODEL_FILES if name not in available]
+    if missing:
+        raise RuntimeError("The pinned Indra snapshot is missing: " + ", ".join(missing))
+    target = work / "indra-models"
+    target.mkdir()
+    for name in INDRA_MODEL_FILES:
+        downloader(indra_resolve_url(name), target / name)
+
+
 def activate_directory(source: Path, target: Path) -> Path | None:
     """Move `source` into place, keeping the previous folder as a rollback.
 
@@ -174,6 +242,7 @@ def activate_directory(source: Path, target: Path) -> Path | None:
     or restores it with `rollback_directories`.
     """
     old = target.with_name(target.name + ".old-offline-build")
+    target.parent.mkdir(parents=True, exist_ok=True)
     if old.exists():
         shutil.rmtree(old)
     kept = None
@@ -216,7 +285,8 @@ def install_assets(work: Path) -> list:
     done = []
     try:
         for name, target in (("runtime", ROOT / "runtime"), ("wheels", ROOT / "wheels"),
-                             ("offline_installers", ROOT / "tools" / "offline_installers")):
+                             ("offline_installers", ROOT / "tools" / "offline_installers"),
+                             ("indra-models", ROOT / "vendor" / "indra-models")):
             done.append((target, activate_directory(work / name, target)))
     except Exception:
         rollback_directories(done)
@@ -248,9 +318,10 @@ def release_files():
 
 def write_asset_manifest() -> Path:
     manifest = ROOT / "OFFLINE_ASSETS.sha256"
-    assets = [*sorted((ROOT / "wheels").glob("*.whl")),
+    assets = [*sorted((ROOT / "wheels").rglob("*.whl")),
               *sorted((ROOT / "runtime").glob("*")),
-              *sorted((ROOT / "tools" / "offline_installers").glob("*"))]
+              *sorted((ROOT / "tools" / "offline_installers").glob("*")),
+              *sorted((ROOT / "vendor" / "indra-models").glob("*"))]
     # python311._pth is deliberately rewritten by SETUP_OFFLINE.bat to enable
     # the project and site-packages.  It must not make a second setup look like
     # asset corruption.
@@ -295,6 +366,7 @@ def main(argv=None) -> int:
         prepare_runtime(work)
         prepare_wheels(work)
         prepare_ocr(work)
+        prepare_indra_models(work)
         done = install_assets(work)
         # Validate the activated set before discarding the previous one.
         try:

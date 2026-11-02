@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -67,13 +68,17 @@ def recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:
 
 
 def _recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:
-    python = find_python(config)
+    root = Path(__file__).resolve().parents[2]
+    site_dir = root / "vendor" / "indra-site"
+    if site_dir.is_dir():
+        python = Path(sys.executable)
+    else:
+        python = find_python(config)
     if python is None:
         return _error("Indra OCR غير مثبت أو مسار Python غير مضبوط.")
     if image is None or image.size == 0:
         return _error("صورة Indra OCR فارغة أو غير صالحة.")
 
-    root = Path(__file__).resolve().parents[2]
     worker = root / "tools" / "indra_ocr_worker.py"
     with tempfile.TemporaryDirectory(prefix="ocr-indra-") as temp_dir:
         input_path = Path(temp_dir) / "page.png"
@@ -88,8 +93,12 @@ def _recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:
         if not env.get("INDRA_OCR_MODEL_DIR") and local_models.is_dir():
             env["INDRA_OCR_MODEL_DIR"] = str(local_models)
         try:
+            command = [str(python), str(worker)]
+            if site_dir.is_dir():
+                command.extend(["--site-dir", str(site_dir)])
+            command.append(str(input_path))
             completed = subprocess.run(
-                [str(python), str(worker), str(input_path)],
+                command,
                 capture_output=True,
                 text=True,
                 timeout=config.indra_timeout,

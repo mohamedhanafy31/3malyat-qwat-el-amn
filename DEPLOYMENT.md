@@ -58,8 +58,10 @@ PREPARE_ONLINE.bat
 ظهور رسالة الجاهزية شغّل `START_SYSTEM.bat`؛ التشغيلات التالية لا تحتاج
 إنترنت. ويجهّز جوّه المشروع:
 - `runtime\` — نسخة بايثون محمولة (فيها بايثون كامل، الجهاز المعزول مش هيحتاج يثبّت حاجة)
-- `wheels\` — كل الحزم، بما فيها Flask وWord وExcel وOpenCV، كملفات جاهزة
+- `wheels\` — حزم التطبيق، ومعها حزم Indra المعزولة داخل `wheels\indra\`
 - `tools\offline_installers\` — محرك Tesseract وبيانات اللغة العربية
+- `vendor\indra-models\` — نماذج Indra OCR المثبتة على الإصدار المحدد
+- `vendor\indra-site\` — حزم Indra المعزولة عن حزم التطبيق الأساسية
 - `OFFLINE_ASSETS.sha256` — بصمات كل مكونات التشغيل قبل النقل
 
 المتطلبات قبل التشغيل: Windows 10+ x64، وPython 3.9 أو أحدث مع `pip`
@@ -85,23 +87,16 @@ python tools\prepare_offline_bundle.py --archive
 
 ### تجهيز Indra OCR للتشغيل بدون إنترنت
 
-على جهاز التحضير المتصل بالإنترنت، وبعد تجهيز عجلات Windows، نفّذ:
+مش محتاج أي أمر يدوي: `PREPARE_ONLINE.bat` ينزّل عجلات
+`indra-ocr==1.1.2` ونماذجه المحددة إلى `vendor\indra-models`، ثم يشغّل
+الإعداد المحلي. لو نسخت الحزمة إلى جهاز معزول، `SETUP_OFFLINE.bat` يثبّت
+الحزم تلقائيًا من `wheels\` إلى `vendor\indra-site` باستخدام نفس Python
+اللي بيشغّل التطبيق، ثم يحمّل النماذج مرة للتأكد منها. لا يعتمد المسار ده على
+`venv` أو `PYTHONPATH`، لذلك يعمل مع Python المحمول داخل `runtime\`.
 
-```bat
-py -3.11 tools\ocr_setup.py setup-indra
-```
-
-الأمر ينشئ `.venv-indra` منفصلة، ويثبّت `indra-ocr==1.1.2`،
-وينسخ النماذج إلى `vendor\indra-models`. لا تنقل `.venv-indra`
-بين الأجهزة؛ انقل مجلد `wheels\`، وملف `requirements-indra-ocr.txt`،
-ومجلد `vendor\indra-models` مع المشروع. على جهاز Windows المعزول نفّذ:
-
-```bat
-py -3.11 tools\ocr_setup.py setup-indra --offline
-```
-
-التشغيل يكتشف `.venv-indra\Scripts\python.exe` تلقائيًا، ويستخدم
-`vendor\indra-models` بدون اتصال. يمكن تحديد مسار آخر بمتغيري
+تظل `.venv-indra` القديمة اختيارًا صالحًا للتطوير المحلي واكتشافها موجود
+كخطة احتياطية، لكنها ليست جزءًا من النشر ولا يلزم نقلها بين الأجهزة. يستخدم
+التشغيل `vendor\indra-models` بدون اتصال. يمكن تحديد مسار آخر بمتغيري
 `INDRA_PYTHON` و`INDRA_OCR_MODEL_DIR`، أو تعطيل Indra فقط بـ`INDRA_OCR=0`
 مع بقاء Tesseract/Paddle كاحتياطي.
 

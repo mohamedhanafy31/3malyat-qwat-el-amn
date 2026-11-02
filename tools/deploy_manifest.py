@@ -101,6 +101,7 @@ def collect(root=None, mode="offline", environ=None):
     except OSError:
         pass
     ocr = ocr_setup.status(root, env)
+    indra = ocr_setup.indra_status(root, sys.executable)
     port = (env.get("PORT") or "5000").strip()
     facts = [
         ("setup_completed_utc", datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")),
@@ -119,6 +120,11 @@ def collect(root=None, mode="offline", environ=None):
         ("tesseract_status", "ready" if ocr["ready"] else "unavailable (optional; image OCR disabled)"),
         ("tesseract_path", ocr["path"] or "not found"),
         ("tesseract_detail", ocr_setup.describe(ocr)),
+        ("indra_status", "ready" if indra["ready"] else "unavailable (optional; Tesseract fallback)"),
+        ("indra_python", indra["python"]),
+        ("indra_site", indra["site"]),
+        ("indra_models", indra["models"]),
+        ("indra_detail", ocr_setup.describe_indra(indra)),
         ("data_validation", data_status),
     ]
     return facts

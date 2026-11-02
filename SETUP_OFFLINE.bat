@@ -6,7 +6,7 @@ cd /d "%ROOT%"
 set "PYTHONUTF8=1"
 call "%ROOT%tools\deploy_console.bat" init "%ROOT%" "setup-offline"
 
-call "%ROOT%tools\deploy_console.bat" step "[1/7] Checking offline package and this PC..."
+call "%ROOT%tools\deploy_console.bat" step "[1/8] Checking offline package and this PC..."
 if not exist "%ROOT%wheels\*.whl" goto no_wheels
 call "%ROOT%tools\deploy_console.bat" ok "Offline wheels found."
 
@@ -30,7 +30,7 @@ type "!PRE_OUT!" >>"%DEPLOY_LOG%"
 del "!PRE_OUT!" >nul 2>&1
 if not "!PRE_RESULT!"=="0" goto preflight_failed
 
-call "%ROOT%tools\deploy_console.bat" step "[2/7] Verifying downloaded assets..."
+call "%ROOT%tools\deploy_console.bat" step "[2/8] Verifying downloaded assets..."
 !CHECKPY! "%ROOT%tools\verify_offline_assets.py" >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto assets_failed
 call "%ROOT%tools\deploy_console.bat" ok "Runtime, wheels, and OCR files match their checksums."
@@ -39,7 +39,7 @@ if "!MODE!"=="embedded" goto embedded
 goto system_python
 
 :embedded
-call "%ROOT%tools\deploy_console.bat" step "[3/7] Configuring bundled Python (staged, with rollback)..."
+call "%ROOT%tools\deploy_console.bat" step "[3/8] Configuring bundled Python (staged, with rollback)..."
 "%ROOT%runtime\python.exe" "%ROOT%tools\offline_env.py" install --target "%ROOT%runtime\Lib\site-packages" --quiet >>"%DEPLOY_LOG%" 2>&1
 set "INSTALL_RESULT=!ERRORLEVEL!"
 if "!INSTALL_RESULT!"=="3" goto data_failed
@@ -49,7 +49,7 @@ call "%ROOT%tools\deploy_console.bat" ok "Bundled Python configured."
 goto ocr_step
 
 :system_python
-call "%ROOT%tools\deploy_console.bat" step "[3/7] Creating local Python environment..."
+call "%ROOT%tools\deploy_console.bat" step "[3/8] Creating local Python environment..."
 set "VENV_CREATED="
 if not exist "%ROOT%venv\Scripts\python.exe" (
     !SYSPY! -m venv "%ROOT%venv" >>"%DEPLOY_LOG%" 2>&1
@@ -63,7 +63,7 @@ if errorlevel 1 goto venv_failed
 call "%ROOT%tools\deploy_console.bat" ok "Local Python environment configured."
 
 :ocr_step
-call "%ROOT%tools\deploy_console.bat" step "[4/7] Checking optional Arabic OCR engine (Tesseract)..."
+call "%ROOT%tools\deploy_console.bat" step "[4/8] Checking optional Arabic OCR engine (Tesseract)..."
 "!PY!" "%ROOT%tools\ocr_setup.py" status >>"%DEPLOY_LOG%" 2>&1
 if not errorlevel 1 goto ocr_ready
 set "TESSERACT_INSTALLER="
@@ -83,14 +83,32 @@ goto ocr_wait
 :ocr_ready
 set "OCR_STATE=ready"
 call "%ROOT%tools\deploy_console.bat" ok "Optional Arabic OCR is ready."
-goto verify
+goto indra_step
 :ocr_unavailable
 set "OCR_STATE=unavailable"
 call "%ROOT%tools\deploy_console.bat" warn "Image OCR is unavailable: Tesseract or Arabic data is not installed. The personnel system works without it."
 call "%ROOT%tools\deploy_console.bat" info "To enable OCR later, install Tesseract with Arabic data (or set TESSERACT_CMD) and run SETUP_OFFLINE.bat again."
 
+:indra_step
+call "%ROOT%tools\deploy_console.bat" step "[5/8] Installing optional Indra OCR worker..."
+set "INDRA_STATE=unavailable"
+if not exist "%ROOT%wheels\indra\indra_ocr-*.whl" goto indra_missing
+if not exist "%ROOT%vendor\indra-models\det.onnx" goto indra_missing
+if not exist "%ROOT%vendor\indra-models\rec.onnx" goto indra_missing
+if not exist "%ROOT%vendor\indra-models\meta.json" goto indra_missing
+"!PY!" "%ROOT%tools\ocr_setup.py" setup-indra --offline >>"%DEPLOY_LOG%" 2>&1
+if errorlevel 1 goto indra_failed
+set "INDRA_STATE=ready"
+call "%ROOT%tools\deploy_console.bat" ok "Optional Indra OCR is ready."
+goto verify
+:indra_missing
+call "%ROOT%tools\deploy_console.bat" warn "Indra OCR assets are missing; photo import falls back to Tesseract. Run PREPARE_ONLINE.bat with internet to add them."
+goto verify
+:indra_failed
+call "%ROOT%tools\deploy_console.bat" warn "Indra OCR setup failed; photo import falls back to Tesseract. See logs\setup-offline.log."
+
 :verify
-call "%ROOT%tools\deploy_console.bat" step "[5/7] Verifying dependencies, schema, and real data files..."
+call "%ROOT%tools\deploy_console.bat" step "[6/8] Verifying dependencies, schema, and real data files..."
 "!PY!" "%ROOT%tools\offline_env.py" verify --strict --quiet >>"%DEPLOY_LOG%" 2>&1
 set "VERIFY_RESULT=!ERRORLEVEL!"
 if "!VERIFY_RESULT!"=="3" goto data_failed
@@ -99,16 +117,17 @@ if not "!VERIFY_RESULT!"=="0" goto failed
 if errorlevel 1 goto failed
 call "%ROOT%tools\deploy_console.bat" ok "Dependencies, data schema, every day file, and app import verified."
 
-call "%ROOT%tools\deploy_console.bat" step "[6/7] Checking production entry point..."
+call "%ROOT%tools\deploy_console.bat" step "[7/8] Checking production entry point..."
 "!PY!" -c "import serve; print('serve-import-ok')" >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 goto failed
 call "%ROOT%tools\deploy_console.bat" ok "Production entry point verified."
 
-call "%ROOT%tools\deploy_console.bat" step "[7/7] Writing offline deployment manifest..."
+call "%ROOT%tools\deploy_console.bat" step "[8/8] Writing offline deployment manifest..."
 "!PY!" "%ROOT%tools\deploy_manifest.py" --mode offline >>"%DEPLOY_LOG%" 2>&1
 if errorlevel 1 call "%ROOT%tools\deploy_console.bat" warn "Could not write logs\deployment-manifest.txt. Setup itself succeeded."
 call "%ROOT%tools\deploy_console.bat" ok "Offline setup completed successfully."
 if /i "!OCR_STATE!"=="unavailable" call "%ROOT%tools\deploy_console.bat" warn "Reminder: image OCR is unavailable."
+if /i "!INDRA_STATE!"=="unavailable" call "%ROOT%tools\deploy_console.bat" warn "Reminder: Indra OCR is unavailable; photo import uses the fallback engine."
 call "%ROOT%tools\deploy_console.bat" info "Run START_SYSTEM.bat to launch the application."
 endlocal
 exit /b 0
