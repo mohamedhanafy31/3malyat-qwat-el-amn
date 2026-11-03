@@ -15,7 +15,7 @@
         href="{{ url_for('static', filename='fonts/NotoKufiArabic-700.woff2').split('?')[0] }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body data-page="{{ page }}" data-export="{% block export %}{% endblock %}">
+<body data-page="{{ page }}" data-export="{% block export %}{% endblock %}" data-daily-files="{% block daily_files %}{% endblock %}">
 <a class="skip-link" href="#main">تخطي إلى المحتوى</a>
 {% include "partials/icons.html" %}
 <header class="topbar">
@@ -265,6 +265,7 @@
 <div class="toast" id="toast" aria-label="التنبيهات"></div>
 <script src="{{ url_for('static', filename='js/core.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
+<script src="{{ url_for('static', filename='js/daily_refresh.js') }}"></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

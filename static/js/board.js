@@ -9,6 +9,7 @@ let SELECTED_ROW_ID = null, MOVING_ROW = false, ENTRY_AFTER_ID = null;
    لازم يبقى ملف Word حقيقي بنفس شكل الورقة الرسمية (نفس التقسيمة
    والحدود والتظليل)، فبيتولّد من السيرفر (`backend/board_export.py`)
    بدل نسخ الـHTML الظاهر على الشاشة. */
+window.dailyFileDay = () => DAY;
 window.exportDocxUrl = () => `/api/board/${DAY}/export.docx`;
 
 const nameOf = list => p => `${p.role ? p.role + "/ " : ""}${p.name}`;

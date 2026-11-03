@@ -1,6 +1,6 @@
 """API لإدارة ملفات الأرشيف اليومية."""
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from threading import Thread
 
 from flask import Blueprint, jsonify
@@ -74,6 +74,36 @@ def refresh(day):
         "warnings": list(result.warnings),
         "results": result.files,
     })
+
+
+@bp.post("/api/day-files/<day>/<kind>")
+def refresh_one(day, kind):
+    """تحديث ملف يومية واحد (kind من القائمة البيضاء) في فولدر الأرشيف.
+    نفس قواعد الأمان بتاعة التحديث العام: write_day_files بيكتب الاسم القانوني
+    ويشيل بس النسخ القديمة المطابقة لنمط نفس اليومية، وأي ملف تاني مايتلمسش."""
+    if kind not in daily_files.KINDS:
+        return jsonify({"error": "نوع ملف غير معروف."}), 404
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    if not daily_files.enabled():
+        return jsonify({"error": "نظام الملفات اليومية متوقف."}), 409
+
+    result = daily_files.write_day_files(day, [kind])
+    entry = result.files.get(kind) or {}
+    payload = {
+        "day": day,
+        "kind": kind,
+        "folder": result.folder,
+        "cloned_from": result.cloned_from,
+        "warnings": list(result.warnings),
+        "result": entry,
+        "at": datetime.now().isoformat(timespec="seconds"),
+    }
+    if not entry.get("ok"):
+        payload["error"] = entry.get("error") or "فشل تحديث الملف."
+        return jsonify(payload), 500
+    return jsonify(payload)
 
 
 @bp.post("/api/day-files/refresh-range")

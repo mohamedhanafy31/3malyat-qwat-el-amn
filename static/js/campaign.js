@@ -2,6 +2,7 @@
 let CAMPAIGN = null, DAY = null;
 const CAMPAIGN_TYPE_FILTERS = new Map();
 
+window.dailyFileDay = () => DAY;
 window.exportDocxUrl = () => `/api/campaign/${DAY}/export.docx`;
 
 const rowSets = () => [...(CAMPAIGN?.lorries || []), ...(CAMPAIGN?.appointments || []),

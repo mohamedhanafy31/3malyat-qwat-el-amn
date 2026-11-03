@@ -7,6 +7,7 @@
   const today = curDate();
   let day = workDay();
   rememberWorkDay(day);
+  window.dailyFileDay = () => day;
   window.exportDocxUrl = () => `/api/ops/${day}/regularity.docx`;
   const updateFormationLinks = () => {
     const morning = document.getElementById("formationMorningExport");
