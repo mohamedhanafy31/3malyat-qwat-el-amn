@@ -1,4 +1,18 @@
 {
+  "officer_states": {
+    "OFF-002": {
+      "taqseera": false,
+      "status": "مؤتمر",
+      "note": "المؤتمر السنوي الثالث والاربعين لمديري ادارة قوات الامن من 31/10 حتي 5/11"
+    }
+  },
+  "status": {
+    "closed": false,
+    "reopened_on": "2026-11-03",
+    "reopened_at": "2026-11-03T05:05:24",
+    "reopened_by": "3malyat_admin",
+    "reason": "تظبيط شغل متأخر"
+  },
   "afraad_basic": {
     "AFB-01": {
       "morning_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
@@ -132,5 +146,6 @@
       "night_phone": "01094086113",
       "night_person_id": "IND-043"
     }
-  }
+  },
+  "weekly_rest_seeded": true
 }

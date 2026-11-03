@@ -293,12 +293,13 @@
       "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
-      "note": ""
+      "note": "",
+      "pos": 0
     },
     {
       "id": "AS-0015",
       "section": "الخدمات الطارئة",
-      "name": "ازالة الجناين",
+      "name": "ازالة فيصل",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
@@ -312,12 +313,13 @@
       "conscript_count": 7,
       "weapon": "فض",
       "time": "9ص",
-      "party": "الجناين",
+      "party": "فيصل",
       "counts_in_summary": true,
       "mission_transport": false,
       "officer_command_required": false,
       "personnel_command_required": true,
-      "note": ""
+      "note": "",
+      "pos": 1
     },
     {
       "id": "AS-0017",
@@ -326,7 +328,7 @@
       "kind": "داخلية",
       "shift": "صباحية",
       "officer_ids": [
-        "OFF-012"
+        "OFF-016"
       ],
       "personnel_ids": [],
       "conscripts": [],
@@ -368,7 +370,7 @@
       "kind": "داخلية",
       "shift": "صباحية",
       "officer_ids": [
-        "OFF-012"
+        "OFF-044"
       ],
       "personnel_ids": [],
       "conscripts": [],
@@ -402,18 +404,225 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": ""
+    },
+    {
+      "id": "AS-0021",
+      "section": "الخدمات الطارئة",
+      "name": "مزاد علني",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [
+        {
+          "class": "وحدة",
+          "count": 1
+        }
+      ],
+      "conscript_count": 7,
+      "weapon": "فض",
+      "time": "9ص",
+      "party": "بمقر جهاز مدينة السويس الجديدة بالمنطقة الصناعية",
+      "counts_in_summary": true,
+      "mission_transport": false,
+      "officer_command_required": false,
+      "personnel_command_required": true,
+      "note": "",
+      "pos": 2
+    },
+    {
+      "id": "AS-0022",
+      "section": "الخدمات الطارئة",
+      "name": "ترحيلة العاشر",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [
+        "IND-184"
+      ],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "conscript_count": 2,
+      "weapon": "آلي",
+      "time": "7ص",
+      "party": "عتاقة",
+      "counts_in_summary": true,
+      "mission_transport": true,
+      "officer_command_required": false,
+      "personnel_command_required": true,
+      "note": ""
+    },
+    {
+      "id": "AS-0023",
+      "section": "الخدمات الطارئة",
+      "name": "ترحيلة نيابة عسكرية",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [
+        "IND-130"
+      ],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "conscript_count": 1,
+      "weapon": "آلي",
+      "time": "8ص",
+      "party": "عتاقة",
+      "counts_in_summary": true,
+      "mission_transport": true,
+      "officer_command_required": false,
+      "personnel_command_required": true,
+      "note": ""
+    },
+    {
+      "id": "AS-0024",
+      "section": "الخدمات الطارئة",
+      "name": "ترحيلة حدث وحريم",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [
+        "IND-114"
+      ],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "conscript_count": 1,
+      "weapon": "آلي",
+      "time": "8ص",
+      "party": "عتاقة",
+      "counts_in_summary": true,
+      "mission_transport": true,
+      "officer_command_required": false,
+      "personnel_command_required": true,
+      "note": ""
+    },
+    {
+      "id": "AS-0025",
+      "section": "الخدمات الطارئة",
+      "name": "ترحيلة مستشفي",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [
+        "IND-107"
+      ],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "conscript_count": 1,
+      "weapon": "آلي",
+      "time": "9ص",
+      "party": "الاربعين",
+      "counts_in_summary": true,
+      "mission_transport": true,
+      "officer_command_required": false,
+      "personnel_command_required": true,
+      "note": ""
+    },
+    {
+      "id": "AS-0026",
+      "section": "خدمات زيارة رئيس الوزراء",
+      "name": "مرافقة الزيارة من الحدود الادارية للمحافظة",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [
+        "OFF-048"
+      ],
+      "personnel_ids": [],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "conscript_count": 3,
+      "weapon": "آلي",
+      "time": "6م",
+      "party": "قوات الأمن",
+      "counts_in_summary": true,
+      "mission_transport": false,
+      "officer_command_required": true,
+      "personnel_command_required": false,
+      "note": "",
+      "pos": 0
+    },
+    {
+      "id": "AS-0027",
+      "section": "خدمات زيارة رئيس الوزراء",
+      "name": "ارتكاز مصر ايران",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [
+        "OFF-015"
+      ],
+      "personnel_ids": [],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        }
+      ],
+      "conscript_count": 3,
+      "weapon": "آلي",
+      "time": "6م",
+      "party": "قوات الأمن",
+      "counts_in_summary": true,
+      "mission_transport": false,
+      "officer_command_required": true,
+      "personnel_command_required": false,
+      "note": "",
+      "pos": 1
     }
   ],
   "officer_states": {
     "OFF-048": {
       "taqseera": true,
       "status": "",
+      "note": ""
+    },
+    "OFF-012": {
+      "taqseera": false,
+      "status": "",
       "note": "",
-      "extra": "متابعة اعمال التدريب والاستعداد للجنة قوات الأمن",
+      "extra": "متابعة أعمال التعيينات",
       "admin_work": true
+    },
+    "OFF-002": {
+      "taqseera": true,
+      "status": "",
+      "note": ""
+    },
+    "OFF-044": {
+      "taqseera": false,
+      "status": "",
+      "note": "",
+      "admin_work": true,
+      "admin_work_text": "متابعة اعمال التدريب + ضابط الأمن بالإدارة فترة صباحية"
     }
   },
-  "assignment_seq": 20,
+  "status": {
+    "closed": false,
+    "reopened_on": "2026-11-03",
+    "reopened_at": "2026-11-03T01:05:24",
+    "reopened_by": "3malyat_admin",
+    "reason": "تظبيط يوميات متأخرة"
+  },
+  "assignment_seq": 27,
   "weekly_rest_seeded": true,
   "target_defaults": {
     "source_day": "2026-10-28",
