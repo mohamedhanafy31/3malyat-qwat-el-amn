@@ -48,9 +48,33 @@ def test_person_match_accepts_unique_short_name_but_not_ambiguous_name():
         {"id": "IND-3", "name": "محمد احمد حسن", "role": "معاون", "phone": "01000000003"},
     ]
     certain = afraad_ocr._person_match("ا.ش/ عبد الحفيظ محمد عبد الحفيظ", people)
-    assert certain["matched"] and certain["id"] == "IND-1"
+    assert certain["matched"] and certain["confident"] and certain["id"] == "IND-1"
+    # الاسم الملتبس بيتقترح فيه أقرب اسم (الأول) بس بيفضل محتاج مراجعة.
     ambiguous = afraad_ocr._person_match("معاون/ محمد احمد", people)
-    assert not ambiguous["matched"]
+    assert ambiguous["matched"] and not ambiguous["confident"]
+    assert ambiguous["id"] == "IND-2"
+
+
+def test_person_match_joins_abd_and_respects_name_order():
+    people = [
+        {"id": "IND-1", "name": "السيد احمد علي سيد احمد", "role": "معاون", "phone": ""},
+        {"id": "IND-2", "name": "السيد علي السيد علي محمد", "role": "معاون", "phone": ""},
+        {"id": "IND-3", "name": "محمد اشرف فتوح علي السيد", "role": "معاون", "phone": ""},
+        {"id": "IND-4", "name": "عبد الحفيظ محمد عبد الحفيظ", "role": "معاون", "phone": ""},
+        {"id": "IND-5", "name": "عماد محمد عبدالحفيظ المؤذن", "role": "معاون", "phone": ""},
+    ]
+    sayed = afraad_ocr._person_match("السيد علي السيد", people)
+    assert sayed["id"] == "IND-2" and sayed["confident"]
+    hafiz = afraad_ocr._person_match("عبدالحفيظ", people)
+    assert hafiz["id"] == "IND-4" and hafiz["confident"]
+    typo = afraad_ocr._person_match("السيد علي السبد", people)
+    assert typo["id"] == "IND-2"
+
+
+def test_person_match_leaves_unrelated_text_unmatched():
+    people = [{"id": "IND-1", "name": "كريم احمد محمد السيد", "role": "معاون", "phone": ""}]
+    result = afraad_ocr._person_match("تدخل سريع", people)
+    assert not result["matched"] and result["id"] == ""
 
 
 def test_ocr_preview_endpoint_returns_review_payload(client, monkeypatch):

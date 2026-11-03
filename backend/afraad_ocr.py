@@ -69,7 +69,34 @@ def _person_tokens(value):
             if len(token) > 1 and token not in _RANK_TOKENS and not token.isdigit()]
 
 
+def _token_similarity(left, right):
+    """تشابه كلمتين؛ أقل من 0.8 غالبًا اسمين مختلفين (عبدالحفيظ/عبدالرؤوف)
+    مش غلطة قراءة حرف (عبدالحفيظ/عبدالحفبظ)، فبيتحسب صفر. والتشابه غير
+    التام بيتخصم منه عشان الكلمة المطابقة حرفيًا تكسب (عبدالحي ≠ عبدالحفيظ)."""
+    if left == right:
+        return 1.0
+    ratio = SequenceMatcher(None, left, right).ratio()
+    return ratio * 0.85 if ratio >= 0.8 else 0.0
+
+
+def _ordered_similarity(wanted, actual):
+    """أفضل محاذاة لكلمات المقروء على كلمات الاسم المسجّل بنفس الترتيب
+    (ممكن نتخطى كلمات من المسجّل). «السيد علي السيد» تتحاذى كاملة على
+    «السيد علي السيد علي محمد» لكن مش على «محمد اشرف فتوح علي السيد»."""
+    rows, cols = len(wanted), len(actual)
+    table = [[0.0] * (cols + 1) for _ in range(rows + 1)]
+    for i in range(1, rows + 1):
+        for j in range(1, cols + 1):
+            similarity = _token_similarity(wanted[i - 1], actual[j - 1])
+            table[i][j] = max(table[i - 1][j], table[i][j - 1],
+                              table[i - 1][j - 1] + similarity)
+    return table[rows][cols] / rows
+
+
 def _person_score(observed, person):
+    """الاسم في الكشف بيتكتب بنفس ترتيب الاسم المسجّل (الاسم ثم الأب ثم
+    الجد) وغالبًا أول كلمتين أو تلاتة منه. فالترتيب جزء من المطابقة: مقارنة
+    الكلمات كـ«شنطة» بدون ترتيب كانت بتدّي 100% لتلات أشخاص مختلفين."""
     phone = re.sub(r"\D", "", str(person.get("phone") or ""))
     observed_digits = re.sub(r"\D", "", str(observed or ""))
     if len(phone) >= 8 and phone in observed_digits:
@@ -78,31 +105,41 @@ def _person_score(observed, person):
     actual = _person_tokens(person.get("name"))
     if not wanted or not actual:
         return 0.0, "name"
-    best = [max(SequenceMatcher(None, token, candidate).ratio() for candidate in actual)
-            for token in wanted]
+    prefix = sum(_token_similarity(token, candidate)
+                 for token, candidate in zip(wanted, actual)) / len(wanted)
+    ordered = _ordered_similarity(wanted, actual)
     exact = sum(1 for token in wanted if token in actual) / len(wanted)
     length_bonus = min(1.0, len(wanted) / 3)
-    return 0.55 * (sum(best) / len(best)) + 0.25 * exact + 0.20 * length_bonus, "name"
+    score = 0.30 * prefix + 0.35 * ordered + 0.25 * exact + 0.10 * length_bonus
+    return score, "name"
+
+
+# أقل درجة نقترح عندها أقرب اسم بدل ما نسيب الخانة فاضية — المستخدم بيراجع.
+SUGGEST_MIN = 0.50
 
 
 def _person_match(text, personnel):
+    """بيختار دايمًا أقرب اسم (لو فوق SUGGEST_MIN) عشان المستخدم يراجع
+    بدل ما يدوّر بنفسه؛ و`confident` بتقول لو الاختيار واضح ومش محتاج نظرة."""
+    empty = {"text": str(text or "").strip(), "matched": False, "confident": False, "candidates": []}
     if not _person_tokens(text):
-        return {"text": str(text or "").strip(), "matched": False, "candidates": []}
+        return empty
     ranked = sorted(
-        ((*_person_score(text, person), person) for person in personnel),
-        key=lambda value: value[0], reverse=True,
+        ((*_person_score(text, person), index, person) for index, person in enumerate(personnel)),
+        key=lambda value: (-value[0], value[2]),
     )
+    if not ranked:
+        return empty
     candidates = [{"id": person["id"], "name": person.get("name", ""),
                    "role": person.get("role", ""), "score": round(score, 3)}
-                  for score, _reason, person in ranked[:3]]
-    if not ranked:
-        return {"text": str(text or "").strip(), "matched": False, "candidates": []}
-    score, reason, person = ranked[0]
+                  for score, _reason, _index, person in ranked[:3]]
+    score, reason, _index, person = ranked[0]
     runner = ranked[1][0] if len(ranked) > 1 else 0.0
-    matched = reason == "phone" or (score >= 0.70 and score - runner >= 0.06) \
-        or (score >= 0.86 and score - runner >= 0.03)
+    confident = reason == "phone" or (score >= 0.80 and score - runner >= 0.06) \
+        or (score >= 0.92 and score - runner >= 0.03)
+    matched = confident or score >= SUGGEST_MIN
     return {
-        "text": str(text or "").strip(), "matched": matched,
+        "text": str(text or "").strip(), "matched": matched, "confident": confident,
         "id": person["id"] if matched else "", "name": person.get("name", "") if matched else "",
         "score": round(score, 3), "reason": reason, "candidates": candidates,
     }
@@ -206,9 +243,13 @@ def analyze_image(raw, filename, data, day, pipeline=None):
     for row in aligned:
         morning = _person_match(row.get("morning", ""), personnel)
         night = _person_match(row.get("evening", ""), personnel)
+        slots = [match for match in (morning, night) if match.get("text")]
         output.append({**row, "morning_match": morning, "night_match": night,
                        "auto_selected": bool(row.get("service_id") and
-                                             (morning.get("matched") or night.get("matched")))})
+                                             (morning.get("matched") or night.get("matched"))),
+                       # جاهز من غير مراجعة: كل خانة مقروءة اتطابقت بثقة.
+                       "confident": bool(row.get("service_id") and slots and
+                                         all(match.get("confident") for match in slots))})
     payload.update(rows=output, row_offset=offset,
                    summary={"detected_rows": len(_rows_from_cells(result.cells)),
                             "matched_services": len(output),

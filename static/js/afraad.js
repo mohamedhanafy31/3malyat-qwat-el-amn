@@ -338,8 +338,9 @@ function ocrBadge(score, matchedText) {
 function ocrSlot(title, read, match, attr, personnel) {
   const picked = match?.matched ? match.id : "";
   const state = !read ? `<span class="ocr-conf none">فاضية</span>`
-    : match?.matched ? ocrBadge(match.score, "مطابق: " + (match.name || ""))
-    : `<span class="ocr-conf low" title="لا توجد مطابقة مؤكدة — اختر الفرد يدويًا">غير مطابق</span>`;
+    : match?.confident ? ocrBadge(match.score, "مطابق: " + (match.name || ""))
+    : match?.matched ? `<span class="ocr-conf mid" title="أقرب اسم مسجّل: ${esc(match.name || "")} — راجعه قبل التسكين">أقرب تطابق</span>`
+    : `<span class="ocr-conf low" title="لا يوجد اسم قريب — اختر الفرد يدويًا">غير مطابق</span>`;
   return `<div class="ocr-slot">
     <div class="ocr-slot-head"><h5>${title}</h5>${state}</div>
     <div class="ocr-read" title="النص المقروء من الصورة">${read ? esc(read) : "<span class='muted'>—</span>"}</div>
@@ -350,7 +351,8 @@ function ocrSlot(title, read, match, attr, personnel) {
 /* حالة الصف: جاهز (مطابقة مؤكدة) / يحتاج مراجعة / ناقص (مفيش خدمة أو فرد) */
 function ocrRowState(card) {
   const filled = ocrRowPayload(card);
-  const ready = !!AF_OCR.rows[Number(card.dataset.ocrRow)].auto_selected;
+  // جاهز = كل خانة مقروءة اتطابقت بثقة؛ «أقرب تطابق» بيفضل «راجعه».
+  const ready = !!AF_OCR.rows[Number(card.dataset.ocrRow)].confident;
   return filled ? (ready ? "ready" : "review") : "missing";
 }
 
