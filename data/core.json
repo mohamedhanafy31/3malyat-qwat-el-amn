@@ -8029,10 +8029,10 @@
       "join_date": "2025-11-24",
       "post": "الفرن",
       "address": "الباجور - المنوفية",
-      "status": "active",
+      "status": "archived",
       "id": "IND-132",
-      "leave_date": "",
-      "leave_reason": "",
+      "leave_date": "2026-11-01",
+      "leave_reason": "قرار من مدير الامن بنقله الي قسم السويس",
       "other_phones": [],
       "history": []
     },
@@ -8609,14 +8609,25 @@
       "code": "79643",
       "phone": "01069680311",
       "join_date": "2026-07-26",
-      "post": "المطبخ",
+      "post": "الفرن",
       "address": "طنطا - الغربية",
       "status": "active",
       "id": "IND-134",
       "leave_date": "",
       "leave_reason": "",
       "other_phones": [],
-      "history": []
+      "history": [
+        {
+          "from": "2026-07-26",
+          "role": "أمين شرطة أول",
+          "post": "المطبخ"
+        },
+        {
+          "from": "2026-11-01",
+          "role": "أمين شرطة أول",
+          "post": "الفرن"
+        }
+      ]
     },
     {
       "name": "عبدالمنعم احمد علي العشماوي",
@@ -8853,14 +8864,25 @@
       "code": "82617",
       "phone": "01147449592",
       "join_date": "2026-07-19",
-      "post": "خدمات",
+      "post": "المعسكر الفرعي",
       "address": "الشهداء-المنوفية",
       "status": "active",
       "id": "IND-057",
       "leave_date": "",
       "leave_reason": "",
       "other_phones": [],
-      "history": []
+      "history": [
+        {
+          "from": "2026-07-19",
+          "role": "أمين شرطة ثان",
+          "post": "خدمات"
+        },
+        {
+          "from": "2026-11-01",
+          "role": "أمين شرطة ثان",
+          "post": "المعسكر الفرعي"
+        }
+      ]
     },
     {
       "name": "فايز عبدالمجيد الهادي",
@@ -9271,10 +9293,10 @@
       "join_date": "2025-10-26",
       "post": "الاهداف",
       "address": "بنها - القليوبية",
-      "status": "active",
+      "status": "archived",
       "id": "IND-161",
-      "leave_date": "",
-      "leave_reason": "",
+      "leave_date": "2026-11-01",
+      "leave_reason": "توفي الي رحمة الله تعالي",
       "other_phones": [],
       "history": []
     },
