@@ -226,10 +226,23 @@ def _write_cell(cell, text, *, size_pt, paragraphs=None):
     return pprs
 
 
-def _summary_values(summary):
-    """قيم صف الإجمالي بترتيب أعمدة الملف الحقيقي (17 عمودًا):
-    أصل القوة، خارجية(2)، داخلية(2)، طبية(2)، خوارج: تقصيرة/راحة/دورية/غياب/
-    مرضي/فرقة/مأمورية/انتداب، حراسات، (الصافي = الأسماء)."""
+# أعمدة «الخوراج» الثابتة: رقم العمود في صف الإجمالي ← مفتاح الحالة في summary["خوارج"].
+# العمود 9 اسمه «دورية» في الملف الحقيقي ومفتاحه «طارئة».
+OUTSIDE_COLUMNS = {7: "تقصيرة", 8: "راحة", 9: "طارئة", 10: "غياب", 11: "مرضي",
+                   12: "فرقة", 13: "مأمورية", 14: "انتداب"}
+# أعمدة الخوارج بالترتيب اللي بتتشال بيه لما تكون صفر وفيه حالة جديدة محتاجة مكان:
+# «دورية» الأول (أقلهم استخدامًا)، ثم مأمورية وفرقة (مصدرهم تسجيل خاص)، ثم غياب ومرضي
+# وانتداب، وآخر حاجة تقصيرة وراحة لأنهم الأعمدة اليومية المعتادة.
+REPLACE_ORDER = (9, 13, 12, 10, 11, 14, 7, 8)
+HEADER_SIZES_PT = (8, 7, 6, 5.5, 5)
+
+
+def _summary_layout(summary):
+    """-> (القيم، {رقم العمود: عنوان بديل}) لصف الإجمالي.
+
+    الحالة الخاصة (المضافة من الخوارج وملهاش عمود) بتاخد مكان عمود ثابت عدّه صفر؛ لو
+    الحالات الجديدة أكتر من الأعمدة الصفر، الباقي بيتجمع مع آخر عمود اتبدّل (العنوان «أ + ب»
+    والعدد مجموعهم)، ولو مفيش عمود صفر خالص بتتجمع في عمود «دورية» زي الأول."""
     external, internal = summary["خارجية"], summary["داخلية"]
     medical, outside = summary["طبية"], summary["خوارج"]
     morning = str(external["صباحية"])
@@ -239,12 +252,46 @@ def _summary_values(summary):
     # «N معسكر فرعي» بيتكتب في الصف اللي تحت الداخلية (`_sparse_summary`)،
     # مش جنب الرقم — غير كده كان بيتطبع مرتين.
     internal_morning = str(internal["صباحية"])
-    fixed_outside = {"تقصيرة", "راحة", "طارئة", "غياب", "مرضي", "فرقة", "انتداب", "مأمورية"}
-    other_emergency = sum(value for key, value in outside.items() if key not in fixed_outside)
-    return [summary["أصل القوة"], morning, external["ليلية"], internal_morning,
-            internal["ليلية"], medical["موجود"], medical["راحة"], outside["تقصيرة"],
-            outside["راحة"], outside["طارئة"] + other_emergency, outside["غياب"], outside["مرضي"],
-            outside["فرقة"], outside.get("مأمورية", 0), outside["انتداب"], summary["حراسات"]]
+    fixed_outside = set(OUTSIDE_COLUMNS.values())
+    custom = [(key, value) for key, value in outside.items()
+              if key not in fixed_outside and value]
+    column = {index: outside.get(key, 0) for index, key in OUTSIDE_COLUMNS.items()}
+    headers = {}
+    zero_slots = [index for index in REPLACE_ORDER if not column[index]]
+    if custom and zero_slots:
+        assigned = list(zip(zero_slots, custom))
+        for index, (name, count) in assigned:
+            column[index], headers[index] = count, name
+        overflow = custom[len(zero_slots):]
+        if overflow:
+            last = assigned[-1][0]
+            column[last] += sum(count for _name, count in overflow)
+            headers[last] = " + ".join([headers[last]] + [name for name, _count in overflow])
+    elif custom:
+        column[9] += sum(count for _name, count in custom)
+    values = [summary["أصل القوة"], morning, external["ليلية"], internal_morning,
+              internal["ليلية"], medical["موجود"], medical["راحة"],
+              column[7], column[8], column[9], column[10], column[11],
+              column[12], column[13], column[14], summary["حراسات"]]
+    return values, headers
+
+
+def _summary_values(summary):
+    """قيم صف الإجمالي بترتيب أعمدة الملف الحقيقي (17 عمودًا):
+    أصل القوة، خارجية(2)، داخلية(2)، طبية(2)، خوارج: تقصيرة/راحة/دورية/غياب/
+    مرضي/فرقة/مأمورية/انتداب، حراسات، (الصافي = الأسماء)."""
+    return _summary_layout(summary)[0]
+
+
+def _header_size(meter, text, width_pt):
+    """أكبر مقاس يخلّي العنوان سطر واحد (6pt فأكتر)، وإلا سطرين، وإلا أصغر مقاس."""
+    for size in HEADER_SIZES_PT:
+        if size >= 6 and _lines(meter, text, width_pt, size) <= 1:
+            return size
+    for size in HEADER_SIZES_PT:
+        if _lines(meter, text, width_pt, size) <= 2:
+            return size
+    return HEADER_SIZES_PT[-1]
 
 
 def _net_names(rows):
@@ -270,7 +317,11 @@ def _sparse_summary(rows):
 
 def _fill_summary(table, summary, rows, names_size=SUMMARY_SIZE_PT):
     header, names_row, total, sparse = (_physical_cells(table.rows[index]) for index in range(4))
-    values = _summary_values(summary)
+    values, headers = _summary_layout(summary)
+    if headers:
+        meter, grid = TextMeter(), _grid_widths_pt(table)
+        for index, text in headers.items():
+            _write_cell(names_row[index], text, size_pt=_header_size(meter, text, grid[index]))
     # صف الإجمالي: 16 قيمة ثم خلية الصافي (استمرار دمج رأسي لخلية الأسماء).
     for index, value in enumerate(values):
         _write_cell(total[index], value, size_pt=SUMMARY_SIZE_PT)

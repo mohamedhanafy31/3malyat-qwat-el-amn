@@ -602,6 +602,23 @@ def _row_view(data, ident, kind, name, raw, inherited, attached=None, assignment
     }
 
 
+def _service_vehicle(row):
+    vehicles = row.get("service_vehicles") or []
+    return (vehicles[0].get("vehicle") if vehicles else None) or row.get("vehicle")
+
+
+def order_services(rows):
+    """يرتّب صفوف الخدمات بفئة المركبة (لوري، أتوبيس، ميكروباص، بيك اب/دوبل كبينة، الباقي)
+    ويوسم كل صف بـ ``vehicle_category`` و``category_break`` (حد فاصل بعده) للصفحة."""
+    ordered = fleet.order_by_category(
+        rows, lambda row: (_service_vehicle(row) or {}).get("type"),
+        lambda row: (_service_vehicle(row) or {}).get("id") or row["id"])
+    for row, category, _key, brk in ordered:
+        row["vehicle_category"] = category
+        row["category_break"] = brk
+    return [row for row, *_rest in ordered]
+
+
 def build_campaign(data, day):
     current = (data.get("day_campaign") or {}).get(day) or {}
     previous_day = _previous(data, day)
@@ -664,6 +681,7 @@ def build_campaign(data, day):
         ))
     for row in rows_s:
         row["service_vehicles"] = service_vehicles(data, day, row["id"])
+    rows_s = order_services(rows_s)
 
     rows_d = [
         _row_view(
