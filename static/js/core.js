@@ -442,7 +442,16 @@ function mtable(head,rows){
 /* ---------- الحالة الفاضية والتحميل ----------
    حالة فاضية بشكل واحد في كل مكان: أيقونة، عنوان، سطر توضيح، وإجراء لو فيه
    خطوة واضحة. compact للكروت الصغيرة (أقسام اليومية، أعمدة الرئيسية). */
-function emptyState({icon:ic="inbox",title="",hint="",action=null,compact=false}={}){
+function emptyState({icon:ic="inbox",title="",hint="",action=null,compact=false,filtered=false}={}){
+  // filtered: القائمة فاضية بسبب البحث/الفلاتر مش لأن مفيش بيانات —
+  // فبدل رسالة «أضف…» الأولى نقول «لا نتائج» ونعرض «مسح الفلاتر».
+  if(filtered){
+    ic="search"; title="لا نتائج تطابق البحث أو الفلاتر";
+    hint="جرّب كلمة بحث تانية أو امسح الفلاتر لعرض كل السجلات.";
+    return `<div class="empty-state${compact?" compact":""}"${compact?"":' role="status"'}>
+    ${icon(ic,"empty-ico")}<p class="empty-title">${esc(title)}</p>
+    <p class="empty-hint">${esc(hint)}</p><button type="button" class="btn" data-empty-clear-filters>مسح الفلاتر</button></div>`;
+  }
   const act=action?`<button type="button" class="${action.primary?"primary":"btn"}"
       ${action.id?`data-empty-click="${esc(action.id)}"`:""}>${esc(action.label)}</button>`:"";
   return `<div class="empty-state${compact?" compact":""}"${compact?"":' role="status"'}>
@@ -453,6 +462,7 @@ function emptyState({icon:ic="inbox",title="",hint="",action=null,compact=false}
 document.addEventListener("click",e=>{
   const b=e.target.closest("[data-empty-click]");
   if(b) document.getElementById(b.dataset.emptyClick)?.click();
+  if(e.target.closest("[data-empty-clear-filters]")) UI.clearAllFilters();
 });
 /* هيكل مكان المحتوى وقت التحميل بنفس ارتفاعه التقريبي — بدل «جارٍ التحميل»
    كنص، وبدل ما المحتوى ينط لما يوصل */
@@ -515,6 +525,8 @@ UI.filterChips=function(container,controls,onChange){
     else item.control.value=item.defaultValue??"";
   };
   const api={
+    isActive(){return list.some(active)},
+    clearAll(){const selected=list.filter(active);selected.forEach(clear);if(selected.length)onChange?.();return selected.length},
     update(count){
       const selected=list.filter(active);
       container.innerHTML=`<div class="filter-chip-list" aria-label="الفلاتر الفعالة">${selected.map(item=>`<button type="button" class="active-filter-chip" data-filter-index="${item.index}" title="إزالة هذا الفلتر"><span>${esc(labelOf(item))}</span><b aria-hidden="true">×</b><span class="sr-only">إزالة</span></button>`).join("")}${selected.length?'<button type="button" class="filter-clear-all" data-filter-clear>مسح الكل</button>':""}</div><output class="filter-result-count" aria-live="polite">النتائج: ${Number.isFinite(Number(count))?Number(count):"—"}</output>`;
@@ -528,8 +540,27 @@ UI.filterChips=function(container,controls,onChange){
     onChange?.();
   });
   api.update();
+  (UI._filterSets||(UI._filterSets=[])).push(api);
   return api;
 };
+// «مسح الفلاتر» من الحالة الفاضية: بيمسح فلاتر الشرائح المسجلة، وأي بحث أو
+// قائمة تصفية في شريط الأدوات، وبيبعت input/change عشان الصفحة تعيد العرض بنفسها.
+UI.clearAllFilters=function(){
+  let cleared=0;
+  (UI._filterSets||[]).forEach(set=>{cleared+=set.clearAll()});
+  document.querySelectorAll("main .toolbar input.search, main input[type=search]").forEach(input=>{
+    if(!input.value.trim()) return;
+    input.value="";cleared++;
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+  });
+  document.querySelectorAll("main .toolbar select").forEach(select=>{
+    if(select.selectedIndex<=0) return;
+    select.selectedIndex=0;cleared++;
+    select.dispatchEvent(new Event("change",{bubbles:true}));
+  });
+  return cleared;
+};
+UI.filtersActive=function(){return _filtersActive()};
 
 UI.actionMenu=function(button,panel){
   if(typeof button==="string") button=document.querySelector(button);
@@ -559,12 +590,12 @@ UI.actionMenu=function(button,panel){
 };
 // فيه بحث أو تصفية شغّالة؟ — الجدول الفاضي ساعتها معناه «مفيش نتائج» مش «مفيش بيانات»
 function _filtersActive(){
-  return [...document.querySelectorAll("main .toolbar input.search")].some(i=>i.value.trim())
+  return (UI._filterSets||[]).some(set=>set.isActive())
+    || [...document.querySelectorAll("main .toolbar input.search")].some(i=>i.value.trim())
     || [...document.querySelectorAll("main .toolbar select")].some(s=>s.selectedIndex>0);
 }
 function _emptyHtml(v){
-  if(_filtersActive()) return emptyState({icon:"search",title:"لا توجد نتائج مطابقة",
-    hint:"حاول تعديل البحث أو عوامل التصفية."});
+  if(_filtersActive()) return emptyState({filtered:true});
   return emptyState(typeof v==="string"?{title:v}:v);
 }
 function tableBlock(head,rows,countText,emptyText,cid,renderFn){
@@ -2231,6 +2262,11 @@ document.addEventListener("click",async e=>{
     _userMenuToggle();
     return;
   }
+  if(e.target.closest("#pageHelpBtn")){
+    _userMenuClose();
+    _openPageHelp();
+    return;
+  }
   const logoutBtn=e.target.closest("#logoutBtn");
   if(logoutBtn){
     e.preventDefault();
@@ -2388,7 +2424,7 @@ function _labelMobileCards() {
 
 /* تلميح التمرير الأفقي: الحافة اللي وراها محتوى بتبهت (mask) — الخلفيات
    الملونة للخلايا كانت بتغطي أي ظل مرسوم على الحاوية نفسها */
-// .mtable-wrap ليه ظل طرفي خاص بيه من الخلفية (style.css) — مش محتاج ده
+// .mtable-wrap ليه ظل طرفي خاص بيه من الخلفية (static/css) — مش محتاج ده
 const SCROLLERS = ".table-scroll.is-wide, .reg-scroll, .stats, .duty-strip";
 function _syncScrollFade(el) {
   const max = el.scrollWidth - el.clientWidth;
@@ -2436,7 +2472,7 @@ function _paintCommands(){
   const query=normAr(_commandInput?.value||'');
   const matches=_commandLinks.filter(item=>!query||normAr(item.label).includes(query));
   _commandIndex=Math.max(0,Math.min(_commandIndex,matches.length-1));
-  _commandList.innerHTML=matches.length?matches.map((item,index)=>`<a href="${esc(item.href)}" role="option" aria-selected="${index===_commandIndex}" class="${index===_commandIndex?'is-active':''}${item.current?' is-current':''}">${icon('arrow-end')}<span>${esc(item.label)}</span>${item.current?'<small>الصفحة الحالية</small>':''}</a>`).join(''):`<p class="command-palette-empty">لا توجد صفحة مطابقة.</p>`;
+  _commandList.innerHTML=matches.length?matches.map((item,index)=>`<a href="${esc(item.href)}" role="option" aria-selected="${index===_commandIndex}" class="${index===_commandIndex?'is-active':''}${item.current?' is-current':''}"><span>${esc(item.label)}</span>${item.current?'<small>الصفحة الحالية</small>':''}</a>`).join(''):`<p class="command-palette-empty">لا توجد صفحة مطابقة.</p>`;
   _commandList.querySelector('.is-active')?.scrollIntoView({block:'nearest'});
 }
 function _openCommands(){
@@ -2473,3 +2509,33 @@ if ($("#today") && !$("#today").textContent.trim()) {
   const d = new Date();
   $("#today").textContent = fmtTodayAr(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
 }
+
+/* ---------- مساعدة الصفحة ----------
+   فقرة قصيرة ومصطلحات الصفحة، من قايمة الحساب. الصفحات اللي مالهاش نص خاص
+   بتعرض سطر عام. */
+const PAGE_HELP={
+  dashboard:{text:"الرئيسية هي نقطة بداية اليوم: بتعرض الخدمات المستحقة دلوقتي، وتسجّل منها «قيام» كل خدمة وقت خروجها، وتراجع ملفات اليوم قبل التسليم.",
+    terms:[["قيام","تسجيل إن الخدمة خرجت فعلًا في معادها."],["متأخرة","خدمة عدّى معادها ولسه ماتسجلش قيامها."],["ملفات اليوم","اليوميات الرسمية (الانتظام وخط التشكيل) جاهزة للطباعة."]]},
+  board:{text:"اليومية التفصيلية فيها كل خدمات اليوم مقسّمة حسب نوعها، ومين قايم بكل خدمة من الضباط والأفراد والمجندين. بعد آخر تعديل اضغط «تأكيد اليومية» عشان التغييرات تتسجل في «تغيير تشغيل».",
+    terms:[["تأكيد اليومية","اعتماد نسخة اليوم وتسجيل الفرق عن آخر تأكيد."],["الخوارج","الضباط اللي برّه التشغيل اليوم (راحة، إجازة، مأمورية…)."],["القسم","مجموعة خدمات من نفس النوع، زي الطارئة أو الأساسية."]]},
+  duty:{text:"يومية الضباط بتعرض موقف كل ضابط اليوم وحالته، والجدول الإجمالي تحت هو نفس اللي بيطلع في ملف Word.",
+    terms:[["الصافي","عدد الضباط المتاحين للتشغيل بعد طرح الخوارج."],["تقصيرة","تسجيل تقصير على ضابط في خدمة معينة."],["حالة خاصة","حالة مضافة لليوم (زي «مؤتمر») وبتظهر عمود في الإجمالي."]]},
+  afraad:{text:"يومية الأفراد فيها الخدمات الأساسية الثابتة من دليل الخدمات، والطارئة من اليومية التفصيلية. الأسماء ممكن تتكتب يدوي أو تتقري من صورة الكشف، وبعدين تراجع التطابق قبل التطبيق.",
+    terms:[["أقرب تطابق","السيستم اختار أقرب اسم مسجّل، ولازم تراجعه بنفسك."],["قيم افتراضية","بيانات متورّثة من آخر يومية أفراد لحد ما تعدّلها."]]},
+  officers:{text:"سجل الضباط فيه البيانات الأساسية لكل ضابط ونظام راحته ويوم راحته الثابت. الضابط اللي اتنقل أو خرج من القوة بيتحوّل للأرشيف بدل ما يتمسح.",
+    terms:[["نظام الراحة","أسبوعية أو نصف شهرية أو شهرية."],["يوم الراحة","اليوم اللي الراحة الأسبوعية بتتسجل فيه تلقائي."],["الأرشيف","سجلات محفوظة لكن مش داخلة في التشغيل."]]},
+  personnel:{text:"سجل الأفراد فيه بيانات كل فرد وموقع عمله وتاريخ تغيير الموقع. الفرد اللي اتنقل أو خرج من القوة بيتحوّل للأرشيف بسبب وتاريخ.",
+    terms:[["الموقع","مكان عمل الفرد الحالي، وتاريخ تغييره بيتحفظ."],["الأرشيف","سجلات محفوظة لكن مش داخلة في التشغيل."]]},
+};
+function _openPageHelp(){
+  const dialog=$("#pageHelp"),body=$("#pageHelpBody");
+  if(!dialog||!body) return;
+  const help=PAGE_HELP[document.body.dataset.page];
+  body.innerHTML=help
+    ?`<p>${esc(help.text)}</p>${help.terms?.length?`<dl class="page-help-terms">${help.terms.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join("")}</dl>`:""}`
+    :"<p>الصفحة دي بتعرض بياناتها من نفس سجلات السيستم. استخدم البحث والفلاتر فوق للوصول للسجل المطلوب، ولو عندك سؤال عن خطوة معينة ارجع لمسؤول السيستم.</p>";
+  dialog.showModal();
+  $("#pageHelpClose")?.focus();
+}
+$("#pageHelpClose")?.addEventListener("click",()=>$("#pageHelp").close());
+$("#pageHelp")?.addEventListener("click",event=>{if(event.target===event.currentTarget)event.currentTarget.close()});

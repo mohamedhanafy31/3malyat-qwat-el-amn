@@ -17,67 +17,81 @@
     </div>
     <form id="assignForm" novalidate>
       <input type="hidden" id="assignPerson">
-      <fieldset class="assign-special hidden" id="assignResearch">
-        <legend>تعيين خدمة</legend>
-        <p class="hint">خدمة ضابط البحث لهذا اليوم فقط، ولا تُورَّث إلى اليوم التالي.</p>
+      <fieldset class="assign-path-field">
+        <legend>عايز تسجّل إيه؟</legend>
+        <div class="seg-toggle assign-path" role="radiogroup" aria-label="نوع الإجراء">
+          <label><input type="radio" name="assignPath" value="operate"><span>تشغيل اليوم</span></label>
+          <label><input type="radio" name="assignPath" value="status"><span>حالة خاصة (خوارج)</span></label>
+        </div>
+      </fieldset>
+      <div class="assign-path-body" data-assign-path="operate">
+        <fieldset class="assign-special hidden" id="assignResearch">
+          <legend>تعيين خدمة</legend>
+          <p class="hint">خدمة ضابط البحث لهذا اليوم فقط، ولا تُورَّث إلى اليوم التالي.</p>
+          <div class="grid">
+            <label>اسم الخدمة
+              <input id="assignResearchService" maxlength="500" placeholder="مثال: متابعة تحريات">
+            </label>
+            <label>معاد الانتظام <small>اختَر المعاد من لوحة الساعة — ويمكن تركه فارغًا</small>
+              <input id="assignResearchTime" data-time aria-label="معاد انتظام خدمة البحث">
+            </label>
+          </div>
+        </fieldset>
+        <fieldset class="assign-special hidden" id="assignMedical">
+          <legend>حالة الطبي</legend>
+          <p class="hint" id="assignMedicalHint">الاختيار يستمر في الأيام التالية لحد ما يتغيّر.</p>
+          <div class="seg-toggle" role="radiogroup" aria-label="حالة ضابط الطبي">
+            <label><input type="radio" name="assignMedicalState" value="عمل"><span>عمل</span></label>
+            <label><input type="radio" name="assignMedicalState" value="راحة"><span>راحة</span></label>
+            <label><input type="radio" name="assignMedicalState" value="انتداب"><span>انتداب</span></label>
+          </div>
+          <label class="hidden assign-medical-text" id="assignMedicalTextRow">نص الانتداب
+            <small>يظهر كنص التشغيل في اليومية؛ لو تُرك فارغًا يظهر «انتداب»</small>
+            <textarea id="assignMedicalText" maxlength="500" rows="3"
+                      placeholder="اكتب جهة أو تفاصيل الانتداب"></textarea>
+          </label>
+        </fieldset>
+        <label>تشغيل إضافي <small>يُضاف بعد خدمته التلقائية من اليومية التفصيلية</small>
+          <input id="assignExtra" maxlength="500" placeholder="مثال: متابعة اعمال التعيينات">
+        </label>
         <div class="grid">
-          <label>اسم الخدمة
-            <input id="assignResearchService" maxlength="500" placeholder="مثال: متابعة تحريات">
-          </label>
-          <label>معاد الانتظام <small>اختَر المعاد من لوحة الساعة — ويمكن تركه فارغًا</small>
-            <input id="assignResearchTime" data-time aria-label="معاد انتظام خدمة البحث">
+          <label class="checkline">
+            <input type="checkbox" id="assignTaq"> تقصيرة (خرج بدري بعد خدمته)
           </label>
         </div>
-      </fieldset>
-      <fieldset class="assign-special hidden" id="assignMedical">
-        <legend>حالة الطبي</legend>
-        <p class="hint" id="assignMedicalHint">الاختيار يستمر في الأيام التالية لحد ما يتغيّر.</p>
-        <div class="seg-toggle" role="radiogroup" aria-label="حالة ضابط الطبي">
-          <label><input type="radio" name="assignMedicalState" value="عمل"><span>عمل</span></label>
-          <label><input type="radio" name="assignMedicalState" value="راحة"><span>راحة</span></label>
-          <label><input type="radio" name="assignMedicalState" value="انتداب"><span>انتداب</span></label>
-        </div>
-        <label class="hidden assign-medical-text" id="assignMedicalTextRow">نص الانتداب
-          <small>يظهر كنص التشغيل في اليومية؛ لو تُرك فارغًا يظهر «انتداب»</small>
-          <textarea id="assignMedicalText" maxlength="500" rows="3"
-                    placeholder="اكتب جهة أو تفاصيل الانتداب"></textarea>
-        </label>
-      </fieldset>
-      <div class="grid">
-        <label>حالة خاصة <small>اختر تصنيفًا موجودًا أو اكتب تصنيفًا جديدًا؛ يظهر في جدول الإجمالي ويُحفظ للمرات القادمة</small>
-          <select id="assignStatus" data-combo-custom data-combo-custom-label="تصنيف جديد"
-                  data-maxlength="60" aria-label="تصنيف حالة الضابط"></select>
-          <small class="status-behavior-hint" id="assignStatusHint">مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد.</small>
-        </label>
-        <label class="hidden" id="assignEndRow">حتى يوم <small>آخر يوم في الحالة (شامل) — تنتهي تلقائيًا بعده</small>
-          <input type="date" id="assignStatusEnd">
-        </label>
-        <label class="hidden" id="assignTitleRow">اسم المأمورية / الانتداب
-          <input id="assignStatusTitle" maxlength="120" placeholder="مثال: تأمين مؤتمر">
-        </label>
-        <label class="hidden" id="assignDetailsRow">التفاصيل <small>تظهر في اليومية في كل يوم من أيام الحالة</small>
-          <input id="assignStatusDetails" maxlength="300" placeholder="مثال: بمدينة العاشر من رمضان">
-        </label>
         <label class="checkline">
-          <input type="checkbox" id="assignTaq"> تقصيرة (خرج بدري بعد خدمته)
+          <input type="checkbox" id="assignAdmin">
+          <span>إضافة للعمل بالإدارة
+            <small id="assignAdminHint" class="block-hint">النص التشغيلي الكامل (خدمته + الإضافي) يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية، ويفضل في مكان خدمته</small></span>
+        </label>
+        <label>نص عمل بالإدارة <small id="assignAdminTextHint" class="block-hint">اختياري — عند كتابته يظهر الضابط تحت «عمل بالإدارة» بهذا النص بالضبط (دون تكرار خدمته أو الإضافي)، حتى إذا لم تُفعّل الخيار أعلاه</small>
+          <textarea id="assignAdminText" maxlength="500" rows="2"
+                    placeholder="مثال: متابعة أعمال الشئون + مشرف الأهداف من 4م"></textarea>
         </label>
       </div>
-      <label>تشغيل إضافي <small>يُضاف بعد خدمته التلقائية من اليومية التفصيلية</small>
-        <input id="assignExtra" maxlength="500" placeholder="مثال: متابعة اعمال التعيينات">
-      </label>
+      <div class="assign-path-body hidden" data-assign-path="status">
+        <div class="grid">
+          <label>حالة خاصة <small>اختر تصنيفًا موجودًا أو اكتب تصنيفًا جديدًا؛ يظهر في جدول الإجمالي ويُحفظ للمرات القادمة</small>
+            <select id="assignStatus" data-combo-custom data-combo-custom-label="تصنيف جديد"
+                    data-maxlength="60" aria-label="تصنيف حالة الضابط"></select>
+            <small class="status-behavior-hint" id="assignStatusHint">مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد.</small>
+          </label>
+          <label class="hidden" id="assignEndRow">حتى يوم <small>آخر يوم في الحالة (شامل) — تنتهي تلقائيًا بعده</small>
+            <input type="date" id="assignStatusEnd">
+          </label>
+          <label class="hidden" id="assignTitleRow">اسم المأمورية / الانتداب
+            <input id="assignStatusTitle" maxlength="120" placeholder="مثال: تأمين مؤتمر">
+          </label>
+          <label class="hidden" id="assignDetailsRow">التفاصيل <small>تظهر في اليومية في كل يوم من أيام الحالة</small>
+            <input id="assignStatusDetails" maxlength="300" placeholder="مثال: بمدينة العاشر من رمضان">
+          </label>
+        </div>
+      </div>
       <label class="hidden" id="assignNoteRow"><span id="assignNoteLabel">نص التشغيل الكامل المحفوظ</span> <small id="assignNoteHint">نص قديم يحل محل الخدمة التلقائية — احذفه لعرض الخدمة وحدها</small>
         <input id="assignNote" maxlength="500">
       </label>
-      <label class="checkline">
-        <input type="checkbox" id="assignAdmin">
-        <span>إضافة للعمل بالإدارة
-          <small id="assignAdminHint" class="block-hint">النص التشغيلي الكامل (خدمته + الإضافي) يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية، ويفضل في مكان خدمته</small></span>
-      </label>
-      <label>نص عمل بالإدارة <small id="assignAdminTextHint" class="block-hint">اختياري — عند كتابته يظهر الضابط تحت «عمل بالإدارة» بهذا النص بالضبط (دون تكرار خدمته أو الإضافي)، حتى إذا لم تُفعّل الخيار أعلاه</small>
-        <textarea id="assignAdminText" maxlength="500" rows="2"
-                  placeholder="مثال: متابعة أعمال الشئون + مشرف الأهداف من 4م"></textarea>
-      </label>
       <p class="hint" id="assignPreview"></p>
+      <p class="assign-summary" id="assignSummary" aria-live="polite"></p>
       <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ الحالة</button>
         <button type="button" class="btn" data-close="assignModal">إلغاء</button>

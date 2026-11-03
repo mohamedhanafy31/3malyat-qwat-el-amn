@@ -104,8 +104,8 @@ function render() {
       $("#userRoleFilter")?.value ||
       $("#userStatusFilter")?.value;
 
-    wrap.innerHTML = emptyState({
-      icon: hasFilter ? "search" : "users",
+    wrap.innerHTML = hasFilter ? emptyState({filtered: true}) : emptyState({
+      icon: "users",
       title: hasFilter ? "لا توجد نتائج مطابقة" : "لا توجد حسابات مسجلة",
       hint: hasFilter ? "حاول تغيير كلمات البحث أو خيارات التصفية." : "يمكنك إضافة أول حساب بالضغط على «إضافة حساب» أعلاه."
     });

@@ -1,0 +1,86 @@
+/* ═══════════════════ ② الأساس ═══════════════════ */
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font-body);background:var(--paper);color:var(--ink-900);
+  font-size:var(--t-body);line-height:1.55;-webkit-text-size-adjust:100%}
+.hidden{display:none !important}
+.roster-import-card{width:min(980px,calc(100vw - 32px))}
+.roster-import-stats{grid-template-columns:repeat(4,minmax(120px,1fr));margin:var(--s4) 0}
+.roster-import-preview{max-height:42vh;margin-top:var(--s3);border:1px solid var(--line);border-radius:var(--radius)}
+.roster-import-preview .mtable{margin:0}
+@media(max-width:700px){.roster-import-stats{grid-template-columns:repeat(2,1fr)}}
+a{color:inherit}
+button,input,select,textarea{font-family:inherit}
+:where(h1,h2,h3,h4){font-family:var(--font-head);font-weight:700;line-height:1.3}
+
+/* الأرقام في الجداول لازم تتصفّ عمودي زي عمود الحصر في الدفتر */
+.num,.stat strong,.mcount,.table.sum td,.reg43 td,.navbtn em,.stat-fig{
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* عنصر مقروء لقارئ الشاشة بس — بديل نصي لأي إشارة لونية بحتة */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.icon-sprite{display:none}
+.ico{width:1em;height:1em;flex:none;fill:currentColor;vertical-align:-.15em}
+.ico-lg{width:20px;height:20px}
+.status-dot{display:inline-block;width:8px;height:8px;flex:none;border-radius:50%;background:var(--ink-400)}
+.status-dot.ok{background:var(--ok-700)}
+.status-dot.warn{background:var(--warn-700)}
+.status-dot.bad{background:var(--bad-700)}
+.status-dot.muted{background:var(--ink-400)}
+
+/* حلقة تركيز واحدة لكل شيء تفاعلي — بدل قائمة انتقائية بتنسى العناصر الجديدة */
+:where(a,button,input,select,textarea,summary,[tabindex]):focus-visible{
+  outline:2px solid var(--gold-600);outline-offset:2px;border-radius:var(--radius-sm)}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+
+/* ═══════════════════ ③ الترويسة الرسمية ═══════════════════ */
+.topbar{background:var(--navy-950);color:var(--on-dark);padding:0 var(--s6);display:flex;align-items:center;
+  gap:var(--s4);height:var(--topbar-h);border-bottom:3px solid var(--gold-700);
+  position:sticky;top:0;z-index:var(--z-nav)}
+.topbar .crest{width:34px;height:34px;border:1.5px solid var(--gold-600);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex:none;background:var(--navy-900)}
+.topbar .crest svg{width:19px;height:19px;fill:var(--gold-100)}
+.topbar .titles{display:flex;flex-direction:column;line-height:1.3;flex:1;min-width:0}
+.topbar h1{margin:0;font-size:var(--t-lg);font-family:var(--font-head);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar .title-compact{display:none}
+.topbar .sub{margin:0;color:var(--on-dark-muted);font-size:var(--t-sm)}
+.topbar .today{font-size:var(--t-cap);color:var(--on-dark-soft);white-space:nowrap;text-align:start;
+  border-inline-start:1px solid var(--border-on-dark);padding-inline-start:var(--s4)}
+.topbar .burger{display:none;background:none;border:1px solid var(--border-on-dark);color:var(--on-dark);
+  border-radius:var(--radius-sm);width:36px;height:36px;cursor:pointer;font-size:var(--t-lg);flex:none}
+.topbar .burger:hover{background:var(--navy-800)}
+/* شريحة المستخدم وقائمة الحساب في الترويسة */
+.user-chip-wrap{position:relative;flex:none}
+.user-chip-btn{display:inline-flex;align-items:center;gap:var(--s2);height:var(--control-h-sm);
+  padding:0 var(--s2);background:var(--navy-900);color:var(--on-dark);
+  border:1px solid var(--border-on-dark);border-radius:var(--radius-sm);cursor:pointer;
+  font:inherit;font-size:var(--t-cap);transition:background .15s ease}
+.user-chip-btn:hover,.user-chip-btn[aria-expanded="true"]{background:var(--navy-800)}
+.user-avatar{width:22px;height:22px;border-radius:50%;background:var(--gold-700);color:var(--on-dark);
+  display:inline-flex;align-items:center;justify-content:center;font-size:var(--t-xs);font-weight:700;flex:none}
+.user-chip-meta{display:inline-flex;align-items:baseline;gap:var(--s1)}
+.user-chip-name{font-weight:700;white-space:nowrap}
+.user-role-label{font-size:var(--t-xs);color:var(--on-dark-muted);white-space:nowrap}
+.user-chip-caret{width:16px;height:16px;fill:var(--on-dark-soft);flex:none}
+.user-popover{position:absolute;top:calc(100% + var(--s1));inset-inline-end:0;
+  min-width:210px;background:var(--surface);color:var(--ink-900);border:1px solid var(--line);
+  border-radius:var(--radius-card);box-shadow:var(--shadow-pop);z-index:var(--z-popover);padding:var(--s2) 0}
+.user-popover-header{padding:var(--s2) var(--s4) var(--s3);border-bottom:1px solid var(--line)}
+.user-popover-name{font-weight:700;font-size:var(--t-base);color:var(--navy-900)}
+.user-popover-sub{font-size:var(--t-xs);color:var(--ink-500);display:flex;align-items:center;gap:var(--s2);margin-top:var(--s1)}
+.user-popover-username{direction:ltr;unicode-bidi:embed}
+.user-popover-divider{height:1px;background:var(--line);margin:var(--s1) 0}
+.user-popover-item{display:flex;align-items:center;gap:var(--s2);width:100%;padding:var(--s2) var(--s4);
+  font:inherit;font-size:var(--t-cap);color:var(--ink-700);text-decoration:none;
+  background:none;border:none;cursor:pointer;text-align:start;box-sizing:border-box}
+.user-popover-item:hover,.user-popover-item:focus{background:var(--navy-50);color:var(--navy-900);outline:none}
+.user-popover-item .ico{width:16px;height:16px;flex:none}
+.user-popover-logout{color:var(--bad-700)}
+.user-popover-logout:hover,.user-popover-logout:focus{background:var(--bad-100);color:var(--bad-800)}
+@media(max-width:700px){.user-role-label{display:none}}
+@media(max-width:480px){.user-chip-name{max-width:110px;overflow:hidden;text-overflow:ellipsis}}
+

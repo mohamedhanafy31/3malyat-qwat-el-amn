@@ -1,0 +1,155 @@
+/* ═══════════════════ ④ الهيكل: قائمة جانبية + محتوى ═══════════════════ */
+.shell{display:flex;min-height:calc(100vh - var(--topbar-h));overflow-x:clip}
+.sidebar{width:var(--sidebar-w);flex:none;background:var(--surface);
+  border-inline-start:1px solid var(--line);padding:var(--s3) 0 var(--s6);
+  position:sticky;top:var(--topbar-h);align-self:flex-start;
+  height:calc(100vh - var(--topbar-h));overflow-y:auto;
+  /* ظل رفيع تحت لما يكون فيه روابط تحت حافة الشاشة؛ الطبقة المحلية بتغطيه
+     أول ما توصل للآخر */
+  background:
+    linear-gradient(to top,var(--surface) 35%,transparent) center bottom/100% 36px no-repeat local,
+    linear-gradient(to top,var(--shadow-edge),transparent) center bottom/100% 14px no-repeat scroll,
+    var(--surface)}
+.side-group{padding-bottom:var(--s2)}
+.side-group + .side-group{margin-top:var(--s2);border-top:1px solid var(--navy-50)}
+.side-title{display:flex;width:100%;align-items:center;justify-content:space-between;border:0;background:none;
+  font:inherit;font-size:var(--t-xs);color:var(--ink-500);cursor:pointer;
+  padding:var(--s4) var(--s5) var(--s2);font-weight:700}
+.side-title .ico{width:14px;height:14px;transition:transform .18s ease}
+.side-title[aria-expanded="false"] .ico{transform:rotate(90deg)}
+.side-title[aria-disabled="true"]{cursor:default}
+.side-group.is-collapsed>.navbtn{display:none}
+
+.navbtn{display:flex;align-items:center;gap:var(--s3);width:100%;border:0;background:none;
+  text-align:start;color:var(--ink-700);padding:9px var(--s5);font:inherit;font-size:var(--t-base);
+  cursor:pointer;position:relative;border-inline-end:3px solid transparent;text-decoration:none}
+.navbtn svg{width:17px;height:17px;flex:none;opacity:.6;fill:currentColor}
+.navbtn span{flex:1;min-width:0}
+.navbtn em{font-style:normal;background:var(--navy-50);color:var(--navy-700);
+  border:1px solid var(--navy-200);border-radius:var(--radius-pill);padding:0 var(--s2);
+  font-size:var(--t-xs);min-width:22px;text-align:center;line-height:18px}
+.navbtn em.nav-susp{background:var(--bad-700);color:var(--on-dark);border-color:var(--bad-700)}
+.navbtn:hover{background:var(--navy-50);color:var(--navy-900)}
+/* الضلع الذهبي — نفس مسطرة الترويسة، بتقول «انت هنا» */
+.navbtn.active{background:var(--navy-50);color:var(--navy-950);font-weight:700;
+  border-inline-end-color:var(--gold-700)}
+.navbtn.active svg{opacity:1;fill:var(--gold-700)}
+.navbtn.active em{background:var(--navy-800);color:var(--on-dark);border-color:var(--navy-800)}
+.navbtn.sub{padding-inline-start:var(--s5)}
+.nav-dot{position:absolute;top:10px;inset-inline-end:auto;inset-inline-start:var(--s4);
+  width:8px;height:8px;border-radius:50%;background:var(--bad-700);
+  box-shadow:0 0 0 3px var(--bad-100)}
+
+/* حجاب الشاشة الصغيرة — كان ناقص، فالقائمة كانت بتفضل مفتوحة من غير طريقة تقفلها */
+.scrim{position:fixed;inset:var(--topbar-h) 0 0;background:var(--overlay-scrim);
+  z-index:calc(var(--z-sticky) + 4);border:0;padding:0;display:none}
+.scrim.open{display:block}
+
+.content{flex:1;min-width:0;padding:var(--s6) var(--s6) var(--s8)}
+.container{width:100%;max-width:1600px;margin:0 auto}
+
+
+/* ── شريط الأيقونات لما القائمة مقفولة + اختصارات الأرقام ── */
+.navbtn:focus-visible{outline:2px solid var(--gold-700);outline-offset:-2px}
+/* أرقام الاختصار والعدّادات مش بتظهر في القائمة — القائمة أسماء بس؛ الاختصار
+   بيبان في تلميح الشريط، وتنبيه «موقوفة» بس اللي بيفضل ظاهر. */
+.navbtn em:not(.nav-susp){display:none}
+.side-hint{display:grid;gap:var(--s1);margin:var(--s4) var(--s5) 0;font-size:var(--t-xs);color:var(--ink-500);line-height:1.8}
+.side-hint kbd{font:600 var(--t-xs) var(--font-num);border:1px solid var(--line-strong);
+  border-radius:var(--radius-sm);padding:0 4px;background:var(--surface)}
+/* اسم القسم بيطلع جنب الأيقونة لما الماوس يقف عليها أو التركيز ييجي عليها.
+   عنصر واحد position:fixed بدل ::after جوه كل رابط، لأن القائمة نفسها
+   overflow:auto فأي تلميح جواها كان هيتقص. */
+.nav-tip{position:fixed;z-index:var(--z-toast);pointer-events:none;white-space:nowrap;
+  background:var(--navy-950);color:var(--on-dark);font-size:var(--t-sm);font-weight:700;
+  padding:var(--s1) var(--s3);border-radius:var(--radius-control);box-shadow:var(--shadow-pop);
+  border-inline-end:3px solid var(--gold-700)}
+.nav-tip kbd{font:600 var(--t-xs) var(--font-num);color:var(--on-dark-muted);
+  margin-inline-start:var(--s2)}
+@media(max-width:860px){.side-hint,.nav-tip{display:none}}
+
+/* ═══════════════════ ⑤ ترويسة الصفحة — رأس اليومية ═══════════════════ */
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s4);
+  margin-bottom:var(--s5);padding-bottom:var(--s3);flex-wrap:wrap;
+  border-bottom:1px solid var(--line)}
+/* المسطرة الذهبية: خط رفيع تحت العنوان بيمتد بقد العنوان بس */
+.page-head .titles{position:relative;min-width:0}
+.page-head .titles h2{margin:0;font-size:var(--t-page);color:var(--navy-950)}
+.page-head .titles h2::before{content:"";display:inline-block;width:4px;height:.82em;
+  background:var(--gold-700);margin-inline-end:10px;vertical-align:-1px;border-radius:1px}
+.page-head .titles p{margin:var(--s1) 0 0;font-size:var(--t-cap);color:var(--ink-500);
+  padding-inline-start:14px}
+/* شارة «يوم غير النهاردة» — ثابتة جنب العنوان، بنفس ألوان التحذير المشتركة */
+.page-head .titles .day-warning{display:inline-block;margin:var(--s1) 0 0 0;
+  padding:2px var(--s3);border:1px solid var(--warn-500);border-radius:var(--radius-control);
+  background:var(--warn-50);color:var(--warn-700);font-size:var(--t-cap);font-weight:700}
+.page-actions{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
+.page-actions>.export-btn{order:99}
+.page-actions .primary,.page-actions .btn{height:var(--control-h)}
+.breadcrumb{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s3);color:var(--ink-500);font-size:var(--t-sm)}
+.breadcrumb a{color:var(--navy-700);font-weight:700;text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline;text-underline-offset:3px}
+.breadcrumb strong{color:var(--ink-700);font-weight:600}
+/* زرار التصدير بيستخدم قايمة الصف المشتركة، بس بعرض نصه */
+.row-menu-btn.export-btn{width:auto;display:inline-flex;gap:var(--s1);padding:0 var(--s3);
+  font-weight:600;font-size:var(--t-sm)}
+.row-menu-btn[aria-disabled="true"]{opacity:.5;cursor:not-allowed}
+/* «＋ إضافة» في رأس كرت كحلي: ثانوي شفاف، مش أخضر ولا ممتلئ */
+.mini.on-dark{background:transparent;color:var(--on-dark);border-color:var(--border-on-dark)}
+.mini.on-dark:hover{background:var(--on-dark-wash);color:var(--on-dark);border-color:var(--on-dark-soft)}
+
+/* ═══════════════════ ⑥ التنبيهات ═══════════════════ */
+/* كانت 10 ضباط × 3 أسطر فوق عنوان الصفحة — بتدفع كل المحتوى تحت حافة الشاشة.
+   بقت شبكة مضغوطة قابلة للطي، تحت الترويسة، بتوفّر ~⅔ الارتفاع. */
+.alert-card{background:var(--warn-100);border:1px solid var(--warn-300);
+  border-block-start:1px solid var(--warn-700);border-radius:var(--radius-md);
+  margin-bottom:var(--s5);overflow:hidden}
+.alert-card > .alert-head,.alert-card > .alert-list,.alert-card > .mini,
+.alert-card > .muted{margin:var(--s3) var(--s4)}
+.alert-fold{margin:0}
+/* مكان كرت التنبيه محجوز بنفس ارتفاعه المطوي (52px) لحد ما البيانات توصل */
+.alert-skel{height:52px;margin-bottom:var(--s5);border-radius:var(--radius-card)}
+.alert-card.is-clear{background:var(--ok-100);border-color:var(--ok-300);border-block-start-color:var(--ok-700)}
+.alert-clear{display:flex;align-items:center;gap:var(--s2);margin:0;padding:var(--s3) var(--s4);
+  min-height:50px;color:var(--ok-700);font-weight:600}
+.alert-clear .ico{fill:currentColor}
+.alert-count{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 var(--s2);
+  border-radius:var(--radius-pill);background:var(--warn-700);color:var(--on-dark);
+  font-size:var(--t-xs);font-weight:700}
+.alert-fold > summary{flex-wrap:nowrap;min-height:50px}
+.alert-head{min-width:0;flex-wrap:nowrap}
+.alert-lede{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+@media(max-width:700px){.alert-lede{display:none}}
+.alert-fold > summary{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;
+  padding:var(--s3) var(--s4);cursor:pointer;list-style:none}
+.alert-fold > summary::-webkit-details-marker{display:none}
+.alert-fold > summary:hover{background:var(--warn-hover-wash)}
+.alert-head{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.alert-head strong{color:var(--warn-700);font-size:var(--t-md);font-family:var(--font-head)}
+.alert-ico{font-size:var(--t-lg);line-height:1}
+.alert-toggle{margin-inline-start:auto;font-size:var(--t-sm);color:var(--warn-700);
+  border:1px solid var(--border-control);border-radius:var(--radius-control);padding:2px var(--s2);
+  background:var(--surface);white-space:nowrap}
+.alert-toggle::after,.fold-hint::after{content:"";display:inline-block;width:12px;height:12px;
+  margin-inline-start:var(--s1);vertical-align:-2px;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6 1.4 1.4-7.4 7.4-7.4-7.4L6 9Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6 1.4 1.4-7.4 7.4-7.4-7.4L6 9Z'/%3E%3C/svg%3E") center/contain no-repeat}
+.alert-fold[open] .alert-toggle::after,.settings-fold[open] .fold-hint::after{transform:rotate(180deg)}
+
+/* شبكة بدل قائمة عمودية: سطرين لكل ضابط، وأربع أعمدة على الشاشة الكبيرة —
+   العشر تنبيهات بقوا ٣ صفوف بدل عشرة. */
+.alert-list{list-style:none;margin:0;padding:0 var(--s4) var(--s4);display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:var(--s2)}
+.alert-list li{display:flex;flex-direction:column;background:var(--surface);
+  border:1px solid var(--line);border-inline-start:3px solid var(--warn-300);
+  border-radius:var(--radius-sm);padding:6px var(--s3);font-size:var(--t-sm);line-height:1.4}
+.alert-list li.is-today{border-inline-start-color:var(--warn-700);background:var(--warn-50)}
+.a-name{font-weight:700;font-size:var(--t-sm);color:var(--ink-900);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.a-meta{display:flex;gap:var(--s2);align-items:baseline;flex-wrap:wrap;font-size:var(--t-xs)}
+.a-mid{color:var(--warn-700);font-weight:600}
+.a-rest{color:var(--ink-500);margin-inline-start:auto}
+.warn-group{margin-top:var(--s3)}
+.warn-group:first-of-type{margin-top:0}
+.warn-group-head{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s2)}
+

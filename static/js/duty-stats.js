@@ -223,6 +223,20 @@ function renderSummary(d) {
     <div class="stat${taq ? " stat-accent-orange" : ""}"><span>تقصيرات</span><strong>${taq}</strong></div>`;
 }
 
+function renderDutyFindings(d) {
+  const load = d.by_officer_load || [];
+  const avg = load.length ? Math.round(load.reduce((n, r) => n + r.total, 0) / load.length * 10) / 10 : 0;
+  const top = [...load].sort((a, b) => b.total - a.total)[0];
+  const gap = (d.target_gap || []).filter(r => r.gap_rate !== null && r.total_days).sort((a, b) => b.gap_rate - a.gap_rate)[0];
+  const taq = [...(d.taqseera_count || [])].sort((a, b) => b.count - a.count)[0];
+  renderFindings("dutyFindings", [
+    top ? `أكتر ضابط اتشغّل: ${esc(fullName(top))} — ${findingNum(top.total)} مرة، والمتوسط ${findingNum(avg)} لكل ضابط.` : "",
+    gap ? `أكبر فجوة قائد هدف في «${esc(gap.name)}»: القائد الرسمي ماكانش موجود في ${findingNum(`${gap.gap_rate}%`)} من أيام التعيين (${findingNum(gap.gap_days)} من ${findingNum(gap.total_days)}).`
+      : "كل الأهداف قادها قائدها الرسمي في المدى ده، أو مفيش قائد رسمي مسجّل.",
+    taq ? `أكتر تقصيرات على ${esc(fullName(taq))}: ${findingNum(taq.count)} تقصيرة.` : "مفيش تقصيرات مسجّلة في المدى ده.",
+  ]);
+}
+
 function getFilterParams() {
   const from = document.getElementById("dsFrom")?.value || "";
   const to = document.getElementById("dsTo")?.value || "";
@@ -246,6 +260,8 @@ async function load() {
   document.getElementById("dsTo").value = d.date_to;
 
   renderSummary(d);
+  renderDutyFindings(d);
+  rememberDetails("dutyDetails", "report-details:duty");
   drawLoadChart(d);
   drawNetChart(d);
   drawShiftChart(d);

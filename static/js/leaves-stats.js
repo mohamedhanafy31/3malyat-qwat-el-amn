@@ -182,6 +182,18 @@ function renderSummary(s, statusCounts = {}) {
     </div>`;
 }
 
+function renderLeavesFindings(d) {
+  const total = d.summary?.total || 0;
+  const type = Object.entries(d.by_type || {}).sort((a, b) => b[1] - a[1])[0];
+  const officer = (d.top_officers || [])[0];
+  const day = Object.entries(d.by_weekday || {}).sort((a, b) => b[1] - a[1])[0];
+  renderFindings("leavesFindings", total ? [
+    type ? `أغلب الراحات «${esc(type[0])}»: ${findingNum(type[1])} من ${findingNum(total)} (${findingNum(`${Math.round(type[1] / total * 100)}%`)}).` : "",
+    officer ? `أكتر ضابط أخد راحات: ${esc(fullName(officer))} — ${findingNum(officer.count)} راحة.` : "",
+    day && day[1] ? `أكتر يوم بتبدأ فيه الراحات: ${esc(day[0])} (${findingNum(day[1])} راحة).` : "",
+  ] : []);
+}
+
 // ── الفلاتر والتحميل ────────────────────────────────────────────
 let optionsPopulated = false;
 
@@ -239,6 +251,8 @@ async function load() {
   populateFilterOptions(d.meta_options);
 
   renderSummary(d.summary, d.status_counts);
+  renderLeavesFindings(d);
+  rememberDetails("leavesDetails", "report-details:leaves");
   drawTypeChart(d);
   drawMonthChart(d);
   drawOfficerChart(d);

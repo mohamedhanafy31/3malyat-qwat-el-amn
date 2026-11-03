@@ -101,7 +101,7 @@ function render() {
   if (!CATALOG.length) {
     $("#catalogWrap").innerHTML = emptyState({title: "لا توجد خدمات في الدليل", hint: "اضغط «إنشاء الدليل» أو «خدمة جديدة» للبدء."});
   } else if (!rows.length) {
-    $("#catalogWrap").innerHTML = emptyState({icon: "search", title: "لا توجد خدمة مطابقة للتصفية", hint: "حاول تعديل البحث أو عوامل التصفية."});
+    $("#catalogWrap").innerHTML = emptyState({filtered: true});
   } else {
     const assigned = new Set();
     let groups = SERVICE_LINES.map(line => {

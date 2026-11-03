@@ -1,0 +1,4 @@
+{# ملفات التنسيق بترتيب الـcascade الأصلي لـstyle.css — الترتيب ده مقصود ومايتغيّرش. #}
+{% for part in ["tokens", "base", "layout", "components", "pages", "print", "responsive", "modules"] %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/' ~ part ~ '.css') }}">
+{% endfor %}

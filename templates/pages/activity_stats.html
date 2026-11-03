@@ -29,6 +29,11 @@
 
 <div class="stats activity-summary" id="activitySummary">{{ skeleton("stats-sub-wrap", 6) }}</div>
 
+<section class="report-findings" id="activityFindings" aria-live="polite"></section>
+
+<details class="report-details" id="activityDetails">
+<summary>عرض التفاصيل الكاملة <small>الحركة اليومية، ساعات النشاط، ودفتر الحسابات</small></summary>
+
 <div class="ls-grid ls-grid-2 activity-charts">
   <section class="ls-card" aria-labelledby="activityDailyTitle">
     <h3 class="ls-card-title" id="activityDailyTitle">الحركة اليومية</h3>
@@ -63,6 +68,7 @@
   </div>
   <div id="activityMembers" data-mobile-cards>{{ skeleton("rows", 8) }}</div>
 </section>
+</details>
 {% endblock %}
 
 {% block scripts %}

@@ -46,7 +46,7 @@ def test_board_does_not_silently_drop_a_typed_person_selection():
     source = (Path(__file__).resolve().parent.parent / "static/js/board.js").read_text(encoding="utf-8")
     assert "function commandIds(" in source
     assert "اختر اسم ${singular} من قائمة النتائج قبل الحفظ" in source
-    assert "if (personnelIds === null) return;" in source
+    assert "if (personnelIds === null) { revealEntrySection(\"people\"); return; }" in source
     assert "personnel_ids: personnelIds" in source
     assert "return [];" in source, "خيار الرئاسة الفاضي لازم يتحفظ كشاغر"
     assert "officer_command_required:" in source

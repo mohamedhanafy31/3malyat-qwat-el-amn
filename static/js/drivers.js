@@ -20,7 +20,7 @@ function renderDrivers() {
   const rows = CONSCRIPTS.filter(c => !q || arIncludes(`${c.name} ${c.phone}`, q)).map(conscriptRow);
   $("#conscriptsWrap").innerHTML = rows.length
     ? `<div class="table-scroll">${mtable(["الاسم", "التليفون", "الصفة", "الإجراء"], rows)}</div>`
-    : emptyState({icon: q ? "search" : "users", title: q ? "لا توجد نتائج مطابقة" : "لا يوجد مجندون", hint: q ? "حاول تعديل البحث." : "أضف مجندًا لتحديده كسائق عند الحاجة.", action: q ? null : {label: "إضافة مجند", id: "addConscriptBtn", primary: true}});
+    : q ? emptyState({filtered: true}) : emptyState({icon: "users", title: "لا يوجد مجندون", hint: "أضف مجندًا لتحديده كسائق عند الحاجة.", action: {label: "إضافة مجند", id: "addConscriptBtn", primary: true}});
 }
 
 async function loadDrivers() {

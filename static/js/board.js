@@ -636,9 +636,37 @@ function openEntry(rowId, preset, duplicate = false) {
   $("#enMissionTransport").checked = !!row?.mission_transport;
   syncMissionTransportPick();
   $("#enNote").value = row?.note || "";
+  // الإضافة بتفتح الأفراد والمجندين (أول حاجة بتتملى)، والتعديل بيفتح الأفراد
+  // بس والباقي مطوي بملخصه — وأي قسم فيه خطأ بيتفتح لوحده وقت الحفظ.
+  openEntrySections(row && !duplicate ? ["people"] : ["people", "conscripts"]);
   openModal("entryModal");
   queueSectionHistory(false);
 }
+
+function openEntrySections(keys) {
+  $$("#entryForm [data-entry-sec]").forEach(sec => { sec.open = keys.includes(sec.dataset.entrySec); });
+  syncEntrySummaries();
+}
+function revealEntrySection(key) {
+  const sec = $(`#entryForm [data-entry-sec="${key}"]`);
+  if (sec) sec.open = true;
+}
+function syncEntrySummaries() {
+  const set = (key, text) => { const el = $(`#entryForm [data-entry-sum="${key}"]`); if (el) el.textContent = text; };
+  const officers = $("#enHasOfficers").checked ? readMulti($("#enOfficers")).length : null;
+  const personnel = $("#enHasPersonnel").checked ? readMulti($("#enPersonnel")).length : null;
+  const people = [officers === null ? "" : `ضباط: ${officers || "شاغرة"}`, personnel === null ? "" : `أفراد: ${personnel || "شاغرة"}`].filter(Boolean);
+  set("people", people.join(" · ") || "بدون رئاسة");
+  const classes = $$("#conRows .req-row").filter(r => r.querySelector(".con-class")?.value.trim() || r.querySelector(".con-count")?.value);
+  const conCount = parseInt($("#enConCount").value) || 0;
+  set("conscripts", [classes.length ? countLabel(classes.length, "فئة") : "", conCount ? `العدد ${conCount}` : ""].filter(Boolean).join(" · ") || "لا يوجد");
+  set("details", [$("#enWeapon").value.trim(), $("#enTime").value.trim(), $("#enParty").value.trim()].filter(Boolean).join(" · ") || "لم تُحدد");
+  const note = $("#enNote").value.trim();
+  set("notes", note ? (note.length > 40 ? `${note.slice(0, 40)}…` : note) : "لا توجد");
+}
+$("#entryForm").addEventListener("input", syncEntrySummaries);
+$("#entryForm").addEventListener("change", syncEntrySummaries);
+$("#entryForm").addEventListener("click", event => { if (event.target.closest("[data-action='removeConRow'], #addConRow")) requestAnimationFrame(syncEntrySummaries); });
 
 function syncCommandWraps() {
   const officersOn = $("#enHasOfficers").checked, personnelOn = $("#enHasPersonnel").checked;
@@ -718,9 +746,9 @@ async function addService(body) {
 $("#entryForm").onsubmit = async e => {
   e.preventDefault();
   const officerIds = commandIds($("#enHasOfficers"), $("#enOfficers"), "الضابط");
-  if (officerIds === null) return;
+  if (officerIds === null) { revealEntrySection("people"); return; }
   const personnelIds = commandIds($("#enHasPersonnel"), $("#enPersonnel"), "الفرد");
-  if (personnelIds === null) return;
+  if (personnelIds === null) { revealEntrySection("people"); return; }
   const conscripts = $$("#conRows .req-row").map(r => ({
     class: r.querySelector(".con-class").value.trim(),
     count: parseInt(r.querySelector(".con-count").value) || 0,

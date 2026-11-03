@@ -11,7 +11,7 @@
         href="{{ url_for('static', filename='fonts/NotoSansArabic-700.woff2').split('?')[0] }}">
   <link rel="preload" as="font" type="font/woff2" crossorigin
         href="{{ url_for('static', filename='fonts/NotoKufiArabic-700.woff2').split('?')[0] }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% include "partials/styles.html" %}
 </head>
 <body class="auth-body">
   <div class="auth-wrap">

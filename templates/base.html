@@ -13,7 +13,7 @@
         href="{{ url_for('static', filename='fonts/NotoSansArabic-700.woff2').split('?')[0] }}">
   <link rel="preload" as="font" type="font/woff2" crossorigin
         href="{{ url_for('static', filename='fonts/NotoKufiArabic-700.woff2').split('?')[0] }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% include "partials/styles.html" %}
 </head>
 <body data-page="{{ page }}" data-export="{% block export %}{% endblock %}" data-daily-files="{% block daily_files %}{% endblock %}">
 <a class="skip-link" href="#main">تخطي إلى المحتوى</a>
@@ -47,6 +47,10 @@
         </div>
       </div>
       <div class="user-popover-divider" role="separator"></div>
+      <button type="button" class="user-popover-item" id="pageHelpBtn" role="menuitem">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 18h2v-2h-2v2zm1-16a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm0-14a4 4 0 0 0-4 4h2a2 2 0 1 1 4 0c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5a4 4 0 0 0-4-4z"/></svg>
+        <span>مساعدة هذه الصفحة</span>
+      </button>
       <button type="button" class="user-popover-item user-popover-logout" id="logoutBtn" role="menuitem">
         <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
         <span>تسجيل الخروج</span>
@@ -261,6 +265,14 @@
   <label class="sr-only" for="commandPaletteInput">ابحث عن صفحة</label>
   <input type="search" id="commandPaletteInput" autocomplete="off" placeholder="اكتب اسم الصفحة…">
   <div class="command-palette-list" id="commandPaletteList" role="listbox" aria-label="صفحات النظام"></div>
+</dialog>
+
+<dialog class="command-palette page-help" id="pageHelp" aria-labelledby="pageHelpTitle">
+  <div class="command-palette-head">
+    <h2 id="pageHelpTitle">مساعدة: {{ page_title }}</h2>
+    <button type="button" class="close" id="pageHelpClose" aria-label="إغلاق">×</button>
+  </div>
+  <div class="page-help-body" id="pageHelpBody"></div>
 </dialog>
 
 <div class="process-loader hidden" id="processLoader" aria-hidden="true">

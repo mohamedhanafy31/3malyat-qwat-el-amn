@@ -1,5 +1,5 @@
 /* ثيم الرسوم البيانية المشترك (إحصائيات التشغيل والراحات).
-   الألوان جاية من رموز style.css نفسها — مش باليتة منفصلة — والاتجاه RTL:
+   الألوان جاية من رموز static/css/tokens.css نفسها — مش باليتة منفصلة — والاتجاه RTL:
    محور الفئات (أسماء الضباط/الأيام) على اليمين، والأعمدة الأفقية بتطلع من
    اليمين لليسار، والزمن بيمشي من اليمين لليسار زي القراءة. */
 const CT = (() => {
@@ -92,3 +92,27 @@ function chartLegend(canvasId, items) {
   wrap.insertAdjacentHTML("beforebegin", `<div class="chart-key">${items.map(([k, l]) =>
     `<span><i class="k-${k}" aria-hidden="true"></i>${esc(l)}</span>`).join("")}</div>`);
 }
+
+/* ---------- «أهم النتائج» أول التقرير ----------
+   3 جمل بلغة بسيطة محسوبة من نفس البيانات، والتوزيعات الكاملة تحتها في
+   <details> بتفتكر حالتها لكل صفحة. البنود جاية HTML جاهز (متعمول لها esc). */
+function renderFindings(id, items) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const list = items.filter(Boolean).slice(0, 3);
+  el.innerHTML = `<h2 class="report-findings-title">أهم النتائج</h2>${list.length
+    ? `<ul class="report-findings-list">${list.map(item => `<li>${item}</li>`).join("")}</ul>`
+    : `<p class="muted">مفيش بيانات كفاية في المدى ده لاستخلاص نتائج.</p>`}`;
+}
+function rememberDetails(id, key) {
+  const el = document.getElementById(id);
+  if (!el || el.dataset.remember) return;
+  el.dataset.remember = key;
+  try { el.open = localStorage.getItem(key) === "1"; } catch (_) { /* التخزين مقفول */ }
+  el.addEventListener("toggle", () => {
+    try { localStorage.setItem(key, el.open ? "1" : "0"); } catch (_) { /* التخزين مقفول */ }
+    // الرسوم اترسمت وهي مخفية، فبنظبط مقاسها أول ما تظهر
+    if (el.open && window.Chart) Chart.helpers.each(Chart.instances, chart => chart.resize());
+  });
+}
+const findingNum = n => `<b>${esc(String(n))}</b>`;

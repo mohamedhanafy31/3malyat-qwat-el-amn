@@ -34,9 +34,9 @@
         </div>
       </div>
 
-      <div class="field-section">
-        <div class="field-legend">القوام
-          <small>يمكن إبقاء الخانة دون ضابط — خدمة بقوام أفراد ومجندين فقط</small></div>
+      <details class="field-section entry-sec" data-entry-sec="people">
+        <summary class="field-legend">الأفراد <span class="entry-sec-sum" data-entry-sum="people"></span></summary>
+        <small class="form-note">يمكن إبقاء الخانة دون ضابط — خدمة بقوام أفراد ومجندين فقط</small>
         <div class="command-picks">
           <label class="command-check" id="enHasOfficersPick">
             <input type="checkbox" id="enHasOfficers">
@@ -58,17 +58,20 @@
           </label>
         </div>
         <small class="form-note">يمكن حفظ «رئاسة ضابط» أو «رئاسة فرد» بدون اختيار اسم الآن؛ ستظهر الرئاسة شاغرة لحين التعيين.</small>
-        <div class="field-legend field-legend-spaced">المجندون</div>
+      </details>
+
+      <details class="field-section entry-sec" data-entry-sec="conscripts">
+        <summary class="field-legend">المجندون <span class="entry-sec-sum" data-entry-sum="conscripts"></span></summary>
         <div id="conRows" class="req-rows"></div>
         <button type="button" class="mini" id="addConRow">{{ icon('plus') }} إضافة فئة</button>
         <label class="field-label-spaced">عدد المجندين
           <small>لأي خدمة غير أساسية (طارئة أو قسم مخصّص) — يظهر في صفحة أعداد الخدمات تلقائيًا</small>
           <input id="enConCount" type="number" min="0" max="9999" step="1">
         </label>
-      </div>
+      </details>
 
-      <div class="field-section">
-        <div class="field-legend">تفاصيل الخدمة</div>
+      <details class="field-section entry-sec" data-entry-sec="details">
+        <summary class="field-legend">تفاصيل الخدمة <span class="entry-sec-sum" data-entry-sum="details"></span></summary>
         <div class="grid">
           <label>التسليح <small>آلي / دونك / خرطوش / فض / فيدرال / كلبش</small>
             <input id="enWeapon" maxlength="120">
@@ -81,11 +84,14 @@
             <input id="enParty" maxlength="120">
           </label>
         </div>
-      </div>
+      </details>
 
-      <label>ملاحظات
-        <input id="enNote" maxlength="500">
-      </label>
+      <details class="field-section entry-sec" data-entry-sec="notes">
+        <summary class="field-legend">ملاحظات <span class="entry-sec-sum" data-entry-sum="notes"></span></summary>
+        <label><span class="sr-only">ملاحظات</span>
+          <input id="enNote" maxlength="500" aria-label="ملاحظات">
+        </label>
+      </details>
       <span class="shortcut-save-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> للحفظ</span>
       <div class="actions modal-foot">
         <button class="primary full" type="submit">حفظ</button>

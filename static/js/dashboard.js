@@ -396,11 +396,18 @@
     syncPendingDom(targets);
   }
 
+  // السواق والمركبة ممكن يوصلوا كائنات من يومية الحملة (مش نص) — من غيرها
+  // كان بيظهر «[object Object]» في سطر الخط.
+  function personText(value) { return value && typeof value === "object" ? (value.display || value.name || "") : (value || ""); }
+  function vehicleText(value) { return value && typeof value === "object" ? [value.plate, value.type].filter(Boolean).join(" ") : (value || ""); }
+
   function runContext(run) {
     // من غير خط: الـfallback كان `run` نفسه فاسم الخدمة كان بيطلع كأنه اسم الخط
     const meta = run.line_meta || {};
-    return [meta.name || run.line, meta.lorry ? `لوري ${meta.lorry}` : "", meta.driver,
-      meta.vehicle, run.section_name || run.category].filter(Boolean).join(" · ") || "بلا خط";
+    // الخدمة اللي ليها مركبة مباشرة بتيجي باسم خط = رقمها الداخلي (AS-0008) — مالوش معنى للمستخدم
+    const lineName = [meta.name, run.line].find(name => name && !/^[A-Z]{2,4}-\d+$/.test(name)) || "";
+    return [lineName, meta.lorry ? `لوري ${meta.lorry}` : "", personText(meta.driver),
+      vehicleText(meta.vehicle), run.section_name || run.category].filter(Boolean).join(" · ") || "بلا خط";
   }
 
   function card(run) {
@@ -457,7 +464,7 @@
   function lineMetaText(line) {
     return [
       line.lorry ? `لوري ${line.lorry}` : "",
-      line.driver || "", line.vehicle || "",
+      personText(line.driver), vehicleText(line.vehicle),
     ].filter(Boolean).join(" · ");
   }
 
@@ -471,7 +478,7 @@
   }
 
   function normaliseArabic(value) { return String(value || "").toLowerCase().normalize("NFKD").replace(/[\u064B-\u065F\u0670]/g, "").replace(/[إأآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي").replace(/ـ/g, ""); }
-  function searchText(run) { return normaliseArabic([run.name, run.head, run.line, run.lorry, run.weapon, run.report_text, run.report_time, run.category, run.section_name, run.line_meta?.name, run.line_meta?.driver, run.line_meta?.vehicle].join(" ")); }
+  function searchText(run) { return normaliseArabic([run.name, run.head, run.line, run.lorry, run.weapon, run.report_text, run.report_time, run.category, run.section_name, run.line_meta?.name, personText(run.line_meta?.driver), vehicleText(run.line_meta?.vehicle)].join(" ")); }
   function lineKey(run) { return run.line_meta?.line_id || run.line_id || "none"; }
   function timeMatches(run) {
     if (filters.timeWindow === "all") return true;
@@ -486,6 +493,7 @@
     if (filters.states.size && !filters.states.has(state)) return false;
     if (!filters.states.size && state === "back") return false;
     if (filters.attention && !["late", "prep", "carried"].includes(state)) return false;
+    if (filters.unassigned && run.head) return false;
     if (filters.types.size && ![...(run.types || [])].some(type => filters.types.has(type))) return false;
     if (filters.lines.size && !filters.lines.has(lineKey(run))) return false;
     if (!timeMatches(run)) return false;
@@ -540,13 +548,17 @@
   function groupMarkup(group) {
     const eligibleDepart = group.runs.filter(run => ["upcoming", "prep", "late"].includes(displayState(run)));
     const eligibleReturn = group.runs.filter(run => ["out", "carried"].includes(displayState(run)));
-    const collapsed = Boolean(prefs.collapsed[`${prefs.groupBy}:${group.id}`]);
+    // المجموعة اللي كل خدماتها قامت بتتطوي لوحدها (إلا لو المستخدم فتحها بنفسه)
+    // عشان أول الشاشة يفضل للي محتاج إجراء.
+    const departed = group.runs.length - eligibleDepart.length;
+    const savedCollapse = prefs.collapsed[`${prefs.groupBy}:${group.id}`];
+    const collapsed = savedCollapse === undefined ? (group.runs.length > 0 && !eligibleDepart.length) : Boolean(savedCollapse);
     const actions = [];
     if (eligibleDepart.length) actions.push(`<button type="button" class="primary ops-group-primary" data-op="line" data-mode="depart" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleDepart.map(actionTarget)))}">قيام الكل (${eligibleDepart.length})</button>`);
     if (eligibleReturn.length) actions.push(`<button type="button" class="btn ok" data-op="line" data-mode="return" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleReturn.map(actionTarget)))}">عودة الكل (${eligibleReturn.length})</button>`);
     const body = viewMode() === "cards" ? `<div class="ops-grid">${group.runs.map(card).join("")}</div>` : `<div class="ops-table-wrap"><table class="ops-list"><colgroup><col class="ops-col-time"><col class="ops-col-service"><col class="ops-col-person"><col class="ops-col-count"><col class="ops-col-status"><col class="ops-col-action"></colgroup><thead><tr><th>المعاد</th><th>الخدمة</th><th>القائم بها</th><th>القوام</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>${group.runs.map(row).join("")}</tbody></table></div>`;
     return `<section class="ops-group ${collapsed ? "is-collapsed" : ""}" data-group-id="${esc(group.id)}">
-      <div class="ops-group-header"><button type="button" class="ops-group-toggle" aria-expanded="${!collapsed}" data-op="collapse" data-group="${esc(group.id)}"><span aria-hidden="true">${collapsed ? "›" : "⌄"}</span><strong>${esc(group.title)}</strong><span class="ops-group-count">${(group.total || group.runs.length) > group.runs.length ? `${group.runs.length} من ${group.total}` : countLabel(group.runs.length, "خدمة")}</span><small>${esc(stateSummary(group.runs))}</small></button><div class="ops-group-actions">${actions.join("")}</div></div>
+      <div class="ops-group-header"><button type="button" class="ops-group-toggle" aria-expanded="${!collapsed}" data-op="collapse" data-group="${esc(group.id)}"><span aria-hidden="true">${collapsed ? "›" : "⌄"}</span><strong>${esc(group.title)}</strong><span class="ops-group-count">${(group.total || group.runs.length) > group.runs.length ? `${group.runs.length} من ${group.total}` : countLabel(group.runs.length, "خدمة")}</span><small>${esc(!eligibleDepart.length && group.runs.length ? `${departed}/${group.runs.length} قامت` : stateSummary(group.runs))}</small></button><div class="ops-group-actions">${actions.join("")}</div></div>
       <div class="ops-group-body">${body}</div>
     </section>`;
   }
@@ -657,7 +669,7 @@
   }
 
   function renderEmptyResult() {
-    const scope = [activeShift !== "all" ? shiftText[activeShift] : "", filters.states.size ? [...filters.states].map(s => statusText[s]).join(" أو ") : "", filters.attention ? "تحتاج إجراء الآن" : "", filters.query ? `بحث «${filters.query}»` : ""].filter(Boolean).join(" + ") || "الفلاتر الحالية";
+    const scope = [activeShift !== "all" ? shiftText[activeShift] : "", filters.states.size ? [...filters.states].map(s => statusText[s]).join(" أو ") : "", filters.attention ? "تحتاج إجراء الآن" : "", filters.unassigned ? "من غير قائم مسجّل" : "", filters.query ? `بحث «${filters.query}»` : ""].filter(Boolean).join(" + ") || "الفلاتر الحالية";
     return `<div class="ops-empty"><strong>لا توجد نتائج ضمن: ${esc(scope)}</strong><div><button type="button" class="btn" data-op="clear-search">مسح البحث</button><button type="button" class="btn" data-op="clear-filters">مسح كل الفلاتر</button></div></div>`;
   }
 
@@ -669,6 +681,28 @@
     button.innerHTML = `المطلوب الآن <b>${total}</b>`;
     button.classList.toggle("has-items", total > 0);
     button.setAttribute("aria-label", `اعرض المطلوب الآن: ${total} (متأخرة وتجهّز ومترحّلة)`);
+    paintAttentionStrip();
+  }
+
+  // شريط «المطلوب الآن» فوق اللوحة: الاستثناءات بس، وكل بند زرار بيطبّق فلتره.
+  function paintAttentionStrip() {
+    const strip = $id("opsAttention");
+    if (!strip) return;
+    if (!ops || day !== today) { strip.classList.add("hidden"); strip.innerHTML = ""; return; }
+    const counters = ops.counters || {};
+    const unassigned = allRuns().filter(run => displayState(run) !== "back" && !run.head).length;
+    const items = [
+      counters.late ? `<button type="button" class="ops-attention-item is-late" data-attention-state="late"><b>${counters.late}</b> متأخرة عن معادها</button>` : "",
+      counters.prep ? `<button type="button" class="ops-attention-item is-prep" data-attention-state="prep"><b>${counters.prep}</b> حان وقت تجهيزها ولسه ماقامتش</button>` : "",
+      counters.carried ? `<button type="button" class="ops-attention-item" data-attention-state="carried"><b>${counters.carried}</b> مترحّلة من يوم سابق</button>` : "",
+      unassigned ? `<button type="button" class="ops-attention-item" data-attention-unassigned><b>${unassigned}</b> من غير قائم مسجّل</button>` : "",
+    ].filter(Boolean);
+    strip.classList.remove("hidden");
+    strip.setAttribute("role", "region");
+    strip.setAttribute("aria-label", "المطلوب الآن");
+    strip.innerHTML = items.length
+      ? `<strong class="ops-attention-title">المطلوب الآن</strong>${items.join("")}`
+      : `<p class="ops-attention-done">كل شيء تمام — مفيش خدمات متأخرة أو مستنية قيام دلوقتي.</p>`;
   }
 
   function updateToolbar() {
@@ -679,7 +713,7 @@
     paintAttention();
     document.querySelectorAll("[data-view]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.view === viewMode())));
     const filterCount = filters.types.size + filters.lines.size + (filters.timeWindow !== "all" ? 1 : 0)
-      + filters.states.size + (filters.attention ? 1 : 0) + (filters.query ? 1 : 0) + (activeShift !== "all" ? 1 : 0);
+      + filters.states.size + (filters.attention ? 1 : 0) + (filters.unassigned ? 1 : 0) + (filters.query ? 1 : 0) + (activeShift !== "all" ? 1 : 0);
     $id("opsFiltersToggle").textContent = filterCount ? `فلاتر نشطة: ${filterCount}` : "فلاتر";
     $id("opsTimeWindow").value = filters.timeWindow;
     document.querySelectorAll("[data-filter-type]").forEach(input => { input.checked = filters.types.has(input.dataset.filterType); });
@@ -835,7 +869,8 @@
     if (!element) return;
     if (element.dataset.op === "collapse") {
       const key = `${prefs.groupBy}:${element.dataset.group}`;
-      prefs.collapsed[key] = !prefs.collapsed[key]; savePrefs(); renderBoard();
+      const section = element.closest(".ops-group");
+      prefs.collapsed[key] = !(section ? section.classList.contains("is-collapsed") : prefs.collapsed[key]); savePrefs(); renderBoard();
     } else if (element.dataset.op === "clear-search") {
       filters.query = ""; renderBoard();
     } else if (element.dataset.op === "clear-filters") {
@@ -907,7 +942,8 @@
     const stateButton = event.target.closest("[data-filter-state]");
     if (stateButton) { const state = stateButton.dataset.filterState; filters.states.has(state) ? filters.states.delete(state) : filters.states.add(state); savePrefs(); paintCounters(); renderBoard(); return; }
     const attention = event.target.closest("[data-attention-state]");
-    if (attention) { filters.states = new Set([attention.dataset.attentionState]); filters.attention = false; savePrefs(); paintCounters(); renderBoard(); }
+    if (attention) { filters.states = new Set([attention.dataset.attentionState]); filters.attention = false; filters.unassigned = false; savePrefs(); paintCounters(); renderBoard(); return; }
+    if (event.target.closest("[data-attention-unassigned]")) { filters.states = new Set(); filters.attention = false; filters.unassigned = true; paintCounters(); renderBoard(); }
   });
   document.addEventListener("keydown", event => {
     const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(event.target.tagName) || event.target.isContentEditable;

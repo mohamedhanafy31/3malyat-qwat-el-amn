@@ -55,7 +55,9 @@ function renderVehicles() {
   const rows = visible.map(vehicleRow);
   $("#vehiclesWrap").innerHTML = rows.length
     ? `<div class="table-scroll">${mtable(["اللوحة", "النوع", "الموديل", "الحالة", "ملاحظات", "الإجراء"], rows)}</div><div class="count">${countLabel(rows.length, "سجل")}</div>`
-    : emptyState({icon: "inbox", title: "لا توجد مركبات", hint: "أضف مركبة جديدة أو عدّل عوامل البحث والتصفية.", action: {label: "إضافة مركبة", id: "addVehicleBtn", primary: true}});
+    : VEHICLES.some(v => !v.archived) && UI.filtersActive()
+      ? emptyState({filtered: true})
+      : emptyState({icon: "inbox", title: "لا توجد مركبات", hint: "سجّل أول مركبة للحملة.", action: {label: "إضافة مركبة", id: "addVehicleBtn", primary: true}});
   VEHICLE_FILTERS.update(visible.length);
 }
 

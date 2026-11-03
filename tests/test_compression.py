@@ -15,15 +15,15 @@ def test_json_is_gzipped_when_client_accepts_it(client):
 
 
 def test_versioned_static_is_cached_for_a_year_and_compressed(client):
-    res = client.get("/static/style.css?v=1", headers=GZ)
+    res = client.get("/static/css/tokens.css?v=1", headers=GZ)
     assert res.status_code == 200
     cc = res.headers["Cache-Control"]
     assert "max-age=31536000" in cc and "immutable" in cc and "no-cache" not in cc
     assert res.headers["Content-Encoding"] == "gzip"
-    with open("static/style.css", "rb") as fh:
+    with open("static/css/tokens.css", "rb") as fh:
         assert gzip.decompress(res.data) == fh.read()
     # الضغط بيتعمل مرة واحدة ويتخزّن
-    again = client.get("/static/style.css?v=1", headers=GZ)
+    again = client.get("/static/css/tokens.css?v=1", headers=GZ)
     assert again.data == res.data
 
 

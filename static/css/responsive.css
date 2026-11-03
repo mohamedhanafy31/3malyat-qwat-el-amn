@@ -1,0 +1,64 @@
+/* ═══════════════════ ㉕ الاستجابة للشاشات ═══════════════════ */
+@media(max-width:1100px){
+  .match-grid,.ledger-board .match-grid{grid-template-columns:1fr}
+  .ls-grid-2{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+  .content{padding:var(--s5) var(--s4) var(--s7)}
+}
+@media(max-width:860px){
+  /* الدرج بيطلع من نفس ناحية القائمة على الشاشة الكبيرة — اليمين.
+     `inset-inline-end` كانت بتترجم لـleft في RTL فكانت بتحطه على الشمال،
+     والصفحة كلها RTL فالخصائص الفيزيائية هنا أوضح وما تلتبسش. */
+  .sidebar{position:fixed;right:0;left:auto;top:var(--topbar-h);bottom:0;z-index:calc(var(--z-sticky) + 5);
+    transform:translateX(100%);transition:transform .2s ease;
+    box-shadow:-8px 0 24px var(--shadow-edge);width:min(86vw,var(--sidebar-w))}
+  .sidebar.open{transform:none}
+  .topbar .burger{display:block}
+  .topbar h1{font-size:var(--t-base)}
+  .topbar .sub{display:none}
+}
+@media(max-width:700px){
+  .topbar{padding:0 var(--s4);gap:var(--s3)}
+  .topbar .today{font-size:var(--t-xs);padding-inline-start:var(--s3)}
+  .stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .grid{grid-template-columns:1fr}
+  .toolbar{align-items:stretch;padding:var(--s3) var(--s4)}
+  .toolbar .search,.toolbar .select{flex:1 1 100%;min-width:0}
+  .panel-head{align-items:flex-start;flex-direction:column;padding:var(--s3) var(--s4) 0}
+  .page-head{align-items:flex-start;flex-direction:column;gap:var(--s3)}
+  .modal{padding:var(--s2);align-items:center}
+  .modal-card{--modal-pad-inline:var(--s4);--modal-pad-block:var(--s4);
+    width:100%;max-height:calc(100dvh - 16px);border-radius:var(--radius-md);scroll-padding-block:72px}
+  .modal-head{min-height:58px;margin-bottom:var(--s4);padding-block:var(--s2)}
+  .modal-head h2{font-size:var(--t-md)}
+  .modal input:not([type=checkbox]),.modal select,.modal textarea{font-size:16px}
+  .modal input:not([type=checkbox]),.modal select{min-height:var(--touch-target)}
+  .modal textarea{min-height:88px}
+  .modal label{margin-bottom:var(--s4)}
+  .modal .grid{gap:var(--s4)}
+  .modal-foot,.dialog-actions{gap:var(--s3);padding:var(--s3) var(--s4)}
+  .modal-foot>.btn,.modal-foot>.primary,.modal-foot>.danger,
+  .dialog-actions>.btn,.dialog-actions>.primary,.dialog-actions>.danger{flex:1 1 0;min-width:0}
+  .field-section{padding:var(--s3) var(--s3) 0;margin-bottom:var(--s4)}
+  .alert-list{grid-template-columns:1fr}
+  .ls-filter-bar{gap:var(--s2)}
+  .ls-filter-quick{margin-inline-start:0}
+}
+@media(max-width:560px){
+  .topbar .today{display:none}
+  /* اسم الحساب الكامل موجود في الاسم الميسّر وفي القائمة المنبثقة. على شاشة
+     الموبايل نخلي زر الحساب أيقونة مختصرة عشان عنوان المكتب يفضل مقروءًا. */
+  .topbar .user-chip-meta{display:none}
+  .topbar .user-chip-btn{gap:var(--s1);padding-inline:var(--s1)}
+  /* على الموبايل البطاقات شبكة عمودين مرئية بالكامل — الشريط الأفقي كان
+     بيقص بطاقة (ممكن تبقى «الإجمالي») من غير أي إشارة كافية للتمرير.
+     البطاقة الوحيدة في آخر صف (لما العدد فردي) بتاخد الصف كله. */
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2)}
+  .stats > .stat:last-child:nth-child(odd){grid-column:1 / -1}
+  .topbar .title-full{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap}
+  .topbar .title-compact{display:inline}
+  .skel-stat .skel-sub-line + .skel-sub-line{display:block}
+}
+

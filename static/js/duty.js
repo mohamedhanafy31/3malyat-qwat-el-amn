@@ -187,6 +187,9 @@ ACTIONS.openAssign = id => {
     : net ? "الضابط صافي — فعّل الخيار بعد كتابة تشغيله لنقله إلى «عمل بالإدارة»"
     : "النص التشغيلي الكامل (خدمته + الإضافي) يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية، ويفضل في مكان خدمته";
   updateAssignPreview();
+  // المسار بيتحدد من الموجود فعلًا: لو مسجّل له حالة يفتح على «حالة خاصة»
+  ASSIGN_STASHED_STATUS = "";
+  setAssignPath(row.status || row.status_source === "period" ? "status" : "operate");
   // الضابط في راحة اليوم ده — إيقافها من هنا مباشرة، من غير ما تروح صفحة الراحات
   const lv = row.leave;
   $("#assignRest").classList.toggle("hidden", !lv?.id);
@@ -238,6 +241,49 @@ ACTIONS.openAssign = id => {
   }
   openModal("assignModal");
 };
+
+/* ---------- مسار الإجراء في نافذة الحالة ----------
+   «تشغيل اليوم» أو «حالة خاصة (خوارج)»: المسار بيعرض حقوله بس، والحقول
+   المخفية بتفضل بقيمها وبتتبعت زي ما هي — نفس الـpayload القديم بالظبط.
+   الاستثناء الوحيد: الرجوع لـ«تشغيل اليوم» بيفضّي الحالة (زي اختيار «بدون»
+   قبل كده)، والقيمة بتتحفظ وترجع لو المستخدم رجع للحالة الخاصة. */
+let ASSIGN_STASHED_STATUS = "";
+function assignPath() {
+  return document.querySelector('input[name="assignPath"]:checked')?.value || "operate";
+}
+function setAssignPath(path) {
+  const radio = document.querySelector(`input[name="assignPath"][value="${path}"]`);
+  if (radio) radio.checked = true;
+  $$("#assignForm [data-assign-path]").forEach(box => box.classList.toggle("hidden", box.dataset.assignPath !== path));
+  const status = $("#assignStatus");
+  if (path === "operate" && status.value) {
+    ASSIGN_STASHED_STATUS = status.value; status.value = ""; updatePersistentHint(); updateAssignPreview();
+  } else if (path === "status" && !status.value && ASSIGN_STASHED_STATUS) {
+    status.value = ASSIGN_STASHED_STATUS; updatePersistentHint(); updateAssignPreview();
+  }
+  updateAssignSummary();
+}
+$$('input[name="assignPath"]').forEach(input => input.addEventListener("change", () => setAssignPath(input.value)));
+
+function updateAssignSummary() {
+  const out = $("#assignSummary");
+  if (!out) return;
+  if (assignPath() === "status") {
+    const value = $("#assignStatus").value;
+    const end = $("#assignStatusEnd").value;
+    out.textContent = !value ? "اختار الحالة الخاصة من القايمة."
+      : `سيُسجَّل: حالة «${value}»${BOUNDED_STATUSES.includes(value) ? (end ? ` حتى ${fmt(end)}` : " — حدد «حتى يوم»")
+        : CONTINUOUS_STATUSES.includes(value) ? " مستمرة لحد إنهائها" : " لليوم ده بس"}.`;
+    return;
+  }
+  const parts = ["تشغيل اليوم"];
+  if ($("#assignExtra").value.trim()) parts.push("تشغيل إضافي");
+  if ($("#assignTaq").checked) parts.push("تقصيرة");
+  if (($("#assignAdmin").checked && !$("#assignAdmin").disabled) || ($("#assignAdminText").value.trim() && !$("#assignAdminText").disabled)) parts.push("عمل بالإدارة");
+  out.textContent = `سيُسجَّل: ${parts.join(" + ")}.`;
+}
+$("#assignForm").addEventListener("input", updateAssignSummary);
+$("#assignForm").addEventListener("change", updateAssignSummary);
 
 function updatePersistentHint() {
   const value = $("#assignStatus").value;
@@ -324,6 +370,10 @@ $("#assignForm").onsubmit = async e => {
   e.preventDefault();
   const status = $("#assignStatus").value;
   const row = DUTY.rows.find(r => r.id === $("#assignPerson").value);
+  if (assignPath() === "status" && !status && row?.status_source !== "period") {
+    showToast("اختار الحالة الخاصة، أو ارجع لـ«تشغيل اليوم»", true);
+    ($("#assignStatus")._comboInput || $("#assignStatus")).focus(); return;
+  }
   const automaticAdmin = ["مدير الإدارة", "وكيل الإدارة"].includes(row?.command_role);
   const adminText = $("#assignAdminText").value.trim();
   if (!automaticAdmin && $("#assignAdmin").checked && !adminText

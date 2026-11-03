@@ -1,0 +1,74 @@
+/* ═══════════════════ ㉔ الطباعة — اليومية على الورق ═══════════════════ */
+@media print{
+  .topbar,.sidebar,.scrim,.skip-link,.tabs,.toolbar,.actions,.mini,.btn,.primary,.danger,
+  #balanceTag,.nav-dot,.alert-toggle,.ls-nav,.ls-filter-bar{display:none !important}
+  /* `.shell`/`.content` فليكس (`display:flex`) — وكروم بيرفض يقطّع
+     محتوى جوّه سياق فليكس صح وقت الطباعة، فبيدّي صفحة أولى فاضية
+     ويرمي المحتوى كله على اللي بعدها. القائمة الجانبية مستخبّية أصلًا
+     في الطباعة، فمفيش داعي للفليكس هنا خالص. */
+  .shell,.content{display:block !important}
+  .content{padding:0}
+  .panel,.mcard,.dash-card,.ls-card,.stat{border:1px solid #999;box-shadow:none;
+    break-inside:avoid}
+  .page-head{border-bottom:2px solid #000}
+  .table th{background:#e9e9e9 !important;color:#000 !important;
+    border-color:#999 !important;position:static}
+  .table tbody tr:nth-child(even) td{background:#f6f6f6 !important}
+  body{background:#fff;font-size:12px}
+  .table-scroll,.reg-scroll,.mtable-wrap{overflow:visible;max-height:none;background:none}
+  /* الإجماليات لازم تطبع — المتصفح بيشيل الخلفيات الغامقة فبتتحوّل
+     لإطار أسود بدل ما النص الأبيض يختفي على ورق أبيض */
+  .grand-total{background:#fff !important;color:#000 !important;
+    border:2px solid #000 !important;border-radius:0;break-inside:avoid}
+  .grand-bits{color:#000 !important}
+  .grand-bits b,.grand-main b{color:#000 !important}
+  .blk-total{background:#efefef !important;color:#000 !important;
+    border-top:2px solid #000 !important}
+  .blk-total-bits,.blk-total-bits b{color:#000 !important}
+
+  /* اليومية التفصيلية على الورق — نفس شكل الوورد بالظبط: عرض أفقي
+     (الأقسام العشرة في عمودين محتاجة عرض أوسع من A4 طولي)، وعنوان
+     الصفحة العام (`.page-head`) بيتشال عشان بانر «اليومية التفصيلية»
+     الخاص باللوحة نفسه بيبقى العنوان — مش نكرّر نفس العنوان مرتين. */
+  body:has(.ledger-board) .page-head{display:none !important}
+  /* `.panel{break-inside:avoid}` (القاعدة العامة فوق) بتحاول تمنع تقطيع
+     البانل كله — وهو أطول بكتير من صفحة واحدة هنا، فالنتيجة صفحة أولى
+     شبه فاضية وباقي المحتوى بيتأخر. اللوحة نفسها لازم تتقطّع بين
+     صفحاتها زي أي مستند طويل عادي، الكروت جواها هي اللي تفضل غير
+     مقطوعة (`.mcard{break-inside:avoid}` قاعدة تانية منفصلة). */
+  /* حدود البانل الخارجية بتفضل بترسم على طول الصفحة (يمين/شمال) لحد ما
+     محتواه يخلص — بيبان كخط تايه على الصفحة الأولى لو اللوحة اتقسّمت
+     على أكتر من صفحة. اللوحة والكروت جواها ليهم حدودهم بالفعل، فمحتاجين
+     مش نكرّر إطار خارجي هنا أصلًا. */
+  .panel:has(.ledger-board){break-inside:auto !important;overflow:visible !important;
+    border:0 !important;border-radius:0 !important;box-shadow:none !important}
+  .ledger-board{page:ledger-print}
+  /* عرض صفحة الطباعة (A4 أفقي) بيقع قريب من حد الـ1100px اللي بيقفّل
+     الجريد لعمود واحد على الشاشات الضيقة (تحت) — من غير override صريح
+     هنا بيتفعّل نفس القاعدة وقت الطباعة فيطلع عمود واحد بدل الاتنين. */
+  .ledger-board .match-grid{grid-template-columns:1fr 1fr !important;
+    padding:8px 0 !important}
+  /* التحذيرات مش جزء من الورقة الرسمية — بتفضل ظاهرة على الشاشة بس.
+     مقصورة على تحذيرات اللوحة نفسها، مش أي `.alert-card` في صفحة تانية. */
+  .ledger-board .alert-card{display:none !important}
+  .ledger-head{border:3px double #000 !important;margin:0 0 8px !important;
+    padding:8px !important}
+  .ledger-head h2,.ledger-head .ledger-sub{color:#000 !important}
+  .ledger-board .mcard{border:1px solid #000 !important}
+  .ledger-board .mcard h3{background:#e9e9e9 !important;color:#000 !important}
+  .ledger-board .outsider-groups{gap:6px !important;padding:6px !important}
+  .ledger-board .outsider-group{border:1px solid #777 !important;border-radius:0 !important}
+  .ledger-board .outsider-group-head{min-height:0;padding:4px 6px !important;
+    background:#f3f3f3 !important;color:#000 !important;border-color:#999 !important}
+  .ledger-board .outsider-group-count{height:20px;background:#fff !important;color:#000 !important}
+  .ledger-board .target-default-note{color:#555 !important}
+  .ledger-board .mcount{background:#fff !important;color:#000 !important;
+    border:1px solid #999 !important}
+  .ledger-board .mtable td,.ledger-board .mtable th{font-size:10px !important;
+    padding:3px 5px !important}
+}
+/* عرض أوسع من A4 — الأقسام العشرة بعمودين مليانين جداول محتاجة مساحة.
+   `page` هنا (CSS Paged Media) بيربط `.ledger-board` بالمقاس ده وقت
+   الطباعة بس، من غير ما يأثّر على مقاس ورق باقي الصفحات. */
+@page ledger-print{size:A4 landscape;margin:10mm}
+

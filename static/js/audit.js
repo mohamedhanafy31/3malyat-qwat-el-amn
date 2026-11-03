@@ -74,8 +74,8 @@ function render(isError = false) {
       $("#auditFrom").value ||
       $("#auditTo").value;
 
-    wrap.innerHTML = emptyState({
-      icon: hasFilters ? "search" : "inbox",
+    wrap.innerHTML = hasFilters ? emptyState({filtered: true}) : emptyState({
+      icon: "inbox",
       title: hasFilters ? "لا توجد نتائج مطابقة" : "لا توجد سجلات نشاط مسجلة",
       hint: hasFilters ? "حاول تعديل شروط التصفية أو البحث." : "تُسجَّل هنا كل العمليات الأمنية وتعديلات البيانات تلقائيًا."
     });

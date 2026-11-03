@@ -1,0 +1,122 @@
+@font-face{
+  font-family:"Noto Kufi Arabic";font-style:normal;font-weight:400;font-display:swap;
+  src:url("../fonts/NotoKufiArabic-400.woff2") format("woff2")}
+@font-face{
+  font-family:"Noto Kufi Arabic";font-style:normal;font-weight:700;font-display:swap;
+  src:url("../fonts/NotoKufiArabic-700.woff2") format("woff2")}
+@font-face{
+  font-family:"Noto Sans Arabic";font-style:normal;font-weight:400;font-display:swap;
+  src:url("../fonts/NotoSansArabic-400.woff2") format("woff2")}
+@font-face{
+  font-family:"Noto Sans Arabic";font-style:normal;font-weight:700;font-display:swap;
+  src:url("../fonts/NotoSansArabic-700.woff2") format("woff2")}
+
+/* ==========================================================================
+   نظام إدارة القوة — إدارة قوات أمن السويس
+   الهوية البصرية: «الدفتر» — اليومية الورقية الرسمية بشكل رقمي.
+   حبر كحلي، مسطرة ذهبية، ورق مطفي، زوايا حادة، وأرقام مصفوفة زي عمود الحصر.
+
+   العنصر المميّز هو **المسطرة الذهبية**: خط ذهبي واحد بيتكرر في كل مكان له
+   معنى تركيبي — تحت الترويسة، تحت عنوان الصفحة، على ضلع الصفحة النشطة في
+   القائمة، وفوق كل لوحة. مش زخرفة: هي اللي بتفصل الأقسام عن بعض.
+
+   دلالة الألوان ثابتة: الأحمر للخطأ والحذف والتأخير والمنع، والكهرماني
+   لما يحتاج انتباهًا أو ما زال معلقًا، والأخضر للنجاح والتأكيد والحضور،
+   والكحلي للمعلومة والحالة الافتراضية. البرقوقي ودرجات cat-* للفئات فقط،
+   والذهبي للمسطرة والموضع المختار فقط؛ ولا يُستخدم أيٌّ منها كحالة.
+
+   ملاحظة للصيانة: كل أسماء الكلاسات القديمة محفوظة زي ما هي لأن الجافاسكريبت
+   بيولّد HTML بيها (.mini/.primary/.chip/.stat/.mcard...). الجديد اتضاف جنبها،
+   وما اتشالش أي اسم.
+   ========================================================================== */
+
+/* ═══════════════════ ① الرموز (Design tokens) ═══════════════════ */
+:root{
+  /* — الحبر الكحلي: الترويسة والعناوين ورؤوس الجداول — */
+  --navy-950:#0a1f36; --navy-900:#0f2a4a; --navy-800:#153454; --navy-700:#1c4066;
+  --navy-600:#26527d; --navy-500:#3f6b98; --navy-300:var(--navy-200);
+  --navy-200:#d3ddec; --navy-100:#e7edf5; --navy-50:#f2f5f9;
+
+  /* — المسطرة الذهبية: الفاصل الرسمي، ومعاه التمييز — */
+  --gold-800:#6f571a; --gold-700:#8a6d1f; --gold-600:#a1801f;
+  --gold-300:#d8c27a; --gold-200:var(--gold-300); --gold-100:#f6eed7;
+  --gold-50:var(--gold-100);
+
+  /* — درجات النص — */
+  /* درجتا النص المتوسط والخافت تتجاوزان 4.5:1 على الأسطح الفاتحة. */
+  --ink-900:#1b2430; --ink-700:#3a4553; --ink-600:var(--ink-700); --ink-500:#5b6678;
+  --ink-400:#5f6b7e; --ink-300:#647083; --ink-100:#e3e8ef;
+
+  /* — الأسطح والخطوط الفاصلة — */
+  --paper:#f4f5f2; --surface:#fff; --surface-sunken:var(--navy-50);
+  --line:#d8dee6; --line-200:var(--line); --line-strong:#b9c3d1;
+  --border-control:#848fa3; --border-on-dark:#6a84a3;
+  --on-dark:#fff; --on-dark-muted:#9db0c8; --on-dark-soft:#cdd8e6;
+  --on-dark-placeholder:#8194ae;
+
+  /* — الحالات — */
+  --ok-800:var(--ok-700); --ok-700:#1e5631; --ok-300:#a9d0b3; --ok-100:#e5f2e9;
+  --bad-900:#5c1616; --bad-800:#732424; --bad-700:#8a2c2c;
+  --bad-600:#9b2b2b; --bad-300:#e3b7b0; --bad-200:#eec2c2; --bad-100:#f7e7e6;
+  --warn-800:#7c3400; --warn-700:#8a5a10; --warn-600:#a34a06; --warn-500:#d97706;
+  --warn-300:#ecd8a8; --warn-200:#fde68a; --warn-100:#faf0dd; --warn-50:#fff8ec;
+  --info-700:#1c4066; --info-300:#c3d3e8; --info-100:#e7edf5;
+  --plum-700:#5b3a94; --plum-300:#d8cdf0; --plum-100:#eee8fa;
+
+  /* — فئات بصرية فقط، ولا تعبّر عن حالة — */
+  --cat-1:#5b3a94; --cat-1-bg:#eee8fa;
+  --cat-2:#17605f; --cat-2-bg:#e2f2f0;
+  --cat-3:#44546a; --cat-3-bg:#e9edf2;
+  --cat-4:#7a4525; --cat-4-bg:#f5e9df;
+  --chart-blue:#2563eb;--chart-purple:#7c3aed;--chart-cyan:#0891b2;
+  --chart-amber:#d97706;--chart-green:#16a34a;--chart-red:#dc2626;
+  --chart-gray:#6b7280;--chart-navy:#1e3a5a;
+
+  /* — طبقات لونية شفافة — */
+  --overlay-screen:rgba(10,18,32,.6); --overlay-thumb:rgba(10,18,32,.7);
+  --overlay-scrim:rgba(10,31,54,.45); --shadow-edge:rgba(15,39,71,.18);
+  --on-dark-wash:rgba(255,255,255,.18); --on-dark-muted-wash:rgba(255,255,255,.72);
+  --gold-wash:rgba(138,109,31,.18); --warn-hover-wash:rgba(138,90,16,.07);
+
+  /* — سُلّم المسافات: كل الحشو والفجوات من هنا، مش أرقام عشوائية — */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s7:32px; --s8:40px;
+
+  /* — سُلّم أحجام الخط — */
+  --t-xs:12px; --t-sm:13px; --t-cap:14px; --t-base:15px;
+  --t-md:16px; --t-lg:18px; --t-xl:22px; --t-2xl:26px;
+  --t-body:14px; --t-section:18px; --t-page:23px;
+
+  /* — ارتفاع موحّد لكل عنصر تفاعلي في نفس الشريط — */
+  --control-h:38px; --control-h-sm:30px;
+  /* — شاشات اللمس: أقل مساحة ضغط مريحة لإصبع، وعرض حافة التمرير الباهتة — */
+  --touch-control:40px; --touch-target:44px; --fade-edge:28px;
+
+  --radius-control:6px; --radius-card:10px; --radius-pill:999px;
+  --radius-sm:var(--radius-control); --radius-md:var(--radius-card); --radius-lg:var(--radius-card);
+  --radius:var(--radius-card); --r2:var(--radius-control);
+
+  --shadow-sm:0 1px 2px rgba(10,31,54,.06);
+  --shadow-md:0 2px 8px rgba(10,31,54,.08);
+  --shadow-pop:0 10px 30px rgba(10,31,54,.20);
+
+  --topbar-h:60px; --sidebar-w:238px; --sidebar-rail:60px;
+
+  /* ترتيب الطبقات: القيم الأساسية تحافظ على ترتيب الواجهة القديم حرفيًا. */
+  --z-sticky:10; --z-nav:20; --z-modal:30; --z-popover:35;
+  --z-toast:40; --z-blocking:90; --z-skip:1000;
+
+  /* — الخطوط: كوفي للعناوين (صوت رسمي)، نسخ/واجهة للمتن (قراءة كثيفة) — */
+  --font-head:"Noto Kufi Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-body:"Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --font-num:var(--font-body); --font-mono:var(--font-num);
+
+  /* سهم القوائم المنسدلة — مرة واحدة بدل ما يتكرر في ٤ أماكن */
+  --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235b6678'%3E%3Cpath d='M5.5 7.5l4.5 5 4.5-5z'/%3E%3C/svg%3E");
+}
+
+.skip-link{position:fixed;inset-block-start:var(--s2);inset-inline-start:var(--s2);
+  z-index:var(--z-skip);transform:translateY(calc(-100% - var(--s4)));padding:var(--s2) var(--s4);
+  border:2px solid var(--gold-300);border-radius:var(--radius-control);
+  background:var(--navy-950);color:var(--on-dark);font-weight:700;text-decoration:none}
+.skip-link:focus{transform:translateY(0);outline:3px solid var(--gold-300);outline-offset:2px}
+

@@ -39,8 +39,8 @@ def test_incoming_request_id_is_kept_and_garbage_replaced(client):
 
 
 def test_static_requests_are_not_logged_at_info(client, tmp_path):
-    client.get("/static/style.css")
-    assert "/static/style.css" not in _read(tmp_path)
+    client.get("/static/css/tokens.css")
+    assert "/static/css/tokens.css" not in _read(tmp_path)
 
 
 @pytest.fixture

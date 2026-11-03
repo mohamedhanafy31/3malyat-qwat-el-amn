@@ -31,6 +31,23 @@ function renderActivitySummary() {
     <div class="stat"><span>متوسط التعديل لكل نشط</span><strong>${s.active_members ? Math.round(s.changes / s.active_members * 10) / 10 : 0}</strong></div>`;
 }
 
+function renderActivityFindings() {
+  const members = ACTIVITY.members || [];
+  const active = members.filter(m => m.changes || m.logins);
+  const top = [...members].sort((a, b) => b.changes - a.changes)[0];
+  const avg = active.length ? Math.round(active.reduce((n, m) => n + m.changes, 0) / active.length * 10) / 10 : 0;
+  const hours = ACTIVITY.by_hour || [];
+  const busy = [...hours].sort((a, b) => b.events - a.events)[0];
+  const failed = ACTIVITY.summary.failed_logins || 0;
+  const idle = members.length - active.length;
+  renderFindings("activityFindings", [
+    top && top.changes ? `أكتر حساب سجّل تعديلات: ${esc(top.display_name)} — ${findingNum(top.changes)} تعديل، والمتوسط ${findingNum(avg)} لكل حساب نشط.` : "",
+    busy && busy.events ? `أكتر ساعة فيها شغل: ${findingNum(`${String(busy.hour).padStart(2, "0")}:00`)} بـ ${findingNum(busy.events)} حدث مسجّل.` : "",
+    failed ? `فيه ${findingNum(failed)} محاولة دخول فاشلة في المدة دي — راجعها في سجل النشاط.`
+      : idle ? `${findingNum(idle)} حساب ماعملش أي نشاط في المدة دي.` : "كل الحسابات اشتغلت في المدة دي، ومفيش محاولات دخول فاشلة.",
+  ]);
+}
+
 function destroyActivityCharts() {
   ACTIVITY_CHARTS.forEach(chart => chart.destroy());
   ACTIVITY_CHARTS = [];
@@ -117,8 +134,7 @@ function renderActivityMembers() {
   document.getElementById("activityMemberCount").textContent = `${rows.length} من ${ACTIVITY.members.length} حساب`;
   const wrap = document.getElementById("activityMembers");
   if (!rows.length) {
-    wrap.innerHTML = emptyState({icon: "search", title: "لا توجد حسابات مطابقة",
-      hint: "غيّر نص البحث أو فلتر الدور."});
+    wrap.innerHTML = emptyState({filtered: true});
     return;
   }
   const maxVolume = Math.max(...rows.map(member => member.changes + member.logins), 0);
@@ -137,6 +153,8 @@ async function loadActivityStats() {
   ACTIVITY = data;
   document.getElementById("activityRangeStamp").textContent = `${fmt(data.date_from)} — ${fmt(data.date_to)}`;
   renderActivitySummary();
+  renderActivityFindings();
+  rememberDetails("activityDetails", "report-details:activity");
   renderActivityCharts();
   renderActivityMembers();
 }
