@@ -118,12 +118,14 @@ def test_store_save_is_logged_with_fields(client, tmp_path):
 
 # ---------- صفحة السجلات ----------
 
-def test_logs_page_and_api_require_view_logs(anon_client, individual_client):
+def test_logs_page_and_api_are_admin_only(anon_client, individual_client, officer_client):
     assert anon_client.get("/api/tech-logs").status_code == 401
-    low = individual_client
-    assert low.get("/api/tech-logs").status_code == 403
-    assert low.get("/api/tech-logs/download?file=all").status_code == 403
-    assert low.get("/tech-logs").status_code == 403
+    # الضابط عنده سجل النشاط بس، مش السجلات الفنية.
+    for low in (individual_client, officer_client):
+        assert low.get("/api/tech-logs").status_code == 403
+        assert low.get("/api/tech-logs/download?file=all").status_code == 403
+        assert low.get("/tech-logs").status_code == 403
+    assert "/tech-logs" not in officer_client.get("/audit").get_data(as_text=True)
 
 
 def test_logs_api_filters_and_downloads(client, tmp_path):

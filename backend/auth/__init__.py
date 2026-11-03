@@ -48,9 +48,11 @@ def _error(message, code, status):
 
 def _required_capability(path):
     # «تغيير تشغيل» (/changes) مفتوح لكل الأدوار؛ سجل النشاط (/audit) بس للرقابة.
-    if path in ("/audit", "/api/audit", "/activity-stats", "/api/activity-stats",
-                "/tech-logs") or path.startswith("/api/tech-logs"):
+    if path in ("/audit", "/api/audit", "/activity-stats", "/api/activity-stats"):
         return "view_logs"
+    # السجلات الفنية فيها أسماء مستخدمين وتفاصيل تشغيل — لمدير النظام بس.
+    if path == "/tech-logs" or path.startswith("/api/tech-logs"):
+        return "manage_files"
     if path == "/users" or path == "/api/users" or path.startswith("/api/users/"):
         return "manage_users"
     # قراءة الإعدادات مفتوحة (اللوحة الرئيسية محتاجاها)، وتعديلها للمدير بس.
