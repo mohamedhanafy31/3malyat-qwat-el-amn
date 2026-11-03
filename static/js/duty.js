@@ -25,6 +25,7 @@ function courseLine(c) {
   return [c.text, c.kind && `(${c.kind})`, c.term_note, c.course_note].filter(Boolean).join(" — ");
 }
 
+window.dailyFileDay = () => DUTY ? DUTY.date : null;
 window.exportDocxUrl = () => DUTY ? `/api/duty/${DUTY.date}/export.docx` : null;
 
 function renderSummary(s) {

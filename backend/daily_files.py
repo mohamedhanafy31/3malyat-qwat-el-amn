@@ -343,8 +343,13 @@ def write_day_files(day, kinds=None, *, require_data=False):
         signature = store.day_index().signature(day)
         manifest = _manifest()
         previous_special = (manifest.get(day) or {}).get("special") or []
+        # تحديث ملف واحد (kinds جزئية) مايعتبرش اليوم كله محدّث: نبقي التوقيع
+        # القديم عشان العامل يكمّل باقي الملفات لو كانت متأخرة.
+        partial = kinds is not None and set(KINDS) - set(selected)
+        sig = ((manifest.get(day) or {}).get("sig") if partial
+               else _manifest_signature(signature))
         manifest[day] = {
-            "sig": _manifest_signature(signature),
+            "sig": sig,
             "at": datetime.now().isoformat(timespec="seconds"),
             "special": special_names if special_names is not None else previous_special,
         }

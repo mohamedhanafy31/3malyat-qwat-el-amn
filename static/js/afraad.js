@@ -12,6 +12,7 @@ let AF_DAY_OPEN = true;
 /* زرار «Word» العام (export.js) بيلف الـHTML الظاهر — هنا لازم يبقى
    ملف Word حقيقي بنفس شكل ورقة «افراد» الحقيقية، فبيتولّد من السيرفر
    (`backend/afraad_export.py`) بدل نسخ الشاشة، نفس فكرة board.js. */
+window.dailyFileDay = () => DAY;
 window.exportDocxUrl = () => `/api/afraad/${DAY}/export.docx`;
 
 function personCell(p) {
