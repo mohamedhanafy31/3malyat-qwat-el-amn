@@ -33,7 +33,7 @@ except ImportError:
     )
 
 from app import app
-from backend import store
+from backend import store, tech_log
 from backend.daily_files import start_worker
 
 HOST = os.environ.get("HOST", "127.0.0.1")
@@ -59,6 +59,8 @@ def _configure_logging():
         console.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
         root.addHandler(console)
     logging.getLogger("waitress").setLevel(logging.INFO)
+    # root.handlers.clear() فوق شال handlers السجلات الفنية — بنرجّعها (system.log/errors.log)
+    tech_log.setup_logging()
     return logging.getLogger("personnel-system")
 
 # «المنفذ مستخدم بالفعل» رقمه بيختلف حسب النظام:
@@ -110,6 +112,7 @@ def main():
         store.acquire_process_lock()
         logger.info("[startup 3/5] Data lock acquired; starting daily-files worker")
         start_worker()
+        tech_log.log_startup(source="serve.py")
     except SystemExit as exc:
         logger.error("Startup stopped before the HTTP server could bind: %s", exc)
         return exc.code if isinstance(exc.code, int) else 1

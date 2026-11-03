@@ -31,6 +31,8 @@ PAGES = {
     "changes": ("changes.html", "تغيير تشغيل",
                  "المُعدِّل، وما عُدِّل، وموعد التعديل — يُسجَّل وقت تأكيد اليومية، لا وقت الحفظ"),
     "audit": ("audit.html", "سجل النشاط", "من فعل ماذا ومتى — الدخول والخروج وكل تعديل"),
+    "tech_logs": ("tech_logs.html", "السجلات الفنية",
+                  "سجلات تشخيص النظام — الطلبات والأخطاء والأحداث الداخلية"),
     "activity_stats": ("activity_stats.html", "إحصائيات استخدام النظام",
                        "نشاط الحسابات والدخول والتعديلات خلال المدة المحددة"),
     "users": ("users.html", "إدارة الحسابات", "إنشاء حسابات الضباط والأفراد والمجندين وإدارتها"),
@@ -125,6 +127,11 @@ def changes():
 @bp.get("/audit")
 def audit():
     return _render("audit")
+
+
+@bp.get("/tech-logs")
+def tech_logs():
+    return _render("tech_logs")
 
 
 @bp.get("/activity-stats")

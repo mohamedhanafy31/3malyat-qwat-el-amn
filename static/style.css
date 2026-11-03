@@ -2848,3 +2848,9 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   .mission-summary span{font-size:var(--t-xs)}.mission-facts{grid-template-columns:1fr}
   .mission-staff,.mission-conscripts{grid-template-columns:1fr}.mission-lanes{gap:var(--s3)}
 }
+
+/* السجلات الفنية */
+.tech-log{max-height:65vh;overflow:auto;background:var(--navy-50);border:1px solid var(--line);border-radius:6px;padding:var(--s3);margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:var(--t-xs);line-height:1.6;white-space:pre-wrap;word-break:break-all;text-align:left}
+.tech-log .tl-WARNING{color:#9a6700}
+.tech-log .tl-ERROR,.tech-log .tl-CRITICAL{color:#b42318;font-weight:600}
+.tech-log .tl-DEBUG{color:#667085}

@@ -27,13 +27,15 @@ from .roster_import import bp as roster_import_bp
 from .health import bp as health_bp
 from .target_commanders import bp as target_commanders_bp
 from .system_settings import bp as system_settings_bp
+from .tech_logs import bp as tech_logs_bp
 
 ALL_BLUEPRINTS = [pages_bp, meta_bp, people_bp, leaves_bp, duty_bp, duty_stats_bp,
                   board_bp, register_bp, courses_bp, counts_bp, changes_bp,
                   missions_bp, fleet_bp, service_catalog_bp, officer_log_bp, day_status_bp,
                   afraad_bp, inspection_schedule_bp, rest_suspension_bp,
                   auth_bp, users_bp, audit_bp, campaign_bp, day_files_bp, ops_bp,
-                  roster_import_bp, health_bp, target_commanders_bp, system_settings_bp]
+                  roster_import_bp, health_bp, target_commanders_bp, system_settings_bp,
+                  tech_logs_bp]
 
 
 def register_routes(app):

@@ -1,10 +1,12 @@
 import gzip
+import logging
 import os
+import uuid
 
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
-import uuid
 
+from backend import tech_log
 from backend.routes import register_routes
 from backend.store import SchemaMismatch, acquire_process_lock
 from backend.auth import init_app as init_auth
@@ -21,8 +23,12 @@ app.json.ensure_ascii = False
 # شوية لأي هامش بروتوكول.
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024
 
+# السجلات الفنية: الوسيط ييجي أول واحد عشان رقم الطلب يكون جاهز لكل الباقي
+tech_log.setup_logging()
+tech_log.init_app(app)
 register_routes(app)
 init_auth(app)
+LOG = logging.getLogger(__name__)
 
 
 @app.url_defaults
@@ -96,7 +102,10 @@ def _compress_and_cache(response):
 @app.errorhandler(SchemaMismatch)
 def _schema_mismatch(exc):
     """ملف بيانات ببنية مختلفة — رسالة واضحة بدل 500 صامت."""
-    return jsonify({"error": str(exc)}), 503
+    rid = tech_log.current_request_id()
+    tech_log.event(LOG, "data_unavailable", level=logging.ERROR, exc_info=exc,
+                   exc_type=type(exc).__name__)
+    return jsonify({"error": str(exc), "request_id": rid}), 503
 
 
 @app.errorhandler(RequestEntityTooLarge)
@@ -110,15 +119,19 @@ def _unexpected(exc):
         return exc
     if app.testing:
         raise exc
-    incident = uuid.uuid4().hex[:12]
-    app.logger.exception("Unhandled incident %s", incident)
-    return jsonify({"error": "حدث خطأ داخلي.", "incident": incident}), 500
+    rid = tech_log.current_request_id() or uuid.uuid4().hex[:12]
+    tech_log.event(LOG, "unhandled_exception", level=logging.ERROR, exc_info=exc,
+                   exc_type=type(exc).__name__)
+    # `incident` اسم قديم للحقل نفسه — محفوظ للتوافق.
+    return jsonify({"error": "حدث خطأ داخلي.", "incident": rid, "request_id": rid}), 500
 
 
 if __name__ == "__main__":
     from backend.daily_files import start_worker
+    tech_log.setup_logging(console=True)
     start_worker()
     acquire_process_lock()
+    tech_log.log_startup(app, source="app.py")
     port = int(os.environ.get("PORT", "5000"))
     print(f"Personnel System running at http://127.0.0.1:{port}")
     app.run(host="127.0.0.1", port=port, debug=False)

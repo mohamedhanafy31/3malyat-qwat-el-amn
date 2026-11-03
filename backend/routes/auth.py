@@ -1,12 +1,16 @@
 """صفحات ونداءات الدخول والإعداد الأول."""
+import logging
+
 from flask import Blueprint, jsonify, redirect, render_template, request, session
 
+from .. import tech_log
 from ..auth import capabilities, current_user
 from ..auth import users
 from ..auth.audit_log import emit
 from ..auth.roles import ROLE_LABELS
 
 bp = Blueprint("auth", __name__)
+LOG = logging.getLogger(__name__)
 
 
 def _is_local_request():
@@ -61,6 +65,9 @@ def login():
         detail = None
     if detail:
         emit("login_failed", status=401, username=username, role=role, detail=detail)
+        # كلمة المرور ما بتتسجلش أبدًا؛ السبب فقط (اسم الحساب اللي اتكتب مسموح لأنه مفتاح التشخيص)
+        tech_log.event(LOG, "login_failed", level=logging.WARNING,
+                       username=username[:64], role=role, reason=detail)
         return jsonify(error="بيانات الدخول غير صحيحة.", code="invalid_credentials"), 401
     session.clear()
     session["user_id"] = user["id"]
@@ -68,6 +75,7 @@ def login():
     session.permanent = True
     users.mark_login(user["id"])
     emit("login_ok")
+    tech_log.event(LOG, "login_ok", username=user["username"], role=user.get("role"))
     return jsonify(ok=True, next=_safe_next(body.get("next")))
 
 
