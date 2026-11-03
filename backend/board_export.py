@@ -31,6 +31,7 @@ from .constants import (
 from .afraad import _time_key
 from .board import canonical_section_name
 from .labels import officer_label, personnel_label
+from .utils import rank_key
 from .service_sections import block_title, is_structural, split_custom_sections
 
 WEEKDAY_BY_INDEX = ["الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت", "الأحد"]
@@ -653,7 +654,7 @@ def _group(right, left, rows):
         rows.append(_row(cells))
 
 
-def _latest_content(board):
+def _latest_content(board, command_priority=None):
     """صفوف اليومية بالترتيب الأحدث بلا صفوف حشو.
 
     كل صف: {"kind", "cells": [{"text", "span", "head", "vm"}]} على شبكة الأعمدة
@@ -674,8 +675,9 @@ def _latest_content(board):
     ordinary_custom, special_blocks = split_custom_sections(custom, _time_key)
     # أي قسم عادي (فرد + مج مثلًا) يفضل جوه جدول الطوارئ، أما المباراة/الانتشار
     # فتظهر بعنوان مستقل. التفتيشات تفضل على الشاشة بس ولا تدخل ملف Word.
+    # الطوارئ بنفس ترتيبها على الموقع (المستخدم بيرتّبها بأسهم النقل) — من غير
+    # إعادة ترتيب بالمعاد؛ الأقسام العادية المخصّصة بعدها بترتيب أقسامها.
     emergency.extend(ordinary_custom)
-    emergency.sort(key=lambda row: _time_key(row.get("time")))
     targets, prison = rows(SECTION_TARGETS, "targets"), rows(SECTION_PRISON)
     subcamp = rows(SECTION_SUBCAMP, "slots")
     outsiders = rows(SECTION_OUTSIDERS, "officers")
@@ -751,11 +753,13 @@ def _latest_content(board):
     # الضابط نفسه لو كان فيها أصلًا، كما في الأرشيف الحقيقي).
     entries = {}
     order = []
+    people = {}
 
     def add_entry(person, text):
         key = person.get("id") or id(person)
         if key not in entries:
             entries[key] = [_who(person), []]
+            people[key] = person
             order.append(key)
         if text:
             entries[key][1].append(text)
@@ -773,6 +777,9 @@ def _latest_content(board):
             role = title if value.get("slot") is not False else (name_of(value) or title)
             for person in value.get("officers") or []:
                 add_entry(person, f"{role} {shift}")
+    # «عمل بالادارة» بالرتبة: مدير/وكيل الإدارة أولًا ثم الرتبة العسكرية؛ جوّه
+    # الرتبة الواحدة بيفضل ترتيب الموقع (sort ثابت) لأن الصفوف مش شايلة الأقدمية.
+    order.sort(key=lambda key: rank_key(people[key], command_priority)[:2])
     right_entries = [(entries[key][0], " + ".join(entries[key][1])) for key in order]
 
     tail = max(2 + (1 + len(right_entries) if right_entries else 0), len(outsiders))
@@ -1107,7 +1114,7 @@ def strip_clinic_search(board, excluded_ids):
     return {**board, "sections": sections}
 
 
-def build_docx(board, exclude_ids=()):
+def build_docx(board, exclude_ids=(), command_priority=None):
     """يومية تفصيلية من قالب نسخة ملف أرشيف حقيقي: الصفوف تُبنى من البيانات.
 
     `exclude_ids`: ضباط العيادة/البحث الذين لا يظهرون في ملف Word."""
@@ -1117,7 +1124,7 @@ def build_docx(board, exclude_ids=()):
     _set_title(document, board.get("date") or "")
     table = document.tables[0]
     protos = _prototypes(table)
-    rows = _latest_content(board)
+    rows = _latest_content(board, command_priority)
     half, head_half, total, usable, grid = _choose_size(rows)
     for col, width in zip(table._tbl.tblGrid.findall(qn("w:gridCol")), grid):
         col.set(qn("w:w"), str(width))

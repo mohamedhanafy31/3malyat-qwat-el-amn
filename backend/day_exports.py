@@ -16,7 +16,7 @@ from .regularity_export import build_docx as build_regularity_docx
 from .formation import build as build_formation
 from .formation_export import build_docx as build_formation_docx
 from .store import load_data
-from .utils import around
+from .utils import around, command_priority_map
 
 
 def _bytes(value):
@@ -32,7 +32,8 @@ def build_board_bytes(day):
     preview = deepcopy(data)
     if needs_prepare(data, day, include_inspections=True):
         prepare(preview, day, include_inspections=True)
-    return _bytes(build_board_docx(build_board(preview, day), clinic_search_ids(preview, day)))
+    return _bytes(build_board_docx(build_board(preview, day), clinic_search_ids(preview, day),
+                                   command_priority_map(preview, day)))
 
 
 def build_duty_bytes(day):

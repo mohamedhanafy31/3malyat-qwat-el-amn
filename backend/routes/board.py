@@ -32,7 +32,7 @@ from ..daily_view import build as build_daily_view
 from ..day_open import needs_prepare, prepare
 from ..repo import Repos
 from ..store import ALL_DAYS, AbortRequest, load_data, revision, stale_revision, with_data
-from ..utils import around, canonical_day, json_payload, too_long
+from ..utils import around, canonical_day, command_priority_map, json_payload, too_long
 
 bp = Blueprint("board", __name__)
 
@@ -116,7 +116,7 @@ def export_board_docx(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     data = load_data(around(day, -1, 0))
     board = build_board(data, day)
-    buf = build_docx(board, clinic_search_ids(data, day))
+    buf = build_docx(board, clinic_search_ids(data, day), command_priority_map(data, day))
     return send_file(buf, as_attachment=True, download_name=f"اليومية التفصيلية {day}.docx",
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
