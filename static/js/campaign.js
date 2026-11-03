@@ -123,8 +123,10 @@ function platesCard() {
 
 function tableCard(title, rows, empty, options = {}) {
   const action = options.add ? `<button type="button" class="mini on-dark" data-action="openCampaignDaily">${icon("plus")} إضافة</button>` : "";
+  const missing = rows.filter(row => !row.driver || !row.vehicle).length;
+  const missingChip = missing ? `<span class="campaign-missing-chip">ناقص ${missing}</span>` : "";
   const body = rows.length ? `<div class="mtable-wrap">${mtable(["الخدمة", "السائق", "رقم المركبة", "نوع المركبة", "الإجراء"], rows.map(row => campaignRow(row, options.attach)))}</div>` : emptyState({compact: true, title: empty});
-  return `<div class="mcard"><h3>${esc(title)}<span class="mcount">${rows.length}</span>${action}</h3>${body}</div>`;
+  return `<div class="mcard"><h3>${esc(title)}<span class="mcount">${rows.length}</span>${missingChip}${action}</h3>${body}</div>`;
 }
 
 function renderWarnings() {
@@ -213,7 +215,7 @@ function openServiceVehicles(row) {
       item[key] = [...ids];
     });
     modal.querySelectorAll("button[data-remove-service-vehicle]").forEach(button => button.onclick = async () => {
-      if (!(await confirmDialog({title: "إزالة المركبة", body: "هتتشال المركبة دي وتوزيع أفرادها من الخدمة.", confirmLabel: "إزالة", danger: true}))) return;
+      if (!(await confirmDialog({title: "إزالة المركبة", body: "ستُزال هذه المركبة وتوزيع أفرادها من الخدمة.", confirmLabel: "إزالة", danger: true}))) return;
       state.vehicles.splice(Number(button.dataset.removeServiceVehicle), 1); renderEditor();
     });
   };
@@ -272,12 +274,12 @@ function openPostModal(row = null) {
 ACTIONS.openCampaignPost = () => openPostModal();
 ACTIONS.editCampaignPost = id => openPostModal(rowBy(id));
 ACTIONS.removeCampaignPost = async (id, extra) => {
-  if (!(await confirmDialog({title: "إزالة الارتكاز", body: "هتتشال من النهاردة ورايح، والأيام السابقة زي ما هي", confirmLabel: "إزالة", danger: true}))) return;
+  if (!(await confirmDialog({title: "إزالة الارتكاز", body: "سيُزال ابتداءً من اليوم، وتبقى الأيام السابقة دون تغيير.", confirmLabel: "إزالة", danger: true}))) return;
   const out = await api(`/api/campaign/${DAY}/posts/${encodeURIComponent(id)}`, {...jsonReq("DELETE", {revision: CAMPAIGN.revision}), onError: staleReload});
   if (out) { CAMPAIGN = out; render(); showToast("تمت إزالة الارتكاز"); }
 };
 ACTIONS.removeCampaignDaily = async (id, extra) => {
-  if (!(await confirmDialog({title: "إزالة القول اليومي", body: `هتتشال «${extra.name}» من النهاردة ورايح، والأيام السابقة زي ما هي.`, confirmLabel: "إزالة", danger: true}))) return;
+  if (!(await confirmDialog({title: "إزالة القول اليومي", body: `ستُزال «${extra.name}» ابتداءً من اليوم، وتبقى الأيام السابقة دون تغيير.`, confirmLabel: "إزالة", danger: true}))) return;
   const out = await api(`/api/campaign/${DAY}/daily-rows/${encodeURIComponent(id)}`, {...jsonReq("DELETE", {revision: CAMPAIGN.revision}), onError: staleReload});
   if (out) { CAMPAIGN = out; render(); showToast("تمت إزالة القول"); }
 };

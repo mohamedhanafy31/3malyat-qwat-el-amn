@@ -29,7 +29,7 @@
         </div>
       </div>
       <div class="ocr-crop-tools">
-        <span class="muted" id="afOcrCropInfo">اسحب الحواف لقص الجزء اللي فيه الجدول بس.</span>
+        <span class="muted" id="afOcrCropInfo">اسحب الحواف لقص الجزء الذي يحتوي على الجدول فقط.</span>
         <button type="button" class="mini" id="afOcrCropReset">الصورة كاملة</button>
       </div>
       <div class="actions modal-foot">
@@ -50,11 +50,11 @@
         <ol class="ocr-steps" id="afOcrSteps">
           <li data-step="upload"><span class="dot"></span><b>رفع الصورة</b><small>تجهيز الصورة وفحص حجمها وصيغتها</small></li>
           <li data-step="grid"><span class="dot"></span><b>اكتشاف الجدول</b><small>تحديد حدود الخلايا والصفوف</small></li>
-          <li data-step="read"><span class="dot"></span><b>قراءة النص</b><small>الذكاء الاصطناعي بيقرا كل خلية</small></li>
-          <li data-step="match"><span class="dot"></span><b>المطابقة</b><small>ربط الخدمات والأفراد بالسيستم</small></li>
+          <li data-step="read"><span class="dot"></span><b>قراءة النص</b><small>يقرأ الذكاء الاصطناعي نص كل خلية</small></li>
+          <li data-step="match"><span class="dot"></span><b>المطابقة</b><small>ربط الخدمات والأفراد بالنظام</small></li>
         </ol>
         <div class="ocr-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="afOcrBar"><i></i></div>
-        <div class="ocr-meta"><span id="afOcrElapsed">0 ث</span><span class="muted">المدة تقديرية — القراءة ممكن تاخد لحد دقيقتين</span></div>
+        <div class="ocr-meta"><span id="afOcrElapsed">0 ث</span><span class="muted">المدة تقديرية — قد تستغرق القراءة دقيقتين</span></div>
         <button type="button" class="btn" id="afOcrCancel">إلغاء القراءة</button>
       </div>
     </section>

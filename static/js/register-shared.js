@@ -4,7 +4,7 @@
 const FAMILY_CLS = {"عمل": "fam-work", "راحة": "fam-rest", "إجازة": "fam-leave",
                     "خارج": "fam-away", "خارج القوة": "fam-none", "بدون سجل": "fam-blank"};
 
-const cellClass = c => `cell43 ${FAMILY_CLS[c.family] || ""}`;
+const cellClass = c => `cell43 ${FAMILY_CLS[c.family] || ""}${["غياب", "مرضي"].includes(c.label) ? " status-exception" : ""}`;
 
 function legendBox(legend) {
   const items = (legend || []).map(l =>

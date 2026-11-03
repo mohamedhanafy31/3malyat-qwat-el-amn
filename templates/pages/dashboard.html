@@ -7,7 +7,7 @@
   <span class="day-files-label" id="dayFilesLabel">ملفات اليوم</span>
   <a class="btn" id="formationMorningExport" href="#">{{ icon('download') }}<span>خط تشكيل صبح</span></a>
   <a class="btn" id="formationNightExport" href="#">{{ icon('download') }}<span>خط تشكيل ليل</span></a>
-  <a class="day-files-setup" id="regularityJump" href="#regularityPanel">إعداد يومية الانتظام</a>
+  <a class="btn day-files-setup" id="regularityJump" href="#regularityPanel">إعداد يومية الانتظام</a>
 </div>{% endblock %}
 
 {% block content %}
@@ -169,7 +169,7 @@
       <label>المعاد الجديد<input id="opsTimeInput" data-time aria-label="المعاد الجديد"></label>
       <fieldset class="ops-scope">
         <legend>نطاق التعديل</legend>
-        <label><input type="radio" name="opsTimeScope" value="day" checked> لليوم بس</label>
+        <label><input type="radio" name="opsTimeScope" value="day" checked> لهذا اليوم فقط</label>
         <label><input type="radio" name="opsTimeScope" value="default" id="opsTimeDefault"> اجعله المعاد الافتراضي</label>
       </fieldset>
       <p id="opsTimeHint" class="field-hint hidden"></p>

@@ -19,7 +19,7 @@
       <input type="hidden" id="assignPerson">
       <fieldset class="assign-special hidden" id="assignResearch">
         <legend>تعيين خدمة</legend>
-        <p class="hint">خدمة ضابط البحث في اليوم ده فقط، ومابتتورّثش لليوم التالي.</p>
+        <p class="hint">خدمة ضابط البحث لهذا اليوم فقط، ولا تُورَّث إلى اليوم التالي.</p>
         <div class="grid">
           <label>اسم الخدمة
             <input id="assignResearchService" maxlength="500" placeholder="مثال: متابعة تحريات">
@@ -65,7 +65,7 @@
       <label>تشغيل إضافي <small>يُضاف بعد خدمته التلقائية من اليومية التفصيلية</small>
         <input id="assignExtra" maxlength="500" placeholder="مثال: متابعة اعمال التعيينات">
       </label>
-      <label class="hidden" id="assignNoteRow"><span id="assignNoteLabel">نص التشغيل الكامل المحفوظ</span> <small id="assignNoteHint">نص قديم بيحل محل الخدمة التلقائية — امسحه لو عايز الخدمة تظهر لوحدها</small>
+      <label class="hidden" id="assignNoteRow"><span id="assignNoteLabel">نص التشغيل الكامل المحفوظ</span> <small id="assignNoteHint">نص قديم يحل محل الخدمة التلقائية — امسحه لعرض الخدمة وحدها</small>
         <input id="assignNote" maxlength="500">
       </label>
       <label class="checkline">
@@ -73,7 +73,7 @@
         <span>إضافة للعمل بالإدارة
           <small id="assignAdminHint" class="block-hint">النص التشغيلي الكامل (خدمته + الإضافي) يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية، ويفضل في مكان خدمته</small></span>
       </label>
-      <label>نص عمل بالإدارة <small id="assignAdminTextHint" class="block-hint">اختياري — لو كتبته يظهر الضابط تحت «عمل بالإدارة» بهذا النص بالظبط (من غير تكرار خدمته أو الإضافي)، حتى لو لم تفعّل الخيار أعلاه</small>
+      <label>نص عمل بالإدارة <small id="assignAdminTextHint" class="block-hint">اختياري — عند كتابته يظهر الضابط تحت «عمل بالإدارة» بهذا النص بالضبط (دون تكرار خدمته أو الإضافي)، حتى إذا لم تُفعّل الخيار أعلاه</small>
         <textarea id="assignAdminText" maxlength="500" rows="2"
                   placeholder="مثال: متابعة أعمال الشئون + مشرف الأهداف من 4م"></textarea>
       </label>

@@ -34,27 +34,28 @@
 :root{
   /* — الحبر الكحلي: الترويسة والعناوين ورؤوس الجداول — */
   --navy-950:#0a1f36; --navy-900:#0f2a4a; --navy-800:#153454; --navy-700:#1c4066;
-  --navy-600:#26527d; --navy-500:#3f6b98;
+  --navy-600:#26527d; --navy-500:#3f6b98; --navy-300:var(--navy-200);
   --navy-200:#d3ddec; --navy-100:#e7edf5; --navy-50:#f2f5f9;
 
   /* — المسطرة الذهبية: الفاصل الرسمي، ومعاه التمييز — */
   --gold-800:#6f571a; --gold-700:#8a6d1f; --gold-600:#a1801f;
-  --gold-300:#d8c27a; --gold-100:#f6eed7;
+  --gold-300:#d8c27a; --gold-200:var(--gold-300); --gold-100:#f6eed7;
+  --gold-50:var(--gold-100);
 
   /* — درجات النص — */
   /* درجتا النص المتوسط والخافت تتجاوزان 4.5:1 على الأسطح الفاتحة. */
-  --ink-900:#1b2430; --ink-700:#3a4553; --ink-500:#5b6678;
-  --ink-400:#5f6b7e; --ink-300:#aab4c4; --ink-100:#e3e8ef;
+  --ink-900:#1b2430; --ink-700:#3a4553; --ink-600:var(--ink-700); --ink-500:#5b6678;
+  --ink-400:#5f6b7e; --ink-300:#647083; --ink-100:#e3e8ef;
 
   /* — الأسطح والخطوط الفاصلة — */
   --paper:#f4f5f2; --surface:#fff; --surface-sunken:var(--navy-50);
-  --line:#d8dee6; --line-strong:#b9c3d1;
+  --line:#d8dee6; --line-200:var(--line); --line-strong:#b9c3d1;
   --border-control:#848fa3; --border-on-dark:#6a84a3;
   --on-dark:#fff; --on-dark-muted:#9db0c8; --on-dark-soft:#cdd8e6;
   --on-dark-placeholder:#8194ae;
 
   /* — الحالات — */
-  --ok-700:#1e5631;   --ok-300:#a9d0b3; --ok-100:#e5f2e9;
+  --ok-800:var(--ok-700); --ok-700:#1e5631; --ok-300:#a9d0b3; --ok-100:#e5f2e9;
   --bad-900:#5c1616; --bad-800:#732424; --bad-700:#8a2c2c;
   --bad-600:#9b2b2b; --bad-300:#e3b7b0; --bad-200:#eec2c2; --bad-100:#f7e7e6;
   --warn-800:#7c3400; --warn-700:#8a5a10; --warn-600:#a34a06; --warn-500:#d97706;
@@ -82,7 +83,7 @@
 
   /* — سُلّم أحجام الخط — */
   --t-xs:12px; --t-sm:13px; --t-cap:14px; --t-base:15px;
-  --t-md:16px; --t-lg:18px; --t-xl:21px; --t-2xl:26px;
+  --t-md:16px; --t-lg:18px; --t-xl:22px; --t-2xl:26px;
 
   /* — ارتفاع موحّد لكل عنصر تفاعلي في نفس الشريط — */
   --control-h:38px; --control-h-sm:30px;
@@ -91,6 +92,7 @@
 
   --radius-control:6px; --radius-card:10px; --radius-pill:999px;
   --radius-sm:var(--radius-control); --radius-md:var(--radius-card); --radius-lg:var(--radius-card);
+  --radius:var(--radius-card); --r2:var(--radius-control);
 
   --shadow-sm:0 1px 2px rgba(10,31,54,.06);
   --shadow-md:0 2px 8px rgba(10,31,54,.08);
@@ -98,17 +100,21 @@
 
   --topbar-h:60px; --sidebar-w:238px; --sidebar-rail:60px;
 
+  /* ترتيب الطبقات: القيم الأساسية تحافظ على ترتيب الواجهة القديم حرفيًا. */
+  --z-sticky:10; --z-nav:20; --z-modal:30; --z-popover:35;
+  --z-toast:40; --z-blocking:90; --z-skip:1000;
+
   /* — الخطوط: كوفي للعناوين (صوت رسمي)، نسخ/واجهة للمتن (قراءة كثيفة) — */
   --font-head:"Noto Kufi Arabic", "Segoe UI", Tahoma, sans-serif;
   --font-body:"Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
-  --font-num:var(--font-body);
+  --font-num:var(--font-body); --font-mono:var(--font-num);
 
   /* سهم القوائم المنسدلة — مرة واحدة بدل ما يتكرر في ٤ أماكن */
   --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235b6678'%3E%3Cpath d='M5.5 7.5l4.5 5 4.5-5z'/%3E%3C/svg%3E");
 }
 
 .skip-link{position:fixed;inset-block-start:var(--s2);inset-inline-start:var(--s2);
-  z-index:1000;transform:translateY(calc(-100% - var(--s4)));padding:var(--s2) var(--s4);
+  z-index:var(--z-skip);transform:translateY(calc(-100% - var(--s4)));padding:var(--s2) var(--s4);
   border:2px solid var(--gold-300);border-radius:var(--radius-control);
   background:var(--navy-950);color:var(--on-dark);font-weight:700;text-decoration:none}
 .skip-link:focus{transform:translateY(0);outline:3px solid var(--gold-300);outline-offset:2px}
@@ -154,7 +160,7 @@ button,input,select,textarea{font-family:inherit}
 /* ═══════════════════ ③ الترويسة الرسمية ═══════════════════ */
 .topbar{background:var(--navy-950);color:var(--on-dark);padding:0 var(--s6);display:flex;align-items:center;
   gap:var(--s4);height:var(--topbar-h);border-bottom:3px solid var(--gold-700);
-  position:sticky;top:0;z-index:20}
+  position:sticky;top:0;z-index:var(--z-nav)}
 .topbar .crest{width:34px;height:34px;border:1.5px solid var(--gold-600);border-radius:50%;
   display:flex;align-items:center;justify-content:center;flex:none;background:var(--navy-900)}
 .topbar .crest svg{width:19px;height:19px;fill:var(--gold-100)}
@@ -183,7 +189,7 @@ button,input,select,textarea{font-family:inherit}
 .user-chip-caret{width:16px;height:16px;fill:var(--on-dark-soft);flex:none}
 .user-popover{position:absolute;top:calc(100% + var(--s1));inset-inline-end:0;
   min-width:210px;background:var(--surface);color:var(--ink-900);border:1px solid var(--line);
-  border-radius:var(--radius-card);box-shadow:var(--shadow-pop);z-index:35;padding:var(--s2) 0}
+  border-radius:var(--radius-card);box-shadow:var(--shadow-pop);z-index:var(--z-popover);padding:var(--s2) 0}
 .user-popover-header{padding:var(--s2) var(--s4) var(--s3);border-bottom:1px solid var(--line)}
 .user-popover-name{font-weight:700;font-size:var(--t-base);color:var(--navy-900)}
 .user-popover-sub{font-size:var(--t-xs);color:var(--ink-500);display:flex;align-items:center;gap:var(--s2);margin-top:var(--s1)}
@@ -238,7 +244,7 @@ button,input,select,textarea{font-family:inherit}
 
 /* حجاب الشاشة الصغيرة — كان ناقص، فالقائمة كانت بتفضل مفتوحة من غير طريقة تقفلها */
 .scrim{position:fixed;inset:var(--topbar-h) 0 0;background:var(--overlay-scrim);
-  z-index:14;border:0;padding:0;display:none}
+  z-index:calc(var(--z-sticky) + 4);border:0;padding:0;display:none}
 .scrim.open{display:block}
 
 .content{flex:1;min-width:0;padding:var(--s6) var(--s6) var(--s8)}
@@ -256,7 +262,7 @@ button,input,select,textarea{font-family:inherit}
 /* اسم القسم بيطلع جنب الأيقونة لما الماوس يقف عليها أو التركيز ييجي عليها.
    عنصر واحد position:fixed بدل ::after جوه كل رابط، لأن القائمة نفسها
    overflow:auto فأي تلميح جواها كان هيتقص. */
-.nav-tip{position:fixed;z-index:40;pointer-events:none;white-space:nowrap;
+.nav-tip{position:fixed;z-index:var(--z-toast);pointer-events:none;white-space:nowrap;
   background:var(--navy-950);color:var(--on-dark);font-size:var(--t-sm);font-weight:700;
   padding:var(--s1) var(--s3);border-radius:var(--radius-control);box-shadow:var(--shadow-pop);
   border-inline-end:3px solid var(--gold-700)}
@@ -281,6 +287,10 @@ button,input,select,textarea{font-family:inherit}
   background:var(--warn-50);color:var(--warn-700);font-size:var(--t-cap);font-weight:700}
 .page-actions{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
 .page-actions .primary,.page-actions .btn{height:var(--control-h)}
+.breadcrumb{display:flex;align-items:center;gap:var(--s2);margin:0 0 var(--s3);color:var(--ink-500);font-size:var(--t-sm)}
+.breadcrumb a{color:var(--navy-700);font-weight:700;text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline;text-underline-offset:3px}
+.breadcrumb strong{color:var(--ink-700);font-weight:600}
 /* زرار التصدير بيستخدم قايمة الصف المشتركة، بس بعرض نصه */
 .row-menu-btn.export-btn{width:auto;display:inline-flex;gap:var(--s1);padding:0 var(--s3);
   font-weight:600;font-size:var(--t-sm)}
@@ -293,14 +303,14 @@ button,input,select,textarea{font-family:inherit}
 /* كانت 10 ضباط × 3 أسطر فوق عنوان الصفحة — بتدفع كل المحتوى تحت حافة الشاشة.
    بقت شبكة مضغوطة قابلة للطي، تحت الترويسة، بتوفّر ~⅔ الارتفاع. */
 .alert-card{background:var(--warn-100);border:1px solid var(--warn-300);
-  border-inline-start:4px solid var(--warn-700);border-radius:var(--radius-md);
+  border-block-start:1px solid var(--warn-700);border-radius:var(--radius-md);
   margin-bottom:var(--s5);overflow:hidden}
 .alert-card > .alert-head,.alert-card > .alert-list,.alert-card > .mini,
 .alert-card > .muted{margin:var(--s3) var(--s4)}
 .alert-fold{margin:0}
 /* مكان كرت التنبيه محجوز بنفس ارتفاعه المطوي (52px) لحد ما البيانات توصل */
 .alert-skel{height:52px;margin-bottom:var(--s5);border-radius:var(--radius-card)}
-.alert-card.is-clear{background:var(--ok-100);border-color:var(--ok-300);border-inline-start-color:var(--ok-700)}
+.alert-card.is-clear{background:var(--ok-100);border-color:var(--ok-300);border-block-start-color:var(--ok-700)}
 .alert-clear{display:flex;align-items:center;gap:var(--s2);margin:0;padding:var(--s3) var(--s4);
   min-height:50px;color:var(--ok-700);font-weight:600}
 .alert-clear .ico{fill:currentColor}
@@ -347,17 +357,19 @@ button,input,select,textarea{font-family:inherit}
 /* ═══════════════════ ⑦ بطاقات الأرقام ═══════════════════ */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
   gap:var(--s3);margin-bottom:var(--s5)}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);
-  padding:var(--s2) var(--s3);border-top:3px solid var(--navy-200)}
+.stat{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-card);
+  padding:var(--s2) var(--s3)}
+.stat::before{content:"";display:inline-block;width:7px;height:7px;margin-inline-end:var(--s1);
+  background:var(--navy-500);vertical-align:middle}
 .stat span{display:block;color:var(--ink-500);font-size:var(--t-xs);margin-bottom:1px}
 .stat strong{font-size:var(--t-xl);color:var(--navy-950);font-family:var(--font-head);
   line-height:1.15;display:block}
 .stat-sub{font-size:var(--t-xs);color:var(--ink-400);margin-top:var(--s1);line-height:1.4}
-.stat.stat-accent-red   {border-top-color:var(--bad-700)}
-.stat.stat-accent-orange{border-top-color:var(--warn-500)}
-.stat.stat-accent-blue  {border-top-color:var(--info-700)}
-.stat.stat-accent-purple{border-top-color:var(--plum-700)}
-.stat.stat-accent-gold  {border-top-color:var(--gold-700)}
+.stat.stat-accent-red::before{background:var(--bad-700)}
+.stat.stat-accent-orange::before{background:var(--warn-500)}
+.stat.stat-accent-blue::before{background:var(--info-700)}
+.stat.stat-accent-purple::before{background:var(--plum-700)}
+.stat.stat-accent-gold::before{background:var(--gold-700)}
 
 /* ═══════════════════ ⑧ إعدادات القوة (قيادة الإدارة + العيادة) ═══════════════════ */
 /* الاتنين كانوا فوق الجدول وبياخدوا نص الشاشة الأولى؛ بقوا قسم مطوي تحته. */
@@ -517,7 +529,7 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
 .combo-input[aria-expanded="true"]{border-color:var(--navy-600);
   outline:2px solid var(--gold-600);outline-offset:-1px}
 
-.combo-pop{position:fixed;z-index:45;background:var(--surface);
+.combo-pop{position:fixed;z-index:calc(var(--z-popover) + 10);background:var(--surface);
   border:1px solid var(--line-strong);border-radius:var(--radius-card);
   box-shadow:var(--shadow-pop);overflow-y:auto;overscroll-behavior:contain}
 .combo-list{list-style:none;margin:0;padding:var(--s1)}
@@ -564,7 +576,7 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
   padding-left:var(--s7);caret-color:transparent}
 .date-popover{position:fixed;background:var(--surface);border:1px solid var(--line-strong);
   border-radius:var(--radius-md);box-shadow:var(--shadow-pop);padding:var(--s3);
-  z-index:35;width:min(300px,calc(100vw - var(--s4)));font-size:var(--t-cap)}
+  z-index:var(--z-popover);width:min(300px,calc(100vw - var(--s4)));font-size:var(--t-cap)}
 .dp-head{display:flex;align-items:center;justify-content:space-between;
   margin-bottom:var(--s2);font-weight:700;color:var(--navy-950);font-family:var(--font-head)}
 .dp-nav{border:0;background:none;font-size:var(--t-lg);line-height:1;color:var(--ink-700);
@@ -593,7 +605,7 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
   background-position:left var(--s3) center;background-size:16px 16px;padding-left:var(--s7);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%235b6678'%3E%3Cpath d='M11 2h2v2h-2zM11 20h2v2h-2zM2 11h2v2H2zm18 0h2v2h-2zM5.6 4.2l1.4-1.4 1.4 1.4L7 5.6zM17 18.4l1.4-1.4 1.4 1.4-1.4 1.4zM18.4 5.6 17 4.2l1.4-1.4 1.4 1.4zM7 19.8l-1.4-1.4L7 17l1.4 1.4zM12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm1 6.4V8h-2v5.2l3.6 2.1 1-1.7z'/%3E%3C/svg%3E")}
 .time-popover{position:fixed;background:var(--surface);border:1px solid var(--line-strong);
-  border-radius:var(--radius-md);box-shadow:var(--shadow-pop);padding:var(--s4);z-index:36;
+  border-radius:var(--radius-md);box-shadow:var(--shadow-pop);padding:var(--s4);z-index:calc(var(--z-popover) + 1);
   width:min(330px,calc(100vw - var(--s4)));font-size:var(--t-cap)}
 .tp-title{font-family:var(--font-head);font-weight:700;color:var(--navy-950);margin-bottom:var(--s1)}
 .tp-preview{font-size:var(--t-xl);font-weight:700;color:var(--navy-800);font-variant-numeric:tabular-nums;margin-bottom:var(--s3)}
@@ -630,6 +642,8 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
 .primary:hover{background:var(--navy-700);border-color:var(--navy-700)}
 .danger{background:var(--bad-700);border-color:var(--bad-700);color:var(--on-dark)}
 .danger:hover{background:var(--bad-800)}
+.primary.bad{background:var(--bad-700);border-color:var(--bad-700);color:var(--on-dark)}
+.primary.bad:hover{background:var(--bad-800);border-color:var(--bad-800)}
 
 .mini.bad,.btn.bad{border-color:var(--bad-300);color:var(--bad-700)}
 .mini.bad:hover,.btn.bad:hover{background:var(--bad-100);border-color:var(--bad-700)}
@@ -650,7 +664,7 @@ input[type="checkbox"]:focus-visible{outline:2px solid var(--gold-600);outline-o
 .row-menu-btn:hover,.row-menu-btn[aria-expanded="true"]{background:var(--navy-50);
   border-color:var(--navy-500);color:var(--navy-900)}
 .row-menu-btn .ico{width:18px;height:18px}
-.row-menu-pop{position:fixed;z-index:46;min-width:190px;max-width:calc(100vw - var(--s4));
+.row-menu-pop{position:fixed;z-index:calc(var(--z-popover) + 11);min-width:190px;max-width:calc(100vw - var(--s4));
   padding:var(--s1);overflow-y:auto;overscroll-behavior:contain;background:var(--surface);
   border:1px solid var(--line-strong);border-radius:var(--radius-card);box-shadow:var(--shadow-pop)}
 .row-menu-item{display:block;width:100%;min-height:var(--control-h-sm);padding:var(--s1) var(--s3);
@@ -913,7 +927,7 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .match-grid > *{break-inside:avoid;margin-bottom:var(--s4);width:100%}
 .mcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);
   overflow:hidden;box-shadow:var(--shadow-sm)}
-.mcard h3{margin:0;padding:var(--s3) var(--s4);font-size:var(--t-base);background:var(--navy-800);
+.mcard h3{margin:0;padding:var(--s3) var(--s4);font-size:var(--t-lg);background:var(--navy-800);
   color:var(--on-dark);display:flex;justify-content:space-between;align-items:center;gap:var(--s2);
   flex-wrap:wrap}
 .mcount{background:var(--on-dark-wash);color:var(--on-dark);border-radius:var(--radius-pill);padding:1px var(--s2);
@@ -962,11 +976,9 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .mtable-wrap{max-width:100%;overflow-x:auto;
   background:
     linear-gradient(to right,var(--surface) 30%,transparent) left center,
-    linear-gradient(to left,var(--surface) 30%,transparent) right center,
-    radial-gradient(farthest-side at 0 50%,var(--shadow-edge),transparent) left center,
-    radial-gradient(farthest-side at 100% 50%,var(--shadow-edge),transparent) right center;
-  background-repeat:no-repeat;background-size:32px 100%,32px 100%,10px 100%,10px 100%;
-  background-attachment:local,local,scroll,scroll}
+    linear-gradient(to left,var(--surface) 30%,transparent) right center;
+  background-repeat:no-repeat;background-size:32px 100%,32px 100%;
+  background-attachment:local,local}
 
 /* كشف قادة الأهداف — جدول إداري واحد يبيّن الحالي والجديد جنب بعض. */
 .target-commanders-sheet{border-top:3px solid var(--navy-900)}
@@ -1000,18 +1012,20 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 
 /* الخوارج كتجميعات قابلة للمسح البصري بدل جدول طويل مختلط. العنوان هادئ
    ومكمّل لنفس شكل الدفتر، واللون الجانبي مجرد علامة فئة مش حالة تشغيلية. */
-.outsider-groups{display:grid;gap:var(--s3);padding:var(--s3)}
-.outsider-group{min-width:0;border:1px solid var(--line);border-inline-start:4px solid var(--navy-500);
-  border-radius:var(--radius-sm);background:var(--surface);overflow:hidden}
+.outsider-groups{display:grid;gap:0;padding:0 var(--s3) var(--s3)}
+.outsider-group{min-width:0;border:0;border-radius:0;background:transparent;overflow:hidden}
+.outsider-group + .outsider-group{border-block-start:1px solid var(--line)}
 .outsider-group-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
   min-height:38px;padding:var(--s2) var(--s3);background:var(--surface-sunken);
   border-bottom:1px solid var(--line);color:var(--navy-900);font-size:var(--t-sm)}
+.outsider-group-head::before{content:"";width:7px;height:7px;flex:none;background:var(--navy-500)}
+.outsider-group-head strong{margin-inline-end:auto}
 .outsider-group-count{display:inline-grid;place-items:center;min-width:26px;height:24px;padding:0 var(--s2);
   border:1px solid var(--line-strong);border-radius:var(--radius-pill);background:var(--surface);
   color:var(--ink-700);font-family:var(--font-num);font-size:var(--t-xs);font-weight:700}
-.outsider-group-leave{border-inline-start-color:var(--gold-700)}
-.outsider-group-course{border-inline-start-color:var(--cat-2)}
-.outsider-group-status{border-inline-start-color:var(--warn-700)}
+.outsider-group-leave .outsider-group-head::before{background:var(--gold-700)}
+.outsider-group-course .outsider-group-head::before{background:var(--cat-2)}
+.outsider-group-status .outsider-group-head::before{background:var(--warn-700)}
 .outsider-group .mtable-wrap{border:0}
 
 /* ⑱ب اليومية التفصيلية — شكل «الدفتر الورقي» بالظبط: نفس التقسيمة اللي
@@ -1090,8 +1104,7 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
   color:var(--gold-800);background:var(--gold-100);border-top:1px solid var(--line)}
 /* خانة مطلوبة لسه مالهاش قائم — الورق بيسيبها فاضية عشان تبان ناقصة */
 tr.vacant .name{color:var(--ink-500)}
-tr.vacant td{background:repeating-linear-gradient(135deg,transparent,transparent 7px,
-  var(--navy-50) 7px,var(--navy-50) 14px) !important}
+tr.vacant td{background:var(--navy-50) !important}
 
 /* ═══════════════════ ⑲ دفتر 43 ═══════════════════ */
 /* الشبكة عريضة فلازم تبقى حاوية تمرير أفقي، والرأس اللاصق بيلصق فيها هي؛
@@ -1135,7 +1148,8 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .fam-work{background:var(--ok-100);color:var(--ok-700);border-color:var(--ok-300)}
 .fam-rest{background:var(--plum-100);color:var(--plum-700);border-color:var(--plum-300)}
 .fam-leave{background:var(--info-100);color:var(--info-700);border-color:var(--info-300)}
-.fam-away{background:var(--bad-100);color:var(--bad-600);border-color:var(--bad-200)}
+.fam-away{background:var(--navy-50);color:var(--ink-700);border-color:var(--line)}
+.cell43.status-exception{background:var(--bad-100);color:var(--bad-800);border-color:var(--bad-300)}
 .fam-none{background:transparent;color:var(--ink-500);border-color:var(--line);cursor:default}
 .fam-blank{background:transparent;color:var(--ink-500);border-color:transparent;cursor:default;font-weight:400}
 
@@ -1226,7 +1240,7 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 .dash-grid{display:grid;grid-template-columns:2fr 1fr;gap:var(--s4);align-items:start}
 .dash-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);
   overflow:hidden;box-shadow:var(--shadow-sm)}
-.dash-card h3{margin:0;padding:var(--s3) var(--s4);font-size:var(--t-base);
+.dash-card h3{margin:0;padding:var(--s3) var(--s4);font-size:var(--t-lg);
   background:var(--surface-sunken);border-bottom:1px solid var(--line);color:var(--navy-950);
   display:flex;align-items:center;gap:var(--s2)}
 /* نفس علامة المسطرة اللي على عنوان الصفحة — الرابط البصري بين المستويين */
@@ -1353,7 +1367,7 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
    يمنع أي نقرة أو كتابة غير مقصودة أثناء التصفح. */
 @media(min-width:861px){
   .shell{display:block}
-  .sidebar{position:fixed;right:0;left:auto;top:var(--topbar-h);bottom:0;z-index:21;
+  .sidebar{position:fixed;right:0;left:auto;top:var(--topbar-h);bottom:0;z-index:calc(var(--z-nav) + 1);
     transform:translateX(100%);transition:transform .2s ease;
     box-shadow:-8px 0 24px var(--shadow-edge);width:min(86vw,var(--sidebar-w))}
   .sidebar.open{transform:none}
@@ -1383,13 +1397,13 @@ button.cell43:hover{outline:2px solid var(--navy-500);outline-offset:1px}
 }
 @media(min-width:861px) and (prefers-reduced-motion:reduce){.sidebar{transition:none}}
 body.sidebar-open{overflow:hidden}
-.topbar .burger{position:relative;z-index:22}
+.topbar .burger{position:relative;z-index:calc(var(--z-nav) + 2)}
 /* شريط أرقام يومية الضباط */
 .duty-summary-slot{min-height:132px}
 .duty-strip{display:flex;flex-wrap:wrap;gap:var(--s2);padding:var(--s4) var(--s5) var(--s2)}
-.sum-group{border:1px solid var(--line);border-radius:var(--radius-card);padding:var(--s2) var(--s3);
-  background:var(--surface)}
-.sum-group h4{margin:0 0 var(--s1);font-size:var(--t-xs);color:var(--ink-500);font-family:var(--font-body)}
+.sum-group{border:0;border-radius:0;padding:var(--s2) var(--s3);background:transparent}
+.sum-group + .sum-group{border-inline-start:1px solid var(--line)}
+.sum-group h3{margin:0 0 var(--s1);font-size:var(--t-xs);color:var(--ink-500);font-family:var(--font-body)}
 .sum-tiles{display:flex;gap:var(--s2)}
 /* «N معسكر فرعي» سطر تحت أرقام الداخلية، زي الصف السفلي في جدول الورد */
 .sum-tiles:has(.sum-note){flex-wrap:wrap}
@@ -1397,7 +1411,8 @@ body.sidebar-open{overflow:hidden}
 .sum-tile{display:flex;flex-direction:column;align-items:center;min-width:36px}
 .sum-group.single{display:flex;flex-direction:column;align-items:center;justify-content:space-between}
 .sum-group.single b{font-size:var(--t-lg);color:var(--navy-950);font-variant-numeric:tabular-nums}
-.sum-group.key{border-color:var(--navy-800);border-top:3px solid var(--navy-800)}
+.sum-group.key b{color:var(--navy-950)}
+.sum-group.key::before{content:"";display:block;width:18px;height:2px;margin:0 auto var(--s1);background:var(--navy-800)}
 @media(max-width:700px){
   .register-toolbar .tb-group{width:100%}
   .register-toolbar .search{order:2}
@@ -1416,6 +1431,10 @@ body.sidebar-open{overflow:hidden}
 .sum-tile b{font-size:var(--t-lg);color:var(--navy-950);font-variant-numeric:tabular-nums}
 .sum-tile.zero span,.sum-tile.zero b{color:var(--ink-300)}
 .sum-tile.zero b{font-weight:400}
+.af-default-notice{margin:var(--s3) var(--s4) 0;padding:var(--s2) var(--s3);border-block-start:1px solid var(--gold-300);
+  background:var(--gold-50);color:var(--ink-700);font-size:var(--t-sm)}
+.default-marker{display:inline-block;margin-inline-start:var(--s1);padding:0 5px;border:1px solid var(--line);
+  background:var(--surface-sunken);color:var(--ink-500);font-size:var(--t-xs);font-weight:400;vertical-align:middle}
 .net-names{margin:0 var(--s5) var(--s3)}
 .net-names summary{cursor:pointer;color:var(--navy-800);font-weight:600;font-size:var(--t-sm);padding:var(--s1) 0}
 .net-names ol{columns:3 220px;margin:var(--s2) 0 0;padding-inline-start:var(--s5);font-size:var(--t-sm)}
@@ -1436,8 +1455,14 @@ body.sidebar-open{overflow:hidden}
 .campaign-attach-chip button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;line-height:1;padding:0 2px}
 .muted-chip{color:var(--ink-500);background:var(--surface-sunken);border-color:var(--line)}
 .campaign-warn{cursor:help}
-.campaign-inline-select{width:100%;min-width:130px}
+.campaign-inline-select{width:100%;min-width:130px;transition:border-color .12s,background .12s,color .12s}
+.campaign-inline-select:has(option:checked[value=""]){border-color:transparent;background-color:var(--navy-50);
+  color:var(--ink-500);font-weight:400}
+.campaign-inline-select:has(option:checked[value=""]):hover,
+.campaign-inline-select:has(option:checked[value=""]):focus-visible{border-color:var(--navy-500);background-color:var(--surface)}
 .campaign-inline-select option[data-disabled="true"]{color:var(--ink-500);font-style:italic}
+.campaign-missing-chip{margin-inline-start:auto;background:var(--warn-100);color:var(--warn-800);
+  border:1px solid var(--warn-300);font-size:var(--t-xs);font-weight:700;padding:1px var(--s2)}
 .campaign-vehicle-cell{display:block;min-height:1.25em}
 .campaign-vehicle-type{color:var(--ink-700)}
 .campaign-post-driver{width:100%;min-width:140px}
@@ -1499,7 +1524,7 @@ body.sidebar-open{overflow:hidden}
 
 /* ═══════════════════ ㉒ النوافذ ═══════════════════ */
 .modal{position:fixed;inset:0;background:var(--overlay-screen);display:flex;align-items:center;
-  justify-content:center;padding:var(--s5);z-index:30;overflow-y:auto;overscroll-behavior:contain;
+  justify-content:center;padding:var(--s5);z-index:var(--z-modal);overflow-y:auto;overscroll-behavior:contain;
   backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 body.modal-open{overflow:hidden;scrollbar-gutter:stable}
 .modal-card{--modal-pad-inline:var(--s6);--modal-pad-block:var(--s6);
@@ -1686,7 +1711,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:25px
 
 /* مؤشر موحّد لكل طلب شبكة. القراءة تظهر كشريط حالة صغير لا يعطّل العمل،
    بينما الحفظ/الحذف يضيف ستارًا خفيفًا يمنع تكرار العملية بالخطأ. */
-.process-loader{position:fixed;z-index:90;inset-block-end:var(--s5);inset-inline-start:50%;
+.process-loader{position:fixed;z-index:var(--z-blocking);inset-block-end:var(--s5);inset-inline-start:50%;
   transform:translateX(-50%);pointer-events:none}
 .process-loader-card{display:flex;align-items:center;gap:var(--s3);min-height:46px;
   padding:var(--s2) var(--s5);border:1px solid var(--navy-700);
@@ -1705,7 +1730,7 @@ body.process-busy{cursor:wait}
   .process-loader-card{justify-content:center;width:100%}
 }
 
-.toast{position:fixed;bottom:var(--s6);inset-inline-end:var(--s6);z-index:40;
+.toast{position:fixed;bottom:var(--s6);inset-inline-end:var(--s6);z-index:var(--z-toast);
   display:flex;flex-direction:column;gap:var(--s2);width:min(390px,calc(100vw - 2 * var(--s4)));
   pointer-events:none}
 body.modal-open .toast{bottom:auto;top:var(--s6)}
@@ -1878,7 +1903,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   /* الدرج بيطلع من نفس ناحية القائمة على الشاشة الكبيرة — اليمين.
      `inset-inline-end` كانت بتترجم لـleft في RTL فكانت بتحطه على الشمال،
      والصفحة كلها RTL فالخصائص الفيزيائية هنا أوضح وما تلتبسش. */
-  .sidebar{position:fixed;right:0;left:auto;top:var(--topbar-h);bottom:0;z-index:15;
+  .sidebar{position:fixed;right:0;left:auto;top:var(--topbar-h);bottom:0;z-index:calc(var(--z-sticky) + 5);
     transform:translateX(100%);transition:transform .2s ease;
     box-shadow:-8px 0 24px var(--shadow-edge);width:min(86vw,var(--sidebar-w))}
   .sidebar.open{transform:none}
@@ -2096,7 +2121,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 @media(max-width:900px){.service-grid{grid-template-columns:1fr}}
 
 /* ═══════════════════ لوحة تشغيل الخدمات اليومية ═══════════════════ */
-.ops-strip{position:sticky;top:var(--topbar-h);z-index:12;display:grid;grid-template-columns:minmax(130px,.7fr) minmax(240px,1.5fr) minmax(180px,.8fr) minmax(390px,2fr);gap:var(--s4);align-items:center;margin:0 0 var(--s5);padding:var(--s3) var(--s4);background:var(--navy-950);color:var(--on-dark);border-bottom:2px solid var(--gold-700);box-shadow:var(--shadow-sm)}
+.ops-strip{position:sticky;top:var(--topbar-h);z-index:calc(var(--z-sticky) + 2);display:grid;grid-template-columns:minmax(130px,.7fr) minmax(240px,1.5fr) minmax(180px,.8fr) minmax(390px,2fr);gap:var(--s4);align-items:center;margin:0 0 var(--s5);padding:var(--s3) var(--s4);background:var(--navy-950);color:var(--on-dark);border-bottom:2px solid var(--gold-700);box-shadow:var(--shadow-sm)}
 .ops-eyebrow{display:block;color:var(--gold-300);font-size:var(--t-xs);font-weight:700;margin-bottom:2px}
 .ops-clock strong{font-family:var(--font-num);font-size:var(--t-xl);letter-spacing:.02em;direction:ltr;display:block}
 .ops-next{min-width:0;border-inline-start:1px solid var(--navy-600);padding-inline-start:var(--s4)}
@@ -2110,7 +2135,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ops-counter{display:flex;flex-direction:column;align-items:center;gap:1px;padding:2px 0;border-inline-start:1px solid var(--navy-700)}
 .ops-counter b{font-family:var(--font-num);font-size:var(--t-md);line-height:1}
 .ops-counter span{font-size:var(--t-xs);color:var(--navy-100);white-space:nowrap}
-.ops-counter-zero b{color:var(--ink-300)}
+.ops-counter-zero b{color:var(--on-dark-muted);font-weight:400}
 .ops-counter-prep b{color:var(--gold-300)}
 .ops-counter-late b{color:var(--warn-300)}
 .ops-counter-out b{color:var(--ok-300)}
@@ -2236,8 +2261,8 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ops-line-missing{color:var(--ink-500);font-style:normal}
 
 /* Phase 1: لوحة تشغيل موحّدة — القائمة هي العرض الأساسي، والبطاقات بديل سريع. */
-.ops-toolbar{position:sticky;top:calc(var(--topbar-h) + 78px);z-index:11;display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);margin:-var(--s2) 0 var(--s4);padding:var(--s3);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-sm)}
-.ops-filter-popover{position:relative}.ops-filters-panel{position:absolute;inset-inline-end:0;top:calc(100% + var(--s2));z-index:20;width:min(360px,calc(100vw - 2rem));padding:var(--s3);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-md)}.ops-filters-panel fieldset{display:flex;flex-wrap:wrap;gap:var(--s2);margin:0 0 var(--s3);padding:0;border:0}.ops-filters-panel fieldset:last-child{margin-bottom:0}.ops-filters-panel legend{width:100%;margin-bottom:var(--s1);color:var(--navy-800);font-size:var(--t-sm);font-weight:700}.ops-filters-panel label{display:inline-flex;align-items:center;gap:var(--s1);font-size:var(--t-sm);font-weight:400}.ops-filters-panel input{accent-color:var(--navy-800)}.ops-filter-chips{display:flex;flex-wrap:wrap;gap:var(--s1)}.ops-filter-chip{padding:var(--s1) var(--s2);border:1px solid var(--line);border-radius:var(--radius-control);background:var(--surface);color:var(--ink-600);font:inherit;font-size:var(--t-xs);cursor:pointer}.ops-filter-chip.is-selected{border-color:var(--navy-700);background:var(--navy-800);color:var(--on-dark)}.ops-filters-panel select{width:100%}
+.ops-toolbar{position:sticky;top:calc(var(--topbar-h) + 78px);z-index:calc(var(--z-sticky) + 1);display:flex;align-items:center;flex-wrap:wrap;gap:var(--s2);margin:-var(--s2) 0 var(--s4);padding:var(--s3);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-sm)}
+.ops-filter-popover{position:relative}.ops-filters-panel{position:absolute;inset-inline-end:0;top:calc(100% + var(--s2));z-index:var(--z-nav);width:min(360px,calc(100vw - 2rem));padding:var(--s3);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-md)}.ops-filters-panel fieldset{display:flex;flex-wrap:wrap;gap:var(--s2);margin:0 0 var(--s3);padding:0;border:0}.ops-filters-panel fieldset:last-child{margin-bottom:0}.ops-filters-panel legend{width:100%;margin-bottom:var(--s1);color:var(--navy-800);font-size:var(--t-sm);font-weight:700}.ops-filters-panel label{display:inline-flex;align-items:center;gap:var(--s1);font-size:var(--t-sm);font-weight:400}.ops-filters-panel input{accent-color:var(--navy-800)}.ops-filter-chips{display:flex;flex-wrap:wrap;gap:var(--s1)}.ops-filter-chip{padding:var(--s1) var(--s2);border:1px solid var(--line);border-radius:var(--radius-control);background:var(--surface);color:var(--ink-600);font:inherit;font-size:var(--t-xs);cursor:pointer}.ops-filter-chip.is-selected{border-color:var(--navy-700);background:var(--navy-800);color:var(--on-dark)}.ops-filters-panel select{width:100%}
 .ops-search-wrap{position:relative;flex:1 1 250px;margin:0}.ops-search-wrap input{width:100%;padding-inline-end:2.5rem}.ops-search-wrap kbd{position:absolute;inset-inline-end:var(--s2);top:50%;transform:translateY(-50%);padding:1px 5px;color:var(--ink-500);background:var(--surface-sunken);border:1px solid var(--line);border-radius:var(--radius-sm);font-size:var(--t-xs)}
 .ops-select-wrap{display:flex;align-items:center;gap:var(--s1);color:var(--ink-500);font-size:var(--t-sm);white-space:nowrap}.ops-select-wrap select{min-width:115px}
 .ops-now-toggle,.ops-view-toggle button{min-height:var(--touch-control);padding:var(--s2) var(--s3);border:1px solid var(--line-strong);background:var(--surface);color:var(--navy-800);font:inherit;font-size:var(--t-sm);font-weight:700;cursor:pointer}.ops-now-toggle{border-radius:var(--radius-control)}.ops-now-toggle[aria-pressed=true],.ops-view-toggle button[aria-pressed=true]{background:var(--navy-800);border-color:var(--navy-800);color:var(--on-dark)}.ops-view-toggle{display:flex}.ops-view-toggle button:first-child{border-radius:var(--radius-control) 0 0 var(--radius-control)}.ops-view-toggle button:last-child{border-radius:0 var(--radius-control) var(--radius-control) 0}.ops-clear{margin-inline-start:auto}
@@ -2254,7 +2279,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ops-pending-label,.ops-slow{display:block;color:var(--warn-800);font-size:var(--t-xs);font-weight:700}
 .ops-slow{color:var(--bad-700);font-weight:400}
 .ops-row-error{display:block;color:var(--bad-700);font-size:var(--t-xs);font-weight:700;white-space:normal}
-.ops-shortcuts-help{position:absolute;inset-inline-end:var(--s3);top:calc(100% + var(--s2));z-index:25;display:flex;flex-direction:column;gap:var(--s1);width:min(330px,calc(100vw - 2rem));padding:var(--s3);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-md);color:var(--ink-700);font-size:var(--t-xs)}
+.ops-shortcuts-help{position:absolute;inset-inline-end:var(--s3);top:calc(100% + var(--s2));z-index:calc(var(--z-nav) + 5);display:flex;flex-direction:column;gap:var(--s1);width:min(330px,calc(100vw - 2rem));padding:var(--s3);background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius-md);box-shadow:var(--shadow-md);color:var(--ink-700);font-size:var(--t-xs)}
 .ops-shortcuts-help strong{color:var(--navy-950);font-size:var(--t-sm)}.ops-shortcuts-help kbd{margin-inline:2px;padding:1px 4px;background:var(--surface-sunken);border:1px solid var(--line-strong);border-radius:3px;font-family:var(--font-num)}.ops-help-toggle{margin-inline-start:auto}
 
 /* Phase 4: مراجعة الواجهة — الترتيب: اليوم ← الشريط المباشر ← الأدوات ← اللوحة ← إعداد الانتظام ← المتابعة.
@@ -2263,8 +2288,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .day-files-label{color:var(--ink-500);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
 .day-files .btn{display:inline-flex;align-items:center;gap:var(--s1);height:var(--control-h)}
 .day-files [data-special-formation] span{max-width:26ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.day-files-setup{color:var(--navy-700);font-size:var(--t-xs);text-decoration:underline;text-underline-offset:3px;white-space:nowrap;padding-inline:var(--s1)}
-.day-files-setup:hover{color:var(--navy-950)}
+.day-files-setup{white-space:nowrap}
 .page-head .titles .day-warning.hidden{display:none}
 .ops-toolbar{top:calc(var(--topbar-h) + var(--ops-strip-h, 78px));margin:0 0 var(--s4);padding:var(--s2) var(--s3);border-radius:var(--radius-sm);box-shadow:none;border-bottom:2px solid var(--line-strong)}
 .ops-now-toggle{display:inline-flex;align-items:center;gap:var(--s2)}
@@ -2304,6 +2328,9 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ops-group-toggle small{white-space:normal;overflow:visible;flex-basis:auto}
 .ops-group-count{direction:rtl;font-family:inherit;font-size:var(--t-xs);color:var(--ink-500)}
 .ops-group-actions .btn{font-size:var(--t-xs)}
+.ops-group-actions .primary{font-size:var(--t-xs)}
+.ops-row-action .ops-action{min-width:58px}
+@media(max-width:760px){.ops-group-actions .primary{flex:1}}
 .ops-card{border-radius:var(--radius-sm);box-shadow:none}
 .ops-board{gap:var(--s4)}
 .regularity-panel{margin-top:var(--s6);border-radius:var(--radius-sm);box-shadow:none}
@@ -2547,7 +2574,7 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .activity-method-mark{width:4px;align-self:stretch;flex:none;border-radius:2px;background:var(--gold-700)}
 .activity-method strong{display:block;color:var(--navy-900);font-size:var(--t-cap)}
 .activity-method p{margin:2px 0 0;font-size:var(--t-sm)}
-.activity-filter-bar{position:sticky;top:calc(var(--topbar-h) + var(--s2));z-index:8}
+.activity-filter-bar{position:sticky;top:calc(var(--topbar-h) + var(--s2));z-index:calc(var(--z-sticky) - 2)}
 .activity-summary .stat strong{font-size:var(--t-xl)}
 .activity-ledger{overflow:hidden}
 .activity-ledger-head{align-items:center}

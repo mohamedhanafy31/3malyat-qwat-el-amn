@@ -845,7 +845,6 @@ const hhmm = at => (at || "").split("T")[1]?.slice(0, 5) || "";
 function renderConfirmBadge() {
   const c = BOARD?.confirm;
   const bar = $("#confirmBar");
-  $("#btnConfirmDay")?.classList.toggle("is-urgent", needsConfirm());
   if (!bar) return;
   if (!c || (!c.confirmed && !c.count)) { bar.innerHTML = ""; return }
   if (!c.confirmed) {
@@ -862,7 +861,7 @@ function renderConfirmBadge() {
   }
 }
 document.addEventListener("click", e => {
-  if (e.target.closest("[data-confirm-day]")) $("#btnConfirmDay").click();
+  if (e.target.closest("[data-confirm-day]")) confirmCurrentDay();
 });
 window.addEventListener("beforeunload", e => {
   if (SESSION_EDITS && needsConfirm()) { e.preventDefault(); e.returnValue = ""; }
@@ -882,7 +881,7 @@ async function switchDay(day) {
   return true;
 }
 
-$("#btnConfirmDay").onclick = async () => {
+async function confirmCurrentDay() {
   const c = BOARD?.confirm;
   const extra = c?.confirmed && !c.pending
     ? " لم تُجرَ تغييرات منذ آخر تأكيد، وسيُسجَّل هذا الإجراء بوصفه إعادة تأكيد."
@@ -898,7 +897,7 @@ $("#btnConfirmDay").onclick = async () => {
             : out.changes ? `تم تأكيد اليومية — سُجِّل ${countLabel(out.changes, "تغيير")}`
             : "تم تأكيد اليومية — دون تغييرات");
   loadDay(DAY);
-};
+}
 
 async function confirmAllUnconfirmed() {
   const list = await api("/api/board/unconfirmed");

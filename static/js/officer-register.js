@@ -39,6 +39,7 @@ function monthStrip(block) {
 function render() {
   if (!OFF) { $("#officerWrap").innerHTML = skeleton("rows", 8); return }
   const o = OFF.officer;
+  $("#offBreadcrumbName").textContent = o.name;
   $("#offHead").textContent =
     `${o.role} / ${o.name}${o.post ? " — " + o.post : ""}${o.section ? " · " + o.section : ""}`;
   $("#officerWrap").innerHTML =

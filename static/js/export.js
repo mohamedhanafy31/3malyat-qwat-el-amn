@@ -127,7 +127,7 @@ async function previewExport(url, label = "") {
   } catch (error) {
     if (modal._token !== token) return;
     pages.innerHTML = "";
-    meta.textContent = `${error.message || "تعذّر تجهيز المعاينة."} تقدر تحمّل الملف من غير معاينة.`;
+    meta.textContent = `${error.message || "تعذّر تجهيز المعاينة."} يمكنك تحميل الملف دون معاينة.`;
     meta.classList.add("is-error");
   }
   download.disabled = false;

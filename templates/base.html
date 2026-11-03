@@ -176,8 +176,8 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18v-2H5V3H3zm4 12l3-4 3 3 4-5 2 2V18H7v-3z"/></svg>
         <span>إحصائيات الراحات</span>
       </a>
-      <a class="navbtn {{ 'active' if page == 'register' }}" href="{{ url_for('pages.register') }}"
-         {{ 'aria-current=page' if page == 'register' }}>
+      <a class="navbtn {{ 'active' if page in ('register', 'officer_register') }}" href="{{ url_for('pages.register') }}"
+         {{ 'aria-current=page' if page in ('register', 'officer_register') }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4v2h4V7H7Zm6 0v2h4V7h-4ZM7 11v2h4v-2H7Zm6 0v2h4v-2h-4ZM7 15v2h4v-2H7Zm6 0v2h4v-2h-4Z"/></svg>
         <span>حصر تشغيل الضباط</span>
       </a>

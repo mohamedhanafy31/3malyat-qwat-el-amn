@@ -37,8 +37,8 @@ function renderSummary(s) {
      فالصف كان طوله ~680 بكسل والجدول الأساسي بيبدأ تحت حافة الشاشة. الأسماء
      بقت قايمة مطوية تحت الشريط. الجدول الكامل بيفضل مخفي كمصدر للتصدير. */
   const tile = (label, v) => `<div class="sum-tile${v ? "" : " zero"}"><span>${label}</span><b>${v}</b></div>`;
-  const group = (title, tiles) => `<div class="sum-group"><h4>${title}</h4><div class="sum-tiles">${tiles}</div></div>`;
-  const single = (title, v, cls = "") => `<div class="sum-group single ${cls}"><h4>${title}</h4><b>${v}</b></div>`;
+  const group = (title, tiles) => `<div class="sum-group"><h3>${title}</h3><div class="sum-tiles">${tiles}</div></div>`;
+  const single = (title, v, cls = "") => `<div class="sum-group single ${cls}"><h3>${title}</h3><b>${v}</b></div>`;
   const externalMorning = x["بحث"]
     ? (x["صباحية"] ? `${x["صباحية"]} + ${x["بحث"]} بحث` : `${x["بحث"]} بحث`)
     : `${x["صباحية"]}`;
@@ -181,7 +181,7 @@ ACTIONS.openAssign = id => {
   $("#assignAdmin").checked = !outside && (automaticAdmin || !!row.admin_work);
   $("#assignAdmin").disabled = outside || automaticAdmin;
   $("#assignAdminHint").textContent = outside
-    ? "الضابط في الخوارج النهارده — مفيش نص تشغيلي يتضاف"
+    ? "الضابط ضمن الخوارج اليوم — لا يوجد نص تشغيلي يمكن إضافته"
     : automaticAdmin ? `${row.command_role} — يظهر تلقائيًا في «عمل بالإدارة» ما لم يكن من الخوارج`
     : net ? "الضابط صافي — فعّل الخيار بعد كتابة تشغيله لنقله إلى «عمل بالإدارة»"
     : "النص التشغيلي الكامل (خدمته + الإضافي) يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية، ويفضل في مكان خدمته";
@@ -270,8 +270,8 @@ function updateStatusTextField(value, detailed) {
   row.classList.toggle("hidden", !statusText && !row.dataset.legacy);
   $("#assignNoteLabel").textContent = statusText ? "نص الحالة" : "نص التشغيل الكامل المحفوظ";
   $("#assignNoteHint").textContent = statusText
-    ? `يظهر للضابط في الخوارج في اليومية التفصيلية ويومية الضباط${isNew ? " — مطلوب مع التصنيف الجديد" : "؛ لو فاضي يظهر اسم الحالة"}`
-    : "نص قديم بيحل محل الخدمة التلقائية — امسحه لو عايز الخدمة تظهر لوحدها";
+    ? `يظهر للضابط في الخوارج في اليومية التفصيلية ويومية الضباط${isNew ? " — مطلوب مع التصنيف الجديد" : "؛ إذا تُرك فارغًا يظهر اسم الحالة"}`
+    : "نص قديم يحل محل الخدمة التلقائية — امسحه لعرض الخدمة وحدها";
   input.required = isNew;
   input.placeholder = statusText ? `مثال: ${value} بمديرية الأمن` : "";
 }
@@ -311,7 +311,7 @@ function updateAssignPreview() {
   };
   const base = note || row.services.map(line).filter(Boolean).join(" + ");
   const full = [base, $("#assignExtra").value.trim()].filter(Boolean).join(" + ");
-  $("#assignPreview").textContent = full ? `النص الكامل: ${full}` : "مفيش نص تشغيلي لليوم ده.";
+  $("#assignPreview").textContent = full ? `النص الكامل: ${full}` : "لا يوجد نص تشغيلي لهذا اليوم.";
 }
 $("#assignExtra").oninput = updateAssignPreview;
 $("#assignNote").oninput = updateAssignPreview;

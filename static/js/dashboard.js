@@ -417,7 +417,7 @@
       : countLabel(run.count, "مجند");
     const details = `${head} · ${count}${run.weapon ? ` · ${run.weapon}` : ""}`;
     const actionHtml = action
-      ? `<button type="button" class="primary ops-action"
+      ? `<button type="button" class="btn btn-outline ops-action"
            data-op="${action}"
            data-target="${esc(target)}"
            aria-label="${actionLabel(action)}: ${esc(runLabel(run))}">${actionLabel(action)}</button>`
@@ -532,7 +532,7 @@
       <td class="ops-row-head${run.head ? "" : " is-missing"}" title="${esc(run.head || "")}">${esc(run.head || "غير مسجّل")}</td>
       <td class="ops-row-count">${esc(run.count == null || run.count === "" ? "—" : `${run.count}${run.weapon ? ` · ${run.weapon}` : ""}`)}</td>
       <td class="ops-row-status"><span class="ops-badge">${statusText[state]}</span>${pendingTargets.has(target) ? `<small class="ops-pending-label">${esc(pendingLabel(target))}</small>` : ""}</td>
-      <td class="ops-row-action">${action ? `<button type="button" class="primary ops-action" data-op="${action}" data-target="${esc(target)}" aria-label="${actionLabel(action)}: ${esc(runLabel(run))}">${pendingTargets.has(target) ? `<span class="spinner" aria-hidden="true"></span> ${esc(pendingLabel(target))}` : actionLabel(action)}</button>` : `<span class="ops-times">${esc(run.back_at?.slice(11, 16) || "")}</span>`}${menu}${rowErrors.has(target) ? `<span class="ops-row-error" role="alert">${esc(rowErrors.get(target))}</span>` : ""}</td>
+      <td class="ops-row-action">${action ? `<button type="button" class="btn btn-outline ops-action" data-op="${action}" data-target="${esc(target)}" aria-label="${actionLabel(action)}: ${esc(runLabel(run))}">${pendingTargets.has(target) ? `<span class="spinner" aria-hidden="true"></span> ${esc(pendingLabel(target))}` : actionLabel(action)}</button>` : `<span class="ops-times">${esc(run.back_at?.slice(11, 16) || "")}</span>`}${menu}${rowErrors.has(target) ? `<span class="ops-row-error" role="alert">${esc(rowErrors.get(target))}</span>` : ""}</td>
     </tr>`;
   }
 
@@ -541,7 +541,7 @@
     const eligibleReturn = group.runs.filter(run => ["out", "carried"].includes(displayState(run)));
     const collapsed = Boolean(prefs.collapsed[`${prefs.groupBy}:${group.id}`]);
     const actions = [];
-    if (eligibleDepart.length) actions.push(`<button type="button" class="btn" data-op="line" data-mode="depart" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleDepart.map(actionTarget)))}">قيام الكل (${eligibleDepart.length})</button>`);
+    if (eligibleDepart.length) actions.push(`<button type="button" class="primary ops-group-primary" data-op="line" data-mode="depart" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleDepart.map(actionTarget)))}">قيام الكل (${eligibleDepart.length})</button>`);
     if (eligibleReturn.length) actions.push(`<button type="button" class="btn ok" data-op="line" data-mode="return" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleReturn.map(actionTarget)))}">عودة الكل (${eligibleReturn.length})</button>`);
     const body = viewMode() === "cards" ? `<div class="ops-grid">${group.runs.map(card).join("")}</div>` : `<div class="ops-table-wrap"><table class="ops-list"><colgroup><col class="ops-col-time"><col class="ops-col-service"><col class="ops-col-person"><col class="ops-col-count"><col class="ops-col-status"><col class="ops-col-action"></colgroup><thead><tr><th>المعاد</th><th>الخدمة</th><th>القائم بها</th><th>القوام</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>${group.runs.map(row).join("")}</tbody></table></div>`;
     return `<section class="ops-group ${collapsed ? "is-collapsed" : ""}" data-group-id="${esc(group.id)}">
@@ -818,7 +818,7 @@
     $id("opsTimeForm").querySelector('input[value="day"]').checked = !run.catalog_id;
     hint.textContent = run.catalog_id
       ? ""
-      : "الخدمة دي مش موجودة في دليل الخدمات، فالتعديل لليوم بس. لو عايزها ميعاد ثابت أضفها من دليل الخدمات.";
+      : "هذه الخدمة غير موجودة في دليل الخدمات؛ لذلك يسري التعديل على هذا اليوم فقط. لإضافة معاد ثابت، أضفها من دليل الخدمات.";
     hint.classList.toggle("hidden", Boolean(run.catalog_id));
     upgradeTimeInputs($id("opsTimeModal"));
     openModal("opsTimeModal");

@@ -22,10 +22,11 @@ function personCell(p) {
 function basicRow(r) {
   const sources = [];
   if (r.inherited_fields?.length) sources.push(`موروث من ${fmt(r.inherited_from)}`);
-  if (r.default_fields?.length) sources.push("قيم افتراضية من آخر يومية أفراد");
   const inherited = sources.length ? `<div class="sub">${sources.join(" • ")}</div>` : "";
+  const defaultMarker = r.default_fields?.length
+    ? `<span class="default-marker" title="قيم افتراضية من آخر يومية أفراد" aria-label="قيم افتراضية من آخر يومية أفراد">افتراضي</span>` : "";
   return `<tr>
-    <td class="name">${esc(r.name)}</td>
+    <td class="name">${esc(r.name)}${defaultMarker}</td>
     <td>${personCell(r.morning)}</td>
     <td>${personCell(r.night)}</td>
     <td>${esc(r.count) || "<span class='muted'>—</span>"}${inherited}</td>
@@ -69,6 +70,9 @@ function render() {
     ? `<p class="vacancy-summary warn"><span class="status-dot warn" aria-hidden="true"></span>
         <b>الخانات الشاغرة: ${countLabel(vacant, "خانة")}</b> من ${total}</p>`
     : `<p class="vacancy-summary ok"><span class="status-dot ok" aria-hidden="true"></span>لا توجد خانات شاغرة</p>`;
+  const defaultRows = AF.basic.filter(r => r.default_fields?.length).length;
+  const defaultNotice = defaultRows
+    ? `<p class="af-default-notice"><b>${countLabel(defaultRows, "صف")}</b> تستخدم قيمًا افتراضية من آخر يومية أفراد. تظهر علامة «افتراضي» بجانب كل صف.</p>` : "";
   wrap.innerHTML = summary + `
     <div class="ledger-board">
       <div class="ledger-head">
@@ -77,6 +81,7 @@ function render() {
       </div>
       <div class="mcard">
         <h3>الخدمات الأساسية<span class="mcount">${AF.basic.length}</span></h3>
+        ${defaultNotice}
         ${mtable(BASIC_HEAD, AF.basic.map(basicRow))}
       </div>
       ${AF.officer_pairs?.length ? `<div class="mcard af-officer-pairs"><h3>ضباط الخدمات الأساسية (من اليومية التفصيلية)</h3><div class="chips">${AF.officer_pairs.map(p => `<div class="sub"><b>${esc(p.label)}</b> ← ${esc(p.person)}</div>`).join("")}</div></div>` : ""}
@@ -186,7 +191,7 @@ $("#afBasicList").onclick = async event => {
   }
   if (!button) return;
   const row = AF.basic.find(item => item.id === button.dataset.basicRemove);
-  if (!row || !(await confirmDialog({title: "إزالة الخدمة الأساسية", body: `هتتشال «${row.name}» من اليوم ورايح، وبيتم مسح البيانات المُدخلة ليها في اليوم ده.`, confirmLabel: "إزالة", danger: true}))) return;
+  if (!row || !(await confirmDialog({title: "إزالة الخدمة الأساسية", body: `ستُزال «${row.name}» ابتداءً من اليوم، وستُمسح البيانات المُدخلة لها في هذا اليوم.`, confirmLabel: "إزالة", danger: true}))) return;
   const out = await api(`/api/afraad/${DAY}/basic-services/${encodeURIComponent(row.id)}`, jsonReq("DELETE", {revision: AF.revision}));
   if (!out) return;
   AF = out; render(); renderBasicModal(); showToast("تمت إزالة الخدمة");
@@ -416,7 +421,7 @@ function renderOcrPreview() {
           ${row.service ? ocrBadge(row.service_score, "ثقة مطابقة اسم الخدمة") : ""}</div>
         <span class="ocr-state"></span>
       </header>
-      <select data-ocr-service aria-label="الخدمة في السيستم">${ocrOptions(services, row.service_id, "اختر الخدمة في السيستم")}</select>
+      <select data-ocr-service aria-label="الخدمة في النظام">${ocrOptions(services, row.service_id, "اختر الخدمة في النظام")}</select>
       <div class="ocr-slots">
         ${ocrSlot("الصباحية", row.morning, row.morning_match, "data-ocr-morning", personnel)}
         ${ocrSlot("الليلية", row.evening, row.night_match, "data-ocr-night", personnel)}
