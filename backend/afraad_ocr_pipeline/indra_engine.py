@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -12,7 +14,10 @@ from typing import Any
 import cv2
 import numpy as np
 
+from .. import tech_log
 from .config import PipelineConfig
+
+LOG = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -61,10 +66,17 @@ def _error(message: str) -> IndraPage:
 
 def recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:
     """يشغّل Indra في بيئته المعزولة، ولا يرمي أخطاء للـpipeline."""
+    started = time.perf_counter()
     try:
-        return _recognize_page(image, config)
+        page = _recognize_page(image, config)
     except Exception as exc:  # المحرك الاحتياطي لازم يكمّل مهما حصل.
-        return _error(f"تعذر تشغيل Indra OCR: {exc}")
+        page = _error(f"تعذر تشغيل Indra OCR: {exc}")
+    # توافر Indra أهم معلومة تشخيصية: لو page.error فالـpipeline رجع للمحرك الاحتياطي
+    tech_log.event(LOG, "ocr.indra", available=not page.error,
+                   lines=len(page.lines or []), error=page.error,
+                   duration_ms=tech_log.ms_since(started),
+                   level=logging.WARNING if page.error else logging.INFO)
+    return page
 
 
 def _recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:

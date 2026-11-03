@@ -11,13 +11,17 @@ import base64
 from collections import Counter
 from difflib import SequenceMatcher
 from io import BytesIO
+import logging
 import re
+import time
 
+from . import tech_log
 from .afraad import set_basic_entry
 from .dated import afraad_basic_on
 from .repo import PeopleRepo
 from .text import norm, norm_name
 
+LOG = logging.getLogger(__name__)
 
 ALLOWED_IMAGE_SUFFIXES = {"png", "jpg", "jpeg", "webp"}
 MAX_IMAGE_BYTES = 10 * 1024 * 1024
@@ -231,7 +235,18 @@ def analyze_image(raw, filename, data, day, pipeline=None):
     if pipeline is None:
         from .afraad_ocr_pipeline import TableOCRPipeline
         pipeline = TableOCRPipeline()
+    started = time.perf_counter()
     result = pipeline.run(bgr)
+    engines = {}
+    for cell in result.cells or []:
+        engines[cell.get("engine")] = engines.get(cell.get("engine"), 0) + 1
+    tech_log.event(LOG, "ocr.analyze", day=day, mode=result.mode, grid_ok=result.ok,
+                   cells=len(result.cells or []), fallback_cells=sum(
+                       1 for c in result.cells or [] if c.get("fallback")),
+                   engines=",".join(f"{k}:{v}" for k, v in sorted(engines.items(), key=str)) or None,
+                   raw_engine=getattr(result.raw_ocr, "engine", None),
+                   warnings=len(result.warnings or []),
+                   image_bytes=len(raw), duration_ms=tech_log.ms_since(started))
     payload = result.as_dict()
     payload["overlay_png"] = ("data:image/png;base64," +
                               base64.b64encode(result.grid.overlay_png).decode("ascii")) \

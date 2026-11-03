@@ -351,7 +351,7 @@ async function api(url,opts){
     // محتاج تأكيد إضافي مثلًا) — لو رجّعت true بتتلغى التوست الافتراضي
     // لأن المتصل هيتصرّف هو بنفسه.
     if(opts.onError && opts.onError(out,r.status)) return null;
-    showToast(out.error||"حدث خطأ",true); return null;
+    showToast((out.error||"حدث خطأ")+(out.request_id?` — رقم الخطأ: ${out.request_id}`:""),true); return null;
   }
   // أي تعديل نجح بيتعلن — اليومية التفصيلية بتعرف منه إن فيه تغييرات لسه ما اتأكدتش
   if(opts.method&&opts.method!=="GET")

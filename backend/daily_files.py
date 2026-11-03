@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from . import store
+from . import store, tech_log
 from .settings import get_setting
 from .store import ALL_CORE_KEYS
 
@@ -296,8 +296,10 @@ def write_day_files(day, kinds=None, *, require_data=False):
     المشغّل بيدخل بياناته وبعدين يضغط «تحديث الملفات». الطلب الصريح
     (الزرار) مابيستعملش الشرط ده.
     """
+    started = time.perf_counter()
     folder, cloned, warnings = ensure_day_folder(day)
     if require_data and not has_data(day):
+        tech_log.event(LOG, "daily_files.skipped", day=day, reason="no_data")
         return DayFilesResult(day=day, folder=str(folder),
                               cloned_from=str(cloned) if cloned else None,
                               warnings=tuple(warnings), files={}, skipped="no_data")
@@ -357,6 +359,13 @@ def write_day_files(day, kinds=None, *, require_data=False):
     except Exception:
         LOG.exception("فشل تحديث manifest للملفات اليومية")
 
+    failed = sorted(kind for kind, info in files.items() if not info.get("ok"))
+    tech_log.event(LOG, "daily_files.generated",
+                   level=logging.WARNING if failed else logging.INFO,
+                   day=day, kinds=",".join(sorted(files)), ok=len(files) - len(failed),
+                   failed=",".join(failed) or None, cloned=bool(cloned),
+                   bytes=sum(info.get("bytes", 0) for info in files.values()),
+                   duration_ms=tech_log.ms_since(started))
     return DayFilesResult(
         day=day,
         folder=str(folder),
@@ -532,6 +541,8 @@ def start_worker():
     )
     stale.update({current.isoformat(), (current + timedelta(days=1)).isoformat()})
     _worker.enqueue(stale)
+    tech_log.event(LOG, "daily_files.worker_started", stale_days=len(stale),
+                   debounce=_worker.debounce)
     return _worker
 
 

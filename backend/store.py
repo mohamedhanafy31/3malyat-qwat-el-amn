@@ -54,6 +54,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import NamedTuple
 
+from . import tech_log
 from .constants import DEFAULT_DATA, SECTION_OCCASIONAL
 from .repo.people import as_roster
 from .utils import sort_active
@@ -189,6 +190,7 @@ class DataUnreadable(SchemaMismatch):
 # سجل النشاط بيدور تلقائيًا (5 ميجا × 20 نسخة) عشان يفضل حجمه محدود.
 _LOG_DIR = (DATA_DIR / "logs") if _ENV_DATA_DIR is not None else (ROOT / "logs")
 _LOG_DIR.mkdir(parents=True, exist_ok=True)
+LOG = logging.getLogger(__name__)
 _audit_logger = logging.getLogger("personnel_system.audit")
 _audit_logger.setLevel(logging.INFO)
 if not _audit_logger.handlers:
@@ -778,6 +780,7 @@ def _read(days=ALL_DAYS):
     الأقسام اليومية في النتيجة فيها أيام النطاق بس، ومحروسة ضد أي يوم
     برّاه (`_ScopedSection`).
     """
+    started = time.perf_counter()
     if not core_file().exists():
         if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
             raise DataUnreadable(
@@ -791,6 +794,8 @@ def _read(days=ALL_DAYS):
                 f"شغّل migrations/010_split_data_files.py لتفكيكه في مجلد "
                 f"«{DATA_DIR.name}/» (ينشئ نسخة احتياطية قبل الكتابة)."
             )
+        tech_log.event(LOG, "store.initialised_empty", level=logging.WARNING,
+                       data_dir=str(DATA_DIR))
         explode(json.loads(json.dumps(DEFAULT_DATA)))    # نسخة — explode بيعدّل
 
     core_entry, core = _load(core_file(), core=True)
@@ -820,6 +825,11 @@ def _read(days=ALL_DAYS):
     # المفتاح بيبدأ بـ`_` فما بيتخزّنش (شوف `split`).
     data["_fp"] = {"fingerprints": fingerprints, "originals": originals,
                    "scope": scope, "index": index}
+    elapsed = tech_log.ms_since(started)
+    tech_log.event(LOG, "store.load",
+                   level=logging.WARNING if elapsed > 1000 else logging.DEBUG,
+                   duration_ms=elapsed, day_files=len(wanted),
+                   scope="all" if scope is None else len(scope))
     return data
 
 
@@ -885,6 +895,7 @@ def _write(data):
     القراءة الجزئية بتقارن أيام نطاقها بس؛ يوم برّا النطاق ليه ملف على
     القرص مايتكتبش فوقه أبدًا (`OutOfScope`) قبل ما أي ملف يتلمس.
     """
+    started = time.perf_counter()
     data["schema"] = SCHEMA_VERSION
     tracking = data.get("_fp") or {}
     # قراءة بصمات الشكل القديم تبقى ممكنة لكائن حمّله اختبار أو أداة.
@@ -993,6 +1004,11 @@ def _write(data):
         changed_sections[day] = frozenset(
             name for name in DAY_SECTIONS.values()
             if old_blob.get(name) != new_blob.get(name))
+    if written or removed:
+        tech_log.event(LOG, "store.save", duration_ms=tech_log.ms_since(started),
+                       files_written=len(written), files_removed=len(removed),
+                       core_changed=core_changed, days=",".join(sorted(changed_days)[:10]) or None,
+                       bytes=len(core_text) * core_changed + sum(len(t) for t in pending.values()))
     return Changeset(changed_days, created_days, removed_days, core_keys, changed_sections)
 
 
@@ -1027,6 +1043,7 @@ def snapshot_now():
     """نسخة كاملة دلوقتي مهما كان وقت آخر واحدة — للاستعادة والهجرات."""
     if not core_file().exists():
         return None
+    started = time.perf_counter()
     try:
         target = backup_dir()
         target.mkdir(exist_ok=True)
@@ -1043,8 +1060,12 @@ def snapshot_now():
         _replace(part, final)
         _fsync_dir(target)
         _prune_backups()
+        tech_log.event(LOG, "backup.created", file=final.name,
+                       bytes=final.stat().st_size, duration_ms=tech_log.ms_since(started))
         return final
-    except OSError:
+    except OSError as exc:
+        tech_log.event(LOG, "backup.failed", level=logging.WARNING,
+                       error=type(exc).__name__, detail=str(exc))
         return None    # النسخ الاحتياطي أمان إضافي — فشله ما يمنعش الحفظ
 
 
@@ -1225,9 +1246,13 @@ def _prune_backups():
             bucket = path.stat().st_mtime // 86400
             if not any(p.stat().st_mtime // 86400 == bucket for p in keep):
                 keep.add(path)
+    pruned = 0
     for path in files:
         if path not in keep:
             path.unlink(missing_ok=True)
+            pruned += 1
+    if pruned:
+        tech_log.event(LOG, "backup.pruned", removed=pruned, kept=len(keep))
 
 
 def read_backup(path):
@@ -1323,6 +1348,7 @@ def restore_backup(name):
                     with zf.open(member) as source, open(target, "wb") as dest:
                         shutil.copyfileobj(source, dest)
     restored_days = set(day_index().days()) | old_days
+    tech_log.event(LOG, "backup.restored", file=name, days=len(restored_days))
     _run_after_commit(Changeset(frozenset(restored_days),
                                 frozenset(restored_days),
                                 frozenset(), ALL_CORE_KEYS))
@@ -1390,8 +1416,11 @@ def recover_journal():
             else:
                 raise ValueError("unknown transaction operation")
         _clear_journal()
+        tech_log.event(LOG, "journal.recovered", level=logging.WARNING,
+                       operations=len(operations))
         return True
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        tech_log.event(LOG, "journal.corrupt", level=logging.ERROR, error=type(exc).__name__)
         raise DataUnreadable(f"دفتر المعاملة تالف: {exc}") from exc
 
 
@@ -1428,6 +1457,7 @@ def acquire_process_lock():
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except (BlockingIOError, OSError) as exc:
         os.close(fd)
+        tech_log.event(LOG, "process_lock.busy", level=logging.ERROR, data_dir=str(DATA_DIR))
         raise SystemExit(
             "\n[X] النظام قيد التشغيل بالفعل من عملية أخرى على مجلد data/ نفسه.\n"
             "\n    أغلق النسخة الأخرى أولًا، ثم حاول مجددًا.\n"
@@ -1437,6 +1467,7 @@ def acquire_process_lock():
     os.write(fd, str(os.getpid()).encode())
     os.fsync(fd)
     recover_journal()
+    tech_log.event(LOG, "process_lock.acquired", pid=os.getpid(), data_dir=str(DATA_DIR))
 
     import atexit
     def release():

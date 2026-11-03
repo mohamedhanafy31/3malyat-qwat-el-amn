@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block page_actions %}
+<a class="btn" href="{{ url_for('pages.audit') }}">سجل النشاط</a>
+<a class="btn" href="/api/tech-logs/download?file=all" download>تنزيل كل السجلات (zip)</a>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar audit-toolbar">
+    <select id="logFile" class="select" aria-label="ملف السجل">
+      <option value="system" selected>system.log — كل الأحداث</option>
+      <option value="errors">errors.log — التحذيرات والأخطاء</option>
+    </select>
+    <select id="logLevel" class="select" aria-label="أدنى مستوى">
+      <option value="" selected>كل المستويات</option>
+      <option value="INFO">INFO فما فوق</option>
+      <option value="WARNING">WARNING فما فوق</option>
+      <option value="ERROR">ERROR فما فوق</option>
+    </select>
+    <select id="logLines" class="select" aria-label="عدد السجلات">
+      <option value="100">آخر 100</option>
+      <option value="300" selected>آخر 300</option>
+      <option value="1000">آخر 1000</option>
+    </select>
+    <input type="search" id="logSearch" class="search" placeholder="بحث في النص (رقم الطلب، المسار، …)" aria-label="بحث في السجلات">
+    <button type="button" class="mini" id="logRefresh">تحديث</button>
+    <a class="mini" id="logDownload" href="/api/tech-logs/download?file=system" download>تنزيل هذا الملف</a>
+  </div>
+
+  <p class="hint panel-notice audit-note">
+    سجلات تشخيص للدعم الفني. عند حدوث خطأ تظهر رسالة «رقم الخطأ» — ابحث به هنا أو أرسله مع الملف المنزَّل.
+  </p>
+
+  <div id="logMeta" class="count"></div>
+  <pre id="logOut" class="tech-log" dir="ltr" tabindex="0"></pre>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/tech-logs.js') }}"></script>
+{% endblock %}

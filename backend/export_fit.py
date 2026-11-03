@@ -10,13 +10,19 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt
 
+from . import tech_log
+
 log = logging.getLogger(__name__)
 WIDTH_FACTOR = 1.07
 LINE_HEIGHT_FACTOR = 1.1499
 
 
 class PageFitError(RuntimeError):
-    pass
+    def __init__(self, *args):
+        super().__init__(*args)
+        # الاستثناء بيتبني لحظة الفشل — سطر واحد في السجل الفني بالسبب
+        tech_log.event(log, "export.page_fit_failed", level=logging.WARNING,
+                       reason=str(self))
 
 
 class TextMeter:
@@ -216,6 +222,8 @@ def fit_table(table_spec, usable_height_pt, target=.94, min_scale=.55, step=.02)
                            for c in row])
         total, heights = estimate_table_height(scaled, widths)
         if total <= usable_height_pt * target:
+            tech_log.event(log, "export.fit", scale=round(scale, 2), rows=len(rows),
+                           ratio=round(total / usable_height_pt, 3) if usable_height_pt else None)
             return FitResult(round(scale, 2), heights, total, usable_height_pt,
                              total / usable_height_pt)
         scale = round(scale - step, 2)

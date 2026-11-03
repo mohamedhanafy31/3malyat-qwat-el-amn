@@ -117,6 +117,16 @@ def _isolate_audit_log(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _isolate_tech_log(tmp_path, _isolate_audit_log):
+    """السجلات الفنية (system.log/errors.log) كمان لمجلد مؤقت، وتتشال بعد كل اختبار
+    عشان ما يتسربش handler مفتوح ولا يتكتب في `logs/` الحقيقي."""
+    from backend import tech_log
+    tech_log.setup_logging(tmp_path)
+    yield tmp_path
+    tech_log.shutdown_logging()
+
+
+@pytest.fixture(autouse=True)
 def frozen_today(monkeypatch):
     """يثبّت «النهاردة» لحد القفل التلقائي. بترجّع دالة التغيير عشان
     الاختبار اللي بيختبر القفل نفسه يحرّك اليوم زي ما يحب."""
