@@ -85,7 +85,7 @@ function serviceCampaignRow(row) {
   const vehicles = row.vehicles || [];
   const plates = vehicles.map(item => item.vehicle?.plate || item.vehicle_id).filter(Boolean);
   const vehicleSummary = plates.length ? plates.join(" + ") : "بدون مركبة مباشرة";
-  return `<tr class="campaign-row${row.warnings?.length ? " has-warning" : ""}">
+  return `<tr class="campaign-row${row.warnings?.length ? " has-warning" : ""}${row.category_break ? " campaign-cat-break" : ""}" data-vehicle-category="${esc(row.vehicle_category || "")}">
     <td class="name"><div class="campaign-service-name"><strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}</div></td>
     <td>${driverOptions(row)}</td>
     <td dir="ltr"><div class="campaign-vehicle-cell"><span class="sub">${esc(vehicleSummary)}</span><button type="button" class="mini btn-xs" data-action="openCampaignServiceVehicles" data-id="${esc(row.id)}">${icon("edit")} مركبات وأفراد</button></div></td>

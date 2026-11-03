@@ -112,7 +112,7 @@ def test_multi_vehicle_split_and_single_vehicle_people_fallback():
     ]}}}
     rows = [r for r in build(data, DAY)["service_rows"] if r["service"] == "خدمة مركبتين"]
     assert len(rows) == 2
-    assert {r["vehicle"].split(" — ")[0] for r in rows} == {"ب11/1111", "ب12/2222"}
+    assert {r["vehicle"].split(" ")[0] for r in rows} == {"ب11/1111", "ب12/2222"}
     assert any("فرد أحمد" in r["people"] and "01000000000" in r["phone"] for r in rows)
     assert any("فرد محمود" in r["people"] and "01111111111" in r["phone"] for r in rows)
 

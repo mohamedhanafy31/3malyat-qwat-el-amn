@@ -6,6 +6,8 @@ from .afraad import basic_rows, occasional_rows
 from .clocktime import format_time, parse_time
 from .counts import build as build_counts
 from .service_equivalence import services_equivalent
+from .service_lines import line_for_service
+from .service_links import service_for_counts_entry
 from .utils import weekday_name
 
 
@@ -59,6 +61,39 @@ def _block(name, count, weapon, kind, time=""):
             "weapons": _slot_weapons(weapon, count), "kind": kind, "time": time or ""}
 
 
+def _lorry_of(data, count_row):
+    """لوري الخدمة الأساسية = لوري خط السير اللي الخدمة عضو فيه ("" لو مفيش)."""
+    service_id = service_for_counts_entry(data, count_row)
+    line = line_for_service(data, service_id) if service_id else None
+    return str((line or {}).get("lorry_id") or "")
+
+
+def group_by_lorry(blocks):
+    """يرصّ الخدمات اللي على نفس اللوري ورا بعض. كل لوري بيقعد مكان أول خدمة ليه
+    في الترتيب الأصلي (والخدمات جواه بترتيبها الأصلي)، والخدمات من غير لوري
+    بتفضل في مكانها. آخر صف في كل مجموعة لوري عليه ``lorry_end`` عشان الحد السميك."""
+    order, groups = [], {}
+    for block in blocks:
+        lorry = block.get("lorry_id") or ""
+        if not lorry:
+            order.append([block])
+        elif lorry in groups:
+            groups[lorry].append(block)
+        else:
+            groups[lorry] = [block]
+            order.append(groups[lorry])
+    result = []
+    for index, group in enumerate(order):
+        lorry = group[0].get("lorry_id") or ""
+        nxt = order[index + 1][0].get("lorry_id") if index + 1 < len(order) else None
+        for position, block in enumerate(group):
+            last = position == len(group) - 1
+            # حد سميك بعد كل مجموعة لوري، وبعد الخدمة العادية اللي قبل مجموعة لوري.
+            block["group_end"] = last and index + 1 < len(order) and bool(lorry or nxt)
+            result.append(block)
+    return result
+
+
 def _basic_blocks(data, day, shift, counts_payload):
     source = counts_payload["basic_am" if shift == "morning" else "basic_pm"]
     enriched = basic_rows(data, day)
@@ -67,9 +102,10 @@ def _basic_blocks(data, day, shift, counts_payload):
         match = next((row for row in enriched
                       if services_equivalent(count_row.get("name"), row.get("name"))), None)
         weapon = (match or {}).get("weapon") or count_row.get("weapon", "")
-        blocks.append(_block(count_row.get("name", ""), count_row.get("count", 0),
-                             weapon, "basic"))
-    return blocks
+        block = _block(count_row.get("name", ""), count_row.get("count", 0), weapon, "basic")
+        block["lorry_id"] = _lorry_of(data, count_row)
+        blocks.append(block)
+    return group_by_lorry(blocks)
 
 
 def build(data, day, shift):
@@ -108,7 +144,10 @@ def build(data, day, shift):
             emergency.append((minutes if minutes is not None else 9999, order,
                               _block(row.get("name", ""), count, row.get("weapon", ""),
                                      "emergency", time)))
-        blocks.extend(block for _minutes, _order, block in sorted(emergency, key=lambda item: item[:2]))
+        emergency_blocks = [block for _minutes, _order, block in sorted(emergency, key=lambda item: item[:2])]
+        if emergency_blocks and blocks and blocks[-1].get("lorry_id"):
+            blocks[-1]["group_end"] = True
+        blocks.extend(emergency_blocks)
     return {"title": _date_title(day, shift), "shift": shift, "day": day,
             "blocks": blocks,
             "totals": {"services": len(blocks),

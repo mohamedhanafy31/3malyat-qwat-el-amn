@@ -20,6 +20,7 @@ GAP_PT = 8              # عرض العمود الفاصل بين الأقسام
 MAX_SIZE, MIN_SIZE = 14.0, 6.5
 BIG_STRENGTH = 15        # الخدمة اللي قوامها 15 أو أكتر بتروح الصفحة المنفصلة
 HEADERS = ("الاسم", "التسليح", "رقم السلاح")
+THICK = 18               # 2.25pt (بالثُمن نقطة) الحد الفاصل بين مجموعات اللوري
 COLORS = {"header": "BFBFBF", "title": "DEEAF6", "section": "F4B183"}
 
 
@@ -132,6 +133,9 @@ def _block_rows(block):
     weapons = list(block.get("weapons") or [])
     rows.extend({"type": "slot", "values": [f"{i}-", weapons[i - 1] if i <= len(weapons) else "", ""]}
                 for i in range(1, int(block.get("count") or 0) + 1))
+    if block.get("group_end"):
+        # آخر صف في مجموعة اللوري: حد سفلي سميك يفصلها عن اللي بعدها.
+        rows[-1] = {**rows[-1], "thick": True}
     return rows
 
 
@@ -242,7 +246,7 @@ def _write_pane_row(cells, item, size, widths):
         for index, (cell, value, width) in enumerate(zip(cells, item["values"], widths)):
             # خانة الاسم من أول السطر عشان يتكتب جنب الرقم؛ الباقي في النص.
             _set_text(cell, value, _fitted(value, width, size), center=index != 0)
-            _borders(cell, top=2, bottom=2)
+            _borders(cell, top=2, bottom=THICK if item.get("thick") else 2)
     elif kind == "header":
         for cell, value, width in zip(cells, HEADERS, widths):
             _set_text(cell, value, _fitted(value, width, size, True), bold=True)
@@ -252,7 +256,7 @@ def _write_pane_row(cells, item, size, widths):
         merged = cells[0].merge(cells[-1])
         _set_text(merged, item["text"], size, bold=True)
         _shade(merged, COLORS[kind])
-        _borders(merged, top=12, bottom=4)
+        _borders(merged, top=12, bottom=THICK if item.get("thick") else 4)
     else:
         for cell in cells:
             _set_text(cell, "", size)

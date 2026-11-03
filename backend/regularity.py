@@ -140,9 +140,19 @@ def _labels(people):
     return " + ".join(labels), " + ".join(phones)
 
 
+def _one_vehicle_label(item):
+    """«رقم اللوحة نوع المركبة» بمسافة بس (من غير «—» ومن غير «من جهة خارجية»
+    حتى لو المركبة تبع جهة خارجية)."""
+    vehicle = item.get("vehicle") or {}
+    plate = _text(vehicle.get("plate") or item.get("plate"))
+    kind = _text(vehicle.get("type"))
+    if not plate and not kind:
+        return _text(item.get("label"))
+    return " ".join(part for part in (plate, kind) if part)
+
+
 def _vehicle_label(vehicles):
-    return " + ".join(_text(item.get("label") or item.get("plate")) for item in vehicles
-                       if _text(item.get("label") or item.get("plate")))
+    return " + ".join(label for label in map(_one_vehicle_label, vehicles) if label)
 
 
 def _assignment_row(data, day, assignment, order):

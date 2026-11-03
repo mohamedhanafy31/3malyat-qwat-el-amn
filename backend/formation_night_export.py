@@ -15,6 +15,7 @@ from docx.oxml.ns import qn
 TEMPLATE = Path(__file__).with_name("docx_templates") / "formation_night.docx"
 TEMPLATE_ROWS = 42           # عدد صفوف جدول القالب اللي بيملا الصفحة
 MIN_SCALE = .7               # أقل تصغير للخط/الارتفاع لو الصفوف زادت عن القالب
+THICK = 18                   # 2.25pt (بالثُمن نقطة) الحد الفاصل بين مجموعات اللوري
 LAST_FIT = {}
 
 
@@ -86,16 +87,41 @@ def _set_text(tc, text):
         run.append(t)
 
 
+def _thick_bottom(tc):
+    """حد سفلي سميك للخلية (يستبدل حد القالب السفلي بس)."""
+    tcpr = tc.get_or_add_tcPr()
+    borders = tcpr.find(qn("w:tcBorders"))
+    if borders is None:
+        borders = OxmlElement("w:tcBorders")
+        tcpr.append(borders)
+    node = borders.find(qn("w:bottom"))
+    if node is None:
+        node = OxmlElement("w:bottom")
+        borders.append(node)
+    node.set(qn("w:val"), "single")
+    node.set(qn("w:sz"), str(THICK))
+    node.set(qn("w:space"), "0")
+    node.set(qn("w:color"), "000000")
+    order = ["top", "start", "left", "bottom", "end", "right", "insideH", "insideV", "tl2br", "tr2bl"]
+    kids = sorted(list(borders), key=lambda n: order.index(n.tag.split("}")[1]) if n.tag.split("}")[1] in order else 99)
+    for kid in kids:
+        borders.remove(kid)
+        borders.append(kid)
+
+
 def _cells(proto, kind, side, item):
     index = 0 if side == "r" else 1
     if kind in ("title", "head"):
         cells = [deepcopy(tc) for tc in proto[kind][index]]
         _set_text(cells[0], item["text"])
-        return cells
-    cells = [deepcopy(tc) for tc in proto["slot"][index]]
-    values = item["values"] if kind == "slot" else ["", "", ""]
-    for tc, value in zip(cells, values):
-        _set_text(tc, value)
+    else:
+        cells = [deepcopy(tc) for tc in proto["slot"][index]]
+        values = item["values"] if kind == "slot" else ["", "", ""]
+        for tc, value in zip(cells, values):
+            _set_text(tc, value)
+    if item and item.get("thick"):
+        for tc in cells:
+            _thick_bottom(tc)
     return cells
 
 
@@ -105,7 +131,11 @@ def _units(blocks):
         weapons = list(block.get("weapons") or [])
         slots = [{"type": "slot", "values": [f"{i}-", weapons[i - 1] if i <= len(weapons) else "", ""]}
                  for i in range(1, int(block.get("count") or 0) + 1)]
-        units.append([{"type": "title", "text": block["title"]}] + slots)
+        unit = [{"type": "title", "text": block["title"]}] + slots
+        if block.get("group_end"):
+            # آخر صف في مجموعة اللوري: حد سفلي سميك يفصلها عن اللي بعدها.
+            unit[-1] = {**unit[-1], "thick": True}
+        units.append(unit)
     return units
 
 

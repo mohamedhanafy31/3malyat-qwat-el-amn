@@ -10,6 +10,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, Twips
 
+from . import fleet
 from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font, style_tables_bold_rtl
 from .labels import personnel_rank_abbr
 
@@ -192,6 +193,40 @@ def _sync_cell_widths(table):
             column += span
 
 
+THICK = 18   # 2.25pt (بالثُمن نقطة): الحد الفاصل بين فئات المركبات وبين لواري الفئة الواحدة
+
+
+def _row_border(row, side):
+    """حد سميك أسود على كل خلايا الصف من الناحية side ('top' أو 'bottom')."""
+    for tc in row._tr.tc_lst:
+        tc_pr = tc.get_or_add_tcPr()
+        borders = tc_pr.find(qn("w:tcBorders"))
+        if borders is None:
+            borders = OxmlElement("w:tcBorders")
+            # ترتيب عناصر tcPr في المخطط: tcBorders قبل shd/noWrap/tcMar/vAlign.
+            after = [tc_pr.find(qn("w:" + n)) for n in
+                     ("shd", "noWrap", "tcMar", "textDirection", "tcFitText", "vAlign", "hideMark")]
+            after = [n for n in after if n is not None]
+            if after:
+                after[0].addprevious(borders)
+            else:
+                tc_pr.append(borders)
+        node = borders.find(qn("w:" + side))
+        if node is None:
+            node = OxmlElement("w:" + side)
+            order = ("top", "left", "start", "bottom", "right", "end")
+            later = [borders.find(qn("w:" + n)) for n in order[order.index(side) + 1:]]
+            later = [n for n in later if n is not None]
+            if later:
+                later[0].addprevious(node)
+            else:
+                borders.append(node)
+        node.set(qn("w:val"), "single")
+        node.set(qn("w:sz"), str(THICK))
+        node.set(qn("w:space"), "0")
+        node.set(qn("w:color"), "000000")
+
+
 def _plate_row(table, values):
     row = table.add_row()
     _merge_row(row, PLATE_SPANS, list(values)[:len(PLATE_SPANS)], size=PLATE_PT, number_fill=None)
@@ -221,7 +256,7 @@ def build_docx(campaign):
     _merge_row(table.add_row(), [15], [divider], size=HEADING_PT, fill=FILL)
     _merge_row(table.add_row(), DELIVERY_SPANS,
                ["م", "الخدمة", "السائق", "رقم المركبة", "نوع المركبة"], size=HEADING_PT)
-    delivery = list(campaign.get("lorries") or [])
+    delivery = [{**item, "_lorry": True} for item in campaign.get("lorries") or []]
     for service in campaign.get("services") or []:
         vehicles = service.get("service_vehicles") or []
         if not vehicles:
@@ -231,15 +266,27 @@ def build_docx(campaign):
             delivery.append({**service, "vehicle": item.get("vehicle"),
                              "driver": item.get("driver") or service.get("driver")})
     delivery += [{**item, "_daily": True} for item in campaign.get("daily") or []]
-    delivery += [item for item in campaign.get("appointments") or [] if _has_content(item)]
-    for number, item in enumerate(delivery, 1):
+    delivery += [{**item, "_lorry": True} for item in campaign.get("appointments") or [] if _has_content(item)]
+    # ترتيب فئات المركبات: لوري (كل لوري ورا بعض) ← أتوبيس ← ميكروباص ← بيك اب/دوبل كبينة ← الباقي.
+    ordered = fleet.order_by_category(
+        delivery, lambda item: (item.get("vehicle") or {}).get("type"),
+        lambda item: (item.get("vehicle") or {}).get("id") or item.get("id"),
+        lorry_if_missing=lambda item: bool(item.get("_lorry")))
+    previous_break = False
+    for number, (item, _category, _key, brk) in enumerate(ordered, 1):
         plate, kind = _delivery_plate(item), _delivery_type(item)
         # «سائق بورتوفيق» وأمثاله: سائق يومي من غير مركبة، اسمه على عرض الصف (زي الأرشيف).
         if item.get("_daily") and not plate and not kind and (item.get("driver") or {}).get("name"):
             values, spans = [f"{number}.", _service_label(item), _driver_text(item)], DRIVER_ONLY_SPANS
         else:
             values, spans = [f"{number}.", _service_label(item), _driver_text(item), plate, kind], DELIVERY_SPANS
-        _merge_row(table.add_row(), spans, values, size=DELIVERY_PT)
+        row = table.add_row()
+        _merge_row(row, spans, values, size=DELIVERY_PT)
+        if previous_break:
+            _row_border(row, "top")
+        if brk:
+            _row_border(row, "bottom")
+        previous_break = brk
     for values in (campaign.get("plates") or {}).get("rows") or []:
         _plate_row(table, values)
     _sync_cell_widths(table)
