@@ -271,7 +271,7 @@ function updateStatusTextField(value, detailed) {
   $("#assignNoteLabel").textContent = statusText ? "نص الحالة" : "نص التشغيل الكامل المحفوظ";
   $("#assignNoteHint").textContent = statusText
     ? `يظهر للضابط في الخوارج في اليومية التفصيلية ويومية الضباط${isNew ? " — مطلوب مع التصنيف الجديد" : "؛ إذا تُرك فارغًا يظهر اسم الحالة"}`
-    : "نص قديم يحل محل الخدمة التلقائية — امسحه لعرض الخدمة وحدها";
+    : "نص قديم يحل محل الخدمة التلقائية — احذفه لعرض الخدمة وحدها";
   input.required = isNew;
   input.placeholder = statusText ? `مثال: ${value} بمديرية الأمن` : "";
 }
@@ -373,7 +373,8 @@ $("#assignForm").onsubmit = async e => {
 };
 
 async function loadDay(day) {
-  const d = await api(`/api/duty/${day}`); if (!d) return;
+  const d = await api(`/api/duty/${day}`); if (!d) { UI.regionError("#dutyBoard", {message:"تعذر تحميل يومية الضباط.", retry:()=>loadDay(day)}); return; }
+  UI.regionReady("#dutyBoard");
   if (d.officer_statuses) META.officer_statuses = d.officer_statuses;
   DUTY = d; setPageDay(day); render();
   renderRestStrip($("#restStrip"), day);
@@ -386,7 +387,7 @@ $("#dutyDate").onchange = () => loadDay($("#dutyDate").value);
 
 async function load() {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#dutyBoard", {message:"تعذر تهيئة يومية الضباط.", retry:load}); return; }
   const days = d.days || [];
   $("#dutyDate").value = workDay();
   loadDay($("#dutyDate").value);

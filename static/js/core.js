@@ -470,6 +470,93 @@ function skeleton(kind="rows",n=8){
   if(kind==="cards") return `<div class="skel-cards" role="status" aria-busy="true">${sr}${rep('<div class="skel skel-card"></div>')}</div>`;
   return `<div class="skel-rows" role="status" aria-busy="true">${sr}${rep('<div class="skel skel-row"></div>')}</div>`;
 }
+
+/* حالات مناطق البيانات، وملخص الفلاتر، وقوائم الإجراءات الثانوية. */
+const UI=window.UI=window.UI||{};
+
+UI.regionError=function(el,{message="تعذر تحميل البيانات.",retry}={}){
+  if(typeof el==="string") el=document.querySelector(el);
+  if(!el) return null;
+  el.setAttribute("aria-busy","false");
+  el.querySelector(":scope > .data-region-error")?.remove();
+  const initial=!el.children.length||!!el.querySelector(":scope > [aria-busy='true'], :scope > .skel-rows, :scope > .skel-cards, :scope > .skel-stat, :scope > .ops-loading");
+  if(initial) el.innerHTML="";
+  const state=document.createElement("div");
+  state.className=`data-region-error${initial?"":" has-stale"}`;
+  state.setAttribute("role","alert");
+  state.innerHTML=`${icon("alert")}<div><strong>${initial?"تعذر عرض البيانات":"تعذر تحديث البيانات"}</strong><span>${esc(message)}${initial?"":" — البيانات المعروضة هي آخر نسخة متاحة."}</span></div>${retry?'<button type="button" class="btn">إعادة المحاولة</button>':""}`;
+  if(retry) state.querySelector("button").onclick=()=>{state.remove();retry()};
+  el.append(state);
+  return state;
+};
+UI.regionReady=function(el){
+  if(typeof el==="string") el=document.querySelector(el);
+  el?.querySelector(":scope > .data-region-error")?.remove();
+  el?.setAttribute("aria-busy","false");
+};
+
+UI.filterChips=function(container,controls,onChange){
+  if(typeof container==="string") container=document.querySelector(container);
+  if(!container) return {update(){}};
+  const list=(controls||[]).map((item,index)=>{
+    const control=typeof item.el==="string"?document.querySelector(item.el):item.el;
+    return {...item,control,index};
+  }).filter(item=>item.control);
+  const valueOf=item=>item.control.type==="checkbox"?item.control.checked:item.control.value;
+  const active=item=>item.isActive?item.isActive(valueOf(item),item.control):item.control.type==="checkbox"?item.control.checked:String(valueOf(item)||"").trim()!==String(item.defaultValue??"");
+  const labelOf=item=>{
+    const value=valueOf(item);
+    const display=item.format?item.format(value,item.control):(item.control.type==="checkbox"?item.label:item.control.selectedOptions?.[0]?.textContent?.trim()||value);
+    return item.control.type==="checkbox"?String(display):`${item.label}: ${display}`;
+  };
+  const clear=item=>{
+    if(item.clear) item.clear(item.control);
+    else if(item.control.type==="checkbox") item.control.checked=false;
+    else item.control.value=item.defaultValue??"";
+  };
+  const api={
+    update(count){
+      const selected=list.filter(active);
+      container.innerHTML=`<div class="filter-chip-list" aria-label="الفلاتر الفعالة">${selected.map(item=>`<button type="button" class="active-filter-chip" data-filter-index="${item.index}" title="إزالة هذا الفلتر"><span>${esc(labelOf(item))}</span><b aria-hidden="true">×</b><span class="sr-only">إزالة</span></button>`).join("")}${selected.length?'<button type="button" class="filter-clear-all" data-filter-clear>مسح الكل</button>':""}</div><output class="filter-result-count" aria-live="polite">النتائج: ${Number.isFinite(Number(count))?Number(count):"—"}</output>`;
+    },
+  };
+  container.addEventListener("click",event=>{
+    const one=event.target.closest("[data-filter-index]");
+    if(one) clear(list.find(item=>item.index===Number(one.dataset.filterIndex)));
+    else if(event.target.closest("[data-filter-clear]")) list.filter(active).forEach(clear);
+    else return;
+    onChange?.();
+  });
+  api.update();
+  return api;
+};
+
+UI.actionMenu=function(button,panel){
+  if(typeof button==="string") button=document.querySelector(button);
+  if(typeof panel==="string") panel=document.querySelector(panel);
+  if(!button||!panel||button.dataset.menuReady) return;
+  button.dataset.menuReady="1";
+  button.setAttribute("aria-haspopup","menu");
+  button.setAttribute("aria-expanded","false");
+  panel.setAttribute("role","menu");
+  const items=()=>[...panel.querySelectorAll("button:not([disabled]),a[href],input:not([disabled]),select:not([disabled])")].map(item=>{
+    if(item.matches(".action-menu-item,#boardDayAction>button")) item.setAttribute("role","menuitem");
+    return item;
+  });
+  const close=(restore=false)=>{panel.classList.add("hidden");button.setAttribute("aria-expanded","false");if(restore)button.focus()};
+  const open=(last=false)=>{panel.classList.remove("hidden");button.setAttribute("aria-expanded","true");items()[last?items().length-1:0]?.focus()};
+  button.addEventListener("click",event=>{event.stopPropagation();panel.classList.contains("hidden")?open(false):close(false)});
+  button.addEventListener("keydown",event=>{if(["ArrowDown","ArrowUp"].includes(event.key)){event.preventDefault();open(event.key==="ArrowUp")}});
+  panel.addEventListener("keydown",event=>{
+    const all=items(),index=all.indexOf(document.activeElement);
+    if(event.key==="Escape"){event.preventDefault();close(true);return}
+    if(event.key==="ArrowDown"||event.key==="ArrowUp"){
+      event.preventDefault();const step=event.key==="ArrowDown"?1:-1;all[(index+step+all.length)%all.length]?.focus();
+    }
+  });
+  panel.addEventListener("click",event=>{if(event.target.closest("button,a")&&!event.target.closest("[data-menu-keep-open]"))close(false)});
+  document.addEventListener("click",event=>{if(!panel.classList.contains("hidden")&&!panel.contains(event.target)&&event.target!==button)close(false)});
+};
 // فيه بحث أو تصفية شغّالة؟ — الجدول الفاضي ساعتها معناه «مفيش نتائج» مش «مفيش بيانات»
 function _filtersActive(){
   return [...document.querySelectorAll("main .toolbar input.search")].some(i=>i.value.trim())
@@ -1582,6 +1669,7 @@ function _cbSync(sel) {
   if (!inp) return;
   inp.value = sel._comboCustomDraft ?? _cbLabel(sel);
   inp.disabled = sel.disabled;
+  inp.classList.toggle("is-empty", !sel.value);
 }
 
 function _cbRender(q) {
@@ -2317,6 +2405,60 @@ function _syncAllFades() {
 if (_mainEl) new MutationObserver(() => requestAnimationFrame(() => { _labelMobileCards(); _syncAllFades(); }))
   .observe(_mainEl, {childList: true, subtree: true});
 window.addEventListener("resize", () => requestAnimationFrame(_syncAllFades));
+
+/* القائمة الجانبية: أقسام قابلة للطي، والقسم الحالي واليوم يظلان مفتوحين. */
+const SIDE_GROUP_KEY="sidebarGroups:v1";
+let _sideGroupState={};
+try{_sideGroupState=JSON.parse(localStorage.getItem(SIDE_GROUP_KEY)||"{}")||{}}catch(err){}
+$$('.side-title[data-side-group]').forEach(button=>{
+  const group=button.closest('.side-group');
+  const locked=button.dataset.sideGroup==="today"||!!group.querySelector('.navbtn.active');
+  const expanded=locked||_sideGroupState[button.dataset.sideGroup]!==false;
+  group.classList.toggle('is-collapsed',!expanded);
+  button.setAttribute('aria-expanded',String(expanded));
+  if(locked) button.setAttribute('aria-disabled','true');
+  button.addEventListener('click',()=>{
+    if(button.getAttribute('aria-disabled')==='true') return;
+    const next=group.classList.contains('is-collapsed');
+    group.classList.toggle('is-collapsed',!next);
+    button.setAttribute('aria-expanded',String(next));
+    _sideGroupState[button.dataset.sideGroup]=next;
+    try{localStorage.setItem(SIDE_GROUP_KEY,JSON.stringify(_sideGroupState))}catch(err){}
+  });
+});
+
+/* Ctrl/Cmd+K: قائمة انتقال مبنية من روابط التنقل الحالية نفسها. */
+const _commandPalette=$('#commandPalette'),_commandInput=$('#commandPaletteInput'),_commandList=$('#commandPaletteList');
+const _commandLinks=$$('.sidebar .navbtn[href]').map(link=>({href:link.href,label:link.querySelector('span')?.textContent.trim()||link.textContent.trim(),current:link.matches('.active')}));
+let _commandIndex=0;
+function _paintCommands(){
+  if(!_commandList) return;
+  const query=normAr(_commandInput?.value||'');
+  const matches=_commandLinks.filter(item=>!query||normAr(item.label).includes(query));
+  _commandIndex=Math.max(0,Math.min(_commandIndex,matches.length-1));
+  _commandList.innerHTML=matches.length?matches.map((item,index)=>`<a href="${esc(item.href)}" role="option" aria-selected="${index===_commandIndex}" class="${index===_commandIndex?'is-active':''}${item.current?' is-current':''}">${icon('arrow-end')}<span>${esc(item.label)}</span>${item.current?'<small>الصفحة الحالية</small>':''}</a>`).join(''):`<p class="command-palette-empty">لا توجد صفحة مطابقة.</p>`;
+  _commandList.querySelector('.is-active')?.scrollIntoView({block:'nearest'});
+}
+function _openCommands(){
+  if(!_commandPalette) return;
+  _commandInput.value='';_commandIndex=0;_paintCommands();
+  _commandPalette.showModal();requestAnimationFrame(()=>_commandInput.focus());
+}
+document.addEventListener('keydown',event=>{
+  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){
+    event.preventDefault();_commandPalette?.open?_commandPalette.close():_openCommands();return;
+  }
+  if(!_commandPalette?.open) return;
+  const links=[..._commandList.querySelectorAll('a')];
+  if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+    event.preventDefault();_commandIndex=(_commandIndex+(event.key==='ArrowDown'?1:-1)+links.length)%Math.max(links.length,1);_paintCommands();
+  }else if(event.key==='Enter'&&links.length){event.preventDefault();_commandList.querySelector('.is-active')?.click()}
+});
+_commandInput?.addEventListener('input',()=>{_commandIndex=0;_paintCommands()});
+$('#commandPaletteClose')?.addEventListener('click',()=>_commandPalette.close());
+_commandPalette?.addEventListener('click',event=>{if(event.target===_commandPalette)_commandPalette.close()});
+
+$$('[data-ui-menu]').forEach(button=>UI.actionMenu(button,document.getElementById(button.getAttribute('aria-controls'))));
 
 /* صفحات اليوم بتفتح على النهاردة — التاريخ بيتكتب في عنوان الصفحة قبل أول
    رسم، عشان السطر اللي بيطول بيه العنوان مايزقّش الصفحة بعد التحميل */

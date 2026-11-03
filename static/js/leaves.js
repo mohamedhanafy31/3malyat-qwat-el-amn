@@ -4,6 +4,21 @@ let LEAVES = [], PEOPLE = [], OFFICER_IDS = new Set(), LEAVE_TAB = "active";
    يونيو المنتهية؛ الجاري والقادم — اللي بيتسأل عنه فعلًا — كانوا مدفونين.
    الافتراضي بقى الحالية والقادمة، والتبويب اللي المستخدم يختاره بيتحفظ. */
 try { LEAVE_TAB = localStorage.getItem("leavesTab") || "active"; } catch (err) {}
+const LEAVE_FILTERS = UI.filterChips("#leaveFilterSummary", [
+  {el:"#leaveSearch", label:"بحث", format:value=>`«${value}»`},
+  {el:"#leaveTypeFilter", label:"النوع"}, {el:"#leaveMonthFilter", label:"الشهر"},
+  {el:"#leaveCategoryFilter", label:"الفئة"}, {el:"#leaveDurationFilter", label:"المدة"},
+], render);
+
+function updateLeaveTabCounts(today) {
+  const counts={all:LEAVES.length,active:LEAVES.filter(l=>l.end>=today).length,
+    current:LEAVES.filter(l=>l.start<=today&&today<=l.end).length,
+    upcoming:LEAVES.filter(l=>l.start>today).length,ended:LEAVES.filter(l=>l.end<today).length};
+  $$('[data-lv]').forEach(button=>{
+    if(!button.dataset.baseLabel) button.dataset.baseLabel=button.textContent.trim();
+    button.textContent=`${button.dataset.baseLabel} (${counts[button.dataset.lv]||0})`;
+  });
+}
 
 // ── helpers ────────────────────────────────────────────────────────────────
 const personById   = id => PEOPLE.find(p => p.id === id);
@@ -159,6 +174,7 @@ const LEAVE_COLS = {
 function render() {
   renderStats();
   const today = curDate();
+  updateLeaveTabCounts(today);
   const st = _sortState("leaveWrap");
 
   let rows = [...LEAVES];
@@ -249,6 +265,7 @@ function render() {
     {title: "لا توجد راحات مسجّلة", hint: "سجّل راحة جديدة من زر «تسجيل راحة»."},
     render
   );
+  LEAVE_FILTERS.update(rows.length);
 }
 
 
@@ -313,7 +330,8 @@ function renderSuspensionStrip() {
 // ── Bootstrap ──────────────────────────────────────────────────────────────
 async function load() {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#leaveWrap", {message:"تعذر تحميل سجل الراحات.", retry:load}); return; }
+  UI.regionReady("#leaveWrap");
   LEAVES       = d.leaves || [];
   PEOPLE       = d.people || [];
   OFFICER_IDS  = new Set(d.officer_ids || []);

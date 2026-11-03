@@ -1,7 +1,7 @@
 /* الرئيسية — لوحة تشغيل الخدمات اليومية، والمتابعة الإدارية القديمة تحتها. */
 (async () => {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#opsBoard", {message:"تعذر تحميل لوحة التشغيل.", retry:()=>location.reload()}); return; }
 
   let ops = null;
   const today = curDate();
@@ -26,11 +26,11 @@
     // لكل مناسبة ملفين: خط التشكيل ويومية الانتظام بتاعتها (بالعرض).
     list.forEach(item => [["special-formation", "خط تشكيل"], ["special-regularity", "يومية انتظام"]].forEach(([route, label]) => {
       const link = document.createElement("a");
-      link.className = "btn";
+      link.className = "btn export-btn";
       link.dataset.specialFormation = item.name;
       link.href = `/api/ops/${day}/${route}.docx?section=${encodeURIComponent(item.name)}`;
       link.title = `${label} ${item.name} — ${item.posts} خدمة`;
-      link.innerHTML = `${icon("download")}<span>${label} <bdi>${esc(item.name)}</bdi></span>`;
+      link.innerHTML = `${icon("download")}<span>تصدير Word — ${label} <bdi>${esc(item.name)}</bdi></span>`;
       link.addEventListener("click", event => {
         event.preventDefault();
         previewExport(link.getAttribute("href"), `${label} ${item.name}`);
@@ -61,10 +61,10 @@
   let keyboardZone = 0;
 
   const $id = id => document.getElementById(id);
-  // زرار Word اللي بيعمله export.js بيتنقل لمجموعة «ملفات اليوم» جنب خطّي التشكيل.
+  // زر تصدير Word العام ينتقل لمجموعة «ملفات اليوم» مع الاحتفاظ بالتسمية الموحدة.
   const exportButton = document.querySelector(".page-actions .export-btn");
   if (exportButton && $id("dayFiles")) {
-    exportButton.querySelector("span").textContent = "يومية الانتظام";
+    exportButton.title = "تصدير يومية الانتظام بصيغة Word";
     $id("dayFiles").insertBefore(exportButton, $id("formationMorningExport"));
   }
   // تحذير اليوم مكانه تحت عنوان الصفحة زي باقي الصفحات.
@@ -691,7 +691,8 @@
 
   async function loadOps() {
     const next = await api(`/api/ops/${day}`, {noLoader: true});
-    if (!next) { paintSync(); return; }
+    if (!next) { paintSync(); UI.regionError("#opsBoard", {message:"تعذر تحديث لوحة التشغيل.", retry:loadOps}); return; }
+    UI.regionReady("#opsBoard");
     // التحديث الدوري مايعيدش رسم اللوحة لو مفيش حاجة اتغيّرت — إعادة الرسم
     // بتقفل أي قايمة ⋯ مفتوحة وبتضيّع مكان التركيز من الكيبورد كل 30 ثانية.
     // التلميحات (جهّز/متأخرة) بتتحسب على السيرفر بالدقيقة، فبنقارنها برضه.

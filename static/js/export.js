@@ -118,8 +118,8 @@ async function previewExport(url, label = "") {
     // بـ Word نفسه المعاينة مطابقة؛ بـ LibreOffice (جهاز التطوير) تقريبية ونقول ليه.
     const approximate = result.engine !== "word";
     note.textContent = !approximate ? ""
-      : missing.length ? `معاينة تقريبية (LibreOffice): الخطوط دي مش متثبتة على السيرفر فممكن تختلف عن Word: ${missing.join("، ")}.`
-      : "معاينة تقريبية (LibreOffice)؛ على جهاز التشغيل بـ Word بتبقى مطابقة للملف.";
+      : missing.length ? `معاينة تقريبية (LibreOffice): هذه الخطوط غير مثبتة على الخادم، وقد تختلف عن Word: ${missing.join("، ")}.`
+      : "معاينة تقريبية (LibreOffice)؛ تكون المعاينة مطابقة للملف عند فتحه ببرنامج Word على جهاز التشغيل.";
     note.classList.toggle("hidden", !approximate);
     if (modal._token !== token) return;
     meta.textContent = count === 1 ? "صفحة واحدة — راجع الشكل ثم حمّل الملف." : `${count} صفحات — راجع الشكل ثم حمّل الملف.`;

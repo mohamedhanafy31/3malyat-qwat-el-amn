@@ -1,5 +1,10 @@
 /* سجل المركبات — إدارة مركبات الحملة وحالتها من شاشة واحدة. */
 let VEHICLES = [], VEHICLE_TYPES = [], VEHICLE_STATUSES = {};
+const VEHICLE_FILTERS = UI.filterChips("#vehicleFilterSummary", [
+  {el:"#vehicleSearch", label:"بحث", format:value=>`«${value}»`},
+  {el:"#vehicleTypeFilter", label:"النوع"}, {el:"#vehicleStatusFilter", label:"الحالة"},
+  {el:"#vehicleOriginFilter", label:"التبعية"}, {el:"#vehicleArchived", label:"إظهار المؤرشفة"},
+], loadVehicles);
 
 const vehicleStatusLabel = status => VEHICLE_STATUSES[status] || (status === "disabled" ? "معطلة" : "صالحة");
 const vehicleStatusClass = status => status === "disabled" ? "err" : "on";
@@ -51,11 +56,13 @@ function renderVehicles() {
   $("#vehiclesWrap").innerHTML = rows.length
     ? `<div class="table-scroll">${mtable(["اللوحة", "النوع", "الموديل", "الحالة", "ملاحظات", "الإجراء"], rows)}</div><div class="count">${countLabel(rows.length, "سجل")}</div>`
     : emptyState({icon: "inbox", title: "لا توجد مركبات", hint: "أضف مركبة جديدة أو عدّل عوامل البحث والتصفية.", action: {label: "إضافة مركبة", id: "addVehicleBtn", primary: true}});
+  VEHICLE_FILTERS.update(visible.length);
 }
 
 async function loadVehicles() {
   const d = await api(`/api/vehicles?archived=${$("#vehicleArchived").checked ? "1" : "0"}`);
-  if (!d) return;
+  if (!d) { UI.regionError("#vehiclesWrap", {message:"تعذر تحميل سجل المركبات.", retry:loadVehicles}); return; }
+  UI.regionReady("#vehiclesWrap");
   VEHICLES = d.vehicles || [];
   VEHICLE_TYPES = d.types || [];
   VEHICLE_STATUSES = d.statuses || {};
@@ -130,5 +137,5 @@ $("#vehicleForm").onsubmit = async e => {
   closeModal("vehicleModal", true); showToast(id ? "تم حفظ التعديلات" : "تمت إضافة المركبة"); loadVehicles();
 };
 
-async function load() { if (await bootstrap()) loadVehicles(); }
+async function load() { if (await bootstrap()) loadVehicles(); else UI.regionError("#vehiclesWrap", {message:"تعذر تهيئة سجل المركبات.", retry:load}); }
 load();

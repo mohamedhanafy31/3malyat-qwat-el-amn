@@ -20,16 +20,17 @@ function personCell(p) {
 }
 
 function basicRow(r) {
-  const sources = [];
-  if (r.inherited_fields?.length) sources.push(`موروث من ${fmt(r.inherited_from)}`);
-  const inherited = sources.length ? `<div class="sub">${sources.join(" • ")}</div>` : "";
-  const defaultMarker = r.default_fields?.length
-    ? `<span class="default-marker" title="قيم افتراضية من آخر يومية أفراد" aria-label="قيم افتراضية من آخر يومية أفراد">افتراضي</span>` : "";
+  const inheritedFields = r.inherited_fields?.length || 0;
+  const hasPeople = !!(r.morning?.name || r.morning?.phone || r.night?.name || r.night?.phone);
+  const editedToday = !inheritedFields && !r.default_fields?.length && (hasPeople || r.count || r.weapon || r.schedule);
+  const marker = inheritedFields
+    ? `<span class="af-row-marker is-inherited" title="قيم موروثة من يومية ${esc(fmt(r.inherited_from))}" aria-label="قيم موروثة من يومية ${esc(fmt(r.inherited_from))}"></span>`
+    : editedToday ? `<span class="af-row-marker" title="تم تعديل قيم هذا الصف في هذه اليومية" aria-label="تم تعديل قيم هذا الصف في هذه اليومية"></span>` : "";
   return `<tr>
-    <td class="name">${esc(r.name)}${defaultMarker}</td>
+    <td class="name">${esc(r.name)}${marker}</td>
     <td>${personCell(r.morning)}</td>
     <td>${personCell(r.night)}</td>
-    <td>${esc(r.count) || "<span class='muted'>—</span>"}${inherited}</td>
+    <td>${esc(r.count) || "<span class='muted'>—</span>"}</td>
     <td>${esc(r.weapon) || "<span class='muted'>—</span>"}</td>
     <td>${esc(r.schedule) || "<span class='muted'>—</span>"}</td>
     <td><div class="actions"><button class="mini" data-action="openAfEntry"
@@ -72,7 +73,7 @@ function render() {
     : `<p class="vacancy-summary ok"><span class="status-dot ok" aria-hidden="true"></span>لا توجد خانات شاغرة</p>`;
   const defaultRows = AF.basic.filter(r => r.default_fields?.length).length;
   const defaultNotice = defaultRows
-    ? `<p class="af-default-notice"><b>${countLabel(defaultRows, "صف")}</b> تستخدم قيمًا افتراضية من آخر يومية أفراد. تظهر علامة «افتراضي» بجانب كل صف.</p>` : "";
+    ? `<p class="af-default-notice"><b>${countLabel(defaultRows, "صف")}</b> تستخدم القيم الافتراضية المعتمدة. تظهر العلامة فقط للصف المعدّل اليوم أو الموروث من يومية سابقة.</p>` : "";
   wrap.innerHTML = summary + `
     <div class="ledger-board">
       <div class="ledger-head">
@@ -140,7 +141,8 @@ async function loadDayStatus() {
 
 async function loadDay(day) {
   const v = await api(`/api/afraad/${day}`);
-  if (!v) return;
+  if (!v) { UI.regionError("#afWrap", {message:"تعذر تحميل يومية الأفراد.", retry:()=>loadDay(day)}); return; }
+  UI.regionReady("#afWrap");
   AF = v; DAY = day; $("#dutyDate").value = day; setPageDay(day); render();
   preparePersonnelChoices();
   loadDayStatus();
@@ -292,7 +294,7 @@ async function startOcr(file) {
   AF_OCR = null;
   const controller = new AbortController();
   const run = OCR_RUN = {controller, started: performance.now(), timer: setInterval(ocrTick, 250)};
-  ocrStage("scan", `بيقرا «${file.name}» — لا تقفل الصفحة.`);
+  ocrStage("scan", `تُقرأ «${file.name}» الآن — لا تغلق الصفحة.`);
   ocrTick();
   openModal("afOcrModal");
 
@@ -306,15 +308,15 @@ async function startOcr(file) {
   } catch (error) {
     if (OCR_RUN !== run) return;                       // المستخدم قفل النافذة أو بدأ قراءة جديدة
     clearInterval(run.timer); OCR_RUN = null;
-    ocrFail(controller.signal.reason === "timeout" ? "القراءة أخدت وقت أطول من المسموح" : "تعذر الاتصال بالخادم",
-      controller.signal.reason === "timeout" ? "جرّب صورة أوضح أو أصغر حجمًا." : "تأكد من الاتصال وجرّب تاني.");
+    ocrFail(controller.signal.reason === "timeout" ? "استغرقت القراءة وقتًا أطول من المسموح" : "تعذر الاتصال بالخادم",
+      controller.signal.reason === "timeout" ? "حاول استخدام صورة أوضح أو أصغر حجمًا." : "تحقق من الاتصال ثم أعد المحاولة.");
     return;
   } finally { clearTimeout(timeout); }
   if (OCR_RUN !== run) return;
   clearInterval(run.timer); OCR_RUN = null;
 
   if (response.status === 401) { location.href = "/login?next=" + encodeURIComponent(location.pathname); return; }
-  if (response.status === 403) { ocrFail("مفيش صلاحية", "ليس لديك صلاحية لقراءة الصور."); return; }
+  if (response.status === 403) { ocrFail("لا توجد صلاحية", "ليس لديك صلاحية لقراءة الصور."); return; }
   if (!response.ok) { ocrFail("تعذّرت قراءة الصورة", out.error || "حدث خطأ غير متوقع."); return; }
 
   // خلّص كل المراحل وبعدين افتح المراجعة بانتقال هادي
@@ -337,7 +339,7 @@ function ocrSlot(title, read, match, attr, personnel) {
   const picked = match?.matched ? match.id : "";
   const state = !read ? `<span class="ocr-conf none">فاضية</span>`
     : match?.matched ? ocrBadge(match.score, "مطابق: " + (match.name || ""))
-    : `<span class="ocr-conf low" title="مفيش مطابقة مؤكدة — اختار الفرد يدويًا">غير مطابق</span>`;
+    : `<span class="ocr-conf low" title="لا توجد مطابقة مؤكدة — اختر الفرد يدويًا">غير مطابق</span>`;
   return `<div class="ocr-slot">
     <div class="ocr-slot-head"><h5>${title}</h5>${state}</div>
     <div class="ocr-read" title="النص المقروء من الصورة">${read ? esc(read) : "<span class='muted'>—</span>"}</div>
@@ -427,7 +429,7 @@ function renderOcrPreview() {
         ${ocrSlot("الليلية", row.evening, row.night_match, "data-ocr-night", personnel)}
       </div>
     </article>`).join("")
-    : emptyState({title: "لم تُستخرج صفوف قابلة للتسكين", hint: "راجع صورة الجدول والملاحظات، وجرّب صورة أوضح أو قصّ الجدول بس."});
+    : emptyState({title: "لم تُستخرج صفوف قابلة للتسكين", hint: "راجع صورة الجدول والملاحظات، ثم استخدم صورة أوضح أو قصّ الجدول فقط."});
   // الصفوف بتترسم بعد تحميل الصفحة، فـ upgradeSelects الأولانية ماشافتهاش —
   // من غيرها خانة الفرد والخدمة كانت قايمة عادية من غير كتابة وبحث.
   upgradeSelects($("#afOcrRows"));
@@ -473,7 +475,7 @@ function cropRender() {
     width: (CROP.r - CROP.l) * w + "px", height: (CROP.b - CROP.t) * h + "px"});
   const full = CROP.l <= 0.001 && CROP.t <= 0.001 && CROP.r >= 0.999 && CROP.b >= 0.999;
   const px = (CROP.r - CROP.l) * img.naturalWidth, py = (CROP.b - CROP.t) * img.naturalHeight;
-  $("#afOcrCropInfo").textContent = full ? "اسحب الحواف لقص الجزء اللي فيه الجدول بس."
+  $("#afOcrCropInfo").textContent = full ? "اسحب الحواف لقص الجزء الذي يحتوي على الجدول فقط."
     : `المنطقة المقصوصة ${Math.round(px)}×${Math.round(py)} بكسل`;
   $("#afOcrCropReset").disabled = full;
 }
@@ -498,7 +500,7 @@ async function renderPdfPage(number) {
   canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
   await Promise.race([
     page.render({canvasContext: canvas.getContext("2d"), viewport}).promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error("استغرق رسم الصفحة وقتًا أطول من اللازم — تأكد إن التبويب ظاهر وجرّب تاني.")), 15000)),
+    new Promise((_, reject) => setTimeout(() => reject(new Error("استغرق رسم الصفحة وقتًا أطول من اللازم — تأكد أن التبويب ظاهر ثم أعد المحاولة.")), 15000)),
   ]);
   const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
   if (OCR_SRC?.pdf !== pdf || OCR_SRC.page !== number) return;      // اختار صفحة تانية في الأثناء
@@ -528,13 +530,13 @@ async function prepareFile(file) {
   OCR_SRC = {file, isPdf, pdf: null, url: "", page: 0};
   $("#afOcrPdfBar").classList.toggle("hidden", !isPdf);
   $("#afOcrCropImg").removeAttribute("src");
-  ocrStage("prepare", isPdf ? "اختر الصفحة اللي فيها اليومية، وبعدين اقصّ الجزء اللي فيه الجدول بس."
-    : "اقصّ الجزء اللي فيه الجدول بس (اختياري) وبعدين ابدأ القراءة.");
+  ocrStage("prepare", isPdf ? "اختر الصفحة التي تحتوي على اليومية، ثم قصّ الجزء الذي يحتوي على الجدول فقط."
+    : "قصّ الجزء الذي يحتوي على الجدول فقط (اختياري)، ثم ابدأ القراءة.");
   openModal("afOcrModal");
   if (!isPdf) { setPrepImage(URL.createObjectURL(file)); return; }
   try {
     try { await loadPdfJs(); }
-    catch (error) { throw new Error("تعذّر تحميل مكتبة قراءة PDF — تحقق من الاتصال وجرّب تاني."); }
+    catch (error) { throw new Error("تعذّر تحميل مكتبة قراءة PDF — تحقق من الاتصال ثم أعد المحاولة."); }
     const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
     if (OCR_SRC?.file !== file) { pdf.destroy?.(); return; }
     OCR_SRC.pdf = pdf;
@@ -664,7 +666,7 @@ $("#afOcrApply").onclick = async () => {
 
 async function load() {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#afWrap", {message:"تعذر تهيئة يومية الأفراد.", retry:load}); return; }
   loadDay(workDay());
 }
 load();

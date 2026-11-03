@@ -128,11 +128,12 @@ function renderActivityMembers() {
 }
 
 async function loadActivityStats() {
-  document.getElementById("activityMembers").innerHTML = skeleton("rows", 8);
+  if (!ACTIVITY) document.getElementById("activityMembers").innerHTML = skeleton("rows", 8);
   const params = new URLSearchParams({from: document.getElementById("asFrom").value,
     to: document.getElementById("asTo").value});
   const data = await api(`/api/activity-stats?${params}`);
-  if (!data) return;
+  if (!data) { if(!ACTIVITY) document.getElementById("activityMembers").innerHTML=""; UI.regionError("#activitySummary", {message:"تعذر تحميل إحصائيات الاستخدام.", retry:loadActivityStats}); return; }
+  UI.regionReady("#activitySummary");
   ACTIVITY = data;
   document.getElementById("activityRangeStamp").textContent = `${fmt(data.date_from)} — ${fmt(data.date_to)}`;
   renderActivitySummary();
@@ -157,7 +158,7 @@ document.getElementById("activityRoleFilter").onchange = renderActivityMembers;
 document.getElementById("activityMemberSearch").addEventListener("input", debounce(renderActivityMembers, 150));
 
 (async () => {
-  if (!(await bootstrap())) return;
+  if (!(await bootstrap())) { UI.regionError("#activitySummary", {message:"تعذر تهيئة إحصائيات الاستخدام.", retry:()=>location.reload()}); return; }
   document.getElementById("asTo").value = curDate();
   document.getElementById("asFrom").value = addDays(curDate(), -29);
   loadActivityStats();

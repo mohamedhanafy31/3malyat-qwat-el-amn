@@ -234,12 +234,13 @@ function getFilterParams() {
 }
 
 async function load() {
-  Chart.helpers.each(Chart.instances, c => c.destroy());
-  if (!(await bootstrap())) return;
+  if (!(await bootstrap())) { UI.regionError("#summaryStats", {message:"تعذر تهيئة إحصائيات التشغيل.", retry:load}); return; }
 
   const query = getFilterParams();
   const d = await api(`/api/duty/stats${query}`);
-  if (!d) return;
+  if (!d) { UI.regionError("#summaryStats", {message:"تعذر تحميل إحصائيات التشغيل.", retry:load}); return; }
+  UI.regionReady("#summaryStats");
+  Chart.helpers.each(Chart.instances, c => c.destroy());
 
   document.getElementById("dsFrom").value = d.date_from;
   document.getElementById("dsTo").value = d.date_to;

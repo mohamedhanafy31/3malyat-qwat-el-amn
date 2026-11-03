@@ -73,7 +73,7 @@
     </div>
 
     <div class="side-group">
-      <div class="side-title">اليوم</div>
+      <button type="button" class="side-title" data-side-group="today" aria-expanded="true" aria-disabled="true">اليوم {{ icon('chevron-down') }}</button>
       <a class="navbtn {{ 'active' if page == 'board' }}" data-key="2" href="{{ url_for('pages.board') }}"
          {{ 'aria-current=page' if page == 'board' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v2H4V4Zm0 5h10v2H4V9Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Z"/></svg>
@@ -97,7 +97,7 @@
     </div>
 
     <div class="side-group">
-      <div class="side-title">القوة</div>
+      <button type="button" class="side-title" data-side-group="force" aria-expanded="true">القوة {{ icon('chevron-down') }}</button>
       <a class="navbtn {{ 'active' if page == 'officers' }}" data-key="6" href="{{ url_for('pages.officers') }}"
          {{ 'aria-current=page' if page == 'officers' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5.5v5.6c0 5.2 3.4 9.9 8 11.4 4.6-1.5 8-6.2 8-11.4V5.5L12 2Zm0 5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Zm0 12.4c-2.4-.8-4.4-2.7-5.4-5.1 1.4-1 3.4-1.6 5.4-1.6s4 .6 5.4 1.6c-1 2.4-3 4.3-5.4 5.1Z"/></svg>
@@ -127,7 +127,7 @@
     </div>
 
     <div class="side-group">
-      <div class="side-title">الحملة</div>
+      <button type="button" class="side-title" data-side-group="campaign" aria-expanded="true">الحملة {{ icon('chevron-down') }}</button>
       <a class="navbtn {{ 'active' if page == 'vehicles' }}" href="{{ url_for('pages.vehicles') }}"
          {{ 'aria-current=page' if page == 'vehicles' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14a2 2 0 0 1 2 2v8h-2V7H5v7H3V6a2 2 0 0 1 2-2Zm-1 9h16v5h-2v2H6v-2H4v-5Zm4 2v2h8v-2H8Z"/></svg>
@@ -146,7 +146,7 @@
     </div>
 
     <div class="side-group">
-      <div class="side-title">الراحات</div>
+      <button type="button" class="side-title" data-side-group="leaves" aria-expanded="true">الراحات {{ icon('chevron-down') }}</button>
       <a class="navbtn {{ 'active' if page == 'leaves' }}" data-key="8" href="{{ url_for('pages.leaves') }}"
          {{ 'aria-current=page' if page == 'leaves' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7Zm-2 8h14v10H5V10Z"/></svg>
@@ -165,7 +165,7 @@
     </div>
 
     <div class="side-group">
-      <div class="side-title">التقارير</div>
+      <button type="button" class="side-title" data-side-group="reports" aria-expanded="true">التقارير {{ icon('chevron-down') }}</button>
       <a class="navbtn {{ 'active' if page == 'duty_stats' }}" href="{{ url_for('pages.duty_stats') }}"
          {{ 'aria-current=page' if page == 'duty_stats' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18v-2H5V3H3zm4 12l3-4 3 3 4-5 2 2V18H7v-3z"/></svg>
@@ -195,7 +195,7 @@
 
     {% if can('view_logs') or can('manage_users') %}
     <div class="side-group">
-      <div class="side-title">الرقابة</div>
+      <button type="button" class="side-title" data-side-group="oversight" aria-expanded="true">الرقابة {{ icon('chevron-down') }}</button>
       {% if can('view_logs') %}
       <a class="navbtn {{ 'active' if page == 'activity_stats' }}" href="{{ url_for('pages.activity_stats') }}"
          {{ 'aria-current=page' if page == 'activity_stats' }}>
@@ -219,7 +219,7 @@
     {% endif %}
 
     <div class="side-group">
-      <div class="side-title">الإعدادات</div>
+      <button type="button" class="side-title" data-side-group="settings" aria-expanded="true">الإعدادات {{ icon('chevron-down') }}</button>
       <a class="navbtn {{ 'active' if page == 'service_catalog' }}" href="{{ url_for('pages.service_catalog') }}"
          {{ 'aria-current=page' if page == 'service_catalog' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7 12h10v1.5H7V12Zm0 4h10v1.5H7V16Zm0-8h5v1.5H7V8Z"/></svg>
@@ -227,7 +227,7 @@
       </a>
     </div>
 
-    <p class="side-hint">اختصار التنقل: <kbd>Alt</kbd> أو <kbd>Ctrl</kbd> + الرقم</p>
+    <div class="side-hint"><span><kbd>Ctrl</kbd>+<kbd>K</kbd> للانتقال السريع</span><span><kbd>Alt</kbd> أو <kbd>Ctrl</kbd> + الرقم للصفحات اليومية</span></div>
   </nav>
 
   <main class="content" id="main" tabindex="-1">
@@ -245,6 +245,16 @@
 </div>
 
 {% block modals %}{% endblock %}
+
+<dialog class="command-palette" id="commandPalette" aria-labelledby="commandPaletteTitle">
+  <div class="command-palette-head">
+    <h2 id="commandPaletteTitle">الانتقال السريع</h2>
+    <button type="button" class="close" id="commandPaletteClose" aria-label="إغلاق">×</button>
+  </div>
+  <label class="sr-only" for="commandPaletteInput">ابحث عن صفحة</label>
+  <input type="search" id="commandPaletteInput" autocomplete="off" placeholder="اكتب اسم الصفحة…">
+  <div class="command-palette-list" id="commandPaletteList" role="listbox" aria-label="صفحات النظام"></div>
+</dialog>
 
 <div class="process-loader hidden" id="processLoader" aria-hidden="true">
   <div class="process-loader-card" role="status" aria-live="polite">

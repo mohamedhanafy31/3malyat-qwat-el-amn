@@ -934,7 +934,8 @@ $("#btnConfirmAll").onclick = confirmAllUnconfirmed;
 
 /* ---------- تنقّل الأيام ---------- */
 async function loadDay(day) {
-  const b = await api(`/api/board/${day}`); if (!b) return;
+  const b = await api(`/api/board/${day}`); if (!b) { UI.regionError("#matchBoard", {message:"تعذر تحميل اليومية التفصيلية.", retry:()=>loadDay(day)}); return; }
+  UI.regionReady("#matchBoard");
   if (DAY && day !== DAY) SELECTED_ROW_ID = null;
   BOARD = b; DAY = day; $("#dutyDate").value = day; setPageDay(day); render();
   renderRestStrip($("#restStrip"), day);
@@ -1036,11 +1037,13 @@ async function loadDayStatus() {
   const s = await api(`/api/day-status/${DAY}`);
   if (!s) return;
   const badge = $("#dayLockBadge");
+  const dayAction=$("#boardDayAction");
+  dayAction.innerHTML="";
   if (s.closed) {
     const why = s.auto ? "أُغلق تلقائيًا الساعة 12 ليلًا"
                        : `أُغلق يدويًا${s.closed_by ? " — " + s.closed_by : ""}`;
-    badge.innerHTML = `<span class="chip err" title="${esc(why)}">${icon("lock")} مغلق</span>
-      <button class="mini" id="btnReopenDay">فتح استثنائي</button>`;
+    badge.innerHTML = `<span class="chip err" title="${esc(why)}">${icon("lock")} مغلق</span>`;
+    dayAction.innerHTML=`<button class="action-menu-item" id="btnReopenDay">فتح استثنائي</button>`;
     $("#btnReopenDay").onclick = reopenDay;
   } else if (s.reopened) {
     badge.innerHTML = `<span class="chip taq"
@@ -1048,12 +1051,12 @@ async function loadDayStatus() {
         ${icon("unlock")} مفتوح استثنائيًا اليوم</span>`;
   } else if (s.stage === "not_open") {
     badge.innerHTML = `<span class="chip w" title="يوم قادم — لم يحن دوره بعد، ويُسمح بالتجهيز المسبق">
-        ${icon("clock")} لم يُفتح بعد</span>
-      <button class="mini" id="btnCloseDay" title="إغلاق اليوم مسبقًا قبل حلول دوره">إغلاق اليوم مبكرًا</button>`;
+        ${icon("clock")} لم يُفتح بعد</span>`;
+    dayAction.innerHTML=`<button class="action-menu-item" id="btnCloseDay" title="إغلاق اليوم مسبقًا قبل حلول دوره">إغلاق اليوم مبكرًا</button>`;
     $("#btnCloseDay").onclick = closeDay;
   } else {
-    badge.innerHTML = `<span class="chip on" title="اليوم — مفتوح للتعديل"><span class="status-dot ok" aria-hidden="true"></span> مفتوح</span>
-      <button class="mini" id="btnCloseDay"
+    badge.innerHTML = `<span class="chip on" title="اليوم — مفتوح للتعديل"><span class="status-dot ok" aria-hidden="true"></span> مفتوح</span>`;
+    dayAction.innerHTML=`<button class="action-menu-item" id="btnCloseDay"
       title="يُغلق اليوم تلقائيًا الساعة 12 ليلًا — هذا الزر للإغلاق المبكر">إغلاق اليوم مبكرًا</button>`;
     $("#btnCloseDay").onclick = closeDay;
   }
@@ -1109,7 +1112,7 @@ $("#dayTomorrow").onclick = async () => {
 
 async function load() {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#matchBoard", {message:"تعذر تهيئة اليومية التفصيلية.", retry:load}); return; }
   const days = d.days || [];
   loadDay(workDay());
 }

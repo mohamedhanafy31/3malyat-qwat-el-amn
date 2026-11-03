@@ -167,12 +167,14 @@ $("#cntBlocks").addEventListener("change", async e => {
 /* ---------- تحميل ---------- */
 async function loadDay(day) {
   const v = await api(`/api/counts/${day}`);
-  if (!v) return;
+  if (!v) { UI.regionError("#cntBlocks", {message:"تعذر تحميل أعداد الخدمات.", retry:()=>loadDay(day)}); return; }
+  UI.regionReady("#cntBlocks");
   VIEW = v; DAY = day; MODE = "day"; $("#dutyDate").value = day; setPageDay(day); render();
 }
 async function loadTemplateView() {
   const v = await api(`/api/counts/template`);
-  if (!v) return;
+  if (!v) { UI.regionError("#cntBlocks", {message:"تعذر تحميل قالب أعداد الخدمات.", retry:loadTemplateView}); return; }
+  UI.regionReady("#cntBlocks");
   VIEW = v; MODE = "template"; render();
 }
 
@@ -261,7 +263,7 @@ $("#countForm").onsubmit = async e => {
 
 async function load() {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#cntBlocks", {message:"تعذر تهيئة أعداد الخدمات.", retry:load}); return; }
   loadDay(workDay());
 }
 load();

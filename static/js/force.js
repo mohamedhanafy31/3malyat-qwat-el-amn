@@ -8,6 +8,12 @@ if (!IS_OFF) setupRosterImport({kind: "personnel", buttonId: "importPersonnelBtn
 window.exportDocxUrl = () => `/api/people/${IS_OFF ? "officers" : "personnel"}/export.docx`;
 const PEOPLE_EXPORT_CATEGORY = IS_OFF ? "officers" : "personnel";
 const PEOPLE_EXPORT_STORAGE = `people-export-columns:${PEOPLE_EXPORT_CATEGORY}`;
+const FORCE_FILTERS = UI.filterChips("#forceFilterSummary", [
+  {el:"#search", label:"بحث", format:value=>`«${value}»`},
+  {el:"#restFilter", label:"نظام الراحة"},
+  {el:"#rankFilter", label:IS_OFF?"الرتبة":"الفئة"},
+  {el:"#statusFilter", label:"الحالة"},
+], render);
 let PEOPLE_EXPORT_COLUMNS = null, PEOPLE_EXPORT_CONTEXT = null;
 
 function savedExportColumns(allKeys) {
@@ -298,6 +304,7 @@ function renderTable() {
     cid, cols, grouped, rowHtml, extraHeads,
     `عدد النتائج: ${rows.length}`, {title: IS_OFF ? "لا يوجد ضباط" : "لا يوجد أفراد"}, renderTable
   );
+  FORCE_FILTERS.update(rows.length);
 }
 
 function render() { renderStats(); renderTable(); }
@@ -581,7 +588,8 @@ if ($("#fSection")) $("#fSection").onchange = updateOfficerSection;
 
 async function load() {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#tableWrap", {message:"تعذر تحميل سجلات القوة.", retry:load}); return; }
+  UI.regionReady("#tableWrap");
   LIST = IS_OFF ? d.officers : d.personnel;
   $("#addBtn").innerHTML = `${icon("plus")} ${IS_OFF ? "إضافة ضابط" : "إضافة فرد"}`;
   if (IS_OFF) {

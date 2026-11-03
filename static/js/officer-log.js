@@ -70,6 +70,11 @@ $("#ologOfficer").onchange = loadLog;
 $("#ologFrom").onchange = loadLog;
 $("#ologTo").onchange = loadLog;
 
+$("#ologPresetToday").onclick = () => {
+  $("#ologFrom").value = curDate();
+  $("#ologTo").value = curDate();
+  loadLog();
+};
 $("#ologPreset7").onclick = () => {
   $("#ologFrom").value = addDays(curDate(), -6);
   $("#ologTo").value = curDate();

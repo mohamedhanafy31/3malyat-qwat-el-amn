@@ -8,6 +8,10 @@ let IS_LOADING = false;
 let USERS_POPULATED = false;
 let EVENTS_POPULATED = false;
 let SEARCH_TIMER = null;
+const AUDIT_FILTERS = UI.filterChips("#auditFilterSummary", [
+  {el:"#auditSearch", label:"بحث", format:value=>`«${value}»`}, {el:"#auditUser", label:"المستخدم"},
+  {el:"#auditEvent", label:"الحدث"}, {el:"#auditFrom", label:"من", format:fmt}, {el:"#auditTo", label:"إلى", format:fmt},
+], ()=>loadEntries(false));
 
 function formatAuditTime(ts) {
   if (!ts) return "<span class='muted'>—</span>";
@@ -58,15 +62,8 @@ function render(isError = false) {
   const loadMoreWrap = $("#auditLoadMoreWrap");
 
   if (isError) {
-    wrap.innerHTML = emptyState({
-      icon: "alert",
-      title: "تعذر تحميل سجل النشاط",
-      hint: "حدث خطأ أثناء الاتصال بالخادم. يرجى مراجعة الاتصال وإعادة المحاولة.",
-      action: '<button type="button" class="btn" id="auditRetryBtn">إعادة المحاولة</button>'
-    });
+    UI.regionError(wrap,{message:"تعذر تحميل سجل النشاط.",retry:()=>loadEntries(false)});
     loadMoreWrap.classList.add("hidden");
-    const retryBtn = $("#auditRetryBtn");
-    if (retryBtn) retryBtn.onclick = () => loadEntries(false);
     return;
   }
 
@@ -83,6 +80,7 @@ function render(isError = false) {
       hint: hasFilters ? "حاول تعديل شروط التصفية أو البحث." : "تُسجَّل هنا كل العمليات الأمنية وتعديلات البيانات تلقائيًا."
     });
     loadMoreWrap.classList.add("hidden");
+    AUDIT_FILTERS.update(0);
     return;
   }
 
@@ -92,6 +90,7 @@ function render(isError = false) {
     </div>
     <div class="count">عدد السجلات المعروضة: ${ENTRIES.length}</div>
   `;
+  AUDIT_FILTERS.update(ENTRIES.length);
 
   if (NEXT_BEFORE) {
     loadMoreWrap.classList.remove("hidden");
@@ -140,7 +139,7 @@ async function loadEntries(append = false) {
     loadMoreBtn.disabled = true;
     loadMoreBtn.textContent = "جاري التحميل…";
   } else {
-    $("#auditWrap").innerHTML = skeleton("rows", 10);
+    if (!ENTRIES.length) $("#auditWrap").innerHTML = skeleton("rows", 10);
     $("#auditLoadMoreWrap").classList.add("hidden");
   }
 
@@ -170,6 +169,7 @@ async function loadEntries(append = false) {
     }
     return;
   }
+  UI.regionReady("#auditWrap");
 
   populateDropdowns(d);
 
@@ -204,6 +204,11 @@ $("#auditClearFilters").onclick = () => {
   $("#auditTo").value = "";
   loadEntries(false);
 };
+
+function auditPreset(from,to=curDate()){$("#auditFrom").value=from;$("#auditTo").value=to;loadEntries(false)}
+$("#auditPresetToday").onclick=()=>auditPreset(curDate());
+$("#auditPreset7").onclick=()=>auditPreset(addDays(curDate(),-6));
+$("#auditPresetMonth").onclick=()=>auditPreset(curDate().slice(0,8)+"01");
 
 const loadMoreBtn = $("#auditLoadMoreBtn");
 if (loadMoreBtn) {

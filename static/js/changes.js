@@ -4,6 +4,10 @@
    فالوقت اللي في العمود ده هو لحظة التأكيد، وكل تغييرات نفس التأكيد
    بتحمل نفس اللحظة بالظبط. */
 let ENTRIES = [];
+const CHANGE_FILTERS = UI.filterChips("#changesFilterSummary", [
+  {el:"#chgEntityFilter", label:"النوع", defaultValue:"duty_move"},
+  {el:"#chgFromDay", label:"من", format:fmt}, {el:"#chgToDay", label:"إلى", format:fmt},
+], loadEntries);
 
 const ACTION_LABEL = {
   create: "إضافة", update: "تعديل", delete: "حذف",
@@ -68,6 +72,7 @@ function render() {
     ENTRIES.map(changeRow), `عدد السجلات: ${ENTRIES.length}`,
     {title: "لا توجد تغييرات مسجّلة", hint: "تُسجَّل تغييرات اليومية التفصيلية بعد الضغط على «تأكيد اليومية»."},
     "changesWrap", render);
+  CHANGE_FILTERS.update(ENTRIES.length);
 }
 
 async function loadEntries() {
@@ -79,7 +84,8 @@ async function loadEntries() {
   if (fromDay) q.set("from_day", fromDay);
   if (toDay) q.set("to_day", toDay);
   const d = await api(`/api/changes${q.toString() ? "?" + q : ""}`);
-  if (!d) return;
+  if (!d) { UI.regionError("#changesWrap", {message:"تعذر تحميل سجل التغييرات.", retry:loadEntries}); return; }
+  UI.regionReady("#changesWrap");
   ENTRIES = d.entries;
   render();
 }
@@ -92,10 +98,14 @@ $("#chgClearDay").onclick = () => {
   $("#chgToDay").value = "";
   loadEntries();
 };
+function changesPreset(from,to=curDate()){$("#chgFromDay").value=from;$("#chgToDay").value=to;loadEntries()}
+$("#chgPresetToday").onclick=()=>changesPreset(curDate());
+$("#chgPreset7").onclick=()=>changesPreset(addDays(curDate(),-6));
+$("#chgPresetMonth").onclick=()=>changesPreset(curDate().slice(0,8)+"01");
 
 async function load() {
   const d = await bootstrap();
-  if (!d) return;
+  if (!d) { UI.regionError("#changesWrap", {message:"تعذر تهيئة سجل التغييرات.", retry:load}); return; }
   loadEntries();
 }
 load();

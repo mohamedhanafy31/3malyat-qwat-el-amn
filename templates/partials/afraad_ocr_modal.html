@@ -6,7 +6,7 @@
     <button type="button" class="close" data-close="afOcrModal" aria-label="إغلاق">×</button>
     <header class="ocr-head">
       <h2 id="afOcrTitle">قراءة صورة اليومية</h2>
-      <span class="ocr-ai-badge" title="النص بيتقرا آليًا من الصورة وممكن يغلط — راجعه قبل التسكين">
+      <span class="ocr-ai-badge" title="يُقرأ النص آليًا من الصورة وقد يخطئ — راجع النتيجة قبل التسكين">
         <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm7 12l.9 2.6L22.5 17l-2.6.9L19 20.5l-.9-2.6-2.6-.9 2.6-.9L19 14zM5 15l.7 2 2 .7-2 .7L5 20.5l-.7-2-2-.7 2-.7L5 15z"/></svg>
         ذكاء اصطناعي · OCR
       </span>
@@ -41,7 +41,7 @@
     <!-- 1) القراءة شغالة -->
     <section class="ocr-pane ocr-pane-scan" aria-live="polite">
       <div class="ocr-scanframe" id="afOcrScanFrame">
-        <img id="afOcrPreviewImg" alt="الصورة اللي بتتقرا دلوقتي">
+        <img id="afOcrPreviewImg" alt="الصورة الجاري قراءتها">
         <i class="ocr-corner tl"></i><i class="ocr-corner tr"></i><i class="ocr-corner bl"></i><i class="ocr-corner br"></i>
         <div class="ocr-grid-wash" aria-hidden="true"></div>
         <div class="ocr-scanline" aria-hidden="true"></div>
@@ -62,7 +62,7 @@
     <!-- 2) فشل -->
     <section class="ocr-pane ocr-pane-error">
       <div class="alert bad"><b id="afOcrErrorTitle">تعذّرت القراءة</b><p id="afOcrErrorText"></p></div>
-      <div class="actions"><button type="button" class="primary" id="afOcrRetry">اختيار صورة تانية</button>
+      <div class="actions"><button type="button" class="primary" id="afOcrRetry">اختيار صورة أخرى</button>
         <button type="button" class="btn" data-close="afOcrModal">إغلاق</button></div>
     </section>
 
@@ -101,7 +101,7 @@
         </div>
         <div class="ocr-foot-actions">
           <button type="button" class="btn" data-close="afOcrModal">إلغاء</button>
-          <button type="button" class="btn" id="afOcrAgain">صورة تانية</button>
+          <button type="button" class="btn" id="afOcrAgain">صورة أخرى</button>
           <button class="primary" id="afOcrApply" type="button">تسكين المختار</button>
         </div>
       </footer>

@@ -15,14 +15,18 @@
       <span id="confirmBadge"></span>
       <span id="dayLockBadge">{{ skeleton("status") }}</span>
     </div>
-    <div class="tb-group tb-end" role="group" aria-label="إجراءات اليومية">
-      <button class="mini bulk-confirm-btn" id="btnConfirmAll"
+    <div class="tb-group tb-end action-menu" role="group" aria-label="إجراءات اليومية الثانوية">
+      <button type="button" class="mini" id="boardMore" data-ui-menu aria-haspopup="menu" aria-expanded="false" aria-controls="boardMoreMenu">المزيد {{ icon('chevron-down') }}</button>
+      <div class="action-menu-panel hidden" id="boardMoreMenu">
+      <button class="action-menu-item bulk-confirm-btn" id="btnConfirmAll"
               title="تأكيد كل اليوميات المسجلة التي لم تُؤكّد بعد">
         {{ icon('check') }} <span>تأكيد غير المؤكد</span>
       </button>
-      <button class="mini" id="btnRefreshFiles" title="تحديث ملفات الأرشيف">{{ icon('refresh') }} تحديث الملفات</button>
+      <button class="action-menu-item" id="btnRefreshFiles" title="تحديث ملفات الأرشيف">{{ icon('refresh') }} تحديث الملفات</button>
+      <div id="boardDayAction"></div>
       <small class="muted" id="dailyFilesStatus">آخر تحديث للملفات: — · 0 ملفات</small>
-      <button class="mini kbd-only" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
+      <button class="action-menu-item kbd-only" id="btnShortcuts" title="اختصارات لوحة المفاتيح">{{ icon('keyboard') }} اختصارات</button>
+      </div>
     </div>
   </div>
   <div id="confirmBar" aria-live="polite">{{ skeleton("confirm-bar") }}</div>

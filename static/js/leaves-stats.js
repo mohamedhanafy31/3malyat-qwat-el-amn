@@ -226,15 +226,15 @@ function getFilterParams() {
 }
 
 async function load() {
-  // تدمير المخططات الحالية قبل إعادة الرسم
-  Chart.helpers.each(Chart.instances, c => c.destroy());
-
   // تحميل Bootstrap للـ meta والأعداد والتاريخ
   const bd = await bootstrap();
+  if (!bd) { UI.regionError("#summaryStats", {message:"تعذر تهيئة إحصائيات الراحات.", retry:load}); return; }
 
   const query = getFilterParams();
   const d = await api(`/api/leaves/stats${query}`);
-  if (!d) return;
+  if (!d) { UI.regionError("#summaryStats", {message:"تعذر تحميل إحصائيات الراحات.", retry:load}); return; }
+  UI.regionReady("#summaryStats");
+  Chart.helpers.each(Chart.instances, c => c.destroy());
 
   populateFilterOptions(d.meta_options);
 

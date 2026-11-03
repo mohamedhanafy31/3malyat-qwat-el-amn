@@ -231,7 +231,8 @@ function openServiceVehicles(row) {
 
 async function loadDay(day) {
   const out = await api(`/api/campaign/${day}`);
-  if (!out) return;
+  if (!out) { UI.regionError("#campaignWrap", {message:"تعذر تحميل يومية الحملة.", retry:()=>loadDay(day)}); return; }
+  UI.regionReady("#campaignWrap");
   CAMPAIGN = out; DAY = day; $("#dutyDate").value = day; setPageDay(day); render(); loadDayStatus();
 }
 
@@ -324,4 +325,4 @@ document.addEventListener("keydown", event => {
   event.preventDefault(); loadDay(addDays($("#dutyDate").value || curDate(), event.key === "PageUp" ? -1 : 1));
 });
 
-(async () => { if (await bootstrap()) loadDay(workDay()); })();
+(async () => { if (await bootstrap()) loadDay(workDay()); else UI.regionError("#campaignWrap", {message:"تعذر تهيئة يومية الحملة.", retry:()=>location.reload()}); })();

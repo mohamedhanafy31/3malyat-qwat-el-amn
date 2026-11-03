@@ -5,8 +5,8 @@
 {% block page_actions %}<span id="dashboardDayWarning" class="day-warning hidden" role="status"></span>
 <div class="day-files" id="dayFiles" role="group" aria-labelledby="dayFilesLabel">
   <span class="day-files-label" id="dayFilesLabel">ملفات اليوم</span>
-  <a class="btn" id="formationMorningExport" href="#">{{ icon('download') }}<span>خط تشكيل صبح</span></a>
-  <a class="btn" id="formationNightExport" href="#">{{ icon('download') }}<span>خط تشكيل ليل</span></a>
+  <a class="btn export-btn" id="formationMorningExport" href="#">{{ icon('download') }}<span>تصدير Word — تشكيل صباحي</span></a>
+  <a class="btn export-btn" id="formationNightExport" href="#">{{ icon('download') }}<span>تصدير Word — تشكيل ليلي</span></a>
   <a class="btn day-files-setup" id="regularityJump" href="#regularityPanel">إعداد يومية الانتظام</a>
 </div>{% endblock %}
 
@@ -54,8 +54,10 @@
       <fieldset><legend>المعاد</legend><select id="opsTimeWindow" aria-label="نافذة المعاد"><option value="all">كل اليوم</option><option value="120">خلال ساعتين</option><option value="240">خلال 4 ساعات</option><option value="none">بدون معاد</option></select></fieldset>
     </div>
   </div>
-  <div class="ops-filter-popover">
-    <button type="button" class="btn" id="opsViewToggle" aria-expanded="false" aria-controls="opsViewPanel">العرض</button>
+  <div class="ops-filter-popover action-menu">
+    <button type="button" class="btn" id="opsMoreToggle" data-ui-menu aria-haspopup="menu" aria-expanded="false" aria-controls="opsMoreMenu">المزيد {{ icon('chevron-down') }}</button>
+    <div class="action-menu-panel hidden" id="opsMoreMenu">
+    <button type="button" class="action-menu-item" id="opsViewToggle" data-menu-keep-open aria-expanded="false" aria-controls="opsViewPanel">العرض</button>
     <div id="opsViewPanel" class="ops-filters-panel ops-view-panel hidden" role="dialog" aria-label="طريقة العرض والتجميع">
       <fieldset><legend>التجميع</legend>
         <select id="opsGroupBy" aria-label="طريقة التجميع">
@@ -70,15 +72,16 @@
         </div>
       </fieldset>
     </div>
+    <button type="button" class="action-menu-item ops-help-toggle kbd-only" id="opsShortcutsToggle" data-menu-keep-open aria-expanded="false" aria-controls="opsShortcutsHelp">اختصارات</button>
+    <div class="ops-shortcuts-help hidden" id="opsShortcutsHelp" role="dialog" aria-label="اختصارات لوحة المفاتيح">
+      <strong>اختصارات لوحة المفاتيح</strong>
+      <span><kbd>/</kbd> بحث · <kbd>↑</kbd><kbd>↓</kbd> تنقّل بين الصفوف</span>
+      <span><kbd>Enter</kbd> الإجراء الأساسي · <kbd>Shift</kbd>+<kbd>F10</kbd> قائمة الصف</span>
+      <span><kbd>F6</kbd> التنقّل بين مناطق اللوحة · <kbd>Space</kbd> طيّ المجموعة</span>
+    </div>
+    </div>
   </div>
   <button type="button" class="btn ops-clear hidden" id="opsClear">مسح الفلاتر</button>
-  <button type="button" class="btn ops-help-toggle kbd-only" id="opsShortcutsToggle" aria-expanded="false" aria-controls="opsShortcutsHelp">اختصارات</button>
-  <div class="ops-shortcuts-help hidden" id="opsShortcutsHelp" role="dialog" aria-label="اختصارات لوحة المفاتيح">
-    <strong>اختصارات لوحة المفاتيح</strong>
-    <span><kbd>/</kbd> بحث · <kbd>↑</kbd><kbd>↓</kbd> تنقّل بين الصفوف</span>
-    <span><kbd>Enter</kbd> الإجراء الأساسي · <kbd>Shift</kbd>+<kbd>F10</kbd> قائمة الصف</span>
-    <span><kbd>F6</kbd> التنقّل بين مناطق اللوحة · <kbd>Space</kbd> طيّ المجموعة</span>
-  </div>
 </section>
 
 <div id="opsLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
