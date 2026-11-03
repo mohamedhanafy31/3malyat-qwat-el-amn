@@ -85,7 +85,7 @@ function renderStats() {
     </div>
     <div class="stat">
       <span>إجمالي السجلات</span>
-      <strong>${LEAVES.length}</strong>
+      <strong>${LEAVES.filter(l => !l.virtual).length}</strong>
       <div class="stat-sub">كل الفترات</div>
     </div>`;
 }
@@ -129,7 +129,9 @@ function leaveRow(l, today) {
   const who = p
     ? `<span class="badge ${OFFICER_IDS.has(l.person_id) ? "" : "person"}">${esc(p.role)}</span>`
     : '<span class="muted">(محذوف)</span>';
-  const origin = l.type === "أسبوعية" && l.origin === "auto_weekly"
+  const origin = l.virtual
+    ? `<div class="sub"><span class="chip w">راحة أسبوعية ثابتة</span></div>`
+    : l.type === "أسبوعية" && l.origin === "auto_weekly"
     ? `<div class="sub"><span class="chip w">تلقائية</span></div>`
     : l.type === "أسبوعية" && l.origin === "weekly_extra"
       ? `<div class="sub"><span class="chip soon">إضافية</span></div>` : "";
@@ -142,8 +144,8 @@ function leaveRow(l, today) {
     <td>${fmt(l.return_date)}</td>
     <td class="num">${days(l.start, l.end)}</td>
     <td>${stateHtml}</td>
-    <td class="wrap">${esc(l.note) || "<span class='muted'>—</span>"}</td>
-    <td class="col-actions"><div class="actions leave-row-actions">
+    <td class="wrap">${l.virtual ? "<span class='muted'>تُسجَّل تلقائيًا عند فتح اليوم</span>" : esc(l.note) || "<span class='muted'>—</span>"}</td>
+    <td class="col-actions">${l.virtual ? "<span class='muted'>—</span>" : `<div class="actions leave-row-actions">
       ${canStop && !upcoming ? `<button class="mini warn" data-action="stopLeave"
         data-id="${esc(l.id)}" data-extra="${dataAttr(stopExtra)}">إنهاء الآن</button>` : ""}
       <button class="mini" data-action="openLeaveEdit" data-id="${esc(l.id)}">تعديل</button>
@@ -151,7 +153,7 @@ function leaveRow(l, today) {
         canStop && upcoming && {action: "stopLeave", id: l.id, extra: stopExtra, label: "إلغاء الراحة", danger: true},
         {action: "deleteLeave", id: l.id, extra: {name: l.name}, label: "حذف", danger: true},
       ])}
-    </div></td></tr>`;
+    </div>`}</td></tr>`;
 }
 
 // ── Sortable column definitions ────────────────────────────────────────────

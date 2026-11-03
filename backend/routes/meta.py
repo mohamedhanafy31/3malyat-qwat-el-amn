@@ -20,6 +20,7 @@ from ..leaves import monthly_roster, weekly_roster
 from ..rest_status import officer_status, taqseera_alerts
 from ..repo import Repos
 from ..store import ALL_DAYS, load_data
+from ..weekly_rest import log_window, virtual_rows
 from ..upcoming import build as build_upcoming
 from ..auth import can
 
@@ -112,6 +113,9 @@ def bootstrap(page):
     if page in ("dashboard", "officers"):
         scope = {today.isoformat(), (today + timedelta(days=1)).isoformat(),
                  day_status.today_iso()}
+    elif page == "leaves":
+        # أعلام الفتح/القفل والتسجيل التلقائي لأيام النافذة القادمة
+        scope = set(log_window(day_status.today_iso()))
     data = load_data(scope)
     meta = _meta(data)
 
@@ -194,6 +198,7 @@ def bootstrap(page):
         return jsonify(_days_payload(data, meta))
 
     if page == "leaves":
+        today_str = day_status.today_iso()
         repos = Repos(data)
         people = _slim(repos.people.active("officers")
                        + repos.people.active("personnel"), rest=True)
@@ -206,7 +211,10 @@ def bootstrap(page):
         # بتاعة ضباط خرجوا من القوة، وفلتر «ضباط/أفراد» في الصفحة بيتقاس
         # عليها — من غيرهم كانوا بيتحسبوا أفراد وهم ضباط.
         officer_ids = [o.id for o in repos.people.all("officers")]
-        return jsonify({"meta": meta, "leaves": repos.leaves.rows_with_names(), "people": people,
+        # الراحة الأسبوعية الثابتة بتتسجّل أول ما اليوم يتفتح، فالجاية لسه
+        # ماتسجّلتش وهي ظاهرة في اليوميات — نضيفها هنا للعرض بس.
+        leaves = repos.leaves.rows_with_names() + virtual_rows(data, today_str)
+        return jsonify({"meta": meta, "leaves": leaves, "people": people,
                         "officer_ids": officer_ids,
                         "counts": _counts(data)})
 
