@@ -883,8 +883,8 @@
     }
   },
   "confirm": {
-    "at": "2026-09-27T00:55:44",
-    "by": "",
+    "at": "2026-11-03T13:42:05",
+    "by": "3malyat_admin",
     "rows": [
       {
         "section": "الخدمات أساسية",
@@ -986,14 +986,14 @@
           }
         ],
         "weapon": "الي",
-        "time": "12ظ",
+        "time": "12م",
         "party": "الامن الوطني",
         "note": "",
         "id": "AS-0005",
         "name": "حملة الأمن الوطني",
         "kind": "خارجية",
         "counts_in_summary": true,
-        "conscript_count": 4
+        "conscript_count": 2
       },
       {
         "section": "الخدمات الطارئة",
@@ -1009,14 +1009,14 @@
           }
         ],
         "weapon": "آلي",
-        "time": "12م",
+        "time": "12ظ",
         "party": "الامن الوطني",
         "note": "",
         "id": "AS-0006",
         "name": "حملة الأمن الوطني",
         "kind": "خارجية",
         "counts_in_summary": true,
-        "conscript_count": 4
+        "conscript_count": 2
       },
       {
         "section": "الخدمات الطارئة",
@@ -1027,7 +1027,7 @@
         ],
         "conscripts": [
           {
-            "class": "وحدة",
+            "class": "وحدة فض",
             "count": 1
           }
         ],
@@ -1052,7 +1052,7 @@
         ],
         "conscripts": [
           {
-            "class": "خفيفة",
+            "class": "مج",
             "count": 1
           },
           {
@@ -1060,7 +1060,7 @@
             "count": 5
           }
         ],
-        "weapon": "آلي",
+        "weapon": "آلي + طلبة",
         "time": "8ص",
         "party": "قوات الأمن",
         "note": "",
@@ -1068,7 +1068,7 @@
         "name": "مأمورية إمداد",
         "kind": "خارجية",
         "counts_in_summary": true,
-        "conscript_count": 6
+        "conscript_count": 5
       },
       {
         "section": "الخدمات الطارئة",
@@ -1079,7 +1079,7 @@
         ],
         "conscripts": [
           {
-            "class": "خفيفة",
+            "class": "مج",
             "count": 1
           }
         ],
@@ -1477,7 +1477,7 @@
         "personnel_ids": [],
         "conscripts": [
           {
-            "class": "حفظ نظام",
+            "class": "وحدة حفظ نظام",
             "count": 1
           }
         ],
@@ -1498,7 +1498,7 @@
         "personnel_ids": [],
         "conscripts": [
           {
-            "class": "حفظ نظام",
+            "class": "وحدة حفظ نظام",
             "count": 1
           }
         ],
@@ -1557,7 +1557,7 @@
         ],
         "conscripts": [
           {
-            "class": "فض",
+            "class": "وحدة فض",
             "count": 1
           }
         ],
@@ -1584,8 +1584,8 @@
             "count": 1
           }
         ],
-        "conscript_count": 20,
-        "weapon": "",
+        "conscript_count": 15,
+        "weapon": "رياضي",
         "time": "2:30م",
         "party": "استاد الجيش",
         "counts_in_summary": true,
@@ -1608,9 +1608,55 @@
           }
         ],
         "conscript_count": 10,
-        "weapon": "",
+        "weapon": "رياضي",
         "time": "2:30م",
         "party": "استاد الجيش",
+        "counts_in_summary": true,
+        "note": ""
+      },
+      {
+        "id": "AS-0043",
+        "section": "الخدمات الطارئة",
+        "name": "احضار العاشر",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-021"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "الي",
+        "time": "7ص",
+        "party": "عتاقة",
+        "counts_in_summary": true,
+        "note": ""
+      },
+      {
+        "id": "AS-0044",
+        "section": "الخدمات الطارئة",
+        "name": "مدرعة قول السلام",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-184"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "الي",
+        "time": "8م",
+        "party": "",
         "counts_in_summary": true,
         "note": ""
       }

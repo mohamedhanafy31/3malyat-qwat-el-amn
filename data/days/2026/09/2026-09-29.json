@@ -407,6 +407,312 @@
       "note": "راحة"
     }
   },
+  "confirm": {
+    "at": "2026-11-03T13:42:06",
+    "by": "3malyat_admin",
+    "rows": [
+      {
+        "conscript_count": 4,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0001",
+        "kind": "خارجية",
+        "name": "تدخل سريع",
+        "note": "",
+        "officer_ids": [
+          "OFF-040"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الخدمات أساسية",
+        "shift": "صباحية",
+        "source_label": "تدخل سريع صبح",
+        "source_manning": "نقيب/عبدالرحمن طارق",
+        "time": "12ظ",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 4,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0002",
+        "kind": "خارجية",
+        "name": "تدخل سريع",
+        "note": "",
+        "officer_ids": [
+          "OFF-016"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الخدمات أساسية",
+        "shift": "ليلية",
+        "source_label": "تدخل سريع ليل",
+        "source_manning": "مقدم/عبدالرحمن الحسيني",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0003",
+        "kind": "خارجية",
+        "name": "المنطقه الحره",
+        "note": "",
+        "officer_ids": [
+          "OFF-011"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الخدمات أساسية",
+        "shift": "ليلية",
+        "source_label": "المنطقة الحره ليل",
+        "source_manning": "مقدم/حسام رضوان",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0004",
+        "kind": "خارجية",
+        "name": "قنصلية",
+        "note": "",
+        "officer_ids": [
+          "OFF-045"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الخدمات أساسية",
+        "shift": "صباحية",
+        "source_label": "قنصلية صبح",
+        "source_manning": "نقيب/ محمد عبدالعزيز",
+        "time": "8ص",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0005",
+        "kind": "خارجية",
+        "name": "ارتكاز بتروجيت",
+        "note": "",
+        "officer_ids": [
+          "OFF-037"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الخدمات أساسية",
+        "shift": "صباحية",
+        "source_label": "بتروجيت صبح",
+        "source_manning": "م.اول / أحمد فوزي",
+        "time": "8ص",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": false,
+        "id": "AS-0006",
+        "kind": "داخلية",
+        "name": "نوبتجي المعسكر الفرعي",
+        "note": "",
+        "officer_ids": [
+          "OFF-038"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "ضابط عظيم وأمن المعسكر الفرعي",
+        "shift": "صباحية",
+        "source_label": "فترة صباحية",
+        "source_manning": "عقيد/ اسماعيل محمد",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": false,
+        "id": "AS-0007",
+        "kind": "داخلية",
+        "name": "نوبتجي المعسكر الفرعي",
+        "note": "",
+        "officer_ids": [
+          "OFF-038"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "ضابط عظيم وأمن المعسكر الفرعي",
+        "shift": "ليلية",
+        "source_label": "فترة ليلية",
+        "source_manning": "",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0008",
+        "kind": "حراسات",
+        "name": "مشرف الأهداف",
+        "note": "",
+        "officer_ids": [
+          "OFF-009"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "مشرف الأهداف",
+        "source_manning": "المقدم/ السعيد عبده",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0009",
+        "kind": "حراسات",
+        "name": "سوميد",
+        "note": "",
+        "officer_ids": [
+          "OFF-024"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "سوميد",
+        "source_manning": "رائد/محمد ذكي",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0010",
+        "kind": "حراسات",
+        "name": "كهرباء السخنة",
+        "note": "",
+        "officer_ids": [
+          "OFF-049"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "السخنة",
+        "source_manning": "م.أول/ منتصر بهاء",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0011",
+        "kind": "حراسات",
+        "name": "كهرباء عتاقة",
+        "note": "",
+        "officer_ids": [
+          "OFF-013"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "كهرباء عتاقة",
+        "source_manning": "رائد/خالد خلف",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0012",
+        "kind": "حراسات",
+        "name": "أنابيب البترول",
+        "note": "",
+        "officer_ids": [
+          "OFF-041"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "أنابيب البترول",
+        "source_manning": "م.اول/عمر خالد",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0013",
+        "kind": "حراسات",
+        "name": "مصر للبترول",
+        "note": "",
+        "officer_ids": [
+          "OFF-023"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "مصر للبترول",
+        "source_manning": "نقيب/ محمد عاطف",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0014",
+        "kind": "حراسات",
+        "name": "عيون موسي",
+        "note": "",
+        "officer_ids": [
+          "OFF-010"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "عيون موسي",
+        "source_manning": "رائد/جمال امين",
+        "time": "",
+        "weapon": ""
+      },
+      {
+        "conscript_count": 0,
+        "conscripts": [],
+        "counts_in_summary": true,
+        "id": "AS-0015",
+        "kind": "حراسات",
+        "name": "هلة المحجر",
+        "note": "",
+        "officer_ids": [
+          "OFF-008"
+        ],
+        "party": "",
+        "personnel_ids": [],
+        "section": "الأهداف",
+        "shift": "",
+        "source_label": "هلة المحجر",
+        "source_manning": "رائد/ احمد السمان",
+        "time": "",
+        "weapon": ""
+      }
+    ]
+  },
   "assignment_seq": 15,
   "weekly_rest_seeded": true,
   "target_defaults": {
