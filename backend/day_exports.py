@@ -131,3 +131,14 @@ def build_special_regularity_bytes(day, section):
     name = file_name(payload["section"]).replace("خط تشكيل ", "يومية انتظام ", 1)
     return name, _bytes(build_special_docx(payload))
 
+
+
+def build_service_order_bytes(day):
+    """مسودة «أمر خدمة يوم …» من اليومية التفصيلية ومدخلات يومية الانتظام."""
+    from .service_order import build, build_docx
+    data = load_data(around(day, 0, -1, -2, -3))
+    preview = deepcopy(data)
+    if needs_prepare(data, day, include_inspections=True):
+        prepare(preview, day, include_inspections=True)
+    inputs, _ = effective_inputs(preview, day)
+    return _bytes(build_docx(build(build_board(preview, day), inputs, preview, day)))

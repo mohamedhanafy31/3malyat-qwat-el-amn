@@ -81,7 +81,8 @@ def refresh_one(day, kind):
     """تحديث ملف يومية واحد (kind من القائمة البيضاء) في فولدر الأرشيف.
     نفس قواعد الأمان بتاعة التحديث العام: write_day_files بيكتب الاسم القانوني
     ويشيل بس النسخ القديمة المطابقة لنمط نفس اليومية، وأي ملف تاني مايتلمسش."""
-    if kind not in daily_files.KINDS:
+    # أمر الخدمة مش من KINDS: بيتعمل/يتحدّث بس لو المشغّل ماعدّلش فيه.
+    if kind not in daily_files.KINDS and kind != "service_order":
         return jsonify({"error": "نوع ملف غير معروف."}), 404
     day = canonical_day(day)
     if not day:

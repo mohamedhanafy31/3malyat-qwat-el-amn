@@ -55,7 +55,7 @@ def test_single_kind_refresh_leaves_operator_files_alone(client, monkeypatch, tm
 
 
 def test_pages_carry_per_daily_refresh_hooks(client):
-    for path, kind in {"/duty": "duty", "/board": "board", "/afraad": "afraad",
+    for path, kind in {"/duty": "duty", "/board": "board,service_order", "/afraad": "afraad",
                        "/counts": "counts", "/campaign": "campaign"}.items():
         assert f'data-daily-files="{kind}"'.encode() in client.get(path).data
     assert b"regularity,formation_morning,formation_night" in client.get("/").data

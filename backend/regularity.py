@@ -236,6 +236,31 @@ def _officer(data, day, ident):
             "short_name": raw.get("short_name", "")}
 
 
+# مدى فترة مشرف القول المكبر لما يكون ضابط من الإدارة (مش من جهة تانية).
+BIG_COLUMN_HOURS = {"صباحية": "من 8ص حتي 8م", "ليلية": "من 8م حتي 8ص"}
+
+
+def is_big_column(text):
+    """«القول المكبر» / «قول مكبر» / «الكول المكبر» — مش بس النص الحرفي «قول مكبر»."""
+    value = norm(text)
+    return "مكبر" in value and ("قول" in value or "كول" in value)
+
+
+def _plain_name(value):
+    return "".join(norm(re.sub(r"\(.*?\)", "", _text(value))).split())
+
+
+def _our_officer_names(data, day):
+    """أسماء ضباط الإدارة (الاسم الكامل والمختصر) للمطابقة مع مشرف مكتوب بالإيد."""
+    names = set()
+    for raw in PeopleRepo(data).bucket("officers", "active"):
+        for key in ("name", "short_name"):
+            value = _plain_name(raw.get(key))
+            if value:
+                names.add(value)
+    return names
+
+
 def _officer_rows(data, day, inputs):
     command = command_on(data, day)
     director = _officer(data, day, command.get("مدير الإدارة"))
@@ -271,17 +296,21 @@ def _officer_rows(data, day, inputs):
             shift = assignment.get("shift") or ""
             # مدى الساعات بين علامتي تنصيص للقول المكبر والتدخل السريع بس؛ المواقع
             # الثابتة (الحي الحكومي…) الأصل بيكتبها «فترة صباحية» من غير مدى.
-            rotating = "قول مكبر" in norm(core) or "تدخل" in norm(core)
-            if rotating and shift == "صباحية":
+            rotating = is_big_column(core) or "تدخل" in norm(core)
+            big_column = is_big_column(core)
+            if big_column and shift in BIG_COLUMN_HOURS:
+                # ضابط القول المكبر من الإدارة: «من 8م حتي 8ص» من غير تنصيص.
+                hours = BIG_COLUMN_HOURS[shift]
+            elif rotating and shift == "صباحية":
                 hours = '"8 ص الي 8 م"'
             elif rotating and shift == "ليلية":
                 hours = '"8 م الي 8 ص"'
             else:
                 hours = ""
-            prefix = "مشرف القول المكبر" if "قول مكبر" in norm(core) else core
+            prefix = "مشرف القول المكبر" if big_column else core
             text = f"{prefix} فترة {'صباحية' if shift == 'صباحية' else 'ليلية' if shift == 'ليلية' else ''} {hours}".strip()
             basic.append((assignment.get("pos", 10**6), core, shift, person, text))
-    basic.sort(key=lambda x: (0 if "قول مكبر" in norm(x[1]) else 1 if "تدخل" in norm(x[1]) else 2,
+    basic.sort(key=lambda x: (0 if is_big_column(x[1]) else 1 if "تدخل" in norm(x[1]) else 2,
                              0 if x[2] == "صباحية" else 1, x[0]))
     for _pos, _core, _shift, person, text in basic:
         name = person.get("short_name") or person.get("name", "")
@@ -308,9 +337,12 @@ def _officer_rows(data, day, inputs):
                 continue
             kept.append(row)
         result = kept
+    ours = _our_officer_names(data, day)
     for shift, key, hours in (("صباحية", "am", '"8 ص الي 8 م"'), ("ليلية", "pm", '"8 م الي 8 ص"')):
         person = override_people.get(key)
         if person and (person.get("rank") or person.get("name")):
+            if _plain_name(person.get("name")) in ours:
+                hours = BIG_COLUMN_HOURS[shift]
             label = _text(person.get("name"))
             if _text(person.get("phone")):
                 label = f"{label} ({_text(person.get('phone'))})"

@@ -12,10 +12,11 @@ def test_daily_names_and_archive_patterns():
     assert names["afraad"] == "28-9-2026 افراد.docx"
     for value in ("28.docx", "28.pdf", "28..docx", "28-9-2026.docx",
                   "28-9-2026 افراد.pdf", "يومية الحملة عن يوم 28-9-2026.pdf",
-                  "اعداد الخدمات يوم 27-9-2026.xlsx"):
+                  "اعداد الخدمات يوم 27-9-2026.xlsx", "أمر خدمة يوم 28-9-2026.docx",
+                  "امر خدمة يوم 28-9-2026.docx"):
         assert daily_files.is_daily_file(value)
     for value in ("~$-2026.docx", "خط تشكيل صبح محدث.docx", "خط تشكيل خطة الانتشار.docx", "ارقام الافراد.docx",
-                  "داتا افراد.docx", "أمر خدمة يوم 28-9-2026.docx"):
+                  "داتا افراد.docx", "أمر خدمة يوم 28-9-2026 معدل.docx"):
         assert not daily_files.is_daily_file(value)
     assert daily_files.is_daily_file("خط تشكيل صبح.docx")
     assert daily_files.is_daily_file("خط تشكيل ليل.docx")

@@ -5,6 +5,7 @@
 من بيانات النظام.
 """
 
+import hashlib
 import json
 import logging
 import os
@@ -32,6 +33,8 @@ _PATTERNS = {
     "counts": re.compile(r"^اعداد الخدمات"),
     "formation_morning": re.compile(r"^خط تشكيل صبح\.docx$"),
     "formation_night": re.compile(r"^خط تشكيل ليل\.docx$"),
+    # مسودة بيعدّلها المشغّل بإيده: مش من KINDS (مابتتكتبش فوقها لو اتعدّلت).
+    "service_order": re.compile(r"^[أا]مر خدمة يوم \d+-\d+-\d{4}\.docx$"),
 }
 _TEMP_NAMES = {"desktop.ini", "Thumbs.db"}
 # أقسام اليوم اللي بتدل إن حد اشتغل على اليوم ده فعلًا. التهيئة التلقائية
@@ -117,6 +120,46 @@ def file_names(day):
         "formation_morning": "خط تشكيل صبح.docx",
         "formation_night": "خط تشكيل ليل.docx",
     }
+
+
+def service_order_name(day):
+    value, _year, month, number = _date_parts(day)
+    return f"أمر خدمة يوم {number}-{month}-{value.year}.docx"
+
+
+def _sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def _write_service_order(day, folder, files, written_sha):
+    """«أمر خدمة يوم …»: مسودة بيكمّلها المشغّل بإيده.
+
+    بتتكتب لو الملف مش موجود، أو موجود ولسه زي ما السيستم كتبه آخر مرة
+    (نفس البصمة في الـmanifest) فبتتحدّث مع اليومية. أول ما المشغّل يعدّل
+    فيه (أو يحط ملف بنفس الاسم من عنده) السيستم مابيلمسوش تاني.
+    -> البصمة اللي تتحفظ في الـmanifest."""
+    from . import day_exports
+
+    path = folder / service_order_name(day)
+    if path.exists():
+        try:
+            current = _sha(path.read_bytes())
+        except OSError as exc:
+            files["service_order"] = {"ok": False, "path": str(path), "bytes": 0, "error": str(exc)}
+            return written_sha
+        if not written_sha or current != written_sha:
+            files["service_order"] = {"ok": True, "path": str(path), "bytes": 0, "error": None,
+                                      "kept": "edited"}
+            return written_sha
+    try:
+        data = day_exports.build_service_order_bytes(day)
+        _write_one(path, data)
+    except Exception as exc:
+        LOG.exception("فشل توليد أمر الخدمة لليوم %s", day)
+        files["service_order"] = {"ok": False, "path": str(path), "bytes": 0, "error": str(exc)}
+        return written_sha
+    files["service_order"] = {"ok": True, "path": str(path), "bytes": len(data), "error": None}
+    return _sha(data)
 
 
 def _day_of_folder(folder):
@@ -340,6 +383,9 @@ def write_day_files(day, kinds=None, *, require_data=False):
     special_names = None
     if kinds is None or "special" in kinds:
         special_names = _write_special(day, folder, files)
+    order_sha = (_manifest().get(day) or {}).get("service_order")
+    if kinds is None or "service_order" in kinds:
+        order_sha = _write_service_order(day, folder, files, order_sha)
 
     try:
         signature = store.day_index().signature(day)
@@ -354,6 +400,7 @@ def write_day_files(day, kinds=None, *, require_data=False):
             "sig": sig,
             "at": datetime.now().isoformat(timespec="seconds"),
             "special": special_names if special_names is not None else previous_special,
+            "service_order": order_sha,
         }
         _write_manifest(manifest)
     except Exception:
