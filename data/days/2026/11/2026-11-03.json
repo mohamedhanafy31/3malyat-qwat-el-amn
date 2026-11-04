@@ -1814,674 +1814,1066 @@
     "AS-0008:am": {
       "out_at": "2026-11-03T05:07:23+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T05:07:23+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:48+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:48+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0012:am": {
       "out_at": "2026-11-03T05:07:23+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T05:07:23+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:48+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:48+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0031:am": {
       "out_at": "2026-11-03T05:07:23+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T05:07:23+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:48+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:48+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-001:am": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-004:am": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-001:pm": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:18+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:18+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-004:pm": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:18+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:18+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-007:am": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-010:am": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-013:am": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-007:pm": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-010:pm": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-013:pm": {
       "out_at": "2026-11-03T09:18:50+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:18:50+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-008:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-011:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-008:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:18+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:18+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-011:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:18+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:18+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-002:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-003:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-014:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-017:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-020:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-023:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-025:am": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-002:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-026:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-014:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-017:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-027:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-020:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-028:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-023:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-029:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-025:pm": {
       "out_at": "2026-11-03T09:19:31+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:31+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-006:am": {
       "out_at": "2026-11-03T09:19:51+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:51+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-016:am": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-019:am": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-016:pm": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:18+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:18+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-019:pm": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:18+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:18+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-022:am": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-024:am": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-022:pm": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-024:pm": {
       "out_at": "2026-11-03T09:19:56+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:19:56+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-009:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-012:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-015:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0009:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0010:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0013:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0030:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:31:53+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:31:53+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0006:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:06+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:06+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0007:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:06+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:06+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0011:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:06+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:06+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-018:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:14+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:14+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-021:pm": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "CNT-052:am": {
       "out_at": "2026-11-03T09:21:06+00:00",
       "out_by": "3malyat_admin",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-03T09:21:06+00:00",
           "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T01:32:24+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T01:32:24+00:00",
+      "back_by": "Mohamed Hanafy"
     }
   }
 }
