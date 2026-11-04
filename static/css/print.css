@@ -50,7 +50,7 @@
     padding:8px 0 !important}
   /* التحذيرات مش جزء من الورقة الرسمية — بتفضل ظاهرة على الشاشة بس.
      مقصورة على تحذيرات اللوحة نفسها، مش أي `.alert-card` في صفحة تانية. */
-  .ledger-board .alert-card{display:none !important}
+  .ledger-board .alert-card,.ledger-index{display:none !important}
   .ledger-head{border:3px double #000 !important;margin:0 0 8px !important;
     padding:8px !important}
   .ledger-head h2,.ledger-head .ledger-sub{color:#000 !important}

@@ -14,12 +14,33 @@ window.exportDocxUrl = () => `/api/board/${DAY}/export.docx`;
 
 const nameOf = list => p => `${p.role ? p.role + "/ " : ""}${p.name}`;
 
+/* عرض الصفحة بالاسم المختصر: الضابط باسمه المختصر المسجل، والباقي بأول اسمين.
+   الاسم المركب بيتعد اسم واحد: «عبد الله»، «أبو العلا»، «جاد الكريم»،
+   «بهاء الدين»، «خلف الله». قوائم الاختيار في النماذج بتفضل بالاسم الكامل. */
+const COMPOUND_HEADS = new Set(["عبد", "ابو", "أبو", "ابي", "أبي", "جاد"]);
+const COMPOUND_TAILS = new Set(["الدين", "الله", "الاسلام", "الإسلام"]);
+
+function nameUnits(name) {
+  const words = String(name || "").replace(/ـ/g, "").trim().split(/\s+/).filter(Boolean);
+  const units = [];
+  for (let i = 0; i < words.length; i++) {
+    if (COMPOUND_TAILS.has(words[i]) && units.length) units[units.length - 1] += ` ${words[i]}`;
+    else if (COMPOUND_HEADS.has(words[i]) && i + 1 < words.length) units.push(`${words[i]} ${words[++i]}`);
+    else units.push(words[i]);
+  }
+  return units;
+}
+
+const shortNameOf = p => String(p.short_name || "").trim() || nameUnits(p.name).slice(0, 2).join(" ");
+const shortLabel = p => `${p.role ? p.role + "/ " : ""}${shortNameOf(p)}`;
+const fullNameTitle = p => `title="${esc(nameOf()(p))}"`;
+
 /* ---------- العرض ---------- */
 const taqseeraMark = person => person?.taqseera
   ? ` <b class="taqseera-mark" title="تقصيرة" aria-label="تقصيرة">+ ت</b>` : "";
 /* هدف متغطّي بضابطين بالتقسيم الزمني: «حتى 4م» / «من 4م» بعد الاسم وقبل + ت */
 const chips = (list, cls) => list.map(p =>
-  `<span class="chip ${cls}">${esc(nameOf()(p))}${p.period_label ? " " + esc(p.period_label) : ""}${taqseeraMark(p)}</span>`).join(" ");
+  `<span class="chip ${cls}" ${fullNameTitle(p)}>${esc(shortLabel(p))}${p.period_label ? " " + esc(p.period_label) : ""}${taqseeraMark(p)}</span>`).join(" ");
 const conChips = cons => (cons || []).map(c =>
   `<span class="chip w">${esc(c.class || "مجند")}${c.count ? " ×" + c.count : ""}</span>`).join(" ");
 
@@ -97,16 +118,13 @@ function serviceRow(row) {
     data-service-id="${esc(row.id)}" tabindex="-1" aria-selected="${selected}">
     <td class="name service-name-cell">
       <span class="service-label">${esc(row.label)}</span>
-      <div class="service-rail" aria-label="ترتيب وتكرار الخدمة">
+      <div class="service-rail" aria-label="ترتيب الخدمة">
         <button type="button" class="mini btn-xs move" data-action="moveEntry"
           data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "up"})}"
           title="حرّك إلى أعلى" aria-label="تحريك لأعلى">${icon("chevron-up")}</button>
         <button type="button" class="mini btn-xs move" data-action="moveEntry"
           data-id="${esc(row.id)}" data-extra="${dataAttr({direction: "down"})}"
           title="حرّك إلى أسفل" aria-label="تحريك لأسفل">${icon("chevron-down")}</button>
-        <button class="mini btn-xs duplicate-action" data-action="duplicateEntry"
-          data-id="${esc(row.id)}" title="تكرار الخدمة دون الأشخاص"
-          aria-label="تكرار الخدمة دون الأشخاص">${icon("copy")}</button>
       </div>
     </td>
     <td class="wrap">${who}</td>
@@ -118,6 +136,9 @@ function serviceRow(row) {
     <td class="col-actions"><div class="actions service-actions">
       <button class="mini icon-action" data-action="openEntry" data-id="${esc(row.id)}"
         title="تعديل الخدمة" aria-label="تعديل الخدمة">${icon("edit")}</button>
+      <button class="mini icon-action duplicate-action" data-action="duplicateEntry"
+        data-id="${esc(row.id)}" title="تكرار الخدمة دون الأشخاص"
+        aria-label="تكرار الخدمة دون الأشخاص">${icon("copy")}</button>
       <button type="button" class="mini icon-action danger" data-action="deleteEntry"
         data-id="${esc(row.id)}" data-extra="${dataAttr({name: row.label})}"
         title="حذف الخدمة" aria-label="حذف الخدمة">${icon("trash")}</button>
@@ -127,18 +148,18 @@ function serviceRow(row) {
 /* الأقسام المحسوبة — كل واحد بأعمدته بتاعته زي الوورد */
 const OFFICER_VIEWS = {
   "عمل بالإدارة": [["الضابط", "العمل"], r =>
-    `<tr><td class="name">${esc(nameOf()(r))}${taqseeraMark(r)}</td><td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}</td></tr>`],
+    `<tr><td class="name" ${fullNameTitle(r)}>${esc(shortLabel(r))}${taqseeraMark(r)}</td><td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}</td></tr>`],
   "الصافي": [["الضابط"], r =>
-    `<tr><td class="name">${esc(nameOf()(r))}${taqseeraMark(r)}</td></tr>`],
+    `<tr><td class="name" ${fullNameTitle(r)}>${esc(shortLabel(r))}${taqseeraMark(r)}</td></tr>`],
   "الراحات": [["الضابط", "النوع", "من", "إلى", "العودة"], r =>
-    `<tr><td class="name">${esc(nameOf()(r))}</td>
+    `<tr><td class="name" ${fullNameTitle(r)}>${esc(shortLabel(r))}</td>
      <td><span class="chip ${r.type === "شهرية" ? "m" : r.type === "نصف شهرية" ? "h" : "w"}">${esc(r.type)}</span></td>
      <td>${fmtShort(r.start)}</td><td>${fmtShort(r.end)}</td>
      <td>${fmtShort(r.return_date)}</td></tr>`],
   "التقصيرات": [["الضابط", "العمل قبل التقصيرة"], r =>
-    `<tr><td class="name">${esc(nameOf()(r))}</td><td class="wrap">${esc(r.note)}</td></tr>`],
+    `<tr><td class="name" ${fullNameTitle(r)}>${esc(shortLabel(r))}</td><td class="wrap">${esc(r.note)}</td></tr>`],
   "الخوارج": [["الضابط", "السبب", "التفاصيل"], r =>
-    `<tr><td class="name">${esc(nameOf()(r))}</td>
+    `<tr><td class="name" ${fullNameTitle(r)}>${esc(shortLabel(r))}</td>
      <td><span class="chip taq">${esc(r.reason)}</span></td>
      <td class="wrap">${esc(outsiderDetail(r))}</td></tr>`],
 };
@@ -157,8 +178,8 @@ function adminRow(row) {
           ${row.vacant ? "تعيين" : "تعديل"}</button>
       </td></tr>`;
   }
-  const added = row.added ? ` <span class="chip m" title="أُضيف من يومية الضباط (إضافة للعمل بالإدارة) وبيفضل في مكان خدمته">من الخدمة</span>` : "";
-  return `<tr><td class="name">${esc(nameOf()(row))}${taqseeraMark(row)}</td><td class="wrap">${esc(row.text) || "—"}${added}</td></tr>`;
+  const added = row.added ? ` <span class="chip w" title="أُضيف من يومية الضباط (إضافة للعمل بالإدارة) وبيفضل في مكان خدمته">من الخدمة</span>` : "";
+  return `<tr><td class="name" ${fullNameTitle(row)}>${esc(shortLabel(row))}${taqseeraMark(row)}</td><td class="wrap">${esc(row.text) || "—"}${added}</td></tr>`;
 }
 
 function outsiderRow(row) {
@@ -166,7 +187,7 @@ function outsiderRow(row) {
     ? (row.status_type === "شهرية" ? "m" : row.status_type === "نصف شهرية" ? "h" : "w")
     : row.source_group === "course" ? "cat2"
     : row.source_group === "taqseera" ? "h" : "taq";
-  return `<tr><td class="name">${esc(nameOf()(row))}</td>
+  return `<tr><td class="name" ${fullNameTitle(row)}>${esc(shortLabel(row))}</td>
     <td><span class="chip ${chipClass}">${esc(row.status_type || "خارج")}</span></td>
     <td class="wrap">${esc(row.detail) || "—"}</td></tr>`;
 }
@@ -303,9 +324,15 @@ function sectionCard(sec) {
   const seededNote = sec.type === "targets" && sec.seeded_from
     ? `<small class="target-default-note">مبدئيًا من تأكيد يوم ${fmt(sec.seeded_from)}</small>`
     : "";
-  return `<div class="mcard">
+  return `<section class="mcard" id="${sectionAnchor(sec.name)}" data-kind="${esc(sec.type || "services")}">
     <h3>${esc(sec.name)}${seededNote}<span class="mcount">${count}</span>${addBtn}</h3>
-    ${body}</div>`;
+    ${body}</section>`;
+}
+
+const SECTION_IDS = new Map();
+function sectionAnchor(name) {
+  if (!SECTION_IDS.has(name)) SECTION_IDS.set(name, `board-sec-${SECTION_IDS.size + 1}`);
+  return SECTION_IDS.get(name);
 }
 
 /* تنبيهات مش موانع: الأرشيف فيه ضباط على خدمتين في نفس الفترة فعلًا،
@@ -372,6 +399,8 @@ function render() {
   if (!BOARD) { wrap.innerHTML = skeleton("cards", 4); return }
   if (SELECTED_ROW_ID && !findRow(SELECTED_ROW_ID)) SELECTED_ROW_ID = null;
   const [right, left] = splitColumns(presentationSections(BOARD.sections));
+  const indexLink = sec => `<a href="#${sectionAnchor(sec.name)}" data-action="jumpSection"
+      data-id="${sectionAnchor(sec.name)}">${esc(sec.name)} <b>${sec.rows.length}</b></a>`;
   wrap.innerHTML = `
     <div class="ledger-board">
       <div class="ledger-head">
@@ -379,12 +408,22 @@ function render() {
         <div class="ledger-sub">${dayName(BOARD.date)} الموافق ${fmt(BOARD.date)}</div>
       </div>
       ${warningsCard(BOARD.warnings)}
+      <nav class="ledger-index" aria-label="أقسام اليومية">
+        <div class="ledger-index-group">${right.map(indexLink).join("")}</div>
+        <div class="ledger-index-group">${left.map(indexLink).join("")}</div>
+      </nav>
       <div class="match-grid">
         <div class="match-col">${right.map(sectionCard).join("")}</div>
         <div class="match-col">${left.map(sectionCard).join("")}</div>
       </div>
     </div>`;
 }
+
+ACTIONS.jumpSection = (id, _extra, _el, event) => {
+  event?.preventDefault?.();
+  document.getElementById(id)?.scrollIntoView({block: "start", behavior:
+    matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"});
+};
 
 /* ---------- نموذج الخانة ---------- */
 function findRow(id) {

@@ -687,15 +687,72 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .ledger-head h2{margin:0;font-size:var(--t-xl);color:var(--navy-950)}
 .ledger-head .ledger-sub{margin-top:4px;font-size:var(--t-base);font-weight:600;
   color:var(--navy-700)}
-.ledger-board .match-grid{columns:unset;column-gap:0;display:grid;
+.ledger-board .match-grid{columns:unset;column-gap:var(--s4);display:grid;
   grid-template-columns:1fr 1fr;align-items:start}
 .ledger-board .match-col{display:flex;flex-direction:column;gap:var(--s4);min-width:0}
 .ledger-board .match-col > *{break-inside:avoid;width:100%;margin-bottom:0}
+/* فهرس الأقسام: لازق تحت الترويسة للتنقل السريع في يومية طويلة */
+.ledger-index{position:sticky;top:var(--topbar-h);z-index:var(--z-sticky);display:flex;
+  flex-wrap:wrap;gap:var(--s1) var(--s4);padding:var(--s2) var(--s5);
+  background:var(--surface);border-block:1px solid var(--line)}
+.ledger-index-group{display:flex;flex-wrap:wrap;gap:var(--s1)}
+.ledger-index-group + .ledger-index-group{padding-inline-start:var(--s4);
+  border-inline-start:1px solid var(--line)}
+.ledger-index a{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 var(--s2);
+  border-radius:var(--radius-control);color:var(--ink-700);font-size:var(--t-sm);
+  text-decoration:none;white-space:nowrap}
+.ledger-index a b{min-width:20px;padding:0 5px;border-radius:var(--radius-pill);
+  background:var(--navy-50);color:var(--navy-800);font-size:var(--t-xs);text-align:center;
+  font-variant-numeric:tabular-nums}
+.ledger-index a:hover{background:var(--navy-50);color:var(--navy-950)}
+.ledger-index a:focus-visible{outline:2px solid var(--navy-600);outline-offset:1px}
 /* استثناء مقصود: بطاقات الدفتر مربعة لتطابق خانات الورقة الرسمية. */
-.ledger-board .mcard{border-radius:0;border:1.5px solid var(--navy-900);box-shadow:none}
+.ledger-board .mcard{border-radius:0;border:1.5px solid var(--navy-900);box-shadow:none;
+  scroll-margin-top:calc(var(--topbar-h) + 56px)}
+.ledger-board .mcard h3{padding:var(--s2) var(--s3);font-size:var(--t-md)}
 .ledger-board .mtable td,.ledger-board .mtable th{border-color:var(--line-strong)}
+.ledger-board .mtable th{background:var(--surface-sunken);color:var(--navy-900);font-weight:700}
+.ledger-board .mtable td{padding:var(--s2);vertical-align:middle;line-height:1.5}
+.ledger-board .mtable td.name{color:var(--navy-950);font-weight:700}
 /* الوورد ملوش تظليل صفوف بالتبادل — التظليل الوحيد بتاعه عنوان القسم نفسه */
 .ledger-board .mtable tbody tr:nth-child(even) td{background:transparent}
+.ledger-board td > .muted:only-child{color:var(--line-strong)}
+/* الأسماء نص عادي زي خانة الورقة مش «كبسولات» ملوّنة: اسم في كل سطر، والدور
+   فوقه بخط صغير — فالخانة الضيقة ماتلفّش الاسم على ٤ سطور. */
+.ledger-board .chip.m,.ledger-board .chip.h{display:block;padding:0;margin:0;border:0;
+  background:none;color:var(--navy-900);font-size:var(--t-sm);font-weight:600}
+.ledger-board .command-role{display:block}
+.ledger-board .command-role + .command-role{margin-top:var(--s1)}
+.ledger-board .command-role > b{display:block;color:var(--ink-500);font-size:var(--t-xs);font-weight:600}
+.ledger-board .chip.w{background:var(--surface-sunken);border-color:var(--line);color:var(--ink-700);margin:1px 0}
+/* عرض ثابت للأعمدة القصيرة عشان «القائم بها» ياخد الباقي في نص عرض الصفحة */
+@media (min-width:1100px){
+  .ledger-board .mcard[data-kind="services"] .mtable-wrap{overflow-x:clip}
+  .ledger-board .mcard[data-kind="services"] .mtable{table-layout:fixed}
+  .ledger-board .mcard[data-kind="services"] .mtable th:nth-child(1){width:22%}
+  .ledger-board .mcard[data-kind="services"] .mtable th:nth-child(3){width:14%}
+  .ledger-board .mcard[data-kind="services"] .mtable th:nth-child(4){width:8%}
+  .ledger-board .mcard[data-kind="services"] .mtable th:nth-child(5){width:9%}
+  .ledger-board .mcard[data-kind="services"] .mtable th:nth-child(6){width:10%}
+  .ledger-board .mcard[data-kind="services"] .mtable th:nth-child(7){width:100px}
+  .ledger-board .mcard[data-kind="services"] .mtable th{min-width:0}
+  .ledger-board .mcard[data-kind="services"] .mtable td,
+  .ledger-board .mcard[data-kind="services"] .mtable th{padding-inline:6px}
+}
+/* تحت الـ1100 العمود واحد والجدول بيتمرر أفقيًا بدل ما يعصر الأسماء */
+@media (max-width:1099px){
+  .ledger-board .mcard[data-kind="services"] .mtable{min-width:720px}
+}
+@media (max-width:640px){
+  .ledger-index{padding:var(--s2) var(--s3);flex-wrap:nowrap;overflow-x:auto}
+  .ledger-index-group{flex-wrap:nowrap}
+}
+/* أزرار الصف هادية لحد ما الماوس يعدّي على الصف أو يتختار */
+.ledger-board .service-actions{opacity:.4;transition:opacity .12s}
+.ledger-board tr:hover .service-actions,.ledger-board tr.is-selected .service-actions,
+.ledger-board .service-actions:focus-within{opacity:1}
+@media (hover:none){.ledger-board .service-actions{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ledger-board .service-actions{transition:none}}
 /* الصف المختار هو نقطة ارتكاز اختصارات الكيبورد؛ خط كحلي وتظليل ورقي
    واضحين من غير ما يغطّوا تظليل «شاغرة» أو يغيّروا شكل الطباعة. */
 .ledger-board tr.service-row{cursor:pointer}
@@ -703,7 +760,7 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 .ledger-board tr.service-row.is-selected td{background:var(--navy-50) !important;
   border-top:2px solid var(--navy-600);border-bottom:2px solid var(--navy-600)}
 .ledger-board tr.service-row.is-selected td:first-child{border-inline-start:4px solid var(--gold-700)}
-.ledger-board .service-actions{flex-wrap:wrap;min-width:118px;gap:3px}
+.ledger-board .service-actions{flex-wrap:nowrap;min-width:0;gap:3px}
 .ledger-board .service-actions .move{width:27px;padding:0;color:var(--navy-700)}
 
 /* الخدمات الخاصة — منفصلة بصريًا، تابعة ضمنيًا لتصنيفها الأصلي */
