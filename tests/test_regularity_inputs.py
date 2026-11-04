@@ -125,3 +125,32 @@ def test_regularity_docx_uses_saved_inputs(client):
     assert "مرور تعقبي محفوظ" in text
     assert "ملاحظة مخصصة محفوظة" in text
     assert "محمود علي" in text
+
+
+def _big_rows(payload):
+    return [row for row in payload["preview"]["officer_rows"] if row.get("big_column")]
+
+
+def test_supervisor_text_is_free_and_stays_with_its_period(client):
+    current = _inputs(client, "2026-04-10")
+    assert current["big_column_defaults"]["am"] == 'مشرف القول المكبر فترة صباحية "8 ص الي 8 م"'
+    value = {**current["inputs"], "big_column_supervisors": {
+        "pm": {"rank": "عقيد", "name": "مشرف خارجي", "phone": "", "service": "متابعة القول من 9م حتى 5ص"},
+        "am": {"rank": "", "name": "", "phone": "", "service": "نص من غير اسم"}}}
+    saved = client.put("/api/ops/2026-04-10/regularity", json={"revision": current["revision"], "inputs": value})
+    assert saved.status_code == 200
+    rows = _big_rows(saved.get_json())
+    # الصبح الأول حتى لو النص مافيهوش كلمة «صباحية»
+    assert [(row["big_column"], row["name"], row["service"]) for row in rows] == [
+        ("am", "", "نص من غير اسم"), ("pm", "مشرف خارجي", "متابعة القول من 9م حتى 5ص")]
+    # بيتورث زي باقي المدخلات، والنص التلقائي مابيتأثرش
+    next_day = _inputs(client, "2026-04-11")
+    assert next_day["inputs"]["big_column_supervisors"]["pm"]["service"] == "متابعة القول من 9م حتى 5ص"
+    assert next_day["big_column_defaults"]["pm"] == 'مشرف القول المكبر فترة ليلية "8 م الي 8 ص"'
+
+
+def test_supervisor_text_length_is_limited(client):
+    current = _inputs(client, "2026-04-10")
+    value = {**current["inputs"], "big_column_supervisors": {"am": {"name": "س", "service": "ن" * 600}}}
+    response = client.put("/api/ops/2026-04-10/regularity", json={"revision": current["revision"], "inputs": value})
+    assert response.status_code == 400

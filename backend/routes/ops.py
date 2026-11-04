@@ -7,7 +7,7 @@ from flask import Blueprint, jsonify, request, send_file
 from .. import day_status, ops_board
 from .. import changes
 from ..regularity import (build as build_regularity,
-                           clear_inputs, default_inputs, effective_inputs,
+                           clear_inputs, default_inputs, big_column_defaults, effective_inputs,
                            saved_inputs, save_inputs)
 from ..regularity import build_special as build_special_regularity
 from ..regularity_export import build_docx as build_regularity_docx, build_special_docx as build_special_regularity_docx
@@ -53,6 +53,7 @@ def _regularity_response(data, day):
                          "name": dated.get("short_name") or dated.get("name", "")})
     return {"inputs": inputs, "inherited_from": inherited_from,
             "defaults": default_inputs(), "preview": preview,
+            "big_column_defaults": big_column_defaults(data, day, inputs),
             "officers": officers, "command": command_on(data, day),
             "revision": revision(data, _scope(day))}
 
@@ -97,7 +98,12 @@ def _validate_regularity_inputs(data, day, body):
             if len(text) > limit:
                 return None, "بيانات مشرف القول المكبر أطول من الحد المسموح."
             clean[key] = text
-        if clean["name"]:
+        service = str(value.get("service") or "").strip()
+        if len(service) > MAX_LEN["note"]:
+            return None, f"نص مشرف القول المكبر أطول من الحد المسموح ({MAX_LEN['note']} حرف)."
+        if service:
+            clean["service"] = service
+        if clean["name"] or service:
             clean_supervisors[shift] = clean
     notes = raw.get("notes")
     if not isinstance(notes, list) or len(notes) > 12:

@@ -169,3 +169,14 @@ def test_refresh_one_accepts_service_order(client, archive):
                            headers={"X-Requested-With": "fetch"})
     assert response.status_code == 200, response.get_json()
     assert response.get_json()["result"]["path"].endswith("أمر خدمة يوم 5-11-2026.docx")
+
+
+def test_free_text_supervisor_replaces_board_text_and_order_still_names_the_officer():
+    data = data_for([assignment("القول المكبر", section="الخدمات أساسية", id="AS-B", shift="ليلية",
+                                officer_ids=["OFF-4"], personnel_ids=[])])
+    inputs = {"big_column_supervisors": {"pm": {"rank": "", "name": "", "phone": "", "service": "متابعة حرة"}},
+              "notes": []}
+    rows = build_regularity(data, DAY, inputs)["officer_rows"]
+    assert any(row["id"] == "OFF-4" and row["service"] == "متابعة حرة" for row in rows)
+    lines = service_order.build(_board(), inputs, data, DAY)["lines"]
+    assert "ل --- مقدم / ضابط خدمة" in lines[1]

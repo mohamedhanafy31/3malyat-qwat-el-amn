@@ -82,6 +82,15 @@ def _shift_pair(rows, needle):
     return found
 
 
+def _big_column_pair(rows):
+    """نص المشرف حر، فالفترة من علامة الصف مش من النص."""
+    found = {}
+    for row in rows:
+        if row.get("big_column"):
+            found.setdefault(row["big_column"], _rank_name(row.get("rank"), row.get("name")))
+    return found
+
+
 def _label(row):
     return str((row or {}).get("label") or (row or {}).get("name") or "").strip()
 
@@ -222,7 +231,7 @@ def build(board, regularity_inputs, data, day):
         elif row.get("kind") == "command-extra":
             lines.append(f"{who} : {row.get('service')}")
 
-    big = _shift_pair(officer_rows, "مشرف القول المكبر")
+    big = _big_column_pair(officer_rows)
     rapid = _shift_pair(officer_rows, "تدخل")
     lines.append(f"مشرف القول المكبر : ص --- {big.get('am') or EMPTY} "
                  f"ــــــــــــ ل --- {big.get('pm') or EMPTY} .")

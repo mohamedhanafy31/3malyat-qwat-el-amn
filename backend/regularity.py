@@ -45,7 +45,10 @@ def default_inputs():
 def _supervisor_value(data, day, value):
     """يطبع مشرف القول المكبر لشكل النص الجديد، ويقرأ id القديم."""
     if isinstance(value, dict):
-        return {key: _text(value.get(key)) for key in ("rank", "name", "phone")}
+        result = {key: _text(value.get(key)) for key in ("rank", "name", "phone")}
+        if _text(value.get("service")):
+            result["service"] = _text(value.get("service"))
+        return result
     person = _officer(data, day, value) if value else None
     if not person:
         return {"rank": "", "name": "", "phone": ""}
@@ -238,6 +241,8 @@ def _officer(data, day, ident):
 
 # مدى فترة مشرف القول المكبر لما يكون ضابط من الإدارة (مش من جهة تانية).
 BIG_COLUMN_HOURS = {"صباحية": "من 8ص حتي 8م", "ليلية": "من 8م حتي 8ص"}
+_BIG_COLUMN_SHIFTS = {"صباحية": "am", "ليلية": "pm"}
+_BIG_COLUMN_PERIODS = (("صباحية", "am", '"8 ص الي 8 م"'), ("ليلية", "pm", '"8 م الي 8 ص"'))
 
 
 def is_big_column(text):
@@ -317,7 +322,8 @@ def _officer_rows(data, day, inputs):
         if person.get("phone"):
             name = f"{name} ({person['phone']})"
         result.append({"rank": person.get("role", ""), "name": name, "service": text,
-                       "id": person["id"], "kind": "basic"})
+                       "id": person["id"], "kind": "basic",
+                       "big_column": _BIG_COLUMN_SHIFTS.get(_shift) if is_big_column(_core) else None})
     overrides = inputs.get("big_column_supervisors") or {}
     override_people = {key: value for key, value in overrides.items()
                        if key in {"am", "pm"} and isinstance(value, dict)
@@ -325,20 +331,9 @@ def _officer_rows(data, day, inputs):
     if override_people:
         # مدخلات اليومية هي override حقيقي، مش fallback فقط: نشيل صف القول
         # المكبر لنفس الفترة من اللوحة ونضع الضابط المحدد في inputs مكانه.
-        kept = []
-        for row in result:
-            service = norm(row.get("service"))
-            if "مشرف القول المكبر" not in service:
-                kept.append(row)
-                continue
-            if norm("صباحية") in service and override_people.get("am"):
-                continue
-            if norm("ليلية") in service and override_people.get("pm"):
-                continue
-            kept.append(row)
-        result = kept
+        result = [row for row in result if not override_people.get(row.get("big_column"))]
     ours = _our_officer_names(data, day)
-    for shift, key, hours in (("صباحية", "am", '"8 ص الي 8 م"'), ("ليلية", "pm", '"8 م الي 8 ص"')):
+    for shift, key, hours in _BIG_COLUMN_PERIODS:
         person = override_people.get(key)
         if person and (person.get("rank") or person.get("name")):
             if _plain_name(person.get("name")) in ours:
@@ -348,7 +343,19 @@ def _officer_rows(data, day, inputs):
                 label = f"{label} ({_text(person.get('phone'))})"
             result.append({"rank": _text(person.get("rank")), "name": label,
                            "service": f"مشرف القول المكبر فترة {shift} {hours}",
-                           "id": None, "kind": "big-column"})
+                           "id": None, "kind": "big-column", "big_column": key})
+    # النص الحر بيحل محل نص الخدمة في صف الفترة، ولو مفيش صف بيبقى صف لوحده.
+    for shift, key, _hours in _BIG_COLUMN_PERIODS:
+        text = overrides.get(key)
+        text = _text(text.get("service")) if isinstance(text, dict) else ""
+        if not text:
+            continue
+        rows = [row for row in result if row.get("big_column") == key]
+        for row in rows:
+            row["service"] = text
+        if not rows:
+            result.append({"rank": "", "name": "", "service": text, "id": None,
+                           "kind": "big-column", "big_column": key})
     # ترتيب ثابت تحت صفوف القيادة: مشرف القول المكبر (صبح ثم ليل) قبل التدخل السريع
     # (صبح ثم ليل) قبل باقي الخدمات — حتى لو المشرف جاي من مدخلات اليومية.
     head = [row for row in result if row.get("kind") in ("supervisory", "command-extra")]
@@ -356,11 +363,25 @@ def _officer_rows(data, day, inputs):
 
     def _rank(row):
         text = row.get("service") or ""
+        if row.get("big_column"):
+            return (0, 0 if row["big_column"] == "am" else 1)
         group = 0 if is_big_column(text) else 1 if "تدخل" in norm(text) else 2
         shift = 0 if "صباحية" in text else 1 if "ليلية" in text else 2
         return (group, shift if group < 2 else 0)
     tail.sort(key=_rank)
     return head + tail
+
+
+def big_column_defaults(data, day, inputs):
+    """نص كل فترة لو المشغّل ماكتبش نص حر — بيتعرض في الخانة عشان يتعدل."""
+    supervisors = {key: {**value, "service": ""} if isinstance(value, dict) else value
+                   for key, value in (inputs.get("big_column_supervisors") or {}).items()}
+    rows = _officer_rows(data, day, {**inputs, "big_column_supervisors": supervisors})
+    result = {}
+    for shift, key, hours in _BIG_COLUMN_PERIODS:
+        row = next((row for row in rows if row.get("big_column") == key), None)
+        result[key] = row["service"] if row else f"مشرف القول المكبر فترة {shift} {hours}"
+    return result
 
 
 def build(data, day, inputs=None):

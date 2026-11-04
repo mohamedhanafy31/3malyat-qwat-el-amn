@@ -103,11 +103,13 @@
 
   const supervisorFields = {am: ["regularityAmRank", "regularityAmName", "regularityAmPhone"],
     pm: ["regularityPmRank", "regularityPmName", "regularityPmPhone"]};
+  const supervisorText = {am: "regularityAmService", pm: "regularityPmService"};
 
   function setSupervisor(shift, value) {
     const fields = supervisorFields[shift];
     const row = value && typeof value === "object" ? value : {};
     fields.forEach((id, index) => { $id(id).value = row[["rank", "name", "phone"][index]] || ""; });
+    $id(supervisorText[shift]).value = row.service || regularity?.big_column_defaults?.[shift] || "";
   }
 
   function regularityNotes(values) {
@@ -165,7 +167,9 @@
     const value = id => $id(id).value.trim();
     const supervisor = shift => {
       const [rank, name, phone] = supervisorFields[shift].map(value);
-      return {rank, name, phone};
+      // النص لو ما اتغيرش يفضل تلقائي عشان يتبع المشرف والساعات
+      const text = value(supervisorText[shift]);
+      return {rank, name, phone, service: text === regularity?.big_column_defaults?.[shift] ? "" : text};
     };
     return {officer_extra: extra,
       big_column_supervisors: {am: supervisor("am"), pm: supervisor("pm")},
