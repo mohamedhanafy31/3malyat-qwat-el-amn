@@ -112,3 +112,32 @@ def test_export_route_returns_excel(client):
     assert "2026" in response.headers.get("Content-Disposition", "")
     assert load_workbook(BytesIO(response.data), data_only=False).active.title == "اعداد الخدمات"
     assert client.get("/api/counts/not-a-day/export.xlsx").status_code == 400
+
+
+def _edges(ws, ref):
+    border = ws[ref].border
+    return (border.left.style, border.right.style, border.top.style, border.bottom.style)
+
+
+def test_borders_follow_one_grammar_across_blocks():
+    ws = _sheet(_payload(25, 28, 3, 0, 0))
+    # زوج خدمة/عدد: رفيع جواه، سميك بين الأزواج وحوالين الجدول
+    assert _edges(ws, "B5") == ("medium", "thin", "thin", "thin")
+    assert _edges(ws, "C5") == ("thin", "medium", "thin", "thin")
+    assert _edges(ws, "D5") == ("medium", "thin", "thin", "thin")
+    assert _edges(ws, "G5") == ("thin", "medium", "thin", "thin")
+    # سميك تحت الرأس وفي آخر الجدول، وخط واحد بين الخليتين المتجاورتين
+    assert ws["B3"].border.bottom.style == ws["B4"].border.top.style == "medium"
+    assert ws["B12"].border.bottom.style == "medium"
+    # قبل صف المجموع خط سميك
+    assert ws["B35"].border.bottom.style == ws["B36"].border.top.style == "medium"
+
+
+def test_merged_cells_keep_a_complete_frame():
+    ws = _sheet(_payload(25, 28, 3, 0, 0))
+    for ranges in ("B2:H2", "H4:H12", "H14:H23", "H26:H34", "H35:H36", "C41:E48", "F41:F48"):
+        cells = ws[ranges]
+        assert all(cell.border.top.style == "medium" for cell in cells[0]), ranges
+        assert all(cell.border.bottom.style == "medium" for cell in cells[-1]), ranges
+        assert all(row[0].border.left.style == "medium" for row in cells), ranges
+        assert all(row[-1].border.right.style == "medium" for row in cells), ranges

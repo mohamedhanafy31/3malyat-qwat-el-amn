@@ -15,6 +15,9 @@ from .utils import weekday_name
 AM_MIN, PM_MIN, EM_MIN = 9, 10, 9
 _MEDIUM = Side(style="medium", color="000000")
 _THIN = Side(style="thin", color="000000")
+_NONE = Side(style=None)
+# الحد بين العمود ورقم اللي بعده: A|B، B|C … H|I (زوج خدمة/عدد = B:C و D:E و F:G).
+_VERTICAL = {1: _MEDIUM, 2: _THIN, 3: _MEDIUM, 4: _THIN, 5: _MEDIUM, 6: _THIN, 7: _MEDIUM, 8: _MEDIUM}
 _GRAY_HEADER = PatternFill("solid", fgColor="E4E4E4")
 _GRAY_TOTAL = PatternFill("solid", fgColor="D9D9D9")
 
@@ -49,27 +52,39 @@ def _height(n, minimum):
     return max(minimum, ceil(n / 3))
 
 
-def _border(left, right, top, bottom):
-    return Border(left=left, right=right, top=top, bottom=bottom)
+def _paint_table(ws, first, last, ruled=()):
+    """حدود جدول B:H كله مرة واحدة: إطار سميك، وخط سميك بين كل زوج خدمة/عدد،
+    وخط سميك تحت الصفوف اللي في `ruled` (الرأس وآخر صف قبل المجموع).
+
+    `left` في الملف ناحية العمود الأصغر و`right` ناحية الأكبر حتى في الشيت RTL،
+    وكل حد بين عمودين بيتكتب نفس الشكل على الخليتين عشان مايختلفش بين البرامج."""
+    for row in range(first, last + 1):
+        top = _MEDIUM if row == first or row - 1 in ruled else _THIN
+        bottom = _MEDIUM if row == last or row in ruled else _THIN
+        for col in range(2, 9):
+            ws.cell(row, col).border = Border(left=_VERTICAL[col - 1], right=_VERTICAL[col],
+                                              top=top, bottom=bottom)
 
 
-def _normal_border(col, row, start, end):
-    left = _MEDIUM if col == 0 else _THIN
-    right = _MEDIUM
-    top = _MEDIUM if row == start else _THIN
-    bottom = _MEDIUM if row == end else _THIN
-    return _border(left, right, top, bottom)
+def _paint_box(ws, first_row, first_col, last_row, last_col):
+    """إطار سميك حوالين نطاق من غير خطوط جواه — على كل خلية فيه، لأن الخلايا
+    المدموجة بتاخد حدها من الخلية نفسها مش من أول خلية بس."""
+    for row in range(first_row, last_row + 1):
+        for col in range(first_col, last_col + 1):
+            ws.cell(row, col).border = Border(
+                left=_MEDIUM if col == first_col else _NONE,
+                right=_MEDIUM if col == last_col else _NONE,
+                top=_MEDIUM if row == first_row else _NONE,
+                bottom=_MEDIUM if row == last_row else _NONE)
 
 
-def _put_cell(cell, value, *, font, alignment=None, fill=None, border=None, number_format=None):
+def _put_cell(cell, value, *, font, alignment=None, fill=None, number_format=None):
     cell.value = value
     cell.font = copy(font)
     if alignment is not None:
         cell.alignment = copy(alignment)
     if fill is not None:
         cell.fill = copy(fill)
-    if border is not None:
-        cell.border = copy(border)
     if number_format is not None:
         cell.number_format = number_format
 
@@ -87,36 +102,30 @@ def _write_block(ws, rows, start, height, service_cols):
         if party:
             name = f"{name} ({party})"
         value = int(item.get("count") or 0) if item else None
-        _put_cell(ws.cell(row, service_col), name or None, font=service_font, alignment=align,
-                  border=_normal_border(col_index, row, start, start + height - 1))
-        _put_cell(ws.cell(row, count_col), value, font=service_font,
-                  alignment=align, border=_normal_border(col_index, row, start, start + height - 1))
+        _put_cell(ws.cell(row, service_col), name or None, font=service_font, alignment=align)
+        _put_cell(ws.cell(row, count_col), value, font=service_font, alignment=align)
 
 
 def _style_header_row(ws, row, emergency=False, total_label=None):
     font = Font(name="AdvertisingMedium", size=16, bold=True)
     align = Alignment(horizontal="center", vertical="center", wrap_text=True)
     for col in range(2, 9):
-        left = _MEDIUM if col in (2, 8) else _THIN
-        right = _MEDIUM if col in (2, 7, 8) else _THIN
         value = ("الخدمة" if col in (2, 4, 6) else "عدد المجندين")
         if col == 8 and total_label:
             value = total_label
         _put_cell(ws.cell(row, col), value,
-                  font=font, alignment=align, fill=_GRAY_HEADER if emergency else None,
-                  border=_border(left, right, _MEDIUM, _MEDIUM))
+                  font=font, alignment=align, fill=_GRAY_HEADER if emergency else None)
     if emergency:
         _put_cell(ws.cell(row, 8), "المجموع الكلي", font=Font(name="AF_Aseer", size=16, bold=True),
                   alignment=Alignment(horizontal="center", vertical="center", wrap_text=True,
-                                      textRotation=90), fill=_GRAY_HEADER,
-                  border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM))
+                                      textRotation=90), fill=_GRAY_HEADER)
 
 
 def _style_title(ws, row, value):
     _put_cell(ws.cell(row, 2), value, font=Font(name="AdvertisingExtraBold", size=22, bold=True),
-              alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
-              border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM))
+              alignment=Alignment(horizontal="center", vertical="center", wrap_text=True))
     ws.merge_cells(start_row=row, start_column=2, end_row=row, end_column=8)
+    _paint_box(ws, row, 2, row, 8)
 
 
 def _write_emergency_block(ws, title_row, title, rows, *, with_header=False):
@@ -140,25 +149,27 @@ def _write_emergency_block(ws, title_row, title, rows, *, with_header=False):
             ws.merge_cells(start_row=header, start_column=8, end_row=end - 1, end_column=8)
         _put_cell(ws.cell(header, 8), "المجموع الكلي", font=Font(name="AF_Aseer", size=16, bold=True),
                   alignment=Alignment(horizontal="center", vertical="center", wrap_text=True, textRotation=90),
-                  fill=_GRAY_HEADER, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM))
+                  fill=_GRAY_HEADER)
     for col, letter in ((3, "C"), (5, "E"), (7, "G")):
         _put_cell(ws.cell(subtotal, col), f"=SUM({letter}{start}:{letter}{end})",
                   font=Font(name="Arial", size=16, bold=True),
                   alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
-                  fill=_GRAY_TOTAL, border=_border(_THIN, _THIN, Side(style=None), _MEDIUM),
-                  number_format=r'0;\-0;;@')
+                  fill=_GRAY_TOTAL, number_format=r'0;\-0;;@')
     for col in (2, 4, 6):
         _put_cell(ws.cell(subtotal, col), "المجموع", font=Font(name="Arial", size=16, bold=True),
                   alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
-                  fill=_GRAY_TOTAL, border=_border(_MEDIUM if col == 2 else _THIN, _THIN,
-                                                   Side(style=None), _MEDIUM))
+                  fill=_GRAY_TOTAL)
     ws.merge_cells(start_row=end, start_column=8, end_row=subtotal, end_column=8)
     _put_cell(ws.cell(end, 8), f"=C{subtotal}+E{subtotal}+G{subtotal}",
               font=Font(name="Arial", size=16, bold=True),
               alignment=Alignment(horizontal="center", vertical="center", textRotation=90),
-              fill=_GRAY_TOTAL, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM),
-              number_format=r'0;\-0;;@')
+              fill=_GRAY_TOTAL, number_format=r'0;\-0;;@')
     ws.row_dimensions[subtotal].height = 21.75
+    first = start if header is None else header
+    _paint_table(ws, first, subtotal, {end} | ({header} if header is not None else set()))
+    if end > first:
+        _paint_box(ws, first, 8, end - 1, 8)
+    _paint_box(ws, end, 8, subtotal, 8)
     return subtotal, end, subtotal + 1
 
 
@@ -184,6 +195,7 @@ def build_xlsx(counts_payload):
     ws.page_margins.left = ws.page_margins.right = 0.25
     ws.page_margins.top = ws.page_margins.bottom = 0.30
     ws.page_margins.header = ws.page_margins.footer = 0
+    ws.print_options.horizontalCentered = True
     for col, width in {"A": 2.42578125, "B": 54.0, "C": 14.0, "D": 50.7109375,
                        "E": 14.0, "F": 50.7109375, "G": 15.28515625,
                        "H": 27.42578125}.items():
@@ -201,7 +213,9 @@ def build_xlsx(counts_payload):
     ws.merge_cells(start_row=am_start, start_column=8, end_row=am_end, end_column=8)
     _put_cell(ws.cell(am_start, 8), f"=SUM(C{am_start}:C{am_end})+SUM(E{am_start}:E{am_end})+SUM(G{am_start}:G{am_end})",
               font=Font(name="Arial", size=16, bold=True), alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
-              fill=_GRAY_TOTAL, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _THIN), number_format='0" مجند"')
+              fill=_GRAY_TOTAL, number_format='0" مجند"')
+    _paint_table(ws, 3, am_end, {3})
+    _paint_box(ws, am_start, 8, am_end, 8)
 
     ws.row_dimensions[pm_header].height = 50.25
     _style_header_row(ws, pm_header, total_label="اجمالي الخدمات المسائية")
@@ -209,7 +223,9 @@ def build_xlsx(counts_payload):
     ws.merge_cells(start_row=pm_start, start_column=8, end_row=pm_end, end_column=8)
     _put_cell(ws.cell(pm_start, 8), f"=SUM(C{pm_start}:C{pm_end})+SUM(E{pm_start}:E{pm_end})+SUM(G{pm_start}:G{pm_end})",
               font=Font(name="Arial", size=16, bold=True), alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
-              fill=_GRAY_TOTAL, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _THIN), number_format='0" مجند"')
+              fill=_GRAY_TOTAL, number_format='0" مجند"')
+    _paint_table(ws, pm_header, pm_end, {pm_header})
+    _paint_box(ws, pm_start, 8, pm_end, 8)
 
     ws.row_dimensions[pm_end + 1].height = 13.5
     emergency_subtotal, _emergency_end, next_row = _write_emergency_block(
@@ -232,12 +248,13 @@ def build_xlsx(counts_payload):
     ws.merge_cells(start_row=grand_start, start_column=3, end_row=grand_end, end_column=5)
     ws.merge_cells(start_row=grand_start, start_column=6, end_row=grand_end, end_column=6)
     _put_cell(ws.cell(grand_start, 3), "إجمالي اعداد الخدمات", font=Font(name="Lucida Console", size=22, bold=True),
-              alignment=Alignment(horizontal="center", vertical="center", wrap_text=True), fill=_GRAY_TOTAL,
-              border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM))
+              alignment=Alignment(horizontal="center", vertical="center", wrap_text=True), fill=_GRAY_TOTAL)
     formula = "=" + "+".join([f"H{am_start}", f"H{pm_start}"] + [f"H{row}" for row in block_totals])
     _put_cell(ws.cell(grand_start, 6), formula,
               font=Font(name="Arial", size=22, bold=True), alignment=Alignment(horizontal="center", vertical="center", wrap_text=True),
-              fill=_GRAY_TOTAL, border=_border(_MEDIUM, _MEDIUM, _MEDIUM, _MEDIUM), number_format='0" مجند"')
+              fill=_GRAY_TOTAL, number_format='0" مجند"')
+    _paint_box(ws, grand_start, 3, grand_end, 5)
+    _paint_box(ws, grand_start, 6, grand_end, 6)
 
     wb.calculation.fullCalcOnLoad = True
     output = BytesIO()
