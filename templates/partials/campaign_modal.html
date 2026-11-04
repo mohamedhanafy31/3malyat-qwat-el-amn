@@ -51,3 +51,16 @@
     </form>
   </div>
 </div>
+
+<div class="modal hidden" id="campaignGroupModal">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="campaignGroupTitle">
+    <button type="button" class="close" data-close="campaignGroupModal" aria-label="إغلاق">×</button>
+    <h2 id="campaignGroupTitle">تجميع خدمات</h2>
+    <form id="campaignGroupForm" novalidate>
+      <input type="hidden" id="campaignGroupId">
+      <p class="muted-text" id="campaignGroupMembers"></p>
+      <label>عنوان المجموعة<input id="campaignGroupName" maxlength="200" autocomplete="off" required placeholder="مثال: توصيل مجندين المباريات 1م"></label>
+      <div class="actions modal-foot"><button class="primary" id="campaignGroupSubmit" type="submit">تجميع</button><button type="button" class="btn" data-close="campaignGroupModal">إلغاء</button></div>
+    </form>
+  </div>
+</div>

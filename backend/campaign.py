@@ -1,7 +1,7 @@
 """منطق backend ليومية الحملة."""
 from copy import deepcopy
 
-from . import fleet
+from . import changes, fleet
 from .afraad import occasional_rows
 from .assignments import peek_day
 from .constants import APPOINTMENT_LORRIES, CAMPAIGN_LORRIES, VEHICLE_TYPES
@@ -24,6 +24,10 @@ def referenced_vehicle_days(data, vehicle_id):
                    if isinstance(entry, dict)):
                 days.append(day)
                 break
+        else:
+            if any(vehicle_id in _entry_vehicle_ids(group)
+                   for group in (sheet or {}).get("groups") or []):
+                days.append(day)
     return days
 
 
@@ -32,7 +36,10 @@ def referenced_conscript_days(data, conscript_id):
             if any((entry.get("driver") or {}).get("kind") == "conscript" and
                    (entry.get("driver") or {}).get("id") == conscript_id
                    for section in (sheet or {}).values() if isinstance(section, dict)
-                   for entry in section.values())]
+                   for entry in section.values())
+            or any((group.get("driver") or {}).get("kind") == "conscript" and
+                   (group.get("driver") or {}).get("id") == conscript_id
+                   for group in (sheet or {}).get("groups") or [])]
 
 
 def _raw(data, day):
@@ -142,6 +149,20 @@ def service_vehicles(data, day, assignment_id):
         return []
     assignment_people = _assignment_people(assignment)
     sheet = (data.get("day_campaign") or {}).get(day) or {}
+    group = group_of(data, day, assignment_id)
+    if group:
+        # العضو بياخد مركبة وسائق المجموعة؛ بيانات العضو الأصلية بتفضل محفوظة لحد فك التجميع.
+        vehicle = _vehicle(data, group.get("vehicle_id"))
+        if not vehicle:
+            return []
+        return [{"vehicle": vehicle, "vehicle_id": vehicle["id"], "plate": vehicle["plate"],
+                 "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])),
+                 "people": [person for category, key in (("personnel", "personnel_ids"),
+                                                         ("officers", "officer_ids"))
+                            for ident in assignment_people[key]
+                            for person in [_person_view(data, ident, category)] if person],
+                 "source": "group", "group_id": group.get("id"),
+                 "driver": _driver(data, group.get("driver"))}]
     result = []
     raw = (sheet.get("services") or {}).get(assignment_id) or {}
     for item in _direct_service_entries(data, day, assignment_id, raw):
@@ -291,7 +312,7 @@ def _clean(data, day):
         value["posts"] = posts
     if "plates" in value and isinstance(value.get("plates"), dict):
         value["plates"] = {"rows": value["plates"].get("rows", [])}
-    if not any(value.get(k) for k in ("lorries", "services", "daily", "posts", "plates")):
+    if not any(value.get(k) for k in ("lorries", "services", "daily", "posts", "plates", "groups")):
         data["day_campaign"].pop(day, None)
 
 
@@ -309,6 +330,8 @@ def set_lorry(data, day, lorry_id, payload):
 def set_service(data, day, assignment_id, payload):
     if not any(r.get("id") == assignment_id for r in occasional_rows(data, day)):
         return "الخدمة غير موجودة في هذا اليوم.", 404
+    if group_of(data, day, assignment_id):
+        return "الخدمة ضمن مجموعة؛ عدّل مركبة المجموعة أو فك التجميع أولًا.", 409
     target = _raw(data, day).setdefault("services", {}).setdefault(assignment_id, {})
     if "vehicles" in payload:
         vehicles, error = _validate_service_vehicles(data, day, assignment_id, payload.get("vehicles"))
@@ -342,6 +365,159 @@ def set_service(data, day, assignment_id, payload):
     return None, None
 
 
+# ───────────────────── تجميع الخدمات الطارئة ─────────────────────
+# المجموعة بتتخزن في day_campaign[day]["groups"] = [{id, title, members, vehicle_id?, driver?}]
+# وهي خاصة بيوم واحد (ما بتتوارثش لليوم التالي). الخدمة في مجموعة واحدة على الأكثر،
+# وبيانات الأعضاء الأصلية (services[id]) بتفضل زي ما هي عشان فك التجميع يرجّعها.
+MAX_GROUP_TITLE = 200
+
+
+def day_groups(data, day):
+    return ((data.get("day_campaign") or {}).get(day) or {}).get("groups") or []
+
+
+def group_of(data, day, assignment_id):
+    return next((g for g in day_groups(data, day) if assignment_id in (g.get("members") or [])), None)
+
+
+def _find_group(data, day, group_id):
+    return next((g for g in day_groups(data, day) if g.get("id") == group_id), None)
+
+
+def _group_snapshot(group):
+    return deepcopy(group) if group else None
+
+
+def _clean_ids(values):
+    if not isinstance(values, list):
+        return None
+    return list(dict.fromkeys(str(v).strip() for v in values if str(v).strip()))
+
+
+def _check_title(title):
+    title = " ".join(str(title or "").split())
+    if not title:
+        return None, "عنوان المجموعة مطلوب."
+    if len(title) > MAX_GROUP_TITLE:
+        return None, "عنوان المجموعة أطول من الحد المسموح."
+    return title, None
+
+
+def _check_members(data, day, ids, ignore_group=None):
+    """الأعضاء لازم خدمات طارئة ظاهرة في اليوم، مش في مجموعة تانية ولا ملحقة بلوري."""
+    available = {r.get("id") for r in occasional_rows(data, day)}
+    lorry_attached = {item.get("assignment_id")
+                      for lorry in ((data.get("day_campaign") or {}).get(day, {}).get("lorries") or {}).values()
+                      for item in (lorry or {}).get("attached") or []}
+    for ident in ids:
+        if ident not in available:
+            return "الخدمة غير موجودة في هذا اليوم.", 404
+        other = group_of(data, day, ident)
+        if other and other is not ignore_group:
+            return "الخدمة ضمن مجموعة أخرى بالفعل.", 409
+        if ident in lorry_attached:
+            return "الخدمة ملحقة بلوري؛ أزل الإلحاق أولًا.", 409
+    return None, None
+
+
+def _seed_group(data, day, members):
+    """المجموعة الجديدة بتبدأ بمركبة وسائق أول عضو عنده تسكين (نسخة، من غير ما نمسّ الأعضاء)."""
+    services = (data.get("day_campaign") or {}).get(day, {}).get("services") or {}
+    for ident in members:
+        raw = services.get(ident) or {}
+        entries = _direct_service_entries(data, day, ident, raw)
+        if entries and entries[0].get("vehicle_id"):
+            seed = {"vehicle_id": str(entries[0]["vehicle_id"])}
+            driver = entries[0].get("driver") or raw.get("driver")
+            if driver:
+                seed["driver"] = deepcopy(driver)
+            return seed
+    return {}
+
+
+def create_group(data, day, title, members, out=None):
+    title, error = _check_title(title)
+    if error:
+        return error, 400
+    ids = _clean_ids(members)
+    if ids is None:
+        return "قائمة الخدمات غير صحيحة.", 400
+    if len(ids) < 2:
+        return "اختر خدمتين على الأقل للتجميع.", 400
+    error, status = _check_members(data, day, ids)
+    if error:
+        return error, status
+    existing = [{"id": g.get("id")} for sheet in (data.get("day_campaign") or {}).values()
+                for g in (sheet or {}).get("groups") or []]
+    group = {"id": reserve_id(data, "CG", existing), "title": title, "members": ids,
+             **_seed_group(data, day, ids)}
+    _raw(data, day).setdefault("groups", []).append(group)
+    if out is not None:
+        out["group_id"] = group["id"]
+    changes.record(data, "campaign_group", group["id"], "create", after=_group_snapshot(group), day=day,
+                   text=f"تجميع {len(ids)} خدمات في «{title}»")
+    return None, None
+
+
+def update_group(data, day, group_id, body):
+    """إعادة تسمية وإضافة/إزالة أعضاء: title / add / remove."""
+    group = _find_group(data, day, group_id)
+    if not group:
+        return "المجموعة غير موجودة.", 404
+    before = _group_snapshot(group)
+    members = list(group.get("members") or [])
+    title = group.get("title", "")
+    if "title" in body:
+        title, error = _check_title(body.get("title"))
+        if error:
+            return error, 400
+    add, remove = _clean_ids(body.get("add") or []), _clean_ids(body.get("remove") or [])
+    if add is None or remove is None:
+        return "قائمة الخدمات غير صحيحة.", 400
+    if any(ident not in members for ident in remove):
+        return "الخدمة ليست ضمن المجموعة.", 404
+    add = [ident for ident in add if ident not in members]
+    error, status = _check_members(data, day, add, ignore_group=group)
+    if error:
+        return error, status
+    members = [m for m in members if m not in remove] + add
+    if len(members) < 2:
+        return "المجموعة لا تقل عن خدمتين؛ استخدم «فك التجميع» بدلًا من ذلك.", 400
+    group["title"], group["members"] = title, members
+    changes.record(data, "campaign_group", group_id, "update", before=before,
+                   after=_group_snapshot(group), day=day, text=f"تعديل المجموعة «{title}»")
+    return None, None
+
+
+def set_group(data, day, group_id, payload):
+    """مركبة وسائق المجموعة (نفس شكل PUT للخدمة)."""
+    group = _find_group(data, day, group_id)
+    if not group:
+        return "المجموعة غير موجودة.", 404
+    before = _group_snapshot(group)
+    error = _apply(data, group, {k: v for k, v in payload.items() if k in ("vehicle_id", "driver")})
+    if error:
+        return error, 400
+    for key in ("vehicle_id", "driver"):
+        if key in group and not group[key]:
+            del group[key]
+    changes.record(data, "campaign_group", group_id, "assign", before=before,
+                   after=_group_snapshot(group), day=day, text=f"تسكين المجموعة «{group.get('title', '')}»")
+    return None, None
+
+
+def ungroup(data, day, group_id):
+    sheet = (data.get("day_campaign") or {}).get(day) or {}
+    group = _find_group(data, day, group_id)
+    if not group:
+        return "المجموعة غير موجودة.", 404
+    sheet["groups"] = [g for g in sheet["groups"] if g.get("id") != group_id]
+    changes.record(data, "campaign_group", group_id, "delete", before=_group_snapshot(group), day=day,
+                   text=f"فك تجميع «{group.get('title', '')}»")
+    _clean(data, day)
+    return None, None
+
+
 def set_daily(data, day, row_id, payload):
     if row_id not in {x["id"] for x in campaign_daily_on(data, day)}:
         return "القول اليومي غير موجود.", 404
@@ -367,6 +543,8 @@ def attach_service(data, day, lorry_id, item):
         row = next((r for r in occasional_rows(data, day) if r.get("id") == assignment_id), None)
         if not row:
             return "الخدمة غير موجودة في هذا اليوم.", 404
+        if group_of(data, day, assignment_id):
+            return "الخدمة ضمن مجموعة؛ فك التجميع أولًا لإلحاقها بلوري.", 409
         for other_id, value in ((_raw(data, day).get("lorries") or {}).items()):
             if other_id != lorry_id and any(item.get("assignment_id") == assignment_id
                                              for item in value.get("attached") or []):
@@ -669,7 +847,10 @@ def build_campaign(data, day):
         ))
 
     rows_s = []
+    grouped_ids = {mid for group in current.get("groups") or [] for mid in group.get("members") or []}
     for assignment in assignments.values():
+        if assignment["id"] in grouped_ids:
+            continue
         raw = (current.get("services") or {}).get(assignment["id"], {})
         has_direct = bool(_direct_service_entries(data, day, assignment["id"], raw))
         if assignment.get("id") in attached_ids and not has_direct:
@@ -681,6 +862,18 @@ def build_campaign(data, day):
         ))
     for row in rows_s:
         row["service_vehicles"] = service_vehicles(data, day, row["id"])
+    for group in current.get("groups") or []:
+        members = [assignments[mid] for mid in group.get("members") or [] if mid in assignments]
+        if not members:
+            continue
+        row = _row_view(data, group["id"], "group", group.get("title", ""), group, False, day=day)
+        row["base_name"] = row["name"]
+        row["members"] = [{"id": m["id"], "name": m.get("name") or m.get("label") or ""} for m in members]
+        row["people"] = []
+        vehicle = row["vehicle"]
+        row["service_vehicles"] = ([{"vehicle": vehicle, "vehicle_id": vehicle["id"],
+                                     "driver": row["driver"], "source": "group"}] if vehicle else [])
+        rows_s.append(row)
     rows_s = order_services(rows_s)
 
     rows_d = [
@@ -748,6 +941,7 @@ def build_campaign(data, day):
     attachable = [
         {"assignment_id": row.get("id"), "name": row.get("name") or row.get("label") or ""}
         for row in assignments.values()
+        if row.get("id") not in grouped_ids
     ]
     return {
         "date": day,
@@ -794,3 +988,10 @@ def _post_warnings(rows):
         if len(group) > 1:
             for row in group:
                 row["warnings"].append("المركبة مستخدمة في أكثر من ارتكاز.")
+
+
+def scope_days(data, day):
+    """أيام نطاق قراءة صفحة الحملة (اليوم + آخر يوم سابق ليه حملة) جوه بيانات
+    محمّلة بنطاق أوسع، عشان توكن المراجعة يطابق اللي رجع من GET."""
+    previous = [d for d in (data.get("day_campaign") or {}) if d < day]
+    return {day, *([max(previous)] if previous else [])}

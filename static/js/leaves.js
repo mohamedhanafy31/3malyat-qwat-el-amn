@@ -1,5 +1,5 @@
 /* سجل الراحات والإجازات */
-let LEAVES = [], PEOPLE = [], OFFICER_IDS = new Set(), LEAVE_TAB = "active";
+let LEAVES = [], LEAVE_HISTORY = [], PEOPLE = [], OFFICER_IDS = new Set(), LEAVE_TAB = "active";
 /* الصفحة كانت بتفتح على «الكل» مرتبة بالنوع ثم الأقدم، فأول شاشة كانت راحات
    يونيو المنتهية؛ الجاري والقادم — اللي بيتسأل عنه فعلًا — كانوا مدفونين.
    الافتراضي بقى الحالية والقادمة، والتبويب اللي المستخدم يختاره بيتحفظ. */
@@ -10,8 +10,13 @@ const LEAVE_FILTERS = UI.filterChips("#leaveFilterSummary", [
   {el:"#leaveCategoryFilter", label:"الفئة"}, {el:"#leaveDurationFilter", label:"المدة"},
 ], render);
 
+const HIST_FILTERS = UI.filterChips("#histFilterSummary", [
+  {el:"#histSearch", label:"بحث", format:value=>`«${value}»`},
+  {el:"#histActionFilter", label:"الإجراء"}, {el:"#histStatusFilter", label:"الحالة"},
+], render);
+
 function updateLeaveTabCounts(today) {
-  const counts={all:LEAVES.length,active:LEAVES.filter(l=>l.end>=today).length,
+  const counts={deleted:LEAVE_HISTORY.filter(h=>!h.restored_at).length,all:LEAVES.length,active:LEAVES.filter(l=>l.end>=today).length,
     current:LEAVES.filter(l=>l.start<=today&&today<=l.end).length,
     upcoming:LEAVES.filter(l=>l.start>today).length,ended:LEAVES.filter(l=>l.end<today).length};
   $$('[data-lv]').forEach(button=>{
@@ -177,6 +182,12 @@ function render() {
   renderStats();
   const today = curDate();
   updateLeaveTabCounts(today);
+  const histMode = LEAVE_TAB === "deleted";
+  $("#histToolbar").classList.toggle("hidden", !histMode);
+  $("#histFilterSummary").classList.toggle("hidden", !histMode);
+  $("#leaveToolbar").classList.toggle("hidden", histMode);
+  $("#leaveFilterSummary").classList.toggle("hidden", histMode);
+  if (histMode) { renderHistory(); return; }
   const st = _sortState("leaveWrap");
 
   let rows = [...LEAVES];
@@ -271,6 +282,79 @@ function render() {
 }
 
 
+// ── المحذوفة والملغية ───────────────────────────────────────────────────────
+const HIST_COLS = {
+  name:    { label: "الضابط",       fn: h => h.person_name || "",        type: "text" },
+  type:    { label: "النوع",        fn: h => h.display_type || "",       type: "text" },
+  start:   { label: "المدة",        fn: h => (h.before || {}).start || "", type: "date" },
+  origin:  { label: "الأصل",        fn: h => h.origin_label || "",       type: "text" },
+  action:  { label: "الإجراء",      fn: h => h.action_label || "",       type: "text" },
+  by:      { label: "بواسطة",       fn: h => h.performed_by || "",       type: "text" },
+  at:      { label: "التوقيت",      fn: h => h.occurred_at || "",        type: "date" },
+};
+const fmtStamp = iso => iso ? `${fmt(iso.slice(0, 10))} ${esc(iso.slice(11, 16))}` : "—";
+
+function historyRow(h) {
+  const b = h.before || {};
+  const n = b.start && b.end ? days(b.start, b.end) : 0;
+  const extra = h.action === "stop" && h.after && h.after.end
+    ? `<div class="sub">كانت حتى ${fmt(b.end)}، أصبحت حتى ${fmt(h.after.end)}</div>` : "";
+  const status = h.restored_at
+    ? `<span class="chip done">تم الاسترجاع</span><div class="sub">بواسطة ${esc(h.restored_by)} في ${fmtStamp(h.restored_at)}</div>`
+    : `<span class="chip soon">قابلة للاسترجاع</span>`;
+  const who = h.person_archived ? `<div class="sub"><span class="chip err">في الأرشيف</span></div>` : "";
+  const action = h.restored_at
+    ? "<span class='muted'>—</span>"
+    : `<button type="button" class="mini primary" data-action="restoreLeave" data-id="${esc(h.id)}"
+        data-extra="${dataAttr({name: h.person_name, kind: h.action_label, stop: h.action === "stop"})}"
+        aria-label="استرجاع ${esc(h.action_label)} راحة ${esc(h.person_name)}">استرجاع</button>`;
+  return `<tr>
+    <td class="name">${esc(h.person_name) || "<span class='muted'>(محذوف)</span>"}${who}</td>
+    <td><span class="chip leave-kind-chip ${b.type === "شهرية" ? "m" : b.type === "نصف شهرية" ? "h" : "w"}">${esc(h.display_type || b.type)}</span></td>
+    <td>${fmt(b.start)} ← ${fmt(b.end)}<div class="sub">${countLabel(n, "يوم")}</div>${extra}</td>
+    <td>${esc(h.origin_label)}</td>
+    <td>${esc(h.action_label)}${h.suspension_id ? `<div class="sub">${esc(h.suspension_id)}</div>` : ""}</td>
+    <td>${esc(h.performed_by)}</td>
+    <td>${fmtStamp(h.occurred_at)}</td>
+    <td class="wrap">${esc(h.reason) || "<span class='muted'>—</span>"}</td>
+    <td>${status}</td>
+    <td class="col-actions">${action}</td></tr>`;
+}
+
+function renderHistory() {
+  const q = $("#histSearch").value.trim();
+  const af = $("#histActionFilter").value, sf = $("#histStatusFilter").value;
+  let rows = [...LEAVE_HISTORY];
+  if (q) rows = rows.filter(h => arIncludes(h.person_name || "", q) || arIncludes(h.reason || "", q));
+  if (af) rows = rows.filter(h => h.action_label === af);
+  if (sf) rows = rows.filter(h => sf === "restored" ? !!h.restored_at : !h.restored_at);
+  const hasFilters = !!(q || af || sf);
+  if (!rows.length) {
+    $("#leaveWrap").innerHTML = hasFilters ? emptyState({filtered: true}) : emptyState({
+      icon: "inbox", title: "لا توجد راحات محذوفة أو ملغية",
+      hint: "أي راحة تُحذف أو تُنهى مبكرًا تظهر هنا ويمكن استرجاعها."});
+  } else {
+    $("#leaveWrap").innerHTML = sortableTableBlock(
+      "leaveWrap", HIST_COLS, rows, historyRow,
+      ["السبب", "الحالة", "الإجراء"], `عدد النتائج: ${rows.length}`, null, render);
+  }
+  HIST_FILTERS.update(rows.length);
+}
+
+ACTIONS.restoreLeave = async (id, extra) => {
+  const what = extra.stop
+    ? `ستعود راحة «${extra.name}» إلى نهايتها الأصلية قبل الإنهاء المبكر.`
+    : `ستُعاد راحة «${extra.name}» كما كانت تمامًا (نفس التواريخ والنوع والملاحظات).`;
+  if (!(await confirmDialog({
+    title: "استرجاع الراحة",
+    body: `${what} لن يتم الاسترجاع لو في تعارض مع راحة أخرى لنفس الشخص، وسيُسجَّل الإجراء في سجل التغييرات.`,
+    confirmLabel: "استرجاع",
+  }))) return;
+  if (await api(`/api/leaves/history/${encodeURIComponent(id)}/restore`, jsonReq("POST", {}))) {
+    showToast("تم استرجاع الراحة"); load();
+  }
+};
+
 // ── Actions ────────────────────────────────────────────────────────────────
 ACTIONS.openLeaveEdit = id => openLeave(id);
 ACTIONS.stopLeave = (id, extra) => openStopLeave({id, ...extra}, load);
@@ -312,6 +396,9 @@ $$("[data-lv]").forEach(b => b.onclick = () => {
   $("#leaveWrap").setAttribute("aria-labelledby", saved.id);
 })();
 $("#leaveSearch").oninput      = debounce(render);   // إعادة الرسم بعد ما الكتابة تهدى
+$("#histSearch").oninput = debounce(render);
+$("#histActionFilter").onchange = render;
+$("#histStatusFilter").onchange = render;
 $("#leaveTypeFilter").onchange = render;
 $("#leaveMonthFilter").onchange = render;
 if ($("#leaveCategoryFilter")) $("#leaveCategoryFilter").onchange = render;
@@ -335,6 +422,7 @@ async function load() {
   if (!d) { UI.regionError("#leaveWrap", {message:"تعذر تحميل سجل الراحات.", retry:load}); return; }
   UI.regionReady("#leaveWrap");
   LEAVES       = d.leaves || [];
+  LEAVE_HISTORY = d.leave_history || [];
   PEOPLE       = d.people || [];
   OFFICER_IDS  = new Set(d.officer_ids || []);
   setLeavePeople(PEOPLE);

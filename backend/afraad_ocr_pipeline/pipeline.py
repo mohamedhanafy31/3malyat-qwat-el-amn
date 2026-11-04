@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import logging
+import time
 from typing import Any
 
 import numpy as np
+
+from .. import tech_log
 
 from .config import PipelineConfig
 from .grid import detect_grid
@@ -88,11 +92,29 @@ class TableOCRPipeline:
         return PipelineResult(False, "raw-fallback", grid, [], raw, warnings, None)
 
     def run(self, image: np.ndarray) -> PipelineResult:
+        tech_log.ocr_stage("grid")
+        grid_started = time.perf_counter()
         grid = detect_grid(image, self.config)
+        tech_log.ocr_event(
+            "ocr.grid", ok=grid.ok, method=grid.method, confidence=round(grid.confidence, 3),
+            rows=max(0, len(grid.horizontal) - 1), cols=max(0, len(grid.vertical) - 1),
+            cells=len(grid.cells), width=grid.width, height=grid.height,
+            warnings=len(grid.warnings), duration_ms=tech_log.ms_since(grid_started),
+            level=logging.INFO if grid.ok else logging.WARNING)
         warnings = list(grid.warnings)
         if not grid.ok:
-            return self._raw_fallback(image, grid, warnings)
+            tech_log.ocr_stage("raw_fallback")
+            raw_started = time.perf_counter()
+            fallback_result = self._raw_fallback(image, grid, warnings)
+            raw = fallback_result.raw_ocr
+            tech_log.ocr_event(
+                "ocr.raw_fallback", engine=getattr(raw, "engine", None),
+                chars=len(getattr(raw, "text", "") or ""), error=bool(getattr(raw, "error", None)),
+                duration_ms=tech_log.ms_since(raw_started))
+            return fallback_result
 
+        tech_log.ocr_stage("cell_ocr")
+        cells_started = time.perf_counter()
         page = self._run_indra(grid.processed_image, warnings)
         indra_ok = bool(page is not None and not page.error)
         assigned = _assign_indra_lines(page.lines, grid.cells) if indra_ok and page else {}
@@ -162,6 +184,15 @@ class TableOCRPipeline:
                 "alternatives": alternatives,
             })
 
+        tech_log.ocr_event(
+            "ocr.cells", cells=len(cells),
+            read=sum(1 for c in cells if c["text"]), empty=sum(1 for c in cells if not c["text"]),
+            errors=sum(1 for c in cells if c["error"]),
+            fallback=sum(1 for c in cells if c["fallback"]),
+            indra_used=indra_ok, tesseract_cells=len(tess_results),
+            paddle_cells=len(paddle_results),
+            conf_avg=round(sum(c["confidence"] for c in cells) / len(cells), 1) if cells else None,
+            duration_ms=tech_log.ms_since(cells_started))
         if not cells:
             raw = recognize_raw(image, self.config)
             warnings.append("تعذر OCR للخلايا؛ تم إرجاع النص الخام.")

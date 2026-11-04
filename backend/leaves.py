@@ -1,6 +1,7 @@
 """الراحات والإجازات — بناء سجل راحة والتحقق من التداخل."""
+import re
 from collections import defaultdict
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from .constants import LEAVE_TYPES, LEGACY_LEAVE_TYPES
 from .date_range import overlapping_of, parse_range
@@ -8,6 +9,206 @@ from .people import find_person
 from .utils import MAX_LEN
 
 MAX_NOTE = MAX_LEN["note"]
+HISTORY_KEY = "leave_history"
+HISTORY_ACTIONS = frozenset({"delete", "cancel", "stop"})
+
+
+def _person_meta(data, person_id):
+    from .repo import PeopleRepo
+    raw, category, bucket = PeopleRepo(data).locate(person_id)
+    return raw or {}, category or "", bucket or ""
+
+
+def _origin_label(leave):
+    origin = str((leave or {}).get("origin", "") or "")
+    if origin == "auto_weekly":
+        return "أسبوعية ثابتة"
+    if origin == "weekly_extra":
+        return "أسبوعية إضافية"
+    if (leave or {}).get("type") in MONTHLY_REST_SYSTEMS:
+        return "كشف راحات"
+    if (leave or {}).get("source"):
+        return "أرشيف / استيراد"
+    return "يدوي"
+
+
+def _suspension_of(change, after):
+    """رقم أمر الوقف لو الحدث نتيجة أمر وقف راحات (إيقاف أو إلغاء قبل البدء)."""
+    sid = (after or {}).get("suspension_id")
+    if sid:
+        return sid
+    found = re.search(r"أمر وقف\s+(\S+?)\)", change.get("text") or "")
+    return found.group(1) if found else ""
+
+
+_ACTION_LABELS = {"delete": "حذف", "cancel": "إلغاء قبل البدء", "stop": "إنهاء مبكر"}
+
+
+def history(data):
+    return data.setdefault(HISTORY_KEY, [])
+
+
+def record_history(data, change):
+    """يثبّت حدث راحة قابلًا للاسترجاع من سطر تغيير ذي لقطات صريحة."""
+    if not change or change.get("entity") != "leave" or change.get("action") not in HISTORY_ACTIONS:
+        return None
+    if any(row.get("change_id") == change.get("id") for row in history(data)):
+        return None
+    before = dict(change.get("before") or {})
+    after = dict(change.get("after") or {}) if change.get("after") else None
+    if not before or not before.get("person_id"):
+        return None
+    raw, category, _ = _person_meta(data, before["person_id"])
+    from .store import reserve_id
+    row = {
+        "id": reserve_id(data, "LVH", history(data)),
+        "change_id": change.get("id"),
+        "leave_id": change.get("entity_id") or before.get("id"),
+        "action": change.get("action"),
+        "before": before,
+        "after": after,
+        "reason": change.get("reason") or "",
+        "suspension_id": _suspension_of(change, after),
+        "occurred_at": change.get("ts") or "",
+        "performed_by": change.get("edited_by") or "النظام",
+        "person_name": raw.get("name", ""),
+        "person_category": category,
+        "restored_at": "",
+        "restored_by": "",
+        "restored_leave_id": "",
+        "restore_change_id": "",
+    }
+    history(data).append(row)
+    return row
+
+
+def backfill_history(data):
+    """يحوّل حذف/إلغاء/إيقاف change_log الحالي إلى السجل الدائم، مرة واحدة."""
+    added = 0
+    for change in data.get("change_log") or []:
+        if record_history(data, change):
+            added += 1
+    return added
+
+
+def history_rows(data):
+    """نسخة عرض، الأحدث أولًا، من غير تعديل البيانات المخزنة."""
+    out = []
+    for stored in reversed(data.get(HISTORY_KEY) or []):
+        row = dict(stored)
+        before = row.get("before") or {}
+        raw, category, bucket = _person_meta(data, before.get("person_id", ""))
+        row["person_name"] = row.get("person_name") or raw.get("name", "")
+        row["person_category"] = row.get("person_category") or category
+        row["person_archived"] = bucket == "archive"
+        row["origin_label"] = _origin_label(before)
+        row["action_label"] = ("وقف راحات" if row.get("suspension_id")
+                               else _ACTION_LABELS.get(row.get("action"), ""))
+        row.setdefault("suspension_id", "")
+        row["display_type"] = leave_label(before)
+        out.append(row)
+    return out
+
+
+def _restore_fail(message, status=400):
+    from flask import jsonify
+    from .store import AbortRequest
+    raise AbortRequest((jsonify({"error": message}), status))
+
+
+def mark_history_restored(data, leave_id, actions, restored_leave_id, restore_change):
+    """يعلّم أحدث بند مطابق؛ تستخدمها أيضًا استعادة أمر الوقف القديمة."""
+    event = next((row for row in reversed(history(data))
+                  if row.get("leave_id") == leave_id
+                  and row.get("action") in set(actions)
+                  and not row.get("restored_at")), None)
+    if not event:
+        return None
+    event.update({
+        "restored_at": restore_change.get("ts") or datetime.now().isoformat(timespec="seconds"),
+        "restored_by": restore_change.get("edited_by") or "النظام",
+        "restored_leave_id": restored_leave_id,
+        "restore_change_id": restore_change.get("id") or "",
+    })
+    return event
+
+
+def restore_history(data, event_id):
+    """يعيد لقطة الحذف/الإلغاء أو الحالة السابقة للإنهاء المبكر."""
+    from . import changes, rest_suspension, retro
+    from .models import Leave
+    from .repo import Repos
+
+    event = next((row for row in history(data) if row.get("id") == event_id), None)
+    if not event:
+        _restore_fail("بند سجل الراحة غير موجود.", 404)
+    if event.get("restored_at"):
+        _restore_fail("تم استرجاع هذا البند بالفعل، ولا يمكن استرجاعه مرة أخرى.", 409)
+
+    snapshot = dict(event.get("before") or {})
+    person_id = snapshot.get("person_id", "")
+    raw, category, bucket = _person_meta(data, person_id)
+    if not raw:
+        _restore_fail("لا يمكن الاسترجاع لأن سجل صاحب الراحة لم يعد موجودًا.", 409)
+    if category == "officers" and bucket == "archive":
+        _restore_fail("لا يمكن الاسترجاع لأن الضابط موجود في الأرشيف. أعده إلى القوة أولًا.", 409)
+
+    candidate = Leave.from_dict(snapshot)
+    errors = candidate.validate()
+    if errors:
+        _restore_fail(errors[0])
+    person = Repos(data).people.find(person_id)
+    service_error = candidate.within_service(person)
+    if service_error:
+        _restore_fail(f"لا يمكن الاسترجاع: {service_error}", 409)
+
+    repos = Repos(data)
+    current = repos.leaves.find(event.get("leave_id", ""))
+    is_stop = event.get("action") == "stop"
+    if is_stop:
+        if not current:
+            _restore_fail("سجل الراحة الحالي غير موجود؛ استرجع بند الحذف الأحدث أولًا.", 409)
+        expected = event.get("after") or {}
+        if current.as_dict() != expected:
+            _restore_fail("تغيّر سجل الراحة بعد الإنهاء المبكر؛ راجع التعديل الأحدث قبل الاسترجاع.", 409)
+        ignore_id = current.id
+    else:
+        ignore_id = None
+
+    blocked = rest_suspension.blocking(data, snapshot,
+                                        current=current.as_dict() if current else None)
+    if blocked:
+        _restore_fail(blocked, 409)
+    clash = overlapping(data, snapshot, ignore_id=ignore_id)
+    if clash:
+        _restore_fail("لا يمكن الاسترجاع لوجود راحة أخرى للشخص نفسه في المدة "
+                      f"({clash['start']} ← {clash['end']}).", 409)
+
+    closed = retro.closed_days_in(data, snapshot.get("start", ""), snapshot.get("end", ""))
+    reason = retro.require_reason(closed)
+
+    original_id = snapshot.get("id") or event.get("leave_id")
+    if is_stop:
+        restored_id = current.id
+        repos.leaves.replace(candidate)
+    else:
+        if repos.leaves.find(original_id):
+            candidate.id = repos.leaves.new_id()
+        restored_id = candidate.id
+        repos.leaves.add(candidate)
+
+    name = raw.get("name", "")
+    change = changes.record(
+        data, "leave", restored_id, "restore", before=current.as_dict() if current else None,
+        after=candidate.as_dict(), reason=reason,
+        text=f"استرجاع راحة {name} ({leave_label(snapshot)} {snapshot.get('start')} ← {snapshot.get('end')}) "
+             f"من سجل المحذوفة والملغية ({event_id})",
+    )
+    mark_history_restored(data, event.get("leave_id"), {event.get("action")}, restored_id, change)
+    if closed:
+        retro.log_retro(data, "leave", restored_id, closed, reason,
+                        before=current.as_dict() if current else None, after=candidate.as_dict())
+    return repos.leaves.named(candidate), event
 
 
 def leave_label(leave):

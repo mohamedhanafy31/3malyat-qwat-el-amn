@@ -216,6 +216,9 @@ body.sidebar-open{overflow:hidden}
 .campaign-service-name strong{margin-inline-end:var(--s1)}
 .campaign-attach-chip{display:inline-flex;align-items:center;gap:3px;background:var(--gold-100);color:var(--gold-800);border-color:var(--gold-300)}
 .campaign-attach-chip button{border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;line-height:1;padding:0 2px}
+.campaign-group-pick{margin:0}
+.campaign-group-members{margin-top:2px;color:var(--muted,inherit);font-size:.85em}
+.mini.on-dark:disabled{opacity:.5;cursor:not-allowed}
 .muted-chip{color:var(--ink-500);background:var(--surface-sunken);border-color:var(--line)}
 .campaign-warn{cursor:help}
 .campaign-inline-select{width:100%;min-width:130px;transition:border-color .12s,background .12s,color .12s}

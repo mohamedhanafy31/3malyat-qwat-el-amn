@@ -245,6 +245,11 @@ def _detach_removed_conscripts(data, removed):
                 if driver.get("kind") == "conscript" and driver.get("id") in names:
                     entry["driver"] = {"kind": "text", "id": "", "name": names[driver["id"]]}
                     touched += 1
+        for entry in sheet.get("groups") or []:
+            driver = entry.get("driver") or {}
+            if driver.get("kind") == "conscript" and driver.get("id") in names:
+                entry["driver"] = {"kind": "text", "id": "", "name": names[driver["id"]]}
+                touched += 1
     return touched
 
 

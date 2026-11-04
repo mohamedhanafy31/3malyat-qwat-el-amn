@@ -87,7 +87,8 @@ def test_generated_roster_uses_word_strength_columns_without_service_details(cli
     assert "آلي" not in basic.cells[1].text
     assert "8ص" not in basic.cells[1].text
     assert "آلي" not in " | ".join(cell.text for cell in emergency.cells)
-    assert "12ظ" not in " | ".join(cell.text for cell in emergency.cells)
+    # ساعة الانتظام أصبحت جزءًا من اسم الطوارئ، مثل ملفات الأرشيف الرسمية.
+    assert "خدمة طارئة اختبار 12ظ" in " | ".join(cell.text for cell in emergency.cells)
 
 
 def test_generated_roster_uses_shared_person_labels(client):

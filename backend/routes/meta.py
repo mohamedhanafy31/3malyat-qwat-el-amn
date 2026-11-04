@@ -16,7 +16,7 @@ from ..constants import (
     REST_SYSTEMS, SERVICE_DOCUMENTS, SERVICE_KINDS, SERVICE_SECTIONS, SHIFTS,
     TAQSEERA_NOTICE_DAYS, WEEKDAYS,
 )
-from ..leaves import monthly_roster, weekly_roster
+from ..leaves import history_rows, monthly_roster, weekly_roster
 from ..rest_status import officer_status, taqseera_alerts
 from ..repo import Repos
 from ..store import ALL_DAYS, load_data
@@ -215,6 +215,7 @@ def bootstrap(page):
         # ماتسجّلتش وهي ظاهرة في اليوميات — نضيفها هنا للعرض بس.
         leaves = repos.leaves.rows_with_names() + virtual_rows(data, today_str)
         return jsonify({"meta": meta, "leaves": leaves, "people": people,
+                        "leave_history": history_rows(data),
                         "officer_ids": officer_ids,
                         "counts": _counts(data)})
 

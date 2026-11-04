@@ -208,6 +208,50 @@ def _align_services(rows, services):
     return aligned, offset
 
 
+_WARNING_CODES = (
+    ("perspective", "منظور"), ("raw_fallback", "OCR الخام"), ("indra_unavailable", "Indra OCR"),
+    ("paddle_raw", "PaddleOCR"), ("cells_failed", "تعذر OCR للخلايا"),
+)
+
+
+def _warning_code(text):
+    """كود ثابت للتحذير — نص التحذير نفسه ممكن يشمل رسالة محرك، فمش بنسجّله."""
+    text = str(text or "")
+    for code, needle in _WARNING_CODES:
+        if needle in text:
+            return code
+    return "grid" if text else "other"
+
+
+def _score_stats(matches):
+    scores = [m["score"] for m in matches if m.get("score") is not None]
+    return (round(min(scores), 3), round(sum(scores) / len(scores), 3)) if scores else (None, None)
+
+
+def _log_matching(output, aligned_count, detected, offset, inferred, align_ms, match_ms):
+    slots = [m for row in output for m in (row["morning_match"], row["night_match"]) if m.get("text")]
+    matched = [m for m in slots if m.get("matched")]
+    confident = [m for m in slots if m.get("confident")]
+    low, avg = _score_stats(matched)
+    tech_log.ocr_event(
+        "ocr.align", detected_rows=detected, aligned_rows=aligned_count,
+        row_offset=offset, inferred_by_order=inferred, duration_ms=align_ms)
+    tech_log.ocr_event(
+        "ocr.match", slots_read=len(slots), matched=len(matched), confident=len(confident),
+        suggested_only=len(matched) - len(confident), unmatched=len(slots) - len(matched),
+        score_min=low, score_avg=avg, rows_ready=sum(1 for r in output if r["confident"]),
+        duration_ms=match_ms)
+    if logging.getLogger(tech_log.OCR_LOGGER).isEnabledFor(logging.DEBUG):
+        for row in output:       # معرّفات فقط
+            for slot, key in (("morning", "morning_match"), ("night", "night_match")):
+                match = row[key]
+                if match.get("text"):
+                    tech_log.ocr_event(
+                        "ocr.match_row", level=logging.DEBUG, service_id=row.get("service_id"),
+                        slot=slot, person_id=match.get("id") or None, score=match.get("score"),
+                        confident=match.get("confident"))
+
+
 def analyze_image(raw, filename, data, day, pipeline=None):
     if not raw:
         raise ValueError("اختر صورة أولاً.")
@@ -216,6 +260,8 @@ def analyze_image(raw, filename, data, day, pipeline=None):
     suffix = str(filename or "").rsplit(".", 1)[-1].lower()
     if suffix not in ALLOWED_IMAGE_SUFFIXES:
         raise ValueError("الصيغة غير مدعومة. استخدم PNG أو JPG أو JPEG أو WEBP.")
+    tech_log.ocr_stage("decode")
+    decode_started = time.perf_counter()
     try:
         from PIL import Image, UnidentifiedImageError
         import cv2
@@ -232,28 +278,39 @@ def analyze_image(raw, filename, data, day, pipeline=None):
     except (UnidentifiedImageError, OSError, SyntaxError) as exc:
         raise ValueError("الملف ليس صورة صالحة.") from exc
 
+    tech_log.ocr_event("ocr.decode", bytes=len(raw), ext=suffix, width=int(bgr.shape[1]),
+                       height=int(bgr.shape[0]), duration_ms=tech_log.ms_since(decode_started))
     if pipeline is None:
         from .afraad_ocr_pipeline import TableOCRPipeline
         pipeline = TableOCRPipeline()
+    tech_log.ocr_stage("pipeline")
     started = time.perf_counter()
     result = pipeline.run(bgr)
     engines = {}
     for cell in result.cells or []:
         engines[cell.get("engine")] = engines.get(cell.get("engine"), 0) + 1
-    tech_log.event(LOG, "ocr.analyze", day=day, mode=result.mode, grid_ok=result.ok,
+    tech_log.ocr_event("ocr.analyze", day=day, mode=result.mode, grid_ok=result.ok,
                    cells=len(result.cells or []), fallback_cells=sum(
                        1 for c in result.cells or [] if c.get("fallback")),
                    engines=",".join(f"{k}:{v}" for k, v in sorted(engines.items(), key=str)) or None,
                    raw_engine=getattr(result.raw_ocr, "engine", None),
                    warnings=len(result.warnings or []),
                    image_bytes=len(raw), duration_ms=tech_log.ms_since(started))
+    if result.warnings:
+        tech_log.ocr_event("ocr.warnings", level=logging.WARNING, count=len(result.warnings),
+                           codes=",".join(sorted({_warning_code(w) for w in result.warnings})))
+    tech_log.ocr_stage("matching")
     payload = result.as_dict()
     payload["overlay_png"] = ("data:image/png;base64," +
                               base64.b64encode(result.grid.overlay_png).decode("ascii")) \
         if result.grid.overlay_png else None
     services = afraad_basic_on(data, day)
     personnel = [person.as_dict() for person in PeopleRepo(data).on_force(day, "personnel")]
-    aligned, offset = _align_services(_rows_from_cells(result.cells), services)
+    align_started = time.perf_counter()
+    detected_rows = _rows_from_cells(result.cells)
+    aligned, offset = _align_services(detected_rows, services)
+    align_ms = tech_log.ms_since(align_started)
+    match_started = time.perf_counter()
     output = []
     for row in aligned:
         morning = _person_match(row.get("morning", ""), personnel)
@@ -265,6 +322,9 @@ def analyze_image(raw, filename, data, day, pipeline=None):
                        # جاهز من غير مراجعة: كل خانة مقروءة اتطابقت بثقة.
                        "confident": bool(row.get("service_id") and slots and
                                          all(match.get("confident") for match in slots))})
+    _log_matching(output, len(aligned), len(detected_rows), offset,
+                  sum(1 for r in aligned if r.get("service_inferred_by_order")),
+                  align_ms, tech_log.ms_since(match_started))
     payload.update(rows=output, row_offset=offset,
                    summary={"detected_rows": len(_rows_from_cells(result.cells)),
                             "matched_services": len(output),

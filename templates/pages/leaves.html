@@ -16,9 +16,27 @@
       <button type="button" class="tab" id="leaveTabUpcoming" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="upcoming">قادمة</button>
       <button type="button" class="tab" id="leaveTabEnded" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="ended">منتهية</button>
       <button type="button" class="tab" id="leaveTabAll" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="all">الكل</button>
+      <button type="button" class="tab" id="leaveTabDeleted" role="tab" aria-selected="false" aria-controls="leaveWrap" tabindex="-1" data-lv="deleted">المحذوفة والملغية</button>
     </div>
   </div>
-  <div class="toolbar">
+  <div class="toolbar hidden" id="histToolbar">
+    <input id="histSearch" class="search" aria-label="البحث في المحذوفة والملغية"
+           placeholder="بحث باسم الشخص أو السبب…">
+    <select id="histActionFilter" class="select" aria-label="تصفية حسب نوع الإجراء">
+      <option value="">كل الإجراءات</option>
+      <option value="حذف">حذف</option>
+      <option value="إنهاء مبكر">إنهاء مبكر</option>
+      <option value="إلغاء قبل البدء">إلغاء قبل البدء</option>
+      <option value="وقف راحات">وقف راحات</option>
+    </select>
+    <select id="histStatusFilter" class="select" aria-label="تصفية حسب الحالة">
+      <option value="">كل الحالات</option>
+      <option value="pending">قابلة للاسترجاع</option>
+      <option value="restored">تم استرجاعها</option>
+    </select>
+  </div>
+  <div class="filter-summary" id="histFilterSummary"></div>
+  <div class="toolbar" id="leaveToolbar">
     <input id="leaveSearch" class="search" aria-label="البحث في سجل الراحات"
            placeholder="بحث باسم الشخص أو الملاحظات…">
     <select id="leaveTypeFilter" class="select" aria-label="تصفية حسب نوع الراحة"></select>

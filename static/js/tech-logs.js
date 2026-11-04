@@ -1,4 +1,4 @@
-/* السجلات الفنية — آخر أسطر system.log / errors.log للمشرف */
+/* السجلات الفنية — آخر أسطر system.log / errors.log / ocr.log للمشرف */
 
 let LOG_TIMER = null;
 

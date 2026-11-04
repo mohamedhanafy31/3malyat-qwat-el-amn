@@ -243,6 +243,37 @@ let OCR_RUN = null;          // {controller, url, started, timer}
 let OCR_FILE_URL = "";       // الصورة الأصلية لعرضها في المراجعة
 
 const ocrCard = () => $("#afOcrModal .af-ocr-modal");
+
+/* ---- سجل تقني لمراحل القراءة (ocr.log): أحداث قصيرة مجمّعة، مفيش أسماء ولا محتوى ----
+   أي فشل في الإرسال يتجاهَل بصمت — السجل عمره ما يعطّل الواجهة ولا يطلّع رسالة. */
+let OCR_SESSION = "";
+let OCR_LOGQ = [], OCR_LOGTIMER = 0;
+const ocrNow = () => performance.now();
+const ocrMs = started => Math.round(performance.now() - started);
+function ocrNewSession() {
+  try { OCR_SESSION = crypto.randomUUID().replace(/-/g, "").slice(0, 24); }
+  catch (error) { OCR_SESSION = Array.from({length: 24}, () => Math.floor(Math.random() * 16).toString(16)).join(""); }
+  return OCR_SESSION;
+}
+function ocrLogFlush() {
+  clearTimeout(OCR_LOGTIMER); OCR_LOGTIMER = 0;
+  if (!OCR_LOGQ.length || !DAY) { OCR_LOGQ = []; return; }
+  const events = OCR_LOGQ.splice(0, 20);
+  try {
+    fetch(`/api/afraad/${DAY}/ocr/client-log`, {
+      method: "POST", keepalive: true,
+      headers: {"X-Requested-With": "fetch", "Content-Type": "application/json"},
+      body: JSON.stringify({ocr_session: OCR_SESSION, events}),
+    }).catch(() => {});
+  } catch (error) { /* تجاهل */ }
+  if (OCR_LOGQ.length) OCR_LOGTIMER = setTimeout(ocrLogFlush, 300);
+}
+function ocrLog(event, fields, now) {
+  if (!OCR_SESSION) return;
+  OCR_LOGQ.push({event, ...(fields || {})});
+  if (now || OCR_LOGQ.length >= 20) ocrLogFlush();
+  else if (!OCR_LOGTIMER) OCR_LOGTIMER = setTimeout(ocrLogFlush, 1000);
+}
 function ocrStage(stage, sub) {
   ocrCard().dataset.stage = stage;
   $("#afOcrSub").textContent = sub || "";
@@ -298,17 +329,24 @@ async function startOcr(file) {
   ocrStage("scan", `تُقرأ «${file.name}» الآن — لا تغلق الصفحة.`);
   ocrTick();
   openModal("afOcrModal");
+  if (!OCR_SESSION) ocrNewSession();
+  const source = OCR_SRC?.isPdf ? "pdf" : "image", page = OCR_SRC?.isPdf ? OCR_SRC.page : 0;
+  ocrLog("upload_started", {bytes: file.size, source, page});
+  const sent = ocrNow();
 
   const timeout = setTimeout(() => controller.abort("timeout"), OCR_TIMEOUT_MS);
   let response, out = {};
   try {
     const body = new FormData(); body.append("image", file);
+    body.append("ocr_session", OCR_SESSION); body.append("source", source);
+    if (page) body.append("page", page);
     response = await fetch(`/api/afraad/${DAY}/ocr/preview`, {
       method: "POST", body, signal: controller.signal, headers: {"X-Requested-With": "fetch"}});
     out = await response.json().catch(() => ({}));
   } catch (error) {
     if (OCR_RUN !== run) return;                       // المستخدم قفل النافذة أو بدأ قراءة جديدة
     clearInterval(run.timer); OCR_RUN = null;
+    ocrLog("preview_failed", {status: 0, code: controller.signal.reason === "timeout" ? "timeout" : "network", ms: ocrMs(sent)}, true);
     ocrFail(controller.signal.reason === "timeout" ? "استغرقت القراءة وقتًا أطول من المسموح" : "تعذر الاتصال بالخادم",
       controller.signal.reason === "timeout" ? "حاول استخدام صورة أوضح أو أصغر حجمًا." : "تحقق من الاتصال ثم أعد المحاولة.");
     return;
@@ -317,8 +355,8 @@ async function startOcr(file) {
   clearInterval(run.timer); OCR_RUN = null;
 
   if (response.status === 401) { location.href = "/login?next=" + encodeURIComponent(location.pathname); return; }
-  if (response.status === 403) { ocrFail("لا توجد صلاحية", "ليس لديك صلاحية لقراءة الصور."); return; }
-  if (!response.ok) { ocrFail("تعذّرت قراءة الصورة", out.error || "حدث خطأ غير متوقع."); return; }
+  if (response.status === 403) { ocrLog("preview_failed", {status: 403, code: "forbidden", ms: ocrMs(sent)}, true); ocrFail("لا توجد صلاحية", "ليس لديك صلاحية لقراءة الصور."); return; }
+  if (!response.ok) { ocrLog("preview_failed", {status: response.status, code: out.code || "error", ms: ocrMs(sent)}, true); ocrFail("تعذّرت قراءة الصورة", out.error || "حدث خطأ غير متوقع."); return; }
 
   // خلّص كل المراحل وبعدين افتح المراجعة بانتقال هادي
   $$("#afOcrSteps li").forEach(li => { li.classList.remove("active"); li.classList.add("done"); });
@@ -326,6 +364,8 @@ async function startOcr(file) {
   await new Promise(resolve => setTimeout(resolve, 450));
   if (ocrCard().dataset.stage !== "scan" || $("#afOcrModal").classList.contains("hidden")) return;
   AF_OCR = out;
+  ocrLog("preview_received", {rows: (out.rows || []).length, matched: out.summary?.matched_people || 0,
+    status: response.status, ms: ocrMs(sent)});
   renderOcrPreview();
   ocrStage("review", "راجع النتيجة: الخانات الصفراء والحمراء محتاجة نظرة منك قبل التسكين.");
 }
@@ -495,6 +535,7 @@ function setPrepImage(url) {
 async function renderPdfPage(number) {
   const pdf = OCR_SRC.pdf;
   OCR_SRC.page = number;
+  const rendered = ocrNow();
   $$("#afOcrPages button").forEach(b => b.classList.toggle("on", Number(b.dataset.page) === number));
   const page = await pdf.getPage(number);
   const base = page.getViewport({scale: 1});
@@ -507,6 +548,7 @@ async function renderPdfPage(number) {
   ]);
   const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
   if (OCR_SRC?.pdf !== pdf || OCR_SRC.page !== number) return;      // اختار صفحة تانية في الأثناء
+  ocrLog("page_rendered", {page: number, scale: viewport.scale, width: canvas.width, height: canvas.height, ms: ocrMs(rendered)});
   setPrepImage(URL.createObjectURL(blob));
 }
 
@@ -531,22 +573,28 @@ async function prepareFile(file) {
   ocrCleanup(); ocrSrcCleanup();
   const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
   OCR_SRC = {file, isPdf, pdf: null, url: "", page: 0};
+  ocrNewSession();
+  ocrLog("file_selected", {kind: isPdf ? "pdf" : "image", bytes: file.size, mime: file.type || "",
+    ext: (file.name.match(/\.([A-Za-z0-9]{1,5})$/) || [])[1] || "", name_len: file.name.length});
   $("#afOcrPdfBar").classList.toggle("hidden", !isPdf);
   $("#afOcrCropImg").removeAttribute("src");
   ocrStage("prepare", isPdf ? "اختر الصفحة التي تحتوي على اليومية، ثم قصّ الجزء الذي يحتوي على الجدول فقط."
     : "قصّ الجزء الذي يحتوي على الجدول فقط (اختياري)، ثم ابدأ القراءة.");
   openModal("afOcrModal");
   if (!isPdf) { setPrepImage(URL.createObjectURL(file)); return; }
+  const pdfStarted = ocrNow();
   try {
     try { await loadPdfJs(); }
     catch (error) { throw new Error("تعذّر تحميل مكتبة قراءة PDF — تحقق من الاتصال ثم أعد المحاولة."); }
     const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
     if (OCR_SRC?.file !== file) { pdf.destroy?.(); return; }
     OCR_SRC.pdf = pdf;
+    ocrLog("pdf_loaded", {pages: pdf.numPages, ms: ocrMs(pdfStarted)});
     renderPdfThumbs(pdf);
     await renderPdfPage(1);
   } catch (error) {
     if (OCR_SRC?.file !== file) return;
+    ocrLog("pdf_load_failed", {error: String(error?.name || "Error"), ms: ocrMs(pdfStarted)}, true);
     ocrFail("تعذّرت قراءة ملف PDF", error.message || "الملف تالف أو محمي بكلمة مرور.");
   }
 }
@@ -555,6 +603,9 @@ async function croppedFile() {
   const img = $("#afOcrCropImg");
   const full = CROP.l <= 0.001 && CROP.t <= 0.001 && CROP.r >= 0.999 && CROP.b >= 0.999;
   if (!OCR_SRC.isPdf && full) return OCR_SRC.file;                  // من غير قص: الأصل زي ما هو
+  const encoded = ocrNow();
+  if (!full) ocrLog("crop_applied", {x: Math.round(CROP.l * 100), y: Math.round(CROP.t * 100),
+    w: Math.round((CROP.r - CROP.l) * 100), h: Math.round((CROP.b - CROP.t) * 100)});
   const sx = Math.round(CROP.l * img.naturalWidth), sy = Math.round(CROP.t * img.naturalHeight);
   const sw = Math.max(1, Math.round((CROP.r - CROP.l) * img.naturalWidth));
   const sh = Math.max(1, Math.round((CROP.b - CROP.t) * img.naturalHeight));
@@ -567,6 +618,7 @@ async function croppedFile() {
     blob = await new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.92));
     name = name.replace(/\.png$/, ".jpg");
   }
+  if (blob) ocrLog("image_encoded", {bytes: blob.size, type: blob.type, width: sw, height: sh, ms: ocrMs(encoded)});
   return blob ? new File([blob], name, {type: blob.type}) : null;
 }
 
@@ -643,6 +695,7 @@ $("#afOcrRows").addEventListener("change", () => { ocrUpdateCount(); const on = 
 // قفل النافذة بأي طريقة بيوقف القراءة الجارية ويحرر الصورة المؤقتة
 new MutationObserver(() => {
   if ($("#afOcrModal").classList.contains("hidden")) {
+    if (OCR_SESSION) { ocrLog("cancelled", {stage: ocrCard().dataset.stage || ""}, true); OCR_SESSION = ""; }
     ocrCleanup(); ocrSrcCleanup();
     if (OCR_FILE_URL) { URL.revokeObjectURL(OCR_FILE_URL); OCR_FILE_URL = ""; }
   }
@@ -659,10 +712,15 @@ $("#afOcrApply").onclick = async () => {
     morning_person_id: card.querySelector("[data-ocr-morning]").value,
     night_person_id: card.querySelector("[data-ocr-night]").value,
   }));
+  const sent = ocrNow();
+  ocrLog("apply_sent", {rows: rows.length});
   const out = await api(`/api/afraad/${DAY}/ocr/apply`, jsonReq("POST", {
     revision: AF_OCR?.revision || AF?.revision, rows, sample_id: AF_OCR?.sample_id || "", review,
+    ocr_session: OCR_SESSION,
   }));
-  if (!out) return;
+  if (!out) { ocrLog("apply_result", {status: 0, code: "failed", ms: ocrMs(sent)}, true); return; }
+  ocrLog("apply_result", {status: 200, applied: out.applied, ms: ocrMs(sent)}, true);
+  OCR_SESSION = "";
   AF = out.data; preparePersonnelChoices(); render(); closeModal("afOcrModal", true);
   showToast(`تم تسكين ${out.applied} من خانات اليومية`);
 };

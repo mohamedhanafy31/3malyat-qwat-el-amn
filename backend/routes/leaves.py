@@ -5,7 +5,8 @@ from flask import Blueprint, jsonify, request, send_file
 
 from .. import changes, day_status, rest_suspension, retro
 from ..constants import REST_DURATIONS
-from ..leaves import MONTHLY_REST_SYSTEMS, build_leave, overlapping, validate_weekly_extra
+from ..leaves import (MONTHLY_REST_SYSTEMS, build_leave, overlapping, record_history,
+                      restore_history, validate_weekly_extra)
 from ..leaves import stats as leaves_stats_data
 from ..leaves_export import build_monthly_docx, build_weekly_docx
 from ..models import Leave
@@ -133,11 +134,23 @@ def delete_leave(leave_id):
         reason = retro.require_reason(closed)
 
         leaves.remove(leave_id)
-        changes.record(data, "leave", leave_id, "delete", before=removed.as_dict(),
-                       text=_leave_text(data, "delete", before=removed.as_dict()))
+        change = changes.record(data, "leave", leave_id, "delete", before=removed.as_dict(),
+                                reason=reason,
+                                text=_leave_text(data, "delete", before=removed.as_dict()))
+        record_history(data, change)
         if closed:
             retro.log_retro(data, "leave", leave_id, closed, reason, before=removed.as_dict())
         return jsonify({"ok": True})
+
+    return with_data(mutate, retro.status_scope)
+
+
+@bp.post("/api/leaves/history/<event_id>/restore")
+def restore_deleted_leave(event_id):
+    """استرجاع حذف/إلغاء/إنهاء مبكر من السجل الدائم."""
+    def mutate(data):
+        leave, event = restore_history(data, event_id)
+        return jsonify({"leave": leave, "event": event})
 
     return with_data(mutate, retro.status_scope)
 

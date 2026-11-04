@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_file
 
-from .. import campaign, day_status
+from .. import campaign, day_status, retro
 from ..campaign_export import build_docx
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import canonical_day, json_payload
@@ -15,10 +15,10 @@ def _scope(day):
     return scope
 
 
-def _payload(data, day):
+def _payload(data, day, days=None):
     value = campaign.build_campaign(data, day)
     # البيانات المحمّلة بالفعل محصورة في نطاق اليوم وآخر يوم سابق ذي بيانات.
-    value["revision"] = revision(data)
+    value["revision"] = revision(data, days)
     return value
 
 
@@ -162,3 +162,63 @@ def export_campaign(day):
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     buf = build_docx(campaign.build_campaign(load_data(_scope(day)), day))
     return send_file(buf, as_attachment=True, download_name=f"يومية المركبات {day}.docx", mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+
+
+def _group_scope(day):
+    base = _scope(day)
+    return lambda view: {*base(view), *retro.status_scope(view)}
+
+
+def _write_group(day, group_id, action, fn, out=None):
+    """تجميع الخدمات: اليوم المقفول بيقبل التعديل بسبب مكتوب (X-Retro-Reason) ويتسجّل بأثر رجعي."""
+    day = _day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    body = json_payload()
+
+    def mutate(data):
+        closed = [day] if day_status.is_closed(data, day) else []
+        reason = retro.require_reason(closed)
+        days = campaign.scope_days(data, day)
+        stale = stale_revision(data, body.get("revision"), days)
+        if stale:
+            raise AbortRequest((jsonify({"error": "تغيّرت اليومية؛ حدّث الصفحة.",
+                                         "code": "stale_revision", "revision": stale}), 409))
+        error, status = fn(data, body)
+        if error:
+            raise AbortRequest((jsonify({"error": error}), status))
+        if closed:
+            ident = group_id or (out or {}).get("group_id", "")
+            retro.log_retro(data, "campaign_group", ident, closed, reason,
+                            text=f"تعديل مجموعات الحملة ({action}) بأثر رجعي على يوم مغلق {day}"
+                                 + (f" — السبب: {reason}" if reason else ""))
+        value = _payload(data, day, campaign.scope_days(data, day))
+        if out:
+            value.update(out)
+        return jsonify(value)
+    return with_data(mutate, _group_scope(day))
+
+
+@bp.post("/api/campaign/<day>/groups")
+def post_group(day):
+    out = {}
+    return _write_group(day, "", "create", lambda data, body: campaign.create_group(
+        data, _day(day), body.get("title"), body.get("members"), out), out)
+
+
+@bp.patch("/api/campaign/<day>/groups/<group_id>")
+def patch_group(day, group_id):
+    return _write_group(day, group_id, "update", lambda data, body: campaign.update_group(
+        data, _day(day), group_id, body))
+
+
+@bp.put("/api/campaign/<day>/group/<group_id>")
+def put_group(day, group_id):
+    return _write_group(day, group_id, "assign", lambda data, body: campaign.set_group(
+        data, _day(day), group_id, body))
+
+
+@bp.delete("/api/campaign/<day>/groups/<group_id>")
+def delete_group(day, group_id):
+    return _write_group(day, group_id, "ungroup", lambda data, body: campaign.ungroup(
+        data, _day(day), group_id))

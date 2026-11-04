@@ -746,6 +746,16 @@ def _normalise(data):
         data[cat] = as_roster(data.get(cat))
         sort_active(data, cat)
     data.setdefault("leaves", [])
+    if "leave_history" not in data:
+        # بيانات قديمة قبل السجل الدائم: نبذره مرة من change_log الموجود
+        # (نفس عمل migrations/027) عشان حذف حصل قبل التحديث يظهر ويتسترجع.
+        data["leave_history"] = []
+        if data.get("change_log"):
+            try:
+                from .leaves import backfill_history
+                backfill_history(data)
+            except Exception:   # السجل مساعد؛ فشله مايوقفش تحميل البيانات
+                data["leave_history"] = []
     data.setdefault("service_tags", [])
     data.setdefault("courses", [])
     data.setdefault("course_terms", [])
@@ -1077,7 +1087,7 @@ def assemble():
 
 
 _DAY_STEM = re.compile(r"\d{4}-\d{2}-\d{2}")
-_CORE_LISTS = ("leaves", "service_tags", "courses", "course_terms", "vehicles",
+_CORE_LISTS = ("leaves", "leave_history", "service_tags", "courses", "course_terms", "vehicles",
                "service_lines", "conscripts", "officer_status_periods",
                "officer_medical_states")
 _CORE_DICTS = ("command", "command_groups", "id_seq")

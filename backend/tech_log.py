@@ -7,6 +7,8 @@
 الملفات (في نفس مجلد سجل النشاط `store._LOG_DIR`، يعني `<PERSONNEL_DATA_DIR>/logs`):
   system.log  — كل شيء من مستوى LOG_LEVEL (الافتراضي INFO) فما فوق
   errors.log  — WARNING وأعلى فقط (نسخة مصغّرة لإرسالها للدعم)
+  ocr.log     — قراءة اليومية من صورة/PDF فقط (logger باسم personnel.ocr)،
+                وأحداثها بتفضل توصل system.log كمان
 
 السطر:  <وقت ISO> | <مستوى> | <logger> | <رقم الطلب> | <المستخدم> | <الرسالة> | k=v ...
 أي سطر لا يبدأ بتاريخ (تتبّع الاستثناء) تابع للسطر قبله.
@@ -29,6 +31,8 @@ from flask import g, has_request_context, request
 
 SYSTEM_LOG = "system.log"
 ERRORS_LOG = "errors.log"
+OCR_LOG = "ocr.log"
+OCR_LOGGER = "personnel.ocr"
 MAX_BYTES = 5 * 1024 * 1024
 BACKUP_COUNT = 10
 DEFAULT_LEVEL = "INFO"
@@ -39,6 +43,7 @@ _TAG = "_personnel_tech_log"
 _RECORD_START = re.compile(r"^\d{4}-\d{2}-\d{2}T")
 _SECRET_KEY = re.compile(r"pass(word|wd)?|secret|token|cookie|authorization|session|api[_-]?key",
                          re.I)
+_PUBLIC_KEYS = {"ocr_session"}       # معرّف عشوائي لتتبّع قراءة صورة — مش جلسة دخول
 _RID_OK = re.compile(r"^[A-Za-z0-9._-]{6,64}$")
 # حقول القياسية لـLogRecord — أي حاجة غيرها مش بتتطبع كـk=v
 _FIELDS_ATTR = "tech_fields"
@@ -65,7 +70,8 @@ def format_fields(fields):
     for key, value in (fields or {}).items():
         if value is None:
             continue
-        shown = "***" if _SECRET_KEY.search(str(key)) else _format_value(value)
+        secret = key not in _PUBLIC_KEYS and _SECRET_KEY.search(str(key))
+        shown = "***" if secret else _format_value(value)
         parts.append(f"{key}={shown}")
     return " ".join(parts)
 
@@ -187,6 +193,7 @@ def _remove_ours(root):
 
 def shutdown_logging():
     _remove_ours(logging.getLogger())
+    _remove_ours(logging.getLogger(OCR_LOGGER))
 
 
 def setup_logging(directory=None, level=None, console=False):
@@ -194,6 +201,7 @@ def setup_logging(directory=None, level=None, console=False):
     (بيشيل بتوعه القديمة الأول) فمفيش تكرار أسطر ولا تسريب ملفات."""
     root = logging.getLogger()
     _remove_ours(root)
+    _remove_ours(logging.getLogger(OCR_LOGGER))
     try:
         target = os.fspath(directory if directory is not None else log_dir())
         resolved = resolve_level(level)
@@ -209,6 +217,12 @@ def setup_logging(directory=None, level=None, console=False):
         errors = SafeRotatingFileHandler(os.path.join(target, ERRORS_LOG))
         errors.setLevel(max(logging.WARNING, resolved))
         handlers += [system, errors]
+        ocr = SafeRotatingFileHandler(os.path.join(target, OCR_LOG))
+        ocr.setLevel(resolved)
+        ocr.setFormatter(formatter)
+        ocr.addFilter(context)
+        setattr(ocr, _TAG, True)
+        logging.getLogger(OCR_LOGGER).addHandler(ocr)       # + يكمّل لـroot (system/errors)
         if console:
             import sys
             if sys.stderr is not None:
@@ -239,6 +253,29 @@ def event(logger, message, level=logging.INFO, exc_info=None, **fields):
             logger = logging.getLogger(logger)
         if logger.isEnabledFor(level):
             logger.log(level, message, exc_info=exc_info, extra={_FIELDS_ATTR: fields})
+    except Exception:
+        pass
+
+
+def ocr_event(message, level=logging.INFO, exc_info=None, **fields):
+    """حدث في ocr.log: بيضيف ocr_session واليوم تلقائيًا من الطلب الحالي.
+    معرّفات وأرقام بس — ممنوع أسماء أفراد أو أسماء/محتوى ملفات."""
+    try:
+        if has_request_context():
+            fields.setdefault("ocr_session", getattr(g, "ocr_session", None))
+            fields.setdefault("day", getattr(g, "ocr_day", None))
+        fields = {"ocr_session": fields.pop("ocr_session", None),
+                  "day": fields.pop("day", None), **fields}
+        event(OCR_LOGGER, message, level=level, exc_info=exc_info, **fields)
+    except Exception:
+        pass
+
+
+def ocr_stage(name):
+    """يحدد المرحلة الجارية (للربط مع أي استثناء يتسجّل بعدها)."""
+    try:
+        if has_request_context():
+            g.ocr_stage = name
     except Exception:
         pass
 
@@ -343,7 +380,7 @@ def _log_export(response):
 # ---------- قراءة السجلات (صفحة المشرف) ----------
 
 LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
-FILES = {"system": SYSTEM_LOG, "errors": ERRORS_LOG}
+FILES = {"system": SYSTEM_LOG, "errors": ERRORS_LOG, "ocr": OCR_LOG}
 _MAX_SCAN_BYTES = 8 * 1024 * 1024
 
 
@@ -396,7 +433,7 @@ def list_log_files():
     found = []
     try:
         for path in sorted(directory.iterdir()):
-            if path.is_file() and re.fullmatch(r"(system|errors)\.log(\.\d+)?", path.name):
+            if path.is_file() and re.fullmatch(r"(system|errors|ocr)\.log(\.\d+)?", path.name):
                 found.append(path)
     except OSError:
         pass

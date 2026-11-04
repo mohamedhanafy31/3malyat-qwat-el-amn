@@ -30,6 +30,7 @@ from .constants import (
 )
 from .afraad import _time_key
 from .board import canonical_section_name
+from .clocktime import compact_time
 from .labels import officer_label, personnel_label
 from .utils import rank_key
 from .service_sections import block_title, is_structural, split_custom_sections
@@ -654,6 +655,117 @@ def _group(right, left, rows):
         rows.append(_row(cells))
 
 
+_ASCII_HHMM = re.compile(r"^(\d{1,2}):(\d{2})$")
+
+
+def _archive_time(value):
+    """صيغة ساعة اسم خدمة الطوارئ كما في ملفات الأرشيف.
+
+    القيمة المنظمة ``HH:MM`` تُقرأ كساعة 24 ساعة (لا كتخمين صباح/مساء)،
+    بينما النص القديم يمر من محلل الساعة المشترك. الأرشيف يستخدم النقطة
+    للدقائق ويفرد كلمة «ليل» عند منتصف الليل.
+    """
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    match = _ASCII_HHMM.fullmatch(raw)
+    if match:
+        hour, minute = map(int, match.groups())
+        if hour > 23 or minute > 59:
+            return raw
+        if hour == 0:
+            shown, suffix = 12, " ليل"
+        elif hour == 12:
+            shown, suffix = 12, "ظ"
+        elif hour < 12:
+            shown, suffix = hour, "ص"
+        else:
+            shown, suffix = hour - 12, "م"
+        return f"{shown if minute == 0 else f'{shown}.{minute:02d}'}{suffix}"
+    formatted = compact_time(raw)
+    if not formatted:
+        return raw
+    if formatted == "12ل":
+        return "12 ليل"
+    return formatted.replace(":", ".")
+
+
+def _time_token(value):
+    """تطبيع خفيف لاكتشاف نفس الساعة رغم فرق النقطة/النقطتين والمسافات."""
+    token = re.sub(r"\s+", "", str(value or "")).replace(":", ".")
+    return "12ليل" if token == "12ل" else token
+
+
+def _emergency_name(row):
+    """اسم الطوارئ العادية + ساعة الانتظام + المكان بين علامتي اقتباس."""
+    name = str((row or {}).get("label") or (row or {}).get("name") or "").strip()
+    raw_time = str((row or {}).get("time") or "").strip()
+    shown_time = _archive_time(raw_time)
+    if shown_time:
+        name_token = _time_token(name)
+        variants = {_time_token(shown_time), _time_token(raw_time)} - {""}
+        if not any(value in name_token for value in variants):
+            name = " ".join(part for part in (name, shown_time) if part)
+    party = str((row or {}).get("party") or "").strip()
+    if len(party) >= 2 and party.startswith('"') and party.endswith('"'):
+        party = party[1:-1].strip()
+    quoted = f'"{party}"' if party else ""
+    if quoted and quoted not in name:
+        name = " ".join(part for part in (name, quoted) if part)
+    return name
+
+
+def _left_is_occupied(row):
+    column = 0
+    for cell in row["cells"]:
+        column += cell["span"]
+        if column <= 2:
+            continue
+        if cell.get("text") or cell.get("head") or cell.get("vm"):
+            return True
+    return False
+
+
+def _left_cells(row):
+    column = 0
+    for index, cell in enumerate(row["cells"]):
+        column += cell["span"]
+        if column == 2:
+            return [dict(item) for item in row["cells"][index + 1:]]
+        if column > 2:
+            raise ValueError("صف اليومية لا ينقسم بعد العمود الثاني")
+    raise ValueError("صف اليومية ناقص الأعمدة اليمنى")
+
+
+def _place_special_blocks(result, special_blocks, emergency_side):
+    """يملأ الكتل الخاصة من أسفل حتى الصف السابق لعنوان الخوارج.
+
+    لا نكتب فوق طوارئ/سجن موجود: نضيف صفوفًا فارغة إلى قاع جسم الجدول حتى
+    تصبح المساحة المتصلة المطلوبة خالية، ثم نحتفظ بترتيب العنوان فصفوفه.
+    """
+    special_rows = []
+    for special in special_blocks:
+        special_rows.append(_row([_cell("", 2),
+                                  _cell(block_title(special["name"]), 3, True)], "head"))
+        for item in special["rows"]:
+            _group(None, emergency_side(item, archive_details=False), special_rows)
+    if not special_rows:
+        return
+
+    count = len(special_rows)
+    blank = lambda: _row([_cell(), _cell(), _cell("", 2), _cell()])
+    while len(result) < count or any(_left_is_occupied(row) for row in result[-count:]):
+        result.append(blank())
+
+    start = len(result) - count
+    for index, special_row in enumerate(special_rows):
+        target = result[start + index]
+        right = target["cells"][:-len(_left_cells(target))]
+        target["cells"] = right + _left_cells(special_row)
+        if special_row["kind"] == "head" and target["kind"] == "body":
+            target["kind"] = "head"
+
+
 def _latest_content(board, command_priority=None):
     """صفوف اليومية بالترتيب الأحدث بلا صفوف حشو.
 
@@ -696,10 +808,11 @@ def _latest_content(board, command_priority=None):
             return None
         return [_cell(name_of(row))], _basic_assignees(row)
 
-    def emergency_side(row):
+    def emergency_side(row, archive_details=True):
         if row is None:
             return None
-        return [_cell(name_of(row), 2)], _manning_pieces(row)
+        name = _emergency_name(row) if archive_details else name_of(row)
+        return [_cell(name, 2)], _manning_pieces(row)
 
     block = bool(targets or prison)
     # صف «الاهداف» بياخد آخر صف طارئ (لو فيه كتلة أهداف/سجن)؛ غير كده الطوارئ كلها فوق
@@ -713,10 +826,6 @@ def _latest_content(board, command_priority=None):
     for i in range(top):
         _group(basic_side(basic[i] if i < len(basic) else None),
                emergency_side(ordinary_rows[i] if i < len(ordinary_rows) else None), result)
-    for special in special_blocks:
-        result.append(_row([_cell("", 2), _cell(block_title(special["name"]), 3, True)], "head"))
-        for row in special["rows"]:
-            _group(None, emergency_side(row), result)
     if block:
         emg = emergency[-1] if borrow else None
         pieces = _manning_pieces(emg) if emg else [""]
@@ -745,6 +854,7 @@ def _latest_content(board, command_priority=None):
             else:
                 left = None
             _group(right, left, result)
+    _place_special_blocks(result, special_blocks, emergency_side)
     result.append(_row([_cell("ضابط عظيم وأمن المعسكر الفرعي", 2, True), _cell("الخوارج", 3, True)],
                        "tailhead"))
 

@@ -139,6 +139,8 @@ def _has_content(item):
 def _service_label(item):
     """صياغة اسم الخدمة زي الأرشيف: «كـــ 109» و«A + B» بمسافات، والساعة بعد الاسم.
     الجهة بين علامتي تنصيص ماتتطبعش هنا (طباعتها نزّلت التطابق 61.2% → 60.6%)."""
+    if item.get("kind") == "group":
+        return " ".join(str(item.get("name") or "").split())   # عنوان المجموعة زي ما كتبه المستخدم
     name = str(item.get("name") or "")
     name = re.sub(r"كـ+\s*109", "كـــ 109", name)
     name = re.sub(r"\s*\+\s*", " + ", name)

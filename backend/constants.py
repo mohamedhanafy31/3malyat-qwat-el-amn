@@ -27,6 +27,9 @@ DEFAULT_DATA = {
     "officers": [],
     "personnel": [],
     "leaves": [],
+    # سجل دائم للحذف/الإلغاء/الإنهاء المبكر. لا نعتمد على change_log وحده
+    # لأنه مسقوف ويُنقل قديمه إلى ملف أرشيف خارج core.json.
+    "leave_history": [],
     "day_assignments": {},
     "day_officers": {},
     "officer_status_periods": [],

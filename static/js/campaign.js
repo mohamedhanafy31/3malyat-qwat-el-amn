@@ -1,6 +1,7 @@
 /* يومية الحملة — تسكين سريع للسائق والمركبة مع حفظ فوري. */
 let CAMPAIGN = null, DAY = null;
 const CAMPAIGN_TYPE_FILTERS = new Map();
+const GROUP_SELECTION = new Set();   // خدمات محددة للتجميع (ids)
 
 window.dailyFileDay = () => DAY;
 window.exportDocxUrl = () => `/api/campaign/${DAY}/export.docx`;
@@ -72,6 +73,7 @@ function serviceCell(row, allowAttach) {
 
 function campaignRow(row, allowAttach) {
   const driver = row.driver;
+  if (row.kind === "group") return groupCampaignRow(row);
   if (row.kind === "service") return serviceCampaignRow(row);
   return `<tr class="campaign-row${row.warnings?.length ? " has-warning" : ""}">
     <td class="name">${serviceCell(row, allowAttach)}</td>
@@ -87,11 +89,22 @@ function serviceCampaignRow(row) {
   const plates = vehicles.map(item => item.vehicle?.plate || item.vehicle_id).filter(Boolean);
   const vehicleSummary = plates.length ? plates.join(" + ") : "بدون مركبة مباشرة";
   return `<tr class="campaign-row${row.warnings?.length ? " has-warning" : ""}${row.category_break ? " campaign-cat-break" : ""}" data-vehicle-category="${esc(row.vehicle_category || "")}">
-    <td class="name"><div class="campaign-service-name"><strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}</div></td>
+    <td class="name"><div class="campaign-service-name"><label class="check-label campaign-group-pick"><input type="checkbox" data-group-pick="${esc(row.id)}"${GROUP_SELECTION.has(row.id) ? " checked" : ""} aria-label="تحديد ${esc(row.base_name || row.name)} للتجميع"></label><strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}</div></td>
     <td>${driverOptions(row)}</td>
     <td dir="ltr"><div class="campaign-vehicle-cell"><span class="sub">${esc(vehicleSummary)}</span><button type="button" class="mini btn-xs" data-action="openCampaignServiceVehicles" data-id="${esc(row.id)}">${icon("edit")} مركبات وأفراد</button></div></td>
     <td><span class="muted-text">${vehicles.length ? `${vehicles.length} مركبة مباشرة` : "الإلحاق باللوري فقط"}</span></td>
     <td class="col-actions">—</td>
+  </tr>`;
+}
+
+function groupCampaignRow(row) {
+  const members = (row.members || []).map(item => esc(item.name)).join(" • ");
+  return `<tr class="campaign-row campaign-group-row${row.warnings?.length ? " has-warning" : ""}${row.category_break ? " campaign-cat-break" : ""}" data-vehicle-category="${esc(row.vehicle_category || "")}">
+    <td class="name"><div class="campaign-service-name"><strong>${esc(row.name)}</strong><span class="chip muted-chip">مجموعة ${(row.members || []).length}</span>${warningChips(row)}</div><div class="sub campaign-group-members">${members}</div></td>
+    <td>${driverOptions(row)}</td>
+    <td dir="ltr">${vehicleOptions(row)}</td>
+    <td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${row.vehicle ? `<div class="sub">${esc(row.vehicle.model || "")}</div>` : ""}</div></td>
+    <td class="col-actions"><div class="row-actions"><button type="button" class="mini" data-action="renameCampaignGroup" data-id="${esc(row.id)}">${icon("edit")} تسمية</button><button type="button" class="mini danger" data-action="ungroupCampaign" data-id="${esc(row.id)}">فك التجميع</button></div></td>
   </tr>`;
 }
 
@@ -125,9 +138,10 @@ function platesCard() {
 function tableCard(title, rows, empty, options = {}) {
   const action = options.add ? `<button type="button" class="mini on-dark" data-action="openCampaignDaily">${icon("plus")} إضافة</button>` : "";
   const missing = rows.filter(row => !row.driver || !row.vehicle).length;
+  const groupBtn = options.group ? `<button type="button" class="mini on-dark" id="campaignGroupBtn" data-action="openCampaignGroup"${GROUP_SELECTION.size >= 2 ? "" : " disabled"}>تجميع خدمات${GROUP_SELECTION.size ? ` (${GROUP_SELECTION.size})` : ""}</button>` : "";
   const missingChip = missing ? `<span class="campaign-missing-chip">ناقص ${missing}</span>` : "";
   const body = rows.length ? `<div class="mtable-wrap">${mtable(["الخدمة", "السائق", "رقم المركبة", "نوع المركبة", "الإجراء"], rows.map(row => campaignRow(row, options.attach)))}</div>` : emptyState({compact: true, title: empty});
-  return `<div class="mcard"><h3>${esc(title)}<span class="mcount">${rows.length}</span>${missingChip}${action}</h3>${body}</div>`;
+  return `<div class="mcard"><h3>${esc(title)}<span class="mcount">${rows.length}</span>${missingChip}${groupBtn}${action}</h3>${body}</div>`;
 }
 
 function renderWarnings() {
@@ -139,8 +153,10 @@ function render() {
   const wrap = $("#campaignWrap");
   if (!CAMPAIGN) { wrap.innerHTML = skeleton("cards", 3); return; }
   const rows = rowSets();
+  const selectable = new Set((CAMPAIGN.services || []).filter(row => row.kind === "service").map(row => row.id));
+  [...GROUP_SELECTION].forEach(id => { if (!selectable.has(id)) GROUP_SELECTION.delete(id); });
   const missing = rows.filter(row => !row.driver || !row.vehicle).length;
-  wrap.innerHTML = `<p class="vacancy-summary ${missing ? "warn" : "ok"}"><span class="status-dot ${missing ? "warn" : "ok"}" aria-hidden="true"></span>${missing ? `<b>ناقص: ${missing} صف من ${rows.length}</b>` : "لا توجد خانات ناقصة"}</p>${renderWarnings()}<div class="ledger-board"><div class="ledger-head"><h2>يومية الحملة</h2><div class="ledger-sub">${dayName(CAMPAIGN.date)} الموافق ${fmt(CAMPAIGN.date)}</div></div>${postCard()}${tableCard("اللواري الأساسية", CAMPAIGN.lorries || [], "", {attach: true})}${tableCard("الخدمات الطارئة", CAMPAIGN.services || [], "لا توجد خدمات طارئة اليوم")}${tableCard("الأقوال اليومية", CAMPAIGN.daily || [], "لا توجد أقوال يومية اليوم", {add: true})}${tableCard("لواري التعيينات", CAMPAIGN.appointments || [], "", {attach: true})}${platesCard()}</div>`;
+  wrap.innerHTML = `<p class="vacancy-summary ${missing ? "warn" : "ok"}"><span class="status-dot ${missing ? "warn" : "ok"}" aria-hidden="true"></span>${missing ? `<b>ناقص: ${missing} صف من ${rows.length}</b>` : "لا توجد خانات ناقصة"}</p>${renderWarnings()}<div class="ledger-board"><div class="ledger-head"><h2>يومية الحملة</h2><div class="ledger-sub">${dayName(CAMPAIGN.date)} الموافق ${fmt(CAMPAIGN.date)}</div></div>${postCard()}${tableCard("اللواري الأساسية", CAMPAIGN.lorries || [], "", {attach: true})}${tableCard("الخدمات الطارئة", CAMPAIGN.services || [], "لا توجد خدمات طارئة اليوم", {group: true})}${tableCard("الأقوال اليومية", CAMPAIGN.daily || [], "لا توجد أقوال يومية اليوم", {add: true})}${tableCard("لواري التعيينات", CAMPAIGN.appointments || [], "", {attach: true})}${platesCard()}</div>`;
   upgradeSelects(wrap);
   wrap.querySelectorAll("select[data-driver-row]").forEach(select => {
     if (select.dataset.customValue) select.value = select.dataset.customValue;
@@ -170,6 +186,11 @@ function render() {
   wrap.querySelectorAll("input[data-post-driver]").forEach(input => {
     const save = () => saveRow(rowBy(input.dataset.postDriver), {driver_text: input.value});
     input.addEventListener("change", save); input.addEventListener("blur", save);
+  });
+  wrap.querySelectorAll("input[data-group-pick]").forEach(input => input.onchange = () => {
+    input.checked ? GROUP_SELECTION.add(input.dataset.groupPick) : GROUP_SELECTION.delete(input.dataset.groupPick);
+    const button = $("#campaignGroupBtn");
+    if (button) { button.disabled = GROUP_SELECTION.size < 2; button.textContent = `تجميع خدمات${GROUP_SELECTION.size ? ` (${GROUP_SELECTION.size})` : ""}`; }
   });
   wrap.querySelectorAll("button[data-action='openCampaignServiceVehicles']").forEach(button => {
     button.onclick = () => openServiceVehicles(rowBy(button.dataset.id));
@@ -253,6 +274,37 @@ function openAttach(lorryId) {
   $("#campaignAttachSelect").value = "";
   openModal("campaignAttachModal");
 }
+
+function openGroupModal(group = null) {
+  $("#campaignGroupId").value = group?.id || "";
+  $("#campaignGroupName").value = group?.name || "";
+  $("#campaignGroupTitle").textContent = group ? "تسمية المجموعة" : "تجميع خدمات";
+  $("#campaignGroupSubmit").textContent = group ? "حفظ" : "تجميع";
+  const names = group ? [] : [...GROUP_SELECTION].map(id => rowBy(id)?.base_name || rowBy(id)?.name).filter(Boolean);
+  $("#campaignGroupMembers").textContent = names.length ? `الخدمات: ${names.join(" • ")}` : "";
+  openModal("campaignGroupModal");
+}
+
+ACTIONS.openCampaignGroup = () => { if (GROUP_SELECTION.size >= 2) openGroupModal(); };
+ACTIONS.renameCampaignGroup = id => openGroupModal(rowBy(id));
+ACTIONS.ungroupCampaign = async id => {
+  const row = rowBy(id);
+  if (!(await confirmDialog({title: "فك التجميع", body: `ستعود خدمات «${row.name}» صفوفًا مستقلة ببياناتها السابقة.`, confirmLabel: "فك التجميع", danger: true}))) return;
+  const out = await api(`/api/campaign/${DAY}/groups/${encodeURIComponent(id)}`, {...jsonReq("DELETE", {revision: CAMPAIGN.revision}), onError: staleReload});
+  if (out) { CAMPAIGN = out; render(); showToast("تم فك التجميع"); }
+};
+
+$("#campaignGroupForm").onsubmit = async event => {
+  event.preventDefault();
+  const id = $("#campaignGroupId").value, title = $("#campaignGroupName").value.trim();
+  if (!title) { showToast("اكتب عنوان المجموعة", true); return; }
+  const out = id
+    ? await api(`/api/campaign/${DAY}/groups/${encodeURIComponent(id)}`, {...jsonReq("PATCH", {title, revision: CAMPAIGN.revision}), onError: staleReload})
+    : await api(`/api/campaign/${DAY}/groups`, {...jsonReq("POST", {title, members: [...GROUP_SELECTION], revision: CAMPAIGN.revision}), onError: staleReload});
+  if (!out) return;
+  if (!id) GROUP_SELECTION.clear();
+  CAMPAIGN = out; closeModal("campaignGroupModal", true); render(); showToast(id ? "تم حفظ العنوان" : "تم تجميع الخدمات");
+};
 
 ACTIONS.openCampaignAttach = id => openAttach(id);
 ACTIONS.detachCampaignService = async (id, extra) => {

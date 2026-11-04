@@ -1,12 +1,15 @@
 """يومية الأفراد — API القراءة اليومية وتعديل القائم بها/التليفون/
 الانتظام على خدمة أساسية واحدة ليوم بعينه."""
-from flask import Blueprint, jsonify, request, send_file
+import logging
+import time
+
+from flask import Blueprint, g, jsonify, request, send_file
 
 from .. import day_status
 from ..dated import afraad_basic_on
 from ..afraad import (add_basic_service, build_afraad, remove_basic_service,
                        set_basic_entry, update_basic_service)
-from .. import ocr_samples
+from .. import ocr_client_log, ocr_samples, tech_log
 from ..afraad_ocr import analyze_image, apply_rows
 from ..afraad_export import build_docx
 from ..repo import PeopleRepo
@@ -125,26 +128,73 @@ def delete_afraad_basic_service(day, entry_id):
         data, canonical_day(day), entry_id))
 
 
+def _begin_ocr(day, supplied):
+    """يثبّت ocr_session واليوم على الطلب الحالي (سيشن العميل لو سليم، وإلا يتولّد)."""
+    g.ocr_session = ocr_client_log.clean_session(supplied) or ocr_client_log.new_session()
+    g.ocr_day = day
+    g.ocr_stage = "request"
+
+
+@bp.post("/api/afraad/<day>/ocr/client-log")
+def log_afraad_ocr_client(day):
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    if (request.content_length or 0) > ocr_client_log.MAX_BODY_BYTES:
+        return jsonify({"error": "الطلب كبير.", "code": "too_large"}), 413
+    body = request.get_json(silent=True)
+    events = body.get("events") if isinstance(body, dict) else None
+    if not isinstance(events, list) or len(events) > ocr_client_log.MAX_EVENTS:
+        return jsonify({"error": "قائمة الأحداث غير صالحة.", "code": "invalid"}), 400
+    _begin_ocr(day, body.get("ocr_session"))
+    clean = ocr_client_log.sanitize(events)
+    ocr_client_log.log_events(clean)
+    return jsonify({"logged": len(clean)})
+
+
 @bp.post("/api/afraad/<day>/ocr/preview")
 def preview_afraad_ocr(day):
     day = canonical_day(day)
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
+    _begin_ocr(day, request.form.get("ocr_session"))
     upload = request.files.get("image")
     if upload is None or not upload.filename:
+        tech_log.ocr_event("ocr.preview_rejected", level=logging.WARNING, reason="no_file")
         return jsonify({"error": "اختر صورة أولاً."}), 400
+    started = time.perf_counter()
     data = load_data(_afraad_scope(day))
     raw = upload.read()
+    source = request.form.get("source") if request.form.get("source") in ("image", "pdf") else None
+    page = request.form.get("page", "")
+    tech_log.ocr_event(
+        "ocr.preview_received", bytes=len(raw), content_type=upload.mimetype,
+        ext=str(upload.filename).rsplit(".", 1)[-1].lower()[:5], source=source,
+        page=int(page) if page.isdigit() and len(page) < 5 else None,
+        client_supplied=bool(ocr_client_log.clean_session(request.form.get("ocr_session"))))
     try:
         result = analyze_image(raw, upload.filename, data, day)
     except ValueError as exc:
+        tech_log.ocr_event("ocr.preview_rejected", level=logging.WARNING, reason="invalid_input",
+                           stage=g.get("ocr_stage"), duration_ms=tech_log.ms_since(started))
         return jsonify({"error": str(exc)}), 400
     except RuntimeError as exc:
+        tech_log.ocr_event("ocr.preview_failed", level=logging.ERROR, exc_info=True,
+                           stage=g.get("ocr_stage"), status=503, duration_ms=tech_log.ms_since(started))
         return jsonify({"error": str(exc)}), 503
+    except Exception:
+        tech_log.ocr_event("ocr.preview_failed", level=logging.ERROR, exc_info=True,
+                           stage=g.get("ocr_stage"), status=500, duration_ms=tech_log.ms_since(started))
+        raise
     result["revision"] = revision(data, [day])
     # الصورة وناتج القراءة بيتحفظوا لبناء موديل OCR خاص بالنظام بعدين
     result["sample_id"] = ocr_samples.save_prediction(
         raw, upload.filename, day, result, afraad_basic_on(data, day))
+    summary = result.get("summary") or {}
+    tech_log.ocr_event(
+        "ocr.preview_done", rows=len(result.get("rows") or []),
+        matched_services=summary.get("matched_services"), matched_people=summary.get("matched_people"),
+        sample_id=result["sample_id"], duration_ms=tech_log.ms_since(started))
     return jsonify(result)
 
 
@@ -154,23 +204,43 @@ def apply_afraad_ocr(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     body = json_payload()
+    _begin_ocr(day, body.get("ocr_session"))
+    started = time.perf_counter()
+    rows = body.get("rows")
+    tech_log.ocr_event("ocr.apply_received", rows=len(rows) if isinstance(rows, list) else None,
+                       sample_id=body.get("sample_id") if isinstance(body.get("sample_id"), str) else None)
 
     def mutate(data):
         ok, error = day_status.check_open(data, day)
         if not ok:
+            tech_log.ocr_event("ocr.apply_rejected", level=logging.WARNING, reason="day_closed")
             raise AbortRequest((jsonify({"error": error}), 409))
         stale = stale_revision(data, body.get("revision"), [day])
         if stale:
+            tech_log.ocr_event("ocr.apply_rejected", level=logging.WARNING, reason="stale_revision")
             raise AbortRequest((jsonify({
                 "error": "تغيّرت اليومية بعد قراءة الصورة. حدّث الصفحة وأعد المراجعة.",
                 "code": "stale_revision", "revision": stale,
             }), 409))
         applied, error = apply_rows(data, day, body.get("rows"))
         if error:
+            tech_log.ocr_event("ocr.apply_rejected", level=logging.WARNING, reason="invalid_rows")
             raise AbortRequest((jsonify({"error": error}), 400))
         built.append(ocr_samples.build_final(
             body.get("sample_id"), day, body.get("review"), afraad_basic_on(data, day),
             [person.as_dict() for person in PeopleRepo(data).on_force(day, "personnel")]))
+        per_row = [(str(r.get("service_id") or ""), bool(r.get("morning_person_id")),
+                    bool(r.get("night_person_id"))) for r in rows if isinstance(r, dict)]
+        tech_log.ocr_event(
+            "ocr.apply_done", applied=applied, rows=len(per_row),
+            rows_changed=sum(1 for _s, m, n in per_row if m or n),
+            morning_set=sum(1 for _s, m, _n in per_row if m),
+            night_set=sum(1 for _s, _m, n in per_row if n),
+            duration_ms=tech_log.ms_since(started))
+        if logging.getLogger(tech_log.OCR_LOGGER).isEnabledFor(logging.DEBUG):
+            for service_id, morning, night in per_row:
+                tech_log.ocr_event("ocr.apply_row", level=logging.DEBUG, service_id=service_id,
+                                   morning=morning, night=night)
         return jsonify({"applied": applied, "data": _payload(data, day)})
 
     built = []

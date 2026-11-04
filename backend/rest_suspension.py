@@ -234,9 +234,11 @@ def stop_leave(data, leave_id, reason, on=None, suspension_id=None, today=None):
 
     if on <= lv.start:
         repos.leaves.remove(lv.id)
-        changes.record(data, "leave", lv.id, "cancel", before=before, reason=reason,
-                       text=f"إلغاء راحة {name} ({lv.type} {lv.start} ← {lv.end}) "
-                            f"قبل بدايتها{by_order} — السبب: {reason}")
+        change = changes.record(data, "leave", lv.id, "cancel", before=before, reason=reason,
+                                text=f"إلغاء راحة {name} ({lv.type} {lv.start} ← {lv.end}) "
+                                     f"قبل بدايتها{by_order} — السبب: {reason}")
+        from .leaves import record_history
+        record_history(data, change)
         if closed:
             retro.log_retro(data, "leave", lv.id, closed, reason, before=before)
         from .repo import PeopleRepo
@@ -261,9 +263,11 @@ def stop_leave(data, leave_id, reason, on=None, suspension_id=None, today=None):
         lv.suspension_id = suspension_id
     repos.leaves.save(lv)
     after = lv.as_dict()
-    changes.record(data, "leave", lv.id, "stop", before=before, after=after, reason=reason,
-                   text=f"إيقاف راحة {name} ({lv.type}): كانت حتى {original_end} ← "
-                        f"أصبح آخر يوم {lv.end}، والعودة {on}{by_order} — السبب: {reason}")
+    change = changes.record(data, "leave", lv.id, "stop", before=before, after=after, reason=reason,
+                            text=f"إيقاف راحة {name} ({lv.type}): كانت حتى {original_end} ← "
+                                 f"أصبح آخر يوم {lv.end}، والعودة {on}{by_order} — السبب: {reason}")
+    from .leaves import record_history
+    record_history(data, change)
     if closed:
         retro.log_retro(data, "leave", lv.id, closed, reason, before=before, after=after)
     return {"leave": repos.leaves.named(lv), "cancelled": False}
@@ -364,9 +368,11 @@ def _restore(data, order, reason):
             setattr(lv, f, "")
         lv._absent = frozenset(lv._absent | set(STOP_FIELDS))   # مايتخزّنوش فاضيين
         repos.leaves.save(lv)
-        changes.record(data, "leave", lv.id, "restore", before=before, after=lv.as_dict(),
-                       reason=reason, text=f"استعادة راحة {name} ({lv.type}) لنهايتها الأصلية "
-                                           f"{end} — فتح الراحات في نفس يوم الوقف")
+        change = changes.record(data, "leave", lv.id, "restore", before=before, after=lv.as_dict(),
+                                reason=reason, text=f"استعادة راحة {name} ({lv.type}) لنهايتها الأصلية "
+                                                    f"{end} — فتح الراحات في نفس يوم الوقف")
+        from .leaves import mark_history_restored
+        mark_history_restored(data, lv.id, {"stop"}, lv.id, change)
         restored.append(lv.id)
 
     for snap in order.get("cancelled_leaves") or []:
@@ -380,9 +386,11 @@ def _restore(data, order, reason):
         leave["id"] = snap["leave_id"]
         clash_guard(leave, snap.get("name", ""))
         repos.leaves.add(Leave.from_dict(leave))
-        changes.record(data, "leave", leave["id"], "restore", after=dict(leave), reason=reason,
-                       text=f"استعادة راحة {snap.get('name', '')} ({leave['type']} {leave['start']} "
-                            f"← {leave['end']}) التي أُلغيت — فتح الراحات في يوم الوقف نفسه")
+        change = changes.record(data, "leave", leave["id"], "restore", after=dict(leave), reason=reason,
+                                text=f"استعادة راحة {snap.get('name', '')} ({leave['type']} {leave['start']} "
+                                     f"← {leave['end']}) التي أُلغيت — فتح الراحات في يوم الوقف نفسه")
+        from .leaves import mark_history_restored
+        mark_history_restored(data, leave["id"], {"cancel"}, leave["id"], change)
         restored.append(leave["id"])
     return restored
 

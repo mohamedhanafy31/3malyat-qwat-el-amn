@@ -66,18 +66,20 @@ def record(data, entity, entity_id, action, before=None, after=None, reason="",
     مثلًا) — كلهم لازم يحملوا **نفس** اللحظة، لحظة التأكيد.
     """
     entries = log(data)
-    entries.append({
+    entry = {
         "id": reserve_id(data, "CHG", entries),
         "ts": ts or datetime.now().isoformat(timespec="seconds"),
         "entity": entity, "entity_id": entity_id, "action": action,
         "day": day, "text": text,
         "before": before, "after": after, "reason": reason,
         "edited_by": _edited_by() or None,
-    })
+    }
+    entries.append(entry)
     if len(entries) > MAX_ENTRIES:
         overflow = len(entries) - MAX_ENTRIES
         _archive_trimmed(entries[:overflow])
         del entries[:overflow]
+    return entry
 
 
 def recent(data, limit=200, entity=None, entity_id=None, day=None,

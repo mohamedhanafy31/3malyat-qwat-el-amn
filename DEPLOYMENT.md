@@ -232,6 +232,7 @@ power-loss and target HDD measurements still require the target VM/machine.
 - **المكان:** نفس مجلد سجل النشاط — `logs\` بجوار النظام (أو `<PERSONNEL_DATA_DIR>\logs` لو المتغير مضبوط):
   - `system.log` — كل الأحداث (طلبات، حفظ، نسخ احتياطي، توليد الملفات اليومية، تصدير، OCR، دخول).
   - `errors.log` — التحذيرات والأخطاء فقط، ومعها التتبّع الكامل (traceback).
+  - `ocr.log` — مراحل «قراءة اليومية من صورة/PDF» فقط (وأحداثها تصل `system.log` كمان). التفاصيل أسفل.
   - كل ملف بحد 5 ميجا × 10 نسخ قديمة (`system.log.1` …) فالحجم محدود تلقائيًا.
   - `audit.log` (سجل النشاط: من فعل ماذا) و`server.log` (إقلاع السيرفر) ملفان منفصلان كما كانا.
 - **رقم الخطأ:** عند أي خطأ داخلي تظهر للمستخدم رسالة فيها «رقم الخطأ: …». هذا الرقم موجود في كل سطر
@@ -244,3 +245,18 @@ power-loss and target HDD measurements still require the target VM/machine.
   الحجم)، أو ضع `"log_level": "DEBUG"` في `settings.json` بمجلد البيانات. المتغير له الأولوية.
 - **خصوصية:** السجلات لا تحتوي كلمات مرور ولا كوكيز ولا بيانات الأفراد (أسماء/تليفونات) — فقط معرّفات وأعداد
   ومسارات. الطلبات البطيئة (> 1 ثانية) تُسجَّل كـ WARNING.
+
+### سجل قراءة الصور وPDF (`ocr.log`)
+
+- نفس تنسيق `system.log` (وقت | مستوى | logger=`personnel.ocr` | رقم الطلب | المستخدم | الحدث | k=v) ونفس التدوير والإخفاء.
+  يظهر في صفحة «السجلات الفنية» باسم «قراءة الصور وPDF» ويدخل في zip التنزيل.
+- **تتبّع قراءة واحدة:** كل قراءة لها `ocr_session` (يولّده المتصفح عند اختيار الملف ويُرسَل مع المعاينة والتسكين
+  وأحداث المتصفح). ابحث عن قيمته في الصفحة (حقل البحث) أو `findstr ocr_session=<القيمة> logs\ocr.log` لترى
+  التسلسل كاملًا: `ocr.client.file_selected` ← `pdf_loaded` ← `page_rendered` ← `crop_applied` ← `image_encoded` ←
+  `upload_started` ← `ocr.preview_received` (الخادم) ← `ocr.decode` ← `ocr.grid` ← `ocr.cells` ← `ocr.analyze` ←
+  `ocr.align` ← `ocr.match` ← `ocr.preview_done` ← `ocr.client.preview_received` ← `apply_sent` ← `ocr.apply_received` ←
+  `ocr.apply_done` ← `ocr.client.apply_result`. كل سطر فيه `ocr_session` و`day`، وسطور الخادم فيها رقم الطلب والمستخدم.
+- الأخطاء: `ocr.preview_failed` (ERROR مع traceback وحقل `stage` = المرحلة الجارية) و`ocr.preview_rejected` /
+  `ocr.apply_rejected` (WARNING، ومنها `stale_revision`). كلها تظهر في `errors.log` أيضًا.
+- لا يُسجَّل أي اسم فرد أو اسم ملف أو محتوى صورة: أعداد ودرجات ومعرّفات (`person_id`/`service_id`) فقط؛
+  سطور التفصيل لكل صف (`ocr.match_row`, `ocr.apply_row`) تظهر عند `LOG_LEVEL=DEBUG` فقط.

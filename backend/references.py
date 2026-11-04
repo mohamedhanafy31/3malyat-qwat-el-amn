@@ -101,6 +101,17 @@ def person_references(data):
                 if driver.get("kind") == "conscript" and driver.get("id"):
                     yield f"day_campaign[{day}][{section}][{ident}].driver", "conscript", driver["id"]
 
+    for day, sheet in (data.get("day_campaign") or {}).items():
+        for group in (sheet or {}).get("groups") or []:
+            where = f"day_campaign[{day}][groups][{group.get('id')}]"
+            if group.get("vehicle_id"):
+                yield f"{where}.vehicle_id", "vehicle", group["vehicle_id"]
+            driver = group.get("driver") or {}
+            if driver.get("kind") == "personnel" and driver.get("id"):
+                yield f"{where}.driver", "individual", driver["id"]
+            if driver.get("kind") == "conscript" and driver.get("id"):
+                yield f"{where}.driver", "conscript", driver["id"]
+
     for role, pid in (data.get("command") or {}).items():
         if pid:
             yield f"command[{role}]", "officer", pid
@@ -230,6 +241,11 @@ def _detach_campaign_links(repos, person_id):
                 if driver.get("kind") == "personnel" and driver.get("id") == person_id:
                     value["driver"] = {"kind": "text", "name": name}
                     touched += 1
+        for value in sheet.get("groups") or []:
+            driver = value.get("driver") or {}
+            if driver.get("kind") == "personnel" and driver.get("id") == person_id:
+                value["driver"] = {"kind": "text", "name": name}
+                touched += 1
     return touched
 
 
