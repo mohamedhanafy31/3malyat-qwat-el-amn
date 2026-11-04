@@ -98,6 +98,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z"/></svg>
         <span>أعداد الخدمات</span>
       </a>
+      <a class="navbtn {{ 'active' if page == 'daily_print' }}" href="{{ url_for('pages.daily_print') }}"
+         {{ 'aria-current=page' if page == 'daily_print' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7V3ZM5 8h14a2 2 0 0 1 2 2v6h-4v5H7v-5H3v-6a2 2 0 0 1 2-2Zm4 8v3h6v-3H9Z"/></svg>
+        <span>طباعة اليوميات</span>
+      </a>
     </div>
 
     <div class="side-group">

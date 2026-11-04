@@ -22,6 +22,7 @@ from .users import bp as users_bp
 from .audit import bp as audit_bp
 from .campaign import bp as campaign_bp
 from .day_files import bp as day_files_bp
+from .daily_print import bp as daily_print_bp
 from .ops import bp as ops_bp
 from .roster_import import bp as roster_import_bp
 from .health import bp as health_bp
@@ -33,7 +34,7 @@ ALL_BLUEPRINTS = [pages_bp, meta_bp, people_bp, leaves_bp, duty_bp, duty_stats_b
                   board_bp, register_bp, courses_bp, counts_bp, changes_bp,
                   missions_bp, fleet_bp, service_catalog_bp, officer_log_bp, day_status_bp,
                   afraad_bp, inspection_schedule_bp, rest_suspension_bp,
-                  auth_bp, users_bp, audit_bp, campaign_bp, day_files_bp, ops_bp,
+                  auth_bp, users_bp, audit_bp, campaign_bp, day_files_bp, daily_print_bp, ops_bp,
                   roster_import_bp, health_bp, target_commanders_bp, system_settings_bp,
                   tech_logs_bp]
 

@@ -37,6 +37,8 @@ _PATTERNS = {
     "service_order": re.compile(r"^[أا]مر خدمة يوم \d+-\d+-\d{4}\.docx$"),
 }
 _TEMP_NAMES = {"desktop.ini", "Thumbs.db"}
+# بيمنع استبدال ملفات الأرشيف والطباعة فاتحة ملف منها في Word.
+ARCHIVE_LOCK = threading.RLock()
 # أقسام اليوم اللي بتدل إن حد اشتغل على اليوم ده فعلًا. التهيئة التلقائية
 # (راحات الأسبوع، الأهداف الافتراضية) بتعمل ملف يوم من غير ما يبقى فيه شغل،
 # فوجود الملف لوحده مش دليل.
@@ -125,6 +127,35 @@ def file_names(day):
 def service_order_name(day):
     value, _year, month, number = _date_parts(day)
     return f"أمر خدمة يوم {number}-{month}-{value.year}.docx"
+
+
+def document_name(day, kind):
+    """اسم ملف يومية واحدة، شامل أمر الخدمة اللي مش من KINDS."""
+    return service_order_name(day) if kind == "service_order" else file_names(day)[kind]
+
+
+def document_state(day, kind):
+    """حالة ملف اليومية على القرص: missing أو ready أو edited، ولأمر الخدمة draft.
+    التعديل اليدوي بيتعرف من بصمة آخر كتابة للسيستم، والملف من غير بصمة بيعتبر جاهز."""
+    path = day_folder(day) / document_name(day, kind)
+    try:
+        current = _sha(path.read_bytes())
+        stat = path.stat()
+    except OSError:
+        return {"state": "missing", "mtime": None}
+    entry = _manifest().get(day) or {}
+    if kind == "service_order":
+        # المعدّل هو الوضع الطبيعي لأمر الخدمة؛ اللي محتاج تنبيه هو المسودة زي ما هي.
+        state = "draft" if entry.get("service_order") == current else "ready"
+    else:
+        written = (entry.get("shas") or {}).get(kind)
+        state = "edited" if written and written != current else "ready"
+    return {"state": state, "mtime": stat.st_mtime}
+
+
+def is_updating(day):
+    """هل التحديث التلقائي شغّال أو مستني يكتب ملفات؟"""
+    return bool(_worker and _worker.is_busy(day))
 
 
 def _sha(data):
@@ -339,6 +370,11 @@ def write_day_files(day, kinds=None, *, require_data=False):
     المشغّل بيدخل بياناته وبعدين يضغط «تحديث الملفات». الطلب الصريح
     (الزرار) مابيستعملش الشرط ده.
     """
+    with ARCHIVE_LOCK:
+        return _write_day_files(day, kinds, require_data=require_data)
+
+
+def _write_day_files(day, kinds, *, require_data):
     started = time.perf_counter()
     folder, cloned, warnings = ensure_day_folder(day)
     if require_data and not has_data(day):
@@ -351,12 +387,14 @@ def write_day_files(day, kinds=None, *, require_data=False):
 
     names = file_names(day)
     files = {}
+    shas = {}
     for kind in selected:
         path = folder / names[kind]
         try:
             builder = getattr(day_exports, f"build_{kind}_bytes")
             data = builder(day)
             _write_one(path, data)
+            shas[kind] = _sha(data)
             for old in folder.iterdir():
                 if (
                     old.name != path.name
@@ -401,6 +439,7 @@ def write_day_files(day, kinds=None, *, require_data=False):
             "at": datetime.now().isoformat(timespec="seconds"),
             "special": special_names if special_names is not None else previous_special,
             "service_order": order_sha,
+            "shas": {**((manifest.get(day) or {}).get("shas") or {}), **shas},
         }
         _write_manifest(manifest)
     except Exception:
@@ -488,6 +527,10 @@ class DailyFilesWorker:
         with self._condition:
             return set(self._pending)
 
+    def is_busy(self, day):
+        with self._condition:
+            return self._busy or day in self._pending
+
     def flush(self, timeout=10):
         """ينتظر pending والعمل الجاري معًا."""
         end = time.monotonic() + timeout
@@ -547,7 +590,7 @@ def _hook(changeset):
     days = {day for day in days
             if set(changed_sections.get(day) or ()) != {"service_runs"}}
     days = {day for day in days if day >= managed_from() or day in manifest}
-    noisy = {"change_log", "id_seq", "schema", "inspection_seeded_days"}
+    noisy = {"change_log", "id_seq", "schema", "inspection_seeded_days", "print_collections"}
     core_dirty = changeset.core_keys and (
         changeset.core_keys == ALL_CORE_KEYS
         or bool(changeset.core_keys - noisy)

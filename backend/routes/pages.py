@@ -24,6 +24,8 @@ PAGES = {
                 "الخدمات الأساسية الصباحية والمسائية + إجمالي الطوارئ من اليومية التفصيلية"),
     "afraad": ("afraad.html", "يومية الأفراد",
                 "الخدمات الأساسية الثابتة (دليل الخدمات) + الطارئة من اليومية التفصيلية"),
+    "daily_print": ("daily_print.html", "طباعة اليوميات",
+                     "طباعة مجموعة يوميات كل ضابط أو جهة من ملفات الأرشيف"),
     "service_catalog": ("service_catalog.html", "دليل الخدمات",
                          "اسم كل خدمة أساسية وفترتها وقوامها المطلوب وتعليماتها"),
     "officer_log": ("officer_log.html", "سجل خدمات الضابط",
@@ -107,6 +109,11 @@ def counts():
 @bp.get("/afraad")
 def afraad():
     return _render("afraad")
+
+
+@bp.get("/daily-print")
+def daily_print():
+    return _render("daily_print")
 
 
 @bp.get("/service-catalog")

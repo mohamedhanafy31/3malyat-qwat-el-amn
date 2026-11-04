@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block page_actions %}
+<button class="btn" id="newCollectionBtn">{{ icon('plus') }} مجموعة جديدة</button>
+<button class="primary" id="printAllBtn" disabled>طباعة الكل</button>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar">
+    <div class="tb-group" role="group" aria-label="التنقل بين الأيام">
+      <button class="mini" id="dayPrev">{{ icon('chevron-prev') }} السابق</button>
+      <input type="date" id="dutyDate" class="select">
+      <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
+      <button class="mini day-jump" id="dayToday">اليوم</button>
+    </div>
+    <small class="muted tb-end" id="printerLine" role="status"></small>
+  </div>
+  <div class="print-docs" id="printDocs" aria-label="حالة ملفات اليوم">{{ skeleton("status") }}</div>
+  <div class="print-grid" id="printGrid" aria-live="polite">{{ skeleton("cards", 4) }}</div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal hidden" id="printModal">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="printModalTitle">
+    <button type="button" class="close" data-close="printModal" aria-label="إغلاق">×</button>
+    <h2 id="printModalTitle">تأكيد الطباعة</h2>
+    <form id="printForm" novalidate>
+      <div id="printSummary"></div>
+      <label>عدد النسخ من كل مجموعة
+        <input type="number" id="printCopies" min="1" value="1" required>
+      </label>
+      <label class="checkline hidden" id="printDraftWrap">
+        <input type="checkbox" id="printDraft"> طباعة مسودة أمر الخدمة كما هي
+      </label>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">طباعة</button>
+        <button type="button" class="btn" data-close="printModal">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal hidden" id="collectionModal">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="collectionTitle">
+    <button type="button" class="close" data-close="collectionModal" aria-label="إغلاق">×</button>
+    <h2 id="collectionTitle">مجموعة جديدة</h2>
+    <form id="collectionForm" novalidate>
+      <input type="hidden" id="collectionId">
+      <label><span class="label-text">الاسم <span class="req" aria-hidden="true">*</span></span>
+        <input id="collectionLabel" required maxlength="60" placeholder="اسم الضابط أو الجهة">
+      </label>
+      <div class="field-section">
+        <div class="field-legend">اليوميات</div>
+        <div class="ops-checks" id="collectionKinds"></div>
+      </div>
+      <div class="actions modal-foot">
+        <button class="primary full" type="submit">حفظ</button>
+        <button type="button" class="btn" data-close="collectionModal">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/daily-print.js') }}"></script>
+{% endblock %}

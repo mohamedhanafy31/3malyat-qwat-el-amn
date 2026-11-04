@@ -239,6 +239,9 @@ def bootstrap(page):
         payload["officer_index"] = _slim(Repos(data).people.active("officers"))
         return jsonify(payload)
 
+    if page == "daily_print":
+        return jsonify({"meta": meta, "counts": _counts(data)})
+
     if page == "rest_suspension":
         # الأوامر نفسها بتيجي من /api/rest-suspensions — هنا meta بس
         return jsonify({"meta": meta, "counts": _counts(data)})

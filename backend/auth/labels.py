@@ -7,6 +7,7 @@ EVENT_LABELS = {
     "user_created": "إنشاء حساب", "user_updated": "تعديل حساب",
     "password_changed": "تغيير كلمة المرور", "password_reset": "إعادة تعيين كلمة المرور",
     "access_denied": "محاولة وصول مرفوضة", "setup_admin": "إنشاء أول مدير",
+    "daily_print_started": "طباعة يوميات", "daily_print_finished": "انتهاء طباعة يوميات",
 }
 
 AUTH_ACTIONS = {key: label for key, label in EVENT_LABELS.items() if key != "write"}
@@ -38,6 +39,7 @@ ROUTES = [
     (r"^PATCH /api/command", "تعديل بيانات القيادة"),
     (r"^POST /api/day-status/", "تغيير حالة اليوم"),
     (r"^POST /api/day-files/", "تحديث الملفات اليومية"),
+    (r"^(POST|PATCH|DELETE) /api/print-collections", "تعديل مجموعات الطباعة"),
     (r"^POST /api/ops/.*/depart$", "قيام خدمة"),
     (r"^POST /api/ops/.*/return$", "عودة خدمة"),
     (r"^POST /api/ops/.*/undo$", "تراجع تشغيل خدمة"),
