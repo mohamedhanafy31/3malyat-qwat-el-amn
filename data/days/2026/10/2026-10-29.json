@@ -618,8 +618,8 @@
     }
   },
   "confirm": {
-    "at": "2026-11-03T13:42:06",
-    "by": "3malyat_admin",
+    "at": "2026-11-04T13:35:22",
+    "by": "Mohamed Hanafy",
     "rows": [
       {
         "id": "AS-0001",
@@ -897,9 +897,11 @@
         "section": "الخدمات الطارئة",
         "name": "حملة الأمن الوطني",
         "kind": "خارجية",
-        "shift": "صباحية",
+        "shift": "ليلية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-031"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -908,7 +910,7 @@
         ],
         "conscript_count": 2,
         "weapon": "آلي",
-        "time": "12ظ",
+        "time": "12 ليل",
         "party": "الامن الوطني",
         "counts_in_summary": true,
         "mission_transport": true,
