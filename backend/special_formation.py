@@ -11,6 +11,7 @@ from .board import ASSIGNMENT_SECTIONS, _people_index, _row
 from .constants import SECTION_PRISON, canonical_section_name
 from .formation import _slot_weapons, slot_count
 from .labels import officer_label, personnel_label
+from .special_formation_export import is_oversized
 from .text import norm
 
 # أقسام مخصّصة مش مناسبات: التفتيشات ليها ملفها، و«فرد + مج» تقسيمة استيراد قديمة.
@@ -69,6 +70,10 @@ def build(data, day, section):
                       "time": assignment.get("time") or "", "party": assignment.get("party") or ""})
     if not posts:
         raise LookupError(section)
+    # الأقل عددًا الأول، واللي عددهم واحد بترتيبهم على اللوحة.
+    posts.sort(key=lambda post: post["count"])
+    warnings += [f"الخدمة «{post['name']}» أكبر من صفحة واحدة، فجدولها هيكمل في الصفحة اللي بعدها."
+                 for post in posts if is_oversized(post)]
     return {"day": day, "section": section, "posts": posts, "warnings": warnings,
             "totals": {"posts": len(posts), "conscripts": sum(post["count"] for post in posts)}}
 
