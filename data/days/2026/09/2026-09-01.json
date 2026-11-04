@@ -630,8 +630,8 @@
     }
   },
   "confirm": {
-    "at": "2026-09-27T00:34:00",
-    "by": "",
+    "at": "2026-11-03T13:42:05",
+    "by": "3malyat_admin",
     "rows": [
       {
         "section": "الخدمات أساسية",
@@ -751,14 +751,14 @@
           }
         ],
         "weapon": "آلي",
-        "time": "12ظ",
+        "time": "10م",
         "party": "الأمن الوطني",
         "note": "",
         "id": "AS-0006",
         "name": "حملة الأمن الوطني",
         "kind": "خارجية",
         "counts_in_summary": true,
-        "conscript_count": 4
+        "conscript_count": 2
       },
       {
         "section": "الخدمات الطارئة",
@@ -774,7 +774,7 @@
           }
         ],
         "weapon": "آلي",
-        "time": "10 م",
+        "time": "12ظ",
         "party": "",
         "note": "",
         "id": "AS-0007",
@@ -815,7 +815,7 @@
         "personnel_ids": [],
         "conscripts": [
           {
-            "class": "وحدة",
+            "class": "وحدة فض",
             "count": 1
           }
         ],

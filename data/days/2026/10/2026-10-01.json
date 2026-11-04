@@ -17,6 +17,28 @@
       "note": ""
     }
   ],
+  "confirm": {
+    "at": "2026-11-03T13:42:06",
+    "by": "3malyat_admin",
+    "rows": [
+      {
+        "id": "AS-0001",
+        "section": "تفتيشات",
+        "name": "تفتيش الجناين",
+        "kind": "خارجية",
+        "shift": "",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "دونك",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "note": ""
+      }
+    ]
+  },
   "assignment_seq": 1,
   "weekly_rest_seeded": true,
   "campaign": {
