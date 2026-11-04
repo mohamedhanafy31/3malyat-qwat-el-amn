@@ -72,7 +72,7 @@
   const titlesBox = document.querySelector(".page-head .titles");
   if (titlesBox && $id("dashboardDayWarning")) titlesBox.append($id("dashboardDayWarning"));
   const shiftText = {am: "صباحية", pm: "ليلية"};
-  const statusText = {upcoming: "قادمة", out: "بالخارج", back: "عادت", prep: "تجهّز", late: "متأخرة", carried: "مترحّلة"};
+  const statusText = {upcoming: "قادمة", out: "بالخارج", back: "عادت", prep: "تجهّز", late: "متأخرة", carried: "مترحّلة", fixed: "ثابتة"};
 
   const runLabel = run =>
     `${run.name || "الخدمة"} — ${shiftText[run.shift] || run.shift || ""}`;
@@ -518,14 +518,14 @@
     }
     return [...groups.values()].sort((a, b) => prefs.groupBy === "time"
       ? (minutes(a.runs[0].report_time) ?? 9999) - (minutes(b.runs[0].report_time) ?? 9999)
-      : prefs.groupBy === "state" ? ["carried", "late", "prep", "out", "upcoming", "back"].indexOf(displayState(a.runs[0])) - ["carried", "late", "prep", "out", "upcoming", "back"].indexOf(displayState(b.runs[0]))
+      : prefs.groupBy === "state" ? ["carried", "late", "prep", "out", "upcoming", "back", "fixed"].indexOf(displayState(a.runs[0])) - ["carried", "late", "prep", "out", "upcoming", "back", "fixed"].indexOf(displayState(b.runs[0]))
       : a.title.localeCompare(b.title, "ar"));
   }
 
   function stateSummary(runs) {
     const counts = {};
     for (const run of runs) counts[displayState(run)] = (counts[displayState(run)] || 0) + 1;
-    return ["late", "prep", "out", "carried", "upcoming", "back"].filter(key => counts[key])
+    return ["late", "prep", "out", "carried", "upcoming", "back", "fixed"].filter(key => counts[key])
       .map(key => `${counts[key]} ${statusText[key]}`).join(" · ");
   }
 
@@ -550,7 +550,8 @@
     const eligibleReturn = group.runs.filter(run => ["out", "carried"].includes(displayState(run)));
     // المجموعة اللي كل خدماتها قامت بتتطوي لوحدها (إلا لو المستخدم فتحها بنفسه)
     // عشان أول الشاشة يفضل للي محتاج إجراء.
-    const departed = group.runs.length - eligibleDepart.length;
+    const moving = group.runs.filter(run => displayState(run) !== "fixed").length;
+    const departed = moving - eligibleDepart.length;
     const savedCollapse = prefs.collapsed[`${prefs.groupBy}:${group.id}`];
     const collapsed = savedCollapse === undefined ? (group.runs.length > 0 && !eligibleDepart.length) : Boolean(savedCollapse);
     const actions = [];
@@ -558,7 +559,7 @@
     if (eligibleReturn.length) actions.push(`<button type="button" class="btn ok" data-op="line" data-mode="return" data-line="${esc(group.title)}" data-meta="" data-keys="${esc(JSON.stringify(eligibleReturn.map(actionTarget)))}">عودة الكل (${eligibleReturn.length})</button>`);
     const body = viewMode() === "cards" ? `<div class="ops-grid">${group.runs.map(card).join("")}</div>` : `<div class="ops-table-wrap"><table class="ops-list"><colgroup><col class="ops-col-time"><col class="ops-col-service"><col class="ops-col-person"><col class="ops-col-count"><col class="ops-col-status"><col class="ops-col-action"></colgroup><thead><tr><th>المعاد</th><th>الخدمة</th><th>القائم بها</th><th>القوام</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody>${group.runs.map(row).join("")}</tbody></table></div>`;
     return `<section class="ops-group ${collapsed ? "is-collapsed" : ""}" data-group-id="${esc(group.id)}">
-      <div class="ops-group-header"><button type="button" class="ops-group-toggle" aria-expanded="${!collapsed}" data-op="collapse" data-group="${esc(group.id)}"><span aria-hidden="true">${collapsed ? "›" : "⌄"}</span><strong>${esc(group.title)}</strong><span class="ops-group-count">${(group.total || group.runs.length) > group.runs.length ? `${group.runs.length} من ${group.total}` : countLabel(group.runs.length, "خدمة")}</span><small>${esc(!eligibleDepart.length && group.runs.length ? `${departed}/${group.runs.length} قامت` : stateSummary(group.runs))}</small></button><div class="ops-group-actions">${actions.join("")}</div></div>
+      <div class="ops-group-header"><button type="button" class="ops-group-toggle" aria-expanded="${!collapsed}" data-op="collapse" data-group="${esc(group.id)}"><span aria-hidden="true">${collapsed ? "›" : "⌄"}</span><strong>${esc(group.title)}</strong><span class="ops-group-count">${(group.total || group.runs.length) > group.runs.length ? `${group.runs.length} من ${group.total}` : countLabel(group.runs.length, "خدمة")}</span><small>${esc(!eligibleDepart.length && moving ? `${departed}/${moving} قامت` : stateSummary(group.runs))}</small></button><div class="ops-group-actions">${actions.join("")}</div></div>
       <div class="ops-group-body">${body}</div>
     </section>`;
   }

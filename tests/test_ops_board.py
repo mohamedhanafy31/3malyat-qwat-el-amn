@@ -13,11 +13,11 @@ from backend import campaign
 
 def _data():
     return {
-        "service_catalog": [{"id": "SVC-1", "name": "خدمة أ", "period": "صباحية وليلية",
+        "service_catalog": [{"id": "SVC-1", "name": "الاسعاف", "period": "صباحية وليلية",
                               "report_am": "08:00", "report_pm": "20:00", "count": 7,
                               "weapon": "آلي", "tags": []}],
         "service_lines": [], "day_assignments": {},
-        "service_counts": {"2026-10-20": {"entries": [{"id": "CNT-1", "name": "خدمة أ",
+        "service_counts": {"2026-10-20": {"entries": [{"id": "CNT-1", "name": "الاسعاف",
                                                            "block": "صباحية", "count": 2, "weapon": ""}]}},
         "day_afraad": {}, "day_campaign": {}, "day_service_runs": {}, "day_status": {},
         "reference_lists": {}, "personnel": [], "officers": [],
@@ -27,7 +27,7 @@ def _data():
 def test_shared_run_is_one_state_and_exclusions_are_not_sources():
     data = _data()
     data["day_assignments"]["2026-10-20"] = [
-        {"id": "AS-1", "section": "الخدمات أساسية", "name": "خدمة أ",
+        {"id": "AS-1", "section": "الخدمات أساسية", "name": "الاسعاف",
          "shift": "صباحية", "officer_ids": []},
         {"id": "AS-2", "section": "الأهداف", "name": "هدف", "shift": "صباحية", "officer_ids": []},
     ]
@@ -56,7 +56,7 @@ def test_next_is_future_only_and_archive_time_style():
                                "order": ["SVC-1"], "lorry_id": "LOR-3"}]
     data["service_catalog"][0]["tags"] = ["route"]
     data["service_counts"]["2026-10-20"]["entries"].append(
-        {"id": "CNT-2", "name": "خدمة أ", "block": "ليلية", "count": 2, "weapon": ""})
+        {"id": "CNT-2", "name": "الاسعاف", "block": "ليلية", "count": 2, "weapon": ""})
     view = build_ops(data, "2026-10-20", datetime(2026, 10, 20, 19, 0))
     assert view["next"]["key"] == "SVC-1:pm"
     assert view["next"]["line_id"] == "LINE-1"
@@ -71,10 +71,10 @@ def test_ops_board_carries_direct_campaign_service_vehicle():
     data["vehicles"] = [{"id": "VEH-1", "plate_series": "ب12", "plate_number": "1001",
                          "type": "بيك اب", "status": "operational", "origin": "internal"}]
     data["day_assignments"]["2026-10-20"] = [{"id": "AS-1", "section": "الخدمات الطارئة",
-        "name": "خدمة أ", "shift": "صباحية", "time": "8ص", "officer_ids": [],
+        "name": "الاسعاف", "shift": "صباحية", "time": "8ص", "officer_ids": [],
         "personnel_ids": []}]
     data["day_campaign"]["2026-10-20"] = {"services": {"AS-1": {"vehicles": [{"vehicle_id": "VEH-1"}]} }}
-    run = next(item for item in build_ops(data, "2026-10-20")["runs"] if item["name"] == "خدمة أ")
+    run = next(item for item in build_ops(data, "2026-10-20")["runs"] if item["name"] == "الاسعاف")
     assert run["line_meta"]["vehicle"]["plate"] == "ب12/1001"
 
 
@@ -100,7 +100,7 @@ def test_line_runs_follow_configured_order_and_absent_members_are_not_cards():
 def test_afraad_link_head_and_catalog_fallbacks():
     data = _data()
     data["reference_lists"] = {"afraad_basic": [{"from": "2026-10-20", "items": [
-        {"id": "AFB-1", "name": "خدمة أ", "service_id": "SVC-1"}]}]}
+        {"id": "AFB-1", "name": "الاسعاف", "service_id": "SVC-1"}]}]}
     data["day_afraad"] = {"2026-10-20": {"AFB-1": {"morning_name": "أمين شرطة/ محمد السيد"}}}
     data["service_counts"]["2026-10-20"]["entries"][0].update(count=None, weapon="")
     run = build_ops(data, "2026-10-20")["groups"]["basic"]["am"]["single"][0]
@@ -147,7 +147,8 @@ def _cross_day_data():
     }
 
 
-def test_carried_runs_do_not_hide_or_share_today_runs():
+def test_carried_runs_do_not_hide_or_share_today_runs(monkeypatch):
+    monkeypatch.setattr(ops_board, "_is_fixed", lambda item: False)
     data = _cross_day_data()
     keys = [f"SVC-{i:03d}:pm" for i in (1, 4, 7, 10, 13)]
     depart(data, "2026-10-19", keys, "مشغل", datetime(2026, 10, 19, 17, 1))
@@ -161,7 +162,8 @@ def test_carried_runs_do_not_hide_or_share_today_runs():
     assert view["counters"]["carried"] == 5
 
 
-def test_returning_carried_ref_leaves_today_same_key_upcoming():
+def test_returning_carried_ref_leaves_today_same_key_upcoming(monkeypatch):
+    monkeypatch.setattr(ops_board, "_is_fixed", lambda item: False)
     data = _cross_day_data()
     key = "SVC-001:pm"
     depart(data, "2026-10-19", [key], "مشغل", datetime(2026, 10, 19, 17, 1))
@@ -174,7 +176,8 @@ def test_returning_carried_ref_leaves_today_same_key_upcoming():
     assert data["day_service_runs"]["2026-10-19"][key]["back_at"]
 
 
-def test_canonical_runs_keep_carried_identity_distinct_from_today():
+def test_canonical_runs_keep_carried_identity_distinct_from_today(monkeypatch):
+    monkeypatch.setattr(ops_board, "_is_fixed", lambda item: False)
     data = _cross_day_data()
     key = "SVC-001:pm"
     depart(data, "2026-10-19", [key], "مشغل", datetime(2026, 10, 19, 17, 1))
@@ -250,7 +253,7 @@ def test_board_emergency_rows_get_their_own_key_time_and_shift():
 def test_optimised_build_is_stable_and_exposes_catalog_id_for_resolved_emergency():
     data = _data()
     data["day_assignments"]["2026-10-20"] = [
-        {"id": "AS-7", "section": "الخدمات الطارئة", "name": "خدمة أ",
+        {"id": "AS-7", "section": "الخدمات الطارئة", "name": "الاسعاف",
          "shift": "صباحية", "time": "8ص", "officer_ids": []},
     ]
     now = datetime(2026, 10, 20, 7, 0)
@@ -269,7 +272,7 @@ def test_optimised_build_is_stable_and_exposes_catalog_id_for_resolved_emergency
 def test_set_time_default_resolves_catalog_for_emergency_assignment():
     data = _data()
     data["day_assignments"]["2026-10-20"] = [
-        {"id": "AS-9", "section": "الخدمات الطارئة", "name": "خدمة أ",
+        {"id": "AS-9", "section": "الخدمات الطارئة", "name": "الاسعاف",
          "shift": "صباحية", "time": "8ص", "officer_ids": []},
     ]
     set_time(data, "2026-10-20", "AS-9:am", "09:30", "default", "مشغل")
@@ -288,10 +291,10 @@ def test_set_time_default_rejects_unresolvable_emergency_cleanly():
 
 def test_edit_time_route_builds_response_once(client, monkeypatch):
     def seed(data):
-        data["service_catalog"] = [{"id": "SVC-1", "name": "خدمة أ",
+        data["service_catalog"] = [{"id": "SVC-1", "name": "الاسعاف",
                                     "period": "صباحية", "report_am": "08:00", "tags": []}]
         data["day_assignments"] = {"2026-10-20": [{"id": "AS-9",
-            "section": "الخدمات الطارئة", "name": "خدمة أ", "shift": "صباحية",
+            "section": "الخدمات الطارئة", "name": "الاسعاف", "shift": "صباحية",
             "time": "8ص", "officer_ids": []}]}
     store.with_data(seed, ())
     revision = client.get("/api/ops/2026-10-20").get_json()["revision"]
@@ -312,11 +315,73 @@ def test_edit_time_route_builds_response_once(client, monkeypatch):
 def test_single_shift_afraad_schedule_does_not_leak_into_night():
     data = _data()
     data["reference_lists"] = {"afraad_basic": [{"from": "2026-10-20", "items": [
-        {"id": "AFB-1", "name": "خدمة أ", "service_id": "SVC-1"}]}]}
+        {"id": "AFB-1", "name": "الاسعاف", "service_id": "SVC-1"}]}]}
     data["day_afraad"] = {"2026-10-20": {"AFB-1": {"schedule": "7 ص فترة صباحة"}}}
     data["service_counts"]["2026-10-20"]["entries"].append(
-        {"id": "CNT-2", "name": "خدمة أ", "block": "ليلية", "count": 2, "weapon": ""})
+        {"id": "CNT-2", "name": "الاسعاف", "block": "ليلية", "count": 2, "weapon": ""})
     groups = build_ops(data, "2026-10-20")["groups"]["basic"]
     assert groups["am"]["single"][0]["report_time"] == "07:00"
     # الليلي مالوش معاد في يومية الأفراد → معاد الدليل (20:00)، مش 7 الصبح
     assert groups["pm"]["single"][0]["report_time"] == "20:00"
+
+
+def _basic_day(*names):
+    data = _data()
+    data["service_catalog"] = []
+    data["service_counts"]["2026-10-20"]["entries"] = [
+        {"id": f"CNT-{i}", "name": name, "block": "صباحية", "count": 1, "weapon": ""}
+        for i, name in enumerate(names)]
+    return data
+
+
+def test_only_moving_basic_services_have_departure_and_return():
+    moving = ["الإسعاف", "تدخل سريع", "خط الغاز", "قول مكبر", "قول السلام"]
+    data = _basic_day(*moving, "المحور", "كنيسة العذراء مريم")
+    view = build_ops(data, "2026-10-20", datetime(2026, 10, 20, 12, 0))
+    states = {run["name"]: run["state"] for run in view["runs"]}
+    assert all(states[name] == "upcoming" for name in moving)
+    assert states["المحور"] == states["كنيسة العذراء مريم"] == "fixed"
+    # الثابتة مابتدخلش في العدادات ولا «المطلوب الآن»
+    assert view["counters"]["upcoming"] == 5
+    assert all(run["hint"] is None for run in view["runs"] if run["state"] == "fixed")
+    fixed_key = next(run["key"] for run in view["runs"] if run["name"] == "المحور")
+    with pytest.raises(ValueError):
+        depart(data, "2026-10-20", [fixed_key], "مشغل", datetime(2026, 10, 20, 12, 0))
+    moving_key = next(run["key"] for run in view["runs"] if run["name"] == "الإسعاف")
+    depart(data, "2026-10-20", [moving_key], "مشغل", datetime(2026, 10, 20, 12, 0))
+    assert data["day_service_runs"]["2026-10-20"][moving_key]["out_at"]
+
+
+def test_emergency_and_special_services_keep_departure_and_return():
+    data = _basic_day()
+    data["day_assignments"]["2026-10-20"] = [
+        {"id": "AS-1", "section": "الخدمات الطارئة", "name": "ترحيلة", "shift": "صباحية",
+         "time": "8ص", "officer_ids": [], "conscript_count": 2},
+        {"id": "SP-1", "section": "خدمات مباراة المصري", "name": "بوابة", "shift": "صباحية",
+         "time": "8ص", "officer_ids": [], "conscript_count": 2}]
+    view = build_ops(data, "2026-10-20", datetime(2026, 10, 20, 7, 0))
+    assert {run["name"] for run in view["runs"]} == {"ترحيلة", "بوابة"}
+    assert all(run["state"] == "upcoming" for run in view["runs"])
+
+
+def test_a_fixed_service_already_out_can_still_be_returned():
+    data = _basic_day("المحور")
+    key = build_ops(data, "2026-10-20")["runs"][0]["key"]
+    data["day_service_runs"] = {"2026-10-20": {key: {
+        "out_at": "2026-10-20T08:00:00", "out_by": "مشغل", "state": "out",
+        "history": [{"action": "depart", "at": "2026-10-20T08:00:00", "by": "مشغل"}]}}}
+    assert build_ops(data, "2026-10-20")["runs"][0]["state"] == "out"
+    return_(data, "2026-10-20", [key], "مشغل", datetime(2026, 10, 20, 9, 0))
+    assert build_ops(data, "2026-10-20")["runs"][0]["state"] == "back"
+
+
+def test_a_post_is_tracked_unless_it_rides_a_line():
+    data = _basic_day("قول السلام", "قول ممشى بورتوفيق", "قول مكبر")
+    data["service_catalog"] = [
+        {"id": "SVC-1", "name": "قول السلام", "tags": []},
+        {"id": "SVC-2", "name": "قول ممشى بورتوفيق", "tags": ["الداخلي"]},
+        {"id": "SVC-3", "name": "قول مكبر", "tags": []}]
+    data["service_lines"] = [{"id": "LN-4", "name": "خط الداخلي", "tag": "الداخلي", "lorry_id": "LOR-2", "order": []}]
+    states = {run["name"]: run["state"] for run in build_ops(data, "2026-10-20")["runs"]}
+    assert states == {"قول السلام": "upcoming", "قول ممشى بورتوفيق": "fixed", "قول مكبر": "upcoming"}
+    assert build_ops(_basic_day("كول مكبر"), "2026-10-20")["runs"][0]["state"] == "upcoming"

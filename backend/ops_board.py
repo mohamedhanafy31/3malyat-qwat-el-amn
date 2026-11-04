@@ -11,6 +11,7 @@ from .clocktime import format_time, parse_shift_pair, parse_time
 from .constants import (SECTION_BASIC, SECTION_GREAT, SECTION_SECURITY,
                         SECTION_SUBCAMP, SECTION_TARGETS)
 from .service_catalog import catalog
+from .service_equivalence import services_equivalent
 from .service_lines import line_for_service, lorry_name
 from . import service_sections
 from . import service_links
@@ -22,6 +23,9 @@ from .repo import PeopleRepo
 _EXCLUDED = {SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT, SECTION_SECURITY}
 _SHIFTS = {"صباحية": "am", "ليلية": "pm", "صباح": "am", "ليل": "pm",
            "am": "am", "pm": "pm"}
+# الخدمات الأساسية ثابتة في مكانها فمالهاش قيام ولا عودة، إلا الإسعاف والأقوال
+# الأمنية. القول اللي مسكّن على خط سير عسكريه بيروحله مع اللوري، فمالوش قيام هو كمان.
+_MOVING_BASIC = ("الاسعاف", "ارتكاز الاسعاف", "التدخل السريع", "خط الغاز")
 
 
 def _shift(value):
@@ -207,6 +211,13 @@ def _add(pool, item):
     old["line_meta"] = old.get("line_meta") or item.get("line_meta")
 
 
+def _is_fixed(item):
+    """خدمة أساسية مش من اللي بتتحرك — صفوف الطوارئ والأقسام الخاصة مش منها."""
+    return (set(item.get("types") or []) <= {"officers", "basic"}
+            and not any(services_equivalent(item.get("name"), name) for name in _MOVING_BASIC)
+            and not (re.search("[قك]ول", norm(item.get("name"))) and not item.get("line_id")))
+
+
 def _apply_state(data, day, item, now):
     record, source_day = _record(data, day, item["key"]), day
     item["out_at"] = record.get("out_at")
@@ -220,6 +231,9 @@ def _apply_state(data, day, item, now):
         item["state"] = "back"
     elif record.get("out_at"):
         item["state"] = "out"
+    elif _is_fixed(item):
+        # القيام المتسجل قبل كده بيفضل فوق لحد ما عودته تتسجل
+        item["state"] = "fixed"
     # «جهّز/متأخرة» بالمقارنة مع ساعة دلوقتي — ليها معنى في يوم النهاردة بس؛
     # من غير الشرط ده يوم قديم أو جاي كان بيطلع «متأخرة» حسب ساعة الجهاز.
     if item["state"] == "upcoming" and item.get("report_time") and day == now.date().isoformat():
@@ -489,10 +503,14 @@ def depart(data, day, keys, actor, now):
     if not ok:
         raise ValueError(error)
     at = _when(now).isoformat(timespec="seconds")
+    fixed = {run["key"] for run in build_ops(data, day, _when(now), _carry=False)["runs"]
+             if run["state"] == "fixed"}
     for key in keys:
         record, stored, plain_key = _check_key(data, day, key)
         if record.get("out_at"):
             raise ValueError("تم تسجيل القيام بالفعل")
+        if stored == day and plain_key in fixed:
+            raise ValueError("الخدمة دي ثابتة ومالهاش قيام ولا عودة.")
         target = data.setdefault("day_service_runs", {}).setdefault(stored, {}).setdefault(plain_key, {})
         target.update(out_at=at, out_by=actor, state="out")
         target.setdefault("history", []).append({"action": "depart", "at": at, "by": actor})
@@ -536,9 +554,7 @@ def _time_run(data, day, key):
     row = next((item for item in rows if item.get("id") == base), None)
     found_source = row is not None
     if row is None:
-        stored = (data.get("service_counts") or {}).get(origin) or {}
-        count_entries = stored.get("entries") if stored else (data.get("counts_template") or {}).get("entries")
-        count_entry = next((item for item in count_entries or []
+        count_entry = next((item for item in counts.peek_day_entries(data, origin)
                             if (item.get("id") or item.get("assignment_id")) == base), None)
         if count_entry:
             row = count_entry

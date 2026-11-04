@@ -75,11 +75,11 @@ def test_migration_019_seeds_empty_registry_and_is_noop_with_existing_lines():
 def test_bulk_ops_route_moves_only_selected_keys(client):
     def seed(data):
         data["service_catalog"] = [
-            {"id": "SVC-1", "name": "أ", "period": "صباحية", "report_am": "08:00", "tags": []},
+            {"id": "SVC-1", "name": "الاسعاف", "period": "صباحية", "report_am": "08:00", "tags": []},
             {"id": "SVC-2", "name": "ب", "period": "صباحية", "report_am": "08:00", "tags": []},
         ]
         data["service_counts"] = {"2026-10-20": {"entries": [
-            {"id": "CNT-1", "name": "أ", "service_id": "SVC-1", "block": "صباحية", "count": 1},
+            {"id": "CNT-1", "name": "الاسعاف", "service_id": "SVC-1", "block": "صباحية", "count": 1},
             {"id": "CNT-2", "name": "ب", "service_id": "SVC-2", "block": "صباحية", "count": 1},
         ]}}
     store.with_data(seed, ())
