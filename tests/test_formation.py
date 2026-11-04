@@ -66,6 +66,21 @@ def test_morning_excludes_night_times():
     assert "حملة ليل" not in names
 
 
+def test_basic_weapon_comes_only_from_counts_for_each_shift():
+    data = _data()
+    data["counts_template"]["entries"].append(
+        {"id": "CNT-3", "name": "بدون تسليح", "block": "صباحية", "count": 1, "weapon": ""})
+    data["reference_lists"] = {"afraad_basic": [{"since": "2026-01-01", "items": [
+        {"id": "AB-1", "name": "أساسية"}, {"id": "AB-2", "name": "ليلية خدمة"},
+        {"id": "AB-3", "name": "بدون تسليح"}]}]}
+    data["day_afraad"] = {DAY: {key: {"weapon": "خرطوش"} for key in ("AB-1", "AB-2", "AB-3")}}
+    morning = {b["name"]: b["weapons"] for b in build(data, DAY, "morning")["blocks"]}
+    assert morning["أساسية"] == ["آلي"] * 3
+    assert morning["بدون تسليح"] == [""]
+    night = {b["name"]: b["weapons"] for b in build(data, DAY, "night")["blocks"]}
+    assert night["ليلية خدمة"] == ["آلي", "كلبش"]
+
+
 def test_night_uses_archive_template_and_basic_pm_strength():
     result = build(_data(), DAY, "night")
     assert [b["name"] for b in result["blocks"]] == ["ليلية خدمة"]

@@ -2,7 +2,7 @@
 from datetime import date
 import re
 
-from .afraad import basic_rows, occasional_rows
+from .afraad import occasional_rows
 from .clocktime import format_time, parse_time
 from .counts import build as build_counts
 from .service_equivalence import services_equivalent
@@ -94,15 +94,13 @@ def group_by_lorry(blocks):
     return result
 
 
-def _basic_blocks(data, day, shift, counts_payload):
+def _basic_blocks(data, shift, counts_payload):
+    """الخدمات الأساسية وعددها وتسليحها من «اعداد الخدمات» بس، كل فترة بصفها."""
     source = counts_payload["basic_am" if shift == "morning" else "basic_pm"]
-    enriched = basic_rows(data, day)
     blocks = []
     for count_row in source:
-        match = next((row for row in enriched
-                      if services_equivalent(count_row.get("name"), row.get("name"))), None)
-        weapon = (match or {}).get("weapon") or count_row.get("weapon", "")
-        block = _block(count_row.get("name", ""), count_row.get("count", 0), weapon, "basic")
+        block = _block(count_row.get("name", ""), count_row.get("count", 0),
+                       count_row.get("weapon", ""), "basic")
         block["lorry_id"] = _lorry_of(data, count_row)
         blocks.append(block)
     return group_by_lorry(blocks)
@@ -113,7 +111,7 @@ def build(data, day, shift):
     if shift not in {"morning", "night"}:
         raise ValueError("الفترة لازم تكون morning أو night")
     counts_payload = build_counts(data, day)
-    blocks = _basic_blocks(data, day, shift, counts_payload)
+    blocks = _basic_blocks(data, shift, counts_payload)
     warnings = []
     if shift == "morning":
         basic_names = [block["name"] for block in blocks]
