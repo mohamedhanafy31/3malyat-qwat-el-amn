@@ -863,6 +863,21 @@ def known_days(data, *keys):
     return sorted(out)
 
 
+def previous_section(data, key, day):
+    """(آخر يوم قبل `day` فيه القسم ده، قيمته) أو ("", {}) — للتوريث من اليوم
+    اللي قبله. لو اليوم ده برّه نطاق القراءة بتتقرا قيمته من ملفه للعرض بس،
+    ومابيدخلش في الحفظ، فماتتعدلش القيمة الراجعة."""
+    days = [value for value in known_days(data, key) if value < day]
+    if not days:
+        return "", {}
+    source = days[-1]
+    section = data.get(key) or {}
+    if dict.__contains__(section, source):
+        return source, dict.__getitem__(section, source) or {}
+    _entry, blob = _load(day_path(source))
+    return source, blob.get(DAY_SECTIONS[key]) or {}
+
+
 def recorded_days(data):
     """أيام الشغل الفعلي (تكليف أو حالة ضابط) — من غير تحميلها."""
     return known_days(data, "day_assignments", "day_officers")

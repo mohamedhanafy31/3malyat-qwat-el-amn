@@ -203,3 +203,18 @@ def test_slash_separated_weapons_go_to_consecutive_slots():
     assert _slot_weapons("آلي/فيدرال/خرطوش", 3) == ["آلي", "فيدرال", "خرطوش"]
     assert _slot_weapons("آلي/خرطوش", 2) == ["آلي", "خرطوش"]
     assert _slot_weapons("الي/فيدرال", 4) == ["آلي", "فيدرال", "فيدرال", "فيدرال"]
+
+
+def test_board_court_takes_its_weapon_from_the_counts_row(client):
+    day = "2026-04-10"
+    client.post("/api/counts/template/seed")
+    view = client.get(f"/api/counts/{day}").get_json()
+    court = next(e for e in view["recurring"] if e["name"] == "المحكمة")
+    client.patch(f"/api/counts/{day}/entries/{court['id']}", json={"weapon": "دونك"})
+    r = client.post(f"/api/assignments/{day}", json={"name": "المحكمة", "kind": "خارجية",
+                                                     "section": "الخدمات الطارئة", "time": "08:00"})
+    assert r.status_code == 201, r.get_json()
+    from backend import formation
+    from backend.store import load_data
+    blocks = formation.build(load_data(), day, "morning")["blocks"]
+    assert any(b["name"] == "المحكمة" and "دونك" in str(b) for b in blocks)

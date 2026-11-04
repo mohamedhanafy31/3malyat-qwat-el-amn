@@ -159,7 +159,8 @@ def build(data, day, shift):
             if count_row and live_count not in {0, count}:
                 warnings.append(f"اختلاف عدد «{row.get('name', '')}»: اتاخد العدد الرسمي {count}.")
             emergency.append((minutes if minutes is not None else 9999, order,
-                              _block(row.get("name", ""), count, row.get("weapon", ""),
+                              _block(row.get("name", ""), count,
+                                     (count_row or {}).get("weapon") or row.get("weapon", ""),
                                      "emergency", time)))
         listed = [block["name"] for _minutes, _order, block in emergency] + basic_names
         for order, row in enumerate(official, start=len(emergency)):

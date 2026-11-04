@@ -59,7 +59,7 @@ def test_day_mirrors_template_until_first_edit(client):
 
 
 def test_editing_a_day_entry_materialises_only_that_day(client):
-    """التعديل بيفصل نسخة اليوم عن القالب — القالب وباقي الأيام ما بيتأثروش."""
+    """التعديل بيفصل نسخة اليوم عن القالب — القالب والأيام اللي قبله ما بيتأثروش."""
     seed = client.post("/api/counts/template/seed").get_json()["entries"]
     am_entry = next(e for e in seed if e["block"] == "صباحية")
 
@@ -72,7 +72,7 @@ def test_editing_a_day_entry_materialises_only_that_day(client):
     edited = next(e for e in today["basic_am"] if e["id"] == am_entry["id"])
     assert edited["count"] == 999
 
-    other = client.get(f"/api/counts/{OTHER_DAY}").get_json()
+    other = client.get(f"/api/counts/2026-04-09").get_json()
     assert other["from_template"] is True
     unaffected = next(e for e in other["basic_am"] if e["id"] == am_entry["id"])
     assert unaffected["count"] == am_entry["count"]
@@ -91,8 +91,8 @@ def test_add_and_delete_day_entry(client):
     today = client.get(f"/api/counts/{DAY}").get_json()
     assert any(e["id"] == entry_id for e in today["basic_am"])
 
-    other = client.get(f"/api/counts/{OTHER_DAY}").get_json()
-    assert not any(e["id"] == entry_id for e in other["basic_am"]), "الإضافة بتاعة يوم واحد بس"
+    other = client.get(f"/api/counts/2026-04-09").get_json()
+    assert not any(e["id"] == entry_id for e in other["basic_am"]), "الإضافة مابتوصلش للأيام اللي قبله"
 
     d = client.delete(f"/api/counts/{DAY}/entries/{entry_id}")
     assert d.status_code == 200
@@ -414,3 +414,121 @@ def test_live_day_does_not_double_count_a_service_already_in_the_list():
     built = counts.build(data, day)
     assert [r["name"] for r in built["emergency"]] == ["ترحيلة العاشر"]
     assert built["totals"]["emergency"] == 7
+
+
+# ---------- توريث التسليح من اليوم اللي قبله ----------
+
+def _weapon(view, block, name):
+    return next(e["weapon"] for e in view[block] if e["name"] == name)
+
+
+def _set_weapon(client, day, block, name, weapon):
+    view = client.get(f"/api/counts/{day}").get_json()
+    entry = next(e for e in view[block] if e["name"] == name)
+    r = client.patch(f"/api/counts/{day}/entries/{entry['id']}", json={"weapon": weapon})
+    assert r.status_code == 200, r.get_json()
+
+
+def test_weapons_are_inherited_from_the_previous_saved_day_for_each_block(client):
+    client.post("/api/counts/template/seed")
+    _set_weapon(client, DAY, "basic_am", "خط الغاز", "آلي/خرطوش")
+    _set_weapon(client, DAY, "basic_pm", "خط الغاز", "خرطوش")
+    _set_weapon(client, DAY, "recurring", "المحكمة", "دونك")
+
+    # اليوم التالي والأبعد منه ورثوا من غير ما يتحفظ ليهم حاجة
+    for day in (OTHER_DAY, "2026-04-14"):
+        view = client.get(f"/api/counts/{day}").get_json()
+        assert view["from_template"] is True
+        assert _weapon(view, "basic_am", "خط الغاز") == "آلي/خرطوش"
+        assert _weapon(view, "basic_pm", "خط الغاز") == "خرطوش"
+        assert _weapon(view, "recurring", "المحكمة") == "دونك"
+
+    # القالب نفسه واليوم اللي قبل المصدر مايتغيّروش
+    assert not any(e.get("weapon") for e in client.get("/api/counts/template").get_json()["entries"])
+    assert _weapon(client.get("/api/counts/2026-04-09").get_json(), "basic_am", "خط الغاز") == ""
+
+
+def test_an_edit_on_the_next_day_keeps_the_rest_and_passes_its_own_weapon_on(client):
+    client.post("/api/counts/template/seed")
+    _set_weapon(client, DAY, "basic_am", "خط الغاز", "آلي")
+    _set_weapon(client, DAY, "basic_am", "المحور", "آلي")
+
+    _set_weapon(client, OTHER_DAY, "basic_am", "خط الغاز", "فيدرال")
+    saved = client.get(f"/api/counts/{OTHER_DAY}").get_json()
+    assert saved["from_template"] is False
+    assert _weapon(saved, "basic_am", "المحور") == "آلي"
+
+    # مسح التسليح يوم بعينه بيفضل ممسوح وبيتورّث كده
+    _set_weapon(client, OTHER_DAY, "basic_am", "المحور", "")
+    assert _weapon(client.get(f"/api/counts/{OTHER_DAY}").get_json(), "basic_am", "المحور") == ""
+    following = client.get("/api/counts/2026-04-12").get_json()
+    assert _weapon(following, "basic_am", "خط الغاز") == "فيدرال"
+    assert _weapon(following, "basic_am", "المحور") == ""
+    # اليوم المصدر ماتأثرش
+    assert _weapon(client.get(f"/api/counts/{DAY}").get_json(), "basic_am", "خط الغاز") == "آلي"
+
+
+# ---------- توريث القايمة نفسها من اليوم اللي قبله ----------
+
+FUTURE, NEXT, AFTER = "2099-04-10", "2099-04-11", "2099-04-12"
+
+
+def _names(view, block="basic_am"):
+    return [e["name"] for e in view[block]]
+
+
+def test_next_day_inherits_the_whole_list_from_the_saved_day(client):
+    client.post("/api/counts/template/seed")
+    view = client.get(f"/api/counts/{FUTURE}").get_json()
+    gas = next(e for e in view["basic_am"] if e["name"] == "خط الغاز")
+    client.patch(f"/api/counts/{FUTURE}/entries/{gas['id']}",
+                 json={"name": "خط الغاز الجديد", "count": 9, "weapon": "آلي"})
+    added = client.post(f"/api/counts/{FUTURE}/entries",
+                        json={"name": "خدمة مضافة", "block": "صباحية", "count": 1}).get_json()
+    road = next(e for e in view["basic_am"] if e["name"] == "المحور")
+    client.delete(f"/api/counts/{FUTURE}/entries/{road['id']}")
+
+    following = client.get(f"/api/counts/{NEXT}").get_json()
+    assert following["from_template"] is True
+    assert "خدمة مضافة" in _names(following) and "المحور" not in _names(following)
+    row = next(e for e in following["basic_am"] if e["name"] == "خط الغاز الجديد")
+    assert (row["count"], row["weapon"]) == (9, "آلي")
+    # أول تعديل بيثبت نفس القايمة، والصف الموروث يتعدّل عادي
+    r = client.patch(f"/api/counts/{NEXT}/entries/{added['id']}", json={"count": 2})
+    assert r.status_code == 200
+    assert "خدمة مضافة" in _names(client.get(f"/api/counts/{AFTER}").get_json())
+    assert "خدمة مضافة" not in [e["name"] for e in client.get("/api/counts/template").get_json()["entries"]]
+
+
+def test_a_template_edit_restarts_the_list_but_keeps_inherited_weapons(client, monkeypatch):
+    from backend import day_status
+    client.post("/api/counts/template/seed")
+    view = client.get(f"/api/counts/{FUTURE}").get_json()
+    gas = next(e for e in view["basic_am"] if e["name"] == "خط الغاز")
+    client.patch(f"/api/counts/{FUTURE}/entries/{gas['id']}", json={"weapon": "خرطوش"})
+    client.post(f"/api/counts/{FUTURE}/entries", json={"name": "خدمة مضافة", "block": "صباحية", "count": 1})
+
+    monkeypatch.setattr(day_status, "today_iso", lambda: FUTURE)
+    r = client.post("/api/counts/template/entries", json={"name": "من القالب", "block": "صباحية", "count": 1})
+    assert r.status_code == 201
+    following = client.get(f"/api/counts/{NEXT}").get_json()
+    assert "من القالب" in _names(following) and "خدمة مضافة" not in _names(following)
+    assert _weapon(following, "basic_am", "خط الغاز") == "خرطوش"
+
+
+def test_imported_day_passes_only_weapons_not_its_daily_emergency_rows(client):
+    from backend.store import with_data
+    client.post("/api/counts/template/seed")
+
+    def seed(data):
+        data["counts_template"].pop("changed_on", None)
+        data["service_counts"][FUTURE] = {"entries": [
+            {"id": "CNT-900", "name": "خط الغاز", "block": "صباحية", "count": 7, "weapon": "خرطوش"},
+            {"id": "CNT-901", "name": "ترحيلة يومية", "block": "طوارئ", "count": 2, "weapon": ""}]}
+        data["day_import"][FUTURE] = {"source": "ملف"}
+    with_data(seed, [FUTURE])
+
+    following = client.get(f"/api/counts/{NEXT}").get_json()
+    assert "ترحيلة يومية" not in _names(following, "recurring")
+    assert "المحور" in _names(following)
+    assert _weapon(following, "basic_am", "خط الغاز") == "خرطوش"

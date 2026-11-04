@@ -10,7 +10,8 @@
 
 القرار المبني على ده: الأساسية + التلاتة شبه الثابتين دول بيتسكّنوا في قالب
 واحد قابل للتعديل (إضافة/حذف/تغيير عدد)، وبيتفرّد نسخة مستقلة لكل يوم بمجرد
-أول تعديل عليه — قبل كده الصفحة بترجّع نسخة حيّة من القالب من غير ما تكتبها.
+أول تعديل عليه — قبل كده الصفحة بترجّع نسخة حيّة من غير ما تكتبها. اليوم بيورث
+قايمة آخر يوم محفوظ قبله، والقالب بيرجع يتطبق بعد أي تعديل عليه (`_starting_rows`).
 
 باقي الطوارئ (اليومي البحت) **مالوش سجل هنا خالص** — الصفوف بتتقرا مباشرة من
 قسم «الخدمات الطارئة» في اليومية التفصيلية، وعدد المجندين بيتخزّن على صف
@@ -37,7 +38,7 @@ from .constants import (
 )
 from .day_status import status_of
 from .service_sections import is_special
-from .store import reserve_id
+from .store import known_days, previous_section, reserve_id
 from .text import norm
 
 # الأقسام اللي عددها له مصدر تاني (الأساسية بيها القالب الدائم) أو مش
@@ -150,12 +151,29 @@ def seed_template(data):
     return entries
 
 
+def _starting_rows(data, day):
+    """صفوف يوم مالوش نسخة محفوظة: نسخة من آخر يوم محفوظ قبله.
+
+    اليوم المستورد ورقته فيها طوارئ اليوم نفسه، وتعديل القالب بيبدأ من بعد
+    يوم التعديل — في الحالتين القايمة من القالب والتسليح بس من اليوم السابق."""
+    source, previous = previous_section(data, "service_counts", day)
+    rows = previous.get("entries") or []
+    changed_on = (data.get("counts_template") or {}).get("changed_on") or ""
+    if rows and source > changed_on and source not in known_days(data, "day_import"):
+        return [dict(e) for e in rows]
+    weapons = {(e.get("block"), norm(e.get("name"))): e.get("weapon") for e in rows}
+    out = [dict(e) for e in peek_template(data)]
+    for row in out:
+        row["weapon"] = weapons.get((row.get("block"), norm(row.get("name")))) or row.get("weapon") or ""
+    return out
+
+
 def peek_day_entries(data, day):
-    """نسخة عمل اليوم — نسخة من القالب لسه لو اليوم ده مالوش تخصيص محفوظ."""
+    """نسخة عمل اليوم — موروثة لسه لو اليوم ده مالوش تخصيص محفوظ."""
     stored = (data.get("service_counts") or {}).get(day)
     if stored is not None:
         return stored["entries"]
-    return [dict(e) for e in peek_template(data)]
+    return _starting_rows(data, day)
 
 
 def for_day_entries(data, day):
@@ -163,7 +181,7 @@ def for_day_entries(data, day):
     بيلمس نسخة اليوم بس، مش القالب ولا أي يوم تاني."""
     store = data.setdefault("service_counts", {})
     if day not in store:
-        store[day] = {"entries": [dict(e) for e in peek_template(data)]}
+        store[day] = {"entries": _starting_rows(data, day)}
     return store[day]["entries"]
 
 
@@ -179,12 +197,13 @@ def freeze_past_days(data):
     أكّده بالفعل. بعد التجميد، تعديل القالب بيأثر على النهاردة والأيام
     الجاية بس.
     """
+    from .day_status import today_iso
     from .imports import is_imported
-    from .store import known_days
 
     for day in _days_to_freeze(lambda *keys: known_days(data, *keys)):
         if not is_imported(data, day):
             for_day_entries(data, day)
+    data.setdefault("counts_template", {})["changed_on"] = today_iso()
 
 
 def freeze_scope(view):
