@@ -156,3 +156,50 @@ def test_emergency_count_comes_only_from_the_count_field_with_one_blank_slot_min
     assert blocks["ترحيلة الاسماعيلية"]["count"] == 1 and blocks["ترحيلة الاسماعيلية"]["weapons"] == ["آلي"]
     assert blocks["جنائي خاصة"]["count"] == 1
 
+
+
+def test_no_serial_weapons_merge_with_the_serial_cell():
+    from docx.oxml.ns import qn
+    from backend.formation import _slot_weapons, has_no_serial
+    for weapon in ("دونك", "كلبش", "قيد حديدي", "قيد حديدى", "درع وعصا", "درع و عصا", "عصا"):
+        assert has_no_serial(weapon)
+    for weapon in ("آلي", "خرطوش", "فض", ""):
+        assert not has_no_serial(weapon)
+    assert _slot_weapons("درع و عصا", 2) == ["درع وعصا"] * 2
+    dto = {"title": "خط", "shift": "morning", "day": DAY, "blocks": [
+        {"name": "مسلحة", "title": "مسلحة", "count": 1, "weapons": ["آلي"], "kind": "basic", "time": ""},
+        {"name": "دونك", "title": "دونك", "count": 1, "weapons": ["دونك"], "kind": "basic", "time": ""}]}
+    table = Document(BytesIO(build_docx(dto).getvalue())).tables[0]
+    cells = [(tc.grid_span, "".join(t.text or "" for t in tc.iter(qn("w:t"))))
+             for row in table.rows for tc in row._tr.tc_lst]
+    assert (2, "دونك") in cells and (1, "آلي") in cells
+    night = {**dto, "shift": "night"}
+    rows = Document(BytesIO(build_docx(night).getvalue())).tables[0]._tbl.tr_lst
+    texts = [[("".join(t.text or "" for t in tc.iter("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t")),
+               tc.grid_span) for tc in tr.tc_lst] for tr in rows]
+    # الخدمة التانية في النص الشمال: دونك خدت خانتها + خانة الرقم
+    assert any(("دونك", 2) in row for row in texts)
+    assert any(("آلي", 1) in row for row in texts)
+
+
+def test_court_from_counts_appears_on_the_morning_line_at_8am():
+    data = _data()
+    data["counts_template"]["entries"].append(
+        {"id": "CNT-9", "name": "المحكمة", "block": "طوارئ", "count": 5, "weapon": ""})
+    blocks = build(data, DAY, "morning")["blocks"]
+    court = next(block for block in blocks if block["name"] == "المحكمة")
+    assert (court["count"], court["time"], court["kind"]) == (5, "8ص", "emergency")
+    assert blocks.index(court) < [block["name"] for block in blocks].index("طارئة 11")
+    assert not any(block["name"] == "المحكمة" for block in build(data, DAY, "night")["blocks"])
+    # لو متسجلة على اللوحة كمان ماتتكررش، وميعادها الفاضي بيبقى 8ص
+    data["day_assignments"][DAY].append({"id": "A9", "name": "المحكمة", "section": "الخدمات الطارئة",
+                                         "shift": "صباحية", "time": "", "conscript_count": 5, "weapon": "دونك"})
+    courts = [block for block in build(data, DAY, "morning")["blocks"] if block["name"] == "المحكمة"]
+    assert len(courts) == 1 and courts[0]["time"] == "8ص" and courts[0]["weapons"] == ["دونك"] * 5
+
+
+def test_slash_separated_weapons_go_to_consecutive_slots():
+    from backend.formation import _slot_weapons
+    assert _slot_weapons("آلي/فيدرال/خرطوش", 3) == ["آلي", "فيدرال", "خرطوش"]
+    assert _slot_weapons("آلي/خرطوش", 2) == ["آلي", "خرطوش"]
+    assert _slot_weapons("الي/فيدرال", 4) == ["آلي", "فيدرال", "فيدرال", "فيدرال"]

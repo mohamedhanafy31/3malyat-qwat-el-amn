@@ -11,6 +11,7 @@ from docx.shared import Inches, Pt
 
 from .board_export import order_xml_children, set_run_font
 from .export_fit import PageFitError, TextMeter
+from .formation import has_no_serial
 
 LAST_FIT = {}
 FONT = "Bahnschrift SemiBold"
@@ -131,8 +132,9 @@ def _block_rows(block):
     rows = [{"type": "title", "text": title}]
     # عدد الخانات = القوام دايمًا، حتى لو التسليح ناقص.
     weapons = list(block.get("weapons") or [])
-    rows.extend({"type": "slot", "values": [f"{i}-", weapons[i - 1] if i <= len(weapons) else "", ""]}
-                for i in range(1, int(block.get("count") or 0) + 1))
+    for i in range(1, int(block.get("count") or 0) + 1):
+        weapon = weapons[i - 1] if i <= len(weapons) else ""
+        rows.append({"type": "slot", "values": [f"{i}-", weapon, ""], "merge": has_no_serial(weapon)})
     if block.get("group_end"):
         # آخر صف في مجموعة اللوري: حد سفلي سميك يفصلها عن اللي بعدها.
         rows[-1] = {**rows[-1], "thick": True}
@@ -188,9 +190,9 @@ def _split_panes(units, sets):
 # ---------- الملاءمة ----------
 
 def _widths(page_width, sets):
-    """الاسم بيتكتب بالإيد فواخد أكبر مساحة."""
+    """الاسم بيتكتب بالإيد فواخد أكبر مساحة، ورقم السلاح أقصر حاجة في الصف."""
     pane = (page_width - GAP_PT * (sets - 1)) / sets
-    return [pane * .50, pane * .26, pane * .24]
+    return [pane * .60, pane * .22, pane * .18]
 
 
 def _row_height(row, size, pane_width, meter):
@@ -200,6 +202,8 @@ def _row_height(row, size, pane_width, meter):
         room = max(1.0, (pane_width - 8) * .85)
         lines = max(1, len(meter.wrap_lines(row["text"], room, size, True, FONT)))
         return lines * line + ROW_PAD * size
+    if row["type"] == "header":
+        return 2 * line + ROW_PAD * size    # «رقم السلاح» على سطرين في عموده الضيق
     return line + ROW_PAD * size
 
 
@@ -235,7 +239,7 @@ _METER = TextMeter()
 
 def _fitted(text, width, size, bold=False):
     """النص القصير (رأس عمود/تسليح) سطر واحد: لو مش داخل بنصغّر خطه هو بس."""
-    room = max(1.0, (width - 8) * .75)
+    room = max(1.0, (width - 8) * .9)
     need = _METER.text_width(str(text or ""), size, bold, FONT)
     return size if need <= room else max(5.0, int(size * room / need * 2) / 2)
 
@@ -243,13 +247,18 @@ def _fitted(text, width, size, bold=False):
 def _write_pane_row(cells, item, size, widths):
     kind = item["type"] if item else "blank"
     if kind == "slot":
+        if item.get("merge"):
+            cells = [cells[0], cells[1].merge(cells[2])]
+            widths = [widths[0], widths[1] + widths[2]]
         for index, (cell, value, width) in enumerate(zip(cells, item["values"], widths)):
             # خانة الاسم من أول السطر عشان يتكتب جنب الرقم؛ الباقي في النص.
             _set_text(cell, value, _fitted(value, width, size), center=index != 0)
             _borders(cell, top=2, bottom=THICK if item.get("thick") else 2)
     elif kind == "header":
         for cell, value, width in zip(cells, HEADERS, widths):
-            _set_text(cell, value, _fitted(value, width, size, True), bold=True)
+            # الرأس مساحته سطرين: أطول كلمة هي اللي لازم تدخل في السطر.
+            longest = max(value.split(), key=len)
+            _set_text(cell, value, _fitted(longest, width, size, True), bold=True)
             _shade(cell, COLORS["header"])
             _borders(cell, top=12, bottom=8)
     elif kind in ("title", "section"):

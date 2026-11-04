@@ -26,12 +26,31 @@ def _find_count(rows, name, block=None):
     return None
 
 
+# تسليح من غير رقم: بيتكتب نوعه بس وخانته بتتدمج مع خانة «رقم السلاح».
+_NO_SERIAL_WEAPONS = {"دونك", "كلبش", "قيد", "قيد حديدي", "درع", "عصا", "درع وعصا"}
+# خدمات متكررة في «اعداد الخدمات» بتطلع في خط الصبح بميعادها الثابت حتى لو مش على اللوحة.
+_RECURRING_MORNING = {"المحكمة": "8ص"}
+
+
+def has_no_serial(weapon):
+    text = " ".join(str(weapon or "").replace("ى", "ي").split())
+    return re.sub(r"\bو\s+", "و", text) in _NO_SERIAL_WEAPONS
+
+
+def _recurring_time(name):
+    return next((time for service, time in _RECURRING_MORNING.items()
+                 if services_equivalent(name, service)), "")
+
+
 def _weapon_parts(value):
     """يفك سطر التسليح من غير ما يخترع نوع سلاح جديد."""
     text = " ".join(str(value or "").split())
     if not text:
         return []
-    parts = re.split(r"\s*[+،]\s*|\s+و\s+", text)
+    # «درع و عصا» سلاح واحد مش اتنين
+    text = re.sub(r"درع\s+و\s*عصا", "درع وعصا", text)
+    # «آلي/فيدرال/خرطوش» = سلاح مختلف لكل مجند، زي «+» بالظبط
+    parts = re.split(r"\s*[+،/]\s*|\s+و\s+", text)
     result = []
     for part in parts:
         part = " ".join(part.split())
@@ -120,7 +139,7 @@ def build(data, day, shift):
         for order, row in enumerate(occasional_rows(data, day)):
             if any(services_equivalent(row.get("name"), name) for name in basic_names):
                 continue
-            parsed = parse_time(row.get("time"))
+            parsed = parse_time(row.get("time") or _recurring_time(row.get("name")))
             minutes = None
             if parsed is None:
                 time = "بدون ميعاد"
@@ -142,6 +161,15 @@ def build(data, day, shift):
             emergency.append((minutes if minutes is not None else 9999, order,
                               _block(row.get("name", ""), count, row.get("weapon", ""),
                                      "emergency", time)))
+        listed = [block["name"] for _minutes, _order, block in emergency] + basic_names
+        for order, row in enumerate(official, start=len(emergency)):
+            time = _recurring_time(row.get("name"))
+            if not time or any(services_equivalent(row.get("name"), name) for name in listed):
+                continue
+            parsed = parse_time(time)
+            emergency.append((int(parsed[:2]) * 60 + int(parsed[3:]), order,
+                              _block(row.get("name", ""), max(1, int(row.get("count") or 0)),
+                                     row.get("weapon", ""), "emergency", time)))
         emergency_blocks = [block for _minutes, _order, block in sorted(emergency, key=lambda item: item[:2])]
         if emergency_blocks and blocks and blocks[-1].get("lorry_id"):
             blocks[-1]["group_end"] = True

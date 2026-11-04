@@ -12,10 +12,15 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
+from .formation import has_no_serial
+
 TEMPLATE = Path(__file__).with_name("docx_templates") / "formation_night.docx"
 TEMPLATE_ROWS = 42           # عدد صفوف جدول القالب اللي بيملا الصفحة
 MIN_SCALE = .7               # أقل تصغير للخط/الارتفاع لو الصفوف زادت عن القالب
 THICK = 18                   # 2.25pt (بالثُمن نقطة) الحد الفاصل بين مجموعات اللوري
+# أعمدة القالب بعد توسيع الاسم على حساب رقم السلاح (نفس عرض كل نص):
+# يمين = اسم، تسليح، فاصل 9، رقم | شمال = اسم، تسليح، رقم.
+GRID = (3906, 850, 9, 640, 3665, 850, 640)
 LAST_FIT = {}
 
 
@@ -30,6 +35,36 @@ def _positions(tr):
         out.append((col, _span(tc), tc))
         col += _span(tc)
     return out
+
+
+def _apply_grid(tbl):
+    for col, width in zip(tbl.tblGrid.findall(qn("w:gridCol")), GRID):
+        col.set(qn("w:w"), str(width))
+    for tr in tbl.tr_lst:
+        for col, span, tc in _positions(tr):
+            tc.tcPr.find(qn("w:tcW")).set(qn("w:w"), str(sum(GRID[col:col + span])))
+
+
+def _merge_serial(cells):
+    """خانة التسليح بتاخد مكان «رقم السلاح» لما السلاح مالوش رقم."""
+    weapon, serial = cells[1], cells[2]
+    width = int(weapon.tcPr.find(qn("w:tcW")).get(qn("w:w"))) + int(serial.tcPr.find(qn("w:tcW")).get(qn("w:w")))
+    weapon.tcPr.find(qn("w:tcW")).set(qn("w:w"), str(width))
+    span = weapon.tcPr.find(qn("w:gridSpan"))
+    if span is None:
+        span = OxmlElement("w:gridSpan")
+        weapon.tcPr.find(qn("w:tcW")).addnext(span)
+    span.set(qn("w:val"), str(_span(weapon) + _span(serial) if span.get(qn("w:val")) else 1 + _span(serial)))
+    # الحد الخارجي (إطار الجدول/فاصل النصين) بتاع خانة الرقم ينتقل للخانة المدموجة.
+    borders = weapon.tcPr.find(qn("w:tcBorders"))
+    source = serial.tcPr.find(qn("w:tcBorders"))
+    edge = source.find(qn("w:right")) if source is not None else None
+    if borders is not None:
+        for old in borders.findall(qn("w:right")):
+            borders.remove(old)
+        if edge is not None:
+            borders.append(deepcopy(edge))
+    return cells[:2]
 
 
 def _prototypes(tbl):
@@ -117,6 +152,8 @@ def _cells(proto, kind, side, item):
     else:
         cells = [deepcopy(tc) for tc in proto["slot"][index]]
         values = item["values"] if kind == "slot" else ["", "", ""]
+        if item and item.get("merge"):
+            cells = _merge_serial(cells)
         for tc, value in zip(cells, values):
             _set_text(tc, value)
     if item and item.get("thick"):
@@ -129,8 +166,10 @@ def _units(blocks):
     units = []
     for block in blocks:
         weapons = list(block.get("weapons") or [])
-        slots = [{"type": "slot", "values": [f"{i}-", weapons[i - 1] if i <= len(weapons) else "", ""]}
-                 for i in range(1, int(block.get("count") or 0) + 1)]
+        slots = []
+        for i in range(1, int(block.get("count") or 0) + 1):
+            weapon = weapons[i - 1] if i <= len(weapons) else ""
+            slots.append({"type": "slot", "values": [f"{i}-", weapon, ""], "merge": has_no_serial(weapon)})
         unit = [{"type": "title", "text": block["title"]}] + slots
         if block.get("group_end"):
             # آخر صف في مجموعة اللوري: حد سفلي سميك يفصلها عن اللي بعدها.
@@ -170,6 +209,7 @@ def _scale_sizes(tbl, scale):
 def build_docx(dto):
     document = Document(TEMPLATE)
     tbl = document.tables[0]._tbl
+    _apply_grid(tbl)
     proto = _prototypes(tbl)
     right, left = _split(_units(dto.get("blocks") or []))
     for tr in list(tbl.tr_lst):
