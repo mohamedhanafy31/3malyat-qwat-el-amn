@@ -11,6 +11,7 @@ from copy import deepcopy
 from datetime import date, timedelta
 from io import BytesIO
 from pathlib import Path
+import re
 
 from docx import Document
 from docx.oxml import OxmlElement
@@ -117,7 +118,9 @@ def _daily_text(row):
     if period_text:
         return period_text
     if row.get("text"):
-        return row["text"]
+        # المقصّر بيتكتب في الورقة «… حتى 4م + ت»؛ النص المستورد ممكن يكون فيه العلامة
+        marked = row.get("taqseera") and not re.search(r"\+\s*ت(\s|$)", row["text"])
+        return f"{row['text']} + ت" if marked else row["text"]
     if row.get("leave"):
         return _leave_text(row["leave"])
     return row.get("status") or row.get("group") or "عمل"

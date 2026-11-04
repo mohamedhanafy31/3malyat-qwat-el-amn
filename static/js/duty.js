@@ -98,7 +98,7 @@ function sectionRows(rows) {
 
 function officerRow(r) {
   const svc = r.services.length
-    ? r.services.map(s => `<span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.name)}<i>${esc(s.shift)}</i></span>`).join(" ")
+    ? r.services.map(s => `<span class="chip ${KIND_CLS[s.kind] || "w"}">${esc(s.name)}<i>${esc([s.shift, s.period_label].filter(Boolean).join(" "))}</i></span>`).join(" ")
     : `<span class="muted">—</span>`;
   const grp = r.leave ? `<span class="chip rest leave-kind-chip">${esc(r.leave.type)}</span><div class="sub">حتى ${fmt(r.leave.end)}</div>`
     : r.group === "صافي" ? `<span class="chip on">صافي</span>`
@@ -354,7 +354,7 @@ function updateAssignPreview() {
   const line = s => {
     let t = s.name || "";
     if (s.section === "الأهداف" && t) t = t === "مشرف الأهداف" ? "متابعة اعمال الاهداف" : `عمل بهدف ${t}`;
-    return t + (s.shift ? ` فترة ${s.shift}` : "");
+    return t + (s.shift ? ` فترة ${s.shift}` : "") + (s.period_label ? ` ${s.period_label}` : "");
   };
   const base = note || row.services.map(line).filter(Boolean).join(" + ");
   const full = [base, $("#assignExtra").value.trim()].filter(Boolean).join(" + ");

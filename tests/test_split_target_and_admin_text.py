@@ -244,3 +244,24 @@ def test_change_log_text_mentions_admin_work_text(client):
     client.put(f"/api/duty/{DAY}/OFF-002", json={"admin_work_text": TEXT})
     blob = str(client.get("/api/changes").get_json()["entries"])
     assert "نص عمل بالإدارة" in blob and TEXT in blob
+
+
+def test_officer_daily_states_split_hours_and_taqseera_mark():
+    from backend.duty import service_line
+    from backend.duty_export import _daily_text
+    target = {"name": "مصر للبترول", "section": "الأهداف", "shift": ""}
+    assert service_line({**target, "period_label": "حتى 4م"}) == "عمل بهدف مصر للبترول حتى 4م"
+    assert service_line({**target, "period_label": "من 4م"}) == "عمل بهدف مصر للبترول من 4م"
+    assert service_line(target) == "عمل بهدف مصر للبترول"
+    assert _daily_text({"text": "عمل بهدف مصر للبترول حتى 4م", "taqseera": True}) \
+        == "عمل بهدف مصر للبترول حتى 4م + ت"
+    # النص المستورد فيه العلامة أصلًا فماتتكررش
+    assert _daily_text({"text": "عمل بهدف سوميد حتي 4م +ت", "taqseera": True}) == "عمل بهدف سوميد حتي 4م +ت"
+    assert _daily_text({"text": "عمل بهدف سوميد", "taqseera": False}) == "عمل بهدف سوميد"
+
+
+def test_duty_row_carries_period_label(client):
+    assert _put_target(client, {"officer_ids": ["OFF-001", "OFF-002"], "periods": SPLIT}).status_code == 200
+    first, second = _duty_row(client, "OFF-001"), _duty_row(client, "OFF-002")
+    assert first["text"] == f"عمل بهدف {TARGET} حتى 4م"
+    assert second["text"] == f"عمل بهدف {TARGET} من 4م"

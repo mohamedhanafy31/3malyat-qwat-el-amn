@@ -13,7 +13,7 @@
 مثبت في الوورد (34 في كل الأيام المفحوصة). عشان كده الترتيب اللي تحت
 مهم: الضابط بياخد أول خانة تنطبق عليه.
 """
-from .assignments import assignments_of, officer_state, officer_statuses
+from .assignments import assignments_of, officer_state, officer_statuses, period_label
 from .courses import by_id as courses_by_id, term_on
 from .constants import (LEAVE_BUCKET, ROLE_MEDICAL, ROLE_SEARCH, SECTION_SUBCAMP,
                         SECTION_TARGETS, SHIFTS, SUBCAMP_SERVICES, TARGETS_FIRST)
@@ -138,6 +138,9 @@ def service_line(service):
         text = "متابعة اعمال الاهداف" if text == TARGETS_FIRST else f"عمل بهدف {text}"
     if service.get("shift"):
         text += f" فترة {service['shift']}"
+    # هدف متقسم بين ضابطين: «عمل بهدف مصر للبترول حتى 4م» / «… من 4م» زي الورقة
+    if service.get("period_label"):
+        text += f" {service['period_label']}"
     return text
 
 
@@ -248,6 +251,8 @@ def officer_row(data, day, o, catalog=None):
         items.append({"assignment_id": a["id"], "name": a.get("name", ""),
                       "kind": a.get("kind") or "خارجية", "shift": a.get("shift", ""),
                       "section": a.get("section", ""),
+                      "period_label": next((period_label(p) for p in a.get("periods") or []
+                                            if p.get("officer_id") == o["id"]), ""),
                       "counted": a.get("counts_in_summary", True)})
     # خدمة المعسكر الفرعي لا تتحسب كخدمة عادية، لكن لها خانة مستقلة إذا كانت
     # هي الشغل الوحيد للضابط. أي خدمة محسوبة أو حالة أقوى تغلبها.
