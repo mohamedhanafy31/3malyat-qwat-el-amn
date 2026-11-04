@@ -53,22 +53,51 @@ def test_service_order_lines_follow_archive_shape():
     data = data_for([assignment("القول المكبر", section="الخدمات أساسية", id="AS-B", shift="ليلية",
                                 officer_ids=["OFF-4"], personnel_ids=[])])
     board = _board(
-        [_row("ترحيلة الجيزة", "06:00", "السويس", personnel=[{"name": "فرد"}],
-              conscripts=[{"count": 1, "class": "قتالية"}])],
-        [("مباراة المصري", [_row("مدرجات الدرجة الاولي", "14:00", "استاد السويس",
-                                 officers=[{"role": "نقيب", "name": "طارق فاروق"}])])])
-    payload = service_order.build(board, {"notes": ["المحكمة : (10) مجند حفظ نظام 8ص ."]}, data, DAY)
+        [_row("حملة امن وطنى 12ظ", "12ظ", "الأمن الوطني", personnel_command_required=True,
+              conscripts=[{"count": 2, "class": "مج"}]),
+         _row("ترحيلة الجيزة", "06:00", "السويس", personnel_command_required=True,
+              conscripts=[{"count": 1, "class": "مج"}]),
+         _row('طلبة امداد 7ص "المديرية"', "07:00", "المديرية", conscripts=[{"count": 3, "class": "طلبة"}]),
+         _row("مأمورية امداد", "08:00", officers=[{"role": "رائد", "name": "محمد ميهوب"}],
+              conscripts=[{"count": 3, "class": "طلبة"}]),
+         _row("مامورية علاقات", "05:00", "المديرية", conscripts=[{"count": 6, "class": "مج"}])],
+        [("مباراة المصري", [
+            _row("ميك المرور", "14:00", "استاد السويس", officers=[{"role": "م.اول", "name": "ماركو ماجد"}],
+                 conscripts=[{"count": 1, "class": "ميك"}]),
+            _row("مدرجات الدرجة الاولي", "14:00", "استاد السويس",
+                 officers=[{"role": "نقيب", "name": "طارق فاروق"}], conscripts=[{"count": 1, "class": "رياضي"}]),
+            _row("ارتكاز الخضر", "19:00", "استاد السويس", conscripts=[{"count": 1, "class": "وحدة"}])])])
+    board["sections"].append({"name": "تفتيشات", "type": "services", "rows": [
+        _row("تفتيش فيصل", "10ص", "فيصل", conscript_count=10, weapon="دونك")]})
+    board["sections"].append({"name": "خدمات سجن قوات الأمن", "type": "services", "rows": [
+        _row("تأمين السجن العسكري", shift="صباحية", officers=[{"role": "رائد", "name": "محمد بحر"}])]})
+    notes = ["عدد 5 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+             "عدد (2) مجند قول كورنيش مسلح خرطوش من 6م : الانصراف", "ملاحظة إضافية للمشغل"]
+    payload = service_order.build(board, {"notes": notes}, data, DAY)
     lines = payload["lines"]
     assert payload["title"] == "امر خدمة يوم الثلاثاء الموافق 20/10/2026م"
     assert lines[0] == f"العقيد / مدير سمير : {service_order.SUPERVISION}"
     assert lines[1].startswith("مشرف القول المكبر : ص --- ........")
     assert "ل --- مقدم / ضابط خدمة" in lines[1]
     assert lines[2].startswith("التدخل السريع : ص --- ")
-    assert "المحكمة : (10) مجند حفظ نظام 8ص ." in lines
-    assert 'ترحيلة الجيزة 6ص "السويس" : فرد + عدد 1 مجند قتالية' in lines
-    # الكتلة الخاصة بعنوانها بعد الطوارئ العادية
-    title = lines.index("خدمات مباراة المصري")
-    assert lines[title + 1].startswith('مدرجات الدرجة الاولي 2م "استاد السويس" : برئاسة')
+    assert "قول كورنيش : عدد ( 2 ) مجند مسلح خرطوش 6 م : الانصراف ." in lines
+    assert "المحكمة : (5) مجند حفظ نظام 8ص ." in lines
+    assert "ملاحظة إضافية للمشغل" in lines
+    assert not any("المجمع الطبي" in line for line in lines)
+    assert 'تفتيش فيصل : عدد 10 مجند دونك 10ص "فيصل"' in lines
+    # حملة الأمن الوطني مابتتكتبش في الأمر
+    assert not any("وطن" in line for line in lines)
+    assert 'ترحيلة الجيزة : مج قتالية برئاستها 6ص "السويس"' in lines
+    assert 'طلبة امداد 7ص "المديرية" : عدد 3 مجند طلبة' in lines   # المكان مش متكرر
+    assert "مأمورية امداد : برئاسة رائد/ محمد ميهوب وبصحبته عدد 3 مجند طلبة 8ص" in lines
+    assert 'مامورية علاقات : عدد 6 مجند 5ص "المديرية"' in lines
+    title = lines.index('مباراة المصري "استاد السويس" الساعة 2م')
+    assert lines[title + 1:title + 4] == [
+        "ميك المرور : مايك فض برئاسة م.اول/ ماركو ماجد",
+        "مدرجات الدرجة الاولي : وحدة حفظ نظام رياضي برئاسة نقيب/ طارق فاروق",
+        "ارتكاز الخضر : وحدة فض برئاستها 7م"]
+    prison = lines.index(service_order.PRISON_TITLE)
+    assert lines[prison + 1] == "رائد/ محمد بحر : تأمين السجن العسكري فترة صباحية"
     # ضابط القول المكبر مايتكررش كبند لوحده
     assert sum("ضابط خدمة" in line for line in lines) == 1
 
