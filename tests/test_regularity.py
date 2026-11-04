@@ -303,3 +303,24 @@ def test_archive_comparison_on_core_and_days_copy_only(tmp_path, monkeypatch, da
                 assert any(item["kind"] == "row" and item["service"] == check["service"]
                            and item["field"] == field for item in allowed), \
                     f"unexpected {day} difference: {check['service']} {field}"
+
+
+def test_export_cells_are_compact_with_a_real_vehicle_size():
+    """خانة المركبة في القالب مالهاش حجم خط فكانت بتطلع 11pt بتباعد 1.15، وهامش
+    الخانات 108 twips كان بينزّل النصوص على سطرين فالملف يبقى صفحتين في OnlyOffice."""
+    from docx.oxml.ns import qn
+    from backend import regularity_export as export
+    row = {"service": "ترحيلة", "people": "ا.ش/ محمد احمد", "phone": "01094845135",
+           "vehicle": "ب12/4998 بيك اب", "place": "السويس", "time": "8ص", "count": "1"}
+    payload = {"day": DAY, "service_rows": [row], "officer_rows": [], "notes": [], "signatories": {}}
+    table = Document(BytesIO(export.build_docx(payload).getvalue())).tables[0]
+    assert [int(col.get(qn("w:w"))) for col in table._tbl.tblGrid] == list(export._PORTRAIT_GRID)
+    assert table._tbl.tblPr.find(qn("w:tblCellMar")).find(qn("w:left")).get(qn("w:w")) == "30"
+    cells = table.rows[1]._tr.findall(qn("w:tc"))
+    size = export.LAST_FIT["size_pt"]
+    assert size <= 10
+    vehicle = cells[export.VEHICLE_COL]
+    assert [node.get(qn("w:val")) for node in vehicle.iter(qn("w:sz"))
+            if node.getparent().getparent().tag == qn("w:r")] == [str(int(min(size, 8) * 2))]
+    assert vehicle.find(".//" + qn("w:spacing")).get(qn("w:line")) == "240"
+    assert not cells[3].findall(".//" + qn("w:tab"))

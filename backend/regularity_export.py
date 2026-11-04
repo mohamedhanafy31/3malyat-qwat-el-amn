@@ -17,16 +17,74 @@ TEMPLATE = Path(__file__).with_name("docx_templates") / "service_regularity.docx
 LAST_FIT = {}
 # أصغر خط 7pt: ستة أيام (23-29 خدمة) ما كانتش بتدخل صفحة واحدة عند 8pt،
 # والأرشيف نفسه بيكتبها بـ8-9pt مع نصوص أقصر. الصفحة الواحدة إلزامية.
-_SIZES = (12, 11, 10, 9, 8.5, 8, 7.5, 7)
+# وأكبر خط 10pt: فوقه رقم التليفون بيتكسر على سطرين في عموده حتى في الأيام القليلة.
+_SIZES = (10, 9, 8.5, 8, 7.5, 7)
 # الـ74 القديمة كانت بتحسب فراغ العنوان/التوقيعات بتحفظ زايد. مع صفوف
 # الملاحظات الطويلة بتاعة 023 الفرق ده كان بيرفض 22/8 عند 7pt بـحوالي 3pt،
 # مع إن الصفوف نفسها سطر واحد. القيمة دي مقاسة على القالب الفعلي، وفضلنا
-# نفصلها عن حساب الصفوف عشان يفضل محافظ وواضح.
-_FIXED_PAGE_CHROME_PT = 70
+# نفصلها عن حساب الصفوف عشان يفضل محافظ وواضح. 60 مقاسة في OnlyOffice: عند
+# إجمالي 660pt آخر توقيع بيفضل قبل إطار الصفحة بحوالي 70pt.
+_FIXED_PAGE_CHROME_PT = 60
 # عمود «المركبة» دايمًا 8pt (أو أصغر لو الخط العام أصغر) عشان أرقام اللوحات
 # ما تطلعش كبيرة جنب باقي الجدول.
 VEHICLE_COL = 4
 VEHICLE_SIZE_PT = 8
+# م | الخدمة | قائم للخدمة | الهاتف | المركبة | المكان | الساعة | العدد (= عرض جدول القالب)
+_PORTRAIT_GRID = (450, 2250, 2300, 1350, 1650, 1150, 720, 761)
+# هامش كل خانة من الجنبين: الـ108 بتاعة القالب كانت بتنزّل النصوص على سطرين.
+_CELL_PAD_TWIPS = 30
+_HEAD_MAX_PT = 10
+
+
+def _child(parent, tag):
+    node = parent.find(qn(tag))
+    if node is None:
+        node = OxmlElement(tag); parent.append(node)
+    return node
+
+
+def _tighten_table(table, grid=None):
+    """هامش جانبي صغير لكل الخانات، وتوزيع جديد للأعمدة لو اتحدد."""
+    margins = _child(table._tbl.tblPr, "w:tblCellMar")
+    for side in ("left", "right"):
+        node = _child(margins, f"w:{side}")
+        node.set(qn("w:w"), str(_CELL_PAD_TWIPS)); node.set(qn("w:type"), "dxa")
+    if not grid:
+        return
+    for col, width in zip(table._tbl.tblGrid.findall(qn("w:gridCol")), grid):
+        col.set(qn("w:w"), str(width))
+    for tr in table._tbl.tr_lst:
+        cells = tr.findall(qn("w:tc"))
+        if len(cells) == len(grid):
+            for tc, width in zip(cells, grid):
+                tc.tcPr.find(qn("w:tcW")).set(qn("w:w"), str(width))
+
+
+def _compact_cell(tc, size):
+    """الخانة سطور متلاصقة بحجم واحد: خانات في القالب (زي المركبة) مالهاش حجم خط
+    فكانت بتطلع 11pt بتباعد 1.15، وخانة الهاتف بتتوسّط بـtab مكانه ثابت."""
+    for paragraph in tc.findall(qn("w:p")):
+        ppr = paragraph.find(qn("w:pPr"))
+        if ppr is None:
+            ppr = OxmlElement("w:pPr"); paragraph.insert(0, ppr)
+        for tabs in ppr.findall(qn("w:tabs")):
+            ppr.remove(tabs)
+        spacing = _child(ppr, "w:spacing")
+        for attr, value in (("before", "0"), ("after", "0"), ("line", "240"), ("lineRule", "auto")):
+            spacing.set(qn(f"w:{attr}"), value)
+        _child(ppr, "w:jc").set(qn("w:val"), "center")
+        for run in paragraph.findall(qn("w:r")):
+            for tab in run.findall(qn("w:tab")):
+                run.remove(tab)
+            rpr = run.find(qn("w:rPr"))
+            if rpr is None:
+                rpr = OxmlElement("w:rPr"); run.insert(0, rpr)
+            fonts = rpr.find(qn("w:rFonts"))
+            if fonts is not None:
+                for attr in ("w:ascii", "w:hAnsi"):
+                    fonts.attrib.pop(qn(attr), None)
+            for tag in ("w:sz", "w:szCs"):
+                _child(rpr, tag).set(qn("w:val"), str(int(round(size * 2))))
 
 
 def _set_cell(cell, text, size):
@@ -78,6 +136,7 @@ def _row(table, prototype, values, size, note=False, col_sizes=None):
             node.set(qn("w:val"), str(int(round(cell_size * 2))))
         for node in tc.iter(qn("w:szCs")):
             node.set(qn("w:val"), str(int(round(cell_size * 2))))
+        _compact_cell(tc, cell_size)
     return tr
 
 
@@ -98,15 +157,14 @@ def _set_row_text(tr, values, size, note=False):
 
 
 def _fit(payload, table1, table2):
-    rows1 = [[{"text": "م", "size_pt": 10}, {"text": r["service"], "size_pt": 10},
-              {"text": r["people"], "size_pt": 10}, {"text": r["phone"], "size_pt": 10},
-              {"text": r["vehicle"], "size_pt": 10}, {"text": r["place"], "size_pt": 10},
-              {"text": r["time"], "size_pt": 10}, {"text": r["count"], "size_pt": 10}]
+    pad = _CELL_PAD_TWIPS * 2 / 20
+    cell = lambda text, **over: {"text": text, "size_pt": 10, "hmargins": pad, **over}
+    rows1 = [[cell("م"), cell(r["service"]), cell(r["people"]), cell(r["phone"]),
+              cell(r["vehicle"]), cell(r["place"]), cell(r["time"]), cell(r["count"])]
              for r in payload.get("service_rows") or []]
-    rows2 = [[{"text": "", "size_pt": 10}, {"text": r["rank"], "size_pt": 10},
-              {"text": r["name"], "size_pt": 10}, {"text": r["service"], "size_pt": 10}]
+    rows2 = [[cell(""), cell(r["rank"]), cell(r["name"]), cell(r["service"])]
              for r in payload.get("officer_rows") or []]
-    rows2 += [[{"text": n, "size_pt": 10, "colspan": 4}] for n in payload.get("notes") or []]
+    rows2 += [[cell(n, colspan=4)] for n in payload.get("notes") or []]
     w1 = [max(1, (cell.width.pt if cell.width else 45)) for cell in table1.columns]
     w2 = [max(1, (cell.width.pt if cell.width else 70)) for cell in table2.columns]
     meter = TextMeter()
@@ -125,7 +183,12 @@ def _fit(payload, table1, table2):
 def build_docx(payload):
     document = Document(TEMPLATE)
     table1, table2 = document.tables[:2]
+    _tighten_table(table1, _PORTRAIT_GRID)
+    _tighten_table(table2)
     fit_size, total = _fit(payload, table1, table2)
+    for head in (table1, table2):
+        for tc in head._tbl.tr_lst[0].findall(qn("w:tc")):
+            _compact_cell(tc, min(fit_size + 1, _HEAD_MAX_PT))
     proto1 = deepcopy(table1._tbl.tr_lst[1])
     proto2 = deepcopy(table2._tbl.tr_lst[1])
     note_proto = deepcopy(table2._tbl.tr_lst[-1])
@@ -144,6 +207,8 @@ def build_docx(payload):
     for note in payload.get("notes") or []:
         tr = deepcopy(note_proto)
         _set_row_text(tr, note, fit_size, note=True)
+        for tc in tr.findall(qn("w:tc")):
+            _compact_cell(tc, fit_size)
         table2._tbl.append(tr)
     day = payload.get("day") or payload.get("date")
     if day:
