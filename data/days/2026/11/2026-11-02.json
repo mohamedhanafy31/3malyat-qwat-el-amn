@@ -13,6 +13,540 @@
     "reopened_by": "3malyat_admin",
     "reason": "تظبيط شغل متأخر"
   },
+  "counts": {
+    "entries": [
+      {
+        "id": "CNT-001",
+        "service_id": null,
+        "name": "نقطة تفتيش كمين 109 اسفل",
+        "block": "صباحية",
+        "count": 5,
+        "party": "",
+        "order": 0,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-002",
+        "service_id": null,
+        "name": "ارتكاز الحي الحكومي",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 1,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-003",
+        "service_id": null,
+        "name": "كنيسة العذراء مريم",
+        "block": "صباحية",
+        "count": 1,
+        "party": "الاربعين",
+        "order": 2,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-004",
+        "service_id": null,
+        "name": "اعلى 109",
+        "block": "صباحية",
+        "count": 1,
+        "party": "",
+        "order": 3,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-005",
+        "service_id": null,
+        "name": "سيارة تأمين فرع الأمن الوطني",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 4,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-006",
+        "service_id": null,
+        "name": "المحور",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 5,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-007",
+        "service_id": null,
+        "name": "جنيفة",
+        "block": "صباحية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 6,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-008",
+        "service_id": null,
+        "name": "القنصلية السعودية",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 7,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-009",
+        "service_id": null,
+        "name": "التدخل السريع",
+        "block": "صباحية",
+        "count": 4,
+        "party": "",
+        "order": 8,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-010",
+        "service_id": null,
+        "name": "ام القمر",
+        "block": "صباحية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 9,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-011",
+        "service_id": null,
+        "name": "استراحة القنصل",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 10,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-012",
+        "service_id": null,
+        "name": "خط الغاز",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 11,
+        "weapon": "آلي/خرطوش"
+      },
+      {
+        "id": "CNT-013",
+        "service_id": null,
+        "name": "36 لاسلكي",
+        "block": "صباحية",
+        "count": 2,
+        "party": "الطرق",
+        "order": 12,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-014",
+        "service_id": null,
+        "name": "مايك المديرية",
+        "block": "صباحية",
+        "count": 1,
+        "party": "",
+        "order": 13,
+        "weapon": ""
+      },
+      {
+        "id": "CNT-015",
+        "service_id": null,
+        "name": "قول مكبر",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 14,
+        "weapon": "آلي/فيدرال"
+      },
+      {
+        "id": "CNT-016",
+        "service_id": null,
+        "name": "كنيسة ماري جرجس الصباح",
+        "block": "صباحية",
+        "count": 5,
+        "party": "",
+        "order": 15,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-017",
+        "service_id": null,
+        "name": "مبنى المخابرات الحربية",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 16,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-018",
+        "service_id": null,
+        "name": "الاسعاف",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 17,
+        "weapon": "آلي/فيدرال/خرطوش"
+      },
+      {
+        "id": "CNT-019",
+        "service_id": null,
+        "name": "ارتكاز قسم فيصل",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 18,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-020",
+        "service_id": null,
+        "name": "كنيسة الراعي الصالح",
+        "block": "صباحية",
+        "count": 1,
+        "party": "السويس",
+        "order": 19,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-021",
+        "service_id": null,
+        "name": "قول السلام",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 20,
+        "weapon": ""
+      },
+      {
+        "id": "CNT-022",
+        "service_id": null,
+        "name": "المركبات",
+        "block": "صباحية",
+        "count": 1,
+        "party": "المركبات",
+        "order": 21,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-023",
+        "service_id": null,
+        "name": "قول ممشى بورتوفيق",
+        "block": "صباحية",
+        "count": 1,
+        "party": "السويس",
+        "order": 22,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-024",
+        "service_id": null,
+        "name": "المجمع الطبي",
+        "block": "صباحية",
+        "count": 2,
+        "party": "فيصل",
+        "order": 23,
+        "weapon": "دونك"
+      },
+      {
+        "id": "CNT-025",
+        "service_id": null,
+        "name": "مستشفى السويس العام",
+        "block": "صباحية",
+        "count": 1,
+        "party": "السويس",
+        "order": 24,
+        "weapon": "دونك"
+      },
+      {
+        "id": "CNT-026",
+        "service_id": null,
+        "name": "نقطة تفتيش كمين 109 اسفل",
+        "block": "ليلية",
+        "count": 5,
+        "party": "",
+        "order": 25,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-027",
+        "service_id": null,
+        "name": "ارتكاز الحي الحكومي",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 26,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-028",
+        "service_id": null,
+        "name": "مبنى الرقابة الإدارية",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 27,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-029",
+        "service_id": null,
+        "name": "اعلى 109",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 28,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-030",
+        "service_id": null,
+        "name": "سيارة تأمين فرع الأمن الوطني",
+        "block": "ليلية",
+        "count": 3,
+        "party": "",
+        "order": 29,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-031",
+        "service_id": null,
+        "name": "قول السلام",
+        "block": "ليلية",
+        "count": 4,
+        "party": "",
+        "order": 30,
+        "weapon": "آلي/فيدرال"
+      },
+      {
+        "id": "CNT-032",
+        "service_id": null,
+        "name": "جنيفة",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 31,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-033",
+        "service_id": null,
+        "name": "القنصلية السعودية",
+        "block": "ليلية",
+        "count": 3,
+        "party": "",
+        "order": 32,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-034",
+        "service_id": null,
+        "name": "التدخل السريع",
+        "block": "ليلية",
+        "count": 4,
+        "party": "",
+        "order": 33,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-035",
+        "service_id": null,
+        "name": "ام القمر",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 34,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-036",
+        "service_id": null,
+        "name": "استراحة القنصل",
+        "block": "ليلية",
+        "count": 3,
+        "party": "",
+        "order": 35,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-037",
+        "service_id": null,
+        "name": "خط الغاز",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 36,
+        "weapon": "آلي/خرطوش"
+      },
+      {
+        "id": "CNT-038",
+        "service_id": null,
+        "name": "36 لاسلكي",
+        "block": "ليلية",
+        "count": 2,
+        "party": "الطرق",
+        "order": 37,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-039",
+        "service_id": null,
+        "name": "مايك المديرية",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 38,
+        "weapon": ""
+      },
+      {
+        "id": "CNT-040",
+        "service_id": null,
+        "name": "قول مكبر",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 39,
+        "weapon": "آلي/فيدرال"
+      },
+      {
+        "id": "CNT-041",
+        "service_id": null,
+        "name": "كنيسة ماري جرجس الصباح",
+        "block": "ليلية",
+        "count": 5,
+        "party": "",
+        "order": 40,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-042",
+        "service_id": null,
+        "name": "مبنى المخابرات الحربية",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 41,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-043",
+        "service_id": null,
+        "name": "ارتكاز المحافظة",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 42,
+        "weapon": "كلبش"
+      },
+      {
+        "id": "CNT-044",
+        "service_id": null,
+        "name": "ارتكاز قسم فيصل",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 43,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-045",
+        "service_id": null,
+        "name": "كنيسة الراعي الصالح",
+        "block": "ليلية",
+        "count": 1,
+        "party": "السويس",
+        "order": 44,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-046",
+        "service_id": null,
+        "name": "كنيسة الإيمان",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الاربعين",
+        "order": 45,
+        "weapon": "دونك"
+      },
+      {
+        "id": "CNT-047",
+        "service_id": null,
+        "name": "المركبات",
+        "block": "ليلية",
+        "count": 1,
+        "party": "المركبات",
+        "order": 46,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-048",
+        "service_id": null,
+        "name": "قول ممشى بورتوفيق",
+        "block": "ليلية",
+        "count": 1,
+        "party": "السويس",
+        "order": 47,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-049",
+        "service_id": null,
+        "name": "الكنيسة الرسولية",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الاربعين",
+        "order": 48,
+        "weapon": "دونك"
+      },
+      {
+        "id": "CNT-050",
+        "service_id": null,
+        "name": "المجمع الطبي",
+        "block": "ليلية",
+        "count": 2,
+        "party": "فيصل",
+        "order": 49,
+        "weapon": "دونك"
+      },
+      {
+        "id": "CNT-051",
+        "service_id": null,
+        "name": "مستشفى السويس العام",
+        "block": "ليلية",
+        "count": 1,
+        "party": "السويس",
+        "order": 50,
+        "weapon": "دونك"
+      },
+      {
+        "id": "CNT-052",
+        "service_id": null,
+        "name": "المحكمة",
+        "block": "طوارئ",
+        "count": 5,
+        "party": "",
+        "order": 51,
+        "weapon": ""
+      },
+      {
+        "id": "CNT-053",
+        "service_id": null,
+        "name": "كول كورنيش",
+        "block": "طوارئ",
+        "count": 1,
+        "party": "",
+        "order": 52,
+        "weapon": ""
+      }
+    ]
+  },
   "afraad_basic": {
     "AFB-01": {
       "morning_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
