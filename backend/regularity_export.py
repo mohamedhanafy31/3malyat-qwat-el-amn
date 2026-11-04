@@ -23,6 +23,10 @@ _SIZES = (12, 11, 10, 9, 8.5, 8, 7.5, 7)
 # مع إن الصفوف نفسها سطر واحد. القيمة دي مقاسة على القالب الفعلي، وفضلنا
 # نفصلها عن حساب الصفوف عشان يفضل محافظ وواضح.
 _FIXED_PAGE_CHROME_PT = 70
+# عمود «المركبة» دايمًا 8pt (أو أصغر لو الخط العام أصغر) عشان أرقام اللوحات
+# ما تطلعش كبيرة جنب باقي الجدول.
+VEHICLE_COL = 4
+VEHICLE_SIZE_PT = 8
 
 
 def _set_cell(cell, text, size):
@@ -49,7 +53,7 @@ def _set_cell(cell, text, size):
                 node.set(qn("w:val"), str(int(round(size * 2))))
 
 
-def _row(table, prototype, values, size, note=False):
+def _row(table, prototype, values, size, note=False, col_sizes=None):
     tr = deepcopy(prototype)
     cells = table._tbl.__class__  # keep lxml namespace registration loaded
     del cells
@@ -57,7 +61,8 @@ def _row(table, prototype, values, size, note=False):
     if note:
         _set_cell(type(table.rows[0].cells[0])(physical[0], table), values, size)
         return tr
-    for tc, text in zip(physical, values):
+    for index, (tc, text) in enumerate(zip(physical, values)):
+        cell_size = (col_sizes or {}).get(index, size)
         # _Cell needs a parent table proxy; assigning XML directly through a
         # temporary Document cell is unnecessary, so use the XML text nodes.
         texts = tc.findall(".//" + qn("w:t"))
@@ -70,9 +75,9 @@ def _row(table, prototype, values, size, note=False):
             r = OxmlElement("w:r"); t = OxmlElement("w:t"); t.text = str(text or "")
             r.append(t); p.append(r)
         for node in tc.iter(qn("w:sz")):
-            node.set(qn("w:val"), str(int(round(size * 2))))
+            node.set(qn("w:val"), str(int(round(cell_size * 2))))
         for node in tc.iter(qn("w:szCs")):
-            node.set(qn("w:val"), str(int(round(size * 2))))
+            node.set(qn("w:val"), str(int(round(cell_size * 2))))
     return tr
 
 
@@ -107,7 +112,8 @@ def _fit(payload, table1, table2):
     meter = TextMeter()
     usable = table1._parent.part.document.sections[0].page_height.pt - 90
     for size in _SIZES:
-        a = [[{**cell, "size_pt": size} for cell in row] for row in rows1]
+        a = [[{**cell, "size_pt": min(size, VEHICLE_SIZE_PT) if i == VEHICLE_COL else size}
+              for i, cell in enumerate(row)] for row in rows1]
         b = [[{**cell, "size_pt": size} for cell in row] for row in rows2]
         h1 = estimate_table_height(a, w1, meter)[0] if a else 0
         h2 = estimate_table_height(b, w2, meter)[0] if b else 0
@@ -129,7 +135,8 @@ def build_docx(payload):
         # خانة «م» في القالب ترقيم تلقائي (numbering list) زي الأصل — كتابة
         # الرقم كمان كانت بتطلّعه مرتين («1.» وتحتها «1»).
         tr = _row(table1, proto1, ["", row["service"], row["people"], row["phone"],
-                                   row["vehicle"], row["place"], row["time"], row["count"]], fit_size)
+                                   row["vehicle"], row["place"], row["time"], row["count"]], fit_size,
+                   col_sizes={VEHICLE_COL: min(fit_size, VEHICLE_SIZE_PT)})
         table1._tbl.append(tr)
     for row in payload.get("officer_rows") or []:
         tr = _row(table2, proto2, ["", row["rank"], row["name"], row["service"]], fit_size)
@@ -231,7 +238,7 @@ def build_special_docx(payload):
     for row in payload.get("service_rows") or []:
         table1._tbl.append(_row(table1, proto, ["", row["service"], row["people"], row["phone"],
                                                 row["vehicle"], row["place"], row["time"], row["count"]],
-                                SPECIAL_SIZE_PT))
+                                SPECIAL_SIZE_PT, col_sizes={VEHICLE_COL: VEHICLE_SIZE_PT}))
     # مسافة الفقرات الافتراضية في القالب (بعد الفقرة + 1.15 سطر) كانت بتخلي الصف
     # نص بوصة وتدخّل 7 خدمات بس في الصفحة.
     for paragraph in table1._tbl.iter(qn("w:p")):

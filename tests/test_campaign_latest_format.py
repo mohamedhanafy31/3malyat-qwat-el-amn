@@ -25,11 +25,11 @@ def test_latest_format_shape_and_mapping():
     assert table.rows[0].cells[0]._tc.find(qn('w:tcPr')).find(qn('w:gridSpan')).get(qn('w:val')) == '15'
     spans = [tc.find(qn('w:tcPr')).find(qn('w:gridSpan'))
              for tc in table.rows[1]._tr.findall(qn('w:tc'))]
-    assert [node.get(qn('w:val')) if node is not None else None for node in spans[:5]] == [None, '3', '4', '3', '4']
+    assert [node.get(qn('w:val')) if node is not None else None for node in spans[:5]] == [None, '2', '5', '3', '4']
     plate_tcs = table.rows[-1]._tr.findall(qn('w:tc'))
     assert [tc.grid_span for tc in plate_tcs] == PLATE_SPANS == [2, 1, 2, 2, 2, 3, 3]
     delivery_head = next(row for row in table.rows if row.cells[1].text == "الخدمة")._tr.findall(qn('w:tc'))
-    assert [tc.grid_span for tc in delivery_head] == DELIVERY_SPANS == [1, 5, 4, 3, 2]
+    assert [tc.grid_span for tc in delivery_head] == DELIVERY_SPANS == [1, 3, 6, 3, 2]
     # عرض كل خانة = مجموع أعمدتها، وهوامش الخانات صفر زي الأرشيف.
     for tr in table._tbl.tr_lst:
         column = 0
@@ -70,7 +70,7 @@ def test_daily_driver_without_vehicle_spans_the_row():
     services = [{"name": "ترحيلة", "driver": {"kind": "text", "name": "عمرو"}, "vehicle": None}]
     doc = Document(BytesIO(build_docx(_payload(services=services, daily=daily)).read()))
     spans = [[tc.grid_span for tc in row._tr.tc_lst] for row in doc.tables[0].rows[-2:]]
-    assert spans == [[1, 5, 4, 3, 2], [1, 5, 9]]
+    assert spans == [[1, 3, 6, 3, 2], [1, 5, 9]]
 
 
 def _delivery_rows(payload):

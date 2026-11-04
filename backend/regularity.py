@@ -346,11 +346,21 @@ def _officer_rows(data, day, inputs):
             label = _text(person.get("name"))
             if _text(person.get("phone")):
                 label = f"{label} ({_text(person.get('phone'))})"
-            result.insert(2 if key == "am" else 3,
-                          {"rank": _text(person.get("rank")), "name": label,
+            result.append({"rank": _text(person.get("rank")), "name": label,
                            "service": f"مشرف القول المكبر فترة {shift} {hours}",
                            "id": None, "kind": "big-column"})
-    return result
+    # ترتيب ثابت تحت صفوف القيادة: مشرف القول المكبر (صبح ثم ليل) قبل التدخل السريع
+    # (صبح ثم ليل) قبل باقي الخدمات — حتى لو المشرف جاي من مدخلات اليومية.
+    head = [row for row in result if row.get("kind") in ("supervisory", "command-extra")]
+    tail = [row for row in result if row.get("kind") not in ("supervisory", "command-extra")]
+
+    def _rank(row):
+        text = row.get("service") or ""
+        group = 0 if is_big_column(text) else 1 if "تدخل" in norm(text) else 2
+        shift = 0 if "صباحية" in text else 1 if "ليلية" in text else 2
+        return (group, shift if group < 2 else 0)
+    tail.sort(key=_rank)
+    return head + tail
 
 
 def build(data, day, inputs=None):
