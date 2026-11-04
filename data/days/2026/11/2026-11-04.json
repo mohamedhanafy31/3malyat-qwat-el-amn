@@ -578,7 +578,7 @@
     {
       "id": "AS-0032",
       "section": "الخدمات الطارئة",
-      "name": "ازالة السويس",
+      "name": "ازالة الجناين",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
@@ -594,7 +594,7 @@
       "conscript_count": 7,
       "weapon": "فض",
       "time": "10ص",
-      "party": "السويس",
+      "party": "الجناين",
       "counts_in_summary": true,
       "mission_transport": false,
       "officer_command_required": false,
@@ -952,14 +952,16 @@
       "status": "راحة",
       "note": "راحة اسبوعية"
     },
-    "OFF-023": {
-      "taqseera": true,
+    "OFF-019": {
+      "taqseera": false,
       "status": "",
-      "note": ""
+      "note": "",
+      "research_service": "نقطة تفتيش جنيفة فترة صباحية",
+      "research_time": "8ص"
     }
   },
   "confirm": {
-    "at": "2026-11-04T03:47:13",
+    "at": "2026-11-04T06:31:10",
     "by": "Mohamed Hanafy",
     "rows": [
       {
@@ -1540,7 +1542,7 @@
       {
         "id": "AS-0032",
         "section": "الخدمات الطارئة",
-        "name": "ازالة السويس",
+        "name": "ازالة الجناين",
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
@@ -1556,7 +1558,7 @@
         "conscript_count": 7,
         "weapon": "فض",
         "time": "10ص",
-        "party": "السويس",
+        "party": "الجناين",
         "counts_in_summary": true,
         "mission_transport": false,
         "officer_command_required": false,
@@ -2599,7 +2601,7 @@
           "kind": "personnel",
           "id": "IND-076"
         },
-        "vehicle_id": "VEH-018"
+        "vehicle_id": "VEH-010"
       },
       "LOR-4": {
         "driver": {
@@ -2645,7 +2647,7 @@
       "AS-0037": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-085"
+          "id": "CON-072"
         },
         "vehicles": [
           {
@@ -2656,7 +2658,7 @@
       "AS-0038": {
         "driver": {
           "kind": "conscript",
-          "id": "CON-072"
+          "id": "CON-085"
         },
         "vehicles": [
           {

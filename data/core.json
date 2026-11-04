@@ -14049,7 +14049,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 1626,
+    "CHG": 1631,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -47924,6 +47924,156 @@
         "vehicle_id": "VEH-046"
       },
       "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-1627",
+      "ts": "2026-11-04T06:24:31",
+      "entity": "officer_state",
+      "entity_id": "OFF-019",
+      "action": "update",
+      "day": null,
+      "text": "كريم عمرو محمد كمال علام في يومية 2026-11-04: خدمة البحث: نقطة تفتيش جنيفة فترة صباحية، انتظام البحث: 8ص",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "research_service": "نقطة تفتيش جنيفة فترة صباحية",
+        "research_time": "8ص"
+      },
+      "reason": "يوم 2026-11-04",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-1628",
+      "ts": "2026-11-04T06:31:10",
+      "entity": "duty_move",
+      "entity_id": "IND-181",
+      "action": "update",
+      "day": "2026-11-04",
+      "text": "أمين شرطة ثان/ محمد احمد محمد زايد: كان «ازالة السويس صبح، خلف مدرجات الدرجة الثالثة يمين صبح» ← أصبح «ازالة الجناين صبح، خلف مدرجات الدرجة الثالثة يمين صبح»",
+      "before": {
+        "name": "أمين شرطة ثان/ محمد احمد محمد زايد",
+        "services": [
+          "ازالة السويس صبح",
+          "خلف مدرجات الدرجة الثالثة يمين صبح"
+        ]
+      },
+      "after": {
+        "name": "أمين شرطة ثان/ محمد احمد محمد زايد",
+        "services": [
+          "ازالة الجناين صبح",
+          "خلف مدرجات الدرجة الثالثة يمين صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-1629",
+      "ts": "2026-11-04T06:31:10",
+      "entity": "assignment",
+      "entity_id": "AS-0032",
+      "action": "update",
+      "day": "2026-11-04",
+      "text": "«ازالة الجناين صبح» — اسم الخدمة: «ازالة السويس» ← «ازالة الجناين»، الجهة: «السويس» ← «الجناين»",
+      "before": {
+        "id": "AS-0032",
+        "section": "الخدمات الطارئة",
+        "name": "ازالة السويس",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-181"
+        ],
+        "conscripts": [
+          {
+            "class": "وحدة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 7,
+        "weapon": "فض",
+        "time": "10ص",
+        "party": "السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 1
+      },
+      "after": {
+        "id": "AS-0032",
+        "section": "الخدمات الطارئة",
+        "name": "ازالة الجناين",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-181"
+        ],
+        "conscripts": [
+          {
+            "class": "وحدة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 7,
+        "weapon": "فض",
+        "time": "10ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 1
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-1630",
+      "ts": "2026-11-04T06:31:10",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-04",
+      "action": "confirm",
+      "day": "2026-11-04",
+      "text": "تأكيد يومية 2026-11-04 — عدد التغييرات: 2",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 2,
+        "count": 37,
+        "at": "2026-11-04T06:31:10",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-04"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-1631",
+      "ts": "2026-11-04T08:09:15",
+      "entity": "officer_state",
+      "entity_id": "OFF-023",
+      "action": "update",
+      "day": null,
+      "text": "محمد أحمد محمد عاطف في يومية 2026-11-04: إلغاء التقصيرة",
+      "before": {
+        "taqseera": true,
+        "status": "",
+        "note": ""
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-11-04",
       "edited_by": "Mohamed Hanafy"
     }
   ],
