@@ -76,3 +76,63 @@ def test_status_reports_indra_readiness(tmp_path):
     assert info["ready"] is True
     assert info["python"] == "runtime-python"
     assert "vendor/indra-site" in ocr_setup.describe_indra(info)
+
+
+def test_exit_codes_are_explained_in_plain_english():
+    assert "AVX" in ocr_setup.describe_exit_code(0xC000001D)
+    assert "AVX" in ocr_setup.describe_exit_code(-1073741795)  # the same code as cmd shows it
+    assert "access violation" in ocr_setup.describe_exit_code(0xC0000005)
+    assert "SIGILL" in ocr_setup.describe_exit_code(-4)
+    assert "Python error" in ocr_setup.describe_exit_code(1)
+    assert ocr_setup.describe_exit_code(0) == "success"
+
+
+def _indra_tree(tmp_path, models=True, wheel=True):
+    (tmp_path / "requirements-indra-ocr.txt").write_text("indra-ocr==1.1.2\n")
+    if wheel:
+        (tmp_path / "wheels" / "indra").mkdir(parents=True)
+        (tmp_path / "wheels" / "indra" / "indra_ocr-1.1.2-py3-none-any.whl").write_bytes(b"w")
+    if models:
+        folder = tmp_path / "vendor" / "indra-models"
+        folder.mkdir(parents=True)
+        for name in ocr_setup.INDRA_MODEL_FILES:
+            (folder / name).write_bytes(b"m")
+
+
+def test_indra_preflight_names_every_missing_file(tmp_path, capsys):
+    _indra_tree(tmp_path)
+    (tmp_path / "vendor" / "indra-models" / "rec_rtl.onnx").unlink()
+    (tmp_path / "vendor" / "indra-models" / "script.onnx").write_bytes(b"")
+
+    problems = ocr_setup.indra_preflight(tmp_path)
+
+    assert problems == ["model file rec_rtl.onnx is missing", "model file script.onnx is empty"]
+    output = capsys.readouterr().out
+    assert "model rec_rtl.onnx: MISSING" in output
+    assert "model script.onnx: EMPTY" in output
+    assert ocr_setup.indra_preflight(tmp_path / "nowhere")  # nothing installed at all
+
+
+def test_indra_check_runs_load_then_inference_and_reports_a_crash(tmp_path, capsys):
+    _indra_tree(tmp_path, wheel=False)
+    (tmp_path / "vendor" / "indra-site" / "indra_ocr").mkdir(parents=True)
+    calls = []
+
+    def run(command, **kwargs):
+        calls.append(command[-1])
+        return SimpleNamespace(returncode=0xC000001D if command[-1] == "--selftest" else 0)
+
+    ready, reason = ocr_setup.check_indra(tmp_path, python="py", run=run)
+
+    assert calls == ["--check", "--selftest"]
+    assert ready is False
+    assert "inference failed" in reason and "AVX" in reason
+
+
+def test_indra_check_reports_a_missing_install_without_running_anything(tmp_path):
+    _indra_tree(tmp_path, wheel=False)
+
+    ready, reason = ocr_setup.check_indra(tmp_path, python="py", run=lambda *a, **k: 1 / 0)
+
+    assert ready is False
+    assert "vendor/indra-site is not installed" in reason

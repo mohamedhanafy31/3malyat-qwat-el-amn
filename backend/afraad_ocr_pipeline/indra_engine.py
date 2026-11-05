@@ -141,6 +141,26 @@ def _error(message: str) -> IndraPage:
     return IndraPage(error=message)
 
 
+_NATIVE_CRASHES = {
+    0xC0000005: "انهيار داخل مكتبة (access violation)",
+    0xC000001D: "المعالج لا يدعم تعليمات المكتبة (AVX/AVX2)",
+    0xC000007B: "عدم توافق 32/64 بت",
+    0xC0000135: "ملف DLL ناقص",
+    0xC0000409: "انهيار داخلي في مكتبة",
+    0xC0000017: "الذاكرة غير كافية",
+    0xE06D7363: "خطأ C++ داخل onnxruntime",
+}
+
+
+def _describe_exit(code: int) -> str:
+    unsigned = code & 0xFFFFFFFF
+    if unsigned in _NATIVE_CRASHES:
+        return f"0x{unsigned:08X} - {_NATIVE_CRASHES[unsigned]}"
+    if code < 0:
+        return f"{code} - أُنهي بإشارة نظام (ذاكرة أو انهيار)"
+    return str(code)
+
+
 def recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:
     """يشغّل Indra في بيئته المعزولة، ولا يرمي أخطاء للـpipeline."""
     started = time.perf_counter()
@@ -194,6 +214,9 @@ def _recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:
         local_models = root / "vendor" / "indra-models"
         if not env.get("INDRA_OCR_MODEL_DIR") and local_models.is_dir():
             env["INDRA_OCR_MODEL_DIR"] = str(local_models)
+        # Models are local; never let the library wait on (or fail over) the network.
+        if Path(env.get("INDRA_OCR_MODEL_DIR") or "").is_dir():
+            env.setdefault("HF_HUB_OFFLINE", "1")
         try:
             command = [str(python), str(worker)]
             if site_dir.is_dir():
@@ -235,9 +258,12 @@ def _recognize_page(image: np.ndarray, config: PipelineConfig) -> IndraPage:
         _log_stderr(completed.stderr, "worker", limit=25 if completed.returncode else 8,
                     level=logging.WARNING if completed.returncode else logging.INFO)
         if completed.returncode != 0:
-            detail = (completed.stderr or "").strip().splitlines()
+            detail = [line for line in (completed.stderr or "").strip().splitlines() if line.strip()]
             suffix = f": {detail[-1]}" if detail else ""
-            return _error(f"فشل Indra OCR{suffix}")
+            # An exit code with no Python error line means the worker died inside a
+            # native library (CPU instruction, memory, damaged model); say so, because
+            # the last line alone then reads like a success ("import ok").
+            return _error(f"فشل Indra OCR (رمز الخروج {_describe_exit(completed.returncode)}){suffix}")
         try:
             payload: dict[str, Any] = json.loads(completed.stdout)
             lines = []

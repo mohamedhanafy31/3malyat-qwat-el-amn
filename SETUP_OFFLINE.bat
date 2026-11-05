@@ -96,13 +96,16 @@ if not exist "%ROOT%wheels\indra\indra_ocr-*.whl" goto indra_missing
 if not exist "%ROOT%vendor\indra-models\det.onnx" goto indra_missing
 if not exist "%ROOT%vendor\indra-models\rec.onnx" goto indra_missing
 if not exist "%ROOT%vendor\indra-models\meta.json" goto indra_missing
-"!PY!" "%ROOT%tools\ocr_setup.py" setup-indra --offline >>"%DEPLOY_LOG%" 2>&1
+rem ocr_setup.py prints to the console AND appends to %DEPLOY_LOG% itself, so it is not redirected here.
+"!PY!" "%ROOT%tools\ocr_setup.py" indra-preflight
+if errorlevel 1 goto indra_missing
+"!PY!" "%ROOT%tools\ocr_setup.py" setup-indra --offline
 if errorlevel 1 goto indra_failed
 set "INDRA_STATE=ready"
 call "%ROOT%tools\deploy_console.bat" ok "Optional Indra OCR is ready."
 goto verify
 :indra_missing
-call "%ROOT%tools\deploy_console.bat" warn "Indra OCR assets are missing; photo import falls back to Tesseract. Run PREPARE_ONLINE.bat with internet to add them."
+call "%ROOT%tools\deploy_console.bat" warn "Indra OCR assets are missing or incomplete (the exact files are listed above); photo import falls back to Tesseract. Run PREPARE_ONLINE.bat with internet to add them."
 goto verify
 :indra_failed
 call "%ROOT%tools\deploy_console.bat" warn "Indra OCR setup failed; photo import falls back to Tesseract. See logs\setup-offline.log."

@@ -199,7 +199,7 @@ def test_indra_model_snapshot_uses_pinned_api_and_exact_default_files(tmp_path):
 
     def download(url, target):
         calls.append((url, target))
-        if url == prepare_offline_bundle.indra_api_url():
+        if url == prepare_offline_bundle.indra_blobs_url():
             target.write_text(json.dumps({"siblings": [
                 {"rfilename": name}
                 for name in (*prepare_offline_bundle.INDRA_MODEL_FILES, "mathcls.onnx")
@@ -210,12 +210,111 @@ def test_indra_model_snapshot_uses_pinned_api_and_exact_default_files(tmp_path):
     prepare_offline_bundle.prepare_indra_models(tmp_path, downloader=download)
 
     assert calls[0][0] == (
-        "https://huggingface.co/api/models/datalab-to/indra-ocr/revision/v1.1.0"
+        "https://huggingface.co/api/models/datalab-to/indra-ocr/revision/v1.1.0?blobs=true"
     )
+    assert prepare_offline_bundle.indra_api_url().endswith("/revision/v1.1.0")
     downloaded = {target.name for _url, target in calls[1:]}
     assert downloaded == set(prepare_offline_bundle.INDRA_MODEL_FILES)
     assert all("/resolve/v1.1.0/" in url for url, _target in calls[1:])
     assert "mathcls.onnx" not in downloaded
+
+
+def _snapshot_downloader(tmp_path, payloads, served):
+    """Fake model host: `payloads` maps file name -> bytes it publishes (size + SHA-256);
+    `served` maps file name -> list of byte strings returned on successive downloads."""
+    import hashlib
+    calls = []
+
+    def download(url, target):
+        calls.append(url)
+        if url == prepare_offline_bundle.indra_blobs_url():
+            target.write_text(json.dumps({"siblings": [
+                {"rfilename": name, "size": len(data),
+                 "lfs": {"sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}}
+                for name, data in payloads.items()
+            ]}), encoding="utf-8")
+            return
+        name = url.rsplit("/", 1)[1]
+        target.write_bytes(served[name].pop(0))
+
+    return download, calls
+
+
+def test_indra_models_are_checked_against_published_size_and_sha256(tmp_path):
+    names = prepare_offline_bundle.INDRA_MODEL_FILES
+    payloads = {name: f"good-{name}".encode() for name in names}
+    # det.onnx arrives truncated once, then correct: it must be fetched again.
+    served = {name: [data] for name, data in payloads.items()}
+    served["det.onnx"] = [b"good-de", payloads["det.onnx"]]
+    download, calls = _snapshot_downloader(tmp_path, payloads, served)
+
+    prepare_offline_bundle.prepare_indra_models(tmp_path, downloader=download)
+
+    assert sum(url.endswith("/det.onnx") for url in calls) == 2
+    assert (tmp_path / "indra-models" / "det.onnx").read_bytes() == payloads["det.onnx"]
+
+
+def test_indra_model_that_never_matches_fails_with_the_file_name(tmp_path):
+    import pytest
+    names = prepare_offline_bundle.INDRA_MODEL_FILES
+    payloads = {name: f"good-{name}".encode() for name in names}
+    served = {name: [data] for name, data in payloads.items()}
+    # Same size, different bytes: only the SHA-256 can catch this.
+    served["rec.onnx"] = [b"x" * len(payloads["rec.onnx"])] * prepare_offline_bundle.MODEL_FETCH_ATTEMPTS
+    download, _calls = _snapshot_downloader(tmp_path, payloads, served)
+
+    with pytest.raises(RuntimeError, match="rec.onnx failed verification"):
+        prepare_offline_bundle.prepare_indra_models(tmp_path, downloader=download)
+
+
+def test_connectivity_check_reports_unreachable_hosts(monkeypatch, capsys):
+    def resolve(host, *args, **kwargs):
+        if host == "huggingface.co":
+            raise OSError("getaddrinfo failed")
+        return [(0, 0, 0, "", ("203.0.113.9", 443))]
+
+    class Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    monkeypatch.setattr(prepare_offline_bundle.socket, "getaddrinfo", resolve)
+    monkeypatch.setattr(prepare_offline_bundle.socket, "create_connection",
+                        lambda *args, **kwargs: Connection())
+    for name in ("HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy"):
+        monkeypatch.delenv(name, raising=False)
+
+    failed = prepare_offline_bundle.check_connectivity()
+
+    output = capsys.readouterr().out
+    assert failed == 1
+    assert "huggingface.co (Indra OCR models): DNS lookup failed - getaddrinfo failed" in output
+    assert "www.python.org (embedded Python runtime): reachable" in output
+
+
+def test_prepare_reports_the_failing_stage_as_an_x_line(tmp_path, monkeypatch, capsys):
+    log = tmp_path / "prepare.log"
+    monkeypatch.setenv("DEPLOY_LOG", str(log))
+    monkeypatch.setattr(prepare_offline_bundle, "ROOT", tmp_path)
+    monkeypatch.setattr(prepare_offline_bundle, "check_connectivity", lambda: 0)
+
+    def broken(work):
+        raise RuntimeError("The Indra model API returned invalid metadata")
+
+    monkeypatch.setattr(prepare_offline_bundle, "prepare_runtime", lambda work: None)
+    monkeypatch.setattr(prepare_offline_bundle, "prepare_wheels", lambda work: None)
+    monkeypatch.setattr(prepare_offline_bundle, "prepare_ocr", lambda work: None)
+    monkeypatch.setattr(prepare_offline_bundle, "prepare_indra_models", broken)
+
+    assert prepare_offline_bundle.main([]) == 1
+
+    logged = log.read_text(encoding="utf-8")
+    assert "[X] Stage 5/6 (Indra OCR models" in logged
+    assert "invalid metadata" in logged
+    assert "[X] Stage 5/6" in capsys.readouterr().out
+    assert list(tmp_path.glob(".offline-build-*")) == []
 
 
 def test_release_files_include_prepared_indra_models_and_site(tmp_path, monkeypatch):
