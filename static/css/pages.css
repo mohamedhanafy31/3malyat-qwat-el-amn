@@ -210,7 +210,7 @@ body.sidebar-open{overflow:hidden}
 .campaign-alert{margin:var(--s4) var(--s5) 0;padding:var(--s3) var(--s4)}
 .campaign-alert .alert-head{margin:0 0 var(--s2)}
 .campaign-alert .alert-list{margin:0;padding-inline-start:var(--s5)}
-.campaign-service-name{display:flex;align-items:center;gap:var(--s1);flex-wrap:wrap}
+.campaign-service-name{display:flex;align-items:center;gap:var(--s1);min-width:0;flex-wrap:wrap}
 .table tr.campaign-cat-break>td,.mtable tr.campaign-cat-break>td{border-bottom:2px solid var(--ink-700)}
 .campaign-service-name strong{margin-inline-end:var(--s1)}
 .campaign-attach-chip{display:inline-flex;align-items:center;gap:3px;background:var(--gold-100);color:var(--gold-800);border-color:var(--gold-300)}
@@ -219,22 +219,59 @@ body.sidebar-open{overflow:hidden}
 .campaign-group-members{margin-top:2px;color:var(--muted,inherit);font-size:.85em}
 .mini.on-dark:disabled{opacity:.5;cursor:not-allowed}
 .muted-chip{color:var(--ink-500);background:var(--surface-sunken);border-color:var(--line)}
-.campaign-warn{cursor:help}
-.campaign-inline-select{width:100%;min-width:130px;transition:border-color .12s,background .12s,color .12s}
-.campaign-inline-select:has(option:checked[value=""]){border-color:transparent;background-color:transparent;box-shadow:none;
-  color:var(--ink-500);font-weight:400}
-.campaign-inline-select:has(option:checked[value=""]):hover,
-.campaign-inline-select:has(option:checked[value=""]):focus-visible{border-color:var(--navy-500);background-color:var(--surface)}
-.campaign-inline-select.combo-input.is-empty[aria-label^="رقم المركبة"],
-.campaign-inline-select.combo-input.is-empty[aria-label^="نوع المركبة"]{border-color:transparent;background:transparent;box-shadow:none;color:var(--ink-500);font-weight:400}
-.campaign-inline-select.combo-input.is-empty[aria-label^="رقم المركبة"]:hover,
-.campaign-inline-select.combo-input.is-empty[aria-label^="نوع المركبة"]:hover,
-.campaign-inline-select.combo-input.is-empty[aria-label^="رقم المركبة"]:focus-visible,
-.campaign-inline-select.combo-input.is-empty[aria-label^="نوع المركبة"]:focus-visible{border-color:var(--navy-500);background:var(--surface)}
-.campaign-inline-select option[data-disabled="true"]{color:var(--ink-500);font-style:italic}
+.campaign-inherited{padding-block:0;font-size:11px;font-weight:400;opacity:.82}
+#campaignWrap .campaign-inline-select{width:100%;min-width:130px;border-color:var(--line-strong);background:var(--surface-sunken);
+  color:var(--ink-900);font-weight:600;transition:border-color .12s,background .12s,color .12s}
+#campaignWrap .campaign-inline-select:not(.campaign-driver-quiet-empty):has(option:checked[value=""]){border-color:var(--warn-500);background-color:var(--warn-50);box-shadow:none;
+  color:var(--warn-800);font-weight:700}
+#campaignWrap .campaign-inline-select:not(.campaign-driver-quiet-empty):has(option:checked[value=""]):hover,
+#campaignWrap .campaign-inline-select:not(.campaign-driver-quiet-empty):has(option:checked[value=""]):focus-visible{border-color:var(--warn-700);background-color:var(--warn-100)}
+#campaignWrap .campaign-inline-select.combo-input.is-empty:not(.campaign-driver-quiet-empty){border-color:var(--warn-500);background:var(--warn-50);box-shadow:none;
+  color:var(--warn-800);font-weight:700}
+#campaignWrap .campaign-inline-select.combo-input.is-empty:not(.campaign-driver-quiet-empty):hover,
+#campaignWrap .campaign-inline-select.combo-input.is-empty:not(.campaign-driver-quiet-empty):focus-visible{border-color:var(--warn-700);background:var(--warn-100)}
+#campaignWrap .campaign-inline-select option[data-disabled="true"]{color:var(--ink-500);font-style:italic}
+#campaignWrap .campaign-driver-cell .campaign-inline-select{min-width:0}
+#campaignWrap .campaign-driver-cell .combo-input{width:100%;min-width:0;max-width:none}
+#campaignWrap .campaign-carried-driver{display:block;color:var(--ink-900);font-weight:700;line-height:1.55}
+#campaignWrap .campaign-table-card .mtable{table-layout:fixed;min-width:980px}
+#campaignWrap .campaign-table-card .mtable th{min-width:0}
+#campaignWrap .campaign-table-card:not(.campaign-posts-card) .mtable th:nth-child(1){width:20%}
+#campaignWrap .campaign-table-card:not(.campaign-posts-card) .mtable th:nth-child(2){width:36%}
+#campaignWrap .campaign-table-card:not(.campaign-posts-card) .mtable th:nth-child(3){width:16%}
+#campaignWrap .campaign-table-card:not(.campaign-posts-card) .mtable th:nth-child(4){width:14%}
+#campaignWrap .campaign-table-card:not(.campaign-posts-card) .mtable th:nth-child(5){width:14%}
+#campaignWrap .campaign-posts-card .mtable th:nth-child(1){width:6%}
+#campaignWrap .campaign-posts-card .mtable th:nth-child(2){width:14%}
+#campaignWrap .campaign-posts-card .mtable th:nth-child(3){width:36%}
+#campaignWrap .campaign-posts-card .mtable th:nth-child(4){width:16%}
+#campaignWrap .campaign-posts-card .mtable th:nth-child(5){width:14%}
+#campaignWrap .campaign-posts-card .mtable th:nth-child(6){width:14%}
 .campaign-missing-chip{margin-inline-start:auto;background:var(--warn-100);color:var(--warn-800);
   border:1px solid var(--warn-300);font-size:var(--t-xs);font-weight:700;padding:1px var(--s2)}
+.campaign-complete-chip{margin-inline-start:auto;padding:1px var(--s2);border:1px solid var(--ok-300);
+  border-radius:var(--radius-pill);background:var(--ok-100);color:var(--ok-800);font-size:var(--t-xs);font-weight:700}
 .campaign-vehicle-cell{display:block;min-height:1.25em}
+.campaign-row>td:first-child{border-inline-start:5px solid var(--bad-700)}
+.campaign-row.campaign-status-complete>td:first-child{border-inline-start-color:var(--ok-700)}
+.campaign-row.campaign-status-partial>td:first-child{border-inline-start-color:var(--warn-500)}
+.campaign-row.campaign-status-empty>td:first-child{border-inline-start-color:var(--bad-700)}
+.campaign-row.campaign-status-optional>td:first-child{border-inline-start-color:var(--ink-300)}
+.campaign-row.campaign-status-optional>td{background:var(--surface-sunken)}
+.campaign-status-pill{font-size:var(--t-xs);font-weight:700;white-space:normal}
+.campaign-status-pill-complete{background:var(--ok-100);border-color:var(--ok-300);color:var(--ok-800)}
+.campaign-status-pill-partial{background:var(--warn-100);border-color:var(--warn-300);color:var(--warn-800)}
+.campaign-status-pill-empty{background:var(--bad-100);border-color:var(--bad-300);color:var(--bad-800)}
+.campaign-status-pill-optional{background:var(--surface-sunken);border-color:var(--line-strong);color:var(--ink-700)}
+.campaign-row-warnings{display:flex;flex-basis:100%;align-items:flex-start;gap:var(--s1);margin-top:var(--s1);
+  color:var(--warn-800);font-size:var(--t-xs);font-weight:700;line-height:1.6;overflow-wrap:anywhere}
+.campaign-row-warnings .ico{width:15px;height:15px;flex:none;margin-top:2px}
+.campaign-service-assignment{display:grid;gap:3px;min-width:250px;color:var(--ink-900);line-height:1.65}
+.campaign-service-assignment>span{display:block;overflow-wrap:anywhere}
+.campaign-service-assignment .mini{justify-self:start;margin-top:var(--s1)}
+.campaign-unassigned{color:var(--bad-700);font-weight:700}
+.campaign-save-error{margin:var(--s4) var(--s5) 0}
+.campaign-plates-unsaved{margin-inline-start:auto;background:var(--warn-100);border-color:var(--warn-300);color:var(--warn-800)}
 
 /* Phase 2: حالات تشغيل مشتركة حول الجداول، دون زيادة كثافة الخلايا. */
 .data-region-error{display:flex;align-items:center;gap:var(--s3);min-height:72px;margin:var(--s3) 0;
@@ -283,7 +320,9 @@ body.sidebar-open{overflow:hidden}
   .table-scroll,.mtable-wrap,.reg-scroll{max-width:100%;overflow-x:auto}
 }
 .campaign-vehicle-type{color:var(--ink-700)}
-.campaign-post-driver{width:100%;min-width:140px}
+#campaignWrap .campaign-post-driver{width:100%;min-width:0;border-color:var(--line-strong);background:var(--surface-sunken);
+  color:var(--ink-900);font-weight:600}
+#campaignWrap .campaign-post-driver.is-empty{border-color:var(--warn-500);background:var(--warn-50);color:var(--warn-800)}
 .campaign-plates{width:100%;font-family:var(--font-mono,monospace);line-height:1.7}
 .campaign-plates-card .actions{margin-top:var(--s3);justify-content:flex-start}
 .campaign-service-vehicles-modal{width:min(760px,100%)}
@@ -634,4 +673,3 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ls-legend-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-700)}
 .ls-legend-val{font-weight:700;color:var(--navy-900);font-size:var(--t-cap);min-width:28px;
   text-align:start;font-variant-numeric:tabular-nums}
-

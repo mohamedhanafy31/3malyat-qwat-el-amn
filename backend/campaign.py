@@ -1,5 +1,6 @@
 """منطق backend ليومية الحملة."""
 from copy import deepcopy
+from datetime import date, timedelta
 
 from . import changes, fleet
 from .afraad import occasional_rows
@@ -13,6 +14,7 @@ from .text import norm
 
 
 ALL_LORRIES = CAMPAIGN_LORRIES + APPOINTMENT_LORRIES
+LORRY_NAMES = {item["id"]: item["name"] for item in ALL_LORRIES}
 
 
 def referenced_vehicle_days(data, vehicle_id):
@@ -47,9 +49,56 @@ def _raw(data, day):
     return days.setdefault(day, {})
 
 
-def _previous(data, day):
-    days = [d for d in (data.get("day_campaign") or {}) if d < day]
-    return max(days) if days else None
+# أقصى رجوع (بالأيام التقويمية) لوراثة قيمة الصف من يوم أقدم. اليوم الناقص
+# (صف أو أكتر من غير مركبة/سائق) مايقطعش الوراثة عن اللي بعده، لكن مفيش
+# توريث مفتوح لقيمة عمرها شهور.
+INHERIT_WINDOW_DAYS = 31
+_INHERITED_KEYS = ("vehicle_id", "driver", "driver_text", "plate_text", "type_text", "basic_entry_id")
+
+
+# أيام قبل التاريخ ده (كلها مقفولة) بتفضل على التوريث القديم: من آخر يوم سابق
+# محفوظ بس، عشان اللي اتعرض واتطبع قبل كده مايتغيرش من غير موافقة. القاعدة
+# بتعتمد على تاريخ ثابت مش على حالة القفل، فاليوم مايتغيّرش شكله وقت ما يتقفل.
+# لتصحيح أيام أقدم يتم تقديم التاريخ ده بقرار صريح.
+INHERIT_WALK_FROM = "2026-10-21"
+
+
+def inheritance_days(campaign_days, day):
+    """الأيام السابقة اللي يوم `day` بيورّث منها، من الأقدم للأحدث.
+    `campaign_days`: كل الأيام اللي ليها حملة (الـindex يكفي، من غير تحميل ملفات)."""
+    earlier = sorted(d for d in campaign_days if d < day)
+    if day < INHERIT_WALK_FROM:
+        return earlier[-1:]
+    try:
+        start = (date.fromisoformat(day) - timedelta(days=INHERIT_WINDOW_DAYS)).isoformat()
+    except ValueError:
+        return earlier[-1:]
+    return [d for d in earlier if d >= start]
+
+
+def _chain(data, day):
+    return inheritance_days(data.get("day_campaign") or {}, day)
+
+
+def _prior(data, chain, section, ident):
+    """قيمة الصف الموروثة: كل مفتاح من أحدث يوم سابق محفوظ فيه المفتاح ده.
+    المفتاح الموجود فاضي (`"driver": {}`) مسح صريح وبيقطع الرجوع."""
+    prior = {}
+    for d in chain:
+        entry = (((data.get("day_campaign") or {}).get(d) or {}).get(section) or {}).get(ident)
+        if isinstance(entry, dict):
+            for key in (*_INHERITED_KEYS, "vehicles"):
+                if key in entry:
+                    prior[key] = entry[key]
+    return prior
+
+
+def _prior_plates(data, chain):
+    for d in reversed(chain):
+        plates = ((data.get("day_campaign") or {}).get(d) or {}).get("plates")
+        if plates is not None:
+            return plates
+    return None
 
 
 def _driver(data, value):
@@ -142,13 +191,14 @@ def _vehicle_people(data, item, assignment_people):
     return people
 
 
-def service_vehicles(data, day, assignment_id):
+def service_vehicles(data, day, assignment_id, *, include_empty_lorries=False):
     """المركبات الفعلية للخدمة بترتيبها: المباشر الأول ثم لوري الإلحاق."""
     assignment = _assignment(data, day, assignment_id)
     if not assignment:
         return []
     assignment_people = _assignment_people(assignment)
     sheet = (data.get("day_campaign") or {}).get(day) or {}
+    chain = _chain(data, day)
     group = group_of(data, day, assignment_id)
     if group:
         # العضو بياخد مركبة وسائق المجموعة؛ بيانات العضو الأصلية بتفضل محفوظة لحد فك التجميع.
@@ -169,26 +219,30 @@ def service_vehicles(data, day, assignment_id):
         vehicle = _vehicle(data, item.get("vehicle_id"))
         if not vehicle:
             continue
+        driver = _driver(data, item.get("driver") or raw.get("driver"))
         result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"], "plate": vehicle["plate"],
                        "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])),
                        "people": _vehicle_people(data, item, assignment_people),
-                       "source": "direct", "driver": _driver(data, item.get("driver"))})
+                       "source": "direct", "driver": driver})
     for lorry_id, lorry in ((sheet.get("lorries") or {}).items()):
         if not any(item.get("assignment_id") == assignment_id
                    for item in (lorry or {}).get("attached") or []):
             continue
-        vehicle = _vehicle(data, (lorry or {}).get("vehicle_id"))
-        if not vehicle:
+        effective = _merge_inherited(_prior(data, chain, "lorries", lorry_id), lorry)
+        vehicle = _vehicle(data, effective.get("vehicle_id"))
+        if not vehicle and not include_empty_lorries:
             continue
-        result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"], "plate": vehicle["plate"],
-                       "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])),
+        result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"] if vehicle else "",
+                       "plate": vehicle["plate"] if vehicle else "",
+                       "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])) if vehicle else "",
                        "people": [_person_view(data, ident, category)
                                   for category, key in (("personnel", "personnel_ids"),
                                                         ("officers", "officer_ids"))
                                   for ident in assignment_people[key]
                                   if _person_view(data, ident, category)],
                        "source": "lorry", "lorry_id": lorry_id,
-                       "driver": _driver(data, (lorry or {}).get("driver"))})
+                       "lorry_name": LORRY_NAMES.get(lorry_id, lorry_id),
+                       "driver": _driver(data, effective.get("driver"))})
     return result
 
 
@@ -780,6 +834,90 @@ def _row_view(data, ident, kind, name, raw, inherited, attached=None, assignment
     }
 
 
+def _status_text(state, missing):
+    if state == "complete":
+        return "متسكن"
+    if state == "optional":
+        return "اختياري"
+    if missing == ["driver"]:
+        return "ناقص سائق"
+    if missing == ["vehicle"]:
+        return "ناقص مركبة"
+    return "غير متسكن"
+
+
+def _set_status(row, state, missing=None, text=None):
+    missing = list(missing or [])
+    row["status"] = state
+    row["missing"] = missing
+    row["status_text"] = text or _status_text(state, missing)
+
+
+def _regular_status(row, *, driver_only=False, optional=False):
+    has_driver = bool(row.get("driver"))
+    has_vehicle = bool(row.get("vehicle"))
+    has_content = has_driver or has_vehicle or bool(row.get("attached"))
+    if optional and not has_content:
+        _set_status(row, "optional")
+        return
+    missing = ([] if has_driver else ["driver"])
+    if not driver_only and not has_vehicle:
+        missing.append("vehicle")
+    state = "complete" if not missing else ("partial" if has_content else "empty")
+    _set_status(row, state, missing)
+
+
+def _service_status(row):
+    vehicles = row.get("service_vehicles") or []
+    direct = [item for item in vehicles if item.get("source") == "direct"]
+    carried = [item for item in vehicles if item.get("source") == "lorry"]
+    complete_carrier = next((item for item in carried
+                             if item.get("vehicle") and item.get("driver")), None)
+    if complete_carrier:
+        _set_status(row, "complete", text=f"على لوري {complete_carrier.get('lorry_name', '')}".strip())
+        return
+    if direct and all(item.get("driver") for item in direct):
+        _set_status(row, "complete")
+        return
+
+    missing = []
+    if direct and any(not item.get("driver") for item in direct):
+        missing.append("driver")
+    if carried:
+        carrier = carried[0]
+        if not carrier.get("driver") and "driver" not in missing:
+            missing.append("driver")
+        if not carrier.get("vehicle"):
+            missing.append("vehicle")
+        reason = _status_text("partial", missing)
+        _set_status(row, "partial", missing,
+                    f"على لوري {carrier.get('lorry_name', '')} — {reason}".strip())
+        return
+    if not direct:
+        if not row.get("driver"):
+            missing.append("driver")
+        missing.append("vehicle")
+    has_content = bool(direct or row.get("driver"))
+    _set_status(row, "partial" if has_content else "empty", missing)
+
+
+def _post_status(row):
+    has_driver = bool(str(row.get("driver_text") or "").strip())
+    has_vehicle = bool(row.get("vehicle") or str(row.get("plate_text") or "").strip())
+    missing = ([] if has_driver else ["driver"]) + ([] if has_vehicle else ["vehicle"])
+    has_content = has_driver or has_vehicle or bool(str(row.get("type_text") or "").strip())
+    _set_status(row, "complete" if not missing else ("partial" if has_content else "empty"), missing)
+
+
+def _summary(rows):
+    counts = {state: 0 for state in ("complete", "partial", "empty", "optional")}
+    for row in rows:
+        counts[row["status"]] += 1
+    counts["missing"] = counts["partial"] + counts["empty"]
+    counts["total"] = counts["complete"] + counts["missing"]
+    return counts
+
+
 def _service_vehicle(row):
     vehicles = row.get("service_vehicles") or []
     return (vehicles[0].get("vehicle") if vehicles else None) or row.get("vehicle")
@@ -799,12 +937,12 @@ def order_services(rows):
 
 def build_campaign(data, day):
     current = (data.get("day_campaign") or {}).get(day) or {}
-    previous_day = _previous(data, day)
-    previous = (data.get("day_campaign") or {}).get(previous_day) or {}
+    chain = _chain(data, day)
+    previous_day = chain[-1] if chain else None
     current_lorries = current.get("lorries") or {}
-    previous_lorries = previous.get("lorries") or {}
+    previous_lorries = {spec["id"]: _prior(data, chain, "lorries", spec["id"]) for spec in ALL_LORRIES}
     lorry_data = {
-        spec["id"]: _merge_inherited(previous_lorries.get(spec["id"]), current_lorries.get(spec["id"]))
+        spec["id"]: _merge_inherited(previous_lorries[spec["id"]], current_lorries.get(spec["id"]))
         for spec in ALL_LORRIES
     }
 
@@ -812,7 +950,7 @@ def build_campaign(data, day):
     basic_items = afraad_basic_on(data, day)
     basic_by_id = {item["id"]: item for item in basic_items}
     current_daily = current.get("daily") or {}
-    previous_daily = previous.get("daily") or {}
+    previous_daily = {item["id"]: _prior(data, chain, "daily", item["id"]) for item in daily_items}
     daily_data = {
         item["id"]: _merge_inherited(previous_daily.get(item["id"]), current_daily.get(item["id"]))
         for item in daily_items
@@ -847,21 +985,24 @@ def build_campaign(data, day):
         ))
 
     rows_s = []
+    service_rows = []
     grouped_ids = {mid for group in current.get("groups") or [] for mid in group.get("members") or []}
     for assignment in assignments.values():
         if assignment["id"] in grouped_ids:
             continue
         raw = (current.get("services") or {}).get(assignment["id"], {})
         has_direct = bool(_direct_service_entries(data, day, assignment["id"], raw))
-        if assignment.get("id") in attached_ids and not has_direct:
-            continue
-        rows_s.append(_row_view(
+        row = _row_view(
             data, assignment["id"], "service",
             assignment.get("name") or assignment.get("label") or "", raw, False,
             assignment=assignment, day=day,
-        ))
-    for row in rows_s:
-        row["service_vehicles"] = service_vehicles(data, day, row["id"])
+        )
+        row["service_vehicles"] = service_vehicles(data, day, row["id"], include_empty_lorries=True)
+        service_rows.append(row)
+        # ``services`` يفضل متوافقًا مع التصدير والمستهلكين القدامى: الخدمة
+        # المحمولة فقط ممثلة بالفعل داخل اسم اللوري في ملف الأرشيف.
+        if assignment.get("id") not in attached_ids or has_direct:
+            rows_s.append(row)
     for group in current.get("groups") or []:
         members = [assignments[mid] for mid in group.get("members") or [] if mid in assignments]
         if not members:
@@ -874,7 +1015,10 @@ def build_campaign(data, day):
         row["service_vehicles"] = ([{"vehicle": vehicle, "vehicle_id": vehicle["id"],
                                      "driver": row["driver"], "source": "group"}] if vehicle else [])
         rows_s.append(row)
-    rows_s = order_services(rows_s)
+        service_rows.append(row)
+    service_rows = order_services(service_rows)
+    visible_ids = {row["id"] for row in rows_s}
+    rows_s = [row for row in service_rows if row["id"] in visible_ids]
 
     rows_d = [
         _row_view(
@@ -898,7 +1042,7 @@ def build_campaign(data, day):
 
     post_items = campaign_posts_on(data, day)
     current_posts = current.get("posts") or {}
-    previous_posts = previous.get("posts") or {}
+    previous_posts = {item["id"]: _prior(data, chain, "posts", item["id"]) for item in post_items}
     rows_p = []
     for item in post_items:
         raw = _merge_inherited(previous_posts.get(item["id"]), current_posts.get(item["id"]))
@@ -913,19 +1057,34 @@ def build_campaign(data, day):
         })
 
     current_plates = current.get("plates")
-    previous_plates = previous.get("plates")
+    previous_plates = _prior_plates(data, chain)
     plates = deepcopy(current_plates if current_plates is not None else (previous_plates or {"rows": []}))
     plates_view = {"rows": plates.get("rows") or [],
                    "inherited": bool(previous_day and previous_plates is not None and current_plates is None)}
 
-    all_rows = rows_l + rows_a + rows_s + rows_d + rows_p
-    _warnings(rows_l + rows_a + rows_s + rows_d)
-    _post_warnings(rows_p)
+    for row in rows_l:
+        _regular_status(row)
+    for row in rows_a:
+        _regular_status(row, optional=True)
+    for row in service_rows:
+        if row["kind"] == "group":
+            _regular_status(row)
+        else:
+            _service_status(row)
+    for row in rows_d:
+        _regular_status(row, driver_only=norm(row.get("name")).startswith(norm("سائق")))
+    for row in rows_p:
+        _post_status(row)
+
+    all_rows = rows_l + rows_a + service_rows + rows_d + rows_p
+    _warnings(all_rows)
     force_ids = PeopleRepo(data).ids_on_force(day, "personnel")
     for row in all_rows:
-        driver = row.get("driver") or {}
-        if driver.get("kind") == "personnel" and driver.get("id") not in force_ids:
+        for driver in _row_drivers(row):
+            if driver.get("kind") != "personnel" or driver.get("id") in force_ids:
+                continue
             row["warnings"].append("الفرد السائق ليس على القوة في هذا اليوم.")
+            break
 
     warnings = [
         {"row": row["name"], "text": text}
@@ -943,55 +1102,83 @@ def build_campaign(data, day):
         for row in assignments.values()
         if row.get("id") not in grouped_ids
     ]
+    sections = {
+        "posts": _summary(rows_p),
+        "lorries": _summary(rows_l),
+        "services": _summary(service_rows),
+        "daily": _summary(rows_d),
+        "appointments": _summary(rows_a),
+    }
     return {
         "date": day,
         "posts": rows_p,
         "lorries": rows_l,
         "appointments": rows_a,
         "services": rows_s,
+        "service_rows": service_rows,
         "daily": rows_d,
         "plates": plates_view,
         "warnings": warnings,
+        "summary": {"overall": _summary(all_rows), "sections": sections},
         "pickers": {"vehicles": vehicles, "types": VEHICLE_TYPES,
                     "drivers": fleet.drivers_on(data, day), "attachable": attachable,
                     "basic_services": basic_items},
     }
 
 
+def _row_occurrences(row):
+    """المراجع المنطقية للصف؛ يستبعد إسقاط أول مركبة وخط لوري الإلحاق."""
+    if row.get("kind") == "post":
+        vehicle = row.get("vehicle")
+        return ([vehicle] if vehicle else []), []
+    if row.get("kind") == "service":
+        direct = [item for item in row.get("service_vehicles") or []
+                  if item.get("source") == "direct"]
+        vehicles = [item["vehicle"] for item in direct if item.get("vehicle")]
+        drivers = [item["driver"] for item in direct if item.get("driver")]
+        if not direct and row.get("driver"):
+            drivers.append(row["driver"])
+        return vehicles, drivers
+    vehicle = row.get("vehicle")
+    driver = row.get("driver")
+    return ([vehicle] if vehicle else []), ([driver] if driver else [])
+
+
+def _row_drivers(row):
+    return _row_occurrences(row)[1]
+
+
+def _warning_name(row):
+    return LORRY_NAMES.get(row.get("id"), row.get("name", ""))
+
+
 def _warnings(rows):
     vehicles, drivers = {}, {}
     for row in rows:
-        if row.get("vehicle"):
-            vehicles.setdefault(row["vehicle"]["id"], []).append(row)
-        d = row.get("driver") or {}
-        if d.get("id"):
-            drivers.setdefault((d.get("kind"), d["id"]), []).append(row)
-    for vals, text in ((vehicles, "المركبة مستخدمة في أكثر من صف."), (drivers, "السائق مستخدم في أكثر من صف.")):
-        for group in vals.values():
-            if len(group) > 1:
-                for row in group: row["warnings"].append(text)
-    for row in rows:
-        if (row.get("vehicle") or {}).get("status") == "disabled":
-            row["warnings"].append("المركبة معطلة.")
+        row_vehicles, row_drivers = _row_occurrences(row)
+        for vehicle in row_vehicles:
+            vehicles.setdefault(vehicle["id"], {})[id(row)] = row
+            if vehicle.get("status") == "disabled" or vehicle.get("archived"):
+                text = "المركبة معطلة أو مؤرشفة." if row.get("kind") == "post" else "المركبة معطلة."
+                if text not in row["warnings"]:
+                    row["warnings"].append(text)
+        for driver in row_drivers:
+            if driver.get("id"):
+                drivers.setdefault((driver.get("kind"), driver["id"]), {})[id(row)] = row
 
-
-def _post_warnings(rows):
-    """تحذيرات الارتكازات مستقلة عن تحذيرات صفوف التوصيل."""
-    vehicles = {}
-    for row in rows:
-        vehicle = row.get("vehicle") or {}
-        if vehicle.get("id"):
-            vehicles.setdefault(vehicle["id"], []).append(row)
-        if vehicle.get("status") == "disabled" or vehicle.get("archived"):
-            row["warnings"].append("المركبة معطلة أو مؤرشفة.")
-    for group in vehicles.values():
-        if len(group) > 1:
+    for values, noun in ((vehicles, "المركبة"), (drivers, "السائق")):
+        for grouped in values.values():
+            group = list(grouped.values())
+            if len(group) < 2:
+                continue
             for row in group:
-                row["warnings"].append("المركبة مستخدمة في أكثر من ارتكاز.")
+                others = list(dict.fromkeys(_warning_name(other) for other in group if other is not row))
+                adjective = "مستخدمة" if noun == "المركبة" else "مستخدم"
+                row["warnings"].append(
+                    f"{noun} {adjective} أيضًا في: {'، '.join(others)}")
 
 
 def scope_days(data, day):
-    """أيام نطاق قراءة صفحة الحملة (اليوم + آخر يوم سابق ليه حملة) جوه بيانات
-    محمّلة بنطاق أوسع، عشان توكن المراجعة يطابق اللي رجع من GET."""
-    previous = [d for d in (data.get("day_campaign") or {}) if d < day]
-    return {day, *([max(previous)] if previous else [])}
+    """أيام نطاق قراءة صفحة الحملة (اليوم + أيام نافذة الوراثة السابقة اللي ليها
+    حملة) جوه بيانات محمّلة بنطاق أوسع، عشان توكن المراجعة يطابق اللي رجع من GET."""
+    return {day, *_chain(data, day)}

@@ -10,14 +10,13 @@ bp = Blueprint("campaign", __name__)
 
 def _scope(day):
     def scope(view):
-        previous = [d for d in view.index.days_with("day_campaign", end=day) if d < day]
-        return {day, *(previous[-1:] if previous else [])}
+        return {day, *campaign.inheritance_days(view.index.days_with("day_campaign", end=day), day)}
     return scope
 
 
 def _payload(data, day, days=None):
     value = campaign.build_campaign(data, day)
-    # البيانات المحمّلة بالفعل محصورة في نطاق اليوم وآخر يوم سابق ذي بيانات.
+    # البيانات المحمّلة بالفعل محصورة في اليوم وأيام نافذة الوراثة السابقة ذات الحملة.
     value["revision"] = revision(data, days)
     return value
 
@@ -161,7 +160,7 @@ def export_campaign(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     buf = build_docx(campaign.build_campaign(load_data(_scope(day)), day))
-    return send_file(buf, as_attachment=True, download_name=f"يومية المركبات {day}.docx", mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    return send_file(buf, as_attachment=True, download_name=f"يومية الحملة {day}.docx", mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 def _group_scope(day):

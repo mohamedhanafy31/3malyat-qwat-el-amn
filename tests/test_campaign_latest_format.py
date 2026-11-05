@@ -37,7 +37,7 @@ def test_latest_format_shape_and_mapping():
             assert tc.width.twips == sum(GRID_WIDTHS[column:column + tc.grid_span])
             column += tc.grid_span
     assert table._tbl.tblPr.find(qn('w:tblCellMar')) is not None
-    assert table.rows[0].cells[0].text == "يومية المركبات اليوم الثلاثاء 29/9/2026م"
+    assert table.rows[0].cells[0].text == "يومية الحملة اليوم الثلاثاء 29/9/2026م"
     values = _text(doc)
     assert "10." in values and "3279ب13" in values and "ب15/5217" in values
     assert "مايك ايفكو" in values and "ـــــ" not in values

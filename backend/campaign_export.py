@@ -1,4 +1,4 @@
-"""تصدير «يومية المركبات» بصيغة الأرشيف الأحدث."""
+"""تصدير «يومية الحملة» بصيغة الأرشيف الأحدث."""
 import re
 from datetime import date
 from io import BytesIO
@@ -246,7 +246,7 @@ def build_docx(campaign):
     _set_grid(table)
     _set_borders(table)
     d = date.fromisoformat(campaign["date"])
-    title = f"يومية المركبات اليوم {WEEKDAY_BY_INDEX[d.weekday()]} {d.day}/{d.month}/{d.year}م"
+    title = f"يومية الحملة اليوم {WEEKDAY_BY_INDEX[d.weekday()]} {d.day}/{d.month}/{d.year}م"
     _merge_row(table.add_row(), [15], [title], size=TITLE_PT)
     _merge_row(table.add_row(), CHECKPOINT_SPANS,
                ["م", "مركبات الإرتكازات", "السائق", "رقم المركبة", "نوع المركبة"], size=HEADING_PT)

@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 from docx import Document
 
 
@@ -271,7 +273,7 @@ def test_campaign_warnings_are_row_scoped_and_flattened(client):
     client.put(f"/api/campaign/{day}/lorry/LOR-2", json={"vehicle_id": vehicle["id"], "driver": {"kind": "personnel", "id": person["id"]}})
     view = _campaign(client, day)
     texts = [item["text"] for item in view["warnings"]]
-    assert any("أكثر من صف" in text for text in texts)
+    assert "السائق مستخدم أيضًا في: القنصلية" in texts
     assert "المركبة معطلة." in texts
     assert any("ليس على القوة" in text for text in texts)
 
@@ -281,6 +283,8 @@ def test_campaign_export_and_stale_revision(client):
     view = client.get(f"/api/campaign/{day}").get_json()
     response = client.get(f"/api/campaign/{day}/export.docx")
     assert response.status_code == 200
+    encoded_name = response.headers["Content-Disposition"].split("filename*=UTF-8''", 1)[1]
+    assert unquote(encoded_name) == "يومية الحملة 2026-07-10.docx"
     doc = Document(__import__("io").BytesIO(response.data))
     text = " ".join(p.text for p in doc.paragraphs) + " " + " ".join(c.text for t in doc.tables for r in t.rows for c in r.cells)
     assert "خطــــــــــوط سيــــــــــر توصيــــــــــل الخدمــــــــــات" in text
@@ -394,7 +398,7 @@ def test_campaign_posts_warnings_plate_register_and_vehicle_reference(client):
     for ident in ids:
         assert client.put(f"/api/campaign/{day}/post/{ident}", json={"vehicle_id": vehicle["id"]}).status_code == 200
     view = _campaign(client, day)
-    assert any("أكثر من ارتكاز" in text for text in [w["text"] for w in view["warnings"]])
+    assert "المركبة مستخدمة أيضًا في: ب" in [w["text"] for w in view["warnings"]]
     assert any("معطلة" in text for text in [w["text"] for w in view["warnings"]])
     assert client.delete(f"/api/vehicles/{vehicle['id']}").status_code == 409
     assert client.put(f"/api/campaign/{day}/plates", json={"rows": [["ب13/9416", "ب13/9417"]]}).status_code == 200
