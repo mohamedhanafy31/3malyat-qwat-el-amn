@@ -14073,7 +14073,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 3868,
+    "CHG": 3869,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -93918,6 +93918,30 @@
       },
       "reason": "يوم 2026-11-06",
       "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3869",
+      "ts": "2026-11-04T22:58:14",
+      "entity": "officer_state",
+      "entity_id": "OFF-015",
+      "action": "update",
+      "day": null,
+      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-04: إلغاء إضافته للعمل بالإدارة",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الشئون الادارية",
+        "admin_work": true
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الشئون الادارية"
+      },
+      "reason": "يوم 2026-11-04",
+      "edited_by": "adminstrator"
     }
   ],
   "missions": [],
