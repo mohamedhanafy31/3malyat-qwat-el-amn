@@ -162,3 +162,12 @@ def test_board_file_drops_clinic_and_search_members_and_web_hides_search_only(cl
     assert label(clinic) not in after and label(search) not in after
     web = str(client.get(f"/api/board/{DAY}").get_json())
     assert clinic in web and search not in web              # الطبي كما هو، والبحث مخفي من الشاشة
+
+
+def test_conscripts_without_a_class_print_the_full_word():
+    from backend.board_export import _compact_manning, _service_desc
+    base = {"officers": [], "personnel": [], "source_manning": ""}
+    assert _compact_manning({**base, "conscripts": [], "conscript_count": 5}) == "5 مجند"
+    assert _compact_manning({**base, "conscripts": [{"class": "", "count": 5}]}) == "5 مجند"
+    assert _compact_manning({**base, "conscripts": [{"class": "وحدة", "count": 5}]}) == "5وحدة"
+    assert "5 مجند" in _service_desc({**base, "conscripts": [], "conscript_count": 5})

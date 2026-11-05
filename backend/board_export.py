@@ -274,7 +274,7 @@ def _service_desc(row):
         cls = c.get("class") or "مجند"
         bits.append(f"{cls} ×{c['count']}" if c.get("count") else cls)
     if row.get("conscript_count"):
-        bits.append(f"مج ×{row['conscript_count']}")
+        bits.append(_conscript_strength(row["conscript_count"]))
     for extra in ("weapon", "time", "party", "note"):
         if row.get(extra):
             bits.append(row[extra])
@@ -327,6 +327,11 @@ def _source_strength_is_current(row, source):
     return True
 
 
+def _conscript_strength(count, cls=""):
+    """المجندين من غير فئة محددة بيتكتبوا «5 مجند» مش «5مج»."""
+    return f"{count}{cls}" if cls else f"{count} مجند"
+
+
 def _compact_manning(row):
     """Word's emergency column: personnel strength, without service details."""
     source = (row.get("source_manning") or "").strip()
@@ -341,11 +346,11 @@ def _compact_manning(row):
         count = len(row.get("personnel") or [])
         bits.append(f"{count}فرد" if count > 1 else "فرد")
     for conscript in row.get("conscripts") or []:
-        cls = conscript.get("class") or "مج"
+        cls = conscript.get("class") or ""
         count = conscript.get("count")
-        bits.append(f"{count}{cls}" if count else cls)
+        bits.append(_conscript_strength(count, cls) if count else cls or "مجند")
     if row.get("conscript_count") and not row.get("conscripts"):
-        bits.append(f"{row['conscript_count']}مج")
+        bits.append(_conscript_strength(row["conscript_count"]))
     return " + ".join(filter(None, bits))
 
 
@@ -363,10 +368,10 @@ def _manning_pieces(row):
         count = len(row.get("personnel") or [])
         rest.append(f"{count}فرد" if count > 1 else "فرد")
     for conscript in row.get("conscripts") or []:
-        cls = conscript.get("class") or "مج"
-        rest.append(f"{conscript['count']}{cls}" if conscript.get("count") else cls)
+        cls = conscript.get("class") or ""
+        rest.append(_conscript_strength(conscript["count"], cls) if conscript.get("count") else cls or "مجند")
     if row.get("conscript_count") and not row.get("conscripts"):
-        rest.append(f"{row['conscript_count']}مج")
+        rest.append(_conscript_strength(row["conscript_count"]))
     first = " + ".join(filter(None, [officers[0], *rest]))
     return [first, *officers[1:]]
 
