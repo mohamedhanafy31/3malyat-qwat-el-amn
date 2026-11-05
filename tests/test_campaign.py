@@ -1,3 +1,5 @@
+from urllib.parse import unquote
+
 from docx import Document
 
 
@@ -42,12 +44,36 @@ def test_campaign_fixed_rows_assignment_and_attach(client):
     assert client.put(f"/api/campaign/{day}/lorry/LOR-3", json=payload).status_code == 200
     assert client.post(f"/api/campaign/{day}/lorry/LOR-3/service", json={"assignment_id": assignment["id"]}).status_code == 200
     view = client.get(f"/api/campaign/{day}").get_json()
+    assert view["delivery_rows"]
+    assert all(row.get("band") and row.get("band_label") for row in view["delivery_rows"])
     lorry = next(x for x in view["lorries"] if x["id"] == "LOR-3")
     assert lorry["name"] == "فيصل + تفتيش فيصل"
     assert not any(x["id"] == assignment["id"] for x in view["services"])
     assert client.delete(f"/api/campaign/{day}/lorry/LOR-3/service", json={"assignment_id": assignment["id"]}).status_code == 200
     assert any(x["id"] == assignment["id"] for x in client.get(f"/api/campaign/{day}").get_json()["services"])
     assert client.delete(f"/api/conscripts/{conscript['id']}").status_code == 200
+
+
+def test_campaign_shared_order_bands_vehicle_rows_and_daily_tail():
+    from backend.campaign import order_campaign_rows
+
+    vehicle = lambda ident, kind: {"id": ident, "type": kind}
+    rows = order_campaign_rows([
+        {"id": "P", "kind": "service", "name": "بيك اب", "vehicle": vehicle("VP", "بيك اب")},
+        {"id": "L0", "kind": "lorry", "name": "لوري بلا مركبة", "vehicle": None, "_lorry": True},
+        {"id": "M", "kind": "service", "name": "بلا مركبة", "vehicle": None},
+        {"id": "B", "kind": "service", "name": "أتوبيس", "vehicle": vehicle("VB", "أتوبيس")},
+        {"id": "L", "kind": "service", "name": "خدمة لوري", "vehicle": vehicle("VL", "لوري")},
+    ], [
+        {"id": "A", "kind": "daily", "name": "ارتكاز الإسعاف", "vehicle": vehicle("VA", "لوري")},
+        {"id": "D", "kind": "daily", "name": "سائق بورتوفيق", "vehicle": None},
+        {"id": "S", "kind": "daily", "name": "قول أمني", "vehicle": vehicle("VS", "لوري")},
+    ])
+
+    assert [row["id"] for row in rows] == ["L0", "L", "B", "P", "M", "S", "A", "D"]
+    assert [row["band"] for row in rows] == [
+        "lorry", "lorry", "bus", "pickup", "missing", "security", "ambulance", "driver_only"]
+    assert rows[5]["break_before"] and rows[6]["break_before"] and rows[7]["break_before"]
 
 
 def test_campaign_service_reads_legacy_vehicle_and_saves_split_people(client):
@@ -85,6 +111,79 @@ def test_campaign_service_vehicle_validation_rejects_duplicates_and_foreign_peop
     assert duplicate.status_code == 400 and "تكرار" in duplicate.get_json()["error"]
     foreign_response = client.put(base, json={"vehicles": [{"vehicle_id": vehicle["id"], "personnel_ids": [foreign["id"]]}]})
     assert foreign_response.status_code == 400 and "الخدمة" in foreign_response.get_json()["error"]
+
+
+def test_campaign_single_service_inline_edits_keep_driver_people_and_export(client):
+    day = "2026-07-10"
+    first = _person(client, "فرد توزيع أول", "9951")
+    second = _person(client, "فرد توزيع ثان", "9952")
+    driver = _person(client, "سائق العنصر القديم", "9953")
+    replacement = _person(client, "سائق الصف الجديد", "9954")
+    assignment = _assignment(client, day, "خدمة مفردة inline")
+    assert client.patch(f"/api/assignments/{day}/{assignment['id']}", json={
+        "personnel_ids": [first["id"], second["id"]]}).status_code == 200
+    old_vehicle = _vehicle(client, plate_number="6108")
+    new_vehicle = _vehicle(client, plate_number="6109")
+    url = f"/api/campaign/{day}/service/{assignment['id']}"
+
+    seeded = client.put(url, json={"vehicles": [{
+        "vehicle_id": old_vehicle["id"],
+        "personnel_ids": [first["id"]],
+        "officer_ids": [],
+        "driver": {"kind": "personnel", "id": driver["id"]},
+    }]})
+    assert seeded.status_code == 200, seeded.get_json()
+
+    changed_driver = client.put(url, json={
+        "driver": {"kind": "personnel", "id": replacement["id"]}})
+    assert changed_driver.status_code == 200, changed_driver.get_json()
+    row = next(item for item in changed_driver.get_json()["service_rows"]
+               if item["id"] == assignment["id"])
+    assert row["driver"]["id"] == replacement["id"]
+    assert row["vehicles"][0]["driver"]["id"] == replacement["id"]
+    assert row["service_vehicles"][0]["driver"]["id"] == replacement["id"]
+
+    changed_vehicle = client.put(url, json={"vehicle_id": new_vehicle["id"]})
+    assert changed_vehicle.status_code == 200, changed_vehicle.get_json()
+    row = next(item for item in changed_vehicle.get_json()["service_rows"]
+               if item["id"] == assignment["id"])
+    assert row["vehicle"]["id"] == new_vehicle["id"]
+    assert row["driver"]["id"] == replacement["id"]
+    assert row["vehicles"][0]["personnel_ids"] == [first["id"]]
+    assert row["vehicles"][0]["driver"]["id"] == replacement["id"]
+
+    doc = Document(__import__("io").BytesIO(client.get(
+        f"/api/campaign/{day}/export.docx").data))
+    text = " ".join(cell.text for table in doc.tables for doc_row in table.rows for cell in doc_row.cells)
+    assert all(value in text for value in ("خدمة مفردة inline", "سائق الصف الجديد", "6109"))
+
+    cleared = client.put(url, json={"vehicle_id": ""})
+    assert cleared.status_code == 200, cleared.get_json()
+    row = next(item for item in cleared.get_json()["service_rows"]
+               if item["id"] == assignment["id"])
+    assert row["vehicle"] is None and row["driver"]["id"] == replacement["id"]
+    assert row["status"] == "partial" and row["missing"] == ["vehicle"]
+
+
+def test_campaign_multi_vehicle_service_rejects_inline_driver_or_vehicle(client):
+    day = "2026-07-10"
+    driver = _person(client, "سائق متعدد", "9955")
+    assignment = _assignment(client, day, "خدمة متعددة محمية")
+    first = _vehicle(client, plate_number="6110")
+    second = _vehicle(client, plate_number="6111")
+    replacement = _vehicle(client, plate_number="6112")
+    url = f"/api/campaign/{day}/service/{assignment['id']}"
+    seeded = client.put(url, json={"vehicles": [
+        {"vehicle_id": first["id"]}, {"vehicle_id": second["id"]}]})
+    assert seeded.status_code == 200
+
+    vehicle_response = client.put(url, json={"vehicle_id": replacement["id"]})
+    driver_response = client.put(url, json={
+        "driver": {"kind": "personnel", "id": driver["id"]}})
+    assert vehicle_response.status_code == driver_response.status_code == 409
+    row = next(item for item in _campaign(client, day)["service_rows"]
+               if item["id"] == assignment["id"])
+    assert [item["vehicle_id"] for item in row["vehicles"]] == [first["id"], second["id"]]
 
 
 def test_campaign_service_resolver_returns_direct_and_lorry_plates():
@@ -271,7 +370,7 @@ def test_campaign_warnings_are_row_scoped_and_flattened(client):
     client.put(f"/api/campaign/{day}/lorry/LOR-2", json={"vehicle_id": vehicle["id"], "driver": {"kind": "personnel", "id": person["id"]}})
     view = _campaign(client, day)
     texts = [item["text"] for item in view["warnings"]]
-    assert any("أكثر من صف" in text for text in texts)
+    assert "السائق مستخدم أيضًا في: القنصلية" in texts
     assert "المركبة معطلة." in texts
     assert any("ليس على القوة" in text for text in texts)
 
@@ -281,6 +380,8 @@ def test_campaign_export_and_stale_revision(client):
     view = client.get(f"/api/campaign/{day}").get_json()
     response = client.get(f"/api/campaign/{day}/export.docx")
     assert response.status_code == 200
+    encoded_name = response.headers["Content-Disposition"].split("filename*=UTF-8''", 1)[1]
+    assert unquote(encoded_name) == "يومية الحملة 2026-07-10.docx"
     doc = Document(__import__("io").BytesIO(response.data))
     text = " ".join(p.text for p in doc.paragraphs) + " " + " ".join(c.text for t in doc.tables for r in t.rows for c in r.cells)
     assert "خطــــــــــوط سيــــــــــر توصيــــــــــل الخدمــــــــــات" in text
@@ -394,7 +495,7 @@ def test_campaign_posts_warnings_plate_register_and_vehicle_reference(client):
     for ident in ids:
         assert client.put(f"/api/campaign/{day}/post/{ident}", json={"vehicle_id": vehicle["id"]}).status_code == 200
     view = _campaign(client, day)
-    assert any("أكثر من ارتكاز" in text for text in [w["text"] for w in view["warnings"]])
+    assert "المركبة مستخدمة أيضًا في: ب" in [w["text"] for w in view["warnings"]]
     assert any("معطلة" in text for text in [w["text"] for w in view["warnings"]])
     assert client.delete(f"/api/vehicles/{vehicle['id']}").status_code == 409
     assert client.put(f"/api/campaign/{day}/plates", json={"rows": [["ب13/9416", "ب13/9417"]]}).status_code == 200

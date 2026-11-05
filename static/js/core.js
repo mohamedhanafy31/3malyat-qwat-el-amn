@@ -1658,6 +1658,16 @@ function _cbScheduleRender(sel, query) {
   }, 100));
 }
 
+function _cbFlushRender(sel) {
+  const pending = _cbTimers.get(sel);
+  if (!pending) return;
+  clearTimeout(pending);
+  _cbTimers.delete(sel);
+  if (_cbSel !== sel) return;
+  _cbRender(sel._comboInput?.value || "");
+  _cbPosition();
+}
+
 const _cbLabel = sel => sel.options[sel.selectedIndex]?.textContent ?? "";
 
 /* ---------- الاختيار المتعدد ----------
@@ -1890,9 +1900,9 @@ function _upgradeMulti(sel) {
   });
   inp.addEventListener("keydown", e => {
     const open = _cbSel === sel;
-    if (e.key === "ArrowDown") { e.preventDefault(); open ? _cbMove(1) : _cbOpen(sel) }
-    else if (e.key === "ArrowUp") { e.preventDefault(); open ? _cbMove(-1) : _cbOpen(sel) }
-    else if (e.key === "Enter" && open) { e.preventDefault(); _cbPick(_cbIdx) }
+    if (e.key === "ArrowDown") { e.preventDefault(); if (open) { _cbFlushRender(sel); _cbMove(1) } else _cbOpen(sel) }
+    else if (e.key === "ArrowUp") { e.preventDefault(); if (open) { _cbFlushRender(sel); _cbMove(-1) } else _cbOpen(sel) }
+    else if (e.key === "Enter" && open) { e.preventDefault(); _cbFlushRender(sel); _cbPick(_cbIdx) }
     else if (e.key === "Escape" && open) { e.stopPropagation(); _cbClose() }
     else if (e.key === "Tab" && open) { _cbClose() }
     // Backspace على حقل فاضي بيشيل آخر شارة — اختصار متوقع في صناديق الوسوم
@@ -1978,13 +1988,14 @@ function upgradeSelects(root) {
     });
     inp.addEventListener("keydown", e => {
       const open = _cbSel === sel;
-      if (e.key === "ArrowDown") { e.preventDefault(); open ? _cbMove(1) : _cbOpen(sel) }
-      else if (e.key === "ArrowUp") { e.preventDefault(); open ? _cbMove(-1) : _cbOpen(sel) }
-      else if (e.key === "Home" && open) { e.preventDefault(); _cbIdx = 0; _cbMove(0) }
-      else if (e.key === "End" && open) { e.preventDefault(); _cbIdx = _cbOpts.length - 1; _cbMove(0) }
+      if (e.key === "ArrowDown") { e.preventDefault(); if (open) { _cbFlushRender(sel); _cbMove(1) } else _cbOpen(sel) }
+      else if (e.key === "ArrowUp") { e.preventDefault(); if (open) { _cbFlushRender(sel); _cbMove(-1) } else _cbOpen(sel) }
+      else if (e.key === "Home" && open) { e.preventDefault(); _cbFlushRender(sel); _cbIdx = 0; _cbMove(0) }
+      else if (e.key === "End" && open) { e.preventDefault(); _cbFlushRender(sel); _cbIdx = _cbOpts.length - 1; _cbMove(0) }
       else if (e.key === "Enter") {
         if (open) {
           e.preventDefault();
+          _cbFlushRender(sel);
           if (_cbOpts.length) _cbPick(_cbIdx);
           else if (allowCustom) { _cbClose(); sel.dispatchEvent(new Event("change", {bubbles: true})) }
         }

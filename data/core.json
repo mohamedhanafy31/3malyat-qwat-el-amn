@@ -14073,7 +14073,11 @@
   ],
   "id_seq": {
     "CNT": 54,
+<<<<<<< HEAD
     "CHG": 3873,
+=======
+    "CHG": 3869,
+>>>>>>> 7c872af638efece6bad476f380a440900efe6d54
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -93921,16 +93925,26 @@
     },
     {
       "id": "CHG-3869",
+<<<<<<< HEAD
       "ts": "2026-11-05T22:17:23",
       "entity": "officer_state",
       "entity_id": "OFF-012",
       "action": "update",
       "day": null,
       "text": "حمدي احمد جاد الكريم احمد في يومية 2026-11-06: إضافته للعمل بالإدارة",
+=======
+      "ts": "2026-11-04T22:58:14",
+      "entity": "officer_state",
+      "entity_id": "OFF-015",
+      "action": "update",
+      "day": null,
+      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-04: إلغاء إضافته للعمل بالإدارة",
+>>>>>>> 7c872af638efece6bad476f380a440900efe6d54
       "before": {
         "taqseera": false,
         "status": "",
         "note": "",
+<<<<<<< HEAD
         "extra": "متابعة اعمال التعيينات والفرن والعلاقات"
       },
       "after": {
@@ -94072,6 +94086,19 @@
       },
       "reason": "",
       "edited_by": "Mohamed Hanafy"
+=======
+        "extra": "متابعة اعمال الشئون الادارية",
+        "admin_work": true
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الشئون الادارية"
+      },
+      "reason": "يوم 2026-11-04",
+      "edited_by": "adminstrator"
+>>>>>>> 7c872af638efece6bad476f380a440900efe6d54
     }
   ],
   "missions": [],
