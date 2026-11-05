@@ -73,6 +73,43 @@ def test_daily_driver_without_vehicle_spans_the_row():
     assert spans == [[1, 3, 6, 3, 2], [1, 5, 9]]
 
 
+def test_export_orders_delivery_then_security_ambulance_and_driver_only():
+    lorry_service = {"id": "AS-L", "name": "خدمة لوري", "driver": None,
+                     "vehicle": {"id": "V-L", "plate": "ب12/1001", "type": "لوري"}}
+    bus_service = {"id": "AS-B", "name": "خدمة أتوبيس", "driver": None,
+                   "vehicle": {"id": "V-B", "plate": "ب12/1002", "type": "أتوبيس"}}
+    pickup_service = {"id": "AS-P", "name": "خدمة بيك اب", "driver": None,
+                      "vehicle": {"id": "V-P", "plate": "ب12/1003", "type": "بيك اب"}}
+    missing_service = {"id": "AS-M", "name": "خدمة بلا مركبة", "driver": None, "vehicle": None}
+    security = {"id": "DAY-S", "name": "قول أمني بلوري", "driver": None,
+                "vehicle": {"id": "V-S", "plate": "ب12/1004", "type": "لوري"}}
+    ambulance = {"id": "DAY-A", "name": "ارتكاز الإسعاف", "driver": None,
+                 "vehicle": {"id": "V-A", "plate": "ب12/1005", "type": "أتوبيس"}}
+    portofik = {"id": "DAY-P", "name": "سائق بورتوفيق",
+                "driver": {"kind": "text", "name": "سائق الميناء"}, "vehicle": None}
+    payload = _payload(
+        lorries=[{"id": "LOR-1", "name": "لوري أساسي", "driver": None, "vehicle": None}],
+        services=[pickup_service, bus_service, missing_service, lorry_service],
+        daily=[ambulance, portofik, security],
+    )
+
+    assert [row[1] for row in _delivery_rows(payload)] == [
+        "لوري أساسي", "خدمة لوري", "خدمة أتوبيس", "خدمة بيك اب", "خدمة بلا مركبة",
+        "قول أمني بلوري", "ارتكاز الإسعاف", "سائق بورتوفيق",
+    ]
+
+
+def test_export_keeps_every_multi_vehicle_service_line_in_its_vehicle_band():
+    service = {"id": "AS-MULTI", "kind": "service", "name": "خدمة متعددة", "driver": None,
+               "service_vehicles": [
+                   {"vehicle": {"id": "V-B", "plate": "ب12/2001", "type": "أتوبيس"}},
+                   {"vehicle": {"id": "V-L", "plate": "ب12/2002", "type": "لوري"}},
+               ]}
+    rows = _delivery_rows(_payload(services=[service]))
+    assert [(row[1], row[3]) for row in rows] == [
+        ("خدمة متعددة", "ب12/2002"), ("خدمة متعددة", "ب12/2001")]
+
+
 def _delivery_rows(payload):
     doc = Document(BytesIO(build_docx(payload).read()))
     rows = doc.tables[0].rows

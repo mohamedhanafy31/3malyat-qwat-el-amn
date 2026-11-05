@@ -73,6 +73,42 @@ def test_inheritance_is_per_row_and_per_field_latest_value_wins(client):
     assert _row(_view(client, LATER), "lorries", "LOR-2")["vehicle"]["id"] == vehicles[1]["id"]
 
 
+def test_campaign_exposes_source_day_per_visible_inherited_field(client):
+    vehicles, driver, post_id = _seed(client)
+    client.put(f"/api/campaign/{PARTIAL}/lorry/LOR-1", json={"vehicle_id": vehicles[3]["id"]})
+    daily = client.post(f"/api/campaign/{FULL}/daily-rows", json={"name": "قول مصدر"}).get_json()
+    daily_id = next(row["id"] for row in daily["daily"] if row["name"] == "قول مصدر")
+    client.put(f"/api/campaign/{FULL}/daily/{daily_id}", json={
+        "vehicle_id": vehicles[1]["id"], "driver": {"kind": "personnel", "id": driver["id"]}})
+
+    carried = client.post(f"/api/assignments/{LATER}", json={
+        "name": "خدمة محمولة بمصدر", "kind": "خارجية", "section": "الخدمات الطارئة",
+    }).get_json()
+    client.post(f"/api/campaign/{LATER}/lorry/LOR-1/service", json={
+        "assignment_id": carried["id"]})
+
+    view = _view(client, LATER)
+    lorry = _row(view, "lorries", "LOR-1")
+    assert lorry["inherited_from"] == {"driver": FULL, "vehicle": PARTIAL}
+    assert _row(view, "lorries", "LOR-2")["inherited_from"] == {"vehicle": FULL}
+    assert _row(view, "posts", post_id)["inherited_from"] == {"driver": FULL, "vehicle": FULL}
+    assert _row(view, "daily", daily_id)["inherited_from"] == {"driver": FULL, "vehicle": FULL}
+    assert view["plates"]["inherited_from"] == {"plates": FULL}
+    service = _row(view, "service_rows", carried["id"])
+    assert service["inherited_from"] == {"driver": FULL, "vehicle": PARTIAL}
+
+
+def test_current_values_have_no_inherited_source_day(client):
+    vehicle = _vehicle(client, "5991")
+    driver = _person(client, "سائق اليوم الحالي", "973")
+    client.put(f"/api/campaign/{LATER}/lorry/LOR-1", json={
+        "vehicle_id": vehicle["id"], "driver": {"kind": "personnel", "id": driver["id"]}})
+    client.put(f"/api/campaign/{LATER}/plates", json={"rows": [["ب13/9001"]]})
+    view = _view(client, LATER)
+    assert _row(view, "lorries", "LOR-1")["inherited_from"] == {}
+    assert view["plates"]["inherited_from"] == {}
+
+
 def test_explicit_clear_stops_the_walk_back(client):
     vehicles, driver, post_id = _seed(client)
     client.put(f"/api/campaign/{PARTIAL}/lorry/LOR-1", json={"driver": None})

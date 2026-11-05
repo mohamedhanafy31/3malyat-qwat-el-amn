@@ -12,6 +12,11 @@
       <button class="mini day-jump" id="dayToday">اليوم</button>
     </div>
     <div class="tb-group" role="group" aria-label="حالة اليوم"><span id="dayLockBadge">{{ skeleton("status") }}</span></div>
+    <div class="tb-group campaign-auto-tools" role="group" aria-label="عرض وحفظ اليومية">
+      <label class="campaign-missing-toggle"><input type="checkbox" id="campaignMissingOnly"> الناقص بس</label>
+      <span class="campaign-save-status is-saved" id="campaignSaveStatus" role="status" aria-live="polite">تم الحفظ</span>
+      <button type="button" class="mini campaign-undo" id="campaignUndo" hidden>تراجع</button>
+    </div>
   </div>
   <div id="campaignWrap" data-campaign-scope="daily">{{ skeleton("cards", 3) }}</div>
 </div>

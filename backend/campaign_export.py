@@ -10,8 +10,8 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, Twips
 
-from . import fleet
 from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font, style_tables_bold_rtl
+from .campaign import order_campaign_rows
 from .labels import personnel_rank_abbr
 
 GRID_WIDTHS = [693, 514, 1416, 1268, 148, 1217, 342, 420, 1139,
@@ -265,17 +265,13 @@ def build_docx(campaign):
             delivery.append(service)
             continue
         for item in vehicles:
-            delivery.append({**service, "vehicle": item.get("vehicle"),
+            delivery.append({**service, "vehicle": item.get("vehicle"), "_order_vehicle": item.get("vehicle"),
                              "driver": item.get("driver") or service.get("driver")})
-    delivery += [{**item, "_daily": True} for item in campaign.get("daily") or []]
     delivery += [{**item, "_lorry": True} for item in campaign.get("appointments") or [] if _has_content(item)]
-    # ترتيب فئات المركبات: لوري (كل لوري ورا بعض) ← أتوبيس ← ميكروباص ← بيك اب/دوبل كبينة ← الباقي.
-    ordered = fleet.order_by_category(
-        delivery, lambda item: (item.get("vehicle") or {}).get("type"),
-        lambda item: (item.get("vehicle") or {}).get("id") or item.get("id"),
-        lorry_if_missing=lambda item: bool(item.get("_lorry")))
+    daily = [{**item, "_daily": True} for item in campaign.get("daily") or []]
+    ordered = order_campaign_rows(delivery, daily)
     previous_break = False
-    for number, (item, _category, _key, brk) in enumerate(ordered, 1):
+    for number, item in enumerate(ordered, 1):
         plate, kind = _delivery_plate(item), _delivery_type(item)
         # «سائق بورتوفيق» وأمثاله: سائق يومي من غير مركبة، اسمه على عرض الصف (زي الأرشيف).
         if item.get("_daily") and not plate and not kind and (item.get("driver") or {}).get("name"):
@@ -286,9 +282,9 @@ def build_docx(campaign):
         _merge_row(row, spans, values, size=DELIVERY_PT)
         if previous_break:
             _row_border(row, "top")
-        if brk:
+        if item.get("break_after"):
             _row_border(row, "bottom")
-        previous_break = brk
+        previous_break = bool(item.get("break_after"))
     for values in (campaign.get("plates") or {}).get("rows") or []:
         _plate_row(table, values)
     _sync_cell_widths(table)
