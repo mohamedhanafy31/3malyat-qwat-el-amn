@@ -656,7 +656,7 @@
         }
       ],
       "conscript_count": 2,
-      "weapon": "آلي",
+      "weapon": "آلي/كلبش",
       "time": "8ص",
       "party": "",
       "counts_in_summary": true,
@@ -722,7 +722,8 @@
       "taqseera": false,
       "status": "",
       "note": "",
-      "extra": "متابعة اعمال التعيينات والفرن والعلاقات"
+      "extra": "متابعة اعمال التعيينات والفرن والعلاقات",
+      "admin_work": true
     },
     "OFF-013": {
       "taqseera": false,
@@ -732,7 +733,7 @@
     }
   },
   "confirm": {
-    "at": "2026-11-05T20:23:25",
+    "at": "2026-11-05T22:23:51",
     "by": "Mohamed Hanafy",
     "rows": [
       {
@@ -1378,7 +1379,7 @@
         "id": "AS-0038",
         "section": "الخدمات الطارئة",
         "name": "مأمورية النيابة عسكرية",
-        "kind": "خارجية",
+        "kind": "داخلية",
         "shift": "صباحية",
         "officer_ids": [
           "OFF-015"
@@ -1391,7 +1392,7 @@
           }
         ],
         "conscript_count": 2,
-        "weapon": "آلي",
+        "weapon": "آلي/كلبش",
         "time": "8ص",
         "party": "",
         "counts_in_summary": true,
@@ -1929,9 +1930,44 @@
     "daily": {
       "CD-001": {
         "vehicle_id": "VEH-031"
+      },
+      "CD-005": {
+        "vehicle_id": "VEH-005"
       }
     },
-    "lorries": {},
-    "services": {}
+    "lorries": {
+      "LOR-2": {
+        "attached": [
+          {
+            "assignment_id": "AS-0032"
+          }
+        ]
+      },
+      "LOR-3": {
+        "attached": [
+          {
+            "assignment_id": "AS-0035"
+          }
+        ]
+      },
+      "LOR-4": {
+        "attached": [
+          {
+            "assignment_id": "AS-0034"
+          }
+        ]
+      }
+    },
+    "services": {},
+    "groups": [
+      {
+        "id": "CG-004",
+        "title": "توصيل مجندين مباريات 1م",
+        "members": [
+          "AS-0033",
+          "AS-0036"
+        ]
+      }
+    ]
   }
 }
