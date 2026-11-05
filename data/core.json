@@ -14073,7 +14073,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 3874,
+    "CHG": 3888,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -14091,7 +14091,7 @@
     "OSP": 6,
     "AFB": 51,
     "LVH": 16,
-    "CG": 4
+    "CG": 5
   },
   "counts_template": {
     "entries": [
@@ -94091,6 +94091,495 @@
         "changes": 1,
         "count": 30,
         "at": "2026-11-05T22:23:51",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-06"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3875",
+      "ts": "2026-11-06T00:40:58",
+      "entity": "campaign_group",
+      "entity_id": "CG-004",
+      "action": "delete",
+      "day": "2026-11-06",
+      "text": "فك تجميع «توصيل مجندين مباريات 1م»",
+      "before": {
+        "id": "CG-004",
+        "title": "توصيل مجندين مباريات 1م",
+        "members": [
+          "AS-0033",
+          "AS-0036"
+        ]
+      },
+      "after": null,
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3876",
+      "ts": "2026-11-06T00:41:27",
+      "entity": "campaign_group",
+      "entity_id": "CG-005",
+      "action": "create",
+      "day": "2026-11-06",
+      "text": "تجميع 3 خدمات في «توصيل مجندين مبارات 1م»",
+      "before": null,
+      "after": {
+        "id": "CG-005",
+        "title": "توصيل مجندين مبارات 1م",
+        "members": [
+          "AS-0036",
+          "AS-0033",
+          "AS-0037"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3877",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "duty_move",
+      "entity_id": "IND-100",
+      "action": "assign",
+      "day": "2026-11-06",
+      "text": "أمين شرطة ثان/ ابراهيم متولي علي احمد: كُلِّف بـ«ترحيلة جنائي خاصة صبح»",
+      "before": {
+        "name": "أمين شرطة ثان/ ابراهيم متولي علي احمد",
+        "services": []
+      },
+      "after": {
+        "name": "أمين شرطة ثان/ ابراهيم متولي علي احمد",
+        "services": [
+          "ترحيلة جنائي خاصة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3878",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "duty_move",
+      "entity_id": "IND-120",
+      "action": "assign",
+      "day": "2026-11-06",
+      "text": "أمين شرطة ممتاز أول/ ياسر فتحي صلاح عبدالغني: كُلِّف بـ«ارتكاز الحماية المدنية صبح»",
+      "before": {
+        "name": "أمين شرطة ممتاز أول/ ياسر فتحي صلاح عبدالغني",
+        "services": []
+      },
+      "after": {
+        "name": "أمين شرطة ممتاز أول/ ياسر فتحي صلاح عبدالغني",
+        "services": [
+          "ارتكاز الحماية المدنية صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3879",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "duty_move",
+      "entity_id": "IND-128",
+      "action": "assign",
+      "day": "2026-11-06",
+      "text": "أمين شرطة ثان/ ابراهيم السيد ابراهيم جعفر: كُلِّف بـ«ارتكاز المسجد الكبير صبح»",
+      "before": {
+        "name": "أمين شرطة ثان/ ابراهيم السيد ابراهيم جعفر",
+        "services": []
+      },
+      "after": {
+        "name": "أمين شرطة ثان/ ابراهيم السيد ابراهيم جعفر",
+        "services": [
+          "ارتكاز المسجد الكبير صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3880",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "duty_move",
+      "entity_id": "IND-177",
+      "action": "assign",
+      "day": "2026-11-06",
+      "text": "أمين شرطة ثان/ محمد عطية محمد عطية: كُلِّف بـ«حملة امن وطنى ليل»",
+      "before": {
+        "name": "أمين شرطة ثان/ محمد عطية محمد عطية",
+        "services": []
+      },
+      "after": {
+        "name": "أمين شرطة ثان/ محمد عطية محمد عطية",
+        "services": [
+          "حملة امن وطنى ليل"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3881",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "assignment",
+      "entity_id": "AS-0039",
+      "action": "create",
+      "day": "2026-11-06",
+      "text": "خدمة جديدة: «ترحيلة جنائي خاصة صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0039",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة جنائي خاصة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-100"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3882",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "assignment",
+      "entity_id": "AS-0032",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "«ش الجباليات X ترسانة  السويس صبح» — اسم الخدمة: «ش الجباليات * ترسانة  السويس» ← «ش الجباليات X ترسانة  السويس»",
+      "before": {
+        "id": "AS-0032",
+        "section": "الخدمات الطارئة",
+        "name": "ش الجباليات * ترسانة  السويس",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "8ص",
+        "party": "ملعب ش الجباليات",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 1
+      },
+      "after": {
+        "id": "AS-0032",
+        "section": "الخدمات الطارئة",
+        "name": "ش الجباليات X ترسانة  السويس",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "8ص",
+        "party": "ملعب ش الجباليات",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 1
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3883",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "assignment",
+      "entity_id": "AS-0033",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "«ش الجباليات X ش  المثلث صبح» — اسم الخدمة: «ش الجباليات * ش  المثلث» ← «ش الجباليات X ش  المثلث»",
+      "before": {
+        "id": "AS-0033",
+        "section": "الخدمات الطارئة",
+        "name": "ش الجباليات * ش  المثلث",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب ش الجباليات",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 4
+      },
+      "after": {
+        "id": "AS-0033",
+        "section": "الخدمات الطارئة",
+        "name": "ش الجباليات X ش  المثلث",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب ش الجباليات",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 4
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3884",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "assignment",
+      "entity_id": "AS-0034",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "«جاسكو X النوبة صبح» — اسم الخدمة: «جاسكو * النوبة» ← «جاسكو X النوبة»",
+      "before": {
+        "id": "AS-0034",
+        "section": "الخدمات الطارئة",
+        "name": "جاسكو * النوبة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "8ص",
+        "party": "ملعب ش السلام",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 2
+      },
+      "after": {
+        "id": "AS-0034",
+        "section": "الخدمات الطارئة",
+        "name": "جاسكو X النوبة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "8ص",
+        "party": "ملعب ش السلام",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 2
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3885",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "assignment",
+      "entity_id": "AS-0035",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "«ش فيصل X ش السلام صبح» — اسم الخدمة: «ش فيصل * ش السلام» ← «ش فيصل X ش السلام»",
+      "before": {
+        "id": "AS-0035",
+        "section": "الخدمات الطارئة",
+        "name": "ش فيصل * ش السلام",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "8ص",
+        "party": "ملعب  النوبة",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 3
+      },
+      "after": {
+        "id": "AS-0035",
+        "section": "الخدمات الطارئة",
+        "name": "ش فيصل X ش السلام",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "8ص",
+        "party": "ملعب  النوبة",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 3
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3886",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "assignment",
+      "entity_id": "AS-0036",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "«سماد السويس X كونكورد السلام صبح» — اسم الخدمة: «سماد السويس * كونكورد السلام» ← «سماد السويس X كونكورد السلام»",
+      "before": {
+        "id": "AS-0036",
+        "section": "الخدمات الطارئة",
+        "name": "سماد السويس * كونكورد السلام",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 5
+      },
+      "after": {
+        "id": "AS-0036",
+        "section": "الخدمات الطارئة",
+        "name": "سماد السويس X كونكورد السلام",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 5
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3887",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "assignment",
+      "entity_id": "AS-0037",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "«ش التوفيق X التجارة صبح» — اسم الخدمة: «ش التوفيق * التجارة» ← «ش التوفيق X التجارة»",
+      "before": {
+        "id": "AS-0037",
+        "section": "الخدمات الطارئة",
+        "name": "ش التوفيق * التجارة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب التوفيق",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 6
+      },
+      "after": {
+        "id": "AS-0037",
+        "section": "الخدمات الطارئة",
+        "name": "ش التوفيق X التجارة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب التوفيق",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 6
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3888",
+      "ts": "2026-11-06T00:44:33",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-06",
+      "action": "confirm",
+      "day": "2026-11-06",
+      "text": "تأكيد يومية 2026-11-06 — عدد التغييرات: 11",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 11,
+        "count": 31,
+        "at": "2026-11-06T00:44:33",
         "by": "Mohamed Hanafy",
         "day": "2026-11-06"
       },
