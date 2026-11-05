@@ -14061,7 +14061,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 3811,
+    "CHG": 3838,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -14072,14 +14072,14 @@
     "RS": 1,
     "OFF": 99,
     "IND": 275,
-    "VEH": 70,
+    "VEH": 71,
     "CON": 94,
     "CD": 8,
     "CP": 14,
     "OSP": 6,
     "AFB": 51,
     "LVH": 16,
-    "CG": 2
+    "CG": 3
   },
   "counts_template": {
     "entries": [
@@ -92054,6 +92054,1094 @@
       },
       "reason": "",
       "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3812",
+      "ts": "2026-11-04T22:13:27",
+      "entity": "assignment",
+      "entity_id": "AS-0011",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«تفتيش الجناين» — عدد المجندين: «5» ← «10»",
+      "before": {
+        "id": "AS-0011",
+        "section": "تفتيشات",
+        "name": "تفتيش الجناين",
+        "kind": "خارجية",
+        "shift": "",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "دونك",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0011",
+        "section": "تفتيشات",
+        "name": "تفتيش الجناين",
+        "kind": "خارجية",
+        "shift": "",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 10,
+        "weapon": "دونك",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3813",
+      "ts": "2026-11-04T22:13:27",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-05",
+      "action": "confirm",
+      "day": "2026-11-05",
+      "text": "تأكيد يومية 2026-11-05 — عدد التغييرات: 1",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 1,
+        "count": 23,
+        "at": "2026-11-04T22:13:27",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-05"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3814",
+      "ts": "2026-11-04T23:02:57",
+      "entity": "assignment",
+      "entity_id": "AS-0011",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«تفتيش الجناين صبح» — الفترة: «—» ← «صباحية»، الانتظام: «—» ← «10ص»، الجهة: «—» ← «الجناين»",
+      "before": {
+        "id": "AS-0011",
+        "section": "تفتيشات",
+        "name": "تفتيش الجناين",
+        "kind": "خارجية",
+        "shift": "",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 10,
+        "weapon": "دونك",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0011",
+        "section": "تفتيشات",
+        "name": "تفتيش الجناين",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 10,
+        "weapon": "دونك",
+        "time": "10ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3815",
+      "ts": "2026-11-04T23:02:57",
+      "entity": "assignment",
+      "entity_id": "AS-0012",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«التدخل السريع صبح» — التسليح: «آلي» ← «—»",
+      "before": {
+        "id": "AS-0012",
+        "section": "الخدمات أساسية",
+        "name": "التدخل السريع",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-028"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0012",
+        "section": "الخدمات أساسية",
+        "name": "التدخل السريع",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-028"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8ص",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3816",
+      "ts": "2026-11-04T23:02:57",
+      "entity": "assignment",
+      "entity_id": "AS-0013",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«التدخل السريع ليل» — التسليح: «آلي» ← «—»",
+      "before": {
+        "id": "AS-0013",
+        "section": "الخدمات أساسية",
+        "name": "التدخل السريع",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-016"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "آلي",
+        "time": "8م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0013",
+        "section": "الخدمات أساسية",
+        "name": "التدخل السريع",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-016"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3817",
+      "ts": "2026-11-04T23:02:57",
+      "entity": "assignment",
+      "entity_id": "AS-0014",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«القول المكبر ليل» — التسليح: «الي + فيدرال» ← «—»، الانتظام: «8م» ← «10م»",
+      "before": {
+        "id": "AS-0014",
+        "section": "الخدمات أساسية",
+        "name": "القول المكبر",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-011"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "الي + فيدرال",
+        "time": "8م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0014",
+        "section": "الخدمات أساسية",
+        "name": "القول المكبر",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-011"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "10م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3818",
+      "ts": "2026-11-04T23:02:57",
+      "entity": "assignment",
+      "entity_id": "AS-0022",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«البوابة الرئيسية حتي المدرجات صبح» — عدد المجندين: «10» ← «7»",
+      "before": {
+        "id": "AS-0022",
+        "section": "مباراة استاد السويس (البنك الأهلي*بورفؤاد) 2م",
+        "name": "البوابة الرئيسية حتي المدرجات",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-010"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "وحدة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 10,
+        "weapon": "فض",
+        "time": "2م",
+        "party": "استاد السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0022",
+        "section": "مباراة استاد السويس (البنك الأهلي*بورفؤاد) 2م",
+        "name": "البوابة الرئيسية حتي المدرجات",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-010"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "وحدة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 7,
+        "weapon": "فض",
+        "time": "2م",
+        "party": "استاد السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3819",
+      "ts": "2026-11-04T23:02:57",
+      "entity": "assignment",
+      "entity_id": "AS-0023",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«مدرجات الدرجة الاولى صبح» — عدد المجندين: «0» ← «15»",
+      "before": {
+        "id": "AS-0023",
+        "section": "مباراة استاد السويس (البنك الأهلي*بورفؤاد) 2م",
+        "name": "مدرجات الدرجة الاولى",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-013"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "وحدة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "رياضي",
+        "time": "2م",
+        "party": "استاد السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0023",
+        "section": "مباراة استاد السويس (البنك الأهلي*بورفؤاد) 2م",
+        "name": "مدرجات الدرجة الاولى",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-013"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "وحدة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 15,
+        "weapon": "رياضي",
+        "time": "2م",
+        "party": "استاد السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3820",
+      "ts": "2026-11-04T23:02:57",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-05",
+      "action": "confirm",
+      "day": "2026-11-05",
+      "text": "تأكيد يومية 2026-11-05 — عدد التغييرات: 6",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 6,
+        "count": 23,
+        "at": "2026-11-04T23:02:57",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-05"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3821",
+      "ts": "2026-11-04T23:03:44",
+      "entity": "regularity_inputs",
+      "entity_id": "2026-11-05",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-05",
+      "before": null,
+      "after": {
+        "officer_extra": {
+          "OFF-027": "المرور التعقبي من 5م حتي 10م"
+        },
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليدعصمت",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "احمد هلال السملاوي",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "خدمات التدخل السريع: مرافقة جماهير النادي المصري من كمين الـ109 في الذهاب العودة",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3822",
+      "ts": "2026-11-04T23:12:59",
+      "entity": "campaign_group",
+      "entity_id": "CG-003",
+      "action": "create",
+      "day": "2026-11-05",
+      "text": "تجميع 2 خدمات في «مجندين مباراة استاد السويس»",
+      "before": null,
+      "after": {
+        "id": "CG-003",
+        "title": "مجندين مباراة استاد السويس",
+        "members": [
+          "AS-0022",
+          "AS-0023"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3823",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "assignment",
+      "entity_id": "AS-0024",
+      "action": "create",
+      "day": "2026-11-05",
+      "text": "خدمة جديدة: «ترحيلة نيابة عسكرية صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0024",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة نيابة عسكرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 4
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3824",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "assignment",
+      "entity_id": "AS-0025",
+      "action": "create",
+      "day": "2026-11-05",
+      "text": "خدمة جديدة: «ترحيلة مستشفي صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0025",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة مستشفي",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "آلي",
+        "time": "9ص",
+        "party": "السويس",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 5
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3825",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "assignment",
+      "entity_id": "AS-0026",
+      "action": "create",
+      "day": "2026-11-05",
+      "text": "خدمة جديدة: «ابو قتادة صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0026",
+        "section": "الخدمات الطارئة",
+        "name": "ابو قتادة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "السويس",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 2
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3826",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "assignment",
+      "entity_id": "AS-0027",
+      "action": "create",
+      "day": "2026-11-05",
+      "text": "خدمة جديدة: «ترحيلة المطار ليل» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0027",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة المطار",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "8م",
+        "party": "عتاقة",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 7
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3827",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "assignment",
+      "entity_id": "AS-0028",
+      "action": "create",
+      "day": "2026-11-05",
+      "text": "خدمة جديدة: «ترحيلة طب شرعي صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0028",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة طب شرعي",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 1,
+        "weapon": "آلي",
+        "time": "10ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 6
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3828",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "assignment",
+      "entity_id": "AS-0029",
+      "action": "create",
+      "day": "2026-11-05",
+      "text": "خدمة جديدة: «الاسماعيلية صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0029",
+        "section": "الخدمات الطارئة",
+        "name": "الاسماعيلية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "السويس",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 3
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3829",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "assignment",
+      "entity_id": "AS-0016",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "«حملة امن وطنى ليل» — الانتظام: «12 ليل» ← «12ظ»",
+      "before": {
+        "id": "AS-0016",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "",
+        "time": "12 ليل",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0016",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "",
+        "time": "12ظ",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 1
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3830",
+      "ts": "2026-11-04T23:20:09",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-05",
+      "action": "confirm",
+      "day": "2026-11-05",
+      "text": "تأكيد يومية 2026-11-05 — عدد التغييرات: 7",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 7,
+        "count": 29,
+        "at": "2026-11-04T23:20:09",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-05"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3831",
+      "ts": "2026-11-05T00:31:08",
+      "entity": "regularity_inputs",
+      "entity_id": "2026-11-05",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-05",
+      "before": {
+        "officer_extra": {
+          "OFF-027": "المرور التعقبي من 5م حتي 10م"
+        },
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليدعصمت",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "احمد هلال السملاوي",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "خدمات التدخل السريع: مرافقة جماهير النادي المصري من كمين الـ109 في الذهاب العودة",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "after": {
+        "officer_extra": {
+          "OFF-027": "المرور التعقبي من 5م حتي 10م"
+        },
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليدعصمت",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "احمد هلال السملاوي",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "خدمات التدخل السريع: مرافقة جماهير المصري من كمين الـ109 في الذهاب والعودة",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3832",
+      "ts": "2026-11-05T00:32:25",
+      "entity": "regularity_inputs",
+      "entity_id": "2026-11-05",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-05",
+      "before": {
+        "officer_extra": {
+          "OFF-027": "المرور التعقبي من 5م حتي 10م"
+        },
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليدعصمت",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "احمد هلال السملاوي",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "خدمات التدخل السريع: مرافقة جماهير المصري من كمين الـ109 في الذهاب والعودة",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "after": {
+        "officer_extra": {
+          "OFF-027": "المرور التعقبي من 5م حتي 10م"
+        },
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليدعصمت",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "احمد هلال السملاوي",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3833",
+      "ts": "2026-11-05T06:07:30",
+      "entity": "regularity_inputs",
+      "entity_id": "2026-11-05",
+      "action": "update",
+      "day": "2026-11-05",
+      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-05",
+      "before": {
+        "officer_extra": {
+          "OFF-027": "المرور التعقبي من 5م حتي 10م"
+        },
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليدعصمت",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "احمد هلال السملاوي",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "after": {
+        "officer_extra": {
+          "OFF-027": "المرور التعقبي من 5م حتي 10م"
+        },
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليدعصمت",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "حسام رضوان",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3834",
+      "ts": "2026-11-05T06:23:32",
+      "entity": "officer_state",
+      "entity_id": "OFF-019",
+      "action": "update",
+      "day": null,
+      "text": "كريم عمرو محمد كمال علام في يومية 2026-11-05: خدمة البحث: نقطة تفتيش جنيفة فترة صباحية",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "research_service": "نقطة تفتيش جنيفة فترة صباحية"
+      },
+      "reason": "يوم 2026-11-05",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3835",
+      "ts": "2026-11-05T07:06:36",
+      "entity": "vehicle",
+      "entity_id": "VEH-071",
+      "action": "create",
+      "day": null,
+      "text": "إضافة مركبة «6597»",
+      "before": null,
+      "after": {
+        "id": "VEH-071",
+        "plate_series": "",
+        "plate_number": "6597",
+        "type": "بيك اب",
+        "model": "",
+        "status": "operational",
+        "fault": "",
+        "notes": "",
+        "archived": false,
+        "origin": "external",
+        "party": "المركبات"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3836",
+      "ts": "2026-11-05T07:16:14",
+      "entity": "vehicle",
+      "entity_id": "VEH-071",
+      "action": "update",
+      "day": null,
+      "text": "تعديل مركبة «ب15/6597»",
+      "before": {
+        "id": "VEH-071",
+        "plate_series": "",
+        "plate_number": "6597",
+        "type": "بيك اب",
+        "model": "",
+        "status": "operational",
+        "fault": "",
+        "notes": "",
+        "archived": false,
+        "origin": "external",
+        "party": "المركبات"
+      },
+      "after": {
+        "id": "VEH-071",
+        "plate_series": "ب15",
+        "plate_number": "6597",
+        "type": "بيك اب",
+        "model": "",
+        "status": "operational",
+        "fault": "",
+        "notes": "",
+        "archived": false,
+        "origin": "external",
+        "party": "المركبات"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3837",
+      "ts": "2026-11-05T07:22:35",
+      "entity": "officer_state",
+      "entity_id": "OFF-015",
+      "action": "update",
+      "day": null,
+      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-05: التشغيل الإضافي: متابعة أعمال الشئون الادارية، نص عمل بالإدارة: مُسح",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "admin_work_text": "متابعة أعمال الشئون الادارية"
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة أعمال الشئون الادارية"
+      },
+      "reason": "يوم 2026-11-05",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3838",
+      "ts": "2026-11-05T07:23:34",
+      "entity": "officer_state",
+      "entity_id": "OFF-025",
+      "action": "update",
+      "day": null,
+      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-11-05: التشغيل الإضافي: متابعة اعمال الامن والحملة، نص عمل بالإدارة: مُسح",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "admin_work_text": "متابعة اعمال الامن والحملة"
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الامن والحملة"
+      },
+      "reason": "يوم 2026-11-05",
+      "edited_by": "Mohamed Hanafy"
     }
   ],
   "missions": [],
@@ -103622,6 +104710,19 @@
       "archived": false,
       "origin": "external",
       "party": "المركبات"
+    },
+    {
+      "id": "VEH-071",
+      "plate_series": "ب15",
+      "plate_number": "6597",
+      "type": "بيك اب",
+      "model": "",
+      "status": "operational",
+      "fault": "",
+      "notes": "",
+      "archived": false,
+      "origin": "external",
+      "party": "المركبات"
     }
   ],
   "conscripts": [
@@ -104194,6 +105295,30 @@
         "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
         "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
       ]
+    },
+    "2026-11-05": {
+      "officer_extra": {
+        "OFF-027": "المرور التعقبي من 5م حتي 10م"
+      },
+      "big_column_supervisors": {
+        "am": {
+          "rank": "عقيد",
+          "name": "وليدعصمت",
+          "phone": "",
+          "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10م\""
+        },
+        "pm": {
+          "rank": "مقدم",
+          "name": "حسام رضوان",
+          "phone": "",
+          "service": "مشرف القول المكبر فترة ليلية \"10 م الي 10 ص\""
+        }
+      },
+      "notes": [
+        "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+        "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+        "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+      ]
     }
   },
   "custom_officer_statuses": [
@@ -104663,6 +105788,102 @@
       "restored_by": "",
       "restored_leave_id": "",
       "restore_change_id": ""
+    }
+  ],
+  "print_collections": [
+    {
+      "id": "pc-ahmed-samir",
+      "label": "احمد بيه سمير",
+      "kinds": [
+        "board"
+      ]
+    },
+    {
+      "id": "pc-mohamed-fouad",
+      "label": "محمد بيه فؤاد",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-mohamed-neama",
+      "label": "محمد بيه نعامة",
+      "kinds": [
+        "regularity",
+        "duty",
+        "afraad",
+        "campaign"
+      ]
+    },
+    {
+      "id": "pc-hamdy-elnaggar",
+      "label": "حمدي بيه النجار",
+      "kinds": [
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-senior-officer",
+      "label": "ضابط عظيم",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-service-order",
+      "label": "امر الخدمة",
+      "kinds": [
+        "service_order",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-hakamdar",
+      "label": "الحكمدار",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-bb612cd369",
+      "label": "يومية فرد العمليات",
+      "kinds": [
+        "regularity",
+        "campaign"
+      ]
+    },
+    {
+      "id": "pc-ff641130a3",
+      "label": "يومية المكتب",
+      "kinds": [
+        "regularity",
+        "afraad",
+        "campaign",
+        "formation_morning"
+      ]
+    },
+    {
+      "id": "pc-58090c6d93",
+      "label": "يومية محمد بيه مصطفي",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "campaign"
+      ]
     }
   ]
 }

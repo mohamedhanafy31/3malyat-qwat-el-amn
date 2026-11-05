@@ -2897,26 +2897,40 @@
     "SVC-016:am": {
       "out_at": "2026-11-04T17:53:25+00:00",
       "out_by": "Mohamed Hanafy",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-04T17:53:25+00:00",
           "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T20:12:27+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T20:12:27+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "SVC-019:am": {
       "out_at": "2026-11-04T17:53:25+00:00",
       "out_by": "Mohamed Hanafy",
-      "state": "out",
+      "state": "back",
       "history": [
         {
           "action": "depart",
           "at": "2026-11-04T17:53:25+00:00",
           "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-04T20:12:27+00:00",
+          "by": "Mohamed Hanafy"
         }
-      ]
+      ],
+      "back_at": "2026-11-04T20:12:27+00:00",
+      "back_by": "Mohamed Hanafy"
     },
     "AS-0037:am": {
       "out_at": "2026-11-04T17:53:25+00:00",
