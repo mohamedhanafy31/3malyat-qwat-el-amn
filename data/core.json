@@ -14073,7 +14073,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 3868,
+    "CHG": 3873,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -14091,7 +14091,7 @@
     "OSP": 6,
     "AFB": 51,
     "LVH": 16,
-    "CG": 3
+    "CG": 4
   },
   "counts_template": {
     "entries": [
@@ -93917,6 +93917,160 @@
         "extra": "متابعة اعمال التعيينات والفرن والعلاقات"
       },
       "reason": "يوم 2026-11-06",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3869",
+      "ts": "2026-11-05T22:17:23",
+      "entity": "officer_state",
+      "entity_id": "OFF-012",
+      "action": "update",
+      "day": null,
+      "text": "حمدي احمد جاد الكريم احمد في يومية 2026-11-06: إضافته للعمل بالإدارة",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التعيينات والفرن والعلاقات"
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التعيينات والفرن والعلاقات",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-06",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3870",
+      "ts": "2026-11-05T22:20:43",
+      "entity": "campaign_group",
+      "entity_id": "CG-004",
+      "action": "create",
+      "day": "2026-11-06",
+      "text": "تجميع 2 خدمات في «توصيل مجندين 1م»",
+      "before": null,
+      "after": {
+        "id": "CG-004",
+        "title": "توصيل مجندين 1م",
+        "members": [
+          "AS-0033",
+          "AS-0036"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3871",
+      "ts": "2026-11-05T22:21:00",
+      "entity": "campaign_group",
+      "entity_id": "CG-004",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "تعديل المجموعة «توصيل مجندين مباريات 1م»",
+      "before": {
+        "id": "CG-004",
+        "title": "توصيل مجندين 1م",
+        "members": [
+          "AS-0033",
+          "AS-0036"
+        ]
+      },
+      "after": {
+        "id": "CG-004",
+        "title": "توصيل مجندين مباريات 1م",
+        "members": [
+          "AS-0033",
+          "AS-0036"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3872",
+      "ts": "2026-11-05T22:23:51",
+      "entity": "assignment",
+      "entity_id": "AS-0038",
+      "action": "update",
+      "day": "2026-11-06",
+      "text": "«مأمورية النيابة عسكرية صبح» — التصنيف: «خارجية» ← «داخلية»، التسليح: «آلي» ← «آلي/كلبش»",
+      "before": {
+        "id": "AS-0038",
+        "section": "الخدمات الطارئة",
+        "name": "مأمورية النيابة عسكرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-015"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0038",
+        "section": "الخدمات الطارئة",
+        "name": "مأمورية النيابة عسكرية",
+        "kind": "داخلية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-015"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي/كلبش",
+        "time": "8ص",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3873",
+      "ts": "2026-11-05T22:23:51",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-06",
+      "action": "confirm",
+      "day": "2026-11-06",
+      "text": "تأكيد يومية 2026-11-06 — عدد التغييرات: 1",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 1,
+        "count": 30,
+        "at": "2026-11-05T22:23:51",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-06"
+      },
+      "reason": "",
       "edited_by": "Mohamed Hanafy"
     }
   ],
