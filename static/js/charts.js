@@ -6,11 +6,11 @@ const CT = (() => {
   const css = getComputedStyle(document.documentElement);
   const v = n => css.getPropertyValue(n).trim();
   return {
-    navy: v("--navy-800"), navyMid: v("--navy-500"), navySoft: v("--navy-200"),
+    navy: v("--chart-bar"), navyMid: v("--navy-500"), navySoft: v("--navy-200"),
     gold: v("--gold-700"), bad: v("--bad-700"), warn: v("--warn-500"),
     grid: v("--line"), ink: v("--ink-500"), inkStrong: v("--ink-700"), surface: v("--surface"),
     // فئات بدون دلالة حالة (أنواع الراحة، الفترات)
-    cat: [v("--navy-800"), v("--cat-2"), v("--cat-4"), v("--cat-1"), v("--navy-500"), v("--cat-3"), v("--ink-400")],
+    cat: [v("--chart-bar"), v("--cat-2"), v("--cat-4"), v("--cat-1"), v("--navy-500"), v("--cat-3"), v("--ink-400")],
     font: v("--font-body"),
   };
 })();
@@ -24,6 +24,10 @@ Chart.defaults.plugins.legend.textDirection = "rtl";
 Chart.defaults.plugins.legend.labels.font = { size: 13 };
 Chart.defaults.plugins.tooltip.rtl = true;
 Chart.defaults.plugins.tooltip.textDirection = "rtl";
+
+/* ألوان الرسم اتحسبت وقت التحميل من رموز الثيم؛ تبديل الوضع الداكن بيعيد تحميل
+   الصفحة (إحصائيات للقراءة بس) بدل ما نعيد بناء كل رسم بألوانه. */
+document.addEventListener("themechange", () => location.reload());
 
 const CHART_BASE = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
 

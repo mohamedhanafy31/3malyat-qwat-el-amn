@@ -71,12 +71,25 @@
   --chart-blue:#2563eb;--chart-purple:#7c3aed;--chart-cyan:#0891b2;
   --chart-amber:#d97706;--chart-green:#16a34a;--chart-red:#dc2626;
   --chart-gray:#6b7280;--chart-navy:#1e3a5a;
+  --chart-bar:var(--navy-800);
 
   /* — طبقات لونية شفافة — */
   --overlay-screen:rgba(10,18,32,.6); --overlay-thumb:rgba(10,18,32,.7);
   --overlay-scrim:rgba(10,31,54,.45); --shadow-edge:rgba(15,39,71,.18);
   --on-dark-wash:rgba(255,255,255,.18); --on-dark-muted-wash:rgba(255,255,255,.72);
   --gold-wash:rgba(138,109,31,.18); --warn-hover-wash:rgba(138,90,16,.07);
+
+  /* — الأسطح المصمتة (خلفية ثابتة ونص فاتح فوقها): الترويسة والأزرار الأساسية
+       ورؤوس الجداول. فصلناها عن درجات الكحلي لأن نفس الدرجة بتُستخدم كلون نص
+       فوق الأسطح الفاتحة، والوضع الداكن بيعكس النص ويفضّل الأسطح غامقة. —
+       القاعدة: background من --fill-*، ولون النص من --navy-*. */
+  --fill-950:var(--navy-950); --fill-900:var(--navy-900); --fill-800:var(--navy-800);
+  --fill-700:var(--navy-700); --fill-600:var(--navy-600); --fill-500:var(--navy-500);
+  --fill-bad:var(--bad-700); --fill-bad-hover:var(--bad-800);
+  --fill-warn:var(--warn-700); --fill-warn-strong:var(--warn-500); --fill-gold:var(--gold-700);
+  --on-fill-100:var(--navy-100); --on-fill-200:var(--navy-200); --on-fill-gold:var(--gold-100); --on-fill-warn:var(--warn-300); --on-fill-ok:var(--ok-300);
+  --surface-glass:rgba(255,255,255,.97); --surface-glass-foot:rgba(255,255,255,.98);
+  --log-warn:#9a6700; --log-error:#b42318; --log-debug:#667085;
 
   /* — سُلّم المسافات: كل الحشو والفجوات من هنا، مش أرقام عشوائية — */
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s7:32px; --s8:40px;
@@ -100,6 +113,7 @@
   --shadow-pop:0 10px 30px rgba(10,31,54,.20);
 
   --topbar-h:60px; --sidebar-w:238px; --sidebar-rail:60px;
+  color-scheme:light;
 
   /* ترتيب الطبقات: القيم الأساسية تحافظ على ترتيب الواجهة القديم حرفيًا. */
   --z-sticky:10; --z-nav:20; --z-modal:30; --z-popover:35;
@@ -114,9 +128,74 @@
   --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%235b6678'%3E%3Cpath d='M5.5 7.5l4.5 5 4.5-5z'/%3E%3C/svg%3E");
 }
 
+/* ═══════════════════ ①-ب الوضع الداكن: «دفتر الليل» ═══════════════════
+   نفس الدفتر بالليل: ورق كحلي غامق مش أسود، وحبر أبيض مزرق، والمسطرة الذهبية
+   بتلمع أكتر لأنها العنصر المميّز. التباين متحقق: النص العادي ≥ 4.5:1 على كل
+   الأسطح، والحدود التفاعلية ≥ 3:1. الطباعة وملفات Word ما بتتأثرش (screen بس).
+   ملاحظة صيانة: أي لون جديد لازم يتعرّف هنا كمان — اختبار tests/test_dark_theme.py
+   بيفشل لو رمز لوني اتضاف في :root من غير نسخة داكنة. */
+@media screen{
+:root[data-theme="dark"]{
+  color-scheme:dark;
+
+  /* — الأسطح والخطوط — */
+  --paper:#0b1422; --surface:#111c2e; --surface-sunken:#0d1829; --surface-glass:rgba(17,28,46,.97); --surface-glass-foot:rgba(17,28,46,.98);
+  --line:#223249; --line-strong:#34486a; --border-control:#6b80a1;
+
+  /* — النص: درجات الحبر والكحلي كنص فوق الأسطح الغامقة — */
+  --ink-900:#e8edf5; --ink-700:#c6d0de; --ink-500:#a4b1c5;
+  --ink-400:#97a5ba; --ink-300:#8b99af; --ink-100:#1f2f47;
+  --navy-950:#f1f5fb; --navy-900:#e3ebf6; --navy-800:#d1deef; --navy-700:#b4c9e7;
+  --navy-600:#86a8d8; --navy-500:#6f94c9;
+  --navy-200:#35567f; --navy-100:#1c2f4d; --navy-50:#15243a;
+
+  /* — الأسطح المصمتة: ترويسة وأزرار ورؤوس جداول، والنص فوقها أبيض — */
+  --fill-950:#07111f; --fill-900:#17365e; --fill-800:#1c4272;
+  --fill-700:#28578f; --fill-600:#3568a6; --fill-500:#4f86c2;
+  --fill-bad:#a63636; --fill-bad-hover:#bd4444;
+  --fill-warn:#9a5408; --fill-warn-strong:#a85f05; --fill-gold:#8a6d1f;
+  --on-fill-100:#e7edf5; --on-fill-200:#cbd9ec; --on-fill-gold:#f6eed7; --on-fill-warn:#ecd8a8; --on-fill-ok:#a9d0b3;
+
+  /* — المسطرة الذهبية — */
+  --gold-800:#ecd58f; --gold-700:#d8b24a; --gold-600:#e2c164;
+  --gold-100:#2a2412; --gold-wash:rgba(216,178,74,.20);
+
+  /* — الحالات: النص فاتح، والخلفيات تدرجات غامقة — */
+  --ok-700:#7fd29b; --ok-300:#2f6a43; --ok-100:#11271a;
+  --bad-900:#ffc9c4; --bad-800:#f2a8a2; --bad-700:#f08a84; --bad-600:#ee7b75;
+  --bad-300:#6b2f2f; --bad-200:#7a3535; --bad-100:#2b1517;
+  --warn-800:#ffd089; --warn-700:#f4c15d; --warn-600:#f0a93b; --warn-500:#e8920c;
+  --warn-300:#6a4a14; --warn-200:#7a5a18; --warn-100:#2b2010; --warn-50:#231a0d;
+  --info-700:#9fc0ea; --info-300:#30507c; --info-100:#14233a;
+  --plum-700:#c3aaf2; --plum-300:#4a3a78; --plum-100:#221a38;
+
+  --cat-1:#c3aaf2; --cat-1-bg:#221a38;
+  --cat-2:#6fd0cc; --cat-2-bg:#0f2b2a;
+  --cat-3:#aab8cc; --cat-3-bg:#1b2636;
+  --cat-4:#e0a97d; --cat-4-bg:#2c1d12;
+  --chart-blue:#5b8def;--chart-purple:#9d6ff2;--chart-cyan:#22b8d6;
+  --chart-amber:#f0a030;--chart-green:#3dc16f;--chart-red:#ef5a5a;
+  --chart-gray:#8b95a5;--chart-navy:#6f94c9; --chart-bar:#9db9e3;
+
+  /* — طبقات شفافة وظلال: الظل في الغامق أعمق عشان يبان — */
+  --overlay-screen:rgba(2,6,12,.72); --overlay-thumb:rgba(2,6,12,.8);
+  --overlay-scrim:rgba(2,6,12,.6); --shadow-edge:rgba(0,0,0,.5);
+  --warn-hover-wash:rgba(244,193,93,.08);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+  --shadow-md:0 2px 8px rgba(0,0,0,.40);
+  --shadow-pop:0 10px 30px rgba(0,0,0,.55);
+
+  /* — سجلات فنية — */
+  --log-warn:#e8b04a; --log-error:#f08a84; --log-debug:#97a5ba;
+
+  /* سهم القوائم المنسدلة بلون نص الوضع الداكن */
+  --caret:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23a4b1c5'%3E%3Cpath d='M5.5 7.5l4.5 5 4.5-5z'/%3E%3C/svg%3E");
+}
+}
+
 .skip-link{position:fixed;inset-block-start:var(--s2);inset-inline-start:var(--s2);
   z-index:var(--z-skip);transform:translateY(calc(-100% - var(--s4)));padding:var(--s2) var(--s4);
   border:2px solid var(--gold-300);border-radius:var(--radius-control);
-  background:var(--navy-950);color:var(--on-dark);font-weight:700;text-decoration:none}
+  background:var(--fill-950);color:var(--on-dark);font-weight:700;text-decoration:none}
 .skip-link:focus{transform:translateY(0);outline:3px solid var(--gold-300);outline-offset:2px}
 

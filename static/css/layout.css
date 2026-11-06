@@ -28,13 +28,13 @@
 .navbtn em{font-style:normal;background:var(--navy-50);color:var(--navy-700);
   border:1px solid var(--navy-200);border-radius:var(--radius-pill);padding:0 var(--s2);
   font-size:var(--t-xs);min-width:22px;text-align:center;line-height:18px}
-.navbtn em.nav-susp{background:var(--bad-700);color:var(--on-dark);border-color:var(--bad-700)}
+.navbtn em.nav-susp{background:var(--fill-bad);color:var(--on-dark);border-color:var(--fill-bad)}
 .navbtn:hover{background:var(--navy-50);color:var(--navy-900)}
 /* الضلع الذهبي — نفس مسطرة الترويسة، بتقول «انت هنا» */
 .navbtn.active{background:var(--navy-50);color:var(--navy-950);font-weight:700;
   border-inline-end-color:var(--gold-700)}
 .navbtn.active svg{opacity:1;fill:var(--gold-700)}
-.navbtn.active em{background:var(--navy-800);color:var(--on-dark);border-color:var(--navy-800)}
+.navbtn.active em{background:var(--fill-800);color:var(--on-dark);border-color:var(--fill-800)}
 .navbtn.sub{padding-inline-start:var(--s5)}
 .nav-dot{position:absolute;top:10px;inset-inline-end:auto;inset-inline-start:var(--s4);
   width:8px;height:8px;border-radius:50%;background:var(--bad-700);
@@ -61,7 +61,7 @@
    عنصر واحد position:fixed بدل ::after جوه كل رابط، لأن القائمة نفسها
    overflow:auto فأي تلميح جواها كان هيتقص. */
 .nav-tip{position:fixed;z-index:var(--z-toast);pointer-events:none;white-space:nowrap;
-  background:var(--navy-950);color:var(--on-dark);font-size:var(--t-sm);font-weight:700;
+  background:var(--fill-950);color:var(--on-dark);font-size:var(--t-sm);font-weight:700;
   padding:var(--s1) var(--s3);border-radius:var(--radius-control);box-shadow:var(--shadow-pop);
   border-inline-end:3px solid var(--gold-700)}
 .nav-tip kbd{font:600 var(--t-xs) var(--font-num);color:var(--on-dark-muted);
@@ -114,7 +114,7 @@
   min-height:50px;color:var(--ok-700);font-weight:600}
 .alert-clear .ico{fill:currentColor}
 .alert-count{display:inline-grid;place-items:center;min-width:24px;height:22px;padding:0 var(--s2);
-  border-radius:var(--radius-pill);background:var(--warn-700);color:var(--on-dark);
+  border-radius:var(--radius-pill);background:var(--fill-warn);color:var(--on-dark);
   font-size:var(--t-xs);font-weight:700}
 .alert-fold > summary{flex-wrap:nowrap;min-height:50px}
 .alert-head{min-width:0;flex-wrap:nowrap}

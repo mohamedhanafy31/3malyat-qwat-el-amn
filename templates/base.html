@@ -28,6 +28,9 @@
     <h1><span class="title-full">مكتب العمليات وشؤون الضباط</span><span class="title-compact" aria-hidden="true">مكتب العمليات</span></h1>
     <p class="sub">إدارة قـوات أمن السويس</p>
   </div>
+  <button type="button" class="theme-toggle" id="themeToggle" aria-pressed="false" title="الوضع الداكن">
+    <span class="sr-only">الوضع الداكن</span>{{ icon('moon', 'theme-ico-moon') }}{{ icon('sun', 'theme-ico-sun') }}
+  </button>
   {% if current_user %}
   <div class="user-chip-wrap" id="userChipWrap" data-user-id="{{ current_user.id if current_user.id is defined and current_user.id else current_user.username }}" data-username="{{ current_user.username }}" data-role="{{ current_user.role }}">
     <button type="button" class="user-chip-btn" id="userChipBtn" aria-haspopup="menu" aria-expanded="false" aria-controls="userMenu" title="حساب {{ current_user.display_name }}">
@@ -288,6 +291,7 @@
 </div>
 <div class="toast" id="toast" aria-label="التنبيهات"></div>
 <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script src="{{ url_for('static', filename='js/export.js') }}"></script>
 <script src="{{ url_for('static', filename='js/daily_refresh.js') }}"></script>
 {% block scripts %}{% endblock %}
