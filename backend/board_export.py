@@ -876,7 +876,9 @@ def _latest_content(board, command_priority=None):
             entries[key] = [_who(person), []]
             people[key] = person
             order.append(key)
-        if text:
+        # نص صف الضابط في «عمل بالإدارة» بيحمل خدمته أصلًا («ضابط عظيم الإدارة
+        # فترة صباحية + …»)، فدور ضابط عظيم/أمن الإدارة مايتكررش لو كان فيه.
+        if text and not any(text in existing for existing in entries[key][1]):
             entries[key][1].append(text)
 
     for row in admin:

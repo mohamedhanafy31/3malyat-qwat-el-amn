@@ -3,7 +3,7 @@
 import pytest
 
 from backend.board_export import _emergency_name, _latest_content
-from backend.constants import SECTION_BASIC
+from backend.constants import SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT
 
 
 DAY = "2026-10-11"
@@ -157,3 +157,40 @@ def test_collision_with_many_emergency_and_borrowed_targets_row_grows_rows():
     texts = _texts(rows)
     assert "موقع 2" in texts[_tail_index(rows) - 1]
     assert sum("خدمات مباراة استاد السويس" in t for t in texts) == 1
+
+
+def _admin_list_entries(officer, text):
+    """The «عمل بالادارة» lines of the export for one officer who is also ضابط عظيم الإدارة."""
+    person = {"id": "OFF-012", "name": "حمدي احمد جاد الكريم احمد", "role": "رائد",
+              "short_name": "حمدي النجار", "category": "officers"}
+    board = {"sections": [
+        {"name": SECTION_ADMIN_WORK, "type": "officers",
+         "rows": [{**person, "text": text, "added": True}] if officer else []},
+        {"name": SECTION_GREAT, "type": "slots", "rows": [
+            {"id": "AS-1", "name": SECTION_GREAT, "shift": "صباحية", "slot": True,
+             "officers": [person]},
+            {"id": "AS-2", "name": SECTION_GREAT, "shift": "ليلية", "slot": True, "officers": []}]},
+    ]}
+    return [text for text in _texts(_latest_content(board)) if "حمدي" in text]
+
+
+def test_duty_officer_role_is_not_repeated_when_his_admin_text_already_has_it():
+    lines = _admin_list_entries(True, "ضابط عظيم الإدارة فترة صباحية + متابعة اعمال التعيينات والفرن والعلاقات")
+
+    assert len(lines) == 1
+    assert lines[0].count("ضابط عظيم الإدارة فترة صباحية") == 1
+    assert "متابعة اعمال التعيينات والفرن والعلاقات" in lines[0]
+
+
+def test_duty_officer_role_is_added_when_his_admin_text_does_not_have_it():
+    lines = _admin_list_entries(True, "متابعة اعمال التعيينات والفرن والعلاقات")
+
+    assert len(lines) == 1
+    assert lines[0].count("ضابط عظيم الإدارة فترة صباحية") == 1
+    assert "متابعة اعمال التعيينات والفرن والعلاقات" in lines[0]
+
+
+def test_duty_officer_without_an_admin_row_still_gets_his_role_line():
+    lines = _admin_list_entries(False, "")
+
+    assert len(lines) == 1 and "ضابط عظيم الإدارة فترة صباحية" in lines[0]
