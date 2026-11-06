@@ -200,9 +200,7 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [
-        "IND-275"
-      ],
+      "personnel_ids": [],
       "conscripts": [
         {
           "class": "مج",

@@ -7436,18 +7436,6 @@
   ],
   "personnel": [
     {
-      "id": "IND-275",
-      "name": "أحمد إبراهيم",
-      "role": "أمين شرطة ممتاز أول",
-      "code": "703248",
-      "phone": "01148147404",
-      "join_date": "2026-11-03",
-      "post": "خدمات",
-      "section": "",
-      "status": "active",
-      "address": "الشرقية"
-    },
-    {
       "name": "ابراهيم السيد ابراهيم جعفر",
       "role": "أمين شرطة ثان",
       "code": "121235",
@@ -14073,7 +14061,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 3888,
+    "CHG": 3890,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -94584,6 +94572,64 @@
         "day": "2026-11-06"
       },
       "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3889",
+      "ts": "2026-11-06T01:52:36",
+      "entity": "person",
+      "entity_id": "IND-275",
+      "action": "delete",
+      "day": null,
+      "text": "حذف نهائي لسجل أحمد إبراهيم من الأرشيف — day_assignments.officer_ids / personnel_ids: 1، day_afraad.*.morning_person_id / night_person_id: 1",
+      "before": {
+        "id": "IND-275",
+        "name": "أحمد إبراهيم",
+        "role": "أمين شرطة ممتاز أول",
+        "code": "703248",
+        "phone": "01148147404",
+        "join_date": "2026-11-03",
+        "post": "خدمات",
+        "section": "",
+        "status": "archived",
+        "address": "الشرقية",
+        "leave_date": "2026-11-06",
+        "leave_reason": "بيانات غير صحيحة"
+      },
+      "after": {
+        "day_assignments.officer_ids / personnel_ids": 1,
+        "day_afraad.*.morning_person_id / night_person_id": 1
+      },
+      "reason": "بيانات غير صحيحة",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-3890",
+      "ts": "2026-11-06T01:52:36",
+      "entity": "person",
+      "entity_id": "IND-275",
+      "action": "retro",
+      "day": null,
+      "text": "حذف نهائي لسجل أحمد إبراهيم يؤثر في يوم مغلق أو عدة أيام مغلقة: 2026-11-03",
+      "before": {
+        "id": "IND-275",
+        "name": "أحمد إبراهيم",
+        "role": "أمين شرطة ممتاز أول",
+        "code": "703248",
+        "phone": "01148147404",
+        "join_date": "2026-11-03",
+        "post": "خدمات",
+        "section": "",
+        "status": "archived",
+        "address": "الشرقية",
+        "leave_date": "2026-11-06",
+        "leave_reason": "بيانات غير صحيحة"
+      },
+      "after": {
+        "day_assignments.officer_ids / personnel_ids": 1,
+        "day_afraad.*.morning_person_id / night_person_id": 1
+      },
+      "reason": "بيانات غير صحيحة",
       "edited_by": "Mohamed Hanafy"
     }
   ],
