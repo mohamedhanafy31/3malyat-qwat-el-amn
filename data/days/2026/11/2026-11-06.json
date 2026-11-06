@@ -543,7 +543,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 1
+      "pos": 3
     },
     {
       "id": "AS-0033",
@@ -583,7 +583,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 2
+      "pos": 1
     },
     {
       "id": "AS-0035",
@@ -603,7 +603,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 3
+      "pos": 2
     },
     {
       "id": "AS-0036",
@@ -669,7 +669,8 @@
       "mission_transport": true,
       "officer_command_required": true,
       "personnel_command_required": false,
-      "note": ""
+      "note": "",
+      "pos": 7
     },
     {
       "id": "AS-0039",
@@ -695,7 +696,8 @@
       "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
-      "note": ""
+      "note": "",
+      "pos": 8
     }
   ],
   "officer_states": {
