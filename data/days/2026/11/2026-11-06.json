@@ -669,7 +669,8 @@
       "mission_transport": true,
       "officer_command_required": true,
       "personnel_command_required": false,
-      "note": ""
+      "note": "",
+      "pos": 7
     },
     {
       "id": "AS-0039",
@@ -695,7 +696,8 @@
       "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
-      "note": ""
+      "note": "",
+      "pos": 8
     }
   ],
   "officer_states": {
