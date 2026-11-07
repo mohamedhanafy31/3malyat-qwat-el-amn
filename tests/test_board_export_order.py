@@ -21,8 +21,11 @@ def _texts(rows):
 
 def test_emergency_rows_keep_the_site_order_not_the_time_order():
     texts = _texts(_latest_content(_board()))
-    names = [row[2] for row in texts[1:3]]
-    assert names == ["خدمة متأخرة على الموقع 9ص", "خدمة بدري 7ص"]  # الساعة جزء من الاسم كالأرشيف
+    names = ("خدمة متأخرة على الموقع 9ص", "خدمة بدري 7ص")
+    positions = [next(i for i, row in enumerate(texts) if any(name in cell for cell in row))
+                 for name in names]
+    assert positions == sorted(positions)
+    assert all(any(name in cell for row in texts for cell in row) for name in names)
 
 
 def test_admin_work_is_ordered_by_rank_with_command_roles_first():

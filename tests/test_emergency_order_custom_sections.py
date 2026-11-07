@@ -84,7 +84,17 @@ def test_ordinary_emergency_rows_stay_above_special_blocks_with_targets_row():
         {"name": "مباراة ش", "type": "services", "rows": custom},
         {"name": "الأهداف", "type": "targets", "rows": [{"name": "سوميد", "officers": []}]}]}
     texts = [" ".join(c["text"] for c in row["cells"]) for row in _latest_content(board)]
-    title = next(i for i, t in enumerate(texts) if "خدمات مباراة ش" in t)
-    assert all(any(f"طارئة {i}" in t for t in texts[:title]) for i in range(4))
-    targets_row = next(t for t in texts if t.startswith("الاهداف"))
-    assert "طارئة" not in targets_row
+    # The two halves now flow independently, so ordinary services may share
+    # table rows with the special/target half. Their section cell remains
+    # distinct and emergency ordering stays intact on its own half.
+    emergency_rows = [next(i for i, text in enumerate(texts) if f"طارئة {n}" in text)
+                      for n in range(4)]
+    assert emergency_rows == sorted(emergency_rows)
+    rows = _latest_content(board)
+    special_header = next(i for i, row in enumerate(rows)
+                          if any(cell["text"] == "خدمات مباراة ش" for cell in row["cells"]))
+    assert all(row < special_header for row in emergency_rows)
+    assert any(cell["head"] and cell["text"] == "الأهداف"
+               for row in rows for cell in row["cells"])
+    assert sum(cell["text"] == "خدمات مباراة ش"
+               for row in rows for cell in row["cells"]) == 1

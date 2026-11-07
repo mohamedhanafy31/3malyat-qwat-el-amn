@@ -270,6 +270,71 @@ def test_multi_officer_target_and_emergency_split_too():
     assert any(cell[1] == "restart" for row in rows for cell in row)
 
 
+def test_sections_keep_their_assigned_half_and_intact_order():
+    board = _sections(
+        basic=[_svc(f"أساسي {i}") for i in range(6)],
+        emergency=[_svc("طوارئ واحدة")],
+        targets=[_svc(f"هدف {i}") for i in range(3)],
+    )
+    rows = _grid_rows(_doc(board))
+    text = "\n".join(" | ".join(cell for cell, _ in row) for row in rows)
+
+    # Ownership is fixed by the printed form: basic/targets right, emergency left.
+    assert "الخدمات الاساسية" in rows[0][0][0]
+    assert "الخدمات الطارئة" in rows[0][1][0]
+    target_header = next(i for i, row in enumerate(rows)
+                         if any(cell[0] == "الأهداف" for cell in row))
+    for n in range(6):
+        row = next(row for row in rows if any(f"أساسي {n}" in cell[0] for cell in row))
+        assert next(i for i, cell in enumerate(row) if f"أساسي {n}" in cell[0]) < 2
+    emergency_row = next(row for row in rows if any("طوارئ واحدة" in cell[0] for cell in row))
+    assert next(i for i, cell in enumerate(emergency_row) if "طوارئ واحدة" in cell[0]) >= 2
+    assert all(f"أساسي {i}" in text for i in range(6))
+    assert "مشرف الأهداف" in text and all(f"هدف {i}" in text for i in range(1, 3))
+    assert "طوارئ واحدة" in text
+
+    # Every section header is immediately followed by its own complete items;
+    # the next section starts only after the previous block's rows.
+    row_texts = [" | ".join(cell for cell, _ in row) for row in rows]
+    target_item_rows = [i for i, row in enumerate(row_texts)
+                        if "مشرف الأهداف" in row or any(f"هدف {n}" in row for n in range(1, 3))]
+    assert target_item_rows == list(range(target_header + 1, target_header + 4))
+
+
+def test_emergency_section_stays_left_without_losing_manning_components():
+    personnel = [
+        {"id": "P1", "name": "فرد أول", "role": "أمين شرطة", "category": "personnel"},
+        {"id": "P2", "name": "فرد ثان", "role": "أمين شرطة", "category": "personnel"},
+    ]
+    emergency = [_svc(f"طارئة {i}") for i in range(3)]
+    emergency[0].update(officers=[_person("O1", "ضابط", short="القائد")],
+                        personnel=personnel, conscript_count=3)
+    rows = _grid_rows(_doc(_sections(
+        basic=[_svc("أساسية 0"), _svc("أساسية 1")], emergency=emergency)))
+    text = "\n".join(" | ".join(cell for cell, _ in row) for row in rows)
+
+    emergency_row = next(row for row in rows if any("طارئة 0" in cell[0] for cell in row))
+    assert next(i for i, cell in enumerate(emergency_row) if "طارئة 0" in cell[0]) >= 2
+    assert "رائد/ القائد + 2فرد + 3 مجند" in text
+    assert all(f"طارئة {i}" in text for i in range(3))
+    assert all(f"أساسية {i}" in text for i in range(2))
+
+
+def test_shorter_half_starts_its_next_section_while_other_half_continues():
+    rows = board_export._latest_content(_sections(
+        basic=[_svc(f"أساسي {i}") for i in range(6)],
+        emergency=[_svc("طوارئ قصيرة")]))
+    left_tail = next(i for i, row in enumerate(rows)
+                     if row["kind"] == "tailhead" and any(c["text"] == "الخوارج" for c in row["cells"]))
+    right_tail = next(i for i, row in enumerate(rows)
+                      if row["kind"] == "tailhead" and any("ضابط عظيم وأمن المعسكر الفرعي" in c["text"]
+                                                              for c in row["cells"]))
+    assert left_tail < right_tail
+    assert any("أساسي 1" in cell["text"] for cell in rows[left_tail]["cells"][:2])
+    for i in range(6):
+        assert sum(f"أساسي {i}" in cell["text"] for row in rows for cell in row["cells"]) == 1
+
+
 def test_emergency_manning_keeps_personnel_counts_and_plain_vacant_role_kinds():
     personnel = [
         {"id": "P1", "name": "فرد قيادة أول", "role": "أمين شرطة", "category": "personnel"},

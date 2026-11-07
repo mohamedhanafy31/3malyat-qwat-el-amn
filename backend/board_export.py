@@ -819,49 +819,136 @@ def _latest_content(board, command_priority=None):
         name = _emergency_name(row) if archive_details else name_of(row)
         return [_cell(name, 2)], _manning_pieces(row)
 
-    block = bool(targets or prison)
-    # صف «الاهداف» بياخد آخر صف طارئ (لو فيه كتلة أهداف/سجن)؛ غير كده الطوارئ كلها فوق
-    # من غير كتل خاصة: آخر صف طارئ بيتشال لصف الاهداف لو الطوارئ أطول من
-    # الأساسية (السلوك القديم). مع كتل خاصة: كل الطوارئ العادية فوق الكتل،
-    # عشان صف عادي مايتطبعش بعد كتلة المباراة كأنه منها.
-    borrow = block and not special_blocks and len(emergency) > len(basic)
-    ordinary_rows = emergency[:-1] if borrow else emergency
-    top = max(len(basic), len(ordinary_rows), 0)
+    # Build each section as one intact block, then place the next block on
+    # whichever half currently has less content. The table still has the same
+    # five-column RTL grid; only the section-to-half assignment is flexible.
+    right_rows, left_rows = [], []
+
+    def append_block(name, items, renderer, side):
+        if not items:
+            return
+        target = right_rows if side == "right" else left_rows
+        if name not in {SECTION_BASIC, SECTION_OCCASIONAL}:
+            if side == "right":
+                target.append(_row([_cell(name, 2, True)], "head"))
+            else:
+                target.append(_row([_cell(name, 3, True)], "head"))
+        for item in items:
+            before = len(target)
+            renderer(item, target)
+            # Empty sections are omitted; each populated section remains a
+            # contiguous block even when one item needs multiple manning rows.
+            if len(target) == before:
+                target.append(_row([_cell("لا يوجد", 2), _cell("", 3)] if side == "right"
+                                   else [_cell("", 2), _cell("لا يوجد", 3)]))
+
+    def render_service(item, target, side, *, archive_details=False):
+        name = _emergency_name(item) if archive_details else name_of(item)
+        # Keep section semantics independent of placement: emergency services
+        # always use compact manning (including personnel and conscripts),
+        # while basic services retain their one-assignee-per-line convention.
+        people = _manning_pieces(item) if archive_details else _basic_assignees(item)
+        if side == "right":
+            _append_side_group(target, ([_cell(name)], people), None, side)
+        else:
+            _append_side_group(target, None, ([_cell(name, 2)], people), side)
+
+    def _append_side_group(target, right, left, side):
+        full_rows = []
+        _group(right, left, full_rows)
+        for row in full_rows:
+            if side == "left":
+                cells = _left_cells(row)
+            else:
+                cells, width = [], 0
+                for cell in row["cells"]:
+                    if width >= 2:
+                        break
+                    cells.append(cell)
+                    width += cell["span"]
+            target.append(_row(cells, row["kind"]))
+
+    def render_target(item, target, side):
+        label = "مشرف الأهداف" if item is targets[0] else name_of(item)
+        people = target_people(item)
+        if side == "right":
+            _append_side_group(target, ([_cell(label)], people), None, side)
+        else:
+            _append_side_group(target, None, ([_cell(label, 2)], people), side)
+
+    def render_prison(item, target, side):
+        label = name_of(item)
+        pieces = _manning_pieces(item) if label else [""]
+        if label.startswith("فرد تأمين") and not pieces[0]:
+            pieces = ["ــــــــــــــــــــ"]
+        if side == "right":
+            _append_side_group(target, ([_cell(label)], pieces), None, side)
+        else:
+            _append_side_group(target, None, ([_cell(label, 2)], pieces), side)
+
+    blocks = []
+    if basic:
+        blocks.append((SECTION_BASIC, basic, "right"))
+    if emergency:
+        blocks.append((SECTION_OCCASIONAL, emergency, "left"))
+    if targets:
+        blocks.append((SECTION_TARGETS, targets, "right"))
+    if prison:
+        blocks.append(("خدمات سجن قوات الامن", prison, "left"))
+
+    # Section ownership follows the printed form. Flexibility comes from
+    # letting each half continue vertically on its own, not moving a section
+    # across the center divider.
+    for name, items, side in blocks:
+        if name == SECTION_BASIC or name == SECTION_OCCASIONAL:
+            def paint(item, rows):
+                render_service(item, rows, side, archive_details=(name == SECTION_OCCASIONAL))
+        elif name == SECTION_TARGETS:
+            def paint(item, rows):
+                render_target(item, rows, side)
+        else:
+            def paint(item, rows):
+                render_prison(item, rows, side)
+        append_block(name, items, paint, side)
+
     result = [_row([_cell("الخدمات الاساسية", 2, True), _cell("الخدمات الطارئة", 3, True)], "title")]
-    for i in range(top):
-        _group(basic_side(basic[i] if i < len(basic) else None),
-               emergency_side(ordinary_rows[i] if i < len(ordinary_rows) else None), result)
-    if block:
-        emg = emergency[-1] if borrow else None
-        pieces = _manning_pieces(emg) if emg else [""]
-        result.append(_row([_cell("الاهداف", 2, True), _cell(name_of(emg), 2),
-                            _cell(pieces[0])], "head"))
-        # قطع القوام الإضافية (ضابط ثانٍ للخدمة الطارئة في صف الأهداف) تأخذ صفوفًا بعده
-        for extra in pieces[1:]:
-            result.append(_row([_cell(), _cell(), _cell("", 2), _cell(extra)]))
-        count = max(len(targets), 1 + len(prison) if prison else 0)
-        for j in range(count):
-            if targets and j == 0:
-                right = [_cell("مشرف الأهداف")], target_people(targets[0])
-            elif j < len(targets):
-                right = [_cell(name_of(targets[j]))], target_people(targets[j])
-            else:
-                right = None
-            if prison and j == 0:
-                left = [_cell("خدمات سجن قوات الامن", 3, True)], None
-            elif prison and j - 1 < len(prison):
-                item = prison[j - 1]
-                pname = name_of(item)
-                ptexts = _manning_pieces(item) if pname else [""]
-                if pname.startswith("فرد تأمين") and not ptexts[0]:
-                    ptexts = ["ــــــــــــــــــــ"]
-                left = [_cell(pname, 2)], ptexts
-            else:
-                left = None
-            _group(right, left, result)
+    for index in range(max(len(right_rows), len(left_rows))):
+        right = right_rows[index] if index < len(right_rows) else _row([_cell(), _cell()])
+        left = left_rows[index] if index < len(left_rows) else _row([_cell("", 3)])
+        right_cells, width = [], 0
+        for cell in right["cells"]:
+            if width >= 2:
+                break
+            right_cells.append(cell)
+            width += cell["span"]
+        result.append(_row(right_cells + left["cells"],
+                           "head" if "head" in (right["kind"], left["kind"]) else "body"))
     _place_special_blocks(result, special_blocks, emergency_side)
-    result.append(_row([_cell("ضابط عظيم وأمن المعسكر الفرعي", 2, True), _cell("الخوارج", 3, True)],
-                       "tailhead"))
+
+    # The two halves are independent vertical flows. Keep the populated top
+    # sections intact, then let each half continue into its tail as soon as it
+    # has room; a long service or admin list no longer strands the other half.
+    right_flow, left_flow = [], []
+    for row in result[1:]:
+        right_cells, width = [], 0
+        for cell in row["cells"]:
+            if width >= 2:
+                break
+            right_cells.append(cell)
+            width += cell["span"]
+        right_flow.append(_row(right_cells, row["kind"]))
+        left_flow.append(_row(_left_cells(row), row["kind"]))
+
+    def trim_padding(flow):
+        while flow and not any(cell["text"] or cell["head"] or cell["vm"] == "restart"
+                               for cell in flow[-1]["cells"]):
+            flow.pop()
+
+    trim_padding(right_flow)
+    trim_padding(left_flow)
+
+    right_flow.append(_row([_cell("ضابط عظيم وأمن المعسكر الفرعي", 2, True)], "tailhead"))
+    left_flow.append(_row([_cell("الخوارج", 3, True)], "tailhead"))
 
     # يمين الذيل: قائمة واحدة مسطّحة تحت «عمل بالادارة» — كل ضابط بدوره ونصه؛
     # وضابط عظيم/أمن الإدارة يُضافان بنص «الدور + الفترة» (ويُدمجان في صف
@@ -925,7 +1012,8 @@ def _latest_content(board, command_priority=None):
     order.sort(key=lambda key: rank_key(people[key], command_priority)[:2])
     right_entries = [(entries[key][0], " + ".join(entries[key][1])) for key in order]
 
-    tail = max(2 + (1 + len(right_entries) if right_entries else 0), len(outsiders))
+    # Subcamp shifts and admin assignments stay together on the right half.
+    # Outsiders stay together on the left and retain status-column merges.
     statuses = [o.get("status_type") or o.get("reason") or "" for o in outsiders]
     # عمود الحالة بيتدمج رأسيًا لكل مجموعة متتالية من نفس الحالة (راحة، فرقة…)
     # — حسب البيانات، فمفيش اسم يتخبّى جوّه خلية «continue».
@@ -939,27 +1027,29 @@ def _latest_content(board, command_priority=None):
             vmerge[start] = "restart"
             vmerge.update({index: "continue" for index in range(start + 1, end + 1)})
         start = end + 1
-    for i in range(tail):
-        outsider = outsiders[i] if i < len(outsiders) else None
+    for i in range(2):
+        slot = subcamp[i] if i < len(subcamp) else {}
+        right_flow.append(_row([
+            _cell(slot.get("shift") or ("فترة صباحية" if i == 0 else "فترة ليلية")),
+            _cell(_people_text(slot.get("officers")))], "body"))
+    if right_entries:
+        right_flow.append(_row([_cell(SECTION_ADMIN_WORK, 2, True)], "tailhead"))
+    for name, description in right_entries:
+        right_flow.append(_row([_cell(name), _cell(description)], "body"))
+
+    for i, outsider in enumerate(outsiders):
         mark = vmerge.get(i)
-        left = [_cell("" if mark == "continue" else statuses[i] if i < len(statuses) else "",
-                      vm=mark),
-                _cell(_who(outsider) if outsider else ""),
-                _cell(_officer_desc(SECTION_OUTSIDERS, outsider) if outsider else "")]
-        if i < 2:
-            slot = subcamp[i] if i < len(subcamp) else {}
-            result.append(_row([
-                _cell(slot.get("shift") or ("فترة صباحية" if i == 0 else "فترة ليلية")),
-                _cell(_people_text(slot.get("officers"))), *left]))
-            continue
-        position = i - 2
-        if position == 0 and right_entries:
-            result.append(_row([_cell(SECTION_ADMIN_WORK, 2, True), *left], "tailhead"))
-            continue
-        index = position - 1
-        values = right_entries[index] if right_entries and 0 <= index < len(right_entries) \
-            else ("", "")
-        result.append(_row([_cell(values[0]), _cell(values[1]), *left]))
+        left_flow.append(_row([_cell("" if mark == "continue" else statuses[i], vm=mark),
+                               _cell(_who(outsider)),
+                               _cell(_officer_desc(SECTION_OUTSIDERS, outsider))], "body"))
+
+    result = [_row([_cell("الخدمات الاساسية", 2, True), _cell("الخدمات الطارئة", 3, True)], "title")]
+    for index in range(max(len(right_flow), len(left_flow))):
+        right = right_flow[index] if index < len(right_flow) else _row([_cell(), _cell()])
+        left = left_flow[index] if index < len(left_flow) else _row([_cell("", 3)])
+        kind = "tailhead" if "tailhead" in (right["kind"], left["kind"]) else (
+            "head" if "head" in (right["kind"], left["kind"]) else "body")
+        result.append(_row(right["cells"] + left["cells"], kind))
     return result
 
 
