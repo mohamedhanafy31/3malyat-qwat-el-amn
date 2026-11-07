@@ -134,6 +134,10 @@ def service_line(service):
     الأهداف بتتكتب في الورقة «عمل بهدف <الهدف>» ومشرف الأهداف «متابعة اعمال
     الاهداف» — مش اسم الهدف لوحده زي ما هو على اللوحة."""
     text = service.get("name", "")
+    if (service.get("section") == SECTION_SUBCAMP
+            and service.get("shift") in SHIFTS
+            and text in SUBCAMP_SERVICES):
+        text = SECTION_SUBCAMP
     if service.get("section") == SECTION_TARGETS and text:
         text = "متابعة اعمال الاهداف" if text == TARGETS_FIRST else f"عمل بهدف {text}"
     if service.get("shift"):
@@ -149,6 +153,23 @@ def manual_text(note, extra):
     return " + ".join(part.strip() for part in (note, extra) if str(part or "").strip())
 
 
+def _duty_identity(text):
+    """هوية مستقرة لسطر تكليف حتى لو كُتب الاسم بصيغة أرشيفية بديلة."""
+    aliases = {
+        "ضابط الأمن بالإدارة": "ضابط أمن الإدارة",
+        "نوبتجي المعسكر الفرعي": SECTION_SUBCAMP,
+        "العمل بالمعسكر الفرعي": SECTION_SUBCAMP,
+    }
+    for alias, canonical in aliases.items():
+        if text == alias:
+            return canonical
+        for shift in SHIFTS:
+            suffix = f" فترة {shift}"
+            if text == alias + suffix:
+                return canonical + suffix
+    return text
+
+
 def operational_text(services, note, extra):
     """النص التشغيلي الكامل للضابط في اليوم: خدمته التلقائية من اللوحة +
     التشغيل الإضافي اليدوي.
@@ -161,7 +182,18 @@ def operational_text(services, note, extra):
     if not base:
         base = " + ".join(line for line in map(service_line, services or []) if line)
     extra = str(extra or "").strip()
-    return " + ".join(part for part in (base, extra) if part)
+    # بعض السجلات تجمع الخدمة الأساسية داخل `note` أو تعيدها ضمن التشغيل
+    # الإضافي. احتفظ بأول ظهور لكل جزء كامل حتى لا يتكرر التكليف في عرض
+    # «العمل بالإدارة» (الذي يعيد استخدام النص التشغيلي نفسه).
+    parts = []
+    seen = set()
+    for value in (base, extra):
+        for part in (piece.strip() for piece in str(value or "").split(" + ")):
+            identity = _duty_identity(part)
+            if part and identity not in seen:
+                parts.append(part)
+                seen.add(identity)
+    return " + ".join(parts)
 
 
 def research_text(service, regularity_time):
@@ -248,7 +280,11 @@ def officer_row(data, day, o, catalog=None):
 
     items = []
     for a in assignments_of(data, day, o["id"]):
-        items.append({"assignment_id": a["id"], "name": a.get("name", ""),
+        service_name = a.get("name", "")
+        if (a.get("section") == SECTION_SUBCAMP and a.get("shift") in SHIFTS
+                and service_name in SUBCAMP_SERVICES):
+            service_name = SECTION_SUBCAMP
+        items.append({"assignment_id": a["id"], "name": service_name,
                       "kind": a.get("kind") or "خارجية", "shift": a.get("shift", ""),
                       "section": a.get("section", ""),
                       "period_label": next((period_label(p) for p in a.get("periods") or []

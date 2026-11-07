@@ -37,6 +37,47 @@ def test_text_is_the_automatic_service_plus_the_manual_extra(client):
     assert row["extra"] == "متابعة اعمال التعيينات"
 
 
+def test_subcamp_duty_uses_the_officer_daily_label_for_both_shifts(client):
+    for shift in ("صباحية", "ليلية"):
+        response = client.post(f"/api/assignments/{DAY}", json={
+            "name": "نوبتجي المعسكر الفرعي", "kind": "داخلية", "shift": shift,
+            "section": "ضابط عظيم وأمن المعسكر الفرعي", "officer_ids": ["OFF-002"]})
+        assert response.status_code in (200, 201), response.get_data(as_text=True)
+    row = _row(client)
+    assert [service["name"] for service in row["services"]] == [
+        "ضابط عظيم وأمن المعسكر الفرعي", "ضابط عظيم وأمن المعسكر الفرعي"]
+    assert row["text"] == (
+        "ضابط عظيم وأمن المعسكر الفرعي فترة صباحية + "
+        "ضابط عظيم وأمن المعسكر الفرعي فترة ليلية")
+
+
+def test_admin_work_text_does_not_repeat_a_primary_duty(client):
+    for officer in ("OFF-001", "OFF-002"):
+        response = client.post(f"/api/assignments/{DAY}", json={
+            "name": "دورية أمنية", "kind": "داخلية", "shift": "صباحية",
+            "section": "الخدمات أساسية", "officer_ids": [officer]})
+        assert response.status_code in (200, 201), response.get_data(as_text=True)
+        client.put(f"/api/duty/{DAY}/{officer}", json={
+            "extra": "دورية أمنية فترة صباحية + متابعة", "admin_work": True})
+        text = next(row["text"] for row in _board_section(client, "عمل بالإدارة")["rows"]
+                    if row["id"] == officer)
+        assert text == "دورية أمنية فترة صباحية + متابعة"
+
+
+def test_admin_work_deduplicates_archived_security_alias_with_primary_slots(client):
+    for name, section in (("ضابط عظيم الإدارة", "ضابط عظيم الإدارة"),
+                          ("ضابط أمن الإدارة", "ضابط الأمن بالإدارة")):
+        response = client.post(f"/api/assignments/{DAY}", json={
+            "name": name, "kind": "داخلية", "shift": "ليلية", "section": section,
+            "officer_ids": ["OFF-002"]})
+        assert response.status_code in (200, 201), response.get_data(as_text=True)
+    client.put(f"/api/duty/{DAY}/OFF-002", json={
+        "extra": "ضابط الأمن بالإدارة فترة ليلية + متابعة", "admin_work": True})
+    text = next(row["text"] for row in _board_section(client, "عمل بالإدارة")["rows"]
+                if row["id"] == "OFF-002")
+    assert text == "ضابط عظيم الإدارة فترة ليلية + ضابط أمن الإدارة فترة ليلية + متابعة"
+
+
 def test_extra_without_a_service_is_the_whole_text(client):
     client.put(f"/api/duty/{DAY}/OFF-002", json={"extra": "عمل بالادارة"})
     assert _row(client)["text"] == "عمل بالادارة"
