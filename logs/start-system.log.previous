@@ -1,0 +1,20 @@
+[Fri 11/06/2026  2:07:11.61] =================================================
+[Fri 11/06/2026  2:07:11.61] Camp Management System Deployment
+[Fri 11/06/2026  2:07:11.62] =================================================
+[Fri 11/06/2026  2:07:11.62] [1/5] Checking bundled runtime...
+[Fri 11/06/2026  2:07:11.64] [OK] Runtime found.
+[Fri 11/06/2026  2:07:11.89] [2/5] Checking production dependencies...
+[Fri 11/06/2026  2:07:17.14] [OK] Waitress and application dependencies found.
+[Fri 11/06/2026  2:07:18.65] [3/5] Checking application import and database...
+D:\3malyat-qwat-el-amn\app.py
+[Fri 11/06/2026  2:07:33.00] [OK] Application and database are ready.
+[Fri 11/06/2026  2:07:33.00] [4/5] Starting production server...
+[Fri 11/06/2026  2:07:33.02] [TRACE] Launching serve.py with port 5000.
+[Fri 11/06/2026  2:07:33.21] Server process launched. Waiting up to 30 seconds for readiness...
+[TRACE] readiness port=5000 exit=13: URL transport TimeoutError; Something is listening on the port but did not answer in time (the application may still be starting).
+[TRACE] readiness port=5000 exit=13: URL transport TimeoutError; Something is listening on the port but did not answer in time (the application may still be starting).
+[TRACE] readiness port=5000 exit=13: URL transport TimeoutError; Something is listening on the port but did not answer in time (the application may still be starting).
+[TRACE] readiness port=5000 exit=0: HTTP 200; This application is ready.
+[Fri 11/06/2026  2:07:41.07] [OK] Production server is healthy at http://127.0.0.1:5000/.
+[Fri 11/06/2026  2:07:41.08] [5/5] Opening browser...
+[Fri 11/06/2026  2:07:41.26] [OK] System is running. Close this launcher window; the server remains active.

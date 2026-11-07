@@ -1,0 +1,11 @@
+[Wed 11/04/2026  3:12:34.38] =================================================
+[Wed 11/04/2026  3:12:34.38] Camp Management System Deployment
+[Wed 11/04/2026  3:12:34.39] =================================================
+[Wed 11/04/2026  3:12:34.41] [1/8] Checking offline package and this PC...
+[Wed 11/04/2026  3:12:34.43] [OK] Offline wheels found.
+[OK] Legacy background autostart is disabled. Use START_SYSTEM.bat to run the system.
+[OK] Preflight checks passed (Windows x64, writable folders, free disk space, server stopped).
+[Wed 11/04/2026  3:12:35.77] [2/8] Verifying downloaded assets...
+[OK] Verified 91 offline runtime assets
+[Wed 11/04/2026  3:12:44.12] [OK] Runtime, wheels, and OCR files match their checksums.
+[Wed 11/04/2026  3:13:07.46] [3/8] Configuring bundled Python (staged, with rollback)...

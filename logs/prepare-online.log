@@ -1,0 +1,11 @@
+[Wed 11/04/2026  3:12:26.86] =================================================
+[Wed 11/04/2026  3:12:26.86] Camp Management System Deployment
+[Wed 11/04/2026  3:12:26.88] =================================================
+[Wed 11/04/2026  3:12:26.89] [1/5] Checking host Python...
+[OK] Usable Python: 3.11.9 64-bit at C:\Users\HP\AppData\Local\Programs\Python\Python311\python.exe
+[Wed 11/04/2026  3:12:32.71] [OK] Host Python found: py -3
+[OK] Legacy background autostart is disabled. Use START_SYSTEM.bat to run the system.
+[Wed 11/04/2026  3:12:32.93] [2/5] Checking this PC (Windows x64, folders, disk space, running server)...
+[OK] Preflight checks passed (Windows x64, writable folders, free disk space, server stopped).
+[Wed 11/04/2026  3:12:34.25] [3/5] Downloading Windows runtime and required files...
+[Wed 11/04/2026  3:12:34.27] Internet is required. This can take several minutes. The previous runtime is kept until the new one is verified.

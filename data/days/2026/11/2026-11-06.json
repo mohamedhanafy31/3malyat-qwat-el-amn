@@ -617,7 +617,7 @@
       "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
-      "party": "ملعب السويس",
+      "party": "ملعب سماد السويس",
       "counts_in_summary": true,
       "mission_transport": false,
       "officer_command_required": false,
@@ -663,8 +663,8 @@
       ],
       "conscript_count": 2,
       "weapon": "آلي/كلبش",
-      "time": "8ص",
-      "party": "",
+      "time": "10ص",
+      "party": "قوات الأمن",
       "counts_in_summary": true,
       "mission_transport": true,
       "officer_command_required": true,
@@ -675,7 +675,7 @@
     {
       "id": "AS-0039",
       "section": "الخدمات الطارئة",
-      "name": "ترحيلة جنائي خاصة",
+      "name": "مأمورية نقل مساجين",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
@@ -690,7 +690,7 @@
       ],
       "conscript_count": 1,
       "weapon": "آلي",
-      "time": "8ص",
+      "time": "10ص",
       "party": "الجناين",
       "counts_in_summary": true,
       "mission_transport": true,
@@ -698,6 +698,25 @@
       "personnel_command_required": true,
       "note": "",
       "pos": 8
+    },
+    {
+      "id": "AS-0040",
+      "section": "الخدمات الطارئة",
+      "name": "تفتيش علي سجن فيصل",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [],
+      "personnel_ids": [],
+      "conscripts": [],
+      "conscript_count": 10,
+      "weapon": "دونك",
+      "time": "1م",
+      "party": "سجن فيصل",
+      "counts_in_summary": true,
+      "mission_transport": false,
+      "officer_command_required": false,
+      "personnel_command_required": true,
+      "note": ""
     }
   ],
   "officer_states": {
@@ -764,10 +783,16 @@
       "status": "",
       "note": "",
       "extra": "عمل بالمعسكر الفرعي من 8ص"
+    },
+    "OFF-019": {
+      "taqseera": false,
+      "status": "",
+      "note": "",
+      "research_service": "نقطة تفتيش جنيفة فترة صباحية"
     }
   },
   "confirm": {
-    "at": "2026-11-06T00:44:33",
+    "at": "2026-11-06T06:59:21",
     "by": "Mohamed Hanafy",
     "rows": [
       {
@@ -1181,7 +1206,7 @@
             "count": 1
           }
         ],
-        "conscript_count": 20,
+        "conscript_count": 13,
         "weapon": "فض",
         "time": "11ص",
         "party": "ميدان اسماعيل يس",
@@ -1207,7 +1232,7 @@
             "count": 1
           }
         ],
-        "conscript_count": 20,
+        "conscript_count": 13,
         "weapon": "فض",
         "time": "11ص",
         "party": "الخضر",
@@ -1287,8 +1312,8 @@
         ],
         "conscript_count": 7,
         "weapon": "",
-        "time": "11ص",
-        "party": "",
+        "time": "4م",
+        "party": "الحماية المدنية",
         "counts_in_summary": true,
         "mission_transport": false,
         "officer_command_required": false,
@@ -1304,7 +1329,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "8ص",
         "party": "ملعب ش الجباليات",
@@ -1313,7 +1338,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 1
+        "pos": 3
       },
       {
         "id": "AS-0033",
@@ -1324,7 +1349,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب ش الجباليات",
@@ -1344,7 +1369,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "8ص",
         "party": "ملعب ش السلام",
@@ -1353,7 +1378,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 2
+        "pos": 1
       },
       {
         "id": "AS-0035",
@@ -1364,7 +1389,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "8ص",
         "party": "ملعب  النوبة",
@@ -1373,7 +1398,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 3
+        "pos": 2
       },
       {
         "id": "AS-0036",
@@ -1384,10 +1409,10 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
-        "party": "ملعب السويس",
+        "party": "ملعب سماد السويس",
         "counts_in_summary": true,
         "mission_transport": false,
         "officer_command_required": false,
@@ -1404,7 +1429,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب التوفيق",
@@ -1433,18 +1458,19 @@
         ],
         "conscript_count": 2,
         "weapon": "آلي/كلبش",
-        "time": "8ص",
-        "party": "",
+        "time": "10ص",
+        "party": "قوات الأمن",
         "counts_in_summary": true,
         "mission_transport": true,
         "officer_command_required": true,
         "personnel_command_required": false,
-        "note": ""
+        "note": "",
+        "pos": 7
       },
       {
         "id": "AS-0039",
         "section": "الخدمات الطارئة",
-        "name": "ترحيلة جنائي خاصة",
+        "name": "مأمورية نقل مساجين",
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
@@ -1459,10 +1485,30 @@
         ],
         "conscript_count": 1,
         "weapon": "آلي",
-        "time": "8ص",
+        "time": "10ص",
         "party": "الجناين",
         "counts_in_summary": true,
         "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 8
+      },
+      {
+        "id": "AS-0040",
+        "section": "الخدمات الطارئة",
+        "name": "تفتيش علي سجن فيصل",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 10,
+        "weapon": "دونك",
+        "time": "1م",
+        "party": "سجن فيصل",
+        "counts_in_summary": true,
+        "mission_transport": false,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": ""
@@ -1991,7 +2037,7 @@
       }
     ]
   },
-  "assignment_seq": 39,
+  "assignment_seq": 40,
   "afraad_basic": {
     "AFB-01": {
       "morning_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
@@ -2197,10 +2243,7 @@
       "LOR-3": {
         "attached": [
           {
-            "assignment_id": "AS-0035"
-          },
-          {
-            "assignment_id": "AS-0038"
+            "assignment_id": "AS-0034"
           }
         ],
         "driver": {
@@ -2212,7 +2255,7 @@
       "LOR-4": {
         "attached": [
           {
-            "assignment_id": "AS-0034"
+            "assignment_id": "AS-0035"
           }
         ],
         "driver": {
