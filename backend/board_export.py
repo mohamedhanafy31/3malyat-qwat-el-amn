@@ -819,9 +819,9 @@ def _latest_content(board, command_priority=None):
         name = _emergency_name(row) if archive_details else name_of(row)
         return [_cell(name, 2)], _manning_pieces(row)
 
-    # Build each section as one intact block, then place the next block on
-    # whichever half currently has less content. The table still has the same
-    # five-column RTL grid; only the section-to-half assignment is flexible.
+    # Build each section as one intact block inside its fixed printed half.
+    # The halves then flow vertically on their own over the same five-column
+    # RTL grid, so the next section need not wait for the opposite half.
     right_rows, left_rows = [], []
 
     def append_block(name, items, renderer, side):
@@ -839,8 +839,8 @@ def _latest_content(board, command_priority=None):
             # Empty sections are omitted; each populated section remains a
             # contiguous block even when one item needs multiple manning rows.
             if len(target) == before:
-                target.append(_row([_cell("لا يوجد", 2), _cell("", 3)] if side == "right"
-                                   else [_cell("", 2), _cell("لا يوجد", 3)]))
+                target.append(_row([_cell("لا يوجد", 2)] if side == "right"
+                                   else [_cell("لا يوجد", 3)]))
 
     def render_service(item, target, side, *, archive_details=False):
         name = _emergency_name(item) if archive_details else name_of(item)
