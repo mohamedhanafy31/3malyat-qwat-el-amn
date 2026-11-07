@@ -332,6 +332,28 @@ def test_great_and_security_officers_listed_flat_under_single_admin_header():
     assert "ضابط عظيم الإدارة فترة ليلية" in text
 
 
+def test_admin_export_merges_security_and_great_roles_across_label_aliases():
+    person = _person("OFF-015", "أحمد", short="أحمد")
+    slots = lambda name: [
+        {"id": None, "name": name, "shift": shift, "slot": True,
+         "officers": [person]}
+        for shift in ("صباحية", "ليلية")]
+    board = _sections(
+        great=slots("ضابط عظيم الإدارة"),
+        security=slots("ضابط أمن الإدارة"),
+        admin=[{**person, "text": (
+            "ضابط عظيم الإدارة فترة ليلية + ضابط أمن الإدارة فترة ليلية + "
+            "متابعة أعمال الشئون") }])
+
+    text = _texts(_doc(board))
+    assert text.count("ضابط عظيم الإدارة فترة صباحية") == 1
+    assert text.count("ضابط عظيم الإدارة فترة ليلية") == 1
+    assert text.count("ضابط الأمن بالإدارة فترة صباحية") == 1
+    assert text.count("ضابط الأمن بالإدارة فترة ليلية") == 1
+    assert "ضابط أمن الإدارة فترة ليلية" not in text
+    assert "متابعة أعمال الشئون" in text
+
+
 def test_short_name_is_used_in_every_cell_never_the_full_name():
     full = "محمد ابراهيم سليمان عبدالله"
     officer = _person("1", full, short="سليمان عبدالله")

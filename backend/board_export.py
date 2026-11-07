@@ -870,6 +870,23 @@ def _latest_content(board, command_priority=None):
     order = []
     people = {}
 
+    def admin_duty_identity(value):
+        """طبّع أسماء أدوار الإدارة عند دمج نص التشغيل مع خاناتها الثابتة."""
+        value = str(value or "").strip()
+        aliases = {
+            "ضابط الأمن بالإدارة": SECTION_SECURITY,
+            "ضابط أمن الإدارة": SECTION_SECURITY,
+            "ضابط عظيم": SECTION_GREAT,
+        }
+        for alias, canonical in aliases.items():
+            if value == alias:
+                return canonical
+            for shift_name in ("صباحية", "ليلية"):
+                suffix = f" فترة {shift_name}"
+                if value == alias + suffix:
+                    return canonical + suffix
+        return value
+
     def add_entry(person, text):
         key = person.get("id") or id(person)
         if key not in entries:
@@ -878,7 +895,16 @@ def _latest_content(board, command_priority=None):
             order.append(key)
         # نص صف الضابط في «عمل بالإدارة» بيحمل خدمته أصلًا («ضابط عظيم الإدارة
         # فترة صباحية + …»)، فدور ضابط عظيم/أمن الإدارة مايتكررش لو كان فيه.
-        if text and not any(text in existing for existing in entries[key][1]):
+        # التشغيل الآلي قد يحتوي الدور بصيغته المختصرة/الأرشيفية، بينما
+        # الخانة الثابتة تستخدم الاسم المعياري. قارن كل مقطع كامل بعد
+        # توحيد الاسم والفترة، مع إبقاء فحص الاحتواء للتوافق مع نصوص قديمة.
+        if text:
+            text = " + ".join(admin_duty_identity(part) for part in text.split(" + "))
+        components = {admin_duty_identity(part)
+                      for existing in entries[key][1]
+                      for part in existing.split(" + ")}
+        if (text and admin_duty_identity(text) not in components
+                and not any(text in existing for existing in entries[key][1])):
             entries[key][1].append(text)
 
     for row in admin:
