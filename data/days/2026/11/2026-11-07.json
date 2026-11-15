@@ -395,11 +395,11 @@
       "time": "12ظ",
       "party": "",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 1
+      "pos": 0
     },
     {
       "id": "AS-0021",
@@ -426,7 +426,7 @@
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 2
+      "pos": 1
     },
     {
       "id": "AS-0022",
@@ -437,7 +437,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "10ص",
       "party": "ملعب الجبلايات",
@@ -446,7 +446,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 3
+      "pos": 2
     },
     {
       "id": "AS-0023",
@@ -457,7 +457,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
       "party": "ملعب الجبلايات",
@@ -466,7 +466,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 4
+      "pos": 3
     },
     {
       "id": "AS-0024",
@@ -477,7 +477,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
       "party": "ملعب ش. السلام",
@@ -486,7 +486,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 5
+      "pos": 4
     },
     {
       "id": "AS-0025",
@@ -497,7 +497,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
       "party": "ملعب النوبة",
@@ -506,7 +506,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 6
+      "pos": 5
     },
     {
       "id": "AS-0026",
@@ -517,7 +517,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
       "party": "ملعب ش.المثلث",
@@ -526,7 +526,7 @@
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 7
+      "pos": 6
     },
     {
       "id": "AS-0027",
@@ -562,7 +562,7 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [
-        "OFF-028"
+        "OFF-036"
       ],
       "personnel_ids": [],
       "conscripts": [
@@ -588,10 +588,10 @@
       "name": "البوابة الرئيسية حتي المقصورة",
       "kind": "خارجية",
       "shift": "صباحية",
-      "officer_ids": [
-        "OFF-036"
+      "officer_ids": [],
+      "personnel_ids": [
+        "IND-133"
       ],
-      "personnel_ids": [],
       "conscripts": [
         {
           "class": "وحدة",
@@ -604,8 +604,8 @@
       "party": "استاد السويس",
       "counts_in_summary": true,
       "mission_transport": false,
-      "officer_command_required": true,
-      "personnel_command_required": false,
+      "officer_command_required": false,
+      "personnel_command_required": true,
       "note": "",
       "pos": 1
     },
@@ -664,27 +664,27 @@
     {
       "id": "AS-0032",
       "section": "الخدمات الطارئة",
-      "name": "مباراة ملعب بورتوفيق",
+      "name": "نجمة سينا x م ش عرب المعمل",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
-      "time": "",
-      "party": "",
+      "time": "1م",
+      "party": "ملعب بورتوفيق",
       "counts_in_summary": true,
       "mission_transport": false,
       "officer_command_required": false,
       "personnel_command_required": false,
       "note": "",
-      "pos": 8
+      "pos": 7
     },
     {
       "id": "AS-0033",
       "section": "الخدمات الطارئة",
-      "name": "ترحيلة من سجن فيصل حتي الاسماعيلية",
+      "name": "محكمة الاسماعيلية",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [
@@ -699,14 +699,14 @@
       ],
       "conscript_count": 2,
       "weapon": "الي",
-      "time": "7ص",
+      "time": "8ص",
       "party": "سجن فيصل",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": true,
       "personnel_command_required": false,
       "note": "",
-      "pos": 0
+      "pos": 9
     },
     {
       "id": "AS-0034",
@@ -727,13 +727,13 @@
       "conscript_count": 2,
       "weapon": "آلي",
       "time": "8ص",
-      "party": "",
+      "party": "الجناين",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 9
+      "pos": 11
     },
     {
       "id": "AS-0035",
@@ -754,7 +754,7 @@
       "conscript_count": 2,
       "weapon": "آلي",
       "time": "8ص",
-      "party": "",
+      "party": "عتاقة",
       "counts_in_summary": true,
       "mission_transport": false,
       "officer_command_required": false,
@@ -781,19 +781,19 @@
       "conscript_count": 2,
       "weapon": "آلي",
       "time": "9ص",
-      "party": "",
+      "party": "فيصل",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 12
+      "pos": 13
     },
     {
       "id": "AS-0037",
       "section": "الخدمات الطارئة",
       "name": "مأمورية امداد",
-      "kind": "خارجية",
+      "kind": "داخلية",
       "shift": "صباحية",
       "officer_ids": [
         "OFF-031"
@@ -801,23 +801,32 @@
       "personnel_ids": [
         "IND-177"
       ],
-      "conscripts": [],
+      "conscripts": [
+        {
+          "class": "خفيفة",
+          "count": 1
+        },
+        {
+          "class": "طلبة",
+          "count": 1
+        }
+      ],
       "conscript_count": 4,
       "weapon": "",
       "time": "8ص",
       "party": "قوات الأمن",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": true,
       "personnel_command_required": true,
       "note": "",
-      "pos": 11
+      "pos": 8
     },
     {
       "id": "AS-0038",
       "section": "الخدمات الطارئة",
       "name": "مأمورية النيابة عسكرية",
-      "kind": "خارجية",
+      "kind": "داخلية",
       "shift": "صباحية",
       "officer_ids": [],
       "personnel_ids": [
@@ -829,10 +838,11 @@
       "time": "8ص",
       "party": "قوات الأمن",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
-      "note": ""
+      "note": "",
+      "pos": 12
     }
   ],
   "officer_states": {
@@ -864,13 +874,6 @@
       "extra": "متابعة اعمال العمليات وشئون الضباط  + متابعة اعمال التدريب",
       "admin_work": true
     },
-    "OFF-031": {
-      "taqseera": false,
-      "status": "",
-      "note": "",
-      "extra": "متابعة عنابر الاعاشة",
-      "admin_work": true
-    },
     "OFF-044": {
       "taqseera": false,
       "status": "",
@@ -897,7 +900,8 @@
       "status": "",
       "note": "",
       "extra": "متابعة اعمال السلاح والعهدة",
-      "admin_work": true
+      "admin_work": true,
+      "admin_work_text": "ميك مرور البوابات"
     },
     "OFF-043": {
       "taqseera": false,
@@ -905,17 +909,10 @@
       "note": "",
       "extra": "متابعة أعمال المالية",
       "admin_work": true
-    },
-    "OFF-028": {
-      "taqseera": false,
-      "status": "",
-      "note": "",
-      "extra": "عمل بالادارة من 8ص",
-      "admin_work": true
     }
   },
   "confirm": {
-    "at": "2026-11-06T23:42:31",
+    "at": "2026-11-07T12:14:00",
     "by": "Mohamed Hanafy",
     "rows": [
       {
@@ -1299,7 +1296,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-100"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1311,11 +1310,11 @@
         "time": "12ظ",
         "party": "",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 1
+        "pos": 0
       },
       {
         "id": "AS-0021",
@@ -1324,7 +1323,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-120"
+        ],
         "conscripts": [
           {
             "class": "وحدة",
@@ -1340,7 +1341,7 @@
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 2
+        "pos": 1
       },
       {
         "id": "AS-0022",
@@ -1351,7 +1352,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "10ص",
         "party": "ملعب الجبلايات",
@@ -1360,7 +1361,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 3
+        "pos": 2
       },
       {
         "id": "AS-0023",
@@ -1371,7 +1372,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب الجبلايات",
@@ -1380,7 +1381,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 4
+        "pos": 3
       },
       {
         "id": "AS-0024",
@@ -1391,7 +1392,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب ش. السلام",
@@ -1400,7 +1401,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 5
+        "pos": 4
       },
       {
         "id": "AS-0025",
@@ -1411,7 +1412,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب النوبة",
@@ -1420,7 +1421,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 6
+        "pos": 5
       },
       {
         "id": "AS-0026",
@@ -1431,7 +1432,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب ش.المثلث",
@@ -1440,7 +1441,7 @@
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 7
+        "pos": 6
       },
       {
         "id": "AS-0027",
@@ -1476,7 +1477,7 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [
-          "OFF-028"
+          "OFF-036"
         ],
         "personnel_ids": [],
         "conscripts": [
@@ -1502,10 +1503,10 @@
         "name": "البوابة الرئيسية حتي المقصورة",
         "kind": "خارجية",
         "shift": "صباحية",
-        "officer_ids": [
-          "OFF-036"
+        "officer_ids": [],
+        "personnel_ids": [
+          "IND-133"
         ],
-        "personnel_ids": [],
         "conscripts": [
           {
             "class": "وحدة",
@@ -1518,8 +1519,8 @@
         "party": "استاد السويس",
         "counts_in_summary": true,
         "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
         "note": "",
         "pos": 1
       },
@@ -1556,7 +1557,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-181"
+        ],
         "conscripts": [
           {
             "class": "وحدة",
@@ -1576,27 +1579,27 @@
       {
         "id": "AS-0032",
         "section": "الخدمات الطارئة",
-        "name": "مباراة ملعب بورتوفيق",
+        "name": "نجمة سينا x م ش عرب المعمل",
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
-        "time": "",
-        "party": "",
+        "time": "1م",
+        "party": "ملعب بورتوفيق",
         "counts_in_summary": true,
         "mission_transport": false,
         "officer_command_required": false,
         "personnel_command_required": false,
         "note": "",
-        "pos": 8
+        "pos": 7
       },
       {
         "id": "AS-0033",
         "section": "الخدمات الطارئة",
-        "name": "ترحيلة من سجن فيصل حتي الاسماعيلية",
+        "name": "محكمة الاسماعيلية",
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [
@@ -1611,14 +1614,14 @@
         ],
         "conscript_count": 2,
         "weapon": "الي",
-        "time": "7ص",
+        "time": "8ص",
         "party": "سجن فيصل",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": true,
         "personnel_command_required": false,
         "note": "",
-        "pos": 0
+        "pos": 9
       },
       {
         "id": "AS-0034",
@@ -1627,7 +1630,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-128"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1637,13 +1642,13 @@
         "conscript_count": 2,
         "weapon": "آلي",
         "time": "8ص",
-        "party": "",
+        "party": "الجناين",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 9
+        "pos": 11
       },
       {
         "id": "AS-0035",
@@ -1652,7 +1657,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-021"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1662,7 +1669,7 @@
         "conscript_count": 2,
         "weapon": "آلي",
         "time": "8ص",
-        "party": "",
+        "party": "عتاقة",
         "counts_in_summary": true,
         "mission_transport": false,
         "officer_command_required": false,
@@ -1677,7 +1684,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-163"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1687,19 +1696,19 @@
         "conscript_count": 2,
         "weapon": "آلي",
         "time": "9ص",
-        "party": "",
+        "party": "فيصل",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 12
+        "pos": 13
       },
       {
         "id": "AS-0037",
         "section": "الخدمات الطارئة",
         "name": "مأمورية امداد",
-        "kind": "خارجية",
+        "kind": "داخلية",
         "shift": "صباحية",
         "officer_ids": [
           "OFF-031"
@@ -1707,36 +1716,48 @@
         "personnel_ids": [
           "IND-177"
         ],
-        "conscripts": [],
+        "conscripts": [
+          {
+            "class": "خفيفة",
+            "count": 1
+          },
+          {
+            "class": "طلبة",
+            "count": 1
+          }
+        ],
         "conscript_count": 4,
         "weapon": "",
         "time": "8ص",
         "party": "قوات الأمن",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": true,
         "personnel_command_required": true,
         "note": "",
-        "pos": 11
+        "pos": 8
       },
       {
         "id": "AS-0038",
         "section": "الخدمات الطارئة",
         "name": "مأمورية النيابة عسكرية",
-        "kind": "خارجية",
+        "kind": "داخلية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-054"
+        ],
         "conscripts": [],
         "conscript_count": 0,
         "weapon": "كلبش",
         "time": "8ص",
         "party": "قوات الأمن",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
-        "note": ""
+        "note": "",
+        "pos": 12
       }
     ]
   },
@@ -2262,7 +2283,7 @@
       }
     ]
   },
-  "assignment_seq": 38,
+  "assignment_seq": 40,
   "afraad_basic": {
     "AFB-01": {
       "morning_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
@@ -2273,12 +2294,15 @@
       "night_person_id": "IND-042"
     },
     "AFB-02": {
-      "morning_name": "أمين شرطة ثان/ محمد السيد عبدالمنعم رمضان",
-      "morning_phone": "01016480670",
+      "morning_name": "أمين شرطة ثان/ محمد عبدالنعيم يوسف محمد",
+      "morning_phone": "01099260185",
       "night_name": "أمين شرطة ثان/ عبدالحميد فريد فهمي موسي",
       "night_phone": "01151585036",
-      "morning_person_id": "IND-179",
-      "night_person_id": "IND-005"
+      "morning_person_id": "IND-185",
+      "night_person_id": "IND-005",
+      "count": "2 مج قتالية ( 1مجند )+ 1سائق صبح 2 مج قتالية ( 1 مجند ) + 1 سائق ليل",
+      "weapon": "الي + كلبش",
+      "schedule": "8 ص / 8 م"
     },
     "AFB-03": {
       "morning_name": "أمين شرطة ممتاز ثان/ محمد عبدالهادي علي حسين",
@@ -2674,6 +2698,540 @@
           }
         ]
       }
+    }
+  },
+  "service_runs": {
+    "SVC-009:am": {
+      "out_at": "2026-11-07T06:52:29+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T06:52:29+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:43:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:43:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "SVC-012:am": {
+      "out_at": "2026-11-07T06:52:45+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T06:52:45+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:43:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:43:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0033:am": {
+      "out_at": "2026-11-07T06:53:36+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T06:53:36+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:43:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:43:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0034:am": {
+      "out_at": "2026-11-07T06:53:43+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T06:53:43+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:43:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:43:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0037:am": {
+      "out_at": "2026-11-07T06:53:47+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T06:53:47+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:43:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:43:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0035:am": {
+      "out_at": "2026-11-07T06:53:49+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T06:53:49+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:43:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:43:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0038:am": {
+      "out_at": "2026-11-07T06:53:52+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T06:53:52+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:43:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:43:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "SVC-015:am": {
+      "out_at": "2026-11-07T21:44:07+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:07+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:44:13+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:44:13+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0036:am": {
+      "out_at": "2026-11-07T21:44:23+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:23+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:44:27+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:44:27+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0021:am": {
+      "out_at": "2026-11-07T21:44:31+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:31+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:44:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:44:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0022:am": {
+      "out_at": "2026-11-07T21:44:31+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:31+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:44:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:44:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0001:am": {
+      "out_at": "2026-11-07T21:44:31+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:31+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:44:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:44:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0002:am": {
+      "out_at": "2026-11-07T21:44:31+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:31+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:44:39+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:44:39+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "SVC-018:am": {
+      "out_at": "2026-11-07T21:44:45+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:45+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:44:51+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:44:51+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0020:am": {
+      "out_at": "2026-11-07T21:44:58+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:44:58+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:04+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:04+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0023:am": {
+      "out_at": "2026-11-07T21:45:08+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:08+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:16+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:16+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0024:am": {
+      "out_at": "2026-11-07T21:45:08+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:08+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:16+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:16+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0025:am": {
+      "out_at": "2026-11-07T21:45:08+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:08+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:16+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:16+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0026:am": {
+      "out_at": "2026-11-07T21:45:08+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:08+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:16+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:16+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0032:am": {
+      "out_at": "2026-11-07T21:45:08+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:08+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:16+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:16+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0027:am": {
+      "out_at": "2026-11-07T21:45:21+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:21+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:28+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:28+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0028:am": {
+      "out_at": "2026-11-07T21:45:21+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:21+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:28+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:28+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0029:am": {
+      "out_at": "2026-11-07T21:45:21+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:21+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:28+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:28+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0030:am": {
+      "out_at": "2026-11-07T21:45:21+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:21+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:28+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:28+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "AS-0031:am": {
+      "out_at": "2026-11-07T21:45:21+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:21+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-07T21:45:28+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-07T21:45:28+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "SVC-009:pm": {
+      "out_at": "2026-11-07T21:45:39+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:39+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-08T21:33:43+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-08T21:33:43+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "SVC-012:pm": {
+      "out_at": "2026-11-07T21:45:39+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:39+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-08T21:33:43+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-08T21:33:43+00:00",
+      "back_by": "Mohamed Hanafy"
+    },
+    "SVC-015:pm": {
+      "out_at": "2026-11-07T21:45:39+00:00",
+      "out_by": "Mohamed Hanafy",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-07T21:45:39+00:00",
+          "by": "Mohamed Hanafy"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-08T21:33:43+00:00",
+          "by": "Mohamed Hanafy"
+        }
+      ],
+      "back_at": "2026-11-08T21:33:43+00:00",
+      "back_by": "Mohamed Hanafy"
     }
   }
 }

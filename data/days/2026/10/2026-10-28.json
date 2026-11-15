@@ -1556,6 +1556,13 @@
       }
     ]
   },
+  "status": {
+    "closed": false,
+    "reopened_on": "2026-11-11",
+    "reopened_at": "2026-11-11T22:07:33",
+    "reopened_by": "Mohamed Hanafy",
+    "reason": "تظبيط اليومية"
+  },
   "counts": {
     "entries": [
       {
@@ -2091,6 +2098,169 @@
     ]
   },
   "assignment_seq": 35,
+  "afraad_basic": {
+    "AFB-01": {
+      "morning_name": "معاون ثالث/ محمد عطية منصور نصار",
+      "morning_phone": "01210908819",
+      "night_name": "معاون ثالث/ محمد عطية منصور نصار",
+      "night_phone": "01210908819",
+      "morning_person_id": "IND-042",
+      "night_person_id": "IND-042"
+    },
+    "AFB-02": {
+      "morning_name": "أمين شرطة ممتاز/ شريف صلاح جودة احمد",
+      "morning_phone": "01208590765",
+      "night_name": "أمين شرطة ثالث/ محمد السيد عبدالرحيم عفيفي",
+      "night_phone": "01002699784",
+      "morning_person_id": "IND-191",
+      "night_person_id": "IND-011"
+    },
+    "AFB-03": {
+      "morning_name": "معاون ثالث/ محمد الشحات ابراهيم السيد",
+      "morning_phone": "01154504127",
+      "night_name": "معاون ثالث/ محمد الشحات ابراهيم السيد",
+      "night_phone": "01154504127",
+      "morning_person_id": "IND-038",
+      "night_person_id": "IND-038"
+    },
+    "AFB-04": {
+      "morning_name": "معاون ثالث/ احمد محمد كمال سليم",
+      "morning_phone": "01012058743",
+      "night_name": "أمين شرطة أول/ وحيد عبدربه ابوالفتوح البسيونى",
+      "night_phone": "01020562130",
+      "morning_person_id": "IND-144",
+      "night_person_id": "IND-059"
+    },
+    "AFB-05": {
+      "morning_name": "معاون ثالث/ محمد السيد احمد محمود سمكة",
+      "morning_phone": "01200678309",
+      "night_name": "معاون ثالث/ محمد الهادي احمد رجب",
+      "night_phone": "01094086113",
+      "morning_person_id": "IND-032",
+      "night_person_id": "IND-043"
+    },
+    "AFB-06": {
+      "morning_name": "مساعد ثالث/ عبدالرؤوف محمد السيد ماضي",
+      "morning_phone": "01098090512",
+      "night_name": "معاون ثالث/ محمد السيد احمد محمود سمكة",
+      "night_phone": "01200678309",
+      "morning_person_id": "IND-016",
+      "night_person_id": "IND-032"
+    },
+    "AFB-07": {
+      "morning_name": "مساعد أول/ صبري ابراهيم بدوي متولي",
+      "morning_phone": "01227732345",
+      "night_name": "أمين شرطة ممتاز ثان/ مصطفي محمد صدقي محمد السيد",
+      "night_phone": "",
+      "morning_person_id": "IND-189",
+      "night_person_id": "IND-175"
+    },
+    "AFB-08": {
+      "morning_name": "أمين شرطة ثان/ احمد صبري سيد احمد",
+      "morning_phone": "01122158140",
+      "night_name": "معاون ثالث/ علي احمد علي عبدالعال",
+      "night_phone": "01019209437",
+      "morning_person_id": "IND-004",
+      "night_person_id": "IND-040"
+    },
+    "AFB-09": {
+      "morning_name": "معاون ثالث/ اسلام احمد محمد عبدالقادر",
+      "morning_phone": "01069134710",
+      "night_name": "معاون ثالث/ طارق حسين علي عبدالعال",
+      "night_phone": "01204094231",
+      "morning_person_id": "IND-034",
+      "night_person_id": "IND-022"
+    },
+    "AFB-10": {
+      "morning_name": "أمين شرطة ممتاز/ رضا عبدالله عبدالفتاح خليل",
+      "morning_phone": "01009567460",
+      "night_name": "معاون ثالث/ محمد جمال السيد احمد",
+      "night_phone": "01028593337",
+      "morning_person_id": "IND-001",
+      "night_person_id": "IND-039"
+    },
+    "AFB-11": {
+      "morning_name": "أمين شرطة ثان/ محمد سعيد محمد شحاتة",
+      "morning_phone": "",
+      "night_name": "أمين شرطة ثالث/ جمال صالح قرني محمد",
+      "night_phone": "01154482370",
+      "morning_person_id": "IND-184",
+      "night_person_id": "IND-008"
+    },
+    "AFB-12": {
+      "morning_name": "معاون ثالث/ احمد اليماني امين عبد الله",
+      "morning_phone": "01211585213",
+      "night_name": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن",
+      "night_phone": "01066871634",
+      "morning_person_id": "IND-026",
+      "night_person_id": "IND-031"
+    },
+    "AFB-13": {
+      "morning_name": "معاون ثالث/ احمد ايمن محمد امام",
+      "morning_phone": "01096323117",
+      "night_name": "معاون ثالث/ محمد احمد محمد عبدالفتاح",
+      "night_phone": "01099707239",
+      "morning_person_id": "IND-027",
+      "night_person_id": "IND-030"
+    },
+    "AFB-14": {
+      "morning_name": "معاون ثالث/ السيد عبدالمجيد عبدالعظيم",
+      "morning_phone": "01116107863",
+      "night_name": "معاون ثالث/ السيد عبدالمجيد عبدالعظيم",
+      "night_phone": "01116107863",
+      "morning_person_id": "IND-065",
+      "night_person_id": "IND-065"
+    },
+    "AFB-15": {
+      "morning_name": "أمين شرطة ثان/ السيد احمد علي سيد احمد",
+      "morning_phone": "01112159913",
+      "morning_person_id": "IND-183"
+    },
+    "AFB-16": {
+      "morning_name": "أمين شرطة ممتاز ثان/ محمد السيد عبده مصلحي",
+      "morning_phone": "01062464214",
+      "morning_person_id": "IND-188"
+    },
+    "AFB-17": {
+      "morning_name": "معاون ثالث/ احمد محمد محمد احمد",
+      "morning_phone": "01284133995",
+      "morning_person_id": "IND-148"
+    },
+    "AFB-18": {
+      "morning_name": "معاون ثالث/ محمد رمضان عبدالحي الشبراخيتي",
+      "morning_phone": "01120307962",
+      "night_name": "معاون ثالث/ محمد رمضان عبدالحي الشبراخيتي",
+      "night_phone": "01120307962",
+      "morning_person_id": "IND-047",
+      "night_person_id": "IND-047"
+    },
+    "AFB-19": {
+      "morning_name": "معاون ثالث/ محمد حمادة حسن احمد",
+      "morning_phone": "01036143573",
+      "morning_person_id": "IND-052"
+    },
+    "AFB-20": {
+      "morning_name": "معاون ثالث/ علي ابراهيم صالح حسن",
+      "morning_phone": "01090335435",
+      "night_name": "معاون ثالث/ علي ابراهيم صالح حسن",
+      "night_phone": "01090335435",
+      "morning_person_id": "IND-061",
+      "night_person_id": "IND-061"
+    },
+    "AFB-21": {
+      "morning_name": "معاون ثالث/ اسلام عبده معتمد محمد",
+      "morning_phone": "01008124662",
+      "night_name": "معاون ثالث/ اسلام وجيه عبدالحميد الشحات",
+      "night_phone": "01140904681",
+      "morning_person_id": "IND-024",
+      "night_person_id": "IND-051"
+    },
+    "AFB-22": {
+      "night_name": "معاون ثالث/ محمد السيد محمود غريب",
+      "night_phone": "01091257679",
+      "night_person_id": "IND-109"
+    }
+  },
   "weekly_rest_seeded": true,
   "target_defaults": {
     "source_day": "2026-10-27",
