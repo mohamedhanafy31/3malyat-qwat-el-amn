@@ -339,7 +339,6 @@ def build_docx(dto):
                      "ratio": max(f["ratio"] for f in fits), "halves": max(f["halves"] for f in fits),
                      "pages": fits})
     output = BytesIO()
-    center_docx_table_cells(document)
     document.save(output)
     output.seek(0)
     return output

@@ -448,39 +448,6 @@
       "pos": 0
     },
     {
-      "id": "AS-0023",
-      "section": "الخدمات الطارئة",
-      "name": "جرد مخدرات مديرية الزراعة",
-      "kind": "خارجية",
-      "shift": "صباحية",
-      "officer_ids": [
-        "OFF-010"
-      ],
-      "personnel_ids": [
-        "IND-120"
-      ],
-      "conscripts": [
-        {
-          "class": "مج",
-          "count": 1
-        },
-        {
-          "class": "وحدة",
-          "count": 1
-        }
-      ],
-      "conscript_count": 12,
-      "weapon": "آلي",
-      "time": "8ص",
-      "party": "محزن مديرية الزراعة بفيصل",
-      "counts_in_summary": true,
-      "mission_transport": false,
-      "officer_command_required": true,
-      "personnel_command_required": true,
-      "note": "",
-      "pos": 1
-    },
-    {
       "id": "AS-0024",
       "section": "الخدمات الطارئة",
       "name": "مباراة الجبلايات x سماد السويس",
@@ -663,7 +630,7 @@
       "time": "8ص",
       "party": "الجناين",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
@@ -690,7 +657,7 @@
       "time": "8ص",
       "party": "عتاقة",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
@@ -749,6 +716,39 @@
       "personnel_command_required": true,
       "note": "",
       "pos": 8
+    },
+    {
+      "id": "AS-0036",
+      "section": "الخدمات الطارئة",
+      "name": "جرد مخدرات مديرية الزراعة",
+      "kind": "خارجية",
+      "shift": "صباحية",
+      "officer_ids": [
+        "OFF-010"
+      ],
+      "personnel_ids": [
+        "IND-120"
+      ],
+      "conscripts": [
+        {
+          "class": "مج",
+          "count": 1
+        },
+        {
+          "class": "طلبة",
+          "count": 1
+        }
+      ],
+      "conscript_count": 12,
+      "weapon": "آلي/طلبة",
+      "time": "8ص",
+      "party": "مخزن مديرية الزراعة بفيصل",
+      "counts_in_summary": true,
+      "mission_transport": false,
+      "officer_command_required": true,
+      "personnel_command_required": true,
+      "note": "",
+      "pos": 1
     }
   ],
   "officer_states": {
@@ -795,7 +795,7 @@
       "taqseera": false,
       "status": "",
       "note": "",
-      "extra": "متابعة اعمال التعيينات والفرن والعلاقات",
+      "extra": "متابعة اعمال التعيينات والفرن والعلاقات + ضابط امن الادارة من 4م",
       "admin_work": true
     },
     "OFF-048": {
@@ -804,10 +804,20 @@
       "note": "",
       "extra": "متابعة اعمال العمليات وشئون الضباط  + متابعة اعمال التدريب",
       "admin_work": true
+    },
+    "OFF-011": {
+      "announced": "phone"
+    },
+    "OFF-019": {
+      "taqseera": false,
+      "status": "",
+      "note": "",
+      "research_service": "نقطة تفتيش جنيفة فترة صباحية",
+      "research_time": "8ص"
     }
   },
   "confirm": {
-    "at": "2026-11-15T05:28:22",
+    "at": "2026-11-15T06:24:37",
     "by": "Mohamed Hanafy",
     "rows": [
       {
@@ -1258,39 +1268,6 @@
         "pos": 0
       },
       {
-        "id": "AS-0023",
-        "section": "الخدمات الطارئة",
-        "name": "جرد مخدرات مديرية الزراعة",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-010"
-        ],
-        "personnel_ids": [
-          "IND-120"
-        ],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 1
-          },
-          {
-            "class": "وحدة",
-            "count": 1
-          }
-        ],
-        "conscript_count": 12,
-        "weapon": "آلي",
-        "time": "8ص",
-        "party": "محزن مديرية الزراعة بفيصل",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 1
-      },
-      {
         "id": "AS-0024",
         "section": "الخدمات الطارئة",
         "name": "مباراة الجبلايات x سماد السويس",
@@ -1473,7 +1450,7 @@
         "time": "8ص",
         "party": "الجناين",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
@@ -1500,7 +1477,7 @@
         "time": "8ص",
         "party": "عتاقة",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
@@ -1559,10 +1536,43 @@
         "personnel_command_required": true,
         "note": "",
         "pos": 8
+      },
+      {
+        "id": "AS-0036",
+        "section": "الخدمات الطارئة",
+        "name": "جرد مخدرات مديرية الزراعة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-010"
+        ],
+        "personnel_ids": [
+          "IND-120"
+        ],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          },
+          {
+            "class": "طلبة",
+            "count": 1
+          }
+        ],
+        "conscript_count": 12,
+        "weapon": "آلي/طلبة",
+        "time": "8ص",
+        "party": "مخزن مديرية الزراعة بفيصل",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 1
       }
     ]
   },
-  "assignment_seq": 35,
+  "assignment_seq": 36,
   "afraad_basic": {
     "AFB-01": {
       "morning_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
@@ -1800,8 +1810,11 @@
   "campaign": {
     "lorries": {
       "LOR-1": {
-        "vehicle_id": "",
-        "driver": {},
+        "vehicle_id": "VEH-072",
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-067"
+        },
         "attached": [
           {
             "assignment_id": "AS-0009"
@@ -1809,12 +1822,18 @@
         ]
       },
       "LOR-2": {
-        "vehicle_id": "",
-        "driver": {}
+        "vehicle_id": "VEH-017",
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-180"
+        }
       },
       "LOR-3": {
-        "vehicle_id": "",
-        "driver": {},
+        "vehicle_id": "VEH-018",
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-072"
+        },
         "attached": [
           {
             "assignment_id": "AS-0010"
@@ -1822,8 +1841,11 @@
         ]
       },
       "LOR-4": {
-        "driver": {},
-        "vehicle_id": ""
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-072"
+        },
+        "vehicle_id": "VEH-018"
       }
     },
     "services": {
@@ -1840,8 +1862,173 @@
           }
         ],
         "driver": {}
+      },
+      "AS-0033": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-191"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-035"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-035"
+        }
+      },
+      "AS-0029": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-040"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-048"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-048"
+        }
+      },
+      "AS-0031": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-010"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-010"
+        }
+      },
+      "AS-0032": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-028",
+            "personnel_ids": [
+              "IND-034"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-084"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-084"
+        }
+      },
+      "AS-0035": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-039",
+            "personnel_ids": [
+              "IND-172"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-009"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-009"
+        }
+      },
+      "AS-0027": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-016",
+            "personnel_ids": [
+              "IND-137"
+            ],
+            "driver": {
+              "kind": "personnel",
+              "id": "IND-078"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-078"
+        }
+      },
+      "AS-0030": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-034",
+            "personnel_ids": [
+              "IND-114"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-086"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-086"
+        }
+      },
+      "AS-0036": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-074",
+            "personnel_ids": [
+              "IND-120"
+            ],
+            "officer_ids": [
+              "OFF-010"
+            ],
+            "driver": {
+              "kind": "personnel",
+              "id": "IND-082"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-082"
+        }
       }
     },
-    "daily": {}
+    "daily": {
+      "CD-002": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-059"
+        }
+      }
+    },
+    "groups": [
+      {
+        "id": "CG-018",
+        "title": "توصيل مجندين مباريات 1م",
+        "members": [
+          "AS-0024",
+          "AS-0025",
+          "AS-0026"
+        ]
+      }
+    ]
   }
 }

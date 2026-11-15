@@ -164,7 +164,6 @@ def build_docx(payload):
     # Word لازم له فقرة بعد آخر جدول؛ ارتفاعها أقل من الاحتياطي فمابتفتحش صفحة زيادة.
     section_properties.addprevious(_gap(BREAK_HEIGHT))
     buffer = BytesIO()
-    center_docx_table_cells(document)
     document.save(buffer)
     buffer.seek(0)
     return buffer
