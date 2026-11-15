@@ -179,6 +179,7 @@ def add_person():
             "status": "active"
         }
         if category == "officers":
+            person["address"] = str(payload.get("address", "")).strip()
             person["short_name"] = str(payload.get("short_name", "")).strip()
             person["rest_system"] = str(payload.get("rest_system", "—")).strip() or "—"
             person["rest_day"] = str(payload.get("rest_day", "")).strip()

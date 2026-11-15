@@ -4,6 +4,7 @@
    بيتضاف على خدمته التلقائية، وإضافته للعمل بالإدارة في اللوحة.
    «فرقة» بتيجي من التحاق الفرق المسجّل وتفاصيلها بتتعرض تحت الخانة. */
 let DUTY = null;
+let announceMode = false;
 
 // نفس `backend/status_periods.py`: المستمرة لحد الإنهاء، والباقي لحد يوم محدد
 const CONTINUOUS_STATUSES = ["مرضي", "غياب"];
@@ -108,8 +109,11 @@ function officerRow(r) {
       + (r.course ? `<div class="sub wrap">${esc(courseLine(r.course))}</div>` : "");
   const gone = r.later_left ? `<span class="chip done" title="خرج من القوة يوم ${fmt(r.later_left)}">خرج ${fmt(r.later_left)}</span>` : "";
   const search = r.search_attached ? ` <span class="chip soon" title="تشغيل من إدارة البحث">بحث</span>` : "";
+  const announce = announceMode ? `<button class="announce-check ${r.announced === "phone" ? "is-phone" : r.announced === "message" ? "is-message" : ""}" type="button" role="checkbox" data-announce-id="${esc(r.id)}" aria-checked="${r.announced === "phone" ? "true" : r.announced === "message" ? "mixed" : "false"}" aria-label="إعلان الضابط ${esc(r.name)} — ${announcementLabel(r.announced)}">${r.announced === "phone" ? "✓" : ""}</button> ` : "";
+  const announced = r.announced === "phone" ? ' <span class="announce-mark">✓ تم إعلانه تليفونيًا</span>'
+    : r.announced === "message" ? ' <span class="announce-mark is-message"><span class="announce-square" aria-hidden="true"></span> تم إعلانه برسالة</span>' : "";
   return `<tr class="${r.later_left ? "was" : ""}">
-    <td class="name">${esc(r.name)}<div class="sub">${esc(r.role)}${search} ${gone}</div></td>
+    <td class="name">${announce}${esc(r.name)}${announced}<div class="sub">${esc(r.role)}${search} ${gone}</div></td>
     <td class="phone-col"><span dir="ltr">${esc(fmtPhone(r.phone)) || "—"}</span></td>
     <td class="wrap">${esc(r.post) || "<span class='muted'>—</span>"}</td>
     <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
@@ -119,15 +123,69 @@ function officerRow(r) {
   </tr>`;
 }
 
+function announcementLabel(method) {
+  return method === "phone" ? "أُعلن تليفونيًا" : method === "message" ? "أُعلن برسالة" : "لم يُعلن";
+}
+
 function render() {
   if (!DUTY) { $("#dutyBoard").innerHTML = skeleton("rows", 10); return }
   renderSummary(DUTY.summary);
+  updateAnnounceCount();
   const gone = DUTY.rows.filter(r => r.later_left).length;
   $("#dutyBoard").innerHTML = tableBlock(
     ["الضابط", "الهاتف", "العمل المسند إليه", "الخدمات", "الخانة في الإجمالي", "نص التشغيل", "الإجراء"],
     sectionRows(DUTY.rows),
     `قوة اليوم: ${countLabel(DUTY.rows.length, "ضابط")}${gone ? ` — عدد من خرجوا من القوة لاحقًا: ${gone}` : ""}`);
 }
+
+function updateAnnounceCount() {
+  const count = $("#announceCount");
+  const legend = $("#announceLegend");
+  count.hidden = !announceMode;
+  legend.hidden = !announceMode;
+  count.textContent = announceMode ? `تم إعلان ${DUTY.announced_count || 0} من ${DUTY.total ?? DUTY.rows.length} (تليفونيًا ${DUTY.announced_phone || 0}، برسالة ${DUTY.announced_message || 0})` : "";
+  const button = $("#announceMode");
+  button.setAttribute("aria-pressed", announceMode ? "true" : "false");
+  button.classList.toggle("is-pressed", announceMode);
+}
+
+$("#announceMode").onclick = () => { announceMode = !announceMode; render(); };
+$("#dutyBoard").addEventListener("click", async event => {
+  const control = event.target.closest("[data-announce-id]");
+  if (!control || !DUTY) return;
+  const row = DUTY.rows.find(item => item.id === control.dataset.announceId);
+  if (!row) return;
+  const states = ["", "phone", "message"];
+  const previous = row.announced || "";
+  const wanted = states[(states.indexOf(previous) + 1) % states.length];
+  control.disabled = true;
+  const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent(row.id)}`,
+    jsonReq("PUT", {announced: wanted, revision: DUTY.revision}));
+  if (!out) { control.disabled = false; control.focus(); return; }
+  const updated = out.rows.find(item => item.id === row.id);
+  if (updated) Object.assign(row, updated);
+  DUTY.announced_count = out.announced_count;
+  DUTY.announced_phone = out.announced_phone;
+  DUTY.announced_message = out.announced_message;
+  DUTY.revision = out.revision;
+  const nameCell = control.parentElement;
+  nameCell.querySelector(".announce-mark")?.remove();
+  if (wanted) {
+    const replacement = document.createElement("span");
+    replacement.className = `announce-mark${wanted === "message" ? " is-message" : ""}`;
+    replacement.innerHTML = wanted === "phone" ? "✓ تم إعلانه تليفونيًا"
+      : '<span class="announce-square" aria-hidden="true"></span> تم إعلانه برسالة';
+    nameCell.append(replacement);
+  }
+  control.classList.toggle("is-phone", wanted === "phone");
+  control.classList.toggle("is-message", wanted === "message");
+  control.textContent = wanted === "phone" ? "✓" : "";
+  control.setAttribute("aria-checked", wanted === "phone" ? "true" : wanted === "message" ? "mixed" : "false");
+  control.setAttribute("aria-label", `إعلان الضابط ${row.name} — ${announcementLabel(wanted)}`);
+  control.disabled = false;
+  updateAnnounceCount();
+  control.focus();
+});
 
 ACTIONS.openAssign = id => {
   const row = DUTY.rows.find(r => r.id === id); if (!row) return;

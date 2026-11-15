@@ -182,6 +182,7 @@ function renderTable() {
       code:      { label: "الأقدمية",    fn: p => p.code,                           type: "text" },
       post:      { label: "العمل المسند",fn: p => p.post || "",                     type: "text" },
       weapon:    { label: "عهدة السلاح", fn: p => p.weapon_custody || "",           type: "text" },
+      address:   { label: "العنوان",     fn: p => p.address || "",                  type: "text" },
       rest:      { label: "نظام الراحة", fn: p => p.rest_system || "—",             type: "text" },
     };
     // عمود فاضي بالكامل بياخد مساحة من غير أي معلومة — بيظهر تاني أول ما أي صف يتملي
@@ -203,6 +204,7 @@ function renderTable() {
         <td>${esc(p.code)}</td>
         <td class="wrap">${esc(p.post) || "-"}</td>
         ${hasWeapon ? `<td>${esc(p.weapon_custody) || "<span class='muted'>—</span>"}</td>` : ""}
+        <td class="wrap">${esc(p.address) || "-"}</td>
         <td>${restLabel(p)}</td>
         ${phoneCell(p, dash)}
         <td class="col-actions"><div class="actions">${acts}</div></td></tr>`;
@@ -215,6 +217,7 @@ function renderTable() {
       role:       { label: "الرتبة",      fn: p => rankIndex(p.role),  type: "num"  },
       code:       { label: "الأقدمية",    fn: p => p.code,             type: "text" },
       post:       { label: "العمل المسند",fn: p => p.post || "",       type: "text" },
+      address:    { label: "العنوان",     fn: p => p.address || "",    type: "text" },
       join_date:  { label: "من",          fn: p => p.join_date,        type: "date" },
       leave_date: { label: "إلى",         fn: p => p.leave_date || "", type: "date" },
     };
@@ -230,6 +233,7 @@ function renderTable() {
         <td><span class="badge">${esc(p.role)}</span></td>
         <td>${esc(p.code)}</td>
         <td class="wrap">${esc(p.post) || "-"}</td>
+        <td class="wrap">${esc(p.address) || "-"}</td>
         <td>${fmt(p.join_date)}</td>
         <td>${fmt(p.leave_date)}</td>
         ${phoneCell(p, dash)}
@@ -394,7 +398,7 @@ function updateRoles() {
   $("#weaponWrap").classList.toggle("hidden", !isOff);
   $("#restSysWrap").classList.toggle("hidden", !isOff);
   $("#restDayWrap").classList.toggle("hidden", !isOff);
-  $("#addressWrap").classList.toggle("hidden", isOff);
+  $("#addressWrap").classList.remove("hidden");
   $("#officerSectionWrap")?.classList.toggle("hidden", !isOff);
   $("#shortNameWrap")?.classList.toggle("hidden", !isOff);
   toggleRestDay();
@@ -474,6 +478,7 @@ $("#personForm").onsubmit = async e => {
     body.rest_system = $("#fRestSystem").value;
     body.rest_day = $("#fRestSystem").value === "أسبوعية" ? $("#fRestDay").value : "";
     body.weapon_custody = $("#fWeaponCustody").value.trim();
+    body.address = $("#fAddress").value;
     const sectionSelect = $("#fSection");
     const custom = sectionSelect?.value === "__new__";
     // توافق مع نسخة HTML قديمة لم يكن فيها اختيار القسم بعد.

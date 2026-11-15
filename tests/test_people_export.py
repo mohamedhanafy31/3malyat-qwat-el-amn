@@ -157,6 +157,7 @@ def test_export_columns_endpoint_excludes_serial(client):
         {"key": "name", "title": "الاسم"},
         {"key": "code", "title": "الأقدمية"},
         {"key": "post", "title": "العمل المسند"},
+        {"key": "address", "title": "العنوان"},
         {"key": "rest", "title": "نظام الراحة"},
         {"key": "phone", "title": "الهاتف"},
     ]

@@ -122,7 +122,7 @@ def officer_state(data, day, officer_id):
 
 def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=None,
                       extra=None, admin_work=None, research_service=None,
-                      research_time=None, admin_work_text=None):
+                      research_time=None, admin_work_text=None, announced=None):
     """حالة الضابط (تقصيرة/انتداب/غياب/مرضي/فرقة/طارئة/ملاحظة/تشغيل إضافي/
     إضافة للعمل بالإدارة). السجل بيتشال لما يفضّى عشان الملف ما يمتلئش
     بمدخلات فاضية. الحقل اللي مش مبعوت (None) مابيتغيّرش."""
@@ -144,6 +144,11 @@ def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=No
         entry["research_service"] = research_service
     if research_time is not None:
         entry["research_time"] = research_time
+    if announced is not None:
+        if announced:
+            entry["announced"] = announced
+        else:
+            entry.pop("announced", None)
     # الحقول الاختيارية مابيتخزّنوش فاضيين — ملفات الأيام القديمة تفضل بنفس شكلها
     for optional in ("extra", "admin_work", "admin_work_text", "research_service",
                      "research_time"):
@@ -152,7 +157,8 @@ def set_officer_state(data, day, officer_id, taqseera=None, status=None, note=No
 
     if not any((entry.get("taqseera"), entry.get("status"), entry.get("note"),
                 entry.get("extra"), entry.get("admin_work"), entry.get("admin_work_text"),
-                entry.get("research_service"), entry.get("research_time"))):
+                entry.get("research_service"), entry.get("research_time"),
+                entry.get("announced"))):
         states.pop(officer_id, None)
     else:
         states[officer_id] = entry

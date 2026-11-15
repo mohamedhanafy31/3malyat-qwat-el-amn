@@ -59,6 +59,14 @@ def _state_text(name, day, before, after):
                      else "إلغاء إضافته للعمل بالإدارة")
     if (before.get("admin_work_text") or "") != (after.get("admin_work_text") or ""):
         parts.append(f"نص عمل بالإدارة: {after.get('admin_work_text') or 'مُسح'}")
+    before_announcement = before.get("announced") or ""
+    after_announcement = after.get("announced") or ""
+    if before_announcement != after_announcement:
+        if not after_announcement:
+            parts.append("إلغاء إعلان الضابط " + name)
+        else:
+            method = "تليفونيًا" if after_announcement == "phone" else "برسالة"
+            parts.append(f"إعلان الضابط {name} {method}")
     if (before.get("research_service") or "") != (after.get("research_service") or ""):
         parts.append(f"خدمة البحث: {after.get('research_service') or 'مُسحت'}")
     if (before.get("research_time") or "") != (after.get("research_time") or ""):
@@ -154,6 +162,9 @@ def set_state(day, person_id):
         research_time = format_time(parsed)
     medical_state = str(payload.get("medical_state", "") or "").strip()
     medical_text = str(payload.get("medical_deputation_text", "") or "").strip()
+    announced = payload.get("announced")
+    if "announced" in payload and announced not in ("", "phone", "message"):
+        return jsonify({"error": "طريقة إعلان الضابط يجب أن تكون تليفونيًا أو برسالة أو بدون إعلان."}), 400
     if "medical_deputation_text" in payload and "medical_state" not in payload:
         return jsonify({"error": "اختر حالة الطبي مع نص الانتداب."}), 400
     if "medical_state" in payload and medical_state not in MEDICAL_STATES:
@@ -249,6 +260,9 @@ def set_state(day, person_id):
             admin_work_text=admin_work_text if "admin_work_text" in payload else None,
             research_service=research_service if "research_service" in payload else None,
             research_time=saved_research_time)
+        if "announced" in payload:
+            after = set_officer_state(data, day, person_id,
+                                      announced=announced)
         # المقارنة على القيم الفعلية بس: حفظ حالة الطبي لوحدها كان بيسجّل
         # «تعديل الحالة» فاضي لأن السجل الراجع فيه false/"" بدل ما يكون فاضي.
         if ({k: v for k, v in before.items() if v}
@@ -408,7 +422,7 @@ def clear_state(day, person_id):
         before = dict(officer_state(data, day, person_id))
         set_officer_state(data, day, person_id, taqseera=False, status="", note="",
                           extra="", admin_work=False, admin_work_text="",
-                          research_service="", research_time="")
+                          research_service="", research_time="", announced="")
         if before:
             changes.record(data, "officer_state", person_id, "delete",
                            before=before, reason=f"يوم {day}",

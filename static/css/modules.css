@@ -994,3 +994,14 @@
   .print-docs,.print-grid{padding-inline:var(--s3)}
   .print-grid{grid-template-columns:1fr}
 }
+
+/* إعلان الضباط في اليومية */
+.announce-count,.announce-legend{font-size:var(--t-sm);color:var(--ink-700);white-space:nowrap}
+#announceMode.is-pressed{background:var(--fill-800);color:var(--on-dark);border-color:var(--fill-800)}
+.announce-check{display:inline-grid;place-items:center;inline-size:1.1rem;block-size:1.1rem;padding:0;vertical-align:middle;margin-inline-end:var(--s1);border:1px solid var(--border-control);border-radius:var(--radius-sm);background:var(--surface);color:var(--ok-700);font-weight:800;line-height:1;cursor:pointer}
+.announce-check.is-phone{border-color:var(--ok-700);color:var(--ok-700)}
+.announce-check.is-message{border-color:var(--ok-700);background:var(--ok-700);color:var(--on-dark)}
+.announce-square{display:inline-block;inline-size:.65em;block-size:.65em;border:1px solid var(--ok-700);background:var(--ok-700);vertical-align:middle;margin-inline-end:.2em}
+.announce-mark{display:inline-flex;align-items:center;margin-inline-start:var(--s1);padding:0 var(--s2);border:1px solid var(--ok-300);border-radius:999px;background:var(--ok-100);color:var(--ok-700);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
+.announce-mark.is-message{border-color:var(--ok-700)}
+@media(max-width:600px){#dutyBar{align-items:flex-start}.announce-count{white-space:normal}}

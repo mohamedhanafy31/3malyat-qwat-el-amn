@@ -103,6 +103,7 @@ class Person(Model):
 
 @dataclass
 class Officer(Person):
+    address: str = ""
     short_name: str = ""
     section: str = ""
     rest_system: str = ""
@@ -116,6 +117,7 @@ class Officer(Person):
 
     def _check(self, errors):
         super()._check(errors)
+        max_length(errors, self.address, "address")
         max_length(errors, self.short_name, "short_name")
         one_of(errors, self.role, OFFICER_ROLES, "الرتبة غير صحيحة.", required=True)
         one_of(errors, self.section, OFFICER_SECTIONS, "قسم الضابط غير صحيح.")

@@ -36,11 +36,12 @@ COLUMNS = {
     "officers": [
         (None, "م", None, 0.75),
         ("rank", "الرتبة", lambda p: p.get("role"), 1.6),
-        ("name", "الاسم", lambda p: p.get("name"), 4.6),
+        ("name", "الاسم", lambda p: p.get("name"), 4.0),
         ("code", "الأقدمية", lambda p: p.get("code"), 2.1),
-        ("post", "العمل المسند", lambda p: p.get("post"), 3.6),
-        ("rest", "نظام الراحة", lambda p: _rest(p), 2.6),
-        ("phone", "الهاتف", lambda p: p.get("phone"), 2.75),
+        ("post", "العمل المسند", lambda p: p.get("post"), 2.8),
+        ("address", "العنوان", lambda p: p.get("address"), 3.0),
+        ("rest", "نظام الراحة", lambda p: _rest(p), 2.0),
+        ("phone", "الهاتف", lambda p: p.get("phone"), 2.4),
     ],
     "personnel": [
         (None, "م", None, 0.75),

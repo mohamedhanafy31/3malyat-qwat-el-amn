@@ -358,6 +358,7 @@ def officer_row(data, day, o, catalog=None):
         "admin_work": bool(state.get("admin_work")),
         # نص «عمل بالإدارة» الحر — بيدخل الضابط تحت القسم بالنص ده بالظبط
         "admin_work_text": state.get("admin_work_text", ""),
+        "announced": state.get("announced") or "",
         # النص التشغيلي الكامل (خدمته + اليدوي) والنص اليدوي بس
         "text": text,
         "manual": manual_text(state.get("note", ""), state.get("extra", "")),
@@ -407,6 +408,12 @@ def summarise(data, day):
     s["net_names"] = net_names
     s["counted"] = counted
     s["balanced"] = counted == s["أصل القوة"]
+    announced_phone = sum(row.get("announced") == "phone" for row in rows)
+    announced_message = sum(row.get("announced") == "message" for row in rows)
     return {"date": day, "summary": s, "rows": rows,
+            "announced_count": announced_phone + announced_message,
+            "announced_phone": announced_phone,
+            "announced_message": announced_message,
+            "total": len(rows),
             "officer_statuses": officer_statuses(data),
             "signatories": signatories(data, day)}
