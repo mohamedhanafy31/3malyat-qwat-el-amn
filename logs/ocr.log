@@ -425,3 +425,4 @@
 2026-11-13T01:19:57.774 | INFO | personnel.ocr | c142dcb2fd4f | Hanafy | ocr.client.file_selected | ocr_session=c153851b397341bda828086d day=2026-11-13 source=client kind=pdf bytes=436899 mime=application/pdf ext=pdf name_len=11
 2026-11-13T01:19:57.793 | INFO | personnel.ocr | c142dcb2fd4f | Hanafy | ocr.client.pdf_loaded | ocr_session=c153851b397341bda828086d day=2026-11-13 source=client pages=7 ms=584
 2026-11-13T01:19:59.016 | INFO | personnel.ocr | 44361df9de5b | Hanafy | ocr.client.page_rendered | ocr_session=c153851b397341bda828086d day=2026-11-13 source=client page=1 scale=3.0 width=1786 height=2526 ms=676
+2026-11-13T01:20:00.409 | INFO | personnel.ocr | 002f7f4f26ac | Hanafy | ocr.client.cancelled | ocr_session=c153851b397341bda828086d day=2026-11-13 source=client stage=prepare

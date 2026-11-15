@@ -36528,3 +36528,123 @@ PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\
 2026-11-15 01:30:50,592 INFO personnel_system.request GET /api/board/2026-11-15 200
 2026-11-15 01:30:50,676 INFO personnel_system.request GET /api/day-files/2026-11-15 200
 2026-11-15 01:30:50,732 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 01:30:50,867 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:41:29,613 INFO backend.store backup.pruned
+2026-11-15 03:41:29,615 INFO backend.store backup.created
+2026-11-15 03:41:29,738 INFO backend.store store.save
+2026-11-15 03:41:29,781 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0033 200
+2026-11-15 03:41:30,685 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:41:30,787 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:41:30,841 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:41:30,987 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:41:41,909 INFO backend.daily_files daily_files.generated
+2026-11-15 03:42:18,534 INFO backend.store store.save
+2026-11-15 03:42:18,557 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0029 200
+2026-11-15 03:42:19,432 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:42:19,519 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:42:19,583 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:42:19,728 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:42:30,666 INFO backend.daily_files daily_files.generated
+2026-11-15 03:42:34,425 INFO backend.store store.save
+2026-11-15 03:42:34,451 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0030 200
+2026-11-15 03:42:35,393 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:42:35,563 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:42:35,647 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:42:35,743 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:42:46,306 INFO backend.daily_files daily_files.generated
+2026-11-15 03:43:01,056 INFO backend.store store.save
+2026-11-15 03:43:01,077 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0031 200
+2026-11-15 03:43:01,934 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:43:02,107 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:43:02,174 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:43:02,272 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:43:13,265 INFO backend.daily_files daily_files.generated
+2026-11-15 03:43:20,245 INFO backend.store store.save
+2026-11-15 03:43:20,276 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0032 200
+2026-11-15 03:43:21,172 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:43:21,315 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:43:21,424 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:43:21,484 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:43:31,602 INFO backend.daily_files daily_files.generated
+2026-11-15 03:44:00,911 INFO backend.store backup.created
+2026-11-15 03:44:01,058 INFO backend.store store.save
+2026-11-15 03:44:01,082 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0035 200
+2026-11-15 03:44:01,914 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:44:02,036 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:44:02,086 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:44:02,183 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:44:12,514 INFO backend.daily_files daily_files.generated
+2026-11-15 03:44:35,483 INFO backend.store store.save
+2026-11-15 03:44:35,509 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0023 200
+2026-11-15 03:44:36,448 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:44:36,554 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:44:36,606 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:44:36,691 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:44:46,686 INFO backend.daily_files daily_files.generated
+2026-11-15 03:45:21,690 INFO backend.store store.save
+2026-11-15 03:45:21,723 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0014 200
+2026-11-15 03:45:22,569 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:45:22,667 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:45:22,725 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:45:22,917 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:45:33,983 INFO backend.daily_files daily_files.generated
+2026-11-15 03:45:40,562 INFO backend.store store.save
+2026-11-15 03:45:40,600 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0028 200
+2026-11-15 03:45:41,519 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:45:41,609 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:45:41,670 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:45:41,826 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:45:53,988 INFO backend.daily_files daily_files.generated
+2026-11-15 03:45:54,747 INFO backend.store store.save
+2026-11-15 03:45:54,773 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0011 200
+2026-11-15 03:45:55,679 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:45:55,764 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:45:55,824 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:45:55,982 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:46:15,642 INFO backend.store backup.pruned
+2026-11-15 03:46:15,643 INFO backend.store backup.created
+2026-11-15 03:46:15,763 INFO backend.store store.save
+2026-11-15 03:46:15,842 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0012 200
+2026-11-15 03:46:16,974 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:46:17,445 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:46:17,545 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:46:17,658 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:46:19,834 INFO backend.daily_files daily_files.generated
+2026-11-15 03:46:26,141 INFO backend.store store.save
+2026-11-15 03:46:26,214 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0013 200
+2026-11-15 03:46:27,347 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:46:27,397 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:46:27,574 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:46:27,737 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:46:32,033 INFO backend.daily_files daily_files.generated
+2026-11-15 03:46:34,862 INFO personnel_system.request GET /counts 200
+2026-11-15 03:46:36,113 INFO personnel_system.request GET /api/bootstrap/counts 200
+2026-11-15 03:46:36,719 INFO personnel_system.request GET /api/counts/2026-11-15 200
+2026-11-15 03:46:38,530 INFO personnel_system.request GET /api/counts/2026-11-15/export.xlsx 200
+2026-11-15 03:46:38,530 INFO personnel_system.export export_ok
+2026-11-15 03:46:44,969 INFO backend.daily_files daily_files.generated
+2026-11-15 03:46:47,142 WARNING personnel_system.request POST /api/export-preview 200
+2026-11-15 03:47:48,013 INFO personnel_system.request GET / 200
+2026-11-15 03:47:48,299 INFO personnel_system.request GET /api/bootstrap/dashboard 200
+2026-11-15 03:47:49,354 WARNING personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 03:47:49,919 INFO personnel_system.request GET /api/ops/2026-11-15/regularity 200
+2026-11-15 03:48:19,273 INFO personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 03:48:32,612 INFO backend.store backup.pruned
+2026-11-15 03:48:32,613 INFO backend.store backup.created
+2026-11-15 03:48:32,954 INFO backend.store store.save
+2026-11-15 03:48:33,055 WARNING personnel_system.request PUT /api/ops/2026-11-15/regularity 200
+2026-11-15 03:48:44,382 INFO backend.daily_files daily_files.generated
+2026-11-15 03:48:44,502 INFO backend.daily_files daily_files.skipped
+2026-11-15 03:48:47,475 INFO personnel_system.request GET /leaves/monthly 200
+2026-11-15 03:48:47,738 INFO personnel_system.request GET /api/bootstrap/leaves_monthly 200
+2026-11-15 03:48:57,349 INFO personnel_system.request GET /board 200
+2026-11-15 03:48:57,510 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-15 03:48:58,499 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 03:48:58,610 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 03:48:58,667 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 03:48:58,769 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 03:49:00,175 INFO personnel_system.request GET /api/board/2026-11-16 200
+2026-11-15 03:49:00,232 INFO personnel_system.request GET /api/day-files/2026-11-16 200
+2026-11-15 03:49:00,337 INFO personnel_system.request GET /api/bootstrap/dashboard 200
+2026-11-15 03:49:00,392 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-16 200
+2026-11-15 03:49:00,478 INFO personnel_system.request GET /api/day-status/2026-11-16 200
