@@ -13,6 +13,7 @@ from docx_alignment import alignment_problems
 DAY = "2026-10-20"
 
 
+# خطوط التشكيل مستثناة عن قصد من التوسيط center/center (قرار المستخدم).
 @pytest.mark.parametrize("export_name,url", [
     ("people officers", "/api/people/officers/export.docx"),
     ("people personnel", "/api/people/personnel/export.docx"),
@@ -24,17 +25,13 @@ DAY = "2026-10-20"
     ("leaves weekly", "/api/leaves/weekly/export.docx?on=2026-10-20"),
     ("regularity", f"/api/ops/{DAY}/regularity.docx"),
     ("special regularity", f"/api/ops/{DAY}/special-regularity.docx?section=مناسبة"),
-    ("formation morning", f"/api/ops/{DAY}/formation-morning.docx"),
-    ("formation night", f"/api/ops/{DAY}/formation-night.docx"),
-    ("special formation", f"/api/ops/{DAY}/special-formation.docx?section=مناسبة"),
 ])
 def test_downloaded_word_tables_are_center_center(client, export_name, url):
     _seed_alignment_data(client)
     response = client.get(url)
     assert response.status_code == 200, f"{export_name}: {response.get_data(as_text=True)[:300]}"
     assert alignment_problems(response.data) == [], export_name
-    if export_name in {"board detailed daily", "duty", "campaign", "regularity",
-                       "formation morning", "formation night"}:
+    if export_name in {"board detailed daily", "duty", "campaign", "regularity"}:
         document = Document(BytesIO(response.data))
         merge_tags = {qn("w:gridSpan"), qn("w:hMerge"), qn("w:vMerge")}
         assert any(node.tag in merge_tags for table in document.tables

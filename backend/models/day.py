@@ -160,7 +160,7 @@ class OfficerDayState(Model):
     def empty(self):
         return not (self.taqseera or text(self.status) or text(self.note) or self.medical
                     or text(self.extra) or self.admin_work or text(self.admin_work_text)
-                    or text(self.research_service)
+                    or text(self.announced) or text(self.research_service)
                     or text(self.research_time))
 
 

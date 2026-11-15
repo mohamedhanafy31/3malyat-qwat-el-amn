@@ -21,14 +21,14 @@ def _doc_text(response):
         cell.text for table in doc.tables for row in table.rows for cell in row.cells])
 
 
-def test_announced_round_trip_does_not_count_as_operational_content():
+def test_announced_is_stored_even_when_it_is_the_only_state():
     state = OfficerDayState(announced="phone")
     assert state.announced == "phone"
-    assert state.empty is True
+    assert state.empty is False  # لو اتعامل كفاضي الريبو بيمسح الإعلان عند الحفظ
     data = {}
     set_officer_state(data, DAY, "OFF-001", announced="phone")
     assert data["day_officers"][DAY]["OFF-001"]["announced"] == "phone"
-    assert OfficerDayState(**data["day_officers"][DAY]["OFF-001"]).empty is True
+    assert OfficerDayState(**data["day_officers"][DAY]["OFF-001"]).empty is False
 
 
 def test_toggle_preserves_other_state_and_reports_count_and_audit(client):
