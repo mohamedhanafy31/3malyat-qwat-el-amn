@@ -508,33 +508,6 @@
       "pos": 5
     },
     {
-      "id": "AS-0027",
-      "section": "الخدمات الطارئة",
-      "name": "قرار تمكين فيصل",
-      "kind": "خارجية",
-      "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [
-        "IND-137"
-      ],
-      "conscripts": [
-        {
-          "class": "وحدة",
-          "count": 1
-        }
-      ],
-      "conscript_count": 7,
-      "weapon": "فض",
-      "time": "9ص",
-      "party": "فيصل",
-      "counts_in_summary": true,
-      "mission_transport": false,
-      "officer_command_required": false,
-      "personnel_command_required": true,
-      "note": "",
-      "pos": 2
-    },
-    {
       "id": "AS-0028",
       "section": "الخدمات أساسية",
       "name": "الحي الحكومي صبح",
