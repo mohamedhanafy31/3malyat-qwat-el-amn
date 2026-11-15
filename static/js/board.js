@@ -394,6 +394,19 @@ function splitColumns(sections) {
   return [rightNames.map(name => sections.find(section => section.name === name)).filter(Boolean), left];
 }
 
+/* راحات وإجازات غدًا: أي ضابط راحته أو إجازته (أي نوع) بتبدأ بكرة، مع عمله النهاردة،
+   عشان يتكلّف بديل. بتظهر لكل يوم تلقائيًا (مش بس بعد زرار «غدًا»). */
+function restsTomorrowCard(list) {
+  if (!list?.length) return "";
+  const rows = list.map(item => `<li><span class="a-name">${esc(item.role)} / ${esc(item.name)}</span>
+      <span class="a-mid">${esc(item.type || "راحة")} تبدأ غدًا (${esc(fmt(item.rest_start))})</span>
+      <span class="a-rest">يعمل اليوم: ${esc(item.service || "بدون خدمة مسجلة")}</span></li>`).join("");
+  return `<div class="alert-card rests-tomorrow-card" id="restsTomorrow">
+    <div class="alert-head"><span class="alert-ico">${icon("arrow-end", "ico-lg")}</span><strong>راحات وإجازات غدًا</strong>
+      <span class="muted">عدد الضباط الذين تبدأ راحتهم أو إجازتهم غدًا: ${list.length} — يحتاجون إلى تكليف بديل على خدمتهم</span></div>
+    <ul class="alert-list">${rows}</ul></div>`;
+}
+
 function render() {
   const wrap = $("#matchBoard");
   if (!BOARD) { wrap.innerHTML = skeleton("cards", 4); return }
@@ -408,6 +421,7 @@ function render() {
         <div class="ledger-sub">${dayName(BOARD.date)} الموافق ${fmt(BOARD.date)}</div>
       </div>
       ${warningsCard(BOARD.warnings)}
+      ${restsTomorrowCard(BOARD.rests_tomorrow)}
       <nav class="ledger-index" aria-label="أقسام اليومية">
         <div class="ledger-index-group">${right.map(indexLink).join("")}</div>
         <div class="ledger-index-group">${left.map(indexLink).join("")}</div>

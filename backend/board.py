@@ -19,6 +19,8 @@
 الكتل الثابتة (9-11) بتظهر بصفّيها دايمًا حتى لو شاغرة — الوورد بيطبع
 الصفين في كل يوم، والخانة الفاضية معناها «محتاجة تكليف» مش «مش موجودة».
 """
+from datetime import date
+
 from .assignments import (
     clean_periods, command_required, command_vacant, forget_seq_if_day_empty, label,
     officer_states, peek_day, period_label, set_periods, valid_periods,
@@ -35,6 +37,7 @@ from .constants import (
 from .duty import summarise
 from .dated import groups_on, targets_on
 from .people import effective
+from .rest_status import taqseera_alerts
 from .text import norm
 
 # ترتيب API القديم محفوظ للتوافق؛ ترتيب العرض الجديد موجود في layout_columns.
@@ -685,6 +688,23 @@ def move_assignment(data, day, assignment_id, direction):
     return None, None
 
 
+def _rests_tomorrow(data, day, rows, hidden_ids=()):
+    """الضباط اللي راحتهم أو إجازتهم (أي نوع: شهرية، نصف شهرية، أسبوعية، إجازة…)
+    بتبدأ بكرة، مع عملهم النهاردة — عشان يتكلّف بديل. مبني على نفس حساب
+    «تنبيه تقصيرة» بس بالنسبة لليوم المعروض مش النهاردة الفعلي."""
+    by_id = {row["id"]: row for row in rows}
+    out = []
+    for alert in taqseera_alerts(data, date.fromisoformat(day)):
+        if alert.get("taqseera_date") != day or alert["id"] in hidden_ids:
+            continue
+        row = by_id.get(alert["id"]) or {}
+        out.append({"id": alert["id"], "name": alert.get("name", ""), "role": alert.get("role", ""),
+                    "type": alert.get("type", ""), "rest_start": alert.get("rest_start"),
+                    "service": row.get("text") or ""})
+    out.sort(key=lambda item: (item["type"], item["name"]))
+    return out
+
+
 def build_board(data, day):
     from .repo import Repos
 
@@ -817,6 +837,7 @@ def build_board(data, day):
     warnings = [warning for warning in day_warnings(data, day, full["rows"])
                 if warning.get("officer_id") not in search_ids]
     return {"date": day, "layout_version": layout_version,
+            "rests_tomorrow": _rests_tomorrow(data, day, full["rows"], search_ids),
             "layout_columns": {
                 "right": [SECTION_BASIC, SECTION_TARGETS, SECTION_SUBCAMP, SECTION_GREAT,
                           SECTION_SECURITY, SECTION_ADMIN_WORK, SECTION_NET],
