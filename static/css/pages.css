@@ -348,6 +348,11 @@ body.sidebar-open{overflow:hidden}
   #dutyBar .tb-end{margin-inline-start:auto}
   .table-scroll,.mtable-wrap,.reg-scroll{max-width:100%;overflow-x:auto}
 }
+.campaign-removed-services{margin-top:var(--s3);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--s3);background:var(--surface)}
+.campaign-removed-services summary{cursor:pointer;color:var(--ink-700);font-weight:600}
+.campaign-removed-services ul{list-style:none;margin:var(--s2) 0 0;padding:0;display:grid;gap:var(--s2)}
+.campaign-removed-services li{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);border-top:1px solid var(--line);padding-top:var(--s2)}
+.campaign-removed-services li small{display:block;color:var(--ink-700);margin-top:2px}
 .campaign-vehicle-type{color:var(--ink-700)}
 #campaignWrap .campaign-post-driver{width:100%;min-width:0;border-color:var(--line-strong);background:var(--surface-sunken);
   color:var(--ink-900);font-weight:600}

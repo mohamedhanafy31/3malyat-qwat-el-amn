@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_file
 
-from .. import campaign, day_status, retro
+from .. import campaign, changes, day_status, retro
 from ..campaign_export import build_docx
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import canonical_day, json_payload
@@ -66,6 +66,31 @@ def put_service(day, assignment_id):
         data, _day(day), assignment_id, body))
 
 
+@bp.delete("/api/campaign/<day>/service/<assignment_id>/removed")
+def remove_service(day, assignment_id):
+    return _write(day, lambda data, body: _service_visibility(data, _day(day), assignment_id, False))
+
+
+@bp.post("/api/campaign/<day>/service/<assignment_id>/restore")
+def restore_service(day, assignment_id):
+    return _write(day, lambda data, body: _service_visibility(data, _day(day), assignment_id, True))
+
+
+def _service_visibility(data, day, assignment_id, restore):
+    assignment = next((row for row in campaign.occasional_rows(data, day)
+                       if row.get("id") == assignment_id), None)
+    error, status = (campaign.restore_service(data, day, assignment_id) if restore
+                     else campaign.remove_service(data, day, assignment_id))
+    if not error:
+        name = (assignment or {}).get("name") or (assignment or {}).get("label") or assignment_id
+        verb = "استرجاع" if restore else "إزالة"
+        text = f"{verb} الخدمة «{name}» {'إلى' if restore else 'من'} يومية الحملة"
+        changes.record(data, "campaign_service", assignment_id, "update",
+                       before={"removed": restore}, after={"removed": not restore},
+                       day=day, text=text)
+    return error, status
+
+
 @bp.put("/api/campaign/<day>/daily/<row_id>")
 def put_daily(day, row_id):
     return _write(day, lambda data, body: campaign.set_daily(
@@ -119,6 +144,21 @@ def add_daily(day):
 def _add(data, day, body):
     ident, error, status = campaign.add_daily_row(data, day, body.get("name"), body.get("basic_entry_id"))
     return error, status
+
+
+@bp.post("/api/campaign/<day>/lorries")
+def add_lorry(day):
+    return _write(day, lambda d, b: _add_lorry(d, _day(day), b))
+
+
+def _add_lorry(data, day, body):
+    _, error, status = campaign.add_lorry(data, day, body.get("name"))
+    return error, status
+
+
+@bp.delete("/api/campaign/<day>/lorries/<lorry_id>")
+def delete_lorry(day, lorry_id):
+    return _write(day, lambda data, body: campaign.remove_lorry(data, _day(day), lorry_id))
 
 
 @bp.post("/api/campaign/<day>/posts")

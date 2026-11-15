@@ -88,3 +88,25 @@ def test_bulk_ops_route_moves_only_selected_keys(client):
     assert response.status_code == 200
     state = store.assemble().get("day_service_runs", {}).get("2026-10-20", {})
     assert state["SVC-1:am"]["out_at"] and "SVC-2:am" not in state
+
+
+def test_service_line_can_use_a_lorry_added_in_the_campaign(client):
+    """اللوري المضاف من يومية الحملة بيظهر في دليل الخدمات ويتقبل كربط لخط سير."""
+    _add_service(client, "خدمة الوسم", ["وسم اللوري"])
+    assert client.post("/api/campaign/2026-07-10/lorries", json={"name": "لوري مضاف للدليل"}).status_code == 200
+    listing = client.get("/api/service-lines").get_json()
+    added = next(item for item in listing["lorries"] if item["name"] == "لوري مضاف للدليل")
+    assert {"LOR-1", "LOR-2", "LOR-3", "LOR-4"} <= {item["id"] for item in listing["lorries"]}
+
+    created = client.post("/api/service-lines", json=_line_body("وسم اللوري", lorry_id=added["id"]))
+    assert created.status_code == 201
+    shown = next(line for line in client.get("/api/service-lines").get_json()["lines"]
+                 if line["id"] == created.get_json()["id"])
+    assert shown["lorry_name"] == "لوري مضاف للدليل"
+
+    # حتى لو اللوري اتحذف من اليومية بعد كده، اسمه يفضل ظاهر على خط السير
+    assert client.delete(f"/api/campaign/2026-07-10/lorries/{added['id']}").status_code == 200
+    shown = next(line for line in client.get("/api/service-lines").get_json()["lines"]
+                 if line["id"] == created.get_json()["id"])
+    assert shown["lorry_name"] == "لوري مضاف للدليل"
+    assert client.post("/api/service-lines", json=_line_body("وسم اللوري", lorry_id="LOR-9999")).status_code == 400

@@ -13,6 +13,7 @@ let CAMPAIGN_DELIVERY_ORDER = [];
 let CAMPAIGN_DELIVERY_BANDS = new Map();
 let CAMPAIGN_MISSING_ONLY = false;
 let CAMPAIGN_UNDO = null;
+let CAMPAIGN_REMOVED_OPEN = false;
 
 window.dailyFileDay = () => DAY;
 window.exportDocxUrl = () => `/api/campaign/${DAY}/export.docx`;
@@ -284,7 +285,7 @@ function campaignRow(row, allowAttach, section) {
     <td class="campaign-driver-cell">${driverOptions(row)}</td>
     <td dir="ltr">${vehicleOptions(row)}</td>
     <td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${row.vehicle ? `<div class="sub">${esc(row.vehicle.model || "")}${row.vehicle.origin === "external" ? `${row.vehicle.model ? " — " : ""}خارجية: ${esc(row.vehicle.party)}` : ""}</div>` : ""}</div></td>
-    <td class="col-actions">${row.kind === "daily" ? rowMenu([{action: "removeCampaignDaily", id: row.id, extra: {name: row.name}, label: "إزالة", danger: true}]) : "—"}</td>
+    <td class="col-actions">${row.kind === "daily" ? rowMenu([{action: "removeCampaignDaily", id: row.id, extra: {name: row.name}, label: "إزالة", danger: true}]) : row.id.startsWith("LOR-") && !row.id.startsWith("LOR-A") ? rowMenu([{action: "removeCampaignLorry", id: row.id, extra: {name: row.base_name || row.name}, label: "إزالة", danger: true}]) : "—"}</td>
   </tr>`;
 }
 
@@ -306,6 +307,7 @@ function serviceCampaignRow(row) {
   const details = lines || `<span class="campaign-unassigned">غير متسكن</span>`;
   const groupPick = carriedOnly ? "" : `<label class="check-label campaign-group-pick"><input type="checkbox" data-group-pick="${esc(row.id)}"${GROUP_SELECTION.has(row.id) ? " checked" : ""} aria-label="تحديد ${esc(row.base_name || row.name)} للتجميع"></label>`;
   const action = `<button type="button" class="mini btn-xs campaign-service-secondary" data-action="openCampaignServiceVehicles" data-id="${esc(row.id)}">${icon("edit")} مركبات وأفراد</button>`;
+  const removeService = `<button type="button" class="mini btn-xs campaign-service-secondary" data-action="removeCampaignService" data-id="${esc(row.id)}">إزالة من اليومية</button>`;
   const lineItems = stored.length ? stored : [{vehicle: row.vehicle, vehicle_id: row.vehicle?.id || "", driver: row.driver}];
   const editable = !carriedOnly ? lineItems.map((item, index) => ({...item, id: row.id, name: row.name,
     missing: row.missing || [], lineIndex: index, vehicle: item.vehicle || null, driver: item.driver || null})) : [];
@@ -317,9 +319,9 @@ function serviceCampaignRow(row) {
   let cells;
   if (carriedOnly) {
     const lorryDriver = driverDisplay(carrier.driver) || "اللوري بدون سائق";
-    cells = `<td class="campaign-driver-cell"><span class="campaign-carried-driver" title="${esc(lorryDriver)}">${esc(lorryDriver)}</span></td><td colspan="2"><div class="campaign-service-assignment">${details}</div></td><td class="col-actions">${action}</td>`;
+    cells = `<td class="campaign-driver-cell"><span class="campaign-carried-driver" title="${esc(lorryDriver)}">${esc(lorryDriver)}</span></td><td colspan="2"><div class="campaign-service-assignment">${details}</div></td><td class="col-actions">${removeService}${action}</td>`;
   } else {
-    cells = `<td class="campaign-driver-cell"><div class="campaign-service-lines">${driverLines}</div></td><td dir="ltr"><div class="campaign-service-lines">${plateLines}</div></td><td><div class="campaign-service-lines campaign-vehicle-type">${typeLines}</div></td><td class="col-actions"><div class="campaign-service-lines">${removeLines}</div>${action}</td>`;
+    cells = `<td class="campaign-driver-cell"><div class="campaign-service-lines">${driverLines}</div></td><td dir="ltr"><div class="campaign-service-lines">${plateLines}</div></td><td><div class="campaign-service-lines campaign-vehicle-type">${typeLines}</div></td><td class="col-actions"><div class="campaign-service-lines">${removeLines}</div>${removeService}${action}</td>`;
   }
   return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="routes" data-row-band="${esc(row.band || "")}" data-row-state="${esc(row.status)}">
     <td class="name"><div class="campaign-service-name">${groupPick}<strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}${!carriedOnly ? addVehicle : ""}</div></td>
@@ -410,9 +412,11 @@ function bandedRows(rows, section, options = {}) {
 
 function routesCard() {
   const rows = orderedCampaignRows().filter(row => !["security", "ambulance", "driver_only"].includes(row.band));
-  const groupBtn = `<button type="button" class="mini on-dark" id="campaignGroupBtn" data-action="openCampaignGroup"${GROUP_SELECTION.size >= 2 ? "" : " disabled"}>تجميع خدمات${GROUP_SELECTION.size ? ` (${GROUP_SELECTION.size})` : ""}</button>`;
+  const groupBtn = `<button type="button" class="mini on-dark" data-action="openCampaignLorry">إضافة لوري</button><button type="button" class="mini on-dark" id="campaignGroupBtn" data-action="openCampaignGroup"${GROUP_SELECTION.size >= 2 ? "" : " disabled"}>تجميع خدمات${GROUP_SELECTION.size ? ` (${GROUP_SELECTION.size})` : ""}</button>`;
   const body = rows.length ? `<div class="mtable-wrap">${mtable(["الخدمة", "السائق", "رقم المركبة", "نوع المركبة", "الإجراء"], bandedRows(rows, "routes"))}</div>` : emptyState({compact: true, title: "لا توجد خطوط سير اليوم"});
-  return `<div class="mcard campaign-table-card campaign-routes-card" data-campaign-section="routes"><h3>خطوط السير<span class="mcount">${rows.length}</span>${summaryChip("routes")}${groupBtn}</h3><div data-section-body>${body}</div></div>`;
+  const removed = CAMPAIGN.removed_services || [];
+  const removedArea = removed.length ? `<details class="campaign-removed-services"${CAMPAIGN_REMOVED_OPEN ? " open" : ""}><summary>الخدمات المحذوفة من اليوم (${removed.length})</summary><ul>${removed.map(item => `<li><span><b>${esc(item.name)}</b>${item.time ? ` — ${esc(item.time)}` : ""}<small>${esc(item.summary || "بلا تسكين")}</small></span><button type="button" class="mini btn-xs" data-action="restoreCampaignService" data-id="${esc(item.id)}">استرجاع</button></li>`).join("")}</ul></details>` : "";
+  return `<div class="mcard campaign-table-card campaign-routes-card" data-campaign-section="routes"><h3>خطوط السير<span class="mcount">${rows.length}</span>${summaryChip("routes")}${groupBtn}</h3><div data-section-body>${body}${removedArea}</div></div>`;
 }
 
 function dailyCard() {
@@ -779,6 +783,34 @@ function applyMissingFilter() {
 
 function bindCampaign(root) {
   bindRowControls(root);
+  const removedDetails = root.querySelector(".campaign-removed-services");
+  if (removedDetails) removedDetails.addEventListener("toggle", () => { CAMPAIGN_REMOVED_OPEN = removedDetails.open; });
+  root.querySelectorAll("button[data-action='removeCampaignService'], button[data-action='restoreCampaignService']").forEach(button => {
+    button.onclick = async () => {
+      const restoring = button.dataset.action === "restoreCampaignService";
+      const id = button.dataset.id;
+      const serviceName = restoring ? (CAMPAIGN.removed_services || []).find(item => item.id === id)?.name : rowBy(id)?.name;
+      const oldIndex = orderedCampaignRows().findIndex(row => row.id === id && row.kind === "service");
+      const out = await campaignWrite(`/api/campaign/${DAY}/service/${encodeURIComponent(id)}/${restoring ? "restore" : "removed"}`,
+        restoring ? "POST" : "DELETE", {}, {structural: true});
+      if (!out) return;
+      clearUndo();
+      const focusRow = row => {
+        if (!row) return false;
+        const tr = document.querySelector(`#campaignWrap tr[data-row-key="${CSS.escape(rowKey(row))}"]`);
+        const control = tr?.querySelector("[data-control-key], button:not(:disabled), input:not(:disabled)");
+        control?.focus({preventScroll: true});
+        return !!control;
+      };
+      if (restoring) focusRow(rowBy(id));
+      else {
+        GROUP_SELECTION.delete(id);
+        const next = orderedCampaignRows()[Math.min(Math.max(oldIndex, 0), orderedCampaignRows().length - 1)];
+        if (!focusRow(next)) root.querySelector(".campaign-removed-services summary")?.focus();
+        showToast(`تمت إزالة «${serviceName || id}» من اليومية`);
+      }
+    };
+  });
   const platesInput = root.querySelector("#campaignPlates");
   if (platesInput) {
     platesInput.addEventListener("input", () => updatePlatesDraft(platesInput.value));
@@ -1011,6 +1043,22 @@ ACTIONS.removeCampaignDaily = async (id, extra) => {
   clearUndo();
   const out = await campaignWrite(`/api/campaign/${DAY}/daily-rows/${encodeURIComponent(id)}`, "DELETE", {}, {structural: true});
   if (out) { $("#campaignMissingOnly").focus({preventScroll: true}); showToast("تمت إزالة القول"); }
+};
+ACTIONS.openCampaignLorry = () => { $("#campaignLorryName").value = ""; openModal("campaignLorryModal"); };
+ACTIONS.removeCampaignLorry = async (id, extra) => {
+  if (!(await confirmDialog({title: "إزالة اللوري", body: `سيُزال «${extra.name}» ابتداءً من اليوم، وتُفك الخدمات الملحقة به، وتبقى الأيام السابقة دون تغيير.`, confirmLabel: "إزالة", danger: true}))) return;
+  clearUndo();
+  const out = await campaignWrite(`/api/campaign/${DAY}/lorries/${encodeURIComponent(id)}`, "DELETE", {}, {structural: true});
+  if (out) { $("#campaignMissingOnly").focus({preventScroll: true}); showToast("تمت إزالة اللوري"); }
+};
+
+$("#campaignLorryForm").onsubmit = async event => {
+  event.preventDefault();
+  const name = $("#campaignLorryName").value.trim();
+  if (!name) return;
+  clearUndo();
+  const out = await campaignWrite(`/api/campaign/${DAY}/lorries`, "POST", {name}, {structural: true});
+  if (out) { closeModal("campaignLorryModal", true); const row = out.lorries.find(item => !CAMPAIGN.lorries.some(old => old.id === item.id)); if (row) focusAction("openCampaignAttach", row.id); showToast("تمت إضافة اللوري"); }
 };
 
 $("#campaignAttachForm").onsubmit = async event => {

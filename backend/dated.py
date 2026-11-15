@@ -167,6 +167,54 @@ def campaign_daily_on(data, day):
             if isinstance(item, dict) and item.get("id") and str(item.get("name") or "").strip()]
 
 
+def campaign_lorries_on(data, day):
+    entries = ((data.get("reference_lists") or {}).get("campaign_lorries") or [])
+    applicable = [entry for entry in entries if (entry.get("from") or "") <= day]
+    row = max(applicable, key=lambda entry: entry.get("from") or "") if applicable else None
+    from .constants import CAMPAIGN_LORRIES
+    return [dict(item) for item in (row.get("items") if row else CAMPAIGN_LORRIES)
+            if isinstance(item, dict) and item.get("id") and str(item.get("name") or "").strip()]
+
+
+def known_campaign_lorries(data):
+    """كل لوري أساسي عرفته اليومية يومًا (الثابتة + المضافة، حتى المحذوفة منها).
+
+    دليل الخدمات إعداد عام مش مؤرَّخ: خط السير ممكن يتربط بلوري اتضاف بعد كده،
+    ولازم يفضل اسمه ظاهر حتى لو اللوري اتحذف من يوم معيّن."""
+    from .constants import CAMPAIGN_LORRIES
+    known = {item["id"]: dict(item) for item in CAMPAIGN_LORRIES}
+    for item in ((data.get("reference_lists") or {}).get("campaign_lorries_known") or []):
+        if isinstance(item, dict) and item.get("id") and str(item.get("name") or "").strip():
+            known[item["id"]] = dict(item)
+    versions = sorted(((data.get("reference_lists") or {}).get("campaign_lorries") or []),
+                      key=lambda entry: entry.get("from") or "")
+    for entry in versions:
+        for item in entry.get("items") or []:
+            if isinstance(item, dict) and item.get("id") and str(item.get("name") or "").strip():
+                known[item["id"]] = dict(item)
+    return list(known.values())
+
+
+def remember_campaign_lorry(data, item):
+    """سجل دايم بكل لوري اتضاف (حتى لو اتحذف بعدها في نفس اليوم) عشان اسمه ما يضيعش."""
+    lists = data.setdefault("reference_lists", {})
+    known = lists.setdefault("campaign_lorries_known", [])
+    if not any(entry.get("id") == item["id"] for entry in known):
+        known.append({"id": item["id"], "name": item["name"]})
+
+
+def record_campaign_lorries_change(data, effective_from, items):
+    lists = data.setdefault("reference_lists", {})
+    history = lists.setdefault("campaign_lorries", [])
+    value = {"from": effective_from, "items": deepcopy(items)}
+    row = next((entry for entry in history if entry.get("from") == effective_from), None)
+    if row is None:
+        history.append(value)
+    else:
+        row.clear(); row.update(value)
+    history.sort(key=lambda entry: entry.get("from") or "")
+
+
 def record_campaign_daily_change(data, effective_from, items):
     lists = data.setdefault("reference_lists", {})
     history = lists.setdefault("campaign_daily", [])

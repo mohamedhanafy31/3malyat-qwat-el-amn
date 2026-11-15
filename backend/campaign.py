@@ -6,8 +6,8 @@ from . import changes, fleet
 from .afraad import occasional_rows
 from .assignments import peek_day
 from .constants import APPOINTMENT_LORRIES, CAMPAIGN_LORRIES, VEHICLE_TYPES
-from .dated import (afraad_basic_on, campaign_daily_on, campaign_posts_on,
-                    record_campaign_daily_change, record_campaign_posts_change)
+from .dated import (afraad_basic_on, campaign_daily_on, campaign_lorries_on, campaign_posts_on,
+                    record_campaign_daily_change, record_campaign_lorries_change, remember_campaign_lorry, record_campaign_posts_change)
 from .repo import ConscriptRepo, PeopleRepo, VehicleRepo
 from .store import reserve_id
 from .text import norm
@@ -270,7 +270,9 @@ def service_vehicles(data, day, assignment_id, *, include_empty_lorries=False):
                                   for ident in assignment_people[key]
                                   if _person_view(data, ident, category)],
                        "source": "lorry", "lorry_id": lorry_id,
-                       "lorry_name": LORRY_NAMES.get(lorry_id, lorry_id),
+                       "lorry_name": next((item["name"] for item in
+                                            campaign_lorries_on(data, day) + APPOINTMENT_LORRIES
+                                            if item["id"] == lorry_id), lorry_id),
                        "driver": _driver(data, effective.get("driver"))})
     return result
 
@@ -386,12 +388,42 @@ def _clean(data, day):
         value["posts"] = posts
     if "plates" in value and isinstance(value.get("plates"), dict):
         value["plates"] = {"rows": value["plates"].get("rows", [])}
-    if not any(value.get(k) for k in ("lorries", "services", "daily", "posts", "plates", "groups")):
+    live = {row.get("id") for row in occasional_rows(data, day)}
+    value["removed_services"] = [ident for ident in dict.fromkeys(value.get("removed_services") or [])
+                                  if ident in live]
+    if not value["removed_services"]:
+        value.pop("removed_services", None)
+    if not any(value.get(k) for k in ("lorries", "services", "daily", "posts", "plates", "groups", "removed_services")):
         data["day_campaign"].pop(day, None)
 
 
+def remove_service(data, day, assignment_id):
+    assignments = {row.get("id"): row for row in occasional_rows(data, day)}
+    if assignment_id not in assignments:
+        _clean(data, day)
+        return "الخدمة غير موجودة في هذا اليوم.", 404
+    if group_of(data, day, assignment_id):
+        return "الخدمة ضمن مجموعة؛ فك التجميع أولًا", 409
+    value = _raw(data, day)
+    value["removed_services"] = list(dict.fromkeys(
+        [*(value.get("removed_services") or []), assignment_id]))
+    _clean(data, day)
+    return None, None
+
+
+def restore_service(data, day, assignment_id):
+    if not any(row.get("id") == assignment_id for row in occasional_rows(data, day)):
+        _clean(data, day)
+        return "الخدمة غير موجودة في هذا اليوم.", 404
+    value = _raw(data, day)
+    value["removed_services"] = [ident for ident in value.get("removed_services") or []
+                                 if ident != assignment_id]
+    _clean(data, day)
+    return None, None
+
+
 def set_lorry(data, day, lorry_id, payload):
-    if lorry_id not in {x["id"] for x in ALL_LORRIES}:
+    if lorry_id not in {x["id"] for x in campaign_lorries_on(data, day) + APPOINTMENT_LORRIES}:
         return "اللوري غير موجود.", 404
     target = _raw(data, day).setdefault("lorries", {}).setdefault(lorry_id, {})
     error = _apply(data, target, payload)
@@ -680,7 +712,7 @@ def set_daily(data, day, row_id, payload):
 
 
 def attach_service(data, day, lorry_id, item):
-    if lorry_id not in {x["id"] for x in ALL_LORRIES}:
+    if lorry_id not in {x["id"] for x in campaign_lorries_on(data, day) + APPOINTMENT_LORRIES}:
         return "اللوري غير موجود.", 404
     assignment_id = str(item.get("assignment_id") or "").strip()
     name = str(item.get("name") or "").strip()
@@ -708,7 +740,7 @@ def attach_service(data, day, lorry_id, item):
 
 def detach_service(data, day, lorry_id, item):
     value = (data.get("day_campaign") or {}).get(day, {}).get("lorries", {}).get(lorry_id)
-    if lorry_id not in {x["id"] for x in ALL_LORRIES}:
+    if lorry_id not in {x["id"] for x in campaign_lorries_on(data, day) + APPOINTMENT_LORRIES}:
         return "اللوري غير موجود.", 404
     if not value:
         return "الخدمة الملحقة غير موجودة.", 404
@@ -763,6 +795,41 @@ def remove_daily_row(data, day, row_id):
     if sheet:
         (sheet.get("daily") or {}).pop(row_id, None)
         _clean(data, day)
+    return None, None
+
+
+def add_lorry(data, day, name):
+    name = str(name or "").strip()
+    if not name:
+        return None, "اسم اللوري مطلوب.", 400
+    if len(name) > 120:
+        return None, "اسم اللوري أطول من الحد المسموح (120 حرف).", 400
+    items = campaign_lorries_on(data, day)
+    if any(norm(item.get("name")) == norm(name) for item in items):
+        return None, "اسم اللوري موجود بالفعل.", 400
+    existing = [item for version in ((data.get("reference_lists") or {}).get("campaign_lorries") or []) for item in version.get("items") or []]
+    existing += CAMPAIGN_LORRIES + APPOINTMENT_LORRIES
+    ident = reserve_id(data, "LOR", existing)
+    items.append({"id": ident, "name": name})
+    remember_campaign_lorry(data, {"id": ident, "name": name})
+    record_campaign_lorries_change(data, day, items)
+    changes.record(data, "campaign_lorry", ident, "create", after={"id": ident, "name": name}, day=day,
+                   text=f"إضافة لوري «{name}» إلى يومية الحملة من يوم {day}")
+    return ident, None, None
+
+
+def remove_lorry(data, day, lorry_id):
+    items = campaign_lorries_on(data, day)
+    item = next((row for row in items if row["id"] == lorry_id), None)
+    if not item:
+        return "اللوري غير موجود.", 404
+    record_campaign_lorries_change(data, day, [row for row in items if row["id"] != lorry_id])
+    sheet = (data.get("day_campaign") or {}).get(day) or {}
+    raw = (sheet.get("lorries") or {}).pop(lorry_id, None)
+    # فك الارتباط يزيل مرجع الخدمة من اللوري؛ بيانات الخدمة المحفوظة تفضل كما هي.
+    _clean(data, day)
+    changes.record(data, "campaign_lorry", lorry_id, "delete", before=dict(item), day=day,
+                   text=f"حذف لوري «{item['name']}» من يومية الحملة من يوم {day}")
     return None, None
 
 
@@ -1158,14 +1225,15 @@ def build_campaign(data, day):
     chain = _chain(data, day)
     previous_day = chain[-1] if chain else None
     current_lorries = current.get("lorries") or {}
+    specs = campaign_lorries_on(data, day) + APPOINTMENT_LORRIES
     previous_lorry_details = {
         spec["id"]: _prior_with_sources(data, chain, "lorries", spec["id"])
-        for spec in ALL_LORRIES}
+        for spec in specs}
     previous_lorries = {ident: details[0] for ident, details in previous_lorry_details.items()}
     previous_lorry_sources = {ident: details[1] for ident, details in previous_lorry_details.items()}
     lorry_data = {
         spec["id"]: _merge_inherited(previous_lorries[spec["id"]], current_lorries.get(spec["id"]))
-        for spec in ALL_LORRIES
+        for spec in specs
     }
 
     daily_items = campaign_daily_on(data, day)
@@ -1174,15 +1242,23 @@ def build_campaign(data, day):
     current_daily = current.get("daily") or {}
 
     assignments = {row.get("id"): row for row in occasional_rows(data, day)}
+    removed_ids = set(current.get("removed_services") or [])
+    live_assignment_ids = set(assignments)
+    removed_ids.intersection_update(live_assignment_ids)
+    if removed_ids != set(current.get("removed_services") or []):
+        current["removed_services"] = sorted(removed_ids)
     attached_ids = {
         item.get("assignment_id")
         for value in lorry_data.values()
         for item in value.get("attached") or []
+        if item.get("assignment_id") not in removed_ids
     }
     rows_l = []
-    for spec in CAMPAIGN_LORRIES:
+    for spec in campaign_lorries_on(data, day):
         raw = lorry_data[spec["id"]]
-        attached = _attached_rows(raw, assignments)
+        # عنصر الإلحاق مفتاحه assignment_id (مش id): الخدمة المزالة من اليومية مابتفضلش في اسم اللوري
+        attached = [item for item in _attached_rows(raw, assignments)
+                    if item.get("assignment_id") not in removed_ids]
         suffix = " + " + " + ".join(item["name"] for item in attached if item.get("name")) if attached else ""
         rows_l.append(_row_view(
             data, spec["id"], "lorry", spec["name"] + suffix, raw,
@@ -1195,7 +1271,9 @@ def build_campaign(data, day):
     rows_a = []
     for spec in APPOINTMENT_LORRIES:
         raw = lorry_data[spec["id"]]
-        attached = _attached_rows(raw, assignments)
+        # عنصر الإلحاق مفتاحه assignment_id (مش id): الخدمة المزالة من اليومية مابتفضلش في اسم اللوري
+        attached = [item for item in _attached_rows(raw, assignments)
+                    if item.get("assignment_id") not in removed_ids]
         suffix = " + " + " + ".join(item["name"] for item in attached if item.get("name")) if attached else ""
         rows_a.append(_row_view(
             data, spec["id"], "lorry", spec["name"] + suffix, raw,
@@ -1209,6 +1287,8 @@ def build_campaign(data, day):
     service_rows = []
     grouped_ids = {mid for group in current.get("groups") or [] for mid in group.get("members") or []}
     for assignment in assignments.values():
+        if assignment["id"] in removed_ids:
+            continue
         if assignment["id"] in grouped_ids:
             continue
         raw = (current.get("services") or {}).get(assignment["id"], {})
@@ -1352,6 +1432,22 @@ def build_campaign(data, day):
         for row in assignments.values()
         if row.get("id") not in grouped_ids
     ]
+    removed_services = []
+    for ident in sorted(removed_ids):
+        assignment = assignments[ident]
+        raw = (current.get("services") or {}).get(ident, {})
+        vehicles = service_vehicles(data, day, ident, include_empty_lorries=True)
+        item = next((entry for entry in vehicles if entry.get("source") == "direct"), None)
+        item = item or next(iter(vehicles), None)
+        vehicle = (item or {}).get("vehicle") or {}
+        driver = ((item or {}).get("driver") or {}).get("name", "")
+        plate = vehicle.get("plate") or (item or {}).get("plate") or ""
+        detail = (f"{plate} — سائق: {driver}" if plate and driver else
+                  f"{plate} — بدون سائق" if plate else "بلا تسكين")
+        removed_services.append({"id": ident,
+            "name": assignment.get("name") or assignment.get("label") or "",
+            "time": assignment.get("time") or assignment.get("date_time") or "",
+            "summary": detail})
     sections = {
         "posts": _summary(rows_p),
         "lorries": _summary(rows_l),
@@ -1374,6 +1470,7 @@ def build_campaign(data, day):
         "service_rows": service_rows,
         "daily": rows_d,
         "delivery_rows": delivery_rows,
+        "removed_services": removed_services,
         "plates": plates_view,
         "warnings": warnings,
         "summary": {"overall": _summary(all_rows), "sections": sections},
@@ -1406,7 +1503,7 @@ def _row_drivers(row):
 
 
 def _warning_name(row):
-    return LORRY_NAMES.get(row.get("id"), row.get("name", ""))
+    return row.get("base_name") or row.get("name", "")
 
 
 def _warnings(rows):

@@ -1,6 +1,7 @@
 """خطوط السير — عضوية الخط تُستنتج من وسم الخدمة وقت القراءة."""
 from .clocktime import format_time, parse_time
 from .constants import CAMPAIGN_LORRIES
+from .dated import known_campaign_lorries
 from .service_catalog import catalog
 from .store import reserve_id
 from .utils import MAX_LEN
@@ -29,8 +30,9 @@ def members(data, line_id):
     return _members(data, line) if line else []
 
 
-def lorry_name(lorry_id):
-    return next((x["name"] for x in CAMPAIGN_LORRIES if x["id"] == lorry_id), "")
+def lorry_name(lorry_id, data=None):
+    known = known_campaign_lorries(data) if data is not None else CAMPAIGN_LORRIES
+    return next((x["name"] for x in known if x["id"] == lorry_id), "")
 
 
 def new_id(data):
@@ -75,7 +77,7 @@ def _line_payload(data, payload, existing=None):
         source["tag"] = tag
     if "lorry_id" in payload or existing is None:
         lorry_id = str(payload.get("lorry_id") or "").strip()
-        if lorry_id and lorry_id not in {x["id"] for x in CAMPAIGN_LORRIES}:
+        if lorry_id and lorry_id not in {x["id"] for x in known_campaign_lorries(data)}:
             return None, "اللوري لازم يكون من لواري الحملة."
         source["lorry_id"] = lorry_id
     if "order" in payload or existing is None:
