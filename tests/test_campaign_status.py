@@ -115,7 +115,8 @@ def test_service_direct_carried_and_group_status_rules(client):
 
     view = _campaign(client, DAY)
     rows = {row["name"]: row for row in view["service_rows"]}
-    assert (rows["مباشر ناقص"]["status"], rows["مباشر ناقص"]["missing"]) == ("partial", ["driver"])
+    assert (rows["مباشر ناقص"]["status"], rows["مباشر ناقص"]["missing"]) == ("partial", ["driver:1"])
+    assert rows["مباشر ناقص"]["status_text"] == "ناقص سائق"
     assert rows["مباشر كامل"]["status"] == "complete"
     assert rows["محمول كامل"]["status"] == "complete"
     assert rows["محمول كامل"]["status_text"] == "على لوري فيصل"

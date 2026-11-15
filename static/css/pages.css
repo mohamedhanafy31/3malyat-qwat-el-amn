@@ -352,6 +352,12 @@ body.sidebar-open{overflow:hidden}
 #campaignWrap .campaign-post-driver{width:100%;min-width:0;border-color:var(--line-strong);background:var(--surface-sunken);
   color:var(--ink-900);font-weight:600}
 #campaignWrap .campaign-post-driver.is-empty{border-color:var(--warn-500);background:var(--warn-50);color:var(--warn-800)}
+#campaignWrap .campaign-service-lines{display:grid;gap:var(--s2);min-width:170px}
+#campaignWrap .campaign-inline-vehicle-line{display:flex;align-items:center;gap:var(--s1);min-height:36px}
+#campaignWrap .campaign-inline-vehicle-line select{width:100%;min-width:0}
+#campaignWrap .campaign-line-warning{color:var(--warn-700);font-size:var(--t-xs);white-space:normal}
+#campaignWrap .campaign-service-add-vehicle{margin-block:var(--s2);border-color:var(--line-strong);background:var(--surface);color:var(--ink-700)}
+#campaignWrap .campaign-service-add-vehicle:hover,#campaignWrap .campaign-service-add-vehicle:focus-visible{background:var(--surface-sunken);color:var(--ink-900)}
 .campaign-plates{width:100%;font-family:var(--font-mono,monospace);line-height:1.7}
 .campaign-service-vehicles-modal{width:min(760px,100%)}
 .campaign-service-vehicle{border:1px solid var(--line-200);padding:var(--s3);margin-block:var(--s3);border-radius:var(--r2)}

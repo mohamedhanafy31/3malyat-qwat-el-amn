@@ -153,9 +153,9 @@ def _service_label(item):
 
 
 def _post_plate(post):
-    if post.get("plate_text"):
-        return post["plate_text"]
     plate = (post.get("vehicle") or {}).get("plate") or ""
+    if not plate:
+        return post.get("plate_text") or ""
     if "/" in plate:
         series, number = plate.split("/", 1)
         return number + series
@@ -163,14 +163,16 @@ def _post_plate(post):
 
 
 def _post_type(post):
-    if post.get("type_text"):
-        return post["type_text"]
     vehicle = post.get("vehicle") or {}
-    return " ".join(filter(None, (vehicle.get("type"), vehicle.get("model"))))
+    if vehicle:
+        return " ".join(filter(None, (vehicle.get("type"), vehicle.get("model"))))
+    return post.get("type_text") or ""
 
 
 def _delivery_plate(row):
     plate = (row.get("vehicle") or {}).get("plate") or ""
+    if not plate:
+        return row.get("plate_text") or ""
     if DELIVERY_PLATE_WITH_SERIES:
         return plate
     return plate.split("/", 1)[-1] if plate else ""
@@ -178,6 +180,8 @@ def _delivery_plate(row):
 
 def _delivery_type(row):
     vehicle = row.get("vehicle") or {}
+    if not vehicle:
+        return row.get("type_text") or ""
     value = vehicle.get("type") or ""
     if vehicle.get("origin") == "external" and vehicle.get("party"):
         value += f" (خارجية: {vehicle['party']})"

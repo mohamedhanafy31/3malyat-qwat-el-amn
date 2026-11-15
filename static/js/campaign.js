@@ -151,6 +151,34 @@ async function saveRow(row, body, options = {}) {
   return out;
 }
 
+function serviceVehiclePayload(row) {
+  return (row?.vehicles || []).map(item => ({vehicle_id: item.vehicle_id || item.vehicle?.id || "",
+    personnel_ids: item.personnel_ids || [], officer_ids: item.officer_ids || [],
+    ...(item.driver ? {driver: driverPayload(item.driver)} : {})}));
+}
+
+function serviceSeedVehicle(row, vehicleId = "") {
+  const people = row?.people || [];
+  return {vehicle_id: vehicleId || row?.vehicle?.id || "",
+    personnel_ids: people.filter(person => person.category === "personnel").map(person => person.id),
+    officer_ids: people.filter(person => person.category === "officers").map(person => person.id),
+    ...(row?.driver ? {driver: driverPayload(row.driver)} : {})};
+}
+
+async function saveServiceVehicleLine(row, index, changes, options = {}) {
+  if (!row) return null;
+  const vehicles = serviceVehiclePayload(row);
+  while (vehicles.length <= index) vehicles.push(serviceSeedVehicle(row));
+  const item = vehicles[index];
+  Object.assign(item, changes);
+  const body = {vehicles, ...(vehicles.length === 1 ? {driver: item.driver || ""} : {})};
+  const url = `/api/campaign/${DAY}/service/${encodeURIComponent(row.id)}`;
+  const out = await campaignWrite(url, "PUT", body, {quietKey: options.sourceKey, noLoader: true});
+  if (out && options.undoBody !== undefined) rememberUndo({url, method: "PUT", body: options.undoBody,
+    label: options.undoLabel || "تعديل مركبة الخدمة"});
+  return out;
+}
+
 function rowStateClass(row) {
   return ` campaign-status-${row.status || "empty"}`;
 }
@@ -164,10 +192,18 @@ function driverDisplay(driver) {
   return driver.role ? `${driver.role} / ${driver.name}` : driver.name;
 }
 
+// الناقص بيتسجّل «driver:2» لسطر المركبة الثانية؛ الخدمة الفاضية (من غير أي سطر) ناقصها «driver»
+// و«vehicle» عاديين وده معناه السطر الأول.
+function lineMissing(row, field, lineIndex) {
+  const missing = row?.missing || [];
+  if (lineIndex === undefined) return missing.includes(field);
+  return missing.includes(`${field}:${lineIndex + 1}`) || (lineIndex === 0 && missing.includes(field));
+}
+
 function driverOptions(row, options = {}) {
   const selected = row.driver?.kind && row.driver.kind !== "text" ? `${row.driver.kind}|${row.driver.id}` : "";
   const fullValue = driverDisplay(row.driver);
-  const driverMissing = (row.missing || []).includes("driver");
+  const driverMissing = lineMissing(row, "driver", options.lineIndex);
   const personnel = CAMPAIGN.pickers?.drivers?.personnel || [];
   const conscripts = CAMPAIGN.pickers?.drivers?.conscripts || [];
   const pickerValues = new Set([
@@ -183,25 +219,33 @@ function driverOptions(row, options = {}) {
   const custom = row.driver?.kind === "text" ? ` data-custom-value="${esc(row.driver.name)}"` : "";
   const full = fullValue ? ` data-full-value="${esc(fullValue)}" title="${esc(fullValue)}"` : "";
   const quiet = driverMissing ? " campaign-driver-gap" : " campaign-driver-quiet-empty";
-  return `<select class="campaign-inline-select campaign-driver-select${quiet}" data-driver-row="${esc(row.id)}" data-control-key="${esc(controlKey(row, "driver"))}" data-required-field="driver" data-combo-custom data-combo-custom-option="none" data-maxlength="200"${custom}${full} aria-label="السائق في ${esc(row.name)}">
+  const line = options.lineIndex === undefined ? "" : ` data-service-line-index="${options.lineIndex}"`;
+  const key = options.lineIndex === undefined ? controlKey(row, "driver") : `service:${row.id}:${options.lineIndex}:driver`;
+  return `<select class="campaign-inline-select campaign-driver-select${quiet}" data-driver-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" data-required-field="driver" data-combo-custom data-combo-custom-option="none" data-maxlength="200"${custom}${full} aria-label="السائق في ${esc(row.name)}">
     <option value="">${esc(options.emptyLabel || "— بدون سائق —")}</option>${savedOption}${groups(personnel, "الأفراد السواقين", true)}${groups(conscripts, "المجندون", false)}</select>`;
 }
 
 function vehicleOptions(row) {
   const selected = row.vehicle?.id || "";
-  const type = CAMPAIGN_TYPE_FILTERS.get(row.id) ?? row.vehicle?.type ?? "";
+  const filterKey = row.lineIndex === undefined ? row.id : `${row.id}:${row.lineIndex}`;
+  const type = CAMPAIGN_TYPE_FILTERS.get(filterKey) ?? row.vehicle?.type ?? "";
   const available = (CAMPAIGN.pickers?.vehicles || []).filter(vehicle => !type || vehicle.type === type);
   const selectedVehicle = (CAMPAIGN.pickers?.vehicles || []).find(vehicle => vehicle.id === selected);
   const choices = selectedVehicle && !available.some(vehicle => vehicle.id === selected)
     ? [selectedVehicle, ...available] : available;
   const noMatches = type && !available.length;
-  return `<select class="campaign-inline-select" data-vehicle-row="${esc(row.id)}" data-control-key="${esc(controlKey(row, "vehicle"))}" data-required-field="vehicle" aria-label="رقم المركبة في ${esc(row.name)}">
+  const line = row.lineIndex === undefined ? "" : ` data-service-line-index="${row.lineIndex}"`;
+  const key = row.lineIndex === undefined ? controlKey(row, "vehicle") : `service:${row.id}:${row.lineIndex}:vehicle`;
+  return `<select class="campaign-inline-select" data-vehicle-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" data-required-field="vehicle" aria-label="رقم المركبة في ${esc(row.name)}">
     <option value="">اختر مركبة</option>${noMatches ? `<option disabled>لا توجد مركبات من هذا النوع</option>` : ""}${choices.map(vehicle => `<option value="${esc(vehicle.id)}"${vehicle.id === selected ? " selected" : ""}${vehicle.status === "disabled" ? " data-disabled=" + JSON.stringify(true) : ""}>${esc(vehicle.label)}${vehicle.status === "disabled" ? " (معطلة)" : ""}</option>`).join("")}</select>`;
 }
 
 function vehicleTypeOptions(row) {
-  const selected = CAMPAIGN_TYPE_FILTERS.get(row.id) ?? row.vehicle?.type ?? "";
-  return `<select class="campaign-inline-select" data-type-row="${esc(row.id)}" data-control-key="${esc(controlKey(row, "type"))}" aria-label="نوع المركبة في ${esc(row.name)}">
+  const filterKey = row.lineIndex === undefined ? row.id : `${row.id}:${row.lineIndex}`;
+  const selected = CAMPAIGN_TYPE_FILTERS.get(filterKey) ?? row.vehicle?.type ?? "";
+  const line = row.lineIndex === undefined ? "" : ` data-service-line-index="${row.lineIndex}"`;
+  const key = row.lineIndex === undefined ? controlKey(row, "type") : `service:${row.id}:${row.lineIndex}:type`;
+  return `<select class="campaign-inline-select" data-type-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" aria-label="نوع المركبة في ${esc(row.name)}">
     <option value="">اختر النوع</option>${(CAMPAIGN.pickers?.types || []).map(type => `<option value="${esc(type)}"${type === selected ? " selected" : ""}>${esc(type)}</option>`).join("")}</select>`;
 }
 
@@ -249,6 +293,7 @@ function serviceCampaignRow(row) {
   const directVehicles = vehicles.filter(item => item.source === "direct");
   const carrier = vehicles.find(item => item.source === "lorry");
   const carriedOnly = !directVehicles.length && !!carrier;
+  const stored = row.vehicles || [];
   const lines = vehicles.map(item => {
     const vehicle = item.vehicle || {};
     const plate = vehicle.plate || item.plate || "بدون مركبة";
@@ -261,17 +306,23 @@ function serviceCampaignRow(row) {
   const details = lines || `<span class="campaign-unassigned">غير متسكن</span>`;
   const groupPick = carriedOnly ? "" : `<label class="check-label campaign-group-pick"><input type="checkbox" data-group-pick="${esc(row.id)}"${GROUP_SELECTION.has(row.id) ? " checked" : ""} aria-label="تحديد ${esc(row.base_name || row.name)} للتجميع"></label>`;
   const action = `<button type="button" class="mini btn-xs campaign-service-secondary" data-action="openCampaignServiceVehicles" data-id="${esc(row.id)}">${icon("edit")} مركبات وأفراد</button>`;
+  const lineItems = stored.length ? stored : [{vehicle: row.vehicle, vehicle_id: row.vehicle?.id || "", driver: row.driver}];
+  const editable = !carriedOnly ? lineItems.map((item, index) => ({...item, id: row.id, name: row.name,
+    missing: row.missing || [], lineIndex: index, vehicle: item.vehicle || null, driver: item.driver || null})) : [];
+  const addVehicle = carriedOnly ? "" : `<button type="button" class="mini btn-xs campaign-service-add-vehicle" data-action="addServiceVehicle" data-id="${esc(row.id)}">+ مركبة</button>`;
+  const driverLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${driverOptions(line, {lineIndex: line.lineIndex})}</div>`).join("");
+  const plateLines = editable.map(line => `<div class="campaign-inline-vehicle-line" dir="ltr">${vehicleOptions(line)}${(directVehicles[line.lineIndex]?.warnings || []).map(warning => `<span class="campaign-line-warning" dir="rtl">${esc(warning)}</span>`).join("")}</div>`).join("");
+  const typeLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${vehicleTypeOptions(line)}</div>`).join("");
+  const removeLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${editable.length > 1 ? `<button type="button" class="mini danger btn-xs" data-action="removeServiceVehicle" data-id="${esc(row.id)}" data-index="${line.lineIndex}" aria-label="إزالة المركبة ${line.lineIndex + 1} من ${esc(row.name)}">×</button>` : ""}</div>`).join("");
   let cells;
   if (carriedOnly) {
     const lorryDriver = driverDisplay(carrier.driver) || "اللوري بدون سائق";
     cells = `<td class="campaign-driver-cell"><span class="campaign-carried-driver" title="${esc(lorryDriver)}">${esc(lorryDriver)}</span></td><td colspan="2"><div class="campaign-service-assignment">${details}</div></td><td class="col-actions">${action}</td>`;
-  } else if (directVehicles.length >= 2) {
-    cells = `<td colspan="3"><div class="campaign-service-assignment">${details}</div></td><td class="col-actions">${action}</td>`;
   } else {
-    cells = `<td class="campaign-driver-cell">${driverOptions(row)}</td><td dir="ltr">${vehicleOptions(row)}</td><td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${row.vehicle ? `<div class="sub">${esc(row.vehicle.model || "")}</div>` : ""}</div></td><td class="col-actions">${action}</td>`;
+    cells = `<td class="campaign-driver-cell"><div class="campaign-service-lines">${driverLines}</div></td><td dir="ltr"><div class="campaign-service-lines">${plateLines}</div></td><td><div class="campaign-service-lines campaign-vehicle-type">${typeLines}</div></td><td class="col-actions"><div class="campaign-service-lines">${removeLines}</div>${action}</td>`;
   }
   return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="routes" data-row-band="${esc(row.band || "")}" data-row-state="${esc(row.status)}">
-    <td class="name"><div class="campaign-service-name">${groupPick}<strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}</div></td>
+    <td class="name"><div class="campaign-service-name">${groupPick}<strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}${!carriedOnly ? addVehicle : ""}</div></td>
     ${cells}
   </tr>`;
 }
@@ -294,7 +345,7 @@ function postDriver(row) {
 
 function postRow(row) {
   const plate = row.vehicle?.label || row.vehicle?.plate || row.plate_text || "—";
-  const type = row.type_text || row.vehicle?.type || "—";
+  const type = row.vehicle?.type || row.type_text || "—";
   return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="posts" data-row-state="${esc(row.status)}">
     <td>${esc(row.number || "")}</td><td class="name"><strong>${esc(row.name)}</strong>${warningChips(row)}</td>
     <td class="campaign-driver-cell">${postDriver(row)}</td><td dir="ltr"><div class="campaign-vehicle-cell">${vehicleOptions(row)}${!row.vehicle && row.plate_text ? `<span class="muted-text" dir="ltr">${esc(plate)}</span>` : ""}</div></td>
@@ -495,13 +546,22 @@ function bindRowControls(root) {
   root.querySelectorAll("select[data-driver-row]").forEach(select => {
     if (select.dataset.customValue) select.value = select.dataset.customValue;
     if (select.dataset.fullValue) select._comboInput?.setAttribute("title", select.dataset.fullValue);
-    const initial = rowBy(select.dataset.driverRow)?.driver;
+    const initialRow = rowBy(select.dataset.driverRow);
+    const lineIndex = select.dataset.serviceLineIndex;
+    const initial = lineIndex === undefined ? initialRow?.driver : initialRow?.vehicles?.[Number(lineIndex)]?.driver;
     let savedValue = initial?.kind === "text" ? initial.name : (initial?.kind ? `${initial.kind}|${initial.id}` : "");
     let draftEdited = false, explicitChange = false;
     const saveDriver = (value, explicit = false, previousValue = savedValue) => {
       const row = rowBy(select.dataset.driverRow);
       const driver = driverValuePayload(value);
-      saveRow(row, {driver}, {sourceKey: select.dataset.controlKey,
+      if (lineIndex !== undefined) {
+        const previous = serviceVehiclePayload(row);
+        const item = previous[Number(lineIndex)];
+        if (item) item.driver = driverValuePayload(previousValue);
+        saveServiceVehicleLine(row, Number(lineIndex), {driver: driver || ""}, {
+          sourceKey: select.dataset.controlKey, undoBody: {vehicles: previous,
+            ...(previous.length === 1 ? {driver: item?.driver || ""} : {})}, undoLabel: "تعديل سائق الخدمة"});
+      } else saveRow(row, {driver}, {sourceKey: select.dataset.controlKey,
         undoBody: {driver: driverValuePayload(previousValue)}, undoLabel: "تعديل السائق"});
       if (explicit) scheduleNextGap(select.dataset.controlKey);
     };
@@ -535,22 +595,37 @@ function bindRowControls(root) {
   });
   root.querySelectorAll("select[data-vehicle-row]").forEach(select => {
     select._comboInput?.setAttribute("dir", "ltr");
-    let savedValue = rowBy(select.dataset.vehicleRow)?.vehicle?.id || "";
+    const lineIndex = select.dataset.serviceLineIndex;
+    const initialRow = rowBy(select.dataset.vehicleRow);
+    let savedValue = lineIndex === undefined ? initialRow?.vehicle?.id || "" : initialRow?.vehicles?.[Number(lineIndex)]?.vehicle_id || "";
     select.addEventListener("change", () => {
       const row = rowBy(select.dataset.vehicleRow);
       const value = select.value;
       const previous = savedValue;
       const vehicle = (CAMPAIGN.pickers?.vehicles || []).find(item => item.id === value);
-      if (vehicle) CAMPAIGN_TYPE_FILTERS.set(row.id, vehicle.type);
-      if (value !== previous) saveRow(row, {vehicle_id: value}, {
-        sourceKey: select.dataset.controlKey, undoBody: {vehicle_id: previous}, undoLabel: "تعديل المركبة"});
+      const filterKey = lineIndex === undefined ? row.id : `${row.id}:${lineIndex}`;
+      if (vehicle) CAMPAIGN_TYPE_FILTERS.set(filterKey, vehicle.type);
+      if (value !== previous) {
+        if (lineIndex !== undefined) {
+          const before = serviceVehiclePayload(row);
+          if (!before.length) before.push(serviceSeedVehicle(row));
+          const restore = before.map(item => ({...item}));
+          before[Number(lineIndex)].vehicle_id = value;
+          const body = {vehicles: before, ...(before.length === 1 ? {driver: before[0].driver || ""} : {})};
+          saveRow(row, body, {sourceKey: select.dataset.controlKey,
+            undoBody: {vehicles: restore, ...(restore.length === 1 ? {driver: restore[0].driver || ""} : {})},
+            undoLabel: "تعديل مركبة الخدمة"});
+        } else saveRow(row, {vehicle_id: value}, {
+          sourceKey: select.dataset.controlKey, undoBody: {vehicle_id: previous}, undoLabel: "تعديل المركبة"});
+      }
       savedValue = value;
       scheduleNextGap(select.dataset.controlKey);
     });
   });
   root.querySelectorAll("select[data-type-row]").forEach(select => {
     select.addEventListener("change", () => {
-      CAMPAIGN_TYPE_FILTERS.set(select.dataset.typeRow, select.value);
+      const filterKey = select.dataset.serviceLineIndex === undefined ? select.dataset.typeRow : `${select.dataset.typeRow}:${select.dataset.serviceLineIndex}`;
+      CAMPAIGN_TYPE_FILTERS.set(filterKey, select.value);
       const tr = select.closest("tr[data-row-key]");
       const row = rowByKey(tr.dataset.rowKey);
       replaceRow(tr, row, tr.dataset.section);
@@ -576,6 +651,39 @@ function bindRowControls(root) {
   });
   root.querySelectorAll("button[data-action='openCampaignServiceVehicles']").forEach(button => {
     button.onclick = () => openServiceVehicles(rowBy(button.dataset.id));
+  });
+  root.querySelectorAll("button[data-action='addServiceVehicle']").forEach(button => {
+    button.onclick = async () => {
+      const row = rowBy(button.dataset.id);
+      if (!row) return;
+      const before = serviceVehiclePayload(row);
+      const vehicles = before.length ? before : [serviceSeedVehicle(row)];
+      vehicles.push({vehicle_id: "", personnel_ids: [], officer_ids: []});
+      const body = {vehicles};
+      const out = await campaignWrite(`/api/campaign/${DAY}/service/${encodeURIComponent(row.id)}`, "PUT", body, {structural: true});
+      if (out) {
+        rememberUndo({url: `/api/campaign/${DAY}/service/${encodeURIComponent(row.id)}`, method: "PUT",
+          body: {vehicles: before, ...(before.length === 1 ? {driver: before[0].driver || ""} : {})}, label: "إضافة مركبة للخدمة"});
+        focusControl(`service:${row.id}:${vehicles.length - 1}:driver`);
+      }
+    };
+  });
+  root.querySelectorAll("button[data-action='removeServiceVehicle']").forEach(button => {
+    button.onclick = async () => {
+      const row = rowBy(button.dataset.id);
+      const before = serviceVehiclePayload(row);
+      if (!row || before.length <= 1) return;
+      const index = Number(button.dataset.index);
+      const vehicles = before.map(item => ({...item}));
+      vehicles.splice(index, 1);
+      const body = {vehicles, ...(vehicles.length === 1 ? {driver: vehicles[0].driver || ""} : {})};
+      const out = await campaignWrite(`/api/campaign/${DAY}/service/${encodeURIComponent(row.id)}`, "PUT", body, {structural: true});
+      if (out) {
+        rememberUndo({url: `/api/campaign/${DAY}/service/${encodeURIComponent(row.id)}`, method: "PUT",
+          body: {vehicles: before, ...(before.length === 1 ? {driver: before[0].driver || ""} : {})}, label: "إزالة مركبة من الخدمة"});
+        focusControl(`service:${row.id}:${Math.min(index, vehicles.length - 1)}:driver`);
+      }
+    };
   });
 }
 
@@ -644,7 +752,8 @@ function scheduleNextGap(sourceKey) {
       if (control.dataset.controlKey === sourceKey) return false;
       if (!control.dataset.requiredField || control.closest("tr")?.hidden) return false;
       const row = rowByKey(control.closest("tr")?.dataset.rowKey || "");
-      return (row?.missing || []).includes(control.dataset.requiredField);
+      const lineIndex = control.dataset.serviceLineIndex;
+      return lineMissing(row, control.dataset.requiredField, lineIndex === undefined ? undefined : Number(lineIndex));
     });
     focusControl(next?.dataset.controlKey || sourceKey, !next);
   }, 0);

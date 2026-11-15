@@ -98,7 +98,7 @@ def test_campaign_service_reads_legacy_vehicle_and_saves_split_people(client):
     assert [item["personnel_ids"] for item in row["vehicles"]] == [[first["id"]], [second["id"]]]
 
 
-def test_campaign_service_vehicle_validation_rejects_duplicates_and_foreign_people(client):
+def test_campaign_service_vehicle_validation_warns_duplicates_and_rejects_foreign_people(client):
     day = "2026-07-10"
     person = _person(client, "فرد الخدمة", "994")
     foreign = _person(client, "فرد غريب", "995")
@@ -108,7 +108,10 @@ def test_campaign_service_vehicle_validation_rejects_duplicates_and_foreign_peop
     vehicle = _vehicle(client)
     base = f"/api/campaign/{day}/service/{assignment['id']}"
     duplicate = client.put(base, json={"vehicles": [{"vehicle_id": vehicle["id"]}, {"vehicle_id": vehicle["id"]}]})
-    assert duplicate.status_code == 400 and "تكرار" in duplicate.get_json()["error"]
+    assert duplicate.status_code == 200
+    assert any("المركبة مستخدمة" in warning
+               for row in duplicate.get_json()["service_rows"] if row["id"] == assignment["id"]
+               for warning in row["warnings"])
     foreign_response = client.put(base, json={"vehicles": [{"vehicle_id": vehicle["id"], "personnel_ids": [foreign["id"]]}]})
     assert foreign_response.status_code == 400 and "الخدمة" in foreign_response.get_json()["error"]
 
@@ -165,7 +168,7 @@ def test_campaign_single_service_inline_edits_keep_driver_people_and_export(clie
     assert row["status"] == "partial" and row["missing"] == ["vehicle"]
 
 
-def test_campaign_multi_vehicle_service_rejects_inline_driver_or_vehicle(client):
+def test_campaign_multi_vehicle_service_requires_line_target_and_preserves_list(client):
     day = "2026-07-10"
     driver = _person(client, "سائق متعدد", "9955")
     assignment = _assignment(client, day, "خدمة متعددة محمية")
@@ -180,10 +183,12 @@ def test_campaign_multi_vehicle_service_rejects_inline_driver_or_vehicle(client)
     vehicle_response = client.put(url, json={"vehicle_id": replacement["id"]})
     driver_response = client.put(url, json={
         "driver": {"kind": "personnel", "id": driver["id"]}})
-    assert vehicle_response.status_code == driver_response.status_code == 409
+    assert vehicle_response.status_code == driver_response.status_code == 400
+    line_response = client.put(url, json={"vehicle_index": 1, "vehicle_id": replacement["id"]})
+    assert line_response.status_code == 200, line_response.get_json()
     row = next(item for item in _campaign(client, day)["service_rows"]
                if item["id"] == assignment["id"])
-    assert [item["vehicle_id"] for item in row["vehicles"]] == [first["id"], second["id"]]
+    assert [item["vehicle_id"] for item in row["vehicles"]] == [first["id"], replacement["id"]]
 
 
 def test_campaign_service_resolver_returns_direct_and_lorry_plates():
@@ -452,6 +457,7 @@ def test_campaign_posts_add_update_inherit_clear_and_remove(client):
     }).status_code == 200
     inherited = next(row for row in _campaign(client, later)["posts"] if row["id"] == post["id"])
     assert inherited["inherited"] and inherited["vehicle"]["id"] == vehicle["id"]
+    assert inherited["plate_text"] == "" and inherited["type_text"] == ""
     assert client.put(f"/api/campaign/{later}/post/{post['id']}", json={
         "vehicle_id": "", "driver_text": "",
     }).status_code == 200
