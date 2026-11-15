@@ -3,7 +3,7 @@
    - الكلمات المتعددة لازم كلها تتلاقي في نفس الصف؛ الهمزات والتشكيل والأرقام العربية بتتوحّد.
    - النتيجة: الصف بيتلوّن (مش بيعتمد على ألوان الصفحة)، والكلمة جوّاه بتتظلل من غير تعديل
      الـDOM (CSS Custom Highlight)، وقايمة نتايج بالقسم والمقتطف بتنقلك للصف، وخيار «المطابق فقط».
-   - الشريط بيلزق تحت الترويسة لما تنزل بالصفحة، و«/» بتفتحه من أي مكان. */
+   - الشريط بيلزق تحت الترويسة لما تنزل بالصفحة، و«/» أو Ctrl+F بيفتحوه من أي مكان. */
 (() => {
   const HL = "page-search", HL_CUR = "page-search-current";
   const SKIP = "script,style,button,svg,.sr-only,.page-search";
@@ -237,6 +237,13 @@
     prev.addEventListener("click", () => step(-1));
     next.addEventListener("click", () => step(1));
     filter.addEventListener("change", () => { filtering = filter.checked; paint(); });
+    // Ctrl+F (أو Cmd+F) بيفتح بحث اليومية بدل بحث المتصفح، من أي مكان في الصفحة حتى جوه حقل
+    document.addEventListener("keydown", event => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== "f") return;
+      if (document.querySelector(".modal:not(.hidden)")) return;      // المودال له حقوله — بحث المتصفح يفضل شغال
+      event.preventDefault();
+      input.focus({preventScroll: true}); input.select();
+    });
     document.addEventListener("keydown", event => {
       if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.target.closest && event.target.closest("input,textarea,select,[contenteditable=true]")) return;

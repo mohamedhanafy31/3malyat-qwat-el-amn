@@ -40,3 +40,11 @@ def test_highlight_styles_use_theme_tokens_and_vanish_in_print():
     assert "#" not in "".join(line for line in block.splitlines() if "var(" not in line and ":" in line
                               and "color" in line)                                    # لا ألوان ثابتة
     assert "@media print" in block and "display:none" in block
+
+
+def test_ctrl_f_opens_the_page_search_instead_of_the_browser_find():
+    source = (ROOT / "static" / "js" / "page-search.js").read_text(encoding="utf-8")
+
+    assert 'event.key.toLowerCase() !== "f"' in source and "event.ctrlKey || event.metaKey" in source
+    assert 'document.querySelector(".modal:not(.hidden)")' in source        # جوه المودال بحث المتصفح يفضل
+    assert "Ctrl+F" in source
