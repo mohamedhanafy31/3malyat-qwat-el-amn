@@ -39017,3 +39017,4 @@ PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\
 2026-11-15 23:22:16,417 INFO backend.daily_files daily_files.generated
 2026-11-15 23:22:27,341 INFO backend.daily_files daily_files.generated
 2026-11-16 00:01:23,769 INFO personnel_system.request GET /officers 200
+2026-11-16 00:01:24,002 INFO personnel_system.request GET /api/bootstrap/officers 200

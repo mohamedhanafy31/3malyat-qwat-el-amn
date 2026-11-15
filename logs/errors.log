@@ -9871,3 +9871,4 @@ PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\
 2026-11-15T23:15:52.487 | WARNING | personnel_system.request | 6e0fc68d6946 | Hanafy | PATCH /api/person/OFF-100 200 | method=PATCH path=/api/person/OFF-100 status=200 duration_ms=10814.9 size=517 slow=True
 2026-11-15T23:17:19.258 | WARNING | backend.store | 62f3107aa26a | Hanafy | store.load | duration_ms=3038.2 day_files=1096 scope=1096
 2026-11-15T23:17:21.008 | WARNING | personnel_system.request | 62f3107aa26a | Hanafy | PATCH /api/person/OFF-033 200 | method=PATCH path=/api/person/OFF-033 status=200 duration_ms=4790.8 size=499 slow=True
+2026-11-15T23:22:15.985 | WARNING | personnel_system.request | 4065381304fb | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0022 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0022 status=200 duration_ms=8050.1 size=6973 slow=True

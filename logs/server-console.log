@@ -39008,3 +39008,27 @@ PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\
 2026-11-15 23:19:10,691 INFO GET /api/campaign/2026-11-16 200
 2026-11-15 23:19:10,875 INFO GET /api/day-status/2026-11-16 200
 2026-11-15 23:21:20,978 INFO GET /api/health/ready 200
+2026-11-15 23:21:44,414 INFO [startup 1/5] Python=D:\3malyat-qwat-el-amn\runtime\pythonw.exe root=D:\3malyat-qwat-el-amn
+2026-11-15 23:21:44,414 INFO [startup 2/5] Acquiring exclusive data lock in D:\3malyat-qwat-el-amn\data
+2026-11-15 23:21:44,461 INFO process_lock.acquired
+2026-11-15 23:21:44,461 INFO [startup 3/5] Data lock acquired; starting daily-files worker
+2026-11-15 23:21:45,976 INFO daily_files.worker_started
+2026-11-15 23:21:46,039 INFO server_start
+2026-11-15 23:21:46,039 INFO [startup 4/5] Binding Waitress to http://127.0.0.1:5000 (threads=8)
+2026-11-15 23:21:46,054 INFO Serving on http://127.0.0.1:5000
+2026-11-15 23:21:46,554 INFO GET /api/health/ready 200
+2026-11-15 23:21:47,714 INFO GET / 302
+2026-11-15 23:21:47,783 INFO GET /login 200
+2026-11-15 23:21:52,123 INFO GET /campaign 200
+2026-11-15 23:21:53,856 INFO GET /api/bootstrap/campaign 200
+2026-11-15 23:21:54,929 INFO GET /api/campaign/2026-11-16 200
+2026-11-15 23:21:55,130 INFO GET /api/day-status/2026-11-16 200
+2026-11-15 23:21:59,627 INFO daily_files.generated
+2026-11-15 23:22:15,827 INFO backup.pruned
+2026-11-15 23:22:15,827 INFO backup.created
+2026-11-15 23:22:15,901 INFO store.save
+2026-11-15 23:22:15,985 WARNING PUT /api/campaign/2026-11-16/service/AS-0022 200
+2026-11-15 23:22:16,417 INFO daily_files.generated
+2026-11-15 23:22:27,341 INFO daily_files.generated
+2026-11-16 00:01:23,769 INFO GET /officers 200
+2026-11-16 00:01:24,002 INFO GET /api/bootstrap/officers 200
