@@ -14337,7 +14337,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 9208,
+    "CHG": 9209,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -14841,65 +14841,6 @@
     ]
   },
   "change_log": [
-    {
-      "id": "CHG-4209",
-      "ts": "2026-11-08T13:22:39",
-      "entity": "assignment",
-      "entity_id": "AS-0023",
-      "action": "update",
-      "day": "2026-11-09",
-      "text": "«البوابة الرئيسية حتي المقصورة صبح» — فئات المجندين: «وحدة 1» ← «وحدة 0»",
-      "before": {
-        "id": "AS-0023",
-        "section": "مباراة وادى دجلة * كهرباء الاسماعيلية 12ظ",
-        "name": "البوابة الرئيسية حتي المقصورة",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "وحدة",
-            "count": 1
-          }
-        ],
-        "conscript_count": 0,
-        "weapon": "وحدة",
-        "time": "12ظ",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": ""
-      },
-      "after": {
-        "id": "AS-0023",
-        "section": "مباراة وادى دجلة * كهرباء الاسماعيلية 12ظ",
-        "name": "البوابة الرئيسية حتي المقصورة",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "وحدة",
-            "count": 0
-          }
-        ],
-        "conscript_count": 0,
-        "weapon": "وحدة",
-        "time": "12ظ",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
     {
       "id": "CHG-4210",
       "ts": "2026-11-08T13:22:39",
@@ -123312,6 +123253,40 @@
       },
       "reason": "",
       "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9209",
+      "ts": "2026-11-15T03:48:25",
+      "entity": "regularity_inputs",
+      "entity_id": "2026-11-15",
+      "action": "update",
+      "day": "2026-11-15",
+      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-15",
+      "before": null,
+      "after": {
+        "officer_extra": {},
+        "big_column_supervisors": {
+          "am": {
+            "rank": "عقيد",
+            "name": "وليد عصمت عبدالعزيز",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10 م\""
+          },
+          "pm": {
+            "rank": "مقدم",
+            "name": "حسام فتحي رضوان",
+            "phone": "",
+            "service": "مشرف القول المكبر فترة ليلية \"10م الي 10ص\""
+          }
+        },
+        "notes": [
+          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
     }
   ],
   "missions": [],
@@ -135805,6 +135780,28 @@
         "am": {
           "rank": "رائد",
           "name": "علي محمد الهلالي",
+          "phone": "",
+          "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10 م\""
+        },
+        "pm": {
+          "rank": "مقدم",
+          "name": "حسام فتحي رضوان",
+          "phone": "",
+          "service": "مشرف القول المكبر فترة ليلية \"10م الي 10ص\""
+        }
+      },
+      "notes": [
+        "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
+        "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
+        "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
+      ]
+    },
+    "2026-11-15": {
+      "officer_extra": {},
+      "big_column_supervisors": {
+        "am": {
+          "rank": "عقيد",
+          "name": "وليد عصمت عبدالعزيز",
           "phone": "",
           "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10 م\""
         },
