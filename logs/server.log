@@ -36648,3 +36648,215 @@ PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\
 2026-11-15 03:49:00,337 INFO personnel_system.request GET /api/bootstrap/dashboard 200
 2026-11-15 03:49:00,392 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-16 200
 2026-11-15 03:49:00,478 INFO personnel_system.request GET /api/day-status/2026-11-16 200
+2026-11-15 03:49:01,300 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:20:03,060 INFO backend.store backup.pruned
+2026-11-15 05:20:03,065 INFO backend.store backup.created
+2026-11-15 05:20:03,508 INFO backend.store store.save
+2026-11-15 05:20:03,534 WARNING personnel_system.request POST /api/board/2026-11-16/confirm 201
+2026-11-15 05:20:04,445 INFO personnel_system.request GET /api/board/2026-11-16 200
+2026-11-15 05:20:04,507 INFO personnel_system.request GET /api/day-files/2026-11-16 200
+2026-11-15 05:20:04,574 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-16 200
+2026-11-15 05:20:04,675 INFO personnel_system.request GET /api/day-status/2026-11-16 200
+2026-11-15 05:20:05,720 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:20:05,786 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:20:05,840 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:20:05,933 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:20:13,028 WARNING backend.export_fit export.page_fit_failed
+2026-11-15 05:20:13,043 ERROR backend.daily_files فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 05:20:13,084 INFO backend.store store.save
+2026-11-15 05:20:13,322 WARNING personnel_system.request POST /api/board/2026-11-15/confirm 201
+2026-11-15 05:20:14,392 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:20:14,549 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:20:14,694 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:20:14,836 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:20:18,068 WARNING backend.daily_files daily_files.generated
+2026-11-15 05:20:22,286 INFO personnel_system.request GET /campaign 200
+2026-11-15 05:20:23,074 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-15 05:20:23,959 INFO personnel_system.request GET /api/campaign/2026-11-15 200
+2026-11-15 05:20:24,306 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:20:28,401 INFO backend.daily_files daily_files.generated
+2026-11-15 05:20:33,108 INFO personnel_system.request GET /board 200
+2026-11-15 05:20:34,112 WARNING backend.export_fit export.page_fit_failed
+2026-11-15 05:20:34,113 ERROR backend.daily_files فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 05:20:34,245 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-15 05:20:35,364 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:20:35,569 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:20:35,712 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:20:35,864 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:20:39,588 WARNING backend.daily_files daily_files.generated
+2026-11-15 05:20:46,787 INFO backend.store store.save
+2026-11-15 05:20:46,799 INFO personnel_system.request POST /api/assignments/2026-11-15/AS-0035/move 200
+2026-11-15 05:20:48,505 INFO backend.store store.save
+2026-11-15 05:20:48,516 INFO personnel_system.request POST /api/assignments/2026-11-15/AS-0035/move 200
+2026-11-15 05:20:50,136 INFO backend.store store.save
+2026-11-15 05:20:50,148 INFO personnel_system.request POST /api/assignments/2026-11-15/AS-0035/move 200
+2026-11-15 05:20:53,827 INFO personnel_system.request GET / 200
+2026-11-15 05:20:54,654 INFO personnel_system.request GET /api/bootstrap/dashboard 200
+2026-11-15 05:20:57,789 WARNING backend.store store.load
+2026-11-15 05:20:58,931 WARNING personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 05:20:59,759 WARNING personnel_system.request GET /api/ops/2026-11-15/regularity.docx 200
+2026-11-15 05:21:00,757 WARNING personnel_system.request GET /api/ops/2026-11-15/regularity 200
+2026-11-15 05:21:09,986 INFO backend.daily_files daily_files.generated
+2026-11-15 05:21:10,804 WARNING personnel_system.request POST /api/export-preview 200
+2026-11-15 05:21:25,671 INFO personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 05:21:55,731 INFO personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 05:22:25,663 INFO personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 05:22:55,812 WARNING personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 05:23:25,729 INFO personnel_system.request GET /api/ops/2026-11-15 200
+2026-11-15 05:23:34,840 INFO personnel_system.request GET /duty 200
+2026-11-15 05:23:35,075 INFO personnel_system.request GET /api/bootstrap/duty 200
+2026-11-15 05:23:35,383 INFO personnel_system.request GET /board 200
+2026-11-15 05:23:36,188 WARNING personnel_system.request GET /api/duty/2026-11-15 200
+2026-11-15 05:23:36,241 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-15 05:23:37,167 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:23:37,277 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:23:37,335 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:23:37,504 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:24:02,229 INFO backend.store backup.pruned
+2026-11-15 05:24:02,232 INFO backend.store backup.created
+2026-11-15 05:24:02,405 INFO backend.store store.save
+2026-11-15 05:24:02,442 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0023 200
+2026-11-15 05:24:03,573 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:24:03,682 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:24:03,763 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:24:03,986 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:24:14,732 INFO backend.daily_files daily_files.generated
+2026-11-15 05:25:57,183 INFO backend.store store.save
+2026-11-15 05:25:57,216 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0035 200
+2026-11-15 05:25:58,249 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:25:58,366 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:25:58,416 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:25:58,549 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:26:18,709 INFO backend.store backup.pruned
+2026-11-15 05:26:18,726 INFO backend.store backup.created
+2026-11-15 05:26:18,859 INFO backend.store store.save
+2026-11-15 05:26:19,076 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0031 200
+2026-11-15 05:26:20,278 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:26:20,505 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:26:20,640 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:26:21,440 WARNING personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:26:22,717 INFO backend.daily_files daily_files.generated
+2026-11-15 05:26:26,623 WARNING backend.store store.load
+2026-11-15 05:26:29,690 INFO backend.store store.save
+2026-11-15 05:26:29,722 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0009 200
+2026-11-15 05:26:30,894 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:26:31,079 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:26:31,148 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:26:31,238 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:26:36,158 INFO backend.daily_files daily_files.generated
+2026-11-15 05:26:38,768 INFO backend.store store.save
+2026-11-15 05:26:38,852 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0010 200
+2026-11-15 05:26:41,017 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:26:41,635 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:26:41,908 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:26:42,933 WARNING backend.store store.load
+2026-11-15 05:26:42,972 WARNING personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:26:48,343 INFO backend.daily_files daily_files.generated
+2026-11-15 05:26:52,531 WARNING backend.store store.load
+2026-11-15 05:26:54,047 INFO backend.store store.save
+2026-11-15 05:26:54,147 WARNING personnel_system.request POST /api/board/2026-11-15/confirm 201
+2026-11-15 05:26:55,285 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:26:55,497 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:26:55,663 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:26:55,813 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:27:00,195 INFO backend.daily_files daily_files.generated
+2026-11-15 05:27:09,308 INFO backend.daily_files daily_files.generated
+2026-11-15 05:27:09,308 WARNING personnel_system.request POST /api/day-files/2026-11-15/refresh 200
+2026-11-15 05:27:09,442 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:27:18,187 INFO backend.daily_files daily_files.generated
+2026-11-15 05:27:23,954 INFO backend.store store.save
+2026-11-15 05:27:23,970 WARNING personnel_system.request POST /api/assignments/2026-11-15/AS-0030/move 200
+2026-11-15 05:27:24,747 WARNING backend.export_fit export.page_fit_failed
+2026-11-15 05:27:24,762 ERROR backend.daily_files فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 05:27:27,519 INFO backend.store store.save
+2026-11-15 05:27:27,619 WARNING personnel_system.request POST /api/assignments/2026-11-15/AS-0030/move 200
+2026-11-15 05:27:29,523 WARNING backend.daily_files daily_files.generated
+2026-11-15 05:27:39,690 INFO backend.daily_files daily_files.generated
+2026-11-15 05:27:54,477 INFO backend.store store.save
+2026-11-15 05:27:54,494 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0027 200
+2026-11-15 05:27:55,528 INFO personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:27:55,645 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:27:55,711 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:27:55,811 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:28:04,107 INFO backend.store store.save
+2026-11-15 05:28:04,240 WARNING personnel_system.request PATCH /api/assignments/2026-11-15/AS-0027 200
+2026-11-15 05:28:05,323 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:28:05,474 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:28:05,588 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:28:05,762 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:28:09,680 INFO backend.daily_files daily_files.generated
+2026-11-15 05:28:18,834 INFO backend.daily_files daily_files.generated
+2026-11-15 05:28:29,115 INFO backend.store backup.pruned
+2026-11-15 05:28:29,115 INFO backend.store backup.created
+2026-11-15 05:28:29,482 INFO backend.store store.save
+2026-11-15 05:28:29,499 WARNING personnel_system.request POST /api/board/2026-11-15/confirm 201
+2026-11-15 05:28:30,553 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:28:30,634 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:28:30,700 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:28:30,833 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:28:41,594 INFO backend.daily_files daily_files.generated
+2026-11-15 05:28:50,475 INFO backend.daily_files daily_files.generated
+2026-11-15 05:28:50,475 WARNING personnel_system.request POST /api/day-files/2026-11-15/refresh 200
+2026-11-15 05:28:50,577 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:28:55,806 WARNING backend.export_fit export.page_fit_failed
+2026-11-15 05:28:55,806 ERROR backend.daily_files فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 05:28:59,790 WARNING backend.daily_files daily_files.generated
+2026-11-15 05:42:08,617 INFO personnel_system.request GET /board 200
+2026-11-15 05:42:08,829 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-15 05:42:10,113 INFO personnel_system.request GET /api/health/ready 200
+2026-11-15 05:42:10,262 WARNING personnel_system.request GET /api/board/2026-11-15 200
+2026-11-15 05:42:10,349 INFO personnel_system.request GET /api/day-files/2026-11-15 200
+2026-11-15 05:42:10,393 INFO personnel_system.request GET /api/day-status/2026-11-15 200
+2026-11-15 05:42:10,539 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-15 200
