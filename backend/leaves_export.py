@@ -10,6 +10,8 @@ from docx.enum.table import (WD_ALIGN_VERTICAL, WD_ROW_HEIGHT_RULE,
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+
+from .export_fit import center_docx_table_cells
 from docx.shared import Cm, Pt
 
 from .board_export import _set_rtl_doc, set_run_font
@@ -164,6 +166,7 @@ def _landscape_document(left=1.5, right=1.5, top=.65, bottom=.65):
 
 
 def _save(doc):
+    center_docx_table_cells(doc)
     output = BytesIO()
     doc.save(output)
     output.seek(0)

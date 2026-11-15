@@ -216,3 +216,11 @@ if (loadMoreBtn) {
 }
 
 loadEntries(false);
+$("#exportAudit").onclick = () => {
+  const params = new URLSearchParams();
+  for (const [key, id] of [["q", "auditSearch"], ["user", "auditUser"], ["event", "auditEvent"], ["from", "auditFrom"], ["to", "auditTo"]]) {
+    const value = $("#" + id).value.trim();
+    if (value) params.set(key, value);
+  }
+  previewExport(`/api/audit/export.docx?${params}`, "سجل النشاط");
+};

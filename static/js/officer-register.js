@@ -62,4 +62,6 @@ async function load() {
   if (!d) return;
   OFF = d; render();
 }
+$("#exportOfficerRegister").onclick = () =>
+  previewExport(`/api/register/officer/${encodeURIComponent(OFFICER_ID)}/export.docx`, "دفتر الضابط");
 load();

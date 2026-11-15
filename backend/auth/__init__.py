@@ -48,7 +48,7 @@ def _error(message, code, status):
 
 def _required_capability(path):
     # «تغيير تشغيل» (/changes) مفتوح لكل الأدوار؛ سجل النشاط (/audit) بس للرقابة.
-    if path in ("/audit", "/api/audit", "/activity-stats", "/api/activity-stats"):
+    if path in ("/audit", "/api/audit", "/activity-stats", "/api/activity-stats") or path.startswith("/api/audit/"):
         return "view_logs"
     # السجلات الفنية فيها أسماء مستخدمين وتفاصيل تشغيل — لمدير النظام بس.
     if path == "/tech-logs" or path.startswith("/api/tech-logs"):

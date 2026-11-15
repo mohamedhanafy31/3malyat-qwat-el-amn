@@ -5,6 +5,7 @@
    وقت الإنشاء الراحات الجارية/القادمة من الأنواع المختارة بتتعرض من غير
    تحديد — المشغّل بيختار بنفسه اللي تتوقف (`backend/rest_suspension.py`). */
 let SUSP = {active: [], history: []}, SUSP_CANDS = [];
+$("#exportSuspensions").onclick = () => previewExport("/api/rest-suspensions/export.docx", "سجل أوامر وقف الراحات");
 
 const typeChips = types => types.map(t => `<span class="chip rest">${esc(t)}</span>`).join(" ");
 

@@ -12,6 +12,8 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
+from .export_fit import center_docx_table_cells
+
 from .formation import has_no_serial
 
 TEMPLATE = Path(__file__).with_name("docx_templates") / "formation_night.docx"
@@ -234,6 +236,7 @@ def build_docx(dto):
     LAST_FIT.clear()
     LAST_FIT.update({"page_count": 1, "rows": count, "scale": scale, "template_rows": TEMPLATE_ROWS})
     output = BytesIO()
+    center_docx_table_cells(document)
     document.save(output)
     output.seek(0)
     return output

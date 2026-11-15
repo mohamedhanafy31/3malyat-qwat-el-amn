@@ -8,6 +8,8 @@ from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+
+from .export_fit import center_docx_table_cells
 from docx.shared import Cm, Pt, Twips
 
 from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font, style_tables_bold_rtl
@@ -294,6 +296,7 @@ def build_docx(campaign):
     _sync_cell_widths(table)
     style_tables_bold_rtl(doc)
     output = BytesIO()
+    center_docx_table_cells(doc)
     doc.save(output)
     output.seek(0)
     return output

@@ -9,6 +9,8 @@ from PIL import ImageFont
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt
+from docx.enum.table import WD_ALIGN_VERTICAL
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from . import tech_log
 
@@ -23,6 +25,27 @@ class PageFitError(RuntimeError):
         # الاستثناء بيتبني لحظة الفشل — سطر واحد في السجل الفني بالسبب
         tech_log.event(log, "export.page_fit_failed", level=logging.WARNING,
                        reason=str(self))
+
+
+def center_docx_table_cells(document):
+    """يضمن توسيط محتوى كل خلية جدول من غير تغيير أي تنسيق تاني."""
+    def visit(table):
+        for row in table.rows:
+            seen = set()
+            for cell in row.cells:
+                if id(cell._tc) in seen:
+                    continue
+                seen.add(id(cell._tc))
+                if cell.text.strip():
+                    cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+                    for paragraph in cell.paragraphs:
+                        if paragraph.text.strip():
+                            paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                for nested in cell.tables:
+                    visit(nested)
+
+    for table in document.tables:
+        visit(table)
 
 
 class TextMeter:

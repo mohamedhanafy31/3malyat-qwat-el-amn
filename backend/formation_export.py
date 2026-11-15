@@ -10,7 +10,7 @@ from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 from .board_export import order_xml_children, set_run_font
-from .export_fit import PageFitError, TextMeter
+from .export_fit import center_docx_table_cells, PageFitError, TextMeter
 from .formation import has_no_serial
 
 LAST_FIT = {}
@@ -339,6 +339,7 @@ def build_docx(dto):
                      "ratio": max(f["ratio"] for f in fits), "halves": max(f["halves"] for f in fits),
                      "pages": fits})
     output = BytesIO()
+    center_docx_table_cells(document)
     document.save(output)
     output.seek(0)
     return output

@@ -1,6 +1,11 @@
 /* السواقين — عرض الأفراد السواقين وإدارة المجندين المحددين كسائقين. */
 let PERSONNEL_DRIVERS = [], CONSCRIPTS = [];
 setupRosterImport({kind: "conscripts", buttonId: "importConscriptsBtn", inputId: "importConscriptsFile", onApplied: loadDrivers});
+$("#exportDrivers").onclick = () => {
+  const params = new URLSearchParams();
+  if ($("#conscriptSearch").value.trim()) params.set("q", $("#conscriptSearch").value.trim());
+  previewExport(`/api/drivers/export.docx?${params}`, "سجل السواقين");
+};
 
 function personnelDriverRow(p) {
   return `<tr><td class="name">${esc(p.name)}</td><td>${esc(p.role || "—")}</td><td dir="ltr" class="bidi-isolate">${esc(fmtPhone(p.phone) || "—")}</td><td>${esc(p.post || "—")}</td></tr>`;

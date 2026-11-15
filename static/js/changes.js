@@ -109,3 +109,10 @@ async function load() {
   loadEntries();
 }
 load();
+$("#exportChanges").onclick = () => {
+  const params = new URLSearchParams();
+  if ($("#chgEntityFilter").value) params.set("entity", $("#chgEntityFilter").value);
+  if ($("#chgFromDay").value) params.set("from_day", $("#chgFromDay").value);
+  if ($("#chgToDay").value) params.set("to_day", $("#chgToDay").value);
+  previewExport(`/api/changes/export.docx?${params}`, "سجل التغييرات");
+};

@@ -86,6 +86,12 @@ $("#monthPrev").onclick = () => shiftMonth(-1);
 $("#monthNext").onclick = () => shiftMonth(1);
 $("#regMonth").onchange = () => loadMonth($("#regMonth").value);
 $("#regSearch").oninput = render;
+$("#exportRegister").onclick = () => {
+  const [y, m] = monthValue().split("-");
+  const params = new URLSearchParams();
+  if ($("#regSearch").value.trim()) params.set("q", $("#regSearch").value.trim());
+  previewExport(`/api/register/${Number(y)}/${Number(m)}/export.docx?${params}`, "حصر تشغيل الضباط");
+};
 
 async function load() {
   const d = await bootstrap();

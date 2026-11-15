@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block page_actions %}
 <a class="btn" href="{{ url_for('pages.board') }}">{{ icon('edit') }} إدارة من اليومية التفصيلية</a>
+<button type="button" class="btn" id="exportMissions">{{ icon('download') }} تصدير Word</button>
 {% endblock %}
 
 {% block content %}

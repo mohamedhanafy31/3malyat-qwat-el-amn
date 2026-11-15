@@ -1,5 +1,6 @@
 /* كشف المأموريات والتراحيل اليومي — عرض مباشر للخدمات المعلّمة في اليومية. */
 let MISSION_DAY = "", MISSION_ROWS = [];
+$("#exportMissions").onclick = () => previewExport(`/api/missions/export.docx?day=${encodeURIComponent(MISSION_DAY || curDate())}`, "كشف المأموريات والتراحيل");
 
 const missionPersonName = person => `${person.role ? person.role + "/ " : ""}${person.name || "غير مسجل"}`;
 

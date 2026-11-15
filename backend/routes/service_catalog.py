@@ -2,7 +2,8 @@
 + صور الموقع (مخزّنة كملفات، مش base64 جوّه الـJSON)."""
 import uuid
 
-from flask import Blueprint, jsonify, request, send_from_directory
+from flask import Blueprint, jsonify, request, send_from_directory, send_file
+from io import BytesIO
 
 from .. import changes
 from .. import service_catalog as catalog_lib
@@ -11,6 +12,9 @@ from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from ..utils import json_payload
 from .. import service_lines as lines_lib
 from ..constants import CAMPAIGN_LORRIES
+from ..dated import known_campaign_lorries
+from ..register_export import build_register_docx, register_file_name
+from ..clocktime import format_time
 
 bp = Blueprint("service_catalog", __name__)
 
@@ -19,6 +23,7 @@ bp = Blueprint("service_catalog", __name__)
 def list_service_lines():
     data = load_data(())
     return jsonify({"lines": [_line_view(data, line) for line in lines_lib.lines(data)],
+                    "lorries": known_campaign_lorries(data),
                     "revision": revision(data)})
 
 
@@ -26,7 +31,7 @@ def _line_view(data, line):
     return {**line,
             "members": [{"id": e.get("id"), "name": e.get("name", "")}
                         for e in lines_lib.members(data, line.get("id"))],
-            "lorry_name": lines_lib.lorry_name(line.get("lorry_id"))}
+            "lorry_name": lines_lib.lorry_name(line.get("lorry_id"), data)}
 
 
 def _line_mutation(payload, line_id=None):
@@ -100,6 +105,29 @@ def list_catalog():
         "post_types": catalog_lib.POST_TYPES,
         "service_tags": Repos(data).config.tags(),
     })
+
+
+@bp.get("/api/service-catalog/export.docx")
+def export_catalog():
+    data = load_data(())
+    entries = sorted(catalog_lib.catalog(data), key=lambda e: e.get("order", 0))
+    q = request.args.get("q", "").strip()
+    kind, period, tag = (request.args.get(k, "") for k in ("kind", "period", "tag"))
+    if q: entries = [e for e in entries if q in e.get("name", "") or q in e.get("instructions", "")]
+    if kind: entries = [e for e in entries if e.get("kind") == kind]
+    if period: entries = [e for e in entries if e.get("period") == period]
+    if tag: entries = [e for e in entries if tag in e.get("tags", [])]
+    rows = []
+    for e in entries:
+        command = "بلا رئاسة"
+        if e.get("has_command"):
+            command = " و".join(x for x in (f"{e.get('command_officers',0)} ضابط" if e.get("command_officers") else "", f"{e.get('command_individuals',0)} فرد" if e.get("command_individuals") else "")) or "—"
+            command = "برئاسة " + command
+        reports = " + ".join(x for x in ("صباحية: " + format_time(e["report_am"]) if e.get("report_am") else "", "ليلية: " + format_time(e["report_pm"]) if e.get("report_pm") else "")) or "—"
+        rows.append([e.get("name", ""), e.get("post_type") or "—", e.get("period") or "—", e.get("kind") or "—", str(e.get("count", 0)), command, e.get("weapon") or "—", reports, e.get("instructions") or "—", " + ".join(e.get("tags") or []) or "—", e.get("location_text") or ("صور موقع محفوظة" if e.get("location_images") else "—")])
+    subtitle = " — ".join(x for x in ("بحث: " + q if q else "", "نوع: " + kind if kind else "", "فترة: " + period if period else "", "وسم: " + tag if tag else "") if x) or "كل خدمات الدليل"
+    content = build_register_docx("دليل الخدمات", [("الخدمة",1.5),("نوع النقطة",1),("الفترة",1),("التصنيف",.8),("المجندون",.7),("الرئاسة",1.1),("التسليح",1),("الانتظام",1.4),("التعليمات",2),("الوسوم",1),("الموقع",1.5)], rows, subtitle=subtitle)
+    return send_file(BytesIO(content), as_attachment=True, download_name=register_file_name("دليل الخدمات"), mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 @bp.post("/api/service-catalog/seed")

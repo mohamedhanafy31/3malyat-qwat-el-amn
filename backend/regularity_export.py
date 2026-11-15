@@ -6,6 +6,8 @@ from pathlib import Path
 
 from docx import Document
 from docx.oxml.ns import qn
+
+from .export_fit import center_docx_table_cells
 from docx.oxml import OxmlElement
 from docx.shared import Pt, Twips
 
@@ -223,6 +225,7 @@ def build_docx(payload):
     fill_boxes(document, payload.get("signatories") or {})
     order_xml_children(document)
     LAST_FIT.clear(); LAST_FIT.update(size_pt=fit_size, total_pt=total, page_count=1)
+    center_docx_table_cells(document)
     buf = BytesIO(); document.save(buf); buf.seek(0); return buf
 
 
@@ -324,5 +327,5 @@ def build_special_docx(payload):
     _set_header_title(document, payload.get("title") or "")
     fill_boxes(document, payload.get("signatories") or {})
     order_xml_children(document)
+    center_docx_table_cells(document)
     buf = BytesIO(); document.save(buf); buf.seek(0); return buf
-

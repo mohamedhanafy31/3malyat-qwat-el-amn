@@ -16,6 +16,8 @@ from pathlib import Path
 from xml.sax.saxutils import escape
 
 from docx import Document
+
+from .export_fit import center_docx_table_cells
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls, qn
 
@@ -162,6 +164,7 @@ def build_docx(payload):
     # Word لازم له فقرة بعد آخر جدول؛ ارتفاعها أقل من الاحتياطي فمابتفتحش صفحة زيادة.
     section_properties.addprevious(_gap(BREAK_HEIGHT))
     buffer = BytesIO()
+    center_docx_table_cells(document)
     document.save(buffer)
     buffer.seek(0)
     return buffer

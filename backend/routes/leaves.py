@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, send_file
 from .. import changes, day_status, rest_suspension, retro
 from ..constants import REST_DURATIONS
 from ..leaves import (MONTHLY_REST_SYSTEMS, build_leave, overlapping, record_history,
-                      restore_history, validate_weekly_extra)
+                      restore_history, validate_weekly_extra, history_rows)
 from ..leaves import stats as leaves_stats_data
 from ..leaves_export import build_monthly_docx, build_weekly_docx
 from ..models import Leave
@@ -14,6 +14,16 @@ from ..people import effective
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload, parse_date
+from ..register_export import build_register_docx, register_file_name
+from io import BytesIO
+from ..weekly_rest import virtual_rows
+
+_AR_MONTHS = ("", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر")
+
+
+def _register_date(value):
+    parsed = parse_date(value)
+    return f"{parsed.day} {_AR_MONTHS[parsed.month]} {parsed.year}" if parsed else (value or "—")
 
 bp = Blueprint("leaves", __name__)
 
@@ -305,6 +315,60 @@ def leaves_stats():
         "status": request.args.get("status", "").strip(),
     }
     return jsonify(leaves_stats_data(data, filters))
+
+
+@bp.get("/api/leaves/export.docx")
+def export_leaves():
+    data = load_data(())
+    tab = request.args.get("tab", "active")
+    if tab == "deleted":
+        entries = history_rows(data)
+        q, action, status = (request.args.get(k, "").strip() for k in ("q", "action", "history_status"))
+        if q: entries = [h for h in entries if q in h.get("person_name", "") or q in h.get("reason", "")]
+        if action: entries = [h for h in entries if h.get("action_label") == action]
+        if status == "restored": entries = [h for h in entries if h.get("restored_at")]
+        elif status == "pending": entries = [h for h in entries if not h.get("restored_at")]
+        capped = len(entries) > 3000
+        entries = entries[:3000]
+        rows = [[h.get("person_name") or "(محذوف)", h.get("display_type", ""),
+                 f"{_register_date(h.get('before', {}).get('start',''))} ← {_register_date(h.get('before', {}).get('end',''))}",
+                 h.get("origin_label", ""), h.get("action_label", ""), h.get("performed_by", ""),
+                 (_register_date(h.get("occurred_at", "")[:10]) + (" " + h.get("occurred_at", "")[11:16] if h.get("occurred_at") else "")), h.get("reason") or "—",
+                 ("تم الاسترجاع — " + h.get("restored_by", "") if h.get("restored_at") else "قابلة للاسترجاع")]
+                for h in entries]
+        content = build_register_docx("سجل الراحات المحذوفة والملغية",
+            [("الضابط",1.4),("النوع",.9),("المدة",1.4),("الأصل",1),("الإجراء",1.1),("بواسطة",1),("التوقيت",1.4),("السبب",2),("الحالة",1.2)], rows,
+            subtitle=" — ".join(x for x in ("بحث: " + q if q else "", "الإجراء: " + action if action else "", "الحالة: " + status if status else "") if x) or "كل السجلات",
+            footer_note="تم عرض أحدث 3000 سجل فقط." if capped else "")
+        return send_file(BytesIO(content), as_attachment=True, download_name=register_file_name("سجل الراحات المحذوفة والملغية"), mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    entries = Repos(data).leaves.rows_with_names() + virtual_rows(data, day_status.today_iso())
+    today = day_status.today_iso()
+    if tab == "active": entries = [l for l in entries if l.get("end", "") >= today]
+    elif tab == "current": entries = [l for l in entries if l.get("start", "") <= today <= l.get("end", "")]
+    elif tab == "upcoming": entries = [l for l in entries if l.get("start", "") > today]
+    elif tab == "ended": entries = [l for l in entries if l.get("end", "") < today]
+    q = request.args.get("q", "").strip()
+    kind = request.args.get("type", "")
+    month = request.args.get("month", "")
+    category = request.args.get("category", "")
+    duration = request.args.get("duration", "")
+    if q: entries = [l for l in entries if q in l.get("name", "") or q in l.get("note", "")]
+    if kind: entries = [l for l in entries if l.get("type") == kind]
+    if month: entries = [l for l in entries if l.get("start", "").startswith(month) or l.get("end", "").startswith(month)]
+    if duration == "short": entries = [l for l in entries if 1 <= (parse_date(l.get("end", "")) - parse_date(l.get("start", ""))).days + 1 <= 3]
+    elif duration == "medium": entries = [l for l in entries if 4 <= (parse_date(l.get("end", "")) - parse_date(l.get("start", ""))).days + 1 <= 7]
+    elif duration == "long": entries = [l for l in entries if (parse_date(l.get("end", "")) - parse_date(l.get("start", ""))).days + 1 > 7]
+    if category:
+        from ..repo import PeopleRepo
+        officers = {p["id"] for p in PeopleRepo(data).raw_all("officers")}
+        entries = [l for l in entries if (l.get("person_id") in officers) == (category == "officers")]
+    rows = [[l.get("name", "") + ("\n" + l.get("role", "") if l.get("role") else ""), l.get("display_type", l.get("type", "")), _register_date(l.get("start", "")), _register_date(l.get("end", "")),
+             _register_date(l.get("return_date", "")), str((parse_date(l.get("end", "")) - parse_date(l.get("start", ""))).days + 1),
+             ("موقوفة — كانت حتى " + l.get("original_end", "") + " — " + l.get("stop_reason", "") if l.get("stopped_on") else ("جارية" if l.get("start", "") <= today <= l.get("end", "") else ("قادمة" if l.get("start", "") > today else "منتهية"))),
+             ("راحة أسبوعية ثابتة" if l.get("virtual") else (l.get("note") or "—"))] for l in entries]
+    desc = " — ".join(x for x in ("التبويب: " + {"active":"الحالية والقادمة","current":"جارية الآن","upcoming":"قادمة","ended":"منتهية","all":"الكل"}.get(tab,"الحالية والقادمة"), "بحث: " + q if q else "", "نوع: " + kind if kind else "", "الشهر: " + month if month else "", "الفئة: " + category if category else "", "المدة: " + duration if duration else "") if x)
+    content = build_register_docx("سجل الراحات", [("الاسم",1.5),("النوع",1),("من",1),("إلى",1),("العودة",1),("الأيام",.7),("الحالة",1),("ملاحظات",2)], rows, subtitle=desc)
+    return send_file(BytesIO(content), as_attachment=True, download_name=register_file_name("سجل الراحات"), mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 def _export_day():

@@ -18,6 +18,7 @@ from .constants import PERSONNEL_FAMILIES
 from .board_export import _ORDERS, order_xml_children
 from .dated import command_on
 from .export_fit import (
+    center_docx_table_cells,
     apply_fit_to_docx_table, docx_table_spec, estimate_table_height, fit_table, usable_height_pt,
 )
 from .text import norm
@@ -501,5 +502,6 @@ def build_docx(data, category, day, selected=None):
     _order_tree(section.footer._element)
 
     buffer = BytesIO()
+    center_docx_table_cells(document)
     document.save(buffer)
     return buffer.getvalue()

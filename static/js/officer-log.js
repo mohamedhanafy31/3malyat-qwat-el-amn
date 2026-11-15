@@ -66,6 +66,15 @@ async function loadLog() {
   render(d);
 }
 
+$("#exportOfficerLog").onclick = () => {
+  const id = $("#ologOfficer").value;
+  if (!id) return;
+  const params = new URLSearchParams();
+  if ($("#ologFrom").value) params.set("date_from", $("#ologFrom").value);
+  if ($("#ologTo").value) params.set("date_to", $("#ologTo").value);
+  previewExport(`/api/officer-log/${encodeURIComponent(id)}/export.docx?${params}`, "سجل خدمات الضابط");
+};
+
 $("#ologOfficer").onchange = loadLog;
 $("#ologFrom").onchange = loadLog;
 $("#ologTo").onchange = loadLog;

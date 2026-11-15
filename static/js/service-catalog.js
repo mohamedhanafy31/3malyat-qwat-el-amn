@@ -6,8 +6,15 @@
    من PDF (بيترسم في المتصفح بـPDF.js وتترفع كصورة PNG، السيرفر ملوش أي
    دخل بمعالجة PDF خالص). */
 let CATALOG = [], PERIODS = [], SVC_KINDS = [], SVC_POST_TYPES = [], SVC_TAGS = [], SVC_ENTRY_TAGS = [], SERVICE_LINES = [], SERVICE_LINES_REVISION = "";
-const CAMPAIGN_LORRIES = [["", "بدون لوري"], ["LOR-1", "المحور + المحكمة"], ["LOR-2", "القنصلية"], ["LOR-3", "فيصل"], ["LOR-4", "كـ109"]];
+// بيتبدّل بقايمة السيرفر (فيها اللواري المضافة من يومية الحملة)؛ دي القايمة الافتراضية لحد ما تتحمّل.
+let CAMPAIGN_LORRIES = [["", "بدون لوري"], ["LOR-1", "المحور + المحكمة"], ["LOR-2", "القنصلية"], ["LOR-3", "فيصل"], ["LOR-4", "كـ109"]];
 let INSPECTIONS = {}, INSP_WEEKDAYS = [];
+$("#exportServiceCatalog").onclick = () => {
+  const params = new URLSearchParams();
+  [["q", "#svcSearch"], ["kind", "#svcKindFilter"], ["period", "#svcPeriodFilter"], ["tag", "#svcTagFilter"]]
+    .forEach(([key, selector]) => { const value = $(selector).value.trim(); if (value) params.set(key, value); });
+  previewExport(`/api/service-catalog/export.docx?${params}`, "دليل الخدمات");
+};
 const SERVICE_PERIOD_LABELS = {
   "صباحية بس": "صباحية فقط",
   "ليلية بس": "ليلية فقط",
@@ -252,6 +259,7 @@ async function load() {
   syncCatalogFilters();
   const lines = await api("/api/service-lines");
   SERVICE_LINES = lines?.lines || [];
+  if (lines?.lorries?.length) CAMPAIGN_LORRIES = [["", "بدون لوري"], ...lines.lorries.map(item => [item.id, item.name])];
   SERVICE_LINES_REVISION = lines?.revision || "";
   render();
 

@@ -7,6 +7,8 @@ from pathlib import Path
 from docx import Document
 from docx.oxml.ns import qn
 
+from .export_fit import center_docx_table_cells
+
 from .afraad import BASIC_SERVICE_NAMES, emergency_horizontal_pairs
 from .board_export import WEEKDAY_BY_INDEX, order_xml_children
 from .export_fit import (PageFitError, TextMeter, estimate_table_height, fit_widths,
@@ -471,6 +473,7 @@ def build_docx(afraad):
                     grid=list(state["grid"]), logical=list(state["logical"]))
 
     buf = BytesIO()
+    center_docx_table_cells(document)
     document.save(buf)
     buf.seek(0)
     return buf

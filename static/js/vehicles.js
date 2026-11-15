@@ -140,4 +140,11 @@ $("#vehicleForm").onsubmit = async e => {
 };
 
 async function load() { if (await bootstrap()) loadVehicles(); else UI.regionError("#vehiclesWrap", {message:"تعذر تهيئة سجل المركبات.", retry:load}); }
+$("#exportVehicles").onclick = () => {
+  const params = new URLSearchParams({archived: $("#vehicleArchived").checked ? "1" : "0"});
+  for (const [key, id] of [["type", "vehicleTypeFilter"], ["status", "vehicleStatusFilter"], ["origin", "vehicleOriginFilter"]])
+    if ($(`#${id}`).value) params.set(key, $(`#${id}`).value);
+  if ($("#vehicleSearch").value.trim()) params.set("q", $("#vehicleSearch").value.trim());
+  previewExport(`/api/vehicles/export.docx?${params}`, "سجل المركبات");
+};
 load();

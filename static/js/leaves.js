@@ -15,6 +15,21 @@ const HIST_FILTERS = UI.filterChips("#histFilterSummary", [
   {el:"#histActionFilter", label:"الإجراء"}, {el:"#histStatusFilter", label:"الحالة"},
 ], render);
 
+function exportLeaveRegister() {
+  const params = new URLSearchParams({tab: LEAVE_TAB});
+  if (LEAVE_TAB === "deleted") {
+    const values = {q: $("#histSearch").value.trim(), action: $("#histActionFilter").value,
+      history_status: $("#histStatusFilter").value};
+    Object.entries(values).forEach(([key, value]) => { if (value) params.set(key, value); });
+  } else {
+    const values = {q: $("#leaveSearch").value.trim(), type: $("#leaveTypeFilter").value,
+      month: $("#leaveMonthFilter").value, category: $("#leaveCategoryFilter").value,
+      duration: $("#leaveDurationFilter").value};
+    Object.entries(values).forEach(([key, value]) => { if (value) params.set(key, value); });
+  }
+  previewExport(`/api/leaves/export.docx?${params}`, "سجل الراحات");
+}
+
 function updateLeaveTabCounts(today) {
   const counts={deleted:LEAVE_HISTORY.filter(h=>!h.restored_at).length,all:LEAVES.length,active:LEAVES.filter(l=>l.end>=today).length,
     current:LEAVES.filter(l=>l.start<=today&&today<=l.end).length,
@@ -404,6 +419,7 @@ $("#leaveMonthFilter").onchange = render;
 if ($("#leaveCategoryFilter")) $("#leaveCategoryFilter").onchange = render;
 if ($("#leaveDurationFilter")) $("#leaveDurationFilter").onchange = render;
 $("#addLeaveBtn").onclick = () => openLeave(null);
+$("#exportLeaves").onclick = exportLeaveRegister;
 
 // ── وقف الراحات — سطر حالة بس؛ الإدارة نفسها في صفحتها (/leaves/suspension) ──
 function renderSuspensionStrip() {

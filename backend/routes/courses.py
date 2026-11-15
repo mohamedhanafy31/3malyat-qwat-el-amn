@@ -1,5 +1,6 @@
 """فرق الضباط — الفرقة نفسها والتحاق الضباط بيها."""
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request, send_file
+from io import BytesIO
 
 from .. import retro
 from ..courses import (
@@ -9,6 +10,7 @@ from ..courses import (
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import json_payload
+from ..register_export import build_register_docx, register_file_name
 
 bp = Blueprint("courses", __name__)
 
@@ -19,6 +21,46 @@ def list_courses():
     بمدخلين مختلفين، فنداء واحد يكفي والتبديل بينهم من غير تحميل."""
     data = load_data(())
     return jsonify({"courses": summary(data), "officers": by_officer(data)})
+
+
+@bp.get("/api/courses/export.docx")
+def export_courses():
+    data = load_data(())
+    view = request.args.get("view", "course")
+    q = request.args.get("q", "").strip()
+    kind_filter = request.args.get("kind", "")
+    if view == "officer":
+        records = by_officer(data)
+        if q:
+            records = [o for o in records if q in o["name"] or
+                       any(q in c["course_name"] for c in o["courses"])]
+        rows = [[o["name"], o["role"], o["post"] or "—", str(o["count"]),
+                 str(o["days"]), "\n".join(c["course_name"] for c in o["courses"]) or "—"]
+                for o in records]
+        title = "كشف الفرق والدورات حسب الضابط"
+        columns = [("الضابط", 1.5), ("الرتبة", 1), ("العمل المسند إليه", 1.6),
+                   ("عدد الفرق", .8), ("إجمالي الأيام", 1), ("الفرق التي التحق بها", 2)]
+    else:
+        records = summary(data)
+        if q:
+            records = [c for c in records if q in c["name"] or q in c.get("place", "")
+                       or any(q in t["officer_name"] for t in c["terms"])]
+        if kind_filter == "__none":
+            records = [c for c in records if not c.get("kind")]
+        elif kind_filter:
+            records = [c for c in records if c.get("kind") == kind_filter]
+        rows = [[c["name"], c.get("kind") or "بدون تصنيف", c.get("place") or "—",
+                 c.get("note") or "—", "\n".join(
+                     f"{t['officer_role']} / {t['officer_name']} — {t.get('start','')} – {t.get('end','')}"
+                     for t in c["terms"]) or "لا توجد التحاقات مسجّلة بعد"] for c in records]
+        title = "كشف الفِرق والدورات حسب الفرقة"
+        columns = [("اسم الفرقة", 1.5), ("النوع", 1), ("المكان", 1.2),
+                   ("ملاحظات", 1.5), ("الضباط والالتحاقات", 3)]
+    content = build_register_docx(title, columns, rows,
+                                  subtitle="تاريخ التصدير: " + __import__("datetime").date.today().isoformat())
+    return send_file(BytesIO(content), as_attachment=True,
+                     download_name=register_file_name("سجل الفرق والدورات"),
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 @bp.post("/api/courses")

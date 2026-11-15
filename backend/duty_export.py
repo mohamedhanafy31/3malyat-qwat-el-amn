@@ -21,7 +21,7 @@ from docx.table import _Cell
 from .board_export import WEEKDAY_BY_INDEX, order_xml_children
 from .constants import (OFFICER_SECTIONS, SECTION_FORCE, SECTION_GUARDS,
                         SECTION_OUTSIDE)
-from .export_fit import PageFitError, TextMeter, usable_height_pt
+from .export_fit import center_docx_table_cells, PageFitError, TextMeter, usable_height_pt
 from .signatures import fill_boxes
 from .labels import RANK_SHORT, officer_label
 
@@ -478,6 +478,7 @@ def build_docx(duty):
     _fill_summary(document.tables[1], duty["summary"], duty["rows"], names_size)
     order_xml_children(document)
     buf = BytesIO()
+    center_docx_table_cells(document)
     document.save(buf)
     buf.seek(0)
     return buf

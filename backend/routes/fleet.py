@@ -1,4 +1,5 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
+from io import BytesIO
 
 from .. import campaign, changes, fleet
 from .. import day_status
@@ -7,6 +8,7 @@ from ..models import Conscript, Vehicle
 from ..repo import Repos
 from ..store import AbortRequest, load_data, with_data
 from ..utils import canonical_day, json_payload
+from ..register_export import build_register_docx, register_file_name
 
 bp = Blueprint("fleet", __name__)
 
@@ -64,6 +66,37 @@ def list_vehicles():
     return jsonify({"vehicles": [_vehicle_dict(v) for v in vehicles],
                     "types": VEHICLE_TYPES, "statuses": VEHICLE_STATUSES,
                     "origins": VEHICLE_ORIGINS})
+
+
+@bp.get("/api/vehicles/export.docx")
+def export_vehicles():
+    data = Repos(load_data(())).vehicles.all()
+    archived = request.args.get("archived") == "1"
+    rows = []
+    for item in data:
+        if item.archived and not archived:
+            continue
+        v = _vehicle_dict(item)
+        if request.args.get("type") and v.get("type") != request.args["type"]:
+            continue
+        if request.args.get("status") and v.get("status") != request.args["status"]:
+            continue
+        if request.args.get("origin") and v.get("origin") != request.args["origin"]:
+            continue
+        q = request.args.get("q", "").strip()
+        if q and not any(q in str(x or "") for x in (v.get("plate"), v.get("model"), v.get("notes"), v.get("party"))):
+            continue
+        state = "معطلة" if v.get("status") == "disabled" else "صالحة"
+        if v.get("status") == "disabled" and v.get("fault"):
+            state += "\n" + v["fault"]
+        kind = (v.get("type") or "—") + (f"\nخارجية {v.get('party') or ''}".rstrip() if v.get("origin") == "external" else "")
+        rows.append([v.get("plate") or "—", kind, v.get("model") or "—", state, v.get("notes") or "—"])
+    content = build_register_docx("سجل المركبات", [("اللوحة", 1.3), ("النوع", 1.2),
+        ("الموديل", 1.1), ("الحالة", 1.2), ("ملاحظات", 2)], rows,
+        subtitle="المركبات المؤرشفة" if archived else "المركبات غير المؤرشفة", ltr_columns=(0,))
+    return send_file(BytesIO(content), as_attachment=True,
+                     download_name=register_file_name("سجل المركبات"),
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
 
 @bp.post("/api/vehicles")
@@ -213,3 +246,27 @@ def list_drivers():
     if not day:
         return jsonify({"error": "التاريخ غير صحيح."}), 400
     return jsonify(fleet.drivers_on(load_data(()), day))
+
+
+@bp.get("/api/drivers/export.docx")
+def export_drivers():
+    data = load_data(())
+    day = canonical_day(request.args.get("day") or day_status.today_iso())
+    if not day:
+        return jsonify({"error": "التاريخ غير صحيح."}), 400
+    drivers = fleet.drivers_on(data, day)
+    rows = [[p.get("name", ""), p.get("role") or "—", p.get("phone") or "—",
+             p.get("post") or "—"] for p in drivers.get("personnel", [])]
+    conscripts = Repos(data).conscripts.all()
+    q = request.args.get("q", "").strip()
+    for c in conscripts:
+        if q and q not in c.name and q not in c.phone:
+            continue
+        rows.append([c.name, "مجند" if c.is_driver else "مجند", c.phone or "—",
+                     "سواق" if c.is_driver else "غير محدد كسائق"])
+    content = build_register_docx("سجل السواقين", [("الاسم", 1.6), ("الدرجة", 1),
+        ("التليفون", 1.2), ("العمل", 1.5)], rows,
+        subtitle=f"تاريخ العرض: {day}", ltr_columns=(2,))
+    return send_file(BytesIO(content), as_attachment=True,
+                     download_name=register_file_name("سجل السواقين"),
+                     mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")

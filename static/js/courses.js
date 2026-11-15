@@ -312,6 +312,12 @@ $("#termForm").onsubmit = async e => {
 };
 $("#crsSearch").oninput = debounce(render);
 $("#crsKindFilter").onchange = render;
+$("#exportCourses").onclick = () => {
+  const params = new URLSearchParams({view: VIEW});
+  if ($("#crsSearch").value.trim()) params.set("q", $("#crsSearch").value.trim());
+  if (VIEW === "course" && $("#crsKindFilter").value) params.set("kind", $("#crsKindFilter").value);
+  previewExport(`/api/courses/export.docx?${params}`, "الفِرق والدورات");
+};
 
 async function load() {
   const d = await bootstrap();

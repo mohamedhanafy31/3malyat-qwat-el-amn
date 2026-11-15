@@ -17,6 +17,8 @@ from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+
+from .export_fit import center_docx_table_cells
 from docx.shared import Pt
 from docx.table import _Cell
 
@@ -1370,6 +1372,7 @@ def build_docx(board, exclude_ids=(), command_priority=None):
     LAST_FIT.update(scale=round(half / 24, 2), grid=list(grid), ratio=total / usable, total_pt=total,
                     usable_pt=usable, size_half_points=half, rows=len(rows))
     buf = BytesIO()
+    center_docx_table_cells(document)
     document.save(buf)
     buf.seek(0)
     return buf

@@ -1,6 +1,10 @@
 /* قادة الأهداف الثابتون — كشف واحد يُحفظ كوحدة ذرية بتاريخ سريان. */
 let TARGET_COMMANDERS = null;
 let TARGET_COMMANDERS_DAY = "";
+$("#exportTargetCommanders").onclick = () => {
+  const params = new URLSearchParams({day: TARGET_COMMANDERS_DAY || curDate(), assignments: JSON.stringify(TARGET_COMMANDERS ? selectedMap() : {})});
+  previewExport(`/api/target-commanders/export.docx?${params}`, "قادة الأهداف");
+};
 
 const officerLabel = officer => {
   const post = officer.post ? ` — ${officer.post}` : " — بلا منصب";
