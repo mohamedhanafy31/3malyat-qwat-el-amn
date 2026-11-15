@@ -1,6 +1,6 @@
-[Sat 11/07/2026  4:17:58.29] =================================================
-[Sat 11/07/2026  4:17:58.30] Camp Management System Deployment
-[Sat 11/07/2026  4:17:58.31] =================================================
-[Sat 11/07/2026  4:18:00.10] [1/1] Stopping the server on port 5000...
-SUCCESS: The process with PID 8188 has been terminated.
-[Sat 11/07/2026  4:18:02.24] [ERROR] The server is still running. See logs\stop-system.log.
+[Sun 11/15/2026  5:42:05.79] =================================================
+[Sun 11/15/2026  5:42:05.80] Camp Management System Deployment
+[Sun 11/15/2026  5:42:05.82] =================================================
+[Sun 11/15/2026  5:42:10.55] [1/1] Stopping the server on port 5000...
+SUCCESS: The process with PID 7500 has been terminated.
+[Sun 11/15/2026  5:42:13.22] [OK] System stopped. Run START_SYSTEM.bat whenever you want to start it again.
