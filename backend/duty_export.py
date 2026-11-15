@@ -446,6 +446,22 @@ def _plan_fit(document, values, names):
     return plan, names_size
 
 
+def _grow_roster(table, counts):
+    """القالب فيه خانات ثابتة لكل قسم؛ لو الأسماء أكتر نضيف صفوف بدل ما نسقط ضابط
+    (كان الضابط الـ35 بيختفي من الملف رغم إنه محسوب في أصل القوة)."""
+    slots = {name: max(ROSTER_SLOTS[name], counts.get(name, 0)) for name in OFFICER_SECTIONS}
+    last = {SECTION_FORCE: ROSTER_SLOTS[SECTION_FORCE],
+            SECTION_GUARDS: 1 + ROSTER_SLOTS[SECTION_FORCE] + ROSTER_SLOTS[SECTION_GUARDS],
+            SECTION_OUTSIDE: 2 + ROSTER_SLOTS[SECTION_FORCE] + ROSTER_SLOTS[SECTION_GUARDS]
+            + ROSTER_SLOTS[SECTION_OUTSIDE]}
+    for section in reversed(OFFICER_SECTIONS):
+        anchor = table.rows[last[section]]._tr
+        for _ in range(slots[section] - ROSTER_SLOTS[section]):
+            clone = deepcopy(anchor)
+            anchor.addnext(clone)
+    return slots
+
+
 def build_docx(duty):
     document = Document(TEMPLATE)
     _set_title(document, duty["date"])
@@ -453,14 +469,18 @@ def build_docx(duty):
 
     table = document.tables[0]
     grouped = dict(_grouped_rows(duty["rows"]))
+    slots = _grow_roster(table, {name: len(grouped.get(name, [])) for name in OFFICER_SECTIONS})
+    starts, at = {}, 1
+    for section in OFFICER_SECTIONS:
+        starts[section] = at
+        at += slots[section] + 1  # + صف عنوان القسم التالي
     # نجمع نصوص كل الخلايا أولًا ثم نقرر مقاس كل خلية على حدة ثم نكتب.
     values = {}
     number = 0
     for section in OFFICER_SECTIONS:
-        for offset in range(ROSTER_SLOTS[section]):
+        for offset in range(slots[section]):
             item = grouped.get(section, [])[offset] if offset < len(grouped.get(section, [])) else None
-            row_index = offset + (1 if section == SECTION_FORCE else
-                                  26 if section == SECTION_GUARDS else 35)
+            row_index = offset + starts[section]
             number += 1
             texts = [f"{number}-", "", "", "", "", ""]
             if item:
