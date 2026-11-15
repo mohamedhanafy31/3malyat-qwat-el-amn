@@ -423,7 +423,8 @@
       ],
       "search_attached": false,
       "weapon_custody": "",
-      "short_name": ""
+      "short_name": "محمود عقاب",
+      "address": ""
     },
     {
       "name": "محمد مصطفي محمد احمد",
@@ -2271,7 +2272,7 @@
       "id": "OFF-100",
       "name": "احمد مجدى محمد السيد الصباغ",
       "role": "رائد",
-      "code": "2017/422",
+      "code": "422/2017",
       "phone": "01274957436",
       "join_date": "2026-11-14",
       "post": "احتياطي طوارئ",
@@ -2280,7 +2281,19 @@
       "short_name": "احمد مجدى الصباغ",
       "rest_system": "—",
       "rest_day": "",
-      "weapon_custody": ""
+      "weapon_custody": "",
+      "history": [
+        {
+          "from": "2026-11-14",
+          "role": "رائد",
+          "post": "احتياطي طوارئ",
+          "section": "القوة",
+          "search_attached": false,
+          "rest_system": "—",
+          "rest_day": ""
+        }
+      ],
+      "address": ""
     },
     {
       "id": "OFF-099",
@@ -14361,11 +14374,11 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 9254,
+    "CHG": 9349,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
-    "LV": 6908,
+    "LV": 6909,
     "CRS": 57,
     "CT": 80,
     "INS": 9,
@@ -14378,8 +14391,8 @@
     "CP": 14,
     "OSP": 10,
     "AFB": 51,
-    "LVH": 28,
-    "CG": 18
+    "LVH": 29,
+    "CG": 19
   },
   "counts_template": {
     "entries": [
@@ -14865,2579 +14878,6 @@
     ]
   },
   "change_log": [
-    {
-      "id": "CHG-4255",
-      "ts": "2026-11-08T22:39:48",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-09",
-      "action": "confirm",
-      "day": "2026-11-09",
-      "text": "تأكيد يومية 2026-11-09 — عدد التغييرات: 2",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 2,
-        "count": 27,
-        "at": "2026-11-08T22:39:48",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-09"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4256",
-      "ts": "2026-11-08T22:41:27",
-      "entity": "officer_state",
-      "entity_id": "OFF-025",
-      "action": "update",
-      "day": null,
-      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-11-09: التشغيل الإضافي: متابعة اعمال الامن والحملة، إضافته للعمل بالإدارة",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال الامن والحملة",
-        "admin_work": true
-      },
-      "reason": "يوم 2026-11-09",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4257",
-      "ts": "2026-11-08T23:38:09",
-      "entity": "leave",
-      "entity_id": "LV-295",
-      "action": "cancel",
-      "day": null,
-      "text": "إلغاء راحة محمد ذكي محمود ذكي (أسبوعية 2026-11-26 ← 2026-11-26) قبل بدايتها — السبب: بالخطأ",
-      "before": {
-        "id": "LV-295",
-        "person_id": "OFF-024",
-        "type": "أسبوعية",
-        "start": "2026-11-26",
-        "end": "2026-11-26",
-        "return_date": "2026-11-27",
-        "note": "",
-        "source": ""
-      },
-      "after": null,
-      "reason": "بالخطأ",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4258",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-002",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "أمين شرطة ممتاز/ عبد الحفيظ محمد عبد الحفيظ: كُلِّف بـ«البوابة الرئيسية حتي المقصورة صبح»",
-      "before": {
-        "name": "أمين شرطة ممتاز/ عبد الحفيظ محمد عبد الحفيظ",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة ممتاز/ عبد الحفيظ محمد عبد الحفيظ",
-        "services": [
-          "البوابة الرئيسية حتي المقصورة صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4259",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-021",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "معاون ثالث/ احمد عادل عطية مكي: كُلِّف بـ«ترحيلة مستشفي جنائي صبح»",
-      "before": {
-        "name": "معاون ثالث/ احمد عادل عطية مكي",
-        "services": []
-      },
-      "after": {
-        "name": "معاون ثالث/ احمد عادل عطية مكي",
-        "services": [
-          "ترحيلة مستشفي جنائي صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4260",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-031",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن: كُلِّف بـ«مدرجات الدرجة الاولى صبح»",
-      "before": {
-        "name": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن",
-        "services": []
-      },
-      "after": {
-        "name": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن",
-        "services": [
-          "مدرجات الدرجة الاولى صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4261",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-054",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "أمين شرطة ثان/ شوقي شمس الدين يوسف: كُلِّف بـ«مامورية نيابة عسكرية صبح»",
-      "before": {
-        "name": "أمين شرطة ثان/ شوقي شمس الدين يوسف",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة ثان/ شوقي شمس الدين يوسف",
-        "services": [
-          "مامورية نيابة عسكرية صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4262",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-100",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "أمين شرطة ثان/ ابراهيم متولي علي احمد: كُلِّف بـ«ترحيلة نيابة عسكرية صبح»",
-      "before": {
-        "name": "أمين شرطة ثان/ ابراهيم متولي علي احمد",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة ثان/ ابراهيم متولي علي احمد",
-        "services": [
-          "ترحيلة نيابة عسكرية صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4263",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-128",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "أمين شرطة ثان/ ابراهيم السيد ابراهيم جعفر: كُلِّف بـ«ترحيلة حدث وحريم صبح»",
-      "before": {
-        "name": "أمين شرطة ثان/ ابراهيم السيد ابراهيم جعفر",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة ثان/ ابراهيم السيد ابراهيم جعفر",
-        "services": [
-          "ترحيلة حدث وحريم صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4264",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-139",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "أمين شرطة ثالث/ احمد محمود سيد محمد: كُلِّف بـ«حملة امن وطنى صبح»",
-      "before": {
-        "name": "أمين شرطة ثالث/ احمد محمود سيد محمد",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة ثالث/ احمد محمود سيد محمد",
-        "services": [
-          "حملة امن وطنى صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4265",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "duty_move",
-      "entity_id": "IND-181",
-      "action": "assign",
-      "day": "2026-11-09",
-      "text": "أمين شرطة ثان/ محمد احمد محمد زايد: كُلِّف بـ«ازالة الجناين صبح»",
-      "before": {
-        "name": "أمين شرطة ثان/ محمد احمد محمد زايد",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة ثان/ محمد احمد محمد زايد",
-        "services": [
-          "ازالة الجناين صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4266",
-      "ts": "2026-11-09T00:13:51",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-09",
-      "action": "confirm",
-      "day": "2026-11-09",
-      "text": "تأكيد يومية 2026-11-09 — عدد التغييرات: 8",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 8,
-        "count": 27,
-        "at": "2026-11-09T00:13:51",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-09"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4267",
-      "ts": "2026-11-09T03:22:10",
-      "entity": "assignment",
-      "entity_id": "AS-0029",
-      "action": "create",
-      "day": "2026-11-09",
-      "text": "خدمة جديدة: «(ترسانة السويس X جاسكو) مواليد 2009 صبح» في الخدمات الطارئة",
-      "before": null,
-      "after": {
-        "id": "AS-0029",
-        "section": "الخدمات الطارئة",
-        "name": "(ترسانة السويس X جاسكو) مواليد 2009",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 4,
-        "weapon": "عصا",
-        "time": "1م",
-        "party": "منتخب السويس",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4268",
-      "ts": "2026-11-09T03:22:10",
-      "entity": "assignment",
-      "entity_id": "AS-0030",
-      "action": "create",
-      "day": "2026-11-09",
-      "text": "خدمة جديدة: «(ش قرية عامر  X ش التوفيق) مواليد 2009 صبح» في الخدمات الطارئة",
-      "before": null,
-      "after": {
-        "id": "AS-0030",
-        "section": "الخدمات الطارئة",
-        "name": "(ش قرية عامر  X ش التوفيق) مواليد 2009",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 4,
-        "weapon": "عصا",
-        "time": "1م",
-        "party": "ملعب ش الجباليات",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4269",
-      "ts": "2026-11-09T03:22:10",
-      "entity": "assignment",
-      "entity_id": "AS-0031",
-      "action": "create",
-      "day": "2026-11-09",
-      "text": "خدمة جديدة: «(التجارة X ش الجبلايات) مواليد 2009 صبح» في الخدمات الطارئة",
-      "before": null,
-      "after": {
-        "id": "AS-0031",
-        "section": "الخدمات الطارئة",
-        "name": "(التجارة X ش الجبلايات) مواليد 2009",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 4,
-        "weapon": "عصا",
-        "time": "1م",
-        "party": "ملعب ش المثلث",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4270",
-      "ts": "2026-11-09T03:22:10",
-      "entity": "assignment",
-      "entity_id": "AS-0027",
-      "action": "update",
-      "day": "2026-11-09",
-      "text": "«ترحيلة مستشفي جنائي صبح» — الجهة: «عتاقة» ← «الاربعين»",
-      "before": {
-        "id": "AS-0027",
-        "section": "الخدمات الطارئة",
-        "name": "ترحيلة مستشفي جنائي",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [
-          "IND-021"
-        ],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 1
-          }
-        ],
-        "conscript_count": 2,
-        "weapon": "آلي",
-        "time": "9ص",
-        "party": "عتاقة",
-        "counts_in_summary": true,
-        "mission_transport": true,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 5
-      },
-      "after": {
-        "id": "AS-0027",
-        "section": "الخدمات الطارئة",
-        "name": "ترحيلة مستشفي جنائي",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [
-          "IND-021"
-        ],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 1
-          }
-        ],
-        "conscript_count": 2,
-        "weapon": "آلي",
-        "time": "9ص",
-        "party": "الاربعين",
-        "counts_in_summary": true,
-        "mission_transport": true,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 5
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4271",
-      "ts": "2026-11-09T03:22:10",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-09",
-      "action": "confirm",
-      "day": "2026-11-09",
-      "text": "تأكيد يومية 2026-11-09 — عدد التغييرات: 4",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 4,
-        "count": 30,
-        "at": "2026-11-09T03:22:10",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-09"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4272",
-      "ts": "2026-11-09T03:22:37",
-      "entity": "officer_state",
-      "entity_id": "OFF-019",
-      "action": "update",
-      "day": null,
-      "text": "كريم عمرو محمد كمال علام في يومية 2026-11-09: خدمة البحث: نقطة تفتيش جنيفة فترة صباحية",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "research_service": "نقطة تفتيش جنيفة فترة صباحية"
-      },
-      "reason": "يوم 2026-11-09",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4273",
-      "ts": "2026-11-09T03:23:07",
-      "entity": "regularity_inputs",
-      "entity_id": "2026-11-09",
-      "action": "update",
-      "day": "2026-11-09",
-      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-09",
-      "before": null,
-      "after": {
-        "officer_extra": {
-          "OFF-002": "حضور زيارة افراد القوات المسلحة بالمديرية بالبدلة البوشيرت 2م"
-        },
-        "big_column_supervisors": {
-          "am": {
-            "rank": "عقيد",
-            "name": "وليد عصمت",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10 م\""
-          },
-          "pm": {
-            "rank": "مقدم",
-            "name": "حسام فتحي رضوان",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة ليلية \"10م الي 10ص\""
-          }
-        },
-        "notes": [
-          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
-          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
-          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4274",
-      "ts": "2026-11-09T03:24:34",
-      "entity": "regularity_inputs",
-      "entity_id": "2026-11-09",
-      "action": "update",
-      "day": "2026-11-09",
-      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-09",
-      "before": {
-        "officer_extra": {
-          "OFF-002": "حضور زيارة افراد القوات المسلحة بالمديرية بالبدلة البوشيرت 2م"
-        },
-        "big_column_supervisors": {
-          "am": {
-            "rank": "عقيد",
-            "name": "وليد عصمت",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10 م\""
-          },
-          "pm": {
-            "rank": "مقدم",
-            "name": "حسام فتحي رضوان",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة ليلية \"10م الي 10ص\""
-          }
-        },
-        "notes": [
-          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
-          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
-          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
-        ]
-      },
-      "after": {
-        "officer_extra": {},
-        "big_column_supervisors": {
-          "am": {
-            "rank": "عقيد",
-            "name": "وليد عصمت",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10 م\""
-          },
-          "pm": {
-            "rank": "مقدم",
-            "name": "حسام فتحي رضوان",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة ليلية \"10م الي 10ص\""
-          }
-        },
-        "notes": [
-          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
-          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
-          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4275",
-      "ts": "2026-11-09T08:04:02",
-      "entity": "campaign_group",
-      "entity_id": "CG-011",
-      "action": "create",
-      "day": "2026-11-09",
-      "text": "تجميع 3 خدمات في «توصيل مجندين المباريات 1م»",
-      "before": null,
-      "after": {
-        "id": "CG-011",
-        "title": "توصيل مجندين المباريات 1م",
-        "members": [
-          "AS-0029",
-          "AS-0030",
-          "AS-0031"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4276",
-      "ts": "2026-11-09T14:54:30",
-      "entity": "leave",
-      "entity_id": "LV-6886",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "تسجيل تلقائي لراحة محمد محمد عطية رزق الأسبوعية يوم الثلاثاء",
-      "before": null,
-      "after": {
-        "id": "LV-6886",
-        "person_id": "OFF-028",
-        "type": "أسبوعية",
-        "start": "2026-11-10",
-        "end": "2026-11-10",
-        "return_date": "2026-11-11",
-        "note": "",
-        "special_name": "",
-        "source": "",
-        "origin": "auto_weekly"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4277",
-      "ts": "2026-11-09T14:54:30",
-      "entity": "leave",
-      "entity_id": "LV-6887",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "تسجيل تلقائي لراحة طارق احمد فاروق حسن الأسبوعية يوم الثلاثاء",
-      "before": null,
-      "after": {
-        "id": "LV-6887",
-        "person_id": "OFF-039",
-        "type": "أسبوعية",
-        "start": "2026-11-10",
-        "end": "2026-11-10",
-        "return_date": "2026-11-11",
-        "note": "",
-        "special_name": "",
-        "source": "",
-        "origin": "auto_weekly"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4278",
-      "ts": "2026-11-09T15:13:13",
-      "entity": "leave",
-      "entity_id": "LV-6887",
-      "action": "cancel",
-      "day": null,
-      "text": "إلغاء راحة طارق احمد فاروق حسن (أسبوعية 2026-11-10 ← 2026-11-10) قبل بدايتها — السبب: تأجيل",
-      "before": {
-        "id": "LV-6887",
-        "person_id": "OFF-039",
-        "type": "أسبوعية",
-        "start": "2026-11-10",
-        "end": "2026-11-10",
-        "return_date": "2026-11-11",
-        "note": "",
-        "special_name": "",
-        "source": "",
-        "origin": "auto_weekly"
-      },
-      "after": null,
-      "reason": "تأجيل",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4279",
-      "ts": "2026-11-09T15:14:30",
-      "entity": "officer_state",
-      "entity_id": "OFF-015",
-      "action": "update",
-      "day": null,
-      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-10: التشغيل الإضافي: متابعة أعمال الشئون الادارية",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة أعمال الشئون الادارية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4280",
-      "ts": "2026-11-09T15:18:56",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-10",
-      "action": "confirm",
-      "day": "2026-11-10",
-      "text": "تأكيد أول ليومية 2026-11-10 — عدد الخدمات: 20",
-      "before": null,
-      "after": {
-        "first": true,
-        "changes": 0,
-        "count": 20,
-        "at": "2026-11-09T15:18:56",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-10"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4281",
-      "ts": "2026-11-09T15:45:51",
-      "entity": "officer_state",
-      "entity_id": "OFF-016",
-      "action": "update",
-      "day": null,
-      "text": "عبدالرحمن رفعت الحسيني اسماعيل في يومية 2026-11-10: الحالة: — ← راحة اسبوعية",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "راحة اسبوعية",
-        "note": ""
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4282",
-      "ts": "2026-11-09T15:47:12",
-      "entity": "officer_state",
-      "entity_id": "OFF-016",
-      "action": "update",
-      "day": null,
-      "text": "عبدالرحمن رفعت الحسيني اسماعيل في يومية 2026-11-10: الحالة: راحة اسبوعية ← راحة، الملاحظة: راحة نصف شهرية ( من 7/11عودة 10/11",
-      "before": {
-        "taqseera": false,
-        "status": "راحة اسبوعية",
-        "note": ""
-      },
-      "after": {
-        "taqseera": false,
-        "status": "راحة",
-        "note": "راحة نصف شهرية ( من 7/11عودة 10/11"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4283",
-      "ts": "2026-11-09T15:47:58",
-      "entity": "officer_state",
-      "entity_id": "OFF-016",
-      "action": "update",
-      "day": null,
-      "text": "عبدالرحمن رفعت الحسيني اسماعيل في يومية 2026-11-10: الحالة: راحة ← —",
-      "before": {
-        "taqseera": false,
-        "status": "راحة",
-        "note": "راحة نصف شهرية ( من 7/11عودة 10/11"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "راحة نصف شهرية ( من 7/11عودة 10/11"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4284",
-      "ts": "2026-11-09T15:49:47",
-      "entity": "officer_state",
-      "entity_id": "OFF-044",
-      "action": "update",
-      "day": null,
-      "text": "محمد طارق السيد محمد اللبان في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال التدريب حتي 4 م",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال التدريب حتي 4 م"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4285",
-      "ts": "2026-11-09T15:50:33",
-      "entity": "officer_state",
-      "entity_id": "OFF-042",
-      "action": "update",
-      "day": null,
-      "text": "ماركو ماجد اقلاديوس مرقس في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال التدريب واللجنة التقيمية",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال التدريب واللجنة التقيمية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4286",
-      "ts": "2026-11-09T15:51:57",
-      "entity": "officer_state",
-      "entity_id": "OFF-012",
-      "action": "update",
-      "day": null,
-      "text": "حمدي احمد جاد الكريم احمد في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال التعينات والفرن والعلاقات",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال التعينات والفرن والعلاقات"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4287",
-      "ts": "2026-11-09T15:52:34",
-      "entity": "officer_state",
-      "entity_id": "OFF-031",
-      "action": "update",
-      "day": null,
-      "text": "محمد ميهوب زكي ميهوب في يومية 2026-11-10: نص عمل بالإدارة: متابعة عنابر الاعاشة",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة عنابر الاعاشة"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4288",
-      "ts": "2026-11-09T15:53:16",
-      "entity": "officer_state",
-      "entity_id": "OFF-025",
-      "action": "update",
-      "day": null,
-      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-11-10: التشغيل الإضافي: متابعة اعمال الحملة",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال الحملة"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4289",
-      "ts": "2026-11-09T15:53:59",
-      "entity": "officer_state",
-      "entity_id": "OFF-025",
-      "action": "update",
-      "day": null,
-      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-11-10: التشغيل الإضافي: مُسح، نص عمل بالإدارة: متابعة اعمال الحملة",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال الحملة"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال الحملة"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4290",
-      "ts": "2026-11-09T15:54:59",
-      "entity": "officer_state",
-      "entity_id": "OFF-015",
-      "action": "update",
-      "day": null,
-      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-10: التشغيل الإضافي: مُسح، نص عمل بالإدارة: متابعة أعمال الشئون الادارية",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة أعمال الشئون الادارية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة أعمال الشئون الادارية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4291",
-      "ts": "2026-11-09T15:56:41",
-      "entity": "officer_state",
-      "entity_id": "OFF-043",
-      "action": "update",
-      "day": null,
-      "text": "محمد احمد مصطفي عبدالرازق في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال المالية +ضابط عظيم الإدارة فترة ليلية + ضابط أمن الإدارة فترة ليلية",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية +ضابط عظيم الإدارة فترة ليلية + ضابط أمن الإدارة فترة ليلية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4292",
-      "ts": "2026-11-09T15:57:30",
-      "entity": "officer_state",
-      "entity_id": "OFF-043",
-      "action": "update",
-      "day": null,
-      "text": "محمد احمد مصطفي عبدالرازق في يومية 2026-11-10: نص عمل بالإدارة: ضابط عظيم الإدارة فترة ليلية",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية +ضابط عظيم الإدارة فترة ليلية + ضابط أمن الإدارة فترة ليلية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "ضابط عظيم الإدارة فترة ليلية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4293",
-      "ts": "2026-11-09T15:57:45",
-      "entity": "officer_state",
-      "entity_id": "OFF-043",
-      "action": "update",
-      "day": null,
-      "text": "محمد احمد مصطفي عبدالرازق في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال المالية",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "ضابط عظيم الإدارة فترة ليلية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4294",
-      "ts": "2026-11-09T15:58:48",
-      "entity": "officer_state",
-      "entity_id": "OFF-043",
-      "action": "update",
-      "day": null,
-      "text": "محمد احمد مصطفي عبدالرازق في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال المالية+ ضابط أمن الإدارة فترة ليلية +ضابط عظيم الإدارة فترة ليلية",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية+ ضابط أمن الإدارة فترة ليلية +ضابط عظيم الإدارة فترة ليلية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4295",
-      "ts": "2026-11-09T15:59:19",
-      "entity": "officer_state",
-      "entity_id": "OFF-015",
-      "action": "update",
-      "day": null,
-      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-10: نص عمل بالإدارة: متابعة أعمال الشئون الادارية +ضابط عظيم الإدارة فترة صباحية",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة أعمال الشئون الادارية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة أعمال الشئون الادارية +ضابط عظيم الإدارة فترة صباحية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4296",
-      "ts": "2026-11-09T16:00:01",
-      "entity": "officer_state",
-      "entity_id": "OFF-015",
-      "action": "update",
-      "day": null,
-      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-10: نص عمل بالإدارة: متابعة أعمال الشئون الادارية",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة أعمال الشئون الادارية +ضابط عظيم الإدارة فترة صباحية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة أعمال الشئون الادارية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4297",
-      "ts": "2026-11-09T16:00:21",
-      "entity": "officer_state",
-      "entity_id": "OFF-043",
-      "action": "update",
-      "day": null,
-      "text": "محمد احمد مصطفي عبدالرازق في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال المالية",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية+ ضابط أمن الإدارة فترة ليلية +ضابط عظيم الإدارة فترة ليلية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4298",
-      "ts": "2026-11-09T16:03:23",
-      "entity": "officer_state",
-      "entity_id": "OFF-048",
-      "action": "update",
-      "day": null,
-      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-11-10: نص عمل بالإدارة: متابعة اعمال العمليات وشئون الضباط + متابعة اعمال التدريب",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال العمليات وشئون الضباط + متابعة اعمال التدريب"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4299",
-      "ts": "2026-11-09T16:14:54",
-      "entity": "leave",
-      "entity_id": "LV-6886",
-      "action": "cancel",
-      "day": null,
-      "text": "إلغاء راحة محمد محمد عطية رزق (أسبوعية 2026-11-10 ← 2026-11-10) قبل بدايتها — السبب: تأجيل",
-      "before": {
-        "id": "LV-6886",
-        "person_id": "OFF-028",
-        "type": "أسبوعية",
-        "start": "2026-11-10",
-        "end": "2026-11-10",
-        "return_date": "2026-11-11",
-        "note": "",
-        "special_name": "",
-        "source": "",
-        "origin": "auto_weekly"
-      },
-      "after": null,
-      "reason": "تأجيل",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4300",
-      "ts": "2026-11-09T16:17:26",
-      "entity": "officer_state",
-      "entity_id": "OFF-049",
-      "action": "update",
-      "day": null,
-      "text": "منتصر بهاء الدين محمد علي في يومية 2026-11-10: الحالة: — ← راحة، الملاحظة: راحة شهرية ( من 9/11 عودة 16/11)",
-      "before": {},
-      "after": {
-        "taqseera": false,
-        "status": "راحة",
-        "note": "راحة شهرية ( من 9/11 عودة 16/11)"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4301",
-      "ts": "2026-11-09T18:44:23",
-      "entity": "assignment",
-      "entity_id": "AS-0018",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«حملة الامن الوطني صبح» — الانتظام: «—» ← «12ظ»",
-      "before": {
-        "id": "AS-0018",
-        "section": "الخدمات الطارئة",
-        "name": "حملة الامن الوطني",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "2 مج",
-            "count": 0
-          }
-        ],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": ""
-      },
-      "after": {
-        "id": "AS-0018",
-        "section": "الخدمات الطارئة",
-        "name": "حملة الامن الوطني",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "2 مج",
-            "count": 0
-          }
-        ],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "12ظ",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 0
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4302",
-      "ts": "2026-11-09T18:44:23",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-10",
-      "action": "confirm",
-      "day": "2026-11-10",
-      "text": "تأكيد يومية 2026-11-10 — عدد التغييرات: 1",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 1,
-        "count": 20,
-        "at": "2026-11-09T18:44:23",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-10"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4303",
-      "ts": "2026-11-09T23:37:55",
-      "entity": "officer_status_period",
-      "entity_id": "OSP-0007",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "إنهاء حالة مرضي لـاحمد فوزي احمد السيد من 2026-11-10 (آخر يوم فيها 2026-11-09)",
-      "before": {
-        "id": "OSP-0007",
-        "officer_id": "OFF-037",
-        "status": "مرضي",
-        "start": "2026-11-06",
-        "end": "",
-        "stopped_on": ""
-      },
-      "after": {
-        "id": "OSP-0007",
-        "officer_id": "OFF-037",
-        "status": "مرضي",
-        "start": "2026-11-06",
-        "end": "2026-11-09",
-        "stopped_on": "2026-11-10"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4304",
-      "ts": "2026-11-09T23:41:37",
-      "entity": "officer_state",
-      "entity_id": "OFF-044",
-      "action": "update",
-      "day": null,
-      "text": "محمد طارق السيد محمد اللبان في يومية 2026-11-10: نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال التدريب حتي 4 م"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": ""
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4305",
-      "ts": "2026-11-09T23:42:01",
-      "entity": "officer_state",
-      "entity_id": "OFF-016",
-      "action": "update",
-      "day": null,
-      "text": "عبدالرحمن رفعت الحسيني اسماعيل في يومية 2026-11-10: الملاحظة: مُسحت",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "راحة نصف شهرية ( من 7/11عودة 10/11"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": ""
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4306",
-      "ts": "2026-11-09T23:42:35",
-      "entity": "officer_state",
-      "entity_id": "OFF-015",
-      "action": "update",
-      "day": null,
-      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-10: التشغيل الإضافي: متابعة أعمال الشئون الادارية، نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة أعمال الشئون الادارية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة أعمال الشئون الادارية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4307",
-      "ts": "2026-11-09T23:42:44",
-      "entity": "officer_state",
-      "entity_id": "OFF-043",
-      "action": "update",
-      "day": null,
-      "text": "محمد احمد مصطفي عبدالرازق في يومية 2026-11-10: التشغيل الإضافي: متابعة اعمال المالية، نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال المالية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال المالية"
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4308",
-      "ts": "2026-11-09T23:42:56",
-      "entity": "officer_state",
-      "entity_id": "OFF-031",
-      "action": "update",
-      "day": null,
-      "text": "محمد ميهوب زكي ميهوب في يومية 2026-11-10: التشغيل الإضافي: متابعة عنابر الاعاشة، إضافته للعمل بالإدارة، نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة عنابر الاعاشة"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة عنابر الاعاشة",
-        "admin_work": true
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4309",
-      "ts": "2026-11-09T23:43:20",
-      "entity": "officer_state",
-      "entity_id": "OFF-025",
-      "action": "update",
-      "day": null,
-      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-11-10: التشغيل الإضافي: متابعة اعمال الحملة، إضافته للعمل بالإدارة، نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال الحملة"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال الحملة",
-        "admin_work": true
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4310",
-      "ts": "2026-11-09T23:43:31",
-      "entity": "officer_state",
-      "entity_id": "OFF-012",
-      "action": "update",
-      "day": null,
-      "text": "حمدي احمد جاد الكريم احمد في يومية 2026-11-10: التشغيل الإضافي: متابعة اعمال التعينات والفرن والعلاقات، إضافته للعمل بالإدارة، نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال التعينات والفرن والعلاقات"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال التعينات والفرن والعلاقات",
-        "admin_work": true
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4311",
-      "ts": "2026-11-09T23:43:40",
-      "entity": "officer_state",
-      "entity_id": "OFF-048",
-      "action": "update",
-      "day": null,
-      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-11-10: التشغيل الإضافي: متابعة اعمال العمليات وشئون الضباط + متابعة اعمال التدريب، إضافته للعمل بالإدارة، نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال العمليات وشئون الضباط + متابعة اعمال التدريب"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال العمليات وشئون الضباط + متابعة اعمال التدريب",
-        "admin_work": true
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4312",
-      "ts": "2026-11-09T23:44:03",
-      "entity": "officer_state",
-      "entity_id": "OFF-042",
-      "action": "update",
-      "day": null,
-      "text": "ماركو ماجد اقلاديوس مرقس في يومية 2026-11-10: التشغيل الإضافي: متابعة اعمال التدريب واللجنة التقيمية، إضافته للعمل بالإدارة، نص عمل بالإدارة: مُسح",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "admin_work_text": "متابعة اعمال التدريب واللجنة التقيمية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة اعمال التدريب واللجنة التقيمية",
-        "admin_work": true
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4313",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "duty_move",
-      "entity_id": "OFF-011",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "مقدم/ حسام فتحي رضوان خلف: كُلِّف بـ«قول مكبر ليل»",
-      "before": {
-        "name": "مقدم/ حسام فتحي رضوان خلف",
-        "services": []
-      },
-      "after": {
-        "name": "مقدم/ حسام فتحي رضوان خلف",
-        "services": [
-          "قول مكبر ليل"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4314",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "duty_move",
-      "entity_id": "OFF-016",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل: كُلِّف بـ«نوبتجي المعسكر الفرعي ليل»",
-      "before": {
-        "name": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل",
-        "services": []
-      },
-      "after": {
-        "name": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل",
-        "services": [
-          "نوبتجي المعسكر الفرعي ليل"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4315",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "duty_move",
-      "entity_id": "OFF-037",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "ملازم أول/ احمد فوزي احمد السيد: كُلِّف بـ«ارتكاز الهويس صبح»",
-      "before": {
-        "name": "ملازم أول/ احمد فوزي احمد السيد",
-        "services": []
-      },
-      "after": {
-        "name": "ملازم أول/ احمد فوزي احمد السيد",
-        "services": [
-          "ارتكاز الهويس صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4316",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "duty_move",
-      "entity_id": "OFF-038",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "عقيد/ اسماعيل محمد عبدالسلام عيسي: كان «نوبتجي المعسكر الفرعي صبح، نوبتجي المعسكر الفرعي ليل» ← أصبح «نوبتجي المعسكر الفرعي صبح»",
-      "before": {
-        "name": "عقيد/ اسماعيل محمد عبدالسلام عيسي",
-        "services": [
-          "نوبتجي المعسكر الفرعي صبح",
-          "نوبتجي المعسكر الفرعي ليل"
-        ]
-      },
-      "after": {
-        "name": "عقيد/ اسماعيل محمد عبدالسلام عيسي",
-        "services": [
-          "نوبتجي المعسكر الفرعي صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4317",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "duty_move",
-      "entity_id": "OFF-044",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "ملازم أول/ محمد طارق السيد محمد اللبان: كُلِّف بـ«كهرباء السخنة»",
-      "before": {
-        "name": "ملازم أول/ محمد طارق السيد محمد اللبان",
-        "services": []
-      },
-      "after": {
-        "name": "ملازم أول/ محمد طارق السيد محمد اللبان",
-        "services": [
-          "كهرباء السخنة"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4318",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0021",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "خدمة جديدة: «ترحيلة حدث وحريم صبح» في الخدمات الطارئة",
-      "before": null,
-      "after": {
-        "id": "AS-0021",
-        "section": "الخدمات الطارئة",
-        "name": "ترحيلة حدث وحريم",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 1
-          }
-        ],
-        "conscript_count": 2,
-        "weapon": "آلي",
-        "time": "8ص",
-        "party": "عتاقة",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 2
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4319",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0022",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "خدمة جديدة: «ترحيلة مستشفي جنائي صبح» في الخدمات الطارئة",
-      "before": null,
-      "after": {
-        "id": "AS-0022",
-        "section": "الخدمات الطارئة",
-        "name": "ترحيلة مستشفي جنائي",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 1
-          }
-        ],
-        "conscript_count": 2,
-        "weapon": "آلي",
-        "time": "9ص",
-        "party": "الاربعين",
-        "counts_in_summary": true,
-        "mission_transport": true,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 4
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4320",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0023",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "خدمة جديدة: «ترحيلة نيابة عسكرية صبح» في الخدمات الطارئة",
-      "before": null,
-      "after": {
-        "id": "AS-0023",
-        "section": "الخدمات الطارئة",
-        "name": "ترحيلة نيابة عسكرية",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 1
-          }
-        ],
-        "conscript_count": 2,
-        "weapon": "آلي",
-        "time": "8ص",
-        "party": "الجناين",
-        "counts_in_summary": true,
-        "mission_transport": true,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 3
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4321",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0024",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "خدمة جديدة: «قول مكبر ليل» في الخدمات أساسية",
-      "before": null,
-      "after": {
-        "id": "AS-0024",
-        "section": "الخدمات أساسية",
-        "name": "قول مكبر",
-        "kind": "خارجية",
-        "shift": "ليلية",
-        "officer_ids": [
-          "OFF-011"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "10م",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": "",
-        "pos": 2
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4322",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0025",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "خدمة جديدة: «ارتكاز الهويس صبح» في الخدمات أساسية",
-      "before": null,
-      "after": {
-        "id": "AS-0025",
-        "section": "الخدمات أساسية",
-        "name": "ارتكاز الهويس",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-037"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "11ص",
-        "party": "ميدان الهويس",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4323",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0006",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«كهرباء السخنة» — تقسيم تغطية الهدف بالوقت: «—» ← «OFF-044 16:00، OFF-036 16:00»",
-      "before": {
-        "id": "AS-0006",
-        "section": "الأهداف",
-        "name": "كهرباء السخنة",
-        "kind": "حراسات",
-        "shift": "",
-        "officer_ids": [
-          "OFF-036"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "after": {
-        "id": "AS-0006",
-        "section": "الأهداف",
-        "name": "كهرباء السخنة",
-        "kind": "حراسات",
-        "shift": "",
-        "officer_ids": [
-          "OFF-044",
-          "OFF-036"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": "",
-        "periods": [
-          {
-            "officer_id": "OFF-044",
-            "until": "16:00"
-          },
-          {
-            "officer_id": "OFF-036",
-            "from": "16:00"
-          }
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4324",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0009",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«التدخل السريع صبح» — الانتظام: «—» ← «8ص»",
-      "before": {
-        "id": "AS-0009",
-        "section": "الخدمات أساسية",
-        "name": "التدخل السريع",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-010"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "after": {
-        "id": "AS-0009",
-        "section": "الخدمات أساسية",
-        "name": "التدخل السريع",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-010"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "8ص",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": "",
-        "pos": 0
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4325",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0010",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«التدخل السريع ليل» — الانتظام: «—» ← «8م»",
-      "before": {
-        "id": "AS-0010",
-        "section": "الخدمات أساسية",
-        "name": "التدخل السريع",
-        "kind": "خارجية",
-        "shift": "ليلية",
-        "officer_ids": [
-          "OFF-041"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "after": {
-        "id": "AS-0010",
-        "section": "الخدمات أساسية",
-        "name": "التدخل السريع",
-        "kind": "خارجية",
-        "shift": "ليلية",
-        "officer_ids": [
-          "OFF-041"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "8م",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": "",
-        "pos": 1
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4326",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "assignment",
-      "entity_id": "AS-0011",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«بلاغات عتاقة من 4 م صبح» — الانتظام: «—» ← «4م»",
-      "before": {
-        "id": "AS-0011",
-        "section": "الخدمات أساسية",
-        "name": "بلاغات عتاقة من 4 م",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-040"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "after": {
-        "id": "AS-0011",
-        "section": "الخدمات أساسية",
-        "name": "بلاغات عتاقة من 4 م",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-040"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "4م",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": "",
-        "pos": 3
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4327",
-      "ts": "2026-11-09T23:44:20",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-10",
-      "action": "confirm",
-      "day": "2026-11-10",
-      "text": "تأكيد يومية 2026-11-10 — عدد التغييرات: 14",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 14,
-        "count": 25,
-        "at": "2026-11-09T23:44:20",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-10"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4328",
-      "ts": "2026-11-10T00:22:16",
-      "entity": "assignment",
-      "entity_id": "AS-0026",
-      "action": "create",
-      "day": "2026-11-10",
-      "text": "خدمة جديدة: «تعزيز القنصلية صبح» في الخدمات الطارئة",
-      "before": null,
-      "after": {
-        "id": "AS-0026",
-        "section": "الخدمات الطارئة",
-        "name": "تعزيز القنصلية",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "مج",
-            "count": 1
-          }
-        ],
-        "conscript_count": 6,
-        "weapon": "",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4329",
-      "ts": "2026-11-10T00:22:16",
-      "entity": "assignment",
-      "entity_id": "AS-0018",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«حملة الامن الوطني صبح» — عدد المجندين: «0» ← «4»",
-      "before": {
-        "id": "AS-0018",
-        "section": "الخدمات الطارئة",
-        "name": "حملة الامن الوطني",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "2 مج",
-            "count": 0
-          }
-        ],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "12ظ",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 0
-      },
-      "after": {
-        "id": "AS-0018",
-        "section": "الخدمات الطارئة",
-        "name": "حملة الامن الوطني",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "2 مج",
-            "count": 0
-          }
-        ],
-        "conscript_count": 4,
-        "weapon": "",
-        "time": "12ظ",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 0
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4330",
-      "ts": "2026-11-10T00:22:16",
-      "entity": "assignment",
-      "entity_id": "AS-0019",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«ازالة الاربعين صبح» — فئات المجندين: «1 وحدة 0» ← «وحدة 1»، عدد المجندين: «0» ← «7»",
-      "before": {
-        "id": "AS-0019",
-        "section": "الخدمات الطارئة",
-        "name": "ازالة الاربعين",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "1 وحدة",
-            "count": 0
-          }
-        ],
-        "conscript_count": 0,
-        "weapon": "وحدة",
-        "time": "9ص",
-        "party": "الاربعين",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 1
-      },
-      "after": {
-        "id": "AS-0019",
-        "section": "الخدمات الطارئة",
-        "name": "ازالة الاربعين",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [
-          {
-            "class": "وحدة",
-            "count": 1
-          }
-        ],
-        "conscript_count": 7,
-        "weapon": "وحدة",
-        "time": "9ص",
-        "party": "الاربعين",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 1
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4331",
-      "ts": "2026-11-10T00:22:16",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-10",
-      "action": "confirm",
-      "day": "2026-11-10",
-      "text": "تأكيد يومية 2026-11-10 — عدد التغييرات: 3",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 3,
-        "count": 26,
-        "at": "2026-11-10T00:22:16",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-10"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4332",
-      "ts": "2026-11-10T00:27:30",
-      "entity": "leave",
-      "entity_id": "LV-6888",
-      "action": "create",
-      "day": null,
-      "text": "تسجيل راحة منتصر بهاء الدين محمد علي (شهرية 2026-11-09 ← 2026-11-15)",
-      "before": null,
-      "after": {
-        "id": "LV-6888",
-        "person_id": "OFF-049",
-        "type": "شهرية",
-        "start": "2026-11-09",
-        "end": "2026-11-15",
-        "return_date": "2026-11-16",
-        "note": "",
-        "special_name": "",
-        "source": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4333",
-      "ts": "2026-11-10T00:27:30",
-      "entity": "leave",
-      "entity_id": "LV-6888",
-      "action": "retro",
-      "day": null,
-      "text": "تعديل بأثر رجعي على يوم مغلق أو عدة أيام مغلقة: 2026-11-09 — السبب: تعديل",
-      "before": null,
-      "after": {
-        "id": "LV-6888",
-        "person_id": "OFF-049",
-        "type": "شهرية",
-        "start": "2026-11-09",
-        "end": "2026-11-15",
-        "return_date": "2026-11-16",
-        "note": "",
-        "special_name": "",
-        "source": ""
-      },
-      "reason": "تعديل",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4334",
-      "ts": "2026-11-10T00:28:52",
-      "entity": "leave",
-      "entity_id": "LV-6889",
-      "action": "create",
-      "day": null,
-      "text": "تسجيل راحة السعيد محمد احمد عبده إسماعيل (أسبوعية 2026-11-12 ← 2026-11-12)",
-      "before": null,
-      "after": {
-        "id": "LV-6889",
-        "person_id": "OFF-009",
-        "type": "أسبوعية",
-        "start": "2026-11-12",
-        "end": "2026-11-12",
-        "return_date": "2026-11-13",
-        "note": "",
-        "special_name": "",
-        "source": "",
-        "origin": "weekly_extra"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4335",
-      "ts": "2026-11-10T05:11:10",
-      "entity": "duty_move",
-      "entity_id": "IND-019",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "رقيب أول/ عادل احمد ابراهيم سالم: كُلِّف بـ«ترحيلة حدث وحريم صبح»",
-      "before": {
-        "name": "رقيب أول/ عادل احمد ابراهيم سالم",
-        "services": []
-      },
-      "after": {
-        "name": "رقيب أول/ عادل احمد ابراهيم سالم",
-        "services": [
-          "ترحيلة حدث وحريم صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4336",
-      "ts": "2026-11-10T05:11:10",
-      "entity": "duty_move",
-      "entity_id": "IND-038",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "معاون ثالث/ محمد الشحات ابراهيم السيد: كُلِّف بـ«ترحيلة مستشفي جنائي صبح»",
-      "before": {
-        "name": "معاون ثالث/ محمد الشحات ابراهيم السيد",
-        "services": []
-      },
-      "after": {
-        "name": "معاون ثالث/ محمد الشحات ابراهيم السيد",
-        "services": [
-          "ترحيلة مستشفي جنائي صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4337",
-      "ts": "2026-11-10T05:11:10",
-      "entity": "duty_move",
-      "entity_id": "IND-116",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "أمين شرطة أول/ معوض رمضان معوض عامر: كُلِّف بـ«حملة الامن الوطني صبح»",
-      "before": {
-        "name": "أمين شرطة أول/ معوض رمضان معوض عامر",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة أول/ معوض رمضان معوض عامر",
-        "services": [
-          "حملة الامن الوطني صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4338",
-      "ts": "2026-11-10T05:11:10",
-      "entity": "duty_move",
-      "entity_id": "IND-130",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "رقيب/ رفعت السيد سعد سلامة: كُلِّف بـ«ترحيلة نيابة عسكرية صبح»",
-      "before": {
-        "name": "رقيب/ رفعت السيد سعد سلامة",
-        "services": []
-      },
-      "after": {
-        "name": "رقيب/ رفعت السيد سعد سلامة",
-        "services": [
-          "ترحيلة نيابة عسكرية صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4339",
-      "ts": "2026-11-10T05:11:10",
-      "entity": "duty_move",
-      "entity_id": "IND-181",
-      "action": "assign",
-      "day": "2026-11-10",
-      "text": "أمين شرطة ثان/ محمد احمد محمد زايد: كُلِّف بـ«ازالة الاربعين صبح»",
-      "before": {
-        "name": "أمين شرطة ثان/ محمد احمد محمد زايد",
-        "services": []
-      },
-      "after": {
-        "name": "أمين شرطة ثان/ محمد احمد محمد زايد",
-        "services": [
-          "ازالة الاربعين صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4340",
-      "ts": "2026-11-10T05:11:10",
-      "entity": "assignment",
-      "entity_id": "AS-0008",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«تفتيش السويس صبح» — الفترة: «—» ← «صباحية»، الانتظام: «—» ← «10ص»، الجهة: «—» ← «السويس»",
-      "before": {
-        "id": "AS-0008",
-        "section": "تفتيشات",
-        "name": "تفتيش السويس",
-        "kind": "خارجية",
-        "shift": "",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 5,
-        "weapon": "دونك",
-        "time": "",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "after": {
-        "id": "AS-0008",
-        "section": "تفتيشات",
-        "name": "تفتيش السويس",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 5,
-        "weapon": "دونك",
-        "time": "10ص",
-        "party": "السويس",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": false,
-        "note": ""
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4341",
-      "ts": "2026-11-10T05:11:10",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-10",
-      "action": "confirm",
-      "day": "2026-11-10",
-      "text": "تأكيد يومية 2026-11-10 — عدد التغييرات: 6",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 6,
-        "count": 26,
-        "at": "2026-11-10T05:11:10",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-10"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4342",
-      "ts": "2026-11-10T05:19:08",
-      "entity": "regularity_inputs",
-      "entity_id": "2026-11-10",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "تعديل بيانات يومية الانتظام ليوم 2026-11-10",
-      "before": null,
-      "after": {
-        "officer_extra": {},
-        "big_column_supervisors": {
-          "am": {
-            "rank": "مقدم",
-            "name": "احمد عبدالرازق علما",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة صباحية \"10ص الي 10 م\""
-          },
-          "pm": {
-            "rank": "مقدم",
-            "name": "حسام فتحي رضوان",
-            "phone": "",
-            "service": "مشرف القول المكبر فترة ليلية \"10م الي 10ص\""
-          }
-        },
-        "notes": [
-          "عدد 10 مجند حفظ نظام لتأمين محكمه والباب الرئيسي الساعه 8ص بالمديرية",
-          "تعزيز المجمع الطبي (2مجند) الساعة 2 م وحتي انتهاء زيارات المرضي",
-          "عدد (1) مجند قول كورنيش مسلح خرطوش من 7م : الانصراف"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4343",
-      "ts": "2026-11-10T09:00:29",
-      "entity": "officer_state",
-      "entity_id": "OFF-015",
-      "action": "update",
-      "day": null,
-      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-10: إضافته للعمل بالإدارة",
-      "before": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة أعمال الشئون الادارية"
-      },
-      "after": {
-        "taqseera": false,
-        "status": "",
-        "note": "",
-        "extra": "متابعة أعمال الشئون الادارية",
-        "admin_work": true
-      },
-      "reason": "يوم 2026-11-10",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4344",
-      "ts": "2026-11-10T09:00:43",
-      "entity": "duty_move",
-      "entity_id": "OFF-040",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "نقيب/ عبدالرحمن طارق محمد خميس: كان «بلاغات عتاقة من 4 م صبح» ← أصبح «بلاغات عتاقة من 4م صبح»",
-      "before": {
-        "name": "نقيب/ عبدالرحمن طارق محمد خميس",
-        "services": [
-          "بلاغات عتاقة من 4 م صبح"
-        ]
-      },
-      "after": {
-        "name": "نقيب/ عبدالرحمن طارق محمد خميس",
-        "services": [
-          "بلاغات عتاقة من 4م صبح"
-        ]
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4345",
-      "ts": "2026-11-10T09:00:43",
-      "entity": "assignment",
-      "entity_id": "AS-0011",
-      "action": "update",
-      "day": "2026-11-10",
-      "text": "«بلاغات عتاقة من 4م صبح» — اسم الخدمة: «بلاغات عتاقة من 4 م» ← «بلاغات عتاقة من 4م»",
-      "before": {
-        "id": "AS-0011",
-        "section": "الخدمات أساسية",
-        "name": "بلاغات عتاقة من 4 م",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-040"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "4م",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": "",
-        "pos": 3
-      },
-      "after": {
-        "id": "AS-0011",
-        "section": "الخدمات أساسية",
-        "name": "بلاغات عتاقة من 4م",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [
-          "OFF-040"
-        ],
-        "personnel_ids": [],
-        "conscripts": [],
-        "conscript_count": 0,
-        "weapon": "",
-        "time": "4م",
-        "party": "",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": true,
-        "personnel_command_required": false,
-        "note": "",
-        "pos": 3
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4346",
-      "ts": "2026-11-10T09:00:43",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-10",
-      "action": "confirm",
-      "day": "2026-11-10",
-      "text": "تأكيد يومية 2026-11-10 — عدد التغييرات: 2",
-      "before": null,
-      "after": {
-        "first": false,
-        "changes": 2,
-        "count": 26,
-        "at": "2026-11-10T09:00:43",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-10"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4347",
-      "ts": "2026-11-10T13:05:12",
-      "entity": "leave",
-      "entity_id": "LV-6890",
-      "action": "create",
-      "day": "2026-11-11",
-      "text": "تسجيل تلقائي لراحة السعيد محمد احمد عبده إسماعيل الأسبوعية يوم الأربعاء",
-      "before": null,
-      "after": {
-        "id": "LV-6890",
-        "person_id": "OFF-009",
-        "type": "أسبوعية",
-        "start": "2026-11-11",
-        "end": "2026-11-11",
-        "return_date": "2026-11-12",
-        "note": "",
-        "special_name": "",
-        "source": "",
-        "origin": "auto_weekly"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4348",
-      "ts": "2026-11-10T13:05:12",
-      "entity": "leave",
-      "entity_id": "LV-6891",
-      "action": "create",
-      "day": "2026-11-11",
-      "text": "تسجيل تلقائي لراحة محمد طارق السيد محمد اللبان الأسبوعية يوم الأربعاء",
-      "before": null,
-      "after": {
-        "id": "LV-6891",
-        "person_id": "OFF-044",
-        "type": "أسبوعية",
-        "start": "2026-11-11",
-        "end": "2026-11-11",
-        "return_date": "2026-11-12",
-        "note": "",
-        "special_name": "",
-        "source": "",
-        "origin": "auto_weekly"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4349",
-      "ts": "2026-11-10T13:10:16",
-      "entity": "day_confirm",
-      "entity_id": "2026-11-11",
-      "action": "confirm",
-      "day": "2026-11-11",
-      "text": "تأكيد أول ليومية 2026-11-11 — عدد الخدمات: 14",
-      "before": null,
-      "after": {
-        "first": true,
-        "changes": 0,
-        "count": 14,
-        "at": "2026-11-10T13:10:16",
-        "by": "Mohamed Hanafy",
-        "day": "2026-11-11"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
     {
       "id": "CHG-4350",
       "ts": "2026-11-10T13:10:42",
@@ -123253,6 +120693,2764 @@
       },
       "reason": "",
       "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9255",
+      "ts": "2026-11-15T08:25:39",
+      "entity": "leave",
+      "entity_id": "LV-6909",
+      "action": "create",
+      "day": null,
+      "text": "تسجيل راحة محمد عبد الحميد فتحى نعامة (أسبوعية 2026-11-16 ← 2026-11-16)",
+      "before": null,
+      "after": {
+        "id": "LV-6909",
+        "person_id": "OFF-025",
+        "type": "أسبوعية",
+        "start": "2026-11-16",
+        "end": "2026-11-16",
+        "return_date": "2026-11-17",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "weekly_extra"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9256",
+      "ts": "2026-11-15T08:39:20",
+      "entity": "officer_state",
+      "entity_id": "OFF-043",
+      "action": "update",
+      "day": null,
+      "text": "محمد احمد مصطفي عبدالرازق في يومية 2026-11-16: التشغيل الإضافي: عمل بالادارة من 8ص، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "عمل بالادارة من 8ص",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9257",
+      "ts": "2026-11-15T08:39:31",
+      "entity": "officer_state",
+      "entity_id": "OFF-015",
+      "action": "update",
+      "day": null,
+      "text": "طاهر سلطان عبد الحليم احمد في يومية 2026-11-16: التشغيل الإضافي: متابعة اعمال الشئون الادارية، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الشئون الادارية",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9258",
+      "ts": "2026-11-15T08:39:48",
+      "entity": "officer_state",
+      "entity_id": "OFF-031",
+      "action": "update",
+      "day": null,
+      "text": "محمد ميهوب زكي ميهوب في يومية 2026-11-16: التشغيل الإضافي: متابعة اعمال عنابر الاعاشة حتي 4م، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال عنابر الاعاشة حتي 4م",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9259",
+      "ts": "2026-11-15T08:40:10",
+      "entity": "officer_state",
+      "entity_id": "OFF-012",
+      "action": "update",
+      "day": null,
+      "text": "حمدي احمد جاد الكريم احمد في يومية 2026-11-16: التشغيل الإضافي: متابعة اعمال التعيينات والفرن والعلاقات، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال التعيينات والفرن والعلاقات",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9260",
+      "ts": "2026-11-15T08:40:26",
+      "entity": "officer_state",
+      "entity_id": "OFF-036",
+      "action": "update",
+      "day": null,
+      "text": "ابراهيم ابو الفرج يحي جبر في يومية 2026-11-16: التشغيل الإضافي: متابعة اعمال السلاح والعهدة حتي 4م، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال السلاح والعهدة حتي 4م",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9261",
+      "ts": "2026-11-15T08:42:11",
+      "entity": "officer_state",
+      "entity_id": "OFF-048",
+      "action": "update",
+      "day": null,
+      "text": "محمد مجدي ابراهيم السيد بحر في يومية 2026-11-16: التشغيل الإضافي: متابعة اعمال العمليات وشئون الضباط  + متابعة اعمال التدريب، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال العمليات وشئون الضباط  + متابعة اعمال التدريب",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9262",
+      "ts": "2026-11-15T08:49:20",
+      "entity": "officer_state",
+      "entity_id": "OFF-013",
+      "action": "update",
+      "day": null,
+      "text": "خالد خلف الله خليفة إبراهيم في يومية 2026-11-16: التشغيل الإضافي: عمل بالمعسكر الفرعي من 8ص، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "عمل بالمعسكر الفرعي من 8ص",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9263",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-008",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ احمد محمد محمود السمان: كُلِّف بـ«هلة المحجر»",
+      "before": {
+        "name": "رائد/ احمد محمد محمود السمان",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ احمد محمد محمود السمان",
+        "services": [
+          "هلة المحجر"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9264",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-009",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "مقدم/ السعيد محمد احمد عبده إسماعيل: كُلِّف بـ«مشرف الأهداف»",
+      "before": {
+        "name": "مقدم/ السعيد محمد احمد عبده إسماعيل",
+        "services": []
+      },
+      "after": {
+        "name": "مقدم/ السعيد محمد احمد عبده إسماعيل",
+        "services": [
+          "مشرف الأهداف"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9265",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-011",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "مقدم/ حسام فتحي رضوان خلف: كُلِّف بـ«قول مكبر ليل»",
+      "before": {
+        "name": "مقدم/ حسام فتحي رضوان خلف",
+        "services": []
+      },
+      "after": {
+        "name": "مقدم/ حسام فتحي رضوان خلف",
+        "services": [
+          "قول مكبر ليل"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9266",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-012",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ حمدي احمد جاد الكريم احمد: كُلِّف بـ«ضابط أمن الإدارة صبح، ضابط عظيم الإدارة صبح»",
+      "before": {
+        "name": "رائد/ حمدي احمد جاد الكريم احمد",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ حمدي احمد جاد الكريم احمد",
+        "services": [
+          "ضابط أمن الإدارة صبح",
+          "ضابط عظيم الإدارة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9267",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-013",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ خالد خلف الله خليفة إبراهيم: كُلِّف بـ«نوبتجي المعسكر الفرعي ليل»",
+      "before": {
+        "name": "رائد/ خالد خلف الله خليفة إبراهيم",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ خالد خلف الله خليفة إبراهيم",
+        "services": [
+          "نوبتجي المعسكر الفرعي ليل"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9268",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-015",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "مقدم/ طاهر سلطان عبد الحليم احمد: كُلِّف بـ«تبه ضرب النار صبح»",
+      "before": {
+        "name": "مقدم/ طاهر سلطان عبد الحليم احمد",
+        "services": []
+      },
+      "after": {
+        "name": "مقدم/ طاهر سلطان عبد الحليم احمد",
+        "services": [
+          "تبه ضرب النار صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9269",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-016",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل: كُلِّف بـ«هلة المحجر»",
+      "before": {
+        "name": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل",
+        "services": []
+      },
+      "after": {
+        "name": "مقدم/ عبدالرحمن رفعت الحسيني اسماعيل",
+        "services": [
+          "هلة المحجر"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9270",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-023",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "نقيب/ محمد أحمد محمد عاطف: كُلِّف بـ«مصر للبترول»",
+      "before": {
+        "name": "نقيب/ محمد أحمد محمد عاطف",
+        "services": []
+      },
+      "after": {
+        "name": "نقيب/ محمد أحمد محمد عاطف",
+        "services": [
+          "مصر للبترول"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9271",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-024",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ محمد ذكي محمود ذكي: كُلِّف بـ«سوميد»",
+      "before": {
+        "name": "رائد/ محمد ذكي محمود ذكي",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ محمد ذكي محمود ذكي",
+        "services": [
+          "سوميد"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9272",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-028",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "مقدم/ محمد محمد عطية رزق: كُلِّف بـ«نوبتجي المعسكر الفرعي صبح»",
+      "before": {
+        "name": "مقدم/ محمد محمد عطية رزق",
+        "services": []
+      },
+      "after": {
+        "name": "مقدم/ محمد محمد عطية رزق",
+        "services": [
+          "نوبتجي المعسكر الفرعي صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9273",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-037",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "ملازم أول/ احمد فوزي احمد السيد: كُلِّف بـ«شئون الخدمة صبح»",
+      "before": {
+        "name": "ملازم أول/ احمد فوزي احمد السيد",
+        "services": []
+      },
+      "after": {
+        "name": "ملازم أول/ احمد فوزي احمد السيد",
+        "services": [
+          "شئون الخدمة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9274",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-039",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "نقيب/ طارق احمد فاروق حسن: كُلِّف بـ«كهرباء عتاقة»",
+      "before": {
+        "name": "نقيب/ طارق احمد فاروق حسن",
+        "services": []
+      },
+      "after": {
+        "name": "نقيب/ طارق احمد فاروق حسن",
+        "services": [
+          "كهرباء عتاقة"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9275",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-040",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "نقيب/ عبدالرحمن طارق محمد خميس: كُلِّف بـ«التدخل السريع صبح»",
+      "before": {
+        "name": "نقيب/ عبدالرحمن طارق محمد خميس",
+        "services": []
+      },
+      "after": {
+        "name": "نقيب/ عبدالرحمن طارق محمد خميس",
+        "services": [
+          "التدخل السريع صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9276",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-041",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "ملازم أول/ عمر خالد احمد ماهر محمد: كُلِّف بـ«التدخل السريع ليل»",
+      "before": {
+        "name": "ملازم أول/ عمر خالد احمد ماهر محمد",
+        "services": []
+      },
+      "after": {
+        "name": "ملازم أول/ عمر خالد احمد ماهر محمد",
+        "services": [
+          "التدخل السريع ليل"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9277",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-043",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "مقدم/ محمد احمد مصطفي عبدالرازق: كُلِّف بـ«ضابط أمن الإدارة ليل، ضابط عظيم الإدارة ليل»",
+      "before": {
+        "name": "مقدم/ محمد احمد مصطفي عبدالرازق",
+        "services": []
+      },
+      "after": {
+        "name": "مقدم/ محمد احمد مصطفي عبدالرازق",
+        "services": [
+          "ضابط أمن الإدارة ليل",
+          "ضابط عظيم الإدارة ليل"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9278",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-044",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "ملازم أول/ محمد طارق السيد محمد اللبان: كُلِّف بـ«كهرباء عتاقة»",
+      "before": {
+        "name": "ملازم أول/ محمد طارق السيد محمد اللبان",
+        "services": []
+      },
+      "after": {
+        "name": "ملازم أول/ محمد طارق السيد محمد اللبان",
+        "services": [
+          "كهرباء عتاقة"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9279",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-046",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ محمد عبدالغني ابو العلا محمد: كُلِّف بـ«أنابيب البترول»",
+      "before": {
+        "name": "رائد/ محمد عبدالغني ابو العلا محمد",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ محمد عبدالغني ابو العلا محمد",
+        "services": [
+          "أنابيب البترول"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9280",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-047",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ محمد فتحي بكري مناع: كُلِّف بـ«عيون موسي»",
+      "before": {
+        "name": "رائد/ محمد فتحي بكري مناع",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ محمد فتحي بكري مناع",
+        "services": [
+          "عيون موسي"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9281",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-048",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ محمد مجدي ابراهيم السيد بحر: كُلِّف بـ«تبه ضرب النار صبح»",
+      "before": {
+        "name": "رائد/ محمد مجدي ابراهيم السيد بحر",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ محمد مجدي ابراهيم السيد بحر",
+        "services": [
+          "تبه ضرب النار صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9282",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-049",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "ملازم أول/ منتصر بهاء الدين محمد علي: كُلِّف بـ«كهرباء السخنة»",
+      "before": {
+        "name": "ملازم أول/ منتصر بهاء الدين محمد علي",
+        "services": []
+      },
+      "after": {
+        "name": "ملازم أول/ منتصر بهاء الدين محمد علي",
+        "services": [
+          "كهرباء السخنة"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9283",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "duty_move",
+      "entity_id": "OFF-100",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ احمد مجدى محمد السيد الصباغ: كُلِّف بـ«شئون الخدمة صبح»",
+      "before": {
+        "name": "رائد/ احمد مجدى محمد السيد الصباغ",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ احمد مجدى محمد السيد الصباغ",
+        "services": [
+          "شئون الخدمة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9284",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0001",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «مشرف الأهداف» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0001",
+        "section": "الأهداف",
+        "name": "مشرف الأهداف",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-009"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9285",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0002",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «سوميد» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0002",
+        "section": "الأهداف",
+        "name": "سوميد",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-024"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9286",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0003",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «أنابيب البترول» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0003",
+        "section": "الأهداف",
+        "name": "أنابيب البترول",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-046"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9287",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0004",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «عيون موسي» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0004",
+        "section": "الأهداف",
+        "name": "عيون موسي",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-047"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9288",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0005",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «مصر للبترول» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0005",
+        "section": "الأهداف",
+        "name": "مصر للبترول",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-023"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9289",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0006",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «كهرباء عتاقة» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0006",
+        "section": "الأهداف",
+        "name": "كهرباء عتاقة",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-039",
+          "OFF-044"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "periods": [
+          {
+            "officer_id": "OFF-039",
+            "until": "16:00"
+          },
+          {
+            "officer_id": "OFF-044",
+            "from": "16:00"
+          }
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9290",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0007",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «كهرباء السخنة» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0007",
+        "section": "الأهداف",
+        "name": "كهرباء السخنة",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-049"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9291",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0008",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «هلة المحجر» في الأهداف",
+      "before": null,
+      "after": {
+        "id": "AS-0008",
+        "section": "الأهداف",
+        "name": "هلة المحجر",
+        "kind": "حراسات",
+        "shift": "",
+        "officer_ids": [
+          "OFF-008",
+          "OFF-016"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": "",
+        "periods": [
+          {
+            "officer_id": "OFF-008",
+            "until": "16:00"
+          },
+          {
+            "officer_id": "OFF-016",
+            "from": "16:00"
+          }
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9292",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0009",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «تفتيش فيصل صبح» في تفتيشات",
+      "before": null,
+      "after": {
+        "id": "AS-0009",
+        "section": "تفتيشات",
+        "name": "تفتيش فيصل",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "دونك",
+        "time": "10ص",
+        "party": "فيصل",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9293",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0010",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «التدخل السريع صبح» في الخدمات أساسية",
+      "before": null,
+      "after": {
+        "id": "AS-0010",
+        "section": "الخدمات أساسية",
+        "name": "التدخل السريع",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-040"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8ص",
+        "party": "قوات الأمن",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 0
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9294",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0011",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «التدخل السريع ليل» في الخدمات أساسية",
+      "before": null,
+      "after": {
+        "id": "AS-0011",
+        "section": "الخدمات أساسية",
+        "name": "التدخل السريع",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-041"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8م",
+        "party": "قوات الأمن",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 1
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9295",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0012",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «قول مكبر ليل» في الخدمات أساسية",
+      "before": null,
+      "after": {
+        "id": "AS-0012",
+        "section": "الخدمات أساسية",
+        "name": "قول مكبر",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-011"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "10م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 2
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9296",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0013",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «شئون الخدمة صبح» في الخدمات أساسية",
+      "before": null,
+      "after": {
+        "id": "AS-0013",
+        "section": "الخدمات أساسية",
+        "name": "شئون الخدمة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-037"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 3
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9297",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0014",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «شئون الخدمة صبح» في الخدمات أساسية",
+      "before": null,
+      "after": {
+        "id": "AS-0014",
+        "section": "الخدمات أساسية",
+        "name": "شئون الخدمة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-100"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 4
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9298",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0015",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «حملة امن وطنى صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0015",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "آلي",
+        "time": "12ظ",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9299",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0016",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «نوبتجي المعسكر الفرعي صبح» في ضابط عظيم وأمن المعسكر الفرعي",
+      "before": null,
+      "after": {
+        "id": "AS-0016",
+        "section": "ضابط عظيم وأمن المعسكر الفرعي",
+        "name": "نوبتجي المعسكر الفرعي",
+        "kind": "داخلية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-028"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": false,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9300",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0017",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «نوبتجي المعسكر الفرعي ليل» في ضابط عظيم وأمن المعسكر الفرعي",
+      "before": null,
+      "after": {
+        "id": "AS-0017",
+        "section": "ضابط عظيم وأمن المعسكر الفرعي",
+        "name": "نوبتجي المعسكر الفرعي",
+        "kind": "داخلية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-013"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": false,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9301",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0018",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ضابط عظيم الإدارة ليل» في ضابط عظيم الإدارة",
+      "before": null,
+      "after": {
+        "id": "AS-0018",
+        "section": "ضابط عظيم الإدارة",
+        "name": "ضابط عظيم الإدارة",
+        "kind": "داخلية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-043"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9302",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0019",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ضابط أمن الإدارة ليل» في ضابط الأمن بالإدارة",
+      "before": null,
+      "after": {
+        "id": "AS-0019",
+        "section": "ضابط الأمن بالإدارة",
+        "name": "ضابط أمن الإدارة",
+        "kind": "داخلية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-043"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9303",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0020",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ضابط عظيم الإدارة صبح» في ضابط عظيم الإدارة",
+      "before": null,
+      "after": {
+        "id": "AS-0020",
+        "section": "ضابط عظيم الإدارة",
+        "name": "ضابط عظيم الإدارة",
+        "kind": "داخلية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-012"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9304",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0021",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ضابط أمن الإدارة صبح» في ضابط الأمن بالإدارة",
+      "before": null,
+      "after": {
+        "id": "AS-0021",
+        "section": "ضابط الأمن بالإدارة",
+        "name": "ضابط أمن الإدارة",
+        "kind": "داخلية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-012"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9305",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0022",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «تبه ضرب النار صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0022",
+        "section": "الخدمات الطارئة",
+        "name": "تبه ضرب النار",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-015",
+          "OFF-048"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "6م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9306",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0023",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «مامورية نيابة عسكرية صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0023",
+        "section": "الخدمات الطارئة",
+        "name": "مامورية نيابة عسكرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8ص",
+        "party": "قوات الأمن",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9307",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0024",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «مباراة ش قرية عامر x جاسكو صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0024",
+        "section": "الخدمات الطارئة",
+        "name": "مباراة ش قرية عامر x جاسكو",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب  الجباليات",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9308",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0025",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «مباراة ش التوفيق*ش الجبلايات صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0025",
+        "section": "الخدمات الطارئة",
+        "name": "مباراة ش التوفيق*ش الجبلايات",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب ش التوفيق",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9309",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0026",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «مباراة ترسانة السويس x  التجارة صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0026",
+        "section": "الخدمات الطارئة",
+        "name": "مباراة ترسانة السويس x  التجارة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 5,
+        "weapon": "عصا",
+        "time": "1م",
+        "party": "ملعب منتخب السويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9310",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "assignment",
+      "entity_id": "AS-0027",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «جرد مخدرات مديرية الزراعة صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0027",
+        "section": "الخدمات الطارئة",
+        "name": "جرد مخدرات مديرية الزراعة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 0
+          },
+          {
+            "class": "وحدة",
+            "count": 0
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9311",
+      "ts": "2026-11-15T13:44:11",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-16",
+      "action": "confirm",
+      "day": "2026-11-16",
+      "text": "تأكيد يومية 2026-11-16 — عدد التغييرات: 48",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 48,
+        "count": 27,
+        "at": "2026-11-15T13:44:11",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-16"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9312",
+      "ts": "2026-11-15T13:44:37",
+      "entity": "leave",
+      "entity_id": "LV-6909",
+      "action": "cancel",
+      "day": null,
+      "text": "إلغاء راحة محمد عبد الحميد فتحى نعامة (أسبوعية 2026-11-16 ← 2026-11-16) قبل بدايتها — السبب: تأجيل",
+      "before": {
+        "id": "LV-6909",
+        "person_id": "OFF-025",
+        "type": "أسبوعية",
+        "start": "2026-11-16",
+        "end": "2026-11-16",
+        "return_date": "2026-11-17",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "weekly_extra"
+      },
+      "after": null,
+      "reason": "تأجيل",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9313",
+      "ts": "2026-11-15T13:45:45",
+      "entity": "officer_state",
+      "entity_id": "OFF-025",
+      "action": "update",
+      "day": null,
+      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-11-16: التشغيل الإضافي: متابعة اعمال الامن والحملة، إضافته للعمل بالإدارة",
+      "before": {},
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الامن والحملة",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9314",
+      "ts": "2026-11-15T13:47:12",
+      "entity": "officer_state",
+      "entity_id": "OFF-025",
+      "action": "update",
+      "day": null,
+      "text": "محمد عبد الحميد فتحى نعامة في يومية 2026-11-16: التشغيل الإضافي: متابعة اعمال الامن والحملة حتي 4م",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الامن والحملة",
+        "admin_work": true
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال الامن والحملة حتي 4م",
+        "admin_work": true
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9315",
+      "ts": "2026-11-15T17:25:12",
+      "entity": "officer_state",
+      "entity_id": "OFF-036",
+      "action": "update",
+      "day": null,
+      "text": "ابراهيم ابو الفرج يحي جبر في يومية 2026-11-16: إلغاء إضافته للعمل بالإدارة",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال السلاح والعهدة حتي 4م",
+        "admin_work": true
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال السلاح والعهدة حتي 4م"
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9316",
+      "ts": "2026-11-15T17:25:31",
+      "entity": "officer_state",
+      "entity_id": "OFF-036",
+      "action": "update",
+      "day": null,
+      "text": "ابراهيم ابو الفرج يحي جبر في يومية 2026-11-16: التشغيل الإضافي: مُسح",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "متابعة اعمال السلاح والعهدة حتي 4م"
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": ""
+      },
+      "reason": "يوم 2026-11-16",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9317",
+      "ts": "2026-11-15T19:38:58",
+      "entity": "conscript",
+      "entity_id": "CON-053",
+      "action": "update",
+      "day": null,
+      "text": "تعديل مجند «محمود عطيه عبدالنبي حسن بدر»",
+      "before": {
+        "id": "CON-053",
+        "name": "محمود عطيه عبدالنبي حسن بدر",
+        "phone": "",
+        "is_driver": true
+      },
+      "after": {
+        "id": "CON-053",
+        "name": "محمود عطيه عبدالنبي حسن بدر",
+        "phone": "",
+        "is_driver": false
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9318",
+      "ts": "2026-11-15T19:39:11",
+      "entity": "conscript",
+      "entity_id": "CON-053",
+      "action": "update",
+      "day": null,
+      "text": "تعديل مجند «محمود عطيه عبدالنبي حسن بدر»",
+      "before": {
+        "id": "CON-053",
+        "name": "محمود عطيه عبدالنبي حسن بدر",
+        "phone": "",
+        "is_driver": false
+      },
+      "after": {
+        "id": "CON-053",
+        "name": "محمود عطيه عبدالنبي حسن بدر",
+        "phone": "",
+        "is_driver": true
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9319",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "duty_move",
+      "entity_id": "OFF-012",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "رائد/ حمدي احمد جاد الكريم احمد: كان «ضابط أمن الإدارة صبح، ضابط عظيم الإدارة صبح» ← أصبح «ضابط عظيم الإدارة صبح»",
+      "before": {
+        "name": "رائد/ حمدي احمد جاد الكريم احمد",
+        "services": [
+          "ضابط أمن الإدارة صبح",
+          "ضابط عظيم الإدارة صبح"
+        ]
+      },
+      "after": {
+        "name": "رائد/ حمدي احمد جاد الكريم احمد",
+        "services": [
+          "ضابط عظيم الإدارة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9320",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "duty_move",
+      "entity_id": "OFF-015",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "مقدم/ طاهر سلطان عبد الحليم احمد: كان «تبه ضرب النار صبح» ← أصبح «تبه ضرب النار صبح، حملة امن وطنى صبح»",
+      "before": {
+        "name": "مقدم/ طاهر سلطان عبد الحليم احمد",
+        "services": [
+          "تبه ضرب النار صبح"
+        ]
+      },
+      "after": {
+        "name": "مقدم/ طاهر سلطان عبد الحليم احمد",
+        "services": [
+          "تبه ضرب النار صبح",
+          "حملة امن وطنى صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9321",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "duty_move",
+      "entity_id": "OFF-025",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ محمد عبد الحميد فتحى نعامة: كُلِّف بـ«ضابط أمن الإدارة صبح»",
+      "before": {
+        "name": "رائد/ محمد عبد الحميد فتحى نعامة",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ محمد عبد الحميد فتحى نعامة",
+        "services": [
+          "ضابط أمن الإدارة صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9322",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "duty_move",
+      "entity_id": "OFF-036",
+      "action": "assign",
+      "day": "2026-11-16",
+      "text": "رائد/ ابراهيم ابو الفرج يحي جبر: كُلِّف بـ«حملة امن وطنى صبح»",
+      "before": {
+        "name": "رائد/ ابراهيم ابو الفرج يحي جبر",
+        "services": []
+      },
+      "after": {
+        "name": "رائد/ ابراهيم ابو الفرج يحي جبر",
+        "services": [
+          "حملة امن وطنى صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9323",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "assignment",
+      "entity_id": "AS-0028",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «حملة امن وطنى صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0028",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-015"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "آلي",
+        "time": "10م",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 7
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9324",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "assignment",
+      "entity_id": "AS-0029",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «مبادرة الاسر الاكثر احتياجا بمدينة الملك عبدالله صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0029",
+        "section": "الخدمات الطارئة",
+        "name": "مبادرة الاسر الاكثر احتياجا بمدينة الملك عبدالله",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "وحدة",
+            "count": 0
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "فض",
+        "time": "8ص",
+        "party": "مدينة الملك عبدالله",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 6
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9325",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "assignment",
+      "entity_id": "AS-0027",
+      "action": "delete",
+      "day": "2026-11-16",
+      "text": "خدمة أُزيلت: «جرد مخدرات مديرية الزراعة صبح»",
+      "before": {
+        "id": "AS-0027",
+        "section": "الخدمات الطارئة",
+        "name": "جرد مخدرات مديرية الزراعة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 0
+          },
+          {
+            "class": "وحدة",
+            "count": 0
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "after": null,
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9326",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "assignment",
+      "entity_id": "AS-0015",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "«حملة امن وطنى صبح» — رئاسة ضابط: «لا» ← «نعم»",
+      "before": {
+        "id": "AS-0015",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "آلي",
+        "time": "12ظ",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0015",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-036"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "آلي",
+        "time": "12ظ",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 0
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9327",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "assignment",
+      "entity_id": "AS-0022",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "«تبه ضرب النار صبح» — الجهة: «—» ← «تبه الفاتح الجيش الثالث الميداني»",
+      "before": {
+        "id": "AS-0022",
+        "section": "الخدمات الطارئة",
+        "name": "تبه ضرب النار",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-015",
+          "OFF-048"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "6م",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0022",
+        "section": "الخدمات الطارئة",
+        "name": "تبه ضرب النار",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-015",
+          "OFF-048"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "6م",
+        "party": "تبه الفاتح الجيش الثالث الميداني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 1
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9328",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "assignment",
+      "entity_id": "AS-0023",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "«مامورية نيابة عسكرية صبح» — التسليح: «—» ← «كلبش»",
+      "before": {
+        "id": "AS-0023",
+        "section": "الخدمات الطارئة",
+        "name": "مامورية نيابة عسكرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8ص",
+        "party": "قوات الأمن",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": ""
+      },
+      "after": {
+        "id": "AS-0023",
+        "section": "الخدمات الطارئة",
+        "name": "مامورية نيابة عسكرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "كلبش",
+        "time": "8ص",
+        "party": "قوات الأمن",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 2
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9329",
+      "ts": "2026-11-15T21:28:24",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-16",
+      "action": "confirm",
+      "day": "2026-11-16",
+      "text": "تأكيد يومية 2026-11-16 — عدد التغييرات: 10",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 10,
+        "count": 28,
+        "at": "2026-11-15T21:28:24",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-16"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9330",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "duty_move",
+      "entity_id": "OFF-037",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "ملازم أول/ احمد فوزي احمد السيد: كان «شئون الخدمة صبح» ← أصبح «الهويس صبح»",
+      "before": {
+        "name": "ملازم أول/ احمد فوزي احمد السيد",
+        "services": [
+          "شئون الخدمة صبح"
+        ]
+      },
+      "after": {
+        "name": "ملازم أول/ احمد فوزي احمد السيد",
+        "services": [
+          "الهويس صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9331",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "duty_move",
+      "entity_id": "OFF-100",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "رائد/ احمد مجدى محمد السيد الصباغ: كان «شئون الخدمة صبح» ← أصبح «الحي الحكومي صبح صبح»",
+      "before": {
+        "name": "رائد/ احمد مجدى محمد السيد الصباغ",
+        "services": [
+          "شئون الخدمة صبح"
+        ]
+      },
+      "after": {
+        "name": "رائد/ احمد مجدى محمد السيد الصباغ",
+        "services": [
+          "الحي الحكومي صبح صبح"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9332",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0030",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ترحيلة مستشفي صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0030",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة مستشفي",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "9ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 8
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9333",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0031",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ترحيلة نيابة عسكرية صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0031",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة نيابة عسكرية",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "الجناين",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 9
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9334",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0032",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ترحيلة حدث وحريم صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0032",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة حدث وحريم",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "8ص",
+        "party": "عتاقة",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 10
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9335",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0033",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ترحيلة العاشر صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0033",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة العاشر",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "7ص",
+        "party": "عتاقة",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 11
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9336",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0034",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ترحيلة ابو قتادة صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0034",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة ابو قتادة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "7ص",
+        "party": "السويس",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 12
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9337",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0035",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "خدمة جديدة: «ترحيلة التعاون الدولي صبح» في الخدمات الطارئة",
+      "before": null,
+      "after": {
+        "id": "AS-0035",
+        "section": "الخدمات الطارئة",
+        "name": "ترحيلة التعاون الدولي",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 1
+          }
+        ],
+        "conscript_count": 2,
+        "weapon": "آلي",
+        "time": "7ص",
+        "party": "عتاقة",
+        "counts_in_summary": true,
+        "mission_transport": true,
+        "officer_command_required": false,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 13
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9338",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0013",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "«الهويس صبح» — اسم الخدمة: «شئون الخدمة» ← «الهويس»، الانتظام: «—» ← «11ص»، الجهة: «—» ← «ميدان الهويس»",
+      "before": {
+        "id": "AS-0013",
+        "section": "الخدمات أساسية",
+        "name": "شئون الخدمة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-037"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 3
+      },
+      "after": {
+        "id": "AS-0013",
+        "section": "الخدمات أساسية",
+        "name": "الهويس",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-037"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "11ص",
+        "party": "ميدان الهويس",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 3
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9339",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "assignment",
+      "entity_id": "AS-0014",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "«الحي الحكومي صبح صبح» — اسم الخدمة: «شئون الخدمة» ← «الحي الحكومي صبح»، الانتظام: «—» ← «8ص»",
+      "before": {
+        "id": "AS-0014",
+        "section": "الخدمات أساسية",
+        "name": "شئون الخدمة",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-100"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 4
+      },
+      "after": {
+        "id": "AS-0014",
+        "section": "الخدمات أساسية",
+        "name": "الحي الحكومي صبح",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-100"
+        ],
+        "personnel_ids": [],
+        "conscripts": [],
+        "conscript_count": 0,
+        "weapon": "",
+        "time": "8ص",
+        "party": "",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": false,
+        "note": "",
+        "pos": 4
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9340",
+      "ts": "2026-11-15T22:26:14",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-16",
+      "action": "confirm",
+      "day": "2026-11-16",
+      "text": "تأكيد يومية 2026-11-16 — عدد التغييرات: 10",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 10,
+        "count": 34,
+        "at": "2026-11-15T22:26:14",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-16"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9341",
+      "ts": "2026-11-15T22:55:35",
+      "entity": "duty_move",
+      "entity_id": "OFF-015",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "مقدم/ طاهر سلطان عبد الحليم احمد: كان «تبه ضرب النار صبح، حملة امن وطنى صبح» ← أصبح «تبه ضرب النار صبح، حملة امن وطنى ليل»",
+      "before": {
+        "name": "مقدم/ طاهر سلطان عبد الحليم احمد",
+        "services": [
+          "تبه ضرب النار صبح",
+          "حملة امن وطنى صبح"
+        ]
+      },
+      "after": {
+        "name": "مقدم/ طاهر سلطان عبد الحليم احمد",
+        "services": [
+          "تبه ضرب النار صبح",
+          "حملة امن وطنى ليل"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9342",
+      "ts": "2026-11-15T22:55:35",
+      "entity": "assignment",
+      "entity_id": "AS-0028",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "«حملة امن وطنى ليل» — الفترة: «صباحية» ← «ليلية»",
+      "before": {
+        "id": "AS-0028",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "صباحية",
+        "officer_ids": [
+          "OFF-015"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "آلي",
+        "time": "10م",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 6
+      },
+      "after": {
+        "id": "AS-0028",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-015"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "آلي",
+        "time": "10م",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 6
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9343",
+      "ts": "2026-11-15T22:55:35",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-16",
+      "action": "confirm",
+      "day": "2026-11-16",
+      "text": "تأكيد يومية 2026-11-16 — عدد التغييرات: 2",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 2,
+        "count": 34,
+        "at": "2026-11-15T22:55:35",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-16"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9344",
+      "ts": "2026-11-15T23:04:00",
+      "entity": "assignment",
+      "entity_id": "AS-0028",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "«حملة امن وطنى ليل» — عدد المجندين: «0» ← «4»",
+      "before": {
+        "id": "AS-0028",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-015"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 0,
+        "weapon": "آلي",
+        "time": "10م",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 6
+      },
+      "after": {
+        "id": "AS-0028",
+        "section": "الخدمات الطارئة",
+        "name": "حملة امن وطنى",
+        "kind": "خارجية",
+        "shift": "ليلية",
+        "officer_ids": [
+          "OFF-015"
+        ],
+        "personnel_ids": [],
+        "conscripts": [
+          {
+            "class": "مج",
+            "count": 2
+          }
+        ],
+        "conscript_count": 4,
+        "weapon": "آلي",
+        "time": "10م",
+        "party": "الامن الوطني",
+        "counts_in_summary": true,
+        "mission_transport": false,
+        "officer_command_required": true,
+        "personnel_command_required": true,
+        "note": "",
+        "pos": 13
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9345",
+      "ts": "2026-11-15T23:04:00",
+      "entity": "day_confirm",
+      "entity_id": "2026-11-16",
+      "action": "confirm",
+      "day": "2026-11-16",
+      "text": "تأكيد يومية 2026-11-16 — عدد التغييرات: 1",
+      "before": null,
+      "after": {
+        "first": false,
+        "changes": 1,
+        "count": 34,
+        "at": "2026-11-15T23:04:00",
+        "by": "Mohamed Hanafy",
+        "day": "2026-11-16"
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9346",
+      "ts": "2026-11-15T23:07:38",
+      "entity": "campaign_service",
+      "entity_id": "AS-0031",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "إزالة الخدمة «ترحيلة نيابة عسكرية» من يومية الحملة",
+      "before": {
+        "removed": false
+      },
+      "after": {
+        "removed": true
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9347",
+      "ts": "2026-11-15T23:09:11",
+      "entity": "campaign_service",
+      "entity_id": "AS-0031",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "استرجاع الخدمة «ترحيلة نيابة عسكرية» إلى يومية الحملة",
+      "before": {
+        "removed": true
+      },
+      "after": {
+        "removed": false
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9348",
+      "ts": "2026-11-15T23:09:26",
+      "entity": "campaign_service",
+      "entity_id": "AS-0023",
+      "action": "update",
+      "day": "2026-11-16",
+      "text": "إزالة الخدمة «مامورية نيابة عسكرية» من يومية الحملة",
+      "before": {
+        "removed": false
+      },
+      "after": {
+        "removed": true
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9349",
+      "ts": "2026-11-15T23:11:46",
+      "entity": "campaign_group",
+      "entity_id": "CG-019",
+      "action": "create",
+      "day": "2026-11-16",
+      "text": "تجميع 3 خدمات في «توصيل مجندين مباريات 1م»",
+      "before": null,
+      "after": {
+        "id": "CG-019",
+        "title": "توصيل مجندين مباريات 1م",
+        "members": [
+          "AS-0026",
+          "AS-0025",
+          "AS-0024"
+        ]
+      },
+      "reason": "",
+      "edited_by": "Mohamed Hanafy"
     }
   ],
   "missions": [],
@@ -123998,7 +124196,8 @@
     "2026-11-12": true,
     "2026-10-31": true,
     "2026-11-14": true,
-    "2026-11-15": true
+    "2026-11-15": true,
+    "2026-11-16": true
   },
   "rest_suspensions": [
     {
@@ -136607,6 +136806,35 @@
       "occurred_at": "2026-11-14T12:15:48",
       "performed_by": "Mohamed Hanafy",
       "person_name": "محمد فؤاد وحيد فؤاد السعيد قاسم",
+      "person_category": "officers",
+      "restored_at": "",
+      "restored_by": "",
+      "restored_leave_id": "",
+      "restore_change_id": ""
+    },
+    {
+      "id": "LVH-029",
+      "change_id": "CHG-9312",
+      "leave_id": "LV-6909",
+      "action": "cancel",
+      "before": {
+        "id": "LV-6909",
+        "person_id": "OFF-025",
+        "type": "أسبوعية",
+        "start": "2026-11-16",
+        "end": "2026-11-16",
+        "return_date": "2026-11-17",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "weekly_extra"
+      },
+      "after": null,
+      "reason": "تأجيل",
+      "suspension_id": "",
+      "occurred_at": "2026-11-15T13:44:37",
+      "performed_by": "Mohamed Hanafy",
+      "person_name": "محمد عبد الحميد فتحى نعامة",
       "person_category": "officers",
       "restored_at": "",
       "restored_by": "",

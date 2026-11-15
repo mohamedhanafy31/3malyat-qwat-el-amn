@@ -9437,3 +9437,438 @@ backend.export_fit.PageFitError: تعذر احتواء يومية الضباط �
 2026-11-15T06:49:47.286 | WARNING | personnel_system.request | 9c0be9021424 | Hanafy | GET /api/ops/2026-11-15 200 | method=GET path=/api/ops/2026-11-15 status=200 duration_ms=1044.0 size=7183 slow=True
 2026-11-15T06:53:47.281 | WARNING | personnel_system.request | 6f3f5a42d688 | Hanafy | GET /api/ops/2026-11-15 200 | method=GET path=/api/ops/2026-11-15 status=200 duration_ms=1031.9 size=7183 slow=True
 2026-11-15T06:55:17.283 | WARNING | personnel_system.request | c175382e6216 | Hanafy | GET /api/ops/2026-11-15 200 | method=GET path=/api/ops/2026-11-15 status=200 duration_ms=1046.4 size=7183 slow=True
+2026-11-15T07:46:44.751 | WARNING | personnel_system.request | e72fcb09fbf4 | Hanafy | POST /api/day-files/2026-11-15/duty 200 | method=POST path=/api/day-files/2026-11-15/duty status=200 duration_ms=3801.8 size=294 slow=True
+2026-11-15T08:16:31.931 | WARNING | personnel_system.request | 4aff5c021ba6 | Hanafy | GET /api/board/2026-11-15 200 | method=GET path=/api/board/2026-11-15 status=200 duration_ms=1084.5 size=8188 slow=True
+2026-11-15T08:17:47.835 | WARNING | personnel_system.request | 28aa8d8f9dfa | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1032.9 size=6896 slow=True
+2026-11-15T08:22:52.421 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-15
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\.15-11-2026.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\15-11-2026.docx'
+2026-11-15T08:22:52.905 | WARNING | personnel_system.request | 7d612d345d78 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1068.3 size=6896 slow=True
+2026-11-15T08:22:57.617 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-15 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=535412 duration_ms=11174.8
+2026-11-15T08:23:03.049 | WARNING | backend.export_fit | - | - | export.page_fit_failed | reason="تعذر احتواء يومية الضباط في صفحة واحدة"
+2026-11-15T08:23:03.065 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 493, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15T08:23:07.063 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=622343 duration_ms=9446.4
+2026-11-15T08:23:35.324 | WARNING | personnel_system.request | 4da34c21f0d8 | Hanafy | POST /api/board/2026-11-16/section-copy 201 | method=POST path=/api/board/2026-11-16/section-copy status=201 duration_ms=11508.5 size=1177 slow=True
+2026-11-15T08:23:43.679 | WARNING | backend.export_fit | - | - | export.page_fit_failed | reason="تعذر احتواء يومية الضباط في صفحة واحدة"
+2026-11-15T08:23:43.680 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 493, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15T08:23:47.517 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=622938 duration_ms=9310.5
+2026-11-15T08:24:16.528 | WARNING | personnel_system.request | b44e2fe9026c | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=1500.0 size=51518 slow=True
+2026-11-15T08:24:25.520 | WARNING | backend.export_fit | - | - | export.page_fit_failed | reason="تعذر احتواء يومية الضباط في صفحة واحدة"
+2026-11-15T08:24:25.520 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 493, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15T08:24:27.824 | WARNING | personnel_system.request | a45575acd816 | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=1611.8 size=52028 slow=True
+2026-11-15T08:24:32.306 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=623482 duration_ms=12771.3
+2026-11-15T08:24:41.786 | WARNING | backend.export_fit | - | - | export.page_fit_failed | reason="تعذر احتواء يومية الضباط في صفحة واحدة"
+2026-11-15T08:24:41.786 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 493, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15T08:24:44.984 | WARNING | personnel_system.request | 7e6f7c639a9d | Hanafy | POST /api/board/2026-11-16/section-copy 201 | method=POST path=/api/board/2026-11-16/section-copy status=201 duration_ms=1144.7 size=463 slow=True
+2026-11-15T08:24:46.386 | WARNING | personnel_system.request | 331b144805a2 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1213.3 size=7424 slow=True
+2026-11-15T08:24:48.421 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=623653 duration_ms=16107.1
+2026-11-15T08:24:54.489 | WARNING | backend.export_fit | - | - | export.page_fit_failed | reason="تعذر احتواء يومية الضباط في صفحة واحدة"
+2026-11-15T08:24:54.489 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 493, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15T08:24:58.805 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=623875 duration_ms=10384.5
+2026-11-15T08:25:02.180 | WARNING | personnel_system.request | 7cfc39deff43 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0009 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0009 status=200 duration_ms=1605.9 size=7649 slow=True
+2026-11-15T08:25:10.703 | WARNING | backend.export_fit | - | - | export.page_fit_failed | reason="تعذر احتواء يومية الضباط في صفحة واحدة"
+2026-11-15T08:25:10.704 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 493, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15T08:25:15.084 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=623883 duration_ms=9898.6
+2026-11-15T08:25:46.131 | WARNING | personnel_system.request | e76f4cfb29d8 | Hanafy | POST /api/leaves 201 | method=POST path=/api/leaves status=201 duration_ms=7216.1 size=284 slow=True
+2026-11-15T08:25:49.898 | WARNING | personnel_system.request | fb1a55530e83 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1054.3 size=7406 slow=True
+2026-11-15T08:25:56.038 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-15
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\.15-11-2026.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\15-11-2026.docx'
+2026-11-15T08:26:00.739 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-15 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=535412 duration_ms=11569.5
+2026-11-15T08:26:06.461 | WARNING | backend.export_fit | - | - | export.page_fit_failed | reason="تعذر احتواء يومية الضباط في صفحة واحدة"
+2026-11-15T08:26:06.462 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 493, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15T08:26:10.559 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=623904 duration_ms=9826.8
+2026-11-15T08:26:38.429 | WARNING | personnel_system.request | 102b8ffbacac | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=5230.5 size=105061 slow=True
+2026-11-15T08:27:03.604 | WARNING | personnel_system.request | e1c02cd2f70c | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=4737.8 size=105061 slow=True
+2026-11-15T08:29:19.370 | WARNING | personnel_system.request | 13398f94b4e8 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0010 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0010 status=200 duration_ms=8300.4 size=7667 slow=True
+2026-11-15T08:31:28.258 | WARNING | personnel_system.request | 17d13047d216 | Hanafy | PUT /api/board/2026-11-16/slot/ضابط عظيم وأمن المعسكر الفرعي/ليلية 200 | method=PUT path="/api/board/2026-11-16/slot/ضابط عظيم وأمن المعسكر الفرعي/ليلية" status=200 duration_ms=9462.6 size=7359 slow=True
+2026-11-15T08:31:32.869 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:31:43.646 | WARNING | personnel_system.request | 975a431011e7 | Hanafy | PUT /api/board/2026-11-16/target/مشرف الأهداف 200 | method=PUT path="/api/board/2026-11-16/target/مشرف الأهداف" status=200 duration_ms=1059.0 size=7346 slow=True
+2026-11-15T08:31:44.402 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631344 duration_ms=13143.0
+2026-11-15T08:31:48.355 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:31:53.326 | WARNING | personnel_system.request | 47bc33627808 | Hanafy | PUT /api/board/2026-11-16/target/مشرف الأهداف 200 | method=PUT path="/api/board/2026-11-16/target/مشرف الأهداف" status=200 duration_ms=3445.9 size=7337 slow=True
+2026-11-15T08:32:00.127 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631342 duration_ms=13472.3
+2026-11-15T08:32:01.936 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:32:08.973 | WARNING | personnel_system.request | 0fbdc78935ad | Hanafy | PUT /api/board/2026-11-16/target/كهرباء السخنة 200 | method=PUT path="/api/board/2026-11-16/target/كهرباء السخنة" status=200 duration_ms=3239.7 size=7338 slow=True
+2026-11-15T08:32:13.324 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631349 duration_ms=13208.3
+2026-11-15T08:32:14.926 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:32:22.084 | WARNING | personnel_system.request | dce56a4a0397 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0011 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0011 status=200 duration_ms=1662.8 size=7648 slow=True
+2026-11-15T08:32:27.485 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631409 duration_ms=14147.9
+2026-11-15T08:32:29.208 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:32:31.031 | WARNING | backend.store | 7fca7174ce92 | Hanafy | store.load | duration_ms=1015.5 day_files=1 scope=1
+2026-11-15T08:32:34.062 | WARNING | personnel_system.request | 7fca7174ce92 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0012 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0012 status=200 duration_ms=4040.0 size=7585 slow=True
+2026-11-15T08:32:36.779 | WARNING | personnel_system.request | d84e6a35e3ed | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=2415.5 size=7346 slow=True
+2026-11-15T08:32:38.165 | WARNING | personnel_system.request | 0e9162fa06d1 | Hanafy | GET /api/rest-suspensions/day/2026-11-16 200 | method=GET path=/api/rest-suspensions/day/2026-11-16 status=200 duration_ms=1039.7 size=27 slow=True
+2026-11-15T08:32:42.404 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631473 duration_ms=14918.6
+2026-11-15T08:32:44.096 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:32:53.276 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631477 duration_ms=10870.8
+2026-11-15T08:33:39.458 | WARNING | personnel_system.request | 177892b0d1d6 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1022.4 size=7346 slow=True
+2026-11-15T08:34:19.811 | WARNING | personnel_system.request | a30e7dadd0f3 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0011 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0011 status=200 duration_ms=11392.9 size=7574 slow=True
+2026-11-15T08:34:24.477 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:34:33.653 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631495 duration_ms=10828.7
+2026-11-15T08:34:45.871 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:34:55.042 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631509 duration_ms=10797.3
+2026-11-15T08:35:27.808 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:35:36.540 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631512 duration_ms=10411.6
+2026-11-15T08:37:43.694 | WARNING | personnel_system.request | 3565b6969f87 | Hanafy | PUT /api/board/2026-11-16/slot/ضابط عظيم الإدارة/ليلية 200 | method=PUT path="/api/board/2026-11-16/slot/ضابط عظيم الإدارة/ليلية" status=200 duration_ms=9487.4 size=7316 slow=True
+2026-11-15T08:37:48.409 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:37:49.176 | WARNING | personnel_system.request | 1c1ee8c3d86f | Hanafy | PUT /api/board/2026-11-16/slot/ضابط الأمن بالإدارة/ليلية 200 | method=PUT path="/api/board/2026-11-16/slot/ضابط الأمن بالإدارة/ليلية" status=200 duration_ms=1130.7 size=7403 slow=True
+2026-11-15T08:37:57.743 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631490 duration_ms=11065.4
+2026-11-15T08:37:59.369 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:38:05.520 | WARNING | personnel_system.request | a63b0da67b32 | Hanafy | PUT /api/board/2026-11-16/slot/ضابط عظيم الإدارة/صباحية 200 | method=PUT path="/api/board/2026-11-16/slot/ضابط عظيم الإدارة/صباحية" status=200 duration_ms=1869.1 size=7414 slow=True
+2026-11-15T08:38:09.829 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631489 duration_ms=12071.2
+2026-11-15T08:38:11.495 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:38:16.432 | WARNING | personnel_system.request | b600bde73a08 | Hanafy | PUT /api/board/2026-11-16/slot/ضابط الأمن بالإدارة/صباحية 200 | method=PUT path="/api/board/2026-11-16/slot/ضابط الأمن بالإدارة/صباحية" status=200 duration_ms=2300.9 size=7412 slow=True
+2026-11-15T08:38:21.724 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631459 duration_ms=11894.8
+2026-11-15T08:38:23.479 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:38:32.843 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631462 duration_ms=11130.2
+2026-11-15T08:38:40.885 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:38:49.204 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631454 duration_ms=9976.0
+2026-11-15T08:39:22.062 | WARNING | personnel_system.request | d766e38707e2 | Hanafy | PUT /api/duty/2026-11-16/OFF-043 200 | method=PUT path=/api/duty/2026-11-16/OFF-043 status=200 duration_ms=2077.9 size=10796 slow=True
+2026-11-15T08:39:26.906 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:39:33.808 | WARNING | personnel_system.request | c1759cab70a0 | Hanafy | PUT /api/duty/2026-11-16/OFF-015 200 | method=PUT path=/api/duty/2026-11-16/OFF-015 status=200 duration_ms=2436.0 size=10831 slow=True
+2026-11-15T08:39:38.467 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631474 duration_ms=13418.4
+2026-11-15T08:39:40.210 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:39:59.915 | WARNING | personnel_system.request | 018396fb7aac | Hanafy | PUT /api/duty/2026-11-16/OFF-031 200 | method=PUT path=/api/duty/2026-11-16/OFF-031 status=200 duration_ms=12060.7 size=10878 slow=True
+2026-11-15T08:40:00.891 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631500 duration_ms=22423.1
+2026-11-15T08:40:04.756 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:40:12.045 | WARNING | personnel_system.request | 9c7fe932ab3c | Hanafy | PUT /api/duty/2026-11-16/OFF-012 200 | method=PUT path=/api/duty/2026-11-16/OFF-012 status=200 duration_ms=2341.3 size=11025 slow=True
+2026-11-15T08:40:16.748 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631516 duration_ms=13822.8
+2026-11-15T08:40:18.637 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:40:28.440 | WARNING | personnel_system.request | fc31e7b51792 | Hanafy | PUT /api/duty/2026-11-16/OFF-036 200 | method=PUT path=/api/duty/2026-11-16/OFF-036 status=200 duration_ms=2566.8 size=11117 slow=True
+2026-11-15T08:40:30.003 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631532 duration_ms=13255.4
+2026-11-15T08:40:33.149 | ERROR | backend.daily_files | - | - | فشل توليد ملف board لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\.16.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\16\\16.docx'
+2026-11-15T08:40:42.659 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-16 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=board cloned=False bytes=631534 duration_ms=11231.2
+2026-11-15T08:40:54.397 | WARNING | personnel_system.request | 192ad37111c9 | Hanafy | DELETE /api/assignments/2026-11-15/AS-0027 200 | method=DELETE path=/api/assignments/2026-11-15/AS-0027 status=200 duration_ms=1032.7 size=8370 slow=True
+2026-11-15T08:41:03.979 | ERROR | backend.daily_files | - | - | فشل توليد ملف duty لليوم 2026-11-15
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\.15-11-2026.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\15-11-2026.docx'
+2026-11-15T08:41:09.171 | WARNING | backend.daily_files | - | - | daily_files.generated | day=2026-11-15 kinds=afraad,board,campaign,counts,duty,formation_morning,formation_night,regularity,service_order ok=8 failed=duty cloned=False bytes=534771 duration_ms=11778.5
+2026-11-15T08:42:23.003 | WARNING | personnel_system.request | e385326cb863 | Hanafy | PUT /api/duty/2026-11-16/OFF-048 200 | method=PUT path=/api/duty/2026-11-16/OFF-048 status=200 duration_ms=11268.8 size=11162 slow=True
+2026-11-15T08:43:04.055 | WARNING | personnel_system.request | 08c088b3da30 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=4929.2 size=110130 slow=True
+2026-11-15T08:48:54.560 | WARNING | personnel_system.request | 52d3f241cb59 | Hanafy | GET /api/duty/2026-11-16 200 | method=GET path=/api/duty/2026-11-16 status=200 duration_ms=1007.2 size=4118 slow=True
+2026-11-15T08:49:33.727 | WARNING | personnel_system.request | 2e2c6b2eca3f | Hanafy | PUT /api/duty/2026-11-16/OFF-013 200 | method=PUT path=/api/duty/2026-11-16/OFF-013 status=200 duration_ms=13656.4 size=11185 slow=True
+2026-11-15T08:51:35.751 | WARNING | personnel_system.request | dcdfc679b018 | Hanafy | GET /api/duty/2026-11-16 200 | method=GET path=/api/duty/2026-11-16 status=200 duration_ms=1011.2 size=4137 slow=True
+2026-11-15T08:51:45.515 | WARNING | personnel_system.request | 4cbd5e45b830 | Hanafy | GET /api/duty/2026-11-15/export.docx 200 | method=GET path=/api/duty/2026-11-15/export.docx status=200 duration_ms=6188.7 size=86605 slow=True
+2026-11-15T08:51:51.497 | WARNING | personnel_system.request | 510dcba0d5c0 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=5954.6 size=230697 slow=True
+2026-11-15T08:52:06.142 | WARNING | personnel_system.request | a58f0c8d55e8 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1039.9 size=7735 slow=True
+2026-11-15T09:30:51.140 | WARNING | personnel_system.request | 95efc81f03ad | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1004.2 size=7735 slow=True
+2026-11-15T09:31:19.116 | WARNING | personnel_system.request | 203f7230cca1 | Hanafy | GET /api/duty/2026-11-16/export.docx 200 | method=GET path=/api/duty/2026-11-16/export.docx status=200 duration_ms=6853.3 size=86585 slow=True
+2026-11-15T09:31:24.962 | WARNING | personnel_system.request | 9c3e9148c845 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=5830.9 size=227821 slow=True
+2026-11-15T10:14:41.133 | WARNING | personnel_system.request | 86be055901b9 | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=28361.8 size=57905 slow=True
+2026-11-15T10:14:42.986 | WARNING | personnel_system.request | 991e5ec5f31b | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1005.4 size=7791 slow=True
+2026-11-15T12:10:12.761 | WARNING | personnel_system.request | c9ec0203c789 | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=10730.6 size=58663 slow=True
+2026-11-15T12:11:43.348 | WARNING | personnel_system.request | 69a2849de22e | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=1538.2 size=59265 slow=True
+2026-11-15T12:13:00.906 | WARNING | personnel_system.request | 56601e587886 | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=11194.2 size=59857 slow=True
+2026-11-15T12:14:30.909 | WARNING | personnel_system.request | d05dadc30eee | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=1633.6 size=60469 slow=True
+2026-11-15T12:16:04.527 | WARNING | personnel_system.request | e2f600acdb0d | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=11359.1 size=61281 slow=True
+2026-11-15T13:44:19.177 | WARNING | personnel_system.request | 6a49653dee28 | Hanafy | POST /api/board/2026-11-16/confirm 201 | method=POST path=/api/board/2026-11-16/confirm status=201 duration_ms=7854.8 size=108 slow=True
+2026-11-15T13:44:22.745 | WARNING | personnel_system.request | 44f8e2f011dd | Hanafy | GET /api/duty/2026-11-16 200 | method=GET path=/api/duty/2026-11-16 status=200 duration_ms=1063.0 size=4171 slow=True
+2026-11-15T13:44:39.204 | WARNING | personnel_system.request | fcf0c4072c1f | Hanafy | POST /api/leaves/LV-6909/stop 200 | method=POST path=/api/leaves/LV-6909/stop status=200 duration_ms=1421.0 size=295 slow=True
+2026-11-15T13:44:46.586 | WARNING | personnel_system.request | 47a5d5ef947e | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1957.3 size=8123 slow=True
+2026-11-15T13:44:47.841 | WARNING | backend.store | a4597bc0c4f8 | Hanafy | store.load | duration_ms=1133.4 day_files=0 scope=0
+2026-11-15T13:44:47.841 | WARNING | personnel_system.request | a4597bc0c4f8 | Hanafy | GET /api/rest-suspensions/day/2026-11-16 200 | method=GET path=/api/rest-suspensions/day/2026-11-16 status=200 duration_ms=1138.9 size=27 slow=True
+2026-11-15T13:44:48.372 | WARNING | personnel_system.request | 92a5fa5b5aa1 | Hanafy | GET /api/day-status/2026-11-16 200 | method=GET path=/api/day-status/2026-11-16 status=200 duration_ms=1666.4 size=66 slow=True
+2026-11-15T13:45:28.353 | WARNING | personnel_system.request | 619d394000e3 | Hanafy | GET /api/duty/2026-11-16 200 | method=GET path=/api/duty/2026-11-16 status=200 duration_ms=1244.7 size=4170 slow=True
+2026-11-15T13:45:46.917 | WARNING | personnel_system.request | 85ef382938ec | Hanafy | PUT /api/duty/2026-11-16/OFF-025 200 | method=PUT path=/api/duty/2026-11-16/OFF-025 status=200 duration_ms=1950.6 size=11582 slow=True
+2026-11-15T13:45:53.030 | WARNING | personnel_system.request | 46875095513a | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1955.4 size=8109 slow=True
+2026-11-15T13:45:55.096 | WARNING | backend.store | bf1eafa07e4a | Hanafy | store.load | duration_ms=1026.5 day_files=1 scope=1
+2026-11-15T13:45:55.096 | WARNING | personnel_system.request | bf1eafa07e4a | Hanafy | GET /api/day-status/2026-11-16 200 | method=GET path=/api/day-status/2026-11-16 status=200 duration_ms=1827.9 size=66 slow=True
+2026-11-15T13:45:57.995 | WARNING | personnel_system.request | fcd3f7b8b8ec | Hanafy | GET /api/board/2026-11-16/export.docx 200 | method=GET path=/api/board/2026-11-16/export.docx status=200 duration_ms=3694.4 size=80171 slow=True
+2026-11-15T13:46:07.675 | WARNING | personnel_system.request | ce372f8750b7 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=9634.8 size=119908 slow=True
+2026-11-15T13:47:23.100 | WARNING | personnel_system.request | 589a78f41db0 | Hanafy | PUT /api/duty/2026-11-16/OFF-025 200 | method=PUT path=/api/duty/2026-11-16/OFF-025 status=200 duration_ms=11063.9 size=11602 slow=True
+2026-11-15T13:47:53.958 | WARNING | personnel_system.request | e55388b4297a | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1009.5 size=8109 slow=True
+2026-11-15T13:48:00.755 | WARNING | personnel_system.request | a79ca4464bae | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=5137.7 size=120307 slow=True
+2026-11-15T14:15:09.808 | WARNING | personnel_system.request | ba80a32652ff | Hanafy | PATCH /api/assignments/2026-11-16/AS-0022 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0022 status=200 duration_ms=12523.0 size=8367 slow=True
+2026-11-15T14:15:11.138 | WARNING | personnel_system.request | be46ff12cab2 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1021.8 size=8131 slow=True
+2026-11-15T17:22:16.220 | WARNING | personnel_system.request | 3dce7433dbfa | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=11482.1 size=62087 slow=True
+2026-11-15T17:22:36.829 | WARNING | personnel_system.request | 256fcdbca592 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0015 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0015 status=200 duration_ms=1555.4 size=8450 slow=True
+2026-11-15T17:22:45.894 | WARNING | personnel_system.request | 19cc424f1a15 | Hanafy | DELETE /api/assignments/2026-11-16/AS-0027 200 | method=DELETE path=/api/assignments/2026-11-16/AS-0027 status=200 duration_ms=2131.1 size=8307 slow=True
+2026-11-15T17:22:46.948 | WARNING | personnel_system.request | ade8f04bfecf | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1010.1 size=8134 slow=True
+2026-11-15T17:23:41.109 | WARNING | personnel_system.request | 18681a89ffa0 | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=1589.3 size=62579 slow=True
+2026-11-15T17:24:25.160 | WARNING | personnel_system.request | 1bf5bce73b5b | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=5331.4 size=130891 slow=True
+2026-11-15T17:25:23.308 | WARNING | personnel_system.request | f3f40ed8d524 | Hanafy | PUT /api/duty/2026-11-16/OFF-036 200 | method=PUT path=/api/duty/2026-11-16/OFF-036 status=200 duration_ms=11343.9 size=11710 slow=True
+2026-11-15T17:25:33.738 | WARNING | personnel_system.request | bc19279bb2e4 | Hanafy | PUT /api/duty/2026-11-16/OFF-036 200 | method=PUT path=/api/duty/2026-11-16/OFF-036 status=200 duration_ms=2916.5 size=11670 slow=True
+2026-11-15T17:25:38.502 | WARNING | backend.store | - | - | store.load | duration_ms=1001.1 day_files=2 scope=2
+2026-11-15T17:25:43.785 | WARNING | personnel_system.request | 849a8681ffdf | Hanafy | GET /api/duty/2026-11-16/export.docx 200 | method=GET path=/api/duty/2026-11-16/export.docx status=200 duration_ms=7469.5 size=86557 slow=True
+2026-11-15T17:25:58.179 | WARNING | personnel_system.request | 1763f485ee25 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=14188.1 size=233919 slow=True
+2026-11-15T17:26:04.479 | WARNING | personnel_system.request | 67e15e83dc48 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1023.6 size=8169 slow=True
+2026-11-15T17:26:10.459 | WARNING | personnel_system.request | aeb71b4e26d5 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=4868.5 size=125875 slow=True
+2026-11-15T17:27:37.830 | WARNING | personnel_system.request | 4f7871843771 | Hanafy | GET /api/duty/2026-11-16/export.docx 200 | method=GET path=/api/duty/2026-11-16/export.docx status=200 duration_ms=5594.9 size=86557 slow=True
+2026-11-15T17:27:43.972 | WARNING | personnel_system.request | fdf1f1299e32 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=6140.6 size=233919 slow=True
+2026-11-15T19:26:09.369 | WARNING | personnel_system.request | c76fab03cdb9 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1017.1 size=8169 slow=True
+2026-11-15T19:26:23.803 | WARNING | personnel_system.request | 8fde38bc23d3 | Hanafy | GET /api/duty/2026-11-16 200 | method=GET path=/api/duty/2026-11-16 status=200 duration_ms=1042.9 size=4201 slow=True
+2026-11-15T19:27:23.639 | WARNING | personnel_system.export | a0bd49559154 | Hanafy | export_failed | kind=board.export_board_docx day=null status=400
+2026-11-15T19:27:23.905 | WARNING | personnel_system.request | 628386346c62 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1042.7 size=8169 slow=True
+2026-11-15T19:27:33.001 | WARNING | personnel_system.request | 87cf7b63a3de | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=5100.7 size=125875 slow=True
+2026-11-15T19:28:00.386 | WARNING | personnel_system.request | a6e901b744ae | Hanafy | GET /api/ops/2026-11-16 200 | method=GET path=/api/ops/2026-11-16 status=200 duration_ms=1070.8 size=4559 slow=True
+2026-11-15T19:28:06.390 | WARNING | personnel_system.request | 263ffb567a9a | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1036.2 size=8169 slow=True
+2026-11-15T19:36:01.910 | WARNING | personnel_system.request | a324273f78de | Hanafy | GET /api/ops/2026-11-16 200 | method=GET path=/api/ops/2026-11-16 status=200 duration_ms=1037.7 size=4560 slow=True
+2026-11-15T19:39:06.021 | WARNING | personnel_system.request | 49d22a7fdf36 | Hanafy | PATCH /api/conscripts/CON-053 200 | method=PATCH path=/api/conscripts/CON-053 status=200 duration_ms=7254.5 size=106 slow=True
+2026-11-15T19:39:14.735 | WARNING | personnel_system.request | f7fd823ea8a9 | Hanafy | PATCH /api/conscripts/CON-053 200 | method=PATCH path=/api/conscripts/CON-053 status=200 duration_ms=3242.6 size=105 slow=True
+2026-11-15T19:39:24.200 | WARNING | backend.store | fec94ddb99ae | Hanafy | store.load | duration_ms=1134.2 day_files=19 scope=19
+2026-11-15T19:39:24.967 | WARNING | personnel_system.request | fec94ddb99ae | Hanafy | GET /api/campaign/2026-11-16 200 | method=GET path=/api/campaign/2026-11-16 status=200 duration_ms=1926.4 size=6800 slow=True
+2026-11-15T20:22:47.121 | WARNING | personnel_system.request | 3b1ecaef64d7 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0023 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0023 status=200 duration_ms=11103.9 size=8409 slow=True
+2026-11-15T20:24:31.154 | WARNING | personnel_system.request | f9d37fb89cb1 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0022 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0022 status=200 duration_ms=1560.8 size=8435 slow=True
+2026-11-15T21:28:31.783 | WARNING | personnel_system.request | fe10bd00056a | Hanafy | POST /api/board/2026-11-16/confirm 201 | method=POST path=/api/board/2026-11-16/confirm status=201 duration_ms=7298.2 size=108 slow=True
+2026-11-15T21:28:33.057 | WARNING | personnel_system.request | fac357e0cf9e | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1227.3 size=8196 slow=True
+2026-11-15T21:28:36.316 | WARNING | personnel_system.request | a94dd7badb79 | Hanafy | GET /api/duty/2026-11-16 200 | method=GET path=/api/duty/2026-11-16 status=200 duration_ms=2351.2 size=4202 slow=True
+2026-11-15T21:28:50.777 | WARNING | personnel_system.request | fd99e5e984e4 | Hanafy | GET /api/duty/2026-11-16 200 | method=GET path=/api/duty/2026-11-16 status=200 duration_ms=1041.9 size=4202 slow=True
+2026-11-15T21:29:17.095 | WARNING | personnel_system.request | c0bc9f581816 | Hanafy | GET /api/ops/2026-11-16 200 | method=GET path=/api/ops/2026-11-16 status=200 duration_ms=1113.9 size=4554 slow=True
+2026-11-15T21:29:23.633 | WARNING | personnel_system.request | 5a667b148e88 | Hanafy | POST /api/export-preview 200 | method=POST path=/api/export-preview status=200 duration_ms=5638.8 size=93756 slow=True
+2026-11-15T21:29:38.745 | WARNING | personnel_system.request | 5057a7d599d8 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1001.8 size=8196 slow=True
+2026-11-15T21:35:48.956 | WARNING | personnel_system.request | d683cd435cdd | Hanafy | PATCH /api/print-collections/pc-e3ed33caa9 200 | method=PATCH path=/api/print-collections/pc-e3ed33caa9 status=200 duration_ms=10341.4 size=77 slow=True
+2026-11-15T21:35:49.058 | WARNING | personnel_system.request | 53e4db9676c9 | Hanafy | GET /api/daily-print/2026-11-16 200 | method=GET path=/api/daily-print/2026-11-16 status=200 duration_ms=1384.4 size=867 slow=True
+2026-11-15T21:36:04.517 | WARNING | personnel_system.request | ea6c81d7e69e | Hanafy | PATCH /api/print-collections/pc-e3ed33caa9 200 | method=PATCH path=/api/print-collections/pc-e3ed33caa9 status=200 duration_ms=1319.0 size=76 slow=True
+2026-11-15T22:18:04.550 | WARNING | personnel_system.request | 2dde3845a63d | Hanafy | PATCH /api/assignments/2026-11-16/AS-0013 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0013 status=200 duration_ms=11217.6 size=8453 slow=True
+2026-11-15T22:18:06.217 | WARNING | personnel_system.request | 9c3d173e3499 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1541.5 size=8212 slow=True
+2026-11-15T22:18:22.195 | WARNING | personnel_system.request | 0481268d2ddf | Hanafy | PATCH /api/assignments/2026-11-16/AS-0013 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0013 status=200 duration_ms=1493.8 size=8463 slow=True
+2026-11-15T22:18:44.437 | WARNING | personnel_system.request | 02748b8f14f9 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0014 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0014 status=200 duration_ms=1636.0 size=8461 slow=True
+2026-11-15T22:20:22.340 | WARNING | personnel_system.request | 566810611fb9 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1032.6 size=8220 slow=True
+2026-11-15T22:21:20.886 | WARNING | personnel_system.request | f64366596e98 | Hanafy | POST /api/board/2026-11-16/section-copy 201 | method=POST path=/api/board/2026-11-16/section-copy status=201 duration_ms=11475.3 size=1721 slow=True
+2026-11-15T22:22:15.284 | WARNING | personnel_system.request | 1065f2d909ae | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=1768.0 size=64896 slow=True
+2026-11-15T22:22:58.287 | WARNING | personnel_system.request | 48306bdd6609 | Hanafy | POST /api/assignments/2026-11-16 201 | method=POST path=/api/assignments/2026-11-16 status=201 duration_ms=1663.7 size=65473 slow=True
+2026-11-15T22:26:10.825 | WARNING | personnel_system.request | 86801531dfd7 | Hanafy | GET /api/board/2026-11-16 200 | method=GET path=/api/board/2026-11-16 status=200 duration_ms=1003.1 size=8443 slow=True
+2026-11-15T22:26:21.519 | WARNING | personnel_system.request | e82522a4a486 | Hanafy | POST /api/board/2026-11-16/confirm 201 | method=POST path=/api/board/2026-11-16/confirm status=201 duration_ms=7322.0 size=108 slow=True
+2026-11-15T22:50:31.247 | WARNING | personnel_system.request | 4640817fc42f | Hanafy | PATCH /api/assignments/2026-11-16/AS-0028 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0028 status=200 duration_ms=10432.8 size=8667 slow=True
+2026-11-15T22:55:42.549 | WARNING | personnel_system.request | 00926d4b7898 | Hanafy | POST /api/board/2026-11-16/confirm 201 | method=POST path=/api/board/2026-11-16/confirm status=201 duration_ms=7330.8 size=107 slow=True
+2026-11-15T23:02:27.353 | WARNING | personnel_system.request | b5b1aa00e20c | Hanafy | POST /api/assignments/2026-11-16/AS-0023/move 200 | method=POST path=/api/assignments/2026-11-16/AS-0023/move status=200 duration_ms=6677.5 size=8344 slow=True
+2026-11-15T23:02:40.082 | WARNING | personnel_system.request | 5edb718de092 | Hanafy | POST /api/assignments/2026-11-16/AS-0023/move 200 | method=POST path=/api/assignments/2026-11-16/AS-0023/move status=200 duration_ms=2620.2 size=8338 slow=True
+2026-11-15T23:02:52.744 | WARNING | personnel_system.request | 69615413f197 | Hanafy | POST /api/assignments/2026-11-16/AS-0028/move 200 | method=POST path=/api/assignments/2026-11-16/AS-0028/move status=200 duration_ms=2238.7 size=8343 slow=True
+2026-11-15T23:02:55.394 | WARNING | personnel_system.request | cbd0b8ca7dc9 | Hanafy | POST /api/assignments/2026-11-16/AS-0028/move 200 | method=POST path=/api/assignments/2026-11-16/AS-0028/move status=200 duration_ms=1275.0 size=8345 slow=True
+2026-11-15T23:02:59.976 | WARNING | personnel_system.request | 1a4becbf363b | Hanafy | POST /api/assignments/2026-11-16/AS-0028/move 200 | method=POST path=/api/assignments/2026-11-16/AS-0028/move status=200 duration_ms=1035.2 size=8338 slow=True
+2026-11-15T23:03:14.638 | WARNING | personnel_system.request | dfd91efccc84 | Hanafy | PATCH /api/assignments/2026-11-16/AS-0028 200 | method=PATCH path=/api/assignments/2026-11-16/AS-0028 status=200 duration_ms=1752.9 size=8660 slow=True
+2026-11-15T23:04:01.572 | WARNING | personnel_system.request | 76bb41e20c87 | Hanafy | POST /api/board/2026-11-16/confirm 201 | method=POST path=/api/board/2026-11-16/confirm status=201 duration_ms=1050.5 size=107 slow=True
+2026-11-15T23:06:50.188 | WARNING | personnel_system.request | 268173ffa586 | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0033 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0033 status=200 duration_ms=8121.1 size=7427 slow=True
+2026-11-15T23:07:00.078 | WARNING | personnel_system.request | eae5cd0430f3 | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0035 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0035 status=200 duration_ms=2067.8 size=7541 slow=True
+2026-11-15T23:07:05.069 | WARNING | personnel_system.request | 4229479cda15 | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0023 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0023 status=200 duration_ms=1996.6 size=7736 slow=True
+2026-11-15T23:07:13.998 | WARNING | personnel_system.request | 84dcc5b16da2 | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0029 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0029 status=200 duration_ms=3728.8 size=7953 slow=True
+2026-11-15T23:07:26.418 | WARNING | personnel_system.request | 74bccbf746b1 | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0023 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0023 status=200 duration_ms=1970.0 size=7904 slow=True
+2026-11-15T23:07:40.451 | WARNING | personnel_system.request | 3cfa8d2c1c1a | Hanafy | DELETE /api/campaign/2026-11-16/service/AS-0031/removed 200 | method=DELETE path=/api/campaign/2026-11-16/service/AS-0031/removed status=200 duration_ms=2409.0 size=6698 slow=True
+2026-11-15T23:09:19.367 | WARNING | personnel_system.request | 4b39f108e1ef | Hanafy | POST /api/campaign/2026-11-16/service/AS-0031/restore 200 | method=POST path=/api/campaign/2026-11-16/service/AS-0031/restore status=200 duration_ms=8292.5 size=7900 slow=True
+2026-11-15T23:09:25.239 | WARNING | backend.store | bb3e44f96aa0 | Hanafy | store.load | duration_ms=1013.0 day_files=19 scope=19
+2026-11-15T23:09:28.913 | WARNING | personnel_system.request | bb3e44f96aa0 | Hanafy | DELETE /api/campaign/2026-11-16/service/AS-0023/removed 200 | method=DELETE path=/api/campaign/2026-11-16/service/AS-0023/removed status=200 duration_ms=4686.1 size=6632 slow=True
+2026-11-15T23:10:35.729 | WARNING | personnel_system.request | f941e2c68b64 | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0030 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0030 status=200 duration_ms=1718.3 size=6676 slow=True
+2026-11-15T23:11:05.232 | WARNING | personnel_system.request | 412239b949e3 | Hanafy | POST /api/campaign/2026-11-16/lorry/LOR-3/service 200 | method=POST path=/api/campaign/2026-11-16/lorry/LOR-3/service status=200 duration_ms=2319.3 size=6863 slow=True
+2026-11-15T23:11:57.181 | WARNING | personnel_system.request | e0e3732c2dc6 | Hanafy | POST /api/campaign/2026-11-16/groups 200 | method=POST path=/api/campaign/2026-11-16/groups status=200 duration_ms=11175.6 size=6855 slow=True
+2026-11-15T23:15:52.487 | WARNING | personnel_system.request | 6e0fc68d6946 | Hanafy | PATCH /api/person/OFF-100 200 | method=PATCH path=/api/person/OFF-100 status=200 duration_ms=10814.9 size=517 slow=True
+2026-11-15T23:17:19.258 | WARNING | backend.store | 62f3107aa26a | Hanafy | store.load | duration_ms=3038.2 day_files=1096 scope=1096
+2026-11-15T23:17:21.008 | WARNING | personnel_system.request | 62f3107aa26a | Hanafy | PATCH /api/person/OFF-033 200 | method=PATCH path=/api/person/OFF-033 status=200 duration_ms=4790.8 size=499 slow=True
+2026-11-15T23:22:15.985 | WARNING | personnel_system.request | 4065381304fb | Hanafy | PUT /api/campaign/2026-11-16/service/AS-0022 200 | method=PUT path=/api/campaign/2026-11-16/service/AS-0022 status=200 duration_ms=8050.1 size=6973 slow=True
