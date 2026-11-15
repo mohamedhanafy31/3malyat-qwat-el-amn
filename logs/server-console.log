@@ -36871,3 +36871,537 @@ backend.export_fit.PageFitError: تعذر احتواء يومية الضباط �
 2026-11-15 05:42:10,349 INFO GET /api/day-files/2026-11-15 200
 2026-11-15 05:42:10,393 INFO GET /api/day-status/2026-11-15 200
 2026-11-15 05:42:10,539 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:55:44,926 INFO [startup 1/5] Python=D:\3malyat-qwat-el-amn\runtime\pythonw.exe root=D:\3malyat-qwat-el-amn
+2026-11-15 05:55:44,926 INFO [startup 2/5] Acquiring exclusive data lock in D:\3malyat-qwat-el-amn\data
+2026-11-15 05:55:44,973 INFO process_lock.acquired
+2026-11-15 05:55:44,973 INFO [startup 3/5] Data lock acquired; starting daily-files worker
+2026-11-15 05:55:46,707 INFO daily_files.worker_started
+2026-11-15 05:55:46,769 INFO server_start
+2026-11-15 05:55:46,769 INFO [startup 4/5] Binding Waitress to http://127.0.0.1:5000 (threads=8)
+2026-11-15 05:55:46,785 INFO Serving on http://127.0.0.1:5000
+2026-11-15 05:55:47,441 INFO GET /api/health/ready 200
+2026-11-15 05:55:52,104 INFO GET / 302
+2026-11-15 05:55:52,564 INFO GET /login 200
+2026-11-15 05:55:58,641 INFO GET /api/health/ready 200
+2026-11-15 05:56:01,124 INFO daily_files.generated
+2026-11-15 05:56:07,373 INFO GET /api/health/ready 200
+2026-11-15 05:56:12,285 INFO daily_files.generated
+2026-11-15 05:56:21,754 INFO daily_files.generated
+2026-11-15 05:56:22,768 INFO GET / 302
+2026-11-15 05:56:22,986 INFO GET /login 200
+2026-11-15 05:56:32,163 INFO daily_files.generated
+2026-11-15 05:56:33,213 INFO GET / 200
+2026-11-15 05:56:34,253 INFO GET /api/bootstrap/dashboard 200
+2026-11-15 05:56:37,246 WARNING GET /api/ops/2026-11-15 200
+2026-11-15 05:56:38,825 WARNING GET /api/ops/2026-11-15/regularity 200
+2026-11-15 05:56:43,309 INFO daily_files.generated
+2026-11-15 05:56:48,476 WARNING export.page_fit_failed
+2026-11-15 05:56:48,477 ERROR فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 05:56:52,611 WARNING daily_files.generated
+2026-11-15 05:57:05,197 INFO GET /board 200
+2026-11-15 05:57:05,582 WARNING GET /api/ops/2026-11-15 200
+2026-11-15 05:57:05,715 INFO GET /api/bootstrap/board 200
+2026-11-15 05:57:06,758 WARNING GET /api/board/2026-11-15 200
+2026-11-15 05:57:06,867 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 05:57:06,946 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 05:57:07,078 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:57:22,192 INFO GET /api/board/2026-11-16 200
+2026-11-15 05:57:22,265 INFO GET /api/day-files/2026-11-16 200
+2026-11-15 05:57:22,325 INFO GET /api/rest-suspensions/day/2026-11-16 200
+2026-11-15 05:57:22,412 INFO GET /api/day-status/2026-11-16 200
+2026-11-15 05:57:28,241 INFO GET /api/board/2026-11-15 200
+2026-11-15 05:57:28,293 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 05:57:28,374 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:57:28,473 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 05:57:32,109 INFO GET /duty 200
+2026-11-15 05:57:32,359 INFO GET /api/bootstrap/duty 200
+2026-11-15 05:57:33,391 WARNING GET /api/duty/2026-11-15 200
+2026-11-15 05:57:33,530 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:57:56,398 INFO backup.pruned
+2026-11-15 05:57:56,398 INFO backup.created
+2026-11-15 05:57:56,781 INFO store.save
+2026-11-15 05:57:56,797 WARNING PUT /api/duty/2026-11-15/OFF-011 200
+2026-11-15 05:58:00,602 INFO GET /afraad 200
+2026-11-15 05:58:01,395 INFO GET /api/bootstrap/afraad 200
+2026-11-15 05:58:02,229 INFO GET /duty 200
+2026-11-15 05:58:03,407 WARNING GET /api/afraad/2026-11-15 200
+2026-11-15 05:58:04,165 WARNING store.load
+2026-11-15 05:58:04,301 WARNING GET /api/bootstrap/duty 200
+2026-11-15 05:58:06,562 WARNING GET /api/duty/2026-11-15 200
+2026-11-15 05:58:06,842 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:58:12,316 INFO daily_files.generated
+2026-11-15 05:58:19,706 INFO store.save
+2026-11-15 05:58:19,723 WARNING PUT /api/duty/2026-11-15/OFF-019 200
+2026-11-15 05:58:26,910 INFO GET /counts 200
+2026-11-15 05:58:27,188 INFO GET /api/bootstrap/counts 200
+2026-11-15 05:58:27,454 INFO GET /api/counts/2026-11-15 200
+2026-11-15 05:58:28,170 INFO GET /missions 200
+2026-11-15 05:58:28,557 INFO GET /api/bootstrap/missions 200
+2026-11-15 05:58:28,787 INFO GET /api/missions/day/2026-11-15 200
+2026-11-15 05:58:33,122 INFO daily_files.generated
+2026-11-15 05:58:36,077 INFO GET /board 200
+2026-11-15 05:58:36,218 INFO GET /api/bootstrap/board 200
+2026-11-15 05:58:37,234 WARNING GET /api/board/2026-11-15 200
+2026-11-15 05:58:37,387 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 05:58:37,455 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:58:37,553 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 05:58:53,362 INFO store.save
+2026-11-15 05:58:53,379 WARNING PATCH /api/assignments/2026-11-15/AS-0031 200
+2026-11-15 05:58:54,429 INFO GET /api/board/2026-11-15 200
+2026-11-15 05:58:54,512 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 05:58:54,561 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:58:54,682 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 05:59:01,543 INFO store.save
+2026-11-15 05:59:01,575 WARNING PATCH /api/assignments/2026-11-15/AS-0032 200
+2026-11-15 05:59:04,607 WARNING GET /api/board/2026-11-15 200
+2026-11-15 05:59:05,148 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 05:59:05,425 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 05:59:05,563 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 05:59:08,953 INFO GET / 200
+2026-11-15 05:59:09,356 INFO GET /api/bootstrap/dashboard 200
+2026-11-15 05:59:10,713 WARNING GET /api/ops/2026-11-15 200
+2026-11-15 05:59:11,481 INFO GET /api/ops/2026-11-15/regularity 200
+2026-11-15 05:59:12,772 INFO daily_files.generated
+2026-11-15 05:59:21,656 INFO daily_files.generated
+2026-11-15 05:59:40,493 WARNING GET /api/ops/2026-11-15 200
+2026-11-15 06:00:07,364 WARNING GET /api/ops/2026-11-15 200
+2026-11-15 06:00:08,123 INFO GET /board 200
+2026-11-15 06:00:08,272 INFO GET /api/bootstrap/board 200
+2026-11-15 06:00:09,272 INFO GET /api/board/2026-11-15 200
+2026-11-15 06:00:09,370 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:00:09,466 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:00:09,520 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:00:57,904 INFO backup.created
+2026-11-15 06:00:58,038 INFO store.save
+2026-11-15 06:00:58,056 WARNING PATCH /api/assignments/2026-11-15/AS-0023 200
+2026-11-15 06:00:59,142 INFO GET /api/board/2026-11-15 200
+2026-11-15 06:00:59,218 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:00:59,273 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:00:59,390 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:01:02,220 INFO GET /daily-print 200
+2026-11-15 06:01:03,653 WARNING store.load
+2026-11-15 06:01:03,668 WARNING GET /api/bootstrap/daily_print 200
+2026-11-15 06:01:06,768 WARNING GET /api/daily-print/2026-11-15 200
+2026-11-15 06:01:08,025 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:01:09,284 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:01:09,758 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:11,114 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:12,259 INFO daily_files.generated
+2026-11-15 06:01:12,372 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:13,097 INFO daily_print.job
+2026-11-15 06:01:13,097 INFO POST /api/daily-print/jobs 202
+2026-11-15 06:01:13,233 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:14,356 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:15,497 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:16,680 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:17,797 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:18,682 INFO daily_print.item
+2026-11-15 06:01:18,936 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:20,032 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:20,602 INFO daily_print.item
+2026-11-15 06:01:21,165 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:22,260 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:23,354 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:24,461 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:25,554 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:26,679 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:36,768 INFO GET /api/daily-print/2026-11-11 200
+2026-11-15 06:01:44,991 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:01:49,519 INFO daily_print.job
+2026-11-15 06:01:49,519 INFO POST /api/daily-print/jobs 202
+2026-11-15 06:01:49,654 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:01:50,848 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:01:51,932 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:01:52,617 INFO GET /afraad 200
+2026-11-15 06:01:52,972 INFO GET /api/bootstrap/afraad 200
+2026-11-15 06:01:53,725 INFO GET /api/afraad/2026-11-15 200
+2026-11-15 06:01:53,942 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:01:55,336 INFO daily_print.item
+2026-11-15 06:01:56,743 INFO daily_print.item
+2026-11-15 06:01:59,521 INFO GET /board 200
+2026-11-15 06:01:59,669 INFO GET /api/bootstrap/board 200
+2026-11-15 06:02:00,685 WARNING GET /api/board/2026-11-15 200
+2026-11-15 06:02:00,766 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:02:00,866 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:02:00,966 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:02:14,113 INFO daily_files.generated
+2026-11-15 06:02:14,113 WARNING POST /api/day-files/2026-11-15/refresh 200
+2026-11-15 06:02:14,166 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:02:16,878 INFO store.save
+2026-11-15 06:02:16,878 WARNING POST /api/board/2026-11-15/confirm 201
+2026-11-15 06:02:17,744 INFO GET /api/board/2026-11-15 200
+2026-11-15 06:02:17,831 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:02:17,878 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:02:17,967 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:02:30,633 ERROR فشل توليد ملف regularity لليوم 2026-11-15
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\.15..docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\15..docx'
+2026-11-15 06:02:33,791 WARNING daily_files.generated
+2026-11-15 06:02:40,790 WARNING export.page_fit_failed
+2026-11-15 06:02:40,790 ERROR فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 06:02:45,832 WARNING daily_files.generated
+2026-11-15 06:02:56,148 WARNING PATCH /api/assignments/2026-11-15/AS-0023 200
+2026-11-15 06:02:57,186 INFO GET /api/board/2026-11-15 200
+2026-11-15 06:02:57,498 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:02:57,592 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:02:57,608 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:03:58,601 INFO GET /board 200
+2026-11-15 06:03:58,780 INFO GET /api/bootstrap/board 200
+2026-11-15 06:03:59,696 INFO GET /duty 200
+2026-11-15 06:03:59,789 INFO GET /api/board/2026-11-15 200
+2026-11-15 06:03:59,910 INFO GET /api/bootstrap/duty 200
+2026-11-15 06:04:00,946 WARNING GET /api/duty/2026-11-15 200
+2026-11-15 06:04:01,128 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:04:31,200 INFO backup.pruned
+2026-11-15 06:04:31,200 INFO backup.created
+2026-11-15 06:04:31,633 INFO store.save
+2026-11-15 06:04:31,667 WARNING PUT /api/duty/2026-11-15/OFF-012 200
+2026-11-15 06:04:33,615 INFO GET /board 200
+2026-11-15 06:04:34,782 WARNING store.load
+2026-11-15 06:04:34,800 WARNING GET /api/bootstrap/board 200
+2026-11-15 06:04:37,432 WARNING GET /api/board/2026-11-15 200
+2026-11-15 06:04:37,565 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:04:37,732 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:04:37,832 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:04:43,104 INFO daily_files.generated
+2026-11-15 06:05:40,728 INFO GET /campaign 200
+2026-11-15 06:05:40,947 INFO GET /api/bootstrap/campaign 200
+2026-11-15 06:05:41,662 INFO GET /api/campaign/2026-11-15 200
+2026-11-15 06:05:41,872 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:07:37,538 INFO backup.pruned
+2026-11-15 06:07:37,538 INFO backup.created
+2026-11-15 06:07:37,938 INFO store.save
+2026-11-15 06:07:37,972 WARNING POST /api/campaign/2026-11-15/groups 200
+2026-11-15 06:07:50,767 INFO daily_files.generated
+2026-11-15 06:08:49,315 WARNING GET /api/campaign/2026-11-15/export.docx 200
+2026-11-15 06:08:49,315 INFO export_ok
+warning: The `fitz` API is deprecated and will be removed in future. Use `import pymupdf` instead.
+2026-11-15 06:08:56,546 WARNING POST /api/export-preview 200
+2026-11-15 06:09:07,761 INFO GET /afraad 200
+2026-11-15 06:09:07,990 INFO GET /api/bootstrap/afraad 200
+2026-11-15 06:09:08,592 INFO GET /api/afraad/2026-11-15 200
+2026-11-15 06:09:08,749 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:09:42,304 INFO GET /campaign 200
+2026-11-15 06:09:42,464 INFO GET /api/bootstrap/campaign 200
+2026-11-15 06:09:43,197 INFO GET /api/campaign/2026-11-15 200
+2026-11-15 06:09:43,437 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:15:07,555 INFO backup.pruned
+2026-11-15 06:15:07,576 INFO backup.created
+2026-11-15 06:15:07,641 INFO store.save
+2026-11-15 06:15:07,657 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-1 200
+2026-11-15 06:15:13,045 INFO store.save
+2026-11-15 06:15:13,092 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-1 200
+2026-11-15 06:15:21,640 INFO daily_files.generated
+2026-11-15 06:15:27,016 INFO store.save
+2026-11-15 06:15:27,132 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-2 200
+2026-11-15 06:15:31,440 INFO store.save
+2026-11-15 06:15:31,487 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-2 200
+2026-11-15 06:15:34,232 INFO daily_files.generated
+2026-11-15 06:15:44,108 INFO daily_files.generated
+2026-11-15 06:16:05,862 INFO store.save
+2026-11-15 06:16:05,875 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-3 200
+2026-11-15 06:16:17,917 INFO daily_files.generated
+2026-11-15 06:16:22,429 INFO store.save
+2026-11-15 06:16:22,445 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-3 200
+2026-11-15 06:16:31,695 INFO store.save
+2026-11-15 06:16:31,721 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-4 200
+2026-11-15 06:16:33,547 INFO store.save
+2026-11-15 06:16:33,664 WARNING PUT /api/campaign/2026-11-15/lorry/LOR-4 200
+2026-11-15 06:16:38,425 INFO daily_files.generated
+2026-11-15 06:16:43,304 INFO store.save
+2026-11-15 06:16:43,304 WARNING PUT /api/campaign/2026-11-15/service/AS-0033 200
+2026-11-15 06:16:46,181 INFO store.save
+2026-11-15 06:16:46,228 WARNING PUT /api/campaign/2026-11-15/service/AS-0033 200
+2026-11-15 06:16:49,896 INFO PUT /api/campaign/2026-11-15/service/AS-0023 400
+2026-11-15 06:16:50,773 INFO GET /api/campaign/2026-11-15 200
+2026-11-15 06:16:52,467 INFO daily_files.generated
+2026-11-15 06:17:01,392 INFO daily_files.generated
+2026-11-15 06:17:04,243 INFO GET /vehicles 200
+2026-11-15 06:17:04,469 INFO GET /api/bootstrap/vehicles 200
+2026-11-15 06:17:04,594 INFO GET /api/vehicles 200
+2026-11-15 06:17:27,228 INFO backup.created
+2026-11-15 06:17:27,810 INFO store.save
+2026-11-15 06:17:28,061 WARNING POST /api/vehicles 201
+2026-11-15 06:17:28,260 INFO GET /api/vehicles 200
+2026-11-15 06:17:38,874 INFO store.save
+2026-11-15 06:17:39,190 WARNING PATCH /api/vehicles/VEH-074 200
+2026-11-15 06:17:39,524 INFO GET /api/vehicles 200
+2026-11-15 06:17:41,311 INFO GET /campaign 200
+2026-11-15 06:17:41,831 INFO GET /api/bootstrap/campaign 200
+2026-11-15 06:17:42,607 INFO GET /api/campaign/2026-11-15 200
+2026-11-15 06:17:43,361 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:17:43,462 INFO daily_files.generated
+2026-11-15 06:17:49,152 WARNING export.page_fit_failed
+2026-11-15 06:17:49,152 ERROR فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 06:17:52,886 INFO GET /campaign 200
+2026-11-15 06:17:53,629 INFO GET /api/bootstrap/campaign 200
+2026-11-15 06:17:53,707 WARNING daily_files.generated
+2026-11-15 06:17:55,333 WARNING GET /api/campaign/2026-11-15 200
+2026-11-15 06:17:56,557 WARNING GET /api/day-status/2026-11-15 200
+2026-11-15 06:18:02,341 INFO PUT /api/campaign/2026-11-15/service/AS-0023 400
+2026-11-15 06:18:03,328 INFO GET /api/campaign/2026-11-15 200
+2026-11-15 06:18:05,938 INFO daily_files.generated
+2026-11-15 06:18:07,210 WARNING PUT /api/campaign/2026-11-15/service/AS-0023 400
+2026-11-15 06:18:08,061 INFO GET /api/campaign/2026-11-15 200
+2026-11-15 06:18:12,386 WARNING export.page_fit_failed
+2026-11-15 06:18:12,386 ERROR فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 06:18:16,733 WARNING daily_files.generated
+2026-11-15 06:18:30,376 INFO store.save
+2026-11-15 06:18:30,392 WARNING PUT /api/campaign/2026-11-15/service/AS-0029 200
+2026-11-15 06:18:35,828 INFO store.save
+2026-11-15 06:18:35,938 WARNING PUT /api/campaign/2026-11-15/service/AS-0029 200
+2026-11-15 06:18:42,036 INFO store.save
+2026-11-15 06:18:42,051 WARNING PUT /api/campaign/2026-11-15/service/AS-0031 200
+2026-11-15 06:18:47,412 INFO store.save
+2026-11-15 06:18:47,475 WARNING PUT /api/campaign/2026-11-15/service/AS-0031 200
+2026-11-15 06:18:48,039 INFO daily_files.generated
+2026-11-15 06:18:55,680 INFO store.save
+2026-11-15 06:18:55,680 WARNING PUT /api/campaign/2026-11-15/service/AS-0032 200
+2026-11-15 06:18:59,974 INFO daily_files.generated
+2026-11-15 06:19:00,660 INFO store.save
+2026-11-15 06:19:00,753 WARNING PUT /api/campaign/2026-11-15/service/AS-0032 200
+2026-11-15 06:19:10,269 INFO store.save
+2026-11-15 06:19:10,285 WARNING PUT /api/campaign/2026-11-15/service/AS-0035 200
+2026-11-15 06:19:11,469 INFO daily_files.generated
+2026-11-15 06:19:17,249 INFO store.save
+2026-11-15 06:19:17,258 WARNING PUT /api/campaign/2026-11-15/service/AS-0035 200
+2026-11-15 06:19:23,349 INFO daily_files.generated
+2026-11-15 06:19:24,148 INFO store.save
+2026-11-15 06:19:24,179 WARNING PUT /api/campaign/2026-11-15/service/AS-0027 200
+2026-11-15 06:19:35,898 INFO backup.pruned
+2026-11-15 06:19:35,898 INFO backup.created
+2026-11-15 06:19:36,018 INFO store.save
+2026-11-15 06:19:36,068 WARNING PUT /api/campaign/2026-11-15/service/AS-0027 200
+2026-11-15 06:19:38,103 INFO store.save
+2026-11-15 06:19:38,150 WARNING PUT /api/campaign/2026-11-15/service/AS-0030 200
+2026-11-15 06:19:42,767 INFO store.save
+2026-11-15 06:19:42,798 WARNING PUT /api/campaign/2026-11-15/service/AS-0030 200
+2026-11-15 06:19:44,946 INFO daily_files.generated
+2026-11-15 06:19:54,314 INFO store.save
+2026-11-15 06:19:54,367 WARNING PUT /api/campaign/2026-11-15/daily/CD-002 200
+2026-11-15 06:19:56,498 INFO daily_files.generated
+2026-11-15 06:20:07,709 ERROR فشل توليد ملف regularity لليوم 2026-11-15
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\.15..docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\15..docx'
+2026-11-15 06:20:11,249 WARNING daily_files.generated
+2026-11-15 06:22:50,856 INFO GET /board 200
+2026-11-15 06:22:51,022 INFO GET /api/bootstrap/board 200
+2026-11-15 06:22:52,004 INFO GET /api/board/2026-11-15 200
+2026-11-15 06:22:52,066 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:22:52,136 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:22:52,236 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:23:03,499 INFO backup.pruned
+2026-11-15 06:23:03,499 INFO backup.created
+2026-11-15 06:23:03,582 INFO store.save
+2026-11-15 06:23:03,599 WARNING DELETE /api/assignments/2026-11-15/AS-0023 200
+2026-11-15 06:23:04,834 WARNING GET /api/board/2026-11-15 200
+2026-11-15 06:23:04,900 INFO GET /api/board/2026-11-15/section-history 200
+2026-11-15 06:23:05,084 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:23:05,198 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:23:05,382 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:23:07,800 INFO GET /api/board/2026-11-15/section-history 200
+2026-11-15 06:23:17,145 INFO daily_files.generated
+2026-11-15 06:24:04,697 INFO store.save
+2026-11-15 06:24:04,730 WARNING POST /api/assignments/2026-11-15 201
+2026-11-15 06:24:05,762 INFO GET /api/board/2026-11-15 200
+2026-11-15 06:24:05,853 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:24:05,901 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:24:06,017 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:24:11,077 WARNING store.load
+2026-11-15 06:24:13,228 WARNING GET /api/board/2026-11-15/export.docx 200
+2026-11-15 06:24:13,228 INFO export_ok
+2026-11-15 06:24:16,808 INFO store.save
+2026-11-15 06:24:16,825 INFO POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:19,124 INFO store.save
+2026-11-15 06:24:19,174 WARNING POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:21,590 INFO store.save
+2026-11-15 06:24:21,640 WARNING POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:21,807 INFO daily_files.generated
+2026-11-15 06:24:21,976 WARNING POST /api/export-preview 200
+2026-11-15 06:24:23,147 INFO store.save
+2026-11-15 06:24:23,162 INFO POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:24,740 INFO store.save
+2026-11-15 06:24:24,756 INFO POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:26,338 INFO store.save
+2026-11-15 06:24:26,372 INFO POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:27,878 INFO store.save
+2026-11-15 06:24:27,922 INFO POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:31,237 INFO store.save
+2026-11-15 06:24:31,287 WARNING POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:33,053 INFO store.save
+2026-11-15 06:24:33,086 WARNING POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:34,736 INFO store.save
+2026-11-15 06:24:34,769 WARNING POST /api/assignments/2026-11-15/AS-0036/move 200
+2026-11-15 06:24:38,818 INFO store.save
+2026-11-15 06:24:38,868 WARNING POST /api/board/2026-11-15/confirm 201
+2026-11-15 06:24:39,952 WARNING GET /api/board/2026-11-15 200
+2026-11-15 06:24:40,063 INFO GET /api/day-files/2026-11-15 200
+2026-11-15 06:24:40,385 INFO GET /api/rest-suspensions/day/2026-11-15 200
+2026-11-15 06:24:40,509 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:24:40,648 INFO GET / 200
+2026-11-15 06:24:40,742 INFO daily_files.generated
+2026-11-15 06:24:40,952 INFO GET /api/bootstrap/dashboard 200
+2026-11-15 06:24:42,836 WARNING GET /api/ops/2026-11-15 200
+2026-11-15 06:24:45,333 WARNING GET /api/ops/2026-11-15/regularity 200
+2026-11-15 06:24:46,100 WARNING GET /api/ops/2026-11-15/regularity.docx 200
+2026-11-15 06:24:57,844 WARNING POST /api/export-preview 200
+2026-11-15 06:24:58,673 INFO daily_files.generated
+2026-11-15 06:25:04,174 WARNING export.page_fit_failed
+2026-11-15 06:25:04,174 ERROR فشل توليد ملف duty لليوم 2026-11-16
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 395, in _write_day_files
+    data = builder(day)
+           ^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\day_exports.py", line 45, in build_duty_bytes
+    return _bytes(build_duty_docx(summarise(preview, day)))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 473, in build_docx
+    plan, names_size = _plan_fit(document, values, names)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\3malyat-qwat-el-amn\backend\duty_export.py", line 441, in _plan_fit
+    raise PageFitError("تعذر احتواء يومية الضباط في صفحة واحدة")
+backend.export_fit.PageFitError: تعذر احتواء يومية الضباط في صفحة واحدة
+2026-11-15 06:25:04,391 INFO GET /campaign 200
+2026-11-15 06:25:04,609 INFO GET /api/bootstrap/campaign 200
+2026-11-15 06:25:05,522 INFO GET /api/campaign/2026-11-15 200
+2026-11-15 06:25:06,091 INFO GET /api/day-status/2026-11-15 200
+2026-11-15 06:25:10,084 WARNING daily_files.generated
+2026-11-15 06:25:19,752 INFO backup.pruned
+2026-11-15 06:25:19,752 INFO backup.created
+2026-11-15 06:25:19,830 INFO store.save
+2026-11-15 06:25:19,846 WARNING PUT /api/campaign/2026-11-15/service/AS-0036 200
+2026-11-15 06:25:21,945 INFO store.save
+2026-11-15 06:25:21,960 WARNING PUT /api/campaign/2026-11-15/service/AS-0036 200
+2026-11-15 06:25:32,642 INFO store.save
+2026-11-15 06:25:32,657 WARNING PUT /api/campaign/2026-11-15/service/AS-0036 200
+2026-11-15 06:25:36,753 INFO daily_files.generated
+2026-11-15 06:25:49,002 ERROR فشل توليد ملف regularity لليوم 2026-11-15
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\.15..docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\15\\15..docx'
+2026-11-15 06:25:50,783 WARNING daily_files.generated
+2026-11-15 06:27:21,039 INFO GET /daily-print 200
+2026-11-15 06:27:21,223 INFO GET /api/bootstrap/daily_print 200
+2026-11-15 06:27:21,316 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:24,188 INFO daily_print.job
+2026-11-15 06:27:24,188 INFO POST /api/daily-print/jobs 202
+2026-11-15 06:27:24,414 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:25,564 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:26,729 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:27,866 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:28,795 INFO daily_print.job
+2026-11-15 06:27:28,795 INFO POST /api/daily-print/jobs 202
+2026-11-15 06:27:28,945 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:29,062 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:29,695 INFO daily_print.item
+2026-11-15 06:27:30,360 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:31,504 INFO daily_print.item
+2026-11-15 06:27:31,551 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:32,594 INFO daily_print.job
+2026-11-15 06:27:32,778 INFO POST /api/daily-print/jobs 202
+2026-11-15 06:27:32,898 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:32,997 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:33,321 INFO daily_print.item
+2026-11-15 06:27:34,245 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:35,417 INFO daily_print.item
+2026-11-15 06:27:35,424 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:36,516 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:37,667 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:38,866 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:39,653 INFO daily_print.item
+2026-11-15 06:27:40,157 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:41,338 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:41,582 INFO daily_print.item
+2026-11-15 06:27:42,434 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:43,641 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:43,915 INFO daily_print.item
+2026-11-15 06:27:44,894 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:45,939 INFO daily_print.item
+2026-11-15 06:27:46,063 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:46,608 INFO daily_print.job
+2026-11-15 06:27:46,608 INFO POST /api/daily-print/jobs 202
+2026-11-15 06:27:46,789 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:47,984 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:49,117 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:50,286 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:50,647 INFO daily_print.item
+2026-11-15 06:27:51,422 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:52,580 INFO daily_print.item
+2026-11-15 06:27:52,596 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:53,736 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:54,142 INFO daily_print.item
+2026-11-15 06:27:54,891 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:56,058 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:57,229 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:58,413 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:27:58,445 INFO daily_print.item
+2026-11-15 06:27:59,569 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:28:00,673 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:28:01,767 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:28:02,876 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:28:03,969 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:28:14,104 INFO GET /api/daily-print/2026-11-15 200
+2026-11-15 06:42:18,626 INFO GET /api/health/ready 200

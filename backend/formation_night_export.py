@@ -236,7 +236,6 @@ def build_docx(dto):
     LAST_FIT.clear()
     LAST_FIT.update({"page_count": 1, "rows": count, "scale": scale, "template_rows": TEMPLATE_ROWS})
     output = BytesIO()
-    center_docx_table_cells(document)
     document.save(output)
     output.seek(0)
     return output
