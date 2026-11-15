@@ -11,6 +11,8 @@
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
       <button class="mini day-jump" id="dayToday">اليوم</button>
     </div>
+    {% set search_root = '#afWrap' %}{% include 'partials/page_search.html' %}
+
     <div class="tb-group" role="group" aria-label="حالة اليوم"><span id="dayLockBadge">{{ skeleton("status") }}</span></div>
     <div class="tb-group">
       <button class="mini" id="afOcrOpen" type="button">قراءة صورة / PDF</button>

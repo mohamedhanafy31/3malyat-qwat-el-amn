@@ -757,7 +757,7 @@ def _place_special_blocks(result, special_blocks, emergency_side):
         for item in special["rows"]:
             _group(None, emergency_side(item, archive_details=False), special_rows)
     if not special_rows:
-        return
+        return 0
 
     count = len(special_rows)
     blank = lambda: _row([_cell(), _cell(), _cell("", 2), _cell()])
@@ -771,6 +771,7 @@ def _place_special_blocks(result, special_blocks, emergency_side):
         target["cells"] = right + _left_cells(special_row)
         if special_row["kind"] == "head" and target["kind"] == "body":
             target["kind"] = "head"
+    return count
 
 
 def _latest_content(board, command_priority=None):
@@ -925,7 +926,7 @@ def _latest_content(board, command_priority=None):
             width += cell["span"]
         result.append(_row(right_cells + left["cells"],
                            "head" if "head" in (right["kind"], left["kind"]) else "body"))
-    _place_special_blocks(result, special_blocks, emergency_side)
+    special_count = _place_special_blocks(result, special_blocks, emergency_side)
 
     # The two halves are independent vertical flows. Keep the populated top
     # sections intact, then let each half continue into its tail as soon as it
@@ -950,7 +951,6 @@ def _latest_content(board, command_priority=None):
     trim_padding(left_flow)
 
     right_flow.append(_row([_cell("ضابط عظيم وأمن المعسكر الفرعي", 2, True)], "tailhead"))
-    left_flow.append(_row([_cell("الخوارج", 3, True)], "tailhead"))
 
     # يمين الذيل: قائمة واحدة مسطّحة تحت «عمل بالادارة» — كل ضابط بدوره ونصه؛
     # وضابط عظيم/أمن الإدارة يُضافان بنص «الدور + الفترة» (ويُدمجان في صف
@@ -1039,11 +1039,20 @@ def _latest_content(board, command_priority=None):
     for name, description in right_entries:
         right_flow.append(_row([_cell(name), _cell(description)], "body"))
 
+    # الخوارج بتتكتب من تحت لفوق: آخر ضابط في آخر صف في الجدول وعنوان «الخوارج» فوق
+    # أول واحد (نفس تقنية الكتل الخاصة)، والفراغ لو فيه بيفضل بين الطوارئ والخوارج.
+    outsider_block = [_row([_cell("الخوارج", 3, True)], "tailhead")]
     for i, outsider in enumerate(outsiders):
         mark = vmerge.get(i)
-        left_flow.append(_row([_cell("" if mark == "continue" else statuses[i], vm=mark),
-                               _cell(_who(outsider)),
-                               _cell(_officer_desc(SECTION_OUTSIDERS, outsider))], "body"))
+        outsider_block.append(_row([_cell("" if mark == "continue" else statuses[i], vm=mark),
+                                    _cell(_who(outsider)),
+                                    _cell(_officer_desc(SECTION_OUTSIDERS, outsider))], "body"))
+    total = max(len(right_flow), len(left_flow) + len(outsider_block))
+    gap = [_row([_cell("", 3)], "body") for _ in range(total - len(left_flow) - len(outsider_block))]
+    # الكتل الخاصة بتفضل لازقة فوق عنوان الخوارج: الفراغ بيدخل قبلها مش بينها وبين الخوارج
+    keep = len(left_flow) - special_count if 0 < special_count <= len(left_flow) else len(left_flow)
+    left_flow[keep:keep] = gap
+    left_flow.extend(outsider_block)
 
     result = [_row([_cell("الخدمات الاساسية", 2, True), _cell("الخدمات الطارئة", 3, True)], "title")]
     for index in range(max(len(right_flow), len(left_flow))):

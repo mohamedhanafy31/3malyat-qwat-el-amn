@@ -109,9 +109,10 @@ def test_campaign_service_vehicle_validation_warns_duplicates_and_rejects_foreig
     base = f"/api/campaign/{day}/service/{assignment['id']}"
     duplicate = client.put(base, json={"vehicles": [{"vehicle_id": vehicle["id"]}, {"vehicle_id": vehicle["id"]}]})
     assert duplicate.status_code == 200
-    assert any("المركبة مستخدمة" in warning
-               for row in duplicate.get_json()["service_rows"] if row["id"] == assignment["id"]
-               for warning in row["warnings"])
+    own = [warning for row in duplicate.get_json()["service_rows"] if row["id"] == assignment["id"]
+           for warning in row["warnings"]]
+    assert "المركبة مكررة داخل نفس الخدمة." in own           # سطران في نفس الخدمة، مش «مستخدمة أيضًا في» نفسها
+    assert not any("أيضًا في" in warning and assignment["name"] in warning for warning in own)
     foreign_response = client.put(base, json={"vehicles": [{"vehicle_id": vehicle["id"], "personnel_ids": [foreign["id"]]}]})
     assert foreign_response.status_code == 400 and "الخدمة" in foreign_response.get_json()["error"]
 
@@ -501,7 +502,7 @@ def test_campaign_posts_warnings_plate_register_and_vehicle_reference(client):
     for ident in ids:
         assert client.put(f"/api/campaign/{day}/post/{ident}", json={"vehicle_id": vehicle["id"]}).status_code == 200
     view = _campaign(client, day)
-    assert "المركبة مستخدمة أيضًا في: ب" in [w["text"] for w in view["warnings"]]
+    assert "المركبة مستخدمة أيضًا في: ب (ارتكاز)" in [w["text"] for w in view["warnings"]]   # الارتكاز بيتميّز عن اللوري المسمّى بنفس الاسم
     assert any("معطلة" in text for text in [w["text"] for w in view["warnings"]])
     assert client.delete(f"/api/vehicles/{vehicle['id']}").status_code == 409
     assert client.put(f"/api/campaign/{day}/plates", json={"rows": [["ب13/9416", "ب13/9417"]]}).status_code == 200

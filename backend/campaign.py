@@ -289,6 +289,8 @@ def _validate_driver(data, value):
         name = str(value.get("name") or "").strip()
         if not name:
             return None, "اسم السائق مطلوب."
+        if len(name) > 200:
+            return None, "اسم السائق أطول من الحد المسموح (200 حرف)."
         return {"kind": "text", "id": "", "name": name}, None
     ident = str(value.get("id") or "").strip()
     if kind == "personnel":
@@ -837,6 +839,8 @@ def add_post(data, day, name, number=None, driver_text=None):
     name = str(name or "").strip()
     if not name:
         return None, "اسم الارتكاز مطلوب.", 400
+    if len(name) > 200 or len(str(number or "").strip()) > 20 or len(str(driver_text or "").strip()) > 200:
+        return None, "بيانات الارتكاز أطول من الحد المسموح.", 400
     items = campaign_posts_on(data, day)
     existing = [{"id": item.get("id")} for versions in
                 ((data.get("reference_lists") or {}).get("campaign_posts") or [])
@@ -1417,7 +1421,7 @@ def build_campaign(data, day):
             break
 
     warnings = [
-        {"row": row["name"], "text": text}
+        {"row": _warning_name(row), "text": text}
         for row in all_rows
         for text in row["warnings"]
     ]
@@ -1436,9 +1440,13 @@ def build_campaign(data, day):
     for ident in sorted(removed_ids):
         assignment = assignments[ident]
         raw = (current.get("services") or {}).get(ident, {})
-        vehicles = service_vehicles(data, day, ident, include_empty_lorries=True)
-        item = next((entry for entry in vehicles if entry.get("source") == "direct"), None)
-        item = item or next(iter(vehicles), None)
+        # اسم مختلف عن `vehicles` (قايمة اختيار المركبات تحت): إعادة استخدام الاسم كانت بتمسحها
+        # أول ما يبقى فيه خدمة محذوفة، فالقوايم كلها بتفضى ومفيش رقم مركبة يظهر
+        # اسم مختلف عن `vehicles` (قايمة اختيار المركبات): إعادة استخدامه كانت بتمسحها
+        # أول ما يبقى فيه خدمة محذوفة، فمفيش رقم مركبة يظهر في أي قايمة
+        held = service_vehicles(data, day, ident, include_empty_lorries=True)
+        item = next((entry for entry in held if entry.get("source") == "direct"), None)
+        item = item or next(iter(held), None)
         vehicle = (item or {}).get("vehicle") or {}
         driver = ((item or {}).get("driver") or {}).get("name", "")
         plate = vehicle.get("plate") or (item or {}).get("plate") or ""
@@ -1503,7 +1511,10 @@ def _row_drivers(row):
 
 
 def _warning_name(row):
-    return row.get("base_name") or row.get("name", "")
+    """اسم الصف في التحذيرات. الارتكاز واللوري ممكن يشتركوا في الاسم («المديرية») فالارتكاز
+    بيتميّز بلاحقة، وإلا التحذير بيقول «مستخدمة في: المديرية» ومحدش عارف أنهي واحد."""
+    name = row.get("base_name") or row.get("name", "")
+    return f"{name} (ارتكاز)" if row.get("kind") == "post" else name
 
 
 def _warnings(rows):
@@ -1529,12 +1540,16 @@ def _warnings(rows):
                 same = [item for item in group if id(item) == row]
                 current = same[0]
                 others = list(dict.fromkeys(_warning_name(other) for other in group if id(other) != row))
-                if len(same) > 1:
-                    others.append(_warning_name(current))
                 adjective = "مستخدمة" if noun == "المركبة" else "مستخدم"
-                text = f"{noun} {adjective} أيضًا في: {'، '.join(others)}"
-                if text not in current["warnings"]:
-                    current["warnings"].append(text)
+                texts = []
+                if others:
+                    texts.append(f"{noun} {adjective} أيضًا في: {'، '.join(others)}")
+                if len(same) > 1:
+                    # نفس الصف مستخدم المركبة/السائق مرتين (سطرين في خدمة) — مش «أيضًا في» نفسه
+                    texts.append(f"{noun} مكررة داخل نفس الخدمة.")
+                for text in texts:
+                    if text not in current["warnings"]:
+                        current["warnings"].append(text)
     for row in rows:
         if row.get("kind") != "service":
             continue

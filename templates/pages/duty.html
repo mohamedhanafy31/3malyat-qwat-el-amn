@@ -11,6 +11,8 @@
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
       <button class="mini day-jump" id="dayToday">اليوم</button>
     </div>
+    {% set search_root = '#dutyBoard' %}{% include 'partials/page_search.html' %}
+
     <div class="tb-group tb-end"><button class="mini" id="announceMode" type="button" aria-pressed="false">إعلان الضباط</button><span id="announceCount" class="announce-count" hidden></span><span id="announceLegend" class="announce-legend" hidden>✓ تليفونيًا <span class="announce-square" aria-hidden="true"></span> برسالة</span><span id="balanceTag">{{ skeleton("status") }}</span></div>
   </div>
   <div id="restStrip"></div>

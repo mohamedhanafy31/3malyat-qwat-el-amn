@@ -11,6 +11,8 @@
       <button class="mini" id="dayNext">التالي {{ icon('chevron-next') }}</button>
       <button class="mini day-jump" id="dayToday">اليوم</button>
     </div>
+    {% set search_root = '#cntBlocks' %}{% include 'partials/page_search.html' %}
+
     <div class="tb-group tb-end" role="group" aria-label="القالب الدائم">
       <button class="mini" id="btnModeToggle">{{ icon('edit') }} تعديل القالب الدائم</button>
       <button class="mini hidden" id="btnReset">{{ icon('refresh') }} إلغاء تعديلات هذا اليوم</button>

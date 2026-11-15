@@ -291,7 +291,10 @@ async function api(url,opts){
   let r, timer, controller;
   const processToken=opts.noLoader?null:_beginProcess(method,opts.loadingLabel);
   try{
-    if(!mutation && _inflightGets.has(url)) _inflightGets.get(url).abort();
+    if(!mutation && _inflightGets.has(url)){
+      // طلب أحدث لنفس الرابط بيلغي القديم عن قصد — مش مهلة، فالقديم يرجع null بصمت
+      const older=_inflightGets.get(url); older._superseded=true; older.abort();
+    }
     controller=new AbortController();
     if(!mutation) _inflightGets.set(url,controller);
     const prior=opts.signal;
@@ -300,6 +303,7 @@ async function api(url,opts){
     r=await fetch(url,opts);
   }
   catch(e){
+    if(e?.name==="AbortError" && controller?._superseded) return null;
     if(e?.name==="AbortError") showToast(mutation?"انتهت مهلة الحفظ؛ حالة الحفظ غير معروفة، راجع اليومية قبل إعادة المحاولة.":"انتهت مهلة الطلب",true);
     else showToast("تعذر الاتصال بالخادم",true);
     return null
@@ -887,7 +891,7 @@ ACTIONS._showMore=(cid,extra)=>{
    غير كده بيفضل من غير overflow عشان رأسه يثبت تحت الترويسة وانت بتنزل في
    الصفحة — أي حاوية فيها overflow بتلغي الـsticky بالنسبة للصفحة. */
 function _syncTableScroll(){
-  $$(".table-scroll").forEach(w=>{
+  $$(".table-scroll, .mtable-wrap").forEach(w=>{
     w.classList.remove("is-wide");
     w.classList.toggle("is-wide",w.scrollWidth>w.clientWidth+1);
   });
@@ -1970,7 +1974,9 @@ function upgradeSelects(root) {
 
     inp.addEventListener("mousedown", e => {
       e.preventDefault();                       // من غير كده الفوكس بيسبق الفتح
-      _cbSel === sel ? _cbClose() : _cbOpen(sel);
+      // القايمة المفتوحة بالفعل (أوتوماتيك لما المودال يفتح) مابتتقفلش بالنقر على الحقل:
+      // القفل كان بيرجّع نص الخيار الفاضي («اختر…») جوّه الحقل فالكتابة بتتلزق عليه.
+      if (_cbSel !== sel) _cbOpen(sel);
       inp.focus();
     });
     // الحقل الحر محتاج نفس سلوك النقر مع التنقّل بالكيبورد: أول ما ياخد
@@ -2029,8 +2035,11 @@ function upgradeSelects(root) {
 
     // fillSelect() بيستبدل الـinnerHTML كله — الحقل لازم يتحدّث بعدها
     new MutationObserver(() => {
-      _cbSync(sel);
-      if (_cbSel === sel) _cbRender(_cbInput.value);
+      // لو القايمة مفتوحة الحقل فاضي للكتابة: ماننسخش نص الخيار الحالي فوقه
+      // (بعد fillSelect المودال بيفتح القايمة ثم المراقب كان بيكتب «اختر…» في الحقل).
+      if (_cbSel === sel && !sel.multiple) _cbRender(_cbInput.value);
+      else _cbSync(sel);
+      sel._comboInput.disabled = sel.disabled;
     }).observe(sel, {childList: true, attributes: true, attributeFilter: ["disabled"]});
   });
 }

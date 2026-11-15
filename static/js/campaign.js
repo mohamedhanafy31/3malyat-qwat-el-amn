@@ -14,6 +14,7 @@ let CAMPAIGN_DELIVERY_BANDS = new Map();
 let CAMPAIGN_MISSING_ONLY = false;
 let CAMPAIGN_UNDO = null;
 let CAMPAIGN_REMOVED_OPEN = false;
+let CAMPAIGN_DAY_STATUS = null;
 
 window.dailyFileDay = () => DAY;
 window.exportDocxUrl = () => `/api/campaign/${DAY}/export.docx`;
@@ -41,7 +42,7 @@ function setSaveState(state, detail = "") {
 function updateUndoControl() {
   const button = $("#campaignUndo");
   if (!button) return;
-  button.hidden = !CAMPAIGN_UNDO;
+  button.hidden = !CAMPAIGN_UNDO || !!CAMPAIGN_DAY_STATUS?.closed;
   button.disabled = CAMPAIGN_SAVE_PENDING > 0;
 }
 
@@ -97,14 +98,17 @@ async function campaignWrite(url, method, body = {}, options = {}) {
   setSaveState("saving");
   updateUndoControl();
   const run = async () => {
-    let errorText = "";
+    let errorText = "", errorCode = "";
     const out = await api(url, {
       ...jsonReq(method, {...body, revision: CAMPAIGN?.revision}),
       noLoader: !!options.noLoader,
-      onError(payload) { errorText = payload?.error || ""; return true; },
+      onError(payload) { errorText = payload?.error || ""; errorCode = payload?.code || ""; return true; },
     });
     if (!out) {
+      if (errorCode === "stale_revision") errorText = "تعدّلت اليومية من مكان آخر؛ حُدّثت الصفحة بآخر نسخة. أعد تعديلك.";
       CAMPAIGN_SAVE_ERROR = errorText || "لم يُحفظ التعديل. بقيت القيمة المكتوبة ظاهرة، وأُعيدت قراءة الحقيقة من الخادم.";
+      // الشريط الأحمر أعلى الصفحة ممكن يكون برّه الشاشة (وساعات المودال فوقه) — التنبيه لازم يظهر قدام المستخدم
+      showToast(CAMPAIGN_SAVE_ERROR, true);
       if (DAY === writeDay) await refreshTruth(writeDay, options.quietKey);
       return null;
     }
@@ -201,6 +205,27 @@ function lineMissing(row, field, lineIndex) {
   return missing.includes(`${field}:${lineIndex + 1}`) || (lineIndex === 0 && missing.includes(field));
 }
 
+// خدمة بأكتر من مركبة: كل سطر له تسمية مختلفة لقارئ الشاشة («… — مركبة 2») بدل تسميتين متطابقتين
+const lineSuffix = row => row?.lineCount > 1 && row.lineIndex !== undefined ? ` — مركبة ${row.lineIndex + 1}` : "";
+
+// مين بيستخدم كل مركبة دلوقتي (من غير الصف نفسه) عشان تظهر في قايمة الاختيار قبل ما التحذير يطلع بعد الحفظ
+function vehicleUsage(exceptId) {
+  const usage = new Map();
+  const add = (vehicleId, name) => {
+    if (!vehicleId) return;
+    if (!usage.has(vehicleId)) usage.set(vehicleId, new Set());
+    usage.get(vehicleId).add(name);
+  };
+  rowSets().forEach(row => {
+    if (row.id === exceptId) return;
+    const name = row.base_name || row.name;
+    if (row.kind === "service" || row.kind === "group") {
+      (row.vehicles || []).forEach(item => add(item.vehicle_id || item.vehicle?.id, name));
+    } else add(row.vehicle?.id, row.kind === "post" ? `${name} (ارتكاز)` : name);
+  });
+  return usage;
+}
+
 function driverOptions(row, options = {}) {
   const selected = row.driver?.kind && row.driver.kind !== "text" ? `${row.driver.kind}|${row.driver.id}` : "";
   const fullValue = driverDisplay(row.driver);
@@ -222,7 +247,7 @@ function driverOptions(row, options = {}) {
   const quiet = driverMissing ? " campaign-driver-gap" : " campaign-driver-quiet-empty";
   const line = options.lineIndex === undefined ? "" : ` data-service-line-index="${options.lineIndex}"`;
   const key = options.lineIndex === undefined ? controlKey(row, "driver") : `service:${row.id}:${options.lineIndex}:driver`;
-  return `<select class="campaign-inline-select campaign-driver-select${quiet}" data-driver-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" data-required-field="driver" data-combo-custom data-combo-custom-option="none" data-maxlength="200"${custom}${full} aria-label="السائق في ${esc(row.name)}">
+  return `<select class="campaign-inline-select campaign-driver-select${quiet}" data-driver-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" data-required-field="driver" data-combo-custom data-combo-custom-option="none" data-maxlength="200"${custom}${full} aria-label="السائق في ${esc(row.name)}${lineSuffix(row)}">
     <option value="">${esc(options.emptyLabel || "— بدون سائق —")}</option>${savedOption}${groups(personnel, "الأفراد السواقين", true)}${groups(conscripts, "المجندون", false)}</select>`;
 }
 
@@ -235,10 +260,15 @@ function vehicleOptions(row) {
   const choices = selectedVehicle && !available.some(vehicle => vehicle.id === selected)
     ? [selectedVehicle, ...available] : available;
   const noMatches = type && !available.length;
+  const usage = vehicleUsage(row.id);
+  const usedIn = vehicle => {
+    const names = [...(usage.get(vehicle.id) || [])];
+    return names.length ? ` — مستخدمة في ${names.slice(0, 2).join("، ")}${names.length > 2 ? "…" : ""}` : "";
+  };
   const line = row.lineIndex === undefined ? "" : ` data-service-line-index="${row.lineIndex}"`;
   const key = row.lineIndex === undefined ? controlKey(row, "vehicle") : `service:${row.id}:${row.lineIndex}:vehicle`;
-  return `<select class="campaign-inline-select" data-vehicle-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" data-required-field="vehicle" aria-label="رقم المركبة في ${esc(row.name)}">
-    <option value="">اختر مركبة</option>${noMatches ? `<option disabled>لا توجد مركبات من هذا النوع</option>` : ""}${choices.map(vehicle => `<option value="${esc(vehicle.id)}"${vehicle.id === selected ? " selected" : ""}${vehicle.status === "disabled" ? " data-disabled=" + JSON.stringify(true) : ""}>${esc(vehicle.label)}${vehicle.status === "disabled" ? " (معطلة)" : ""}</option>`).join("")}</select>`;
+  return `<select class="campaign-inline-select" data-vehicle-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" data-required-field="vehicle" aria-label="رقم المركبة في ${esc(row.name)}${lineSuffix(row)}">
+    <option value="">اختر مركبة</option>${noMatches ? `<option disabled>لا توجد مركبات من هذا النوع</option>` : ""}${choices.map(vehicle => `<option value="${esc(vehicle.id)}"${vehicle.id === selected ? " selected" : ""}${vehicle.status === "disabled" ? " data-disabled=" + JSON.stringify(true) : ""}>${esc(vehicle.label)}${vehicle.status === "disabled" ? " (معطلة)" : ""}${vehicle.id === selected ? "" : esc(usedIn(vehicle))}</option>`).join("")}</select>`;
 }
 
 function vehicleTypeOptions(row) {
@@ -246,7 +276,7 @@ function vehicleTypeOptions(row) {
   const selected = CAMPAIGN_TYPE_FILTERS.get(filterKey) ?? row.vehicle?.type ?? "";
   const line = row.lineIndex === undefined ? "" : ` data-service-line-index="${row.lineIndex}"`;
   const key = row.lineIndex === undefined ? controlKey(row, "type") : `service:${row.id}:${row.lineIndex}:type`;
-  return `<select class="campaign-inline-select" data-type-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" aria-label="نوع المركبة في ${esc(row.name)}">
+  return `<select class="campaign-inline-select" data-type-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" aria-label="نوع المركبة في ${esc(row.name)}${lineSuffix(row)}">
     <option value="">اختر النوع</option>${(CAMPAIGN.pickers?.types || []).map(type => `<option value="${esc(type)}"${type === selected ? " selected" : ""}>${esc(type)}</option>`).join("")}</select>`;
 }
 
@@ -310,7 +340,8 @@ function serviceCampaignRow(row) {
   const removeService = `<button type="button" class="mini btn-xs campaign-service-secondary" data-action="removeCampaignService" data-id="${esc(row.id)}">إزالة من اليومية</button>`;
   const lineItems = stored.length ? stored : [{vehicle: row.vehicle, vehicle_id: row.vehicle?.id || "", driver: row.driver}];
   const editable = !carriedOnly ? lineItems.map((item, index) => ({...item, id: row.id, name: row.name,
-    missing: row.missing || [], lineIndex: index, vehicle: item.vehicle || null, driver: item.driver || null})) : [];
+    missing: row.missing || [], lineIndex: index, lineCount: lineItems.length,
+    vehicle: item.vehicle || null, driver: item.driver || null})) : [];
   const addVehicle = carriedOnly ? "" : `<button type="button" class="mini btn-xs campaign-service-add-vehicle" data-action="addServiceVehicle" data-id="${esc(row.id)}">+ مركبة</button>`;
   const driverLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${driverOptions(line, {lineIndex: line.lineIndex})}</div>`).join("");
   const plateLines = editable.map(line => `<div class="campaign-inline-vehicle-line" dir="ltr">${vehicleOptions(line)}${(directVehicles[line.lineIndex]?.warnings || []).map(warning => `<span class="campaign-line-warning" dir="rtl">${esc(warning)}</span>`).join("")}</div>`).join("");
@@ -752,13 +783,18 @@ function scheduleNextGap(sourceKey) {
   setTimeout(() => {
     const controls = [...document.querySelectorAll("#campaignWrap [data-control-key]")];
     const index = controls.findIndex(control => control.dataset.controlKey === sourceKey);
-    const next = controls.slice(index + 1).find(control => {
+    const isGap = control => {
       if (control.dataset.controlKey === sourceKey) return false;
       if (!control.dataset.requiredField || control.closest("tr")?.hidden) return false;
       const row = rowByKey(control.closest("tr")?.dataset.rowKey || "");
       const lineIndex = control.dataset.serviceLineIndex;
       return lineMissing(row, control.dataset.requiredField, lineIndex === undefined ? undefined : Number(lineIndex));
-    });
+    };
+    // الأولوية لنقص تاني في نفس الصف حتى لو قبل الحقل الحالي (السائق قبل المركبة)،
+    // وبعدين أقرب نقص بعده — بدل ما نسيب سائق ناقص ونروح للصف اللي تحته
+    const sourceRow = controls[index]?.closest("tr");
+    const sameRow = sourceRow && controls.find(control => control.closest("tr") === sourceRow && isGap(control));
+    const next = sameRow || controls.slice(index + 1).find(isGap);
     focusControl(next?.dataset.controlKey || sourceKey, !next);
   }, 0);
 }
@@ -829,13 +865,43 @@ function render(options = {}) {
     (row.service_vehicles || []).some(item => item.source === "lorry")
   )).map(row => row.id));
   [...GROUP_SELECTION].forEach(id => { if (!selectable.has(id)) GROUP_SELECTION.delete(id); });
-  wrap.innerHTML = `<div id="campaignSaveError">${renderSaveError()}</div><div id="campaignOverall">${overallSummary()}</div><div id="campaignWarnings">${renderWarnings()}</div><div class="ledger-board"><div class="ledger-head"><h2>يومية الحملة</h2><div class="ledger-sub">${dayName(CAMPAIGN.date)} الموافق ${fmt(CAMPAIGN.date)}</div></div>${postCard()}${routesCard()}${dailyCard()}${platesCard()}</div>`;
+  wrap.innerHTML = `<div id="campaignClosedNote"></div><div id="campaignSaveError">${renderSaveError()}</div><div id="campaignOverall">${overallSummary()}</div><div id="campaignWarnings">${renderWarnings()}</div><div class="ledger-board"><div class="ledger-head"><h2>يومية الحملة</h2><div class="ledger-sub">${dayName(CAMPAIGN.date)} الموافق ${fmt(CAMPAIGN.date)}</div></div>${postCard()}${routesCard()}${dailyCard()}${platesCard()}</div>`;
   bindCampaign(wrap);
   restoreDrafts(drafts);
   if (scroll !== null) window.scrollTo({top: scroll, behavior: "instant"});
   restoreActive(active);
   applyMissingFilter();
+  applyReadOnly();
 }
+
+/* يوم مقفول (تلقائي بعد ١٢ بالليل أو يدوي): السيرفر بيرفض أي تعديل (409). بدل ما المستخدم يكتب
+   ويكتشف الرفض بعد الحفظ، الصفحة بتتحول للقراءة بس مع زرار الفتح الاستثنائي. */
+function applyReadOnly() {
+  const closed = !!CAMPAIGN_DAY_STATUS?.closed;
+  const board = document.querySelector("#campaignWrap .ledger-board");
+  if (board) board.toggleAttribute("inert", closed);
+  board?.classList.toggle("is-readonly", closed);
+  const note = $("#campaignClosedNote");
+  if (!note) return;
+  note.innerHTML = closed
+    ? `<div class="alert-card campaign-closed-note" role="status">${icon("lock")}
+        <span><b>اليوم مغلق للتعديل</b> — ${CAMPAIGN_DAY_STATUS.auto ? "أُغلق تلقائيًا الساعة 12 ليلًا" : "أُغلق يدويًا"}؛ الصفحة للقراءة فقط.</span>
+        <button type="button" class="mini" data-action="reopenCampaignDay">فتح استثنائي</button></div>`
+    : "";
+  updateUndoControl();
+}
+
+ACTIONS.reopenCampaignDay = async () => {
+  const reason = await reasonDialog({
+    title: "فتح اليومية استثنائيًا",
+    body: `سيُفتح يوم ${dayLabel(DAY)} للتعديل حتى نهاية اليوم الحالي فقط، وسيُسجَّل السبب في سجل التغييرات.`,
+    label: "سبب الفتح الاستثنائي", confirmLabel: "فتح اليوم",
+  });
+  if (!reason) return;
+  if (!(await api(`/api/day-status/${DAY}/reopen`, jsonReq("POST", {reason})))) return;
+  showToast("فُتح اليوم — حتى نهاية اليوم");
+  loadDayStatus();
+};
 
 function parsePlates(value) {
   return value.split(/\n/).map(line => line.split(/[ ,،]+/)
@@ -931,8 +997,11 @@ function openServiceVehicles(row) {
   renderEditor(); openModal("campaignServiceVehiclesModal");
 }
 
+let CAMPAIGN_LOAD_SEQ = 0;
 async function loadDay(day) {
+  const seq = ++CAMPAIGN_LOAD_SEQ;
   const out = await api(`/api/campaign/${day}`);
+  if (seq !== CAMPAIGN_LOAD_SEQ) return;          // اتطلب يوم أحدث بعده — ماننزّلش رد قديم فوقه
   if (!out) { UI.regionError("#campaignWrap", {message:"تعذر تحميل يومية الحملة.", retry:()=>loadDay(day)}); return; }
   UI.regionReady("#campaignWrap");
   const changingDay = DAY !== null && DAY !== day;
@@ -947,6 +1016,7 @@ async function loadDay(day) {
     $("#campaignMissingOnly").checked = false;
     CAMPAIGN_PLATES_DRAFT = null;
     CAMPAIGN_SAVE_ERROR = "";
+    CAMPAIGN_DAY_STATUS = null;
     clearUndo();
   }
   DAY = day;
@@ -962,7 +1032,9 @@ async function loadDay(day) {
 async function loadDayStatus() {
   const status = await api(`/api/day-status/${DAY}`);
   if (!status) return;
-  $("#dayLockBadge").innerHTML = status.closed ? `<span class="chip err">${icon("lock")} مغلق${status.auto ? " (تلقائي)" : ""}</span>` : status.stage === "not_open" ? `<span class="chip w">${icon("clock")} لم يُفتح بعد</span>` : `<span class="chip on"><span class="status-dot ok"></span> مفتوح</span>`;
+  CAMPAIGN_DAY_STATUS = status;
+  applyReadOnly();
+  $("#dayLockBadge").innerHTML = status.closed ? `<span class="chip err">${icon("lock")} مغلق${status.auto ? " (تلقائي)" : ""}</span>` : status.reopened ? `<span class="chip taq" title="الفتح الاستثنائي صالح لليوم فقط">${icon("unlock")} مفتوح استثنائيًا اليوم</span>` : status.stage === "not_open" ? `<span class="chip w">${icon("clock")} لم يُفتح بعد</span>` : `<span class="chip on"><span class="status-dot ok"></span> مفتوح</span>`;
 }
 
 function openAttach(lorryId) {
@@ -1115,6 +1187,9 @@ async function navigateDay(day) {
     $("#dutyDate").value = DAY;
     return;
   }
+  // اليوم المطلوب يظهر في الخانة فورًا: النقرات السريعة (السابق ×3) كانت كلها بتحسب من اليوم
+  // القديم فتضيع ضغطتين
+  $("#dutyDate").value = day;
   await loadDay(day);
 }
 

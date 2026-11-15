@@ -535,7 +535,7 @@ FIXED_SLOT_NAMES = {
 }
 
 
-def set_slot_officers(data, day, section, shift, officer_ids):
+def set_slot_officers(data, day, section, shift, officer_ids, periods=None):
     """بيعيّن (أو يشيل) الضابط في خانة فترة معيّنة من كتلة ثابتة (ضابط
     عظيم الإدارة/الأمن/المعسكر الفرعي) — نفس فكرة `set_target_officers`
     بالظبط، بس المفتاح هنا (قسم، فترة) مش اسم، لأن كل قسم من التلاتة
@@ -554,9 +554,20 @@ def set_slot_officers(data, day, section, shift, officer_ids):
     if shift not in SHIFTS:
         return None, "الفترة غير صحيحة.", 400
 
-    ids, err, status = clean_people(data, day, officer_ids, "officers")
-    if err:
-        return None, err, status
+    # تقسيم الفترة بين ضابطين بالوقت («حتى 4م» / «من 4م») زي الأهداف —
+    # للمعسكر الفرعي بس.
+    if periods and section != SECTION_SUBCAMP:
+        return None, "التقسيم بالوقت خاص بالأهداف والمعسكر الفرعي فقط.", 400
+    if periods:
+        periods, ids, err, status = clean_periods(data, day, periods)
+        if err:
+            return None, err, status
+        if officer_ids is not None and set(clean_people(data, day, officer_ids, "officers")[0] or []) != set(ids):
+            return None, "الضباط المختارون لا يطابقون فترات الخانة.", 400
+    else:
+        ids, err, status = clean_people(data, day, officer_ids, "officers")
+        if err:
+            return None, err, status
 
     entries = for_day(data, day)
     row = next((r for r in entries
@@ -575,6 +586,10 @@ def set_slot_officers(data, day, section, shift, officer_ids):
                     counts_in_summary=(section != SECTION_SUBCAMP))
         entries.append(row)
     row["officer_ids"] = ids
+    if periods or periods == []:
+        set_periods(row, periods)
+    elif row.get("periods") and not valid_periods(row):
+        set_periods(row, [])
     return row, None, None
 
 

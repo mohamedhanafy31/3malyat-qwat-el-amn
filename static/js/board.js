@@ -77,6 +77,7 @@ function targetSlotRow(row) {
    فكرة الأهداف بالظبط بس من غير عمود قائد ثابت: اسم القسم نفسه ثابت
    وواحد على الصفّين، فالعمود المتغيّر هو الفترة (صباحية/ليلية) بس. */
 const SLOT_HEAD = ["الخدمة", "القائم بها", "الإجراء"];
+const SUBCAMP_SECTION = "ضابط عظيم وأمن المعسكر الفرعي";   // الكتلة الوحيدة اللي بتقبل تقسيم الفترة بالوقت
 
 function slotRow(row, sectionName) {
   // الضابط المربوط بالسيستم أولًا؛ نص الورقة المستوردة بس لو مفيش ضابط مربوط
@@ -89,7 +90,7 @@ function slotRow(row, sectionName) {
     <td class="col-actions"><div class="actions">
       <button class="mini${row.vacant ? " ok" : ""}" data-action="openSlotAssign"
         data-id="${esc(sectionName)}"
-        data-extra="${dataAttr({shift: row.shift, officers: row.officers})}"
+        data-extra="${dataAttr({shift: row.shift, officers: row.officers, periods: row.periods || []})}"
       >${row.vacant ? "تعيين" : "تعديل"}</button>
     </div></td></tr>`;
 }
@@ -839,7 +840,7 @@ $("#entryForm").onsubmit = async e => {
    فمودال منفصل صغير بدل مودال الخانة العام (مالوش تصنيف ولا قوام).
    المودال والفورم متشاركين بين الاتنين، والفرق بس نقطة الحفظ
    (`#tgEndpoint`) وظهور ملاحظة قائد الهدف. */
-function _openAssignModal(endpoint, title, extra, showCommanderNote) {
+function _openAssignModal(endpoint, title, extra, showCommanderNote, allowSplit = showCommanderNote) {
   const roster = BOARD.roster || {officers: []};
   const current = (extra.officers || []).filter(c => !roster.officers.some(p => p.id === c.id));
   $("#tgEndpoint").value = endpoint;
@@ -847,8 +848,8 @@ function _openAssignModal(endpoint, title, extra, showCommanderNote) {
   $("#tgCommanderNote").classList.toggle("hidden", !showCommanderNote);
   const choices = [...roster.officers, ...current];
   fillMulti($("#tgOfficers"), choices, (extra.officers || []).map(o => o.id));
-  // تقسيم التغطية بالوقت للأهداف بس (مش الكتل الثابتة)
-  $("#tgSplitWrap").classList.toggle("hidden", !showCommanderNote);
+  // تقسيم التغطية بالوقت للأهداف والمعسكر الفرعي بس (مش ضابط عظيم/أمن الإدارة)
+  $("#tgSplitWrap").classList.toggle("hidden", !allowSplit);
   const [first, second] = extra.periods || [];
   const pick = (el, chosen) => {
     el.innerHTML = choices.map(p =>
@@ -879,7 +880,7 @@ ACTIONS.openTargetAssign = (name, extra) => openTargetAssign(name, extra);
 function openSlotAssign(section, extra) {
   _openAssignModal(
     `/api/board/${DAY}/slot/${encodeURIComponent(section)}/${encodeURIComponent(extra.shift)}`,
-    `تعيين «${section}» (${extra.shift})`, extra, false);
+    `تعيين «${section}» (${extra.shift})`, extra, false, section === SUBCAMP_SECTION);
 }
 ACTIONS.openSlotAssign = (section, extra) => openSlotAssign(section, extra);
 

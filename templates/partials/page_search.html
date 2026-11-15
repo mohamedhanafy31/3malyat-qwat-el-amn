@@ -1,0 +1,15 @@
+{# بحث داخل اليومية: شريط لازق + قائمة نتائج + تلوين الصفوف. المتغير search_root = محدد الحاوية. #}
+<div class="tb-group page-search" role="search" data-page-search data-search-root="{{ search_root }}">
+  <div class="page-search-box">
+    <label class="page-search-field">
+      <span class="sr-only">بحث في اليومية</span>
+      {{ icon('search') }}
+      <input type="search" class="page-search-input" placeholder="ابحث بالاسم أو الخدمة أو التشغيل   ( / )" autocomplete="off" spellcheck="false" aria-label="بحث في اليومية" aria-expanded="false">
+    </label>
+    <span class="page-search-count" role="status" aria-live="polite" hidden></span>
+    <button type="button" class="mini page-search-prev" aria-label="النتيجة السابقة" title="السابق (Shift+Enter)" hidden>{{ icon('chevron-up') }}</button>
+    <button type="button" class="mini page-search-next" aria-label="النتيجة التالية" title="التالي (Enter)" hidden>{{ icon('chevron-down') }}</button>
+    <label class="page-search-filter" hidden><input type="checkbox"> المطابق فقط</label>
+    <div class="page-search-list" role="listbox" aria-label="نتائج البحث" hidden></div>
+  </div>
+</div>

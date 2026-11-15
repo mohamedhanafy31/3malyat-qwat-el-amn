@@ -345,7 +345,7 @@ body.sidebar-open{overflow:hidden}
 
 @media(max-width:1280px){
   #dutyBar,.ops-toolbar{align-items:flex-start;flex-wrap:wrap}
-  #dutyBar .tb-end{margin-inline-start:auto}
+  .reg-scroll{max-width:100%;overflow-x:auto}   /* .table-scroll و.mtable-wrap بيتمرروا بس لو .is-wide (core.js) عشان الرأس اللاصق */
   .table-scroll,.mtable-wrap,.reg-scroll{max-width:100%;overflow-x:auto}
 }
 .campaign-removed-services{margin-top:var(--s3);border:1px solid var(--line);border-radius:var(--radius-sm);padding:var(--s3);background:var(--surface)}
@@ -712,3 +712,12 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
 .ls-legend-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-700)}
 .ls-legend-val{font-weight:700;color:var(--navy-900);font-size:var(--t-cap);min-width:28px;
   text-align:start;font-variant-numeric:tabular-nums}
+
+/* يومية الحملة: صف المجموعة كان بيحط «تسمية» و«فك التجميع» جنب بعض فيوسّع عمود الإجراء ويطلّع الجدول برّه الكارت */
+.campaign-group-row .row-actions{flex-direction:column;align-items:stretch}
+.campaign-group-row .row-actions .mini{justify-content:center;white-space:nowrap}
+.campaign-closed-note{display:flex;align-items:center;gap:var(--s3);margin:0 0 var(--s3);padding:var(--s3) var(--s4);
+  background:var(--warn-50);border:1px solid var(--warn-300);color:var(--warn-800)}
+.campaign-closed-note span{flex:1}
+.ledger-board.is-readonly{opacity:.92}
+.ledger-board.is-readonly select,.ledger-board.is-readonly input,.ledger-board.is-readonly textarea{cursor:not-allowed}

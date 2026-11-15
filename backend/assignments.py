@@ -31,7 +31,7 @@
 """
 from .constants import (
     SECTION_ADMIN_WORK, SECTION_NET, SECTION_OCCASIONAL, SECTION_OUTSIDERS, SECTION_RESTS,
-    SECTION_TAQSEERA, SECTION_TARGETS, SECTION_PRISON, SERVICE_KINDS, SHIFTS, TARGET_NAMES,
+    SECTION_SUBCAMP, SECTION_TAQSEERA, SECTION_TARGETS, SECTION_PRISON, SERVICE_KINDS, SHIFTS, TARGET_NAMES,
     TARGETS_FIRST,
 )
 from .text import norm
@@ -497,8 +497,8 @@ def apply_assignment(data, day, row, payload):
         periods, ids, err, status = clean_periods(data, day, payload["periods"])
         if err:
             return None, err, status
-        if periods and row.get("section") != SECTION_TARGETS:
-            return None, "التقسيم بالوقت خاص بالأهداف فقط.", 400
+        if periods and row.get("section") not in (SECTION_TARGETS, SECTION_SUBCAMP):
+            return None, "التقسيم بالوقت خاص بالأهداف والمعسكر الفرعي فقط.", 400
         if periods and "officer_ids" in payload and set(row.get("officer_ids") or []) != set(ids):
             return None, "الضباط المختارون لا يطابقون فترات الهدف.", 400
         if periods:
