@@ -1826,7 +1826,22 @@
         "vehicle_id": ""
       }
     },
-    "services": {},
+    "services": {
+      "AS-0023": {
+        "vehicles": [
+          {
+            "vehicle_id": "",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "officer_ids": [
+              "OFF-010"
+            ]
+          }
+        ],
+        "driver": {}
+      }
+    },
     "daily": {}
   }
 }

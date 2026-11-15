@@ -14337,7 +14337,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 9209,
+    "CHG": 9215,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -123287,6 +123287,126 @@
       },
       "reason": "",
       "edited_by": "Mohamed Hanafy"
+    },
+    {
+      "id": "CHG-9210",
+      "ts": "2026-11-15T03:20:25",
+      "entity": "officer_state",
+      "entity_id": "OFF-038",
+      "action": "update",
+      "day": null,
+      "text": "اسماعيل محمد عبدالسلام عيسي في يومية 2026-11-15: إعلان الضابط اسماعيل محمد عبدالسلام عيسي تليفونيًا",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "حتى 4 م"
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "حتى 4 م",
+        "announced": "phone"
+      },
+      "reason": "يوم 2026-11-15",
+      "edited_by": "adminstrator"
+    },
+    {
+      "id": "CHG-9211",
+      "ts": "2026-11-15T03:20:39",
+      "entity": "officer_state",
+      "entity_id": "OFF-038",
+      "action": "update",
+      "day": null,
+      "text": "اسماعيل محمد عبدالسلام عيسي في يومية 2026-11-15: إعلان الضابط اسماعيل محمد عبدالسلام عيسي برسالة",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "حتى 4 م",
+        "announced": "phone"
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "حتى 4 م",
+        "announced": "message"
+      },
+      "reason": "يوم 2026-11-15",
+      "edited_by": "adminstrator"
+    },
+    {
+      "id": "CHG-9212",
+      "ts": "2026-11-15T03:20:53",
+      "entity": "officer_state",
+      "entity_id": "OFF-016",
+      "action": "update",
+      "day": null,
+      "text": "عبدالرحمن رفعت الحسيني اسماعيل في يومية 2026-11-15: إعلان الضابط عبدالرحمن رفعت الحسيني اسماعيل تليفونيًا",
+      "before": {},
+      "after": {
+        "announced": "phone"
+      },
+      "reason": "يوم 2026-11-15",
+      "edited_by": "adminstrator"
+    },
+    {
+      "id": "CHG-9213",
+      "ts": "2026-11-15T03:21:01",
+      "entity": "officer_state",
+      "entity_id": "OFF-038",
+      "action": "update",
+      "day": null,
+      "text": "اسماعيل محمد عبدالسلام عيسي في يومية 2026-11-15: إلغاء إعلان الضابط اسماعيل محمد عبدالسلام عيسي",
+      "before": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "حتى 4 م",
+        "announced": "message"
+      },
+      "after": {
+        "taqseera": false,
+        "status": "",
+        "note": "",
+        "extra": "حتى 4 م"
+      },
+      "reason": "يوم 2026-11-15",
+      "edited_by": "adminstrator"
+    },
+    {
+      "id": "CHG-9214",
+      "ts": "2026-11-15T03:21:04",
+      "entity": "officer_state",
+      "entity_id": "OFF-016",
+      "action": "update",
+      "day": null,
+      "text": "عبدالرحمن رفعت الحسيني اسماعيل في يومية 2026-11-15: إعلان الضابط عبدالرحمن رفعت الحسيني اسماعيل برسالة",
+      "before": {
+        "announced": "phone"
+      },
+      "after": {
+        "announced": "message"
+      },
+      "reason": "يوم 2026-11-15",
+      "edited_by": "adminstrator"
+    },
+    {
+      "id": "CHG-9215",
+      "ts": "2026-11-15T03:21:05",
+      "entity": "officer_state",
+      "entity_id": "OFF-016",
+      "action": "update",
+      "day": null,
+      "text": "عبدالرحمن رفعت الحسيني اسماعيل في يومية 2026-11-15: إلغاء إعلان الضابط عبدالرحمن رفعت الحسيني اسماعيل",
+      "before": {
+        "announced": "message"
+      },
+      "after": {},
+      "reason": "يوم 2026-11-15",
+      "edited_by": "adminstrator"
     }
   ],
   "missions": [],
