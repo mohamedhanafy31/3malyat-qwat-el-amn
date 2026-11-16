@@ -39032,3 +39032,15 @@ PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\
 2026-11-15 23:22:27,341 INFO daily_files.generated
 2026-11-16 00:01:23,769 INFO GET /officers 200
 2026-11-16 00:01:24,002 INFO GET /api/bootstrap/officers 200
+2026-11-16 01:14:08,400 INFO GET /officers 200
+2026-11-16 01:14:08,820 INFO GET /api/bootstrap/officers 200
+2026-11-16 01:14:12,248 INFO GET /campaign 200
+2026-11-16 01:14:12,621 INFO GET /api/bootstrap/campaign 200
+2026-11-16 01:14:13,381 INFO GET /api/campaign/2026-11-16 200
+2026-11-16 01:14:13,557 INFO GET /api/day-status/2026-11-16 200
+2026-11-16 01:15:06,942 INFO backup.pruned
+2026-11-16 01:15:06,943 INFO backup.created
+2026-11-16 01:15:07,046 INFO store.save
+2026-11-16 01:15:07,061 WARNING PUT /api/campaign/2026-11-16/service/AS-0022 200
+2026-11-16 01:15:19,092 INFO daily_files.generated
+2026-11-16 01:15:21,277 INFO GET /api/health/ready 200
