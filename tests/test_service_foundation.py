@@ -31,6 +31,20 @@ def test_archive_times_and_round_trips():
         assert parse_time(printed) == value
 
 
+def test_canonical_clock_values_keep_24_hour_meaning_and_legacy_shorthand():
+    for hour in range(1, 7):
+        assert parse_time(f"{hour:02d}:00") == f"{hour:02d}:00"
+        assert parse_time(f"{hour + 12:02d}:00") == f"{hour + 12:02d}:00"
+        assert parse_time(str(hour)) == f"{hour + 12:02d}:00"
+    for hour in range(7, 12):
+        assert parse_time(f"{hour:02d}:00") == f"{hour:02d}:00"
+        assert parse_time(str(hour)) == f"{hour:02d}:00"
+    assert parse_time("00:00") == "00:00"
+    assert parse_time("12:00") == "12:00"
+    assert parse_time("24:00") is None
+    assert parse_time("12:60") is None
+
+
 def test_all_observed_archive_shapes_are_literal_regression_inputs():
     assignments = [
         "", "0ص", "1 ظ", "1.30 ظ", "1.30 م", "1.5 م", "10", "10 ص", "10.30 ص",

@@ -23,8 +23,8 @@ def test_service_line_crud_returns_expanded_members_and_delete_keeps_catalog(cli
     assert created.status_code == 201
     line = created.get_json()
     assert line["id"].startswith("LN-") and line["members"][0]["id"] == service["id"]
-    edited = client.patch(f"/api/service-lines/{line['id']}", json={"name": "خط فيصل المعدل", "depart_am": "09:30"})
-    assert edited.status_code == 200 and edited.get_json()["depart_am"] == "09:30"
+    edited = client.patch(f"/api/service-lines/{line['id']}", json={"name": "خط فيصل المعدل", "depart_am": "01:00"})
+    assert edited.status_code == 200 and edited.get_json()["depart_am"] == "01:00"
     assert client.delete(f"/api/service-lines/{line['id']}").get_json() == {"ok": True}
     assert client.get("/api/service-catalog").get_json()["entries"][0]["id"] == service["id"]
 

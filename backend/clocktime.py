@@ -23,7 +23,12 @@ def _minutes(hour, minute, suffix):
 
 def parse_time(text):
     """يرجع HH:MM. الرقم المجرد 1-6 مساءً، و7-11 صباحًا، و12 ظهرًا."""
-    match = _TIME.search(str(text or "").translate(_DIGITS))
+    value = str(text or "").translate(_DIGITS).strip()
+    canonical = re.fullmatch(r"(\d{2}):(\d{2})", value)
+    if canonical:
+        hour, minute = map(int, canonical.groups())
+        return value if hour <= 23 and minute <= 59 else None
+    match = _TIME.search(value)
     if not match:
         return None
     total = _minutes(int(match.group(1)), int(match.group(2) or 0), match.group(3))

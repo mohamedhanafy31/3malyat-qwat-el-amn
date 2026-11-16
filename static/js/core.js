@@ -1506,6 +1506,13 @@ upgradeDateInputs();
    بتتسجل canonical في data.hhmm عشان الطلبات ما تعتمدش على صياغة العرض. */
 function parseTimeAr(text){
   const value=String(text??"").replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x660));
+  // HH:MM is the canonical value sent by the picker; do not run it through
+  // the archive shorthand rule that treats a bare 1–6 as evening.
+  const canonical=value.match(/^(\d{2}):(\d{2})$/);
+  if(canonical){
+    const hour=Number(canonical[1]), minute=Number(canonical[2]);
+    return hour<=23&&minute<=59?`${canonical[1]}:${canonical[2]}`:null;
+  }
   const match=value.match(/(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(ص|ظ|م|ليل)?/);
   if(!match) return null;
   const hour=Number(match[1]), minute=Number(match[2]||0), suffix=match[3]||"";
@@ -1546,8 +1553,7 @@ let _tpInput=null, _tpDraft=null;
 function _tpClose(){timePopover.classList.add("hidden");_tpInput=null;_tpDraft=null}
 function _tpCanonical(d){
   let h=d.hour%12;
-  if(d.period==="am") h=d.hour===12?12:h;
-  else h=d.hour===12?0:h+12;
+  if(d.period==="pm") h+=12;
   return `${String(h).padStart(2,"0")}:${String(d.minute).padStart(2,"0")}`;
 }
 function _tpDraftFromInput(input){
