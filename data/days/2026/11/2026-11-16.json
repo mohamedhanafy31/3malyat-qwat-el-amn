@@ -238,7 +238,7 @@
       "kind": "خارجية",
       "shift": "ليلية",
       "officer_ids": [
-        "OFF-041"
+        "OFF-013"
       ],
       "personnel_ids": [],
       "conscripts": [],
@@ -300,7 +300,7 @@
     {
       "id": "AS-0014",
       "section": "الخدمات أساسية",
-      "name": "الحي الحكومي صبح",
+      "name": "الحي الحكومي",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [
@@ -326,9 +326,11 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [
-        "OFF-036"
+        "OFF-043"
       ],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-163"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -353,27 +355,7 @@
       "kind": "داخلية",
       "shift": "صباحية",
       "officer_ids": [
-        "OFF-028"
-      ],
-      "personnel_ids": [],
-      "conscripts": [],
-      "conscript_count": 0,
-      "weapon": "",
-      "time": "",
-      "party": "",
-      "counts_in_summary": false,
-      "mission_transport": false,
-      "officer_command_required": false,
-      "personnel_command_required": false,
-      "note": ""
-    },
-    {
-      "id": "AS-0017",
-      "section": "ضابط عظيم وأمن المعسكر الفرعي",
-      "name": "نوبتجي المعسكر الفرعي",
-      "kind": "داخلية",
-      "shift": "ليلية",
-      "officer_ids": [
+        "OFF-028",
         "OFF-013"
       ],
       "personnel_ids": [],
@@ -386,7 +368,49 @@
       "mission_transport": false,
       "officer_command_required": false,
       "personnel_command_required": false,
-      "note": ""
+      "note": "",
+      "periods": [
+        {
+          "officer_id": "OFF-028",
+          "until": "16:00"
+        },
+        {
+          "officer_id": "OFF-013",
+          "from": "16:00"
+        }
+      ]
+    },
+    {
+      "id": "AS-0017",
+      "section": "ضابط عظيم وأمن المعسكر الفرعي",
+      "name": "نوبتجي المعسكر الفرعي",
+      "kind": "داخلية",
+      "shift": "ليلية",
+      "officer_ids": [
+        "OFF-013",
+        "OFF-036"
+      ],
+      "personnel_ids": [],
+      "conscripts": [],
+      "conscript_count": 0,
+      "weapon": "",
+      "time": "",
+      "party": "",
+      "counts_in_summary": false,
+      "mission_transport": false,
+      "officer_command_required": false,
+      "personnel_command_required": false,
+      "note": "",
+      "periods": [
+        {
+          "officer_id": "OFF-013",
+          "until": "21:00"
+        },
+        {
+          "officer_id": "OFF-036",
+          "from": "21:00"
+        }
+      ]
     },
     {
       "id": "AS-0018",
@@ -395,7 +419,7 @@
       "kind": "داخلية",
       "shift": "ليلية",
       "officer_ids": [
-        "OFF-043"
+        "OFF-015"
       ],
       "personnel_ids": [],
       "conscripts": [],
@@ -416,7 +440,7 @@
       "kind": "داخلية",
       "shift": "ليلية",
       "officer_ids": [
-        "OFF-043"
+        "OFF-015"
       ],
       "personnel_ids": [],
       "conscripts": [],
@@ -502,7 +526,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-142"
+      ],
       "conscripts": [],
       "conscript_count": 0,
       "weapon": "كلبش",
@@ -524,7 +550,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
       "party": "ملعب  الجباليات",
@@ -544,7 +570,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
       "party": "ملعب ش التوفيق",
@@ -564,7 +590,7 @@
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
-      "conscript_count": 5,
+      "conscript_count": 3,
       "weapon": "عصا",
       "time": "1م",
       "party": "ملعب منتخب السويس",
@@ -582,9 +608,11 @@
       "kind": "خارجية",
       "shift": "ليلية",
       "officer_ids": [
-        "OFF-015"
+        "OFF-048"
       ],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-040"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -609,17 +637,19 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-137"
+      ],
       "conscripts": [
         {
           "class": "وحدة",
-          "count": 0
+          "count": 1
         }
       ],
-      "conscript_count": 0,
+      "conscript_count": 10,
       "weapon": "فض",
-      "time": "8ص",
-      "party": "مدينة الملك عبدالله",
+      "time": "7ص",
+      "party": "امام سرادق المقام بمدينة الملك عبدالله",
       "counts_in_summary": true,
       "mission_transport": false,
       "officer_command_required": false,
@@ -634,7 +664,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-114"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -650,7 +682,7 @@
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 7
+      "pos": 12
     },
     {
       "id": "AS-0031",
@@ -659,7 +691,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-130"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -675,7 +709,7 @@
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 8
+      "pos": 11
     },
     {
       "id": "AS-0032",
@@ -684,7 +718,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-051"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -700,7 +736,7 @@
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 9
+      "pos": 10
     },
     {
       "id": "AS-0033",
@@ -709,7 +745,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-191"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -718,14 +756,14 @@
       ],
       "conscript_count": 2,
       "weapon": "آلي",
-      "time": "7ص",
+      "time": "8ص",
       "party": "عتاقة",
       "counts_in_summary": true,
       "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 10
+      "pos": 8
     },
     {
       "id": "AS-0034",
@@ -734,7 +772,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-040"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -743,14 +783,14 @@
       ],
       "conscript_count": 2,
       "weapon": "آلي",
-      "time": "7ص",
+      "time": "8ص",
       "party": "السويس",
       "counts_in_summary": true,
       "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 11
+      "pos": 9
     },
     {
       "id": "AS-0035",
@@ -759,7 +799,9 @@
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
-      "personnel_ids": [],
+      "personnel_ids": [
+        "IND-124"
+      ],
       "conscripts": [
         {
           "class": "مج",
@@ -775,7 +817,7 @@
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
-      "pos": 12
+      "pos": 7
     }
   ],
   "officer_states": {
@@ -825,13 +867,13 @@
       "taqseera": false,
       "status": "",
       "note": "",
-      "extra": "متابعة اعمال الامن والحملة حتي 4م",
+      "extra": "متابعة اعمال الامن والحملة",
       "admin_work": true
     }
   },
   "confirm": {
-    "at": "2026-11-15T23:04:00",
-    "by": "Mohamed Hanafy",
+    "at": "2026-11-16T21:53:45",
+    "by": "3malyat_admin",
     "rows": [
       {
         "id": "AS-0001",
@@ -1133,7 +1175,7 @@
       {
         "id": "AS-0014",
         "section": "الخدمات أساسية",
-        "name": "الحي الحكومي صبح",
+        "name": "الحي الحكومي",
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [
@@ -1161,7 +1203,9 @@
         "officer_ids": [
           "OFF-036"
         ],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-163"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1335,7 +1379,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-142"
+        ],
         "conscripts": [],
         "conscript_count": 0,
         "weapon": "كلبش",
@@ -1357,7 +1403,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب  الجباليات",
@@ -1377,7 +1423,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب ش التوفيق",
@@ -1397,7 +1443,7 @@
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
-        "conscript_count": 5,
+        "conscript_count": 3,
         "weapon": "عصا",
         "time": "1م",
         "party": "ملعب منتخب السويس",
@@ -1415,9 +1461,11 @@
         "kind": "خارجية",
         "shift": "ليلية",
         "officer_ids": [
-          "OFF-015"
+          "OFF-013"
         ],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-040"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1442,17 +1490,19 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-137"
+        ],
         "conscripts": [
           {
             "class": "وحدة",
-            "count": 0
+            "count": 1
           }
         ],
-        "conscript_count": 0,
+        "conscript_count": 10,
         "weapon": "فض",
-        "time": "8ص",
-        "party": "مدينة الملك عبدالله",
+        "time": "7ص",
+        "party": "امام سرادق المقام بمدينة الملك عبدالله",
         "counts_in_summary": true,
         "mission_transport": false,
         "officer_command_required": false,
@@ -1467,7 +1517,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-114"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1483,7 +1535,7 @@
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 7
+        "pos": 12
       },
       {
         "id": "AS-0031",
@@ -1492,7 +1544,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-130"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1508,7 +1562,7 @@
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 8
+        "pos": 11
       },
       {
         "id": "AS-0032",
@@ -1517,7 +1571,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-051"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1533,7 +1589,7 @@
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 9
+        "pos": 10
       },
       {
         "id": "AS-0033",
@@ -1542,7 +1598,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-191"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1551,14 +1609,14 @@
         ],
         "conscript_count": 2,
         "weapon": "آلي",
-        "time": "7ص",
+        "time": "8ص",
         "party": "عتاقة",
         "counts_in_summary": true,
         "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 10
+        "pos": 8
       },
       {
         "id": "AS-0034",
@@ -1567,7 +1625,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-040"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1576,14 +1636,14 @@
         ],
         "conscript_count": 2,
         "weapon": "آلي",
-        "time": "7ص",
+        "time": "8ص",
         "party": "السويس",
         "counts_in_summary": true,
         "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 11
+        "pos": 9
       },
       {
         "id": "AS-0035",
@@ -1592,7 +1652,9 @@
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
-        "personnel_ids": [],
+        "personnel_ids": [
+          "IND-124"
+        ],
         "conscripts": [
           {
             "class": "مج",
@@ -1608,11 +1670,244 @@
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
-        "pos": 12
+        "pos": 7
       }
     ]
   },
   "assignment_seq": 35,
+  "afraad_basic": {
+    "AFB-01": {
+      "morning_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
+      "morning_phone": "01033838675",
+      "night_name": "أمين شرطة ثان/ شكري محمد فتوح ابراهيم",
+      "night_phone": "01033838675",
+      "morning_person_id": "IND-171",
+      "night_person_id": "IND-171",
+      "count": "(1مجند) صبح + 1 سائق (1مجند) ليل +1 سائق",
+      "weapon": "خرطوش+كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-02": {
+      "morning_name": "أمين شرطة ثان/ عبدالحميد فريد فهمي موسي",
+      "morning_phone": "01151585036",
+      "night_name": "أمين شرطة ثالث/ محمد السيد عبدالرحيم عفيفي",
+      "night_phone": "01002699784",
+      "morning_person_id": "IND-005",
+      "night_person_id": "IND-011",
+      "count": "2 مج قتالية ( 1مجند )+ 1سائق صبح 2 مج قتالية ( 1 مجند ) + 1 سائق ليل",
+      "weapon": "الي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-03": {
+      "morning_name": "مساعد أول/ صبري ابراهيم بدوي متولي",
+      "morning_phone": "01227732345",
+      "night_name": "مساعد أول/ صبري ابراهيم بدوي متولي",
+      "night_phone": "01227732345",
+      "morning_person_id": "IND-189",
+      "night_person_id": "IND-189",
+      "count": "1 مج فض (2 مجند ) صبح + 1 سائق 1 مج فض (2 مجند ) ليل + 1 سائق",
+      "weapon": "الي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-04": {
+      "morning_name": "معاون ثالث/ اسلام عبده معتمد محمد",
+      "morning_phone": "01008124662",
+      "night_name": "أمين شرطة ممتاز/ شريف صلاح جودة احمد",
+      "night_phone": "01208590765",
+      "morning_person_id": "IND-024",
+      "night_person_id": "IND-191",
+      "count": "1 مج ( 2 مجند ) صبح + 1سائق 1 مج ( 1 مجند ) ليل + 1 سائق",
+      "weapon": "الي+ فيدرال",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-05": {
+      "morning_name": "معاون ثالث/ محمد السيد احمد محمود سمكة",
+      "morning_phone": "01200678309",
+      "night_name": "معاون ثالث/ احمد محمد ابراهيم علي متولي",
+      "night_phone": "01025865539",
+      "morning_person_id": "IND-032",
+      "night_person_id": "IND-050",
+      "count": "1 مج قتالي (3 مجند) صبح + 1 سائق 1 مج قتالي (3مجند ) ليل + 1 سائق",
+      "weapon": "آلي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-06": {
+      "morning_name": "مساعد ثالث/ عبدالرؤوف محمد السيد ماضي",
+      "morning_phone": "01098090512",
+      "night_name": "معاون ثالث/ محمد السيد احمد محمود سمكة",
+      "night_phone": "01200678309",
+      "morning_person_id": "IND-016",
+      "night_person_id": "IND-032",
+      "count": "1 مج قتالي (2 مجند ) صبح + 1 سائق 1 مج قتالي (2 مجند ) ليل + 1 سائق",
+      "weapon": "آلي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-07": {
+      "morning_name": "أمين شرطة ثان/ احمد صبري سيد احمد",
+      "morning_phone": "01122158140",
+      "night_name": "معاون ثالث/ محمد جمال السيد احمد",
+      "night_phone": "01028593337",
+      "morning_person_id": "IND-004",
+      "night_person_id": "IND-039",
+      "count": "(4 مجند) صبح قسم عتاقة (4 مجند) ليل قسم عتاقة",
+      "weapon": "ألي",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-08": {
+      "morning_name": "معاون ثالث/ محمد صبحي متولي متولي",
+      "morning_phone": "01070650614",
+      "night_name": "معاون ثالث/ محمد صبحي متولي متولي",
+      "night_phone": "01070650614",
+      "morning_person_id": "IND-044",
+      "night_person_id": "IND-044",
+      "count": "1 مج قتالي ( 5 مجند ) صبح+1 سائق 1 مج قتالي ( 5 مجند ) ليل + 1 سائق",
+      "weapon": "آلي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-10": {
+      "morning_name": "أمين شرطة ممتاز/ رضا عبدالله عبدالفتاح خليل",
+      "morning_phone": "01009567460",
+      "night_name": "معاون ثالث/ محمد الهادي احمد رجب",
+      "night_phone": "01094086113",
+      "morning_person_id": "IND-001",
+      "night_person_id": "IND-043",
+      "count": "1مج قتالي (1 مجند) صبح+سائق 1 مج قتالي (1 مجند) ليل+سائق",
+      "weapon": "آلي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-11": {
+      "morning_name": "أمين شرطة ثالث/ جمال صالح قرني محمد",
+      "morning_phone": "01154482370",
+      "night_name": "معاون ثالث/ طارق حسين علي عبدالعال",
+      "night_phone": "01204094231",
+      "morning_person_id": "IND-008",
+      "night_person_id": "IND-022",
+      "count": "1مج قتالي (5 مجند) صبح +1 سائق 1 مج قتالي (5 مجند) ليل + 1سائق",
+      "weapon": "آلي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-12": {
+      "morning_name": "معاون ثالث/ محمد السيد محمد محمد عبدالرحمن",
+      "morning_phone": "01066871634",
+      "night_name": "معاون ثالث/ محمود ايمن محمد امام",
+      "night_phone": "01125386932",
+      "morning_person_id": "IND-031",
+      "night_person_id": "IND-029",
+      "count": "1 مج قتالي (3 مجند ) صبح 1 مج قتالي (3 مجند ) ليل",
+      "weapon": "الى",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-13": {
+      "morning_name": "معاون ثالث/ محمد احمد محمد عبدالفتاح",
+      "morning_phone": "01099707239",
+      "night_name": "معاون ثالث/ صابر حسين اسماعيل حسين",
+      "night_phone": "01024502026",
+      "morning_person_id": "IND-030",
+      "night_person_id": "IND-028",
+      "count": "1 مج قتالي(3 مجند) صبح +1سائق 1 مج قتالي (3 مجند) ليل + 1 سائق",
+      "weapon": "آلي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-14": {
+      "morning_name": "معاون ثالث/ ابراهيم محمد احمد ابراهيم",
+      "morning_phone": "01064188375",
+      "night_name": "معاون ثالث/ ابراهيم محمد احمد ابراهيم",
+      "night_phone": "01064188375",
+      "morning_person_id": "IND-064",
+      "night_person_id": "IND-064",
+      "count": "(2 مجند ) صبح ادارة الطرق (2 مجند ) ليل ادارة الطرق",
+      "weapon": "الى",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-15": {
+      "morning_name": "أمين شرطة ممتاز ثان/ محمد السيد عبده مصلحي",
+      "morning_phone": "01062464214",
+      "night_name": "",
+      "night_phone": "",
+      "morning_person_id": "IND-188",
+      "night_person_id": "",
+      "count": "1 مج قتالي ( 1 مجند ) صبح",
+      "weapon": "الى",
+      "schedule": "8 ص فترة صباحة"
+    },
+    "AFB-16": {
+      "morning_name": "أمين شرطة ثالث/ وليد محمود عيد",
+      "morning_phone": "01027625340",
+      "night_name": "",
+      "night_phone": "",
+      "morning_person_id": "IND-172",
+      "night_person_id": "",
+      "count": "1 مج قتالي ( 1 مجند ) صبح",
+      "weapon": "الى",
+      "schedule": "8 ص فترة صباحة"
+    },
+    "AFB-17": {
+      "morning_name": "معاون ثالث/ علي جمال صابر علي",
+      "morning_phone": "01018035331",
+      "night_name": "",
+      "night_phone": "",
+      "morning_person_id": "IND-046",
+      "night_person_id": "",
+      "count": "1 مج قتالي (2 مجند ) صبح",
+      "weapon": "الى",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-18": {
+      "morning_name": "معاون ثالث/ عماد عبدالهادي عبدالهادي",
+      "morning_phone": "01090622103",
+      "night_name": "معاون ثالث/ عماد عبدالهادي عبدالهادي",
+      "night_phone": "01090622103",
+      "morning_person_id": "IND-035",
+      "night_person_id": "IND-035",
+      "count": "1 مج قتالي (2 مجند ) صبح 1 مج قتالي (2 مجند ) ليل",
+      "weapon": "الى",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-19": {
+      "morning_name": "معاون ثالث/ احمد فتحي عبدالمعبود",
+      "morning_phone": "01014695751",
+      "night_name": "",
+      "night_phone": "",
+      "morning_person_id": "IND-036",
+      "night_person_id": "",
+      "count": "ميك فض (3 مجند)",
+      "weapon": "مايك فض",
+      "schedule": "11 ص حتى الانتهاء"
+    },
+    "AFB-20": {
+      "morning_name": "معاون ثالث/ عبدالفتاح علي عبدالفتاح محمد",
+      "morning_phone": "01016819448",
+      "night_name": "معاون ثالث/ عبدالفتاح علي عبدالفتاح محمد",
+      "night_phone": "01016819448",
+      "morning_person_id": "IND-060",
+      "night_person_id": "IND-060",
+      "count": "//",
+      "weapon": "//",
+      "schedule": "//"
+    },
+    "AFB-21": {
+      "morning_name": "أمين شرطة ثان/ الشحات ابراهيم ابراهيم سليمان",
+      "morning_phone": "01012402009",
+      "night_name": "معاون ثالث/ احمد عادل عطية مكي",
+      "night_phone": "01227887571",
+      "morning_person_id": "IND-007",
+      "night_person_id": "IND-021",
+      "count": "1 مج قتالي (2مجند) صبح + 1سائق 1 مج قتالي (2 مجند) ليل + 1 سائق",
+      "weapon": "الي + كلبش",
+      "schedule": "8 ص / 8 م"
+    },
+    "AFB-51": {
+      "morning_name": "",
+      "morning_phone": "",
+      "night_name": "أمين شرطة ثان/ ابراهيم السيد ابراهيم جعفر",
+      "night_phone": "01094845135",
+      "morning_person_id": "",
+      "night_person_id": "IND-128",
+      "count": "",
+      "weapon": "",
+      "schedule": ""
+    }
+  },
   "weekly_rest_seeded": true,
   "target_defaults": {
     "source_day": "2026-11-15",
@@ -1649,18 +1944,32 @@
       "AS-0033": {
         "vehicles": [
           {
-            "vehicle_id": "VEH-040"
+            "vehicle_id": "VEH-040",
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-086"
+            }
           }
         ],
-        "driver": {}
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-086"
+        }
       },
       "AS-0035": {
         "vehicles": [
           {
-            "vehicle_id": "VEH-064"
+            "vehicle_id": "VEH-073",
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-035"
+            }
           }
         ],
-        "driver": {}
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-035"
+        }
       },
       "AS-0023": {
         "vehicles": [
@@ -1673,32 +1982,133 @@
       "AS-0029": {
         "vehicles": [
           {
-            "vehicle_id": "VEH-072"
+            "vehicle_id": "VEH-074",
+            "driver": {
+              "kind": "personnel",
+              "id": "IND-078"
+            }
           }
         ],
-        "driver": {}
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-078"
+        }
       },
       "AS-0030": {
         "vehicles": [
           {
-            "vehicle_id": ""
+            "vehicle_id": "VEH-039",
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-009"
+            }
           }
         ],
-        "driver": {}
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-009"
+        }
       },
       "AS-0022": {
         "vehicles": [
           {
-            "vehicle_id": "",
+            "vehicle_id": "VEH-046",
             "officer_ids": [
               "OFF-015",
               "OFF-048"
+            ],
+            "driver": {
+              "kind": "text",
+              "id": "",
+              "name": "عريف/ احمد جودة محمد محمد"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "text",
+          "id": "",
+          "name": "عريف/ احمد جودة محمد محمد"
+        }
+      },
+      "AS-0015": {
+        "vehicles": [
+          {
+            "vehicle_id": "",
+            "officer_ids": [
+              "OFF-036"
             ]
           },
           {
             "vehicle_id": ""
           }
         ]
+      },
+      "AS-0028": {
+        "vehicles": [
+          {
+            "vehicle_id": "",
+            "officer_ids": [
+              "OFF-015"
+            ]
+          },
+          {
+            "vehicle_id": ""
+          }
+        ]
+      },
+      "AS-0034": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-064",
+            "personnel_ids": [
+              "IND-040"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-046"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-046"
+        }
+      },
+      "AS-0031": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-036",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-005"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-005"
+        }
+      },
+      "AS-0032": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-034",
+            "personnel_ids": [
+              "IND-051"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-091"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-091"
+        }
       }
     },
     "lorries": {
@@ -1707,10 +2117,56 @@
           {
             "assignment_id": "AS-0009"
           }
-        ]
+        ],
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-180"
+        },
+        "vehicle_id": "VEH-017"
+      },
+      "LOR-1": {
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-082"
+        },
+        "vehicle_id": "VEH-018"
+      },
+      "LOR-2": {
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-083"
+        },
+        "vehicle_id": "VEH-016"
+      },
+      "LOR-4": {
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-180"
+        },
+        "vehicle_id": "VEH-017"
       }
     },
-    "daily": {},
+    "daily": {
+      "CD-002": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-084"
+        }
+      },
+      "CD-006": {
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-049"
+        }
+      },
+      "CD-005": {
+        "vehicle_id": "VEH-017",
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-180"
+        }
+      }
+    },
     "removed_services": [
       "AS-0023"
     ],
