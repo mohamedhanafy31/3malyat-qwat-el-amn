@@ -251,6 +251,7 @@ def service_vehicles(data, day, assignment_id, *, include_empty_lorries=False):
         result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"] if vehicle else "",
                        "plate": vehicle["plate"] if vehicle else "",
                        "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])) if vehicle else "",
+                       "type_text": str(item.get("type_text") or "").strip(),
                        "people": _vehicle_people(data, item, assignment_people),
                        "source": "direct", "driver": driver})
     for lorry_id, lorry in ((sheet.get("lorries") or {}).items()):
@@ -313,6 +314,11 @@ def _apply(data, target, payload):
         if error:
             return error
         target["driver"] = value or {}
+    if "type_text" in payload:
+        value = str(payload.get("type_text") or "").strip()
+        if len(value) > 200:
+            return "نص نوع المركبة أطول من الحد المسموح (200 حرف)."
+        target["type_text"] = value
     return None
 
 
@@ -331,6 +337,11 @@ def _validate_service_vehicles(data, day, assignment_id, values):
         if vehicle_id and not VehicleRepo(data).find(vehicle_id):
             return None, "المركبة غير موجودة."
         clean = {"vehicle_id": vehicle_id}
+        if "type_text" in item:
+            type_text = str(item.get("type_text") or "").strip()
+            if len(type_text) > 200:
+                return None, "نص نوع المركبة أطول من الحد المسموح (200 حرف)."
+            clean["type_text"] = type_text
         for category, key in (("personnel", "personnel_ids"), ("officers", "officer_ids")):
             ids = item.get(key) or []
             if not isinstance(ids, list):
@@ -378,7 +389,8 @@ def _clean(data, day):
         for ident, entry in (value.get(key) or {}).items():
             if not entry:
                 continue
-            if entry.get("attached") or "vehicle_id" in entry or "vehicles" in entry or "driver" in entry:
+            if (entry.get("attached") or "vehicle_id" in entry or "vehicles" in entry
+                    or "driver" in entry or "type_text" in entry):
                 kept[ident] = entry
         value[key] = kept
     posts = {}
@@ -674,10 +686,11 @@ def set_group(data, day, group_id, payload):
     if not group:
         return "المجموعة غير موجودة.", 404
     before = _group_snapshot(group)
-    error = _apply(data, group, {k: v for k, v in payload.items() if k in ("vehicle_id", "driver")})
+    error = _apply(data, group, {k: v for k, v in payload.items()
+                                 if k in ("vehicle_id", "driver", "type_text")})
     if error:
         return error, 400
-    for key in ("vehicle_id", "driver"):
+    for key in ("vehicle_id", "driver", "type_text"):
         if key in group and not group[key]:
             del group[key]
     changes.record(data, "campaign_group", group_id, "assign", before=before,
@@ -999,6 +1012,7 @@ def _row_view(data, ident, kind, name, raw, inherited, attached=None, assignment
         vehicle = _vehicle(data, item.get("vehicle_id"))
         direct_view.append({"vehicle": vehicle,
                             "vehicle_id": vehicle["id"] if vehicle else "",
+                            "type_text": str(item.get("type_text") or "").strip(),
                             "personnel_ids": list(item.get("personnel_ids") or []),
                             "officer_ids": list(item.get("officer_ids") or []),
                             "driver": _driver(data, item.get("driver") or
@@ -1055,7 +1069,8 @@ def _set_status(row, state, missing=None, text=None):
 def _regular_status(row, *, driver_only=False, optional=False):
     has_driver = bool(row.get("driver"))
     has_vehicle = bool(row.get("vehicle"))
-    has_content = has_driver or has_vehicle or bool(row.get("attached"))
+    has_content = (has_driver or has_vehicle or bool(row.get("attached"))
+                   or bool(str(row.get("type_text") or "").strip()))
     if optional and not has_content:
         _set_status(row, "optional")
         return
@@ -1103,7 +1118,8 @@ def _service_status(row):
         if not row.get("driver"):
             missing.append("driver")
         missing.append("vehicle")
-    has_content = any(item.get("vehicle") or item.get("driver") for item in direct) or bool(row.get("driver"))
+    has_content = any(item.get("vehicle") or item.get("driver") or item.get("type_text")
+                      for item in direct) or bool(row.get("driver"))
     labels = {"driver": "سائق", "vehicle": "مركبة"}
     line_missing = {}
     for value in missing:

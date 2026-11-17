@@ -66,6 +66,23 @@ def test_morning_excludes_night_times():
     assert "حملة ليل" not in names
 
 
+def test_large_morning_service_after_noon_gets_separate_page_but_strength_15_does_not():
+    data = _data()
+    data["day_assignments"][DAY].extend([
+        {"id": "A4", "name": "خدمة كبيرة", "section": "الخدمات الطارئة",
+         "shift": "صباحية", "time": "4م", "conscript_count": 16},
+        {"id": "A5", "name": "خدمة خمسة عشر", "section": "الخدمات الطارئة",
+         "shift": "صباحية", "time": "11ص", "conscript_count": 15},
+    ])
+    dto = build(data, DAY, "morning")
+    assert any(block["name"] == "خدمة كبيرة" and block["count"] == 16 for block in dto["blocks"])
+    output = build_docx(dto)
+    document = Document(BytesIO(output.getvalue()))
+    assert LAST_FIT["page_count"] == 2
+    assert "خدمة كبيرة" not in {cell.text for row in document.tables[0].rows for cell in row.cells}
+    assert "خدمة خمسة عشر (11ص)" in {cell.text for row in document.tables[0].rows for cell in row.cells}
+
+
 def test_basic_weapon_comes_only_from_counts_for_each_shift():
     data = _data()
     data["counts_template"]["entries"].append(

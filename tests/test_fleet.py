@@ -47,6 +47,11 @@ def test_drivers_includes_effective_personnel_and_driver_conscript(client):
         "phone": "0102", "join_date": "2020-01-01", "role": "أمين شرطة",
         "post": "مساعد",
     })
+    campaign_member = client.post("/api/person", json={
+        "type": "personnel", "name": "فرد قسم الحملة", "code": "993",
+        "phone": "0103", "join_date": "2020-01-01", "role": "أمين شرطة",
+        "post": "حملة",
+    }).get_json()
     conscript = client.post("/api/conscripts", json={"name": "سائق مجند"}).get_json()
     response = client.get("/api/drivers?day=2026-04-10")
     assert response.status_code == 200, response.get_json()
@@ -54,6 +59,7 @@ def test_drivers_includes_effective_personnel_and_driver_conscript(client):
     assert any(item["id"] == person["id"] and item["post"] == "سائق الجلالة"
                for item in data["personnel"])
     assert any(item["id"] == conscript["id"] for item in data["conscripts"])
+    assert any(item["id"] == campaign_member["id"] for item in data["personnel"])
     assert not any(item["name"] == "غير سائق" for item in data["personnel"])
 
 

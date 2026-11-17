@@ -615,7 +615,9 @@ CELL_MARGIN_PT = 5.4       # هامش الخلية من نمط TableGrid (108 tw
 ROW_BORDER_PT = .5
 MIN_TITLE, MIN_HEAD, MIN_SUBHEAD, MIN_BODY = 433, 315, 119, 94   # atLeast كما في الأرشيف (twips)
 SHADE = "D9D9D9"
-ROW_MINIMA = {"title": MIN_TITLE, "head": MIN_HEAD, "tailhead": MIN_SUBHEAD}
+MIN_OUTSIDER_HEAD = 240  # يمنع التصاق عنوان «الخوارج» بأول صف تحته في LibreOffice/Word
+ROW_MINIMA = {"title": MIN_TITLE, "head": MIN_HEAD, "tailhead": MIN_SUBHEAD,
+              "outsiderhead": MIN_OUTSIDER_HEAD}
 
 
 def _size_cap_half(row_count):
@@ -1031,9 +1033,11 @@ def _latest_content(board, command_priority=None):
         start = end + 1
     for i in range(2):
         slot = subcamp[i] if i < len(subcamp) else {}
-        right_flow.append(_row([
-            _cell(slot.get("shift") or ("فترة صباحية" if i == 0 else "فترة ليلية")),
-            _cell(_people_text(slot.get("officers")))], "body"))
+        shift = slot.get("shift") or ("فترة صباحية" if i == 0 else "فترة ليلية")
+        people = _people_list(slot.get("officers")) or [""]
+        # التقسيم الزمني للمعسكر الفرعي يُطبع مثل الأهداف: خلية الفترة
+        # ممتدة رأسيًا، ولكل ضابط خلية مستقلة بدل جمعهما بعلامة «،».
+        _append_side_group(right_flow, ([_cell(shift)], people), None, "right")
     if right_entries:
         right_flow.append(_row([_cell(SECTION_ADMIN_WORK, 2, True)], "tailhead"))
     for name, description in right_entries:
@@ -1041,7 +1045,7 @@ def _latest_content(board, command_priority=None):
 
     # الخوارج بتتكتب من تحت لفوق: آخر ضابط في آخر صف في الجدول وعنوان «الخوارج» فوق
     # أول واحد (نفس تقنية الكتل الخاصة)، والفراغ لو فيه بيفضل بين الطوارئ والخوارج.
-    outsider_block = [_row([_cell("الخوارج", 3, True)], "tailhead")]
+    outsider_block = [_row([_cell("الخوارج", 3, True)], "outsiderhead")]
     for i, outsider in enumerate(outsiders):
         mark = vmerge.get(i)
         outsider_block.append(_row([_cell("" if mark == "continue" else statuses[i], vm=mark),
@@ -1058,8 +1062,10 @@ def _latest_content(board, command_priority=None):
     for index in range(max(len(right_flow), len(left_flow))):
         right = right_flow[index] if index < len(right_flow) else _row([_cell(), _cell()])
         left = left_flow[index] if index < len(left_flow) else _row([_cell("", 3)])
-        kind = "tailhead" if "tailhead" in (right["kind"], left["kind"]) else (
+        kind = "outsiderhead" if "outsiderhead" in (right["kind"], left["kind"]) else (
+            "tailhead" if "tailhead" in (right["kind"], left["kind"]) else (
             "head" if "head" in (right["kind"], left["kind"]) else "body")
+        )
         result.append(_row(right["cells"] + left["cells"], kind))
     return result
 
@@ -1086,7 +1092,7 @@ def _tc_borders(start, end, kind, first_body, grid_count):
         top, bottom = ("thinThickSmallGap", 24), ("threeDEmboss", 12)
     elif kind == "head":
         top, bottom = ("threeDEmboss", 12), ("threeDEmboss", 12)
-    elif kind == "tailhead":
+    elif kind in {"tailhead", "outsiderhead"}:
         top, bottom = ("single", 4), ("single", 4)
     elif first_body:
         top = ("threeDEmboss", 12)

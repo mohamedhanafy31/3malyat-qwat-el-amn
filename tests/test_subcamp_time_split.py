@@ -58,8 +58,20 @@ def test_split_service_line_in_duty_roster_carries_the_period(client):
 
 def test_split_appears_in_the_detailed_daily_word_export(client):
     _put(client, {"periods": SPLIT})
+    response = client.get(f"/api/board/{DAY}/export.docx")
     text = _docx_text(client)
     assert "حتى 4م" in text and "من 4م" in text
+    document = Document(io.BytesIO(response.data))
+    rows = document.tables[0].rows
+    header = next(index for index, row in enumerate(rows)
+                  if "ضابط عظيم وأمن المعسكر الفرعي" in " ".join(cell.text for cell in row.cells))
+    first, second = rows[header + 1:header + 3]
+    assert "حتى 4م" in " ".join(cell.text for cell in first.cells)
+    assert "من 4م" in " ".join(cell.text for cell in second.cells)
+    # الفترة خلية واحدة ممتدة على صفّي الضابطين، مثل تقسيم الأهداف.
+    assert first._tr.tc_lst[0].xpath("./w:tcPr/w:vMerge[@w:val='restart']")
+    continuation = second._tr.tc_lst[0].xpath("./w:tcPr/w:vMerge")
+    assert continuation and continuation[0].get("{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val") is None
 
 
 def test_clearing_and_changing_the_split(client):

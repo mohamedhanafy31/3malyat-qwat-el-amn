@@ -139,6 +139,8 @@ def build(data, day, shift):
         for order, row in enumerate(occasional_rows(data, day)):
             if any(services_equivalent(row.get("name"), name) for name in basic_names):
                 continue
+            count_row = _find_count(official, row.get("name"), "طوارئ")
+            count = int((count_row or {}).get("count") or 0) if count_row else int(row.get("conscript_count") or 0)
             parsed = parse_time(row.get("time") or _recurring_time(row.get("name")))
             minutes = None
             if parsed is None:
@@ -146,12 +148,13 @@ def build(data, day, shift):
                 warnings.append(f"الخدمة «{row.get('name', '')}» بدون ميعاد؛ اتضافت في مجموعة بدون ميعاد.")
             else:
                 minutes = int(parsed[:2]) * 60 + int(parsed[3:])
-                # الصبح من 4ص لحد قبل 12ظ؛ مواعيد الليل (12 ليل، 2ل…) مش من خط الصبح.
-                if minutes >= 12 * 60 or minutes < 4 * 60:
+                # الخدمات العادية: الصبح من 4ص لحد قبل 12ظ. الخدمة الكبيرة
+                # (>15) والمسجلة فترة صباحية لازم تدخل خط الصبح في صفحة مستقلة
+                # حتى لو ميعاد تحركها بعد الظهر؛ مواعيد الليل تظل مستبعدة.
+                large_morning = count > 15 and row.get("shift") == "صباحية"
+                if (minutes >= 12 * 60 or minutes < 4 * 60) and not large_morning:
                     continue
                 time = format_time(parsed).replace(" ", "")
-            count_row = _find_count(official, row.get("name"), "طوارئ")
-            count = int((count_row or {}).get("count") or 0) if count_row else int(row.get("conscript_count") or 0)
             if count <= 0:
                 warnings.append(f"الخدمة «{row.get('name', '')}» عدد مجنديها مش مكتوب؛ اتحطت خانة فاضية.")
                 count = 1

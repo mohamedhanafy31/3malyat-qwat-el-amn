@@ -117,6 +117,17 @@ def _merge_row(row, spans, values, *, size=9, fill=None, number_fill=FILL):
         offset += span
 
 
+def _set_vmerge(cell, value):
+    """ادمج خلية رأسيًا عبر سطور مركبات الخدمة الواحدة."""
+    tc_pr = cell._tc.get_or_add_tcPr()
+    old = tc_pr.find(qn("w:vMerge"))
+    if old is not None:
+        tc_pr.remove(old)
+    node = OxmlElement("w:vMerge")
+    node.set(qn("w:val"), value)
+    tc_pr.append(node)
+
+
 def _driver_text(row):
     """السائق بالرتبة والاسم كامل: الأفراد «ا.ش/» أو «م.ش/» والمجند «مجند/».
     السائق المكتوب نص حر بيطلع زي ما اتكتب."""
@@ -270,26 +281,39 @@ def build_docx(campaign):
         if not vehicles:
             delivery.append(service)
             continue
-        for item in vehicles:
-            delivery.append({**service, "vehicle": item.get("vehicle"), "_order_vehicle": item.get("vehicle"),
-                             "driver": item.get("driver") or service.get("driver")})
+        # الخدمة تظل عنصرًا واحدًا في الترتيب والترقيم. مركباتها تتحول لاحقًا
+        # إلى سطور فرعية مع دمج خليتي الرقم واسم الخدمة رأسيًا.
+        delivery.append({**service, "_vehicle_lines": [
+            {**service, "vehicle": item.get("vehicle"), "type_text": item.get("type_text", ""),
+             "driver": item.get("driver") or service.get("driver")}
+            for item in vehicles
+        ]})
     delivery += [{**item, "_lorry": True} for item in campaign.get("appointments") or [] if _has_content(item)]
     daily = [{**item, "_daily": True} for item in campaign.get("daily") or []]
     ordered = order_campaign_rows(delivery, daily)
     previous_break = False
     for number, item in enumerate(ordered, 1):
-        plate, kind = _delivery_plate(item), _delivery_type(item)
+        lines = item.get("_vehicle_lines") or [item]
         # «سائق بورتوفيق» وأمثاله: سائق يومي من غير مركبة، اسمه على عرض الصف (زي الأرشيف).
-        if item.get("_daily") and not plate and not kind and (item.get("driver") or {}).get("name"):
-            values, spans = [f"{number}.", _service_label(item), _driver_text(item)], DRIVER_ONLY_SPANS
-        else:
-            values, spans = [f"{number}.", _service_label(item), _driver_text(item), plate, kind], DELIVERY_SPANS
-        row = table.add_row()
-        _merge_row(row, spans, values, size=DELIVERY_PT)
+        rows = []
+        for line_index, line in enumerate(lines):
+            plate, kind = _delivery_plate(line), _delivery_type(line)
+            number_text = f"{number}." if line_index == 0 else ""
+            service_text = _service_label(item) if line_index == 0 else ""
+            if item.get("_daily") and not plate and not kind and (line.get("driver") or {}).get("name"):
+                values, spans = [number_text, service_text, _driver_text(line)], DRIVER_ONLY_SPANS
+            else:
+                values, spans = [number_text, service_text, _driver_text(line), plate, kind], DELIVERY_SPANS
+            row = table.add_row()
+            _merge_row(row, spans, values, size=DELIVERY_PT)
+            if len(lines) > 1:
+                _set_vmerge(row.cells[0], "restart" if line_index == 0 else "continue")
+                _set_vmerge(row.cells[1], "restart" if line_index == 0 else "continue")
+            rows.append(row)
         if previous_break:
-            _row_border(row, "top")
+            _row_border(rows[0], "top")
         if item.get("break_after"):
-            _row_border(row, "bottom")
+            _row_border(rows[-1], "bottom")
         previous_break = bool(item.get("break_after"))
     for values in (campaign.get("plates") or {}).get("rows") or []:
         _plate_row(table, values)

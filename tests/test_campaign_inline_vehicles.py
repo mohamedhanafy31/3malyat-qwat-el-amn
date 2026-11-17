@@ -66,11 +66,43 @@ def test_export_multi_vehicle_service_keeps_each_vehicle_category_and_line():
         {"source": "direct", "vehicle": bus, "driver": None},
     ]}
     doc = Document(build_docx({"date": DAY, "services": [service], "plates": {"rows": []}}))
-    rows = [" ".join(cell.text for cell in row.cells) for row in doc.tables[0].rows]
-    service_rows = [row for row in rows if "خدمة متعددة" in row]
-    assert len(service_rows) == 2
-    assert any("4997" in row and "بيك اب" in row for row in service_rows)
-    assert any("5997" in row and "اوتوبيس" in row for row in service_rows)
+    xml = doc._element.xml
+    assert xml.count("خدمة متعددة") == 1
+    assert "4997" in xml and "بيك اب" in xml
+    assert "5997" in xml and "اوتوبيس" in xml
+    physical = [row for row in doc.tables[0].rows
+                if "4997" in " ".join(cell.text for cell in row.cells)
+                or "5997" in " ".join(cell.text for cell in row.cells)]
+    assert len(physical) == 2
+    assert physical[0]._tr.tc_lst[0].xpath("./w:tcPr/w:vMerge[@w:val='restart']")
+    assert physical[1]._tr.tc_lst[0].xpath("./w:tcPr/w:vMerge[@w:val='continue']")
+
+
+def test_service_vehicle_type_only_is_saved_and_exported(client):
+    assignment = _assignment(client, "خدمة بنوع فقط")
+    response = client.put(f"/api/campaign/{DAY}/service/{assignment['id']}", json={
+        "vehicles": [{"vehicle_id": "", "type_text": "ميكروباص"}],
+    })
+    assert response.status_code == 200, response.get_json()
+    row = next(row for row in response.get_json()["services"] if row["id"] == assignment["id"])
+    assert row["vehicles"][0]["type_text"] == "ميكروباص"
+    assert row["service_vehicles"][0]["type_text"] == "ميكروباص"
+    assert row["status"] == "partial"
+    refreshed = client.get(f"/api/campaign/{DAY}").get_json()
+    row = next(row for row in refreshed["services"] if row["id"] == assignment["id"])
+    assert row["vehicles"][0]["type_text"] == "ميكروباص"
+    assert "ميكروباص" in _doc_text(refreshed)
+
+
+def test_lorry_type_only_survives_refresh_and_export(client):
+    response = client.put(f"/api/campaign/{DAY}/lorry/LOR-1", json={"type_text": "لوري خارجي"})
+    assert response.status_code == 200, response.get_json()
+    row = next(row for row in response.get_json()["lorries"] if row["id"] == "LOR-1")
+    assert row["type_text"] == "لوري خارجي" and row["status"] == "partial"
+    refreshed = client.get(f"/api/campaign/{DAY}").get_json()
+    row = next(row for row in refreshed["lorries"] if row["id"] == "LOR-1")
+    assert row["type_text"] == "لوري خارجي"
+    assert "لوري خارجي" in _doc_text(refreshed)
 
 
 def test_export_keeps_free_text_vehicle_fields_for_each_row_kind():

@@ -31,7 +31,11 @@ def drivers_on(data, day):
     for person in PeopleRepo(data).on_force(day, "personnel"):
         effective = person.effective(day)
         post = effective.get("post") or person.post
-        if "سائق" in str(post or ""):
+        folded_post = _fold(post)
+        # أفراد قسم الحملة متاحون كسائقين حتى لو مسمى الوظيفة لا يحتوي
+        # كلمة «سائق» صراحة؛ دول أفراد القسم المسؤول عن تشغيل المركبات.
+        if ("سائق" in str(post or "") or "سايق" in folded_post
+                or folded_post == "حمله" or "قسم الحمله" in folded_post):
             personnel.append({"id": person.id, "name": person.name,
                               "role": person.role, "phone": person.phone,
                               "post": post})

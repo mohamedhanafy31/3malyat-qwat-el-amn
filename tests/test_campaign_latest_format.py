@@ -106,8 +106,16 @@ def test_export_keeps_every_multi_vehicle_service_line_in_its_vehicle_band():
                    {"vehicle": {"id": "V-L", "plate": "ب12/2002", "type": "لوري"}},
                ]}
     rows = _delivery_rows(_payload(services=[service]))
-    assert [(row[1], row[3]) for row in rows] == [
-        ("خدمة متعددة", "ب12/2002"), ("خدمة متعددة", "ب12/2001")]
+    assert len(rows) == 2
+    assert rows[0][1] == "خدمة متعددة"
+    # python-docx يعرض نص خلية الـvMerge العليا في السطرين؛ XML نفسه يحمل الاسم مرة واحدة.
+    assert rows[1][1] == "خدمة متعددة"
+    assert {rows[0][3], rows[1][3]} == {"ب12/2001", "ب12/2002"}
+    document = Document(BytesIO(build_docx(_payload(services=[service])).read()))
+    assert document._element.xml.count("خدمة متعددة") == 1
+    delivery = document.tables[0].rows[-2:]
+    assert delivery[0]._tr.tc_lst[1].xpath("./w:tcPr/w:vMerge[@w:val='restart']")
+    assert delivery[1]._tr.tc_lst[1].xpath("./w:tcPr/w:vMerge[@w:val='continue']")
 
 
 def _delivery_rows(payload):

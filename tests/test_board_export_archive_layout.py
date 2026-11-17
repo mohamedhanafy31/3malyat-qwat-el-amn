@@ -30,7 +30,7 @@ def _texts(rows):
 
 def _tail_index(rows):
     return next(i for i, row in enumerate(rows)
-                if row["kind"] == "tailhead" and "الخوارج" in _texts([row])[0])
+                if row["kind"] == "outsiderhead" and "الخوارج" in _texts([row])[0])
 
 
 @pytest.mark.parametrize(("row", "expected"), [

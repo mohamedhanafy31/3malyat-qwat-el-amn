@@ -328,7 +328,7 @@ def test_outsiders_are_anchored_to_the_last_rows_of_the_table():
         emergency=[_svc("طوارئ قصيرة")],
         rests=[_person("R1", "مستريح اول"), _person("R2", "مستريح ثان")]))
     left_tail = next(i for i, row in enumerate(rows)
-                     if row["kind"] == "tailhead" and any(c["text"] == "الخوارج" for c in row["cells"]))
+                     if row["kind"] == "outsiderhead" and any(c["text"] == "الخوارج" for c in row["cells"]))
     assert left_tail == len(rows) - 3          # العنوان + ضابطين = آخر 3 صفوف
     assert any("مستريح ثان" in c["text"] for c in rows[-1]["cells"])
     assert any("طوارئ قصيرة" in c["text"] for row in rows[:left_tail] for c in row["cells"])

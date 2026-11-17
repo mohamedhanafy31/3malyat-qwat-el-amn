@@ -19,7 +19,7 @@ LINE_FACTOR = 1.3        # ارتفاع السطر كنسبة من حجم الخ
 ROW_PAD = .25            # مسافة رأسية جوه كل صف كنسبة من حجم الخط
 GAP_PT = 8              # عرض العمود الفاصل بين الأقسام
 MAX_SIZE, MIN_SIZE = 14.0, 6.5
-BIG_STRENGTH = 15        # الخدمة اللي قوامها 15 أو أكتر بتروح الصفحة المنفصلة
+BIG_STRENGTH = 15        # الخدمة اللي قوامها أكبر من 15 بتروح الصفحة المنفصلة
 HEADERS = ("الاسم", "التسليح", "رقم السلاح")
 THICK = 18               # 2.25pt (بالثُمن نقطة) الحد الفاصل بين مجموعات اللوري
 COLORS = {"header": "BFBFBF", "title": "DEEAF6", "section": "F4B183"}
@@ -325,8 +325,8 @@ def build_docx(dto):
     section.top_margin = section.bottom_margin = Inches(.3)
     _bidi_document(document)
     blocks = dto.get("blocks") or []
-    small = [b for b in blocks if int(b.get("count") or 0) < BIG_STRENGTH]
-    big = [b for b in blocks if int(b.get("count") or 0) >= BIG_STRENGTH]
+    small = [b for b in blocks if int(b.get("count") or 0) <= BIG_STRENGTH]
+    big = [b for b in blocks if int(b.get("count") or 0) > BIG_STRENGTH]
     fits = [_add_sheet(document, {**dto, "blocks": small}, dto["title"])]
     if big:
         # صفحة منفصلة للخدمات الكبيرة؛ الميعاد مكتوب جنب اسم كل خدمة فمش محتاجين عنوان الطوارئ.

@@ -159,6 +159,7 @@ async function saveRow(row, body, options = {}) {
 function serviceVehiclePayload(row) {
   return (row?.vehicles || []).map(item => ({vehicle_id: item.vehicle_id || item.vehicle?.id || "",
     personnel_ids: item.personnel_ids || [], officer_ids: item.officer_ids || [],
+    ...(item.type_text !== undefined ? {type_text: item.type_text || ""} : {}),
     ...(item.driver ? {driver: driverPayload(item.driver)} : {})}));
 }
 
@@ -273,7 +274,7 @@ function vehicleOptions(row) {
 
 function vehicleTypeOptions(row) {
   const filterKey = row.lineIndex === undefined ? row.id : `${row.id}:${row.lineIndex}`;
-  const selected = CAMPAIGN_TYPE_FILTERS.get(filterKey) ?? row.vehicle?.type ?? "";
+  const selected = CAMPAIGN_TYPE_FILTERS.get(filterKey) ?? row.vehicle?.type ?? row.type_text ?? "";
   const line = row.lineIndex === undefined ? "" : ` data-service-line-index="${row.lineIndex}"`;
   const key = row.lineIndex === undefined ? controlKey(row, "type") : `service:${row.id}:${row.lineIndex}:type`;
   return `<select class="campaign-inline-select" data-type-row="${esc(row.id)}"${line} data-control-key="${esc(key)}" aria-label="نوع المركبة في ${esc(row.name)}${lineSuffix(row)}">
@@ -659,10 +660,24 @@ function bindRowControls(root) {
   });
   root.querySelectorAll("select[data-type-row]").forEach(select => {
     select.addEventListener("change", () => {
-      const filterKey = select.dataset.serviceLineIndex === undefined ? select.dataset.typeRow : `${select.dataset.typeRow}:${select.dataset.serviceLineIndex}`;
+      const lineIndex = select.dataset.serviceLineIndex;
+      const filterKey = lineIndex === undefined ? select.dataset.typeRow : `${select.dataset.typeRow}:${lineIndex}`;
       CAMPAIGN_TYPE_FILTERS.set(filterKey, select.value);
       const tr = select.closest("tr[data-row-key]");
       const row = rowByKey(tr.dataset.rowKey);
+      if (lineIndex !== undefined) {
+        const before = serviceVehiclePayload(row);
+        if (!before.length) before.push(serviceSeedVehicle(row));
+        const restore = before.map(item => ({...item}));
+        before[Number(lineIndex)].type_text = select.value;
+        const body = {vehicles: before, ...(before.length === 1 ? {driver: before[0].driver || ""} : {})};
+        saveRow(row, body, {sourceKey: select.dataset.controlKey,
+          undoBody: {vehicles: restore, ...(restore.length === 1 ? {driver: restore[0].driver || ""} : {})},
+          undoLabel: "تعديل نوع مركبة الخدمة"});
+      } else if (["post", "lorry", "daily", "group"].includes(row.kind)) {
+        saveRow(row, {type_text: select.value}, {sourceKey: select.dataset.controlKey,
+          undoBody: {type_text: row.type_text || ""}, undoLabel: "تعديل نوع المركبة"});
+      }
       replaceRow(tr, row, tr.dataset.section);
       scheduleNextGap(select.dataset.controlKey);
     });
