@@ -14376,7 +14376,7 @@
   ],
   "id_seq": {
     "CNT": 54,
-    "CHG": 9424,
+    "CHG": 9426,
     "MSN": 1,
     "HO": 1,
     "SVC": 30,
@@ -14387,7 +14387,7 @@
     "RS": 1,
     "OFF": 100,
     "IND": 275,
-    "VEH": 75,
+    "VEH": 76,
     "CON": 94,
     "CD": 8,
     "CP": 14,
@@ -14880,46 +14880,6 @@
     ]
   },
   "change_log": [
-    {
-      "id": "CHG-4425",
-      "ts": "2026-11-10T15:51:49",
-      "entity": "day_confirm",
-      "entity_id": "2023-10-25",
-      "action": "confirm",
-      "day": "2023-10-25",
-      "text": "تأكيد جماعي ليومية 2023-10-25",
-      "before": null,
-      "after": {
-        "first": true,
-        "changes": 0,
-        "count": 34,
-        "at": "2026-11-10T15:51:49",
-        "by": "Mohamed Hanafy",
-        "day": "2023-10-25"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
-    {
-      "id": "CHG-4426",
-      "ts": "2026-11-10T15:51:49",
-      "entity": "day_confirm",
-      "entity_id": "2023-10-26",
-      "action": "confirm",
-      "day": "2023-10-26",
-      "text": "تأكيد جماعي ليومية 2023-10-26",
-      "before": null,
-      "after": {
-        "first": true,
-        "changes": 0,
-        "count": 39,
-        "at": "2026-11-10T15:51:49",
-        "by": "Mohamed Hanafy",
-        "day": "2023-10-26"
-      },
-      "reason": "",
-      "edited_by": "Mohamed Hanafy"
-    },
     {
       "id": "CHG-4427",
       "ts": "2026-11-10T15:51:49",
@@ -123769,6 +123729,48 @@
       },
       "reason": "",
       "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-9425",
+      "ts": "2026-11-17T02:19:23",
+      "entity": "vehicle",
+      "entity_id": "VEH-076",
+      "action": "create",
+      "day": null,
+      "text": "إضافة مركبة «6511»",
+      "before": null,
+      "after": {
+        "id": "VEH-076",
+        "plate_series": "",
+        "plate_number": "6511",
+        "type": "لوري",
+        "model": "",
+        "status": "operational",
+        "fault": "",
+        "notes": "",
+        "archived": false,
+        "origin": "external",
+        "party": "المركبات"
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
+    },
+    {
+      "id": "CHG-9426",
+      "ts": "2026-11-17T02:22:39",
+      "entity": "campaign_service",
+      "entity_id": "AS-0020",
+      "action": "update",
+      "day": "2026-11-17",
+      "text": "إزالة الخدمة «مامورية نيابة عسكرية» من يومية الحملة",
+      "before": {
+        "removed": false
+      },
+      "after": {
+        "removed": true
+      },
+      "reason": "",
+      "edited_by": "3malyat_admin"
     }
   ],
   "missions": [],
@@ -135459,6 +135461,19 @@
       "id": "VEH-074",
       "plate_series": "",
       "plate_number": "9969",
+      "type": "لوري",
+      "model": "",
+      "status": "operational",
+      "fault": "",
+      "notes": "",
+      "archived": false,
+      "origin": "external",
+      "party": "المركبات"
+    },
+    {
+      "id": "VEH-076",
+      "plate_series": "",
+      "plate_number": "6511",
       "type": "لوري",
       "model": "",
       "status": "operational",

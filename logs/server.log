@@ -41745,3 +41745,339 @@ Traceback (most recent call last):
   File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
     os.replace(temporary, path)
 PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\17\\.17.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\17\\17.docx'
+2026-11-17 00:05:53,444 WARNING backend.daily_files daily_files.generated
+2026-11-17 00:24:29,479 INFO personnel_system.request GET /campaign 200
+2026-11-17 00:24:29,639 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 00:24:30,339 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 00:24:30,636 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 00:24:49,348 INFO personnel_system.request GET /campaign 200
+2026-11-17 00:24:49,534 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 00:24:50,267 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 00:24:50,474 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 00:32:53,207 INFO personnel_system.request GET /counts 200
+2026-11-17 00:32:53,457 INFO personnel_system.request GET /api/bootstrap/counts 200
+2026-11-17 00:32:53,573 INFO personnel_system.request GET /api/counts/2026-11-17 200
+2026-11-17 00:32:57,055 INFO personnel_system.request GET /api/counts/2026-11-17/export.xlsx 200
+2026-11-17 00:32:57,072 INFO personnel_system.export export_ok
+2026-11-17 00:33:08,135 WARNING personnel_system.request POST /api/export-preview 200
+2026-11-17 00:55:42,203 INFO personnel_system.request GET /missions 200
+2026-11-17 00:55:42,365 INFO personnel_system.request GET /api/bootstrap/missions 200
+2026-11-17 00:55:42,471 INFO personnel_system.request GET /api/missions/day/2026-11-17 200
+2026-11-17 00:55:42,792 INFO personnel_system.request GET /daily-print 200
+2026-11-17 00:55:43,059 INFO personnel_system.request GET /api/bootstrap/daily_print 200
+2026-11-17 00:55:43,174 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:55:47,149 INFO backend.daily_print daily_print.job
+2026-11-17 00:55:47,149 INFO personnel_system.request POST /api/daily-print/jobs 202
+2026-11-17 00:55:47,301 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:55:48,457 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:55:49,592 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:55:50,728 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:55:51,918 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:55:52,692 INFO backend.daily_print daily_print.item
+2026-11-17 00:55:53,006 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:55:54,112 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:57:43,662 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:57:53,780 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:58:03,873 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:58:13,966 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 00:58:21,580 INFO personnel_system.request GET /board 200
+2026-11-17 00:58:21,823 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-17 00:58:22,771 INFO personnel_system.request GET /api/board/2026-11-17 200
+2026-11-17 00:58:22,862 INFO personnel_system.request GET /api/day-files/2026-11-17 200
+2026-11-17 00:58:22,966 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-17 200
+2026-11-17 00:58:23,102 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 01:19:31,587 INFO personnel_system.request GET /api/board/2026-11-17/export.docx 200
+2026-11-17 01:19:31,587 INFO personnel_system.export export_ok
+2026-11-17 01:19:36,981 WARNING personnel_system.request POST /api/export-preview 200
+2026-11-17 01:20:03,398 INFO personnel_system.request GET /officers 200
+2026-11-17 01:20:03,655 INFO personnel_system.request GET /api/bootstrap/officers 200
+2026-11-17 01:20:56,662 INFO personnel_system.request GET /daily-print 200
+2026-11-17 01:20:56,805 INFO personnel_system.request GET /api/bootstrap/daily_print 200
+2026-11-17 01:20:56,935 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:07,085 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:17,184 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:27,289 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:37,386 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:45,229 INFO backend.daily_print daily_print.job
+2026-11-17 01:21:45,229 INFO personnel_system.request POST /api/daily-print/jobs 202
+2026-11-17 01:21:45,442 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:46,557 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:47,658 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:48,858 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:49,966 INFO backend.daily_print daily_print.item
+2026-11-17 01:21:50,135 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:51,250 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:52,346 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:53,440 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:54,542 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:21:55,697 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:22:05,800 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:22:15,900 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:22:26,004 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 01:22:27,174 INFO personnel_system.request GET /campaign 200
+2026-11-17 01:22:27,341 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 01:22:28,080 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 01:22:28,313 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 01:23:24,734 INFO personnel_system.request GET / 200
+2026-11-17 01:23:24,926 INFO personnel_system.request GET /api/bootstrap/dashboard 200
+2026-11-17 01:23:25,932 INFO personnel_system.request GET /api/ops/2026-11-17 200
+2026-11-17 01:23:26,193 INFO personnel_system.request GET /board 200
+2026-11-17 01:23:26,571 INFO personnel_system.request GET /api/ops/2026-11-17/regularity 200
+2026-11-17 01:23:26,606 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-17 01:23:27,695 WARNING personnel_system.request GET /api/board/2026-11-17 200
+2026-11-17 01:23:27,839 INFO personnel_system.request GET /api/day-files/2026-11-17 200
+2026-11-17 01:23:27,889 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-17 200
+2026-11-17 01:23:27,990 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 02:17:07,735 INFO personnel_system.request GET /campaign 200
+2026-11-17 02:17:07,907 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 02:17:08,673 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 02:17:08,849 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 02:17:58,619 INFO backend.store backup.pruned
+2026-11-17 02:17:58,619 INFO backend.store backup.created
+2026-11-17 02:17:58,712 INFO backend.store store.save
+2026-11-17 02:17:58,728 WARNING personnel_system.request PUT /api/campaign/2026-11-17/lorry/LOR-1 200
+2026-11-17 02:18:11,169 INFO backend.daily_files daily_files.generated
+2026-11-17 02:18:53,590 INFO personnel_system.request GET /drivers 200
+2026-11-17 02:18:53,753 INFO personnel_system.request GET /api/bootstrap/drivers 200
+2026-11-17 02:18:53,947 INFO personnel_system.request GET /api/drivers 200
+2026-11-17 02:18:54,012 INFO personnel_system.request GET /api/conscripts 200
+2026-11-17 02:18:55,941 INFO personnel_system.request GET /vehicles 200
+2026-11-17 02:18:56,104 INFO personnel_system.request GET /api/bootstrap/vehicles 200
+2026-11-17 02:18:56,216 INFO personnel_system.request GET /api/vehicles 200
+2026-11-17 02:19:24,960 INFO backend.store store.save
+2026-11-17 02:19:25,110 WARNING personnel_system.request POST /api/vehicles 201
+2026-11-17 02:19:25,225 INFO personnel_system.request GET /api/vehicles 200
+2026-11-17 02:19:27,598 INFO personnel_system.request GET /campaign 200
+2026-11-17 02:19:27,744 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 02:19:28,614 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 02:19:29,492 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 02:19:37,627 INFO backend.store store.save
+2026-11-17 02:19:37,674 WARNING personnel_system.request PUT /api/campaign/2026-11-17/lorry/LOR-1 200
+2026-11-17 02:19:40,203 INFO backend.daily_files daily_files.generated
+2026-11-17 02:19:40,265 INFO backend.daily_files daily_files.skipped
+2026-11-17 02:19:50,239 INFO backend.daily_files daily_files.generated
+2026-11-17 02:19:52,848 INFO backend.store store.save
+2026-11-17 02:19:52,864 WARNING personnel_system.request PUT /api/campaign/2026-11-17/lorry/LOR-2 200
+2026-11-17 02:20:05,450 INFO backend.daily_files daily_files.generated
+2026-11-17 02:20:18,574 INFO backend.store backup.pruned
+2026-11-17 02:20:18,575 INFO backend.store backup.created
+2026-11-17 02:20:18,639 INFO backend.store store.save
+2026-11-17 02:20:18,655 WARNING personnel_system.request PUT /api/campaign/2026-11-17/lorry/LOR-3 200
+2026-11-17 02:20:20,272 INFO backend.store store.save
+2026-11-17 02:20:20,288 WARNING personnel_system.request PUT /api/campaign/2026-11-17/lorry/LOR-3 200
+2026-11-17 02:20:32,899 INFO backend.daily_files daily_files.generated
+2026-11-17 02:20:39,167 INFO backend.store store.save
+2026-11-17 02:20:39,167 WARNING personnel_system.request PUT /api/campaign/2026-11-17/lorry/LOR-2 200
+2026-11-17 02:20:52,161 INFO backend.daily_files daily_files.generated
+2026-11-17 02:21:08,142 INFO backend.store store.save
+2026-11-17 02:21:08,159 WARNING personnel_system.request PUT /api/campaign/2026-11-17/lorry/LOR-4 200
+2026-11-17 02:21:21,154 INFO backend.daily_files daily_files.generated
+2026-11-17 02:21:29,385 INFO backend.store store.save
+2026-11-17 02:21:29,401 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0032 200
+2026-11-17 02:21:38,812 INFO backend.store store.save
+2026-11-17 02:21:38,854 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0032 200
+2026-11-17 02:21:43,620 INFO backend.daily_files daily_files.generated
+2026-11-17 02:21:53,310 INFO backend.daily_files daily_files.generated
+2026-11-17 02:22:07,975 INFO backend.store store.save
+2026-11-17 02:22:07,988 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0032 200
+2026-11-17 02:22:20,954 INFO backend.daily_files daily_files.generated
+2026-11-17 02:22:33,183 INFO personnel_system.request GET /campaign 200
+2026-11-17 02:22:33,583 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 02:22:33,666 INFO backend.daily_files daily_files.generated
+2026-11-17 02:22:33,666 WARNING personnel_system.request POST /api/day-files/2026-11-17/campaign 200
+2026-11-17 02:22:34,317 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 02:22:34,473 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 02:22:46,643 INFO backend.store backup.pruned
+2026-11-17 02:22:46,643 INFO backend.store backup.created
+2026-11-17 02:22:46,976 INFO backend.store store.save
+2026-11-17 02:22:46,993 WARNING personnel_system.request DELETE /api/campaign/2026-11-17/service/AS-0020/removed 200
+2026-11-17 02:22:59,748 INFO backend.daily_files daily_files.generated
+2026-11-17 02:23:44,638 INFO backend.store store.save
+2026-11-17 02:23:44,654 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0021 200
+2026-11-17 02:23:54,402 INFO backend.store store.save
+2026-11-17 02:23:54,514 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0021 200
+2026-11-17 02:23:59,835 INFO backend.daily_files daily_files.generated
+2026-11-17 02:24:10,659 INFO backend.store store.save
+2026-11-17 02:24:10,737 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0030 200
+2026-11-17 02:24:11,509 INFO backend.daily_files daily_files.generated
+2026-11-17 02:24:20,542 INFO backend.store store.save
+2026-11-17 02:24:20,573 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0030 200
+2026-11-17 02:24:25,671 INFO backend.daily_files daily_files.generated
+2026-11-17 02:24:36,583 INFO backend.store store.save
+2026-11-17 02:24:36,630 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0031 200
+2026-11-17 02:24:37,351 INFO backend.daily_files daily_files.generated
+2026-11-17 02:24:45,943 INFO backend.store store.save
+2026-11-17 02:24:45,974 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0031 200
+2026-11-17 02:24:50,929 INFO backend.daily_files daily_files.generated
+2026-11-17 02:25:02,778 INFO backend.store backup.pruned
+2026-11-17 02:25:02,778 INFO backend.store backup.created
+2026-11-17 02:25:02,856 INFO backend.store store.save
+2026-11-17 02:25:02,903 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0016 200
+2026-11-17 02:25:07,760 INFO backend.daily_files daily_files.generated
+2026-11-17 02:25:17,428 INFO backend.daily_files daily_files.generated
+2026-11-17 02:25:19,241 INFO backend.store store.save
+2026-11-17 02:25:19,256 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0029 200
+2026-11-17 02:25:30,563 INFO backend.store store.save
+2026-11-17 02:25:30,585 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0029 200
+2026-11-17 02:25:33,821 INFO backend.daily_files daily_files.generated
+2026-11-17 02:25:42,348 INFO backend.store store.save
+2026-11-17 02:25:42,363 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0033 200
+2026-11-17 02:25:45,487 INFO backend.daily_files daily_files.generated
+2026-11-17 02:25:51,548 INFO backend.store store.save
+2026-11-17 02:25:51,576 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0033 200
+2026-11-17 02:25:56,942 INFO backend.daily_files daily_files.generated
+2026-11-17 02:26:07,030 INFO backend.daily_files daily_files.generated
+2026-11-17 02:26:25,087 INFO backend.store store.save
+2026-11-17 02:26:25,104 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0015 200
+2026-11-17 02:26:37,450 INFO backend.store store.save
+2026-11-17 02:26:37,497 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0015 200
+2026-11-17 02:26:39,278 INFO backend.daily_files daily_files.generated
+2026-11-17 02:26:45,262 WARNING backend.store store.load
+2026-11-17 02:26:46,911 INFO backend.store store.save
+2026-11-17 02:26:46,958 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0015 200
+2026-11-17 02:26:51,533 INFO backend.daily_files daily_files.generated
+2026-11-17 02:27:01,050 INFO backend.daily_files daily_files.generated
+2026-11-17 02:27:16,802 INFO backend.store backup.pruned
+2026-11-17 02:27:16,802 INFO backend.store backup.created
+2026-11-17 02:27:16,878 INFO backend.store store.save
+2026-11-17 02:27:16,898 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0015 200
+2026-11-17 02:27:18,585 INFO backend.store store.save
+2026-11-17 02:27:18,586 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0015 200
+2026-11-17 02:27:31,063 INFO backend.daily_files daily_files.generated
+2026-11-17 02:27:36,776 INFO backend.store store.save
+2026-11-17 02:27:36,790 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0015 200
+2026-11-17 02:27:49,408 INFO backend.daily_files daily_files.generated
+2026-11-17 02:28:01,196 INFO backend.store store.save
+2026-11-17 02:28:01,208 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0017 200
+2026-11-17 02:28:13,629 INFO backend.daily_files daily_files.generated
+2026-11-17 02:28:15,489 INFO backend.store store.save
+2026-11-17 02:28:15,489 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0017 200
+2026-11-17 02:28:21,106 INFO backend.store store.save
+2026-11-17 02:28:21,138 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0017 200
+2026-11-17 02:28:26,750 INFO backend.store store.save
+2026-11-17 02:28:26,791 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0017 200
+2026-11-17 02:28:31,555 INFO backend.daily_files daily_files.generated
+2026-11-17 02:28:41,124 INFO backend.daily_files daily_files.generated
+2026-11-17 02:29:31,259 WARNING personnel_system.request GET /api/campaign/2026-11-17/export.docx 200
+2026-11-17 02:29:31,259 INFO personnel_system.export export_ok
+2026-11-17 02:29:37,123 WARNING personnel_system.request POST /api/export-preview 200
+2026-11-17 02:30:19,550 INFO personnel_system.request GET /board 200
+2026-11-17 02:30:19,795 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-17 02:30:20,745 INFO personnel_system.request GET /api/board/2026-11-17 200
+2026-11-17 02:30:20,828 INFO personnel_system.request GET /api/day-files/2026-11-17 200
+2026-11-17 02:30:20,893 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-17 200
+2026-11-17 02:30:21,043 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 02:30:27,291 INFO personnel_system.request GET /daily-print 200
+2026-11-17 02:30:27,459 INFO personnel_system.request GET /api/bootstrap/daily_print 200
+2026-11-17 02:30:27,572 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 02:30:36,348 INFO personnel_system.request GET /afraad 200
+2026-11-17 02:30:36,523 INFO personnel_system.request GET /api/bootstrap/afraad 200
+2026-11-17 02:30:37,072 INFO personnel_system.request GET /api/afraad/2026-11-17 200
+2026-11-17 02:30:37,249 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 02:30:39,451 INFO personnel_system.request GET /daily-print 200
+2026-11-17 02:30:39,605 INFO personnel_system.request GET /api/bootstrap/daily_print 200
+2026-11-17 02:30:39,734 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 02:30:49,826 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 02:30:59,929 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 02:31:10,053 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 02:31:10,988 INFO personnel_system.request GET /campaign 200
+2026-11-17 02:31:11,161 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 02:31:11,861 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 02:31:12,081 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 02:33:53,700 INFO personnel_system.request GET /officers 200
+2026-11-17 02:33:53,959 INFO personnel_system.request GET /api/bootstrap/officers 200
+2026-11-17 02:33:56,666 INFO personnel_system.request GET /personnel 200
+2026-11-17 02:33:56,807 INFO personnel_system.request GET /api/bootstrap/personnel 200
+2026-11-17 02:33:58,409 INFO personnel_system.request GET /courses 200
+2026-11-17 02:33:58,589 INFO personnel_system.request GET /api/bootstrap/courses 200
+2026-11-17 02:33:58,722 INFO personnel_system.request GET /api/courses 200
+2026-11-17 02:33:59,203 INFO personnel_system.request GET /vehicles 200
+2026-11-17 02:33:59,399 INFO personnel_system.request GET /api/bootstrap/vehicles 200
+2026-11-17 02:33:59,554 INFO personnel_system.request GET /api/vehicles 200
+2026-11-17 02:34:00,349 INFO personnel_system.request GET /officers 200
+2026-11-17 02:34:00,520 INFO personnel_system.request GET /api/bootstrap/officers 200
+2026-11-17 02:56:42,050 INFO personnel_system.request GET /board 200
+2026-11-17 02:56:42,231 INFO personnel_system.request GET /api/bootstrap/board 200
+2026-11-17 02:56:43,271 WARNING personnel_system.request GET /api/board/2026-11-17 200
+2026-11-17 02:56:43,372 INFO personnel_system.request GET /api/day-files/2026-11-17 200
+2026-11-17 02:56:43,435 INFO personnel_system.request GET /api/rest-suspensions/day/2026-11-17 200
+2026-11-17 02:56:43,528 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 03:08:25,375 INFO personnel_system.request GET /campaign 200
+2026-11-17 03:08:25,539 INFO personnel_system.request GET /api/bootstrap/campaign 200
+2026-11-17 03:08:26,289 INFO personnel_system.request GET /api/campaign/2026-11-17 200
+2026-11-17 03:08:26,481 INFO personnel_system.request GET /api/day-status/2026-11-17 200
+2026-11-17 04:04:47,356 INFO backend.store backup.pruned
+2026-11-17 04:04:47,356 INFO backend.store backup.created
+2026-11-17 04:04:47,439 INFO backend.store store.save
+2026-11-17 04:04:47,490 WARNING personnel_system.request PUT /api/campaign/2026-11-17/service/AS-0029 200
+2026-11-17 04:04:49,372 INFO backend.daily_files daily_files.generated
+2026-11-17 04:04:49,372 WARNING personnel_system.request POST /api/day-files/2026-11-17/campaign 200
+2026-11-17 04:05:00,072 ERROR backend.daily_files فشل توليد ملف formation_morning لليوم 2026-11-17
+Traceback (most recent call last):
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 396, in _write_day_files
+    _write_one(path, data)
+  File "D:\3malyat-qwat-el-amn\backend\daily_files.py", line 355, in _write_one
+    os.replace(temporary, path)
+PermissionError: [WinError 5] Access is denied: 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\17\\.خط تشكيل صبح.docx.tmp' -> 'D:\\3malyat-qwat-el-amn\\data\\daily_files\\2026\\11\\17\\خط تشكيل صبح.docx'
+2026-11-17 04:05:00,915 WARNING backend.daily_files daily_files.generated
+2026-11-17 04:13:14,162 INFO personnel_system.request GET /daily-print 200
+2026-11-17 04:13:14,323 INFO personnel_system.request GET /api/bootstrap/daily_print 200
+2026-11-17 04:13:14,442 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:13:24,568 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:13:34,675 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:13:44,766 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:13:54,858 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:14:04,996 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:14:15,087 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:14:25,185 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:14:35,276 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:14:45,368 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:14:55,522 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:15:05,613 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:15:15,704 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:15:25,811 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:15:35,903 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:15:46,025 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:15:56,132 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:16:06,224 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:16:16,315 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:16:26,422 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:16:36,560 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:16:46,652 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:16:56,743 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:17:06,834 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:17:16,973 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:17:27,064 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:17:37,171 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:17:47,278 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:17:57,385 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:18:07,539 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:18:17,629 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:18:27,720 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:18:37,827 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:18:47,919 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:18:58,041 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:19:08,148 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:19:18,239 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:19:28,331 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:19:38,438 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:19:48,592 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:19:58,683 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:20:08,774 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:20:18,866 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:20:29,004 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:20:39,095 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:20:49,187 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:20:59,278 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:21:09,369 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:21:19,523 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:21:29,615 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:21:39,706 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:21:49,797 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:21:59,889 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:22:10,027 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:22:20,118 INFO personnel_system.request GET /api/daily-print/2026-11-17 200
+2026-11-17 04:22:50,644 INFO personnel_system.request GET /api/daily-print/2026-11-18 200
+2026-11-17 04:22:51,960 INFO personnel_system.request GET /api/daily-print/2026-11-19 200
+2026-11-17 04:22:53,412 INFO personnel_system.request GET /api/daily-print/2026-11-18 200
+2026-11-17 04:22:54,140 INFO personnel_system.request GET /api/daily-print/2026-11-17 200

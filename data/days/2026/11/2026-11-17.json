@@ -1841,30 +1841,208 @@
           {
             "assignment_id": "AS-0009"
           }
-        ]
+        ],
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-180"
+        }
       },
       "LOR-4": {
-        "driver": {}
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-083"
+        }
       },
       "LOR-3": {
-        "vehicle_id": ""
+        "vehicle_id": "VEH-017",
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-083"
+        }
+      },
+      "LOR-1": {
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-067"
+        },
+        "vehicle_id": "VEH-076"
       }
     },
     "services": {
       "AS-0017": {
         "vehicles": [
           {
-            "vehicle_id": "",
+            "vehicle_id": "VEH-018",
             "officer_ids": [
               "OFF-043"
-            ]
+            ],
+            "driver": {
+              "kind": "personnel",
+              "id": "IND-082"
+            }
           },
           {
-            "vehicle_id": ""
+            "vehicle_id": "VEH-036",
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-086"
+            }
+          }
+        ]
+      },
+      "AS-0032": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-188"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-035"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-035"
+        }
+      },
+      "AS-0021": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-049",
+            "personnel_ids": [
+              "IND-127"
+            ],
+            "driver": {
+              "kind": "text",
+              "id": "",
+              "name": "عبدالرحمن عماد"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "text",
+          "id": "",
+          "name": "عبدالرحمن عماد"
+        }
+      },
+      "AS-0030": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-028",
+            "personnel_ids": [
+              "IND-130"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-005"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-005"
+        }
+      },
+      "AS-0031": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-034",
+            "personnel_ids": [
+              "IND-128"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-048"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-048"
+        }
+      },
+      "AS-0016": {
+        "vehicles": [
+          {
+            "vehicle_id": "",
+            "personnel_ids": [
+              "IND-137"
+            ],
+            "driver": {
+              "kind": "personnel",
+              "id": "IND-078"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "personnel",
+          "id": "IND-078"
+        }
+      },
+      "AS-0029": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-039",
+            "personnel_ids": [
+              "IND-114"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-067"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-067"
+        }
+      },
+      "AS-0033": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-073",
+            "personnel_ids": [
+              "IND-124"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-034"
+            }
+          }
+        ],
+        "driver": {
+          "kind": "conscript",
+          "id": "CON-034"
+        }
+      },
+      "AS-0015": {
+        "vehicles": [
+          {
+            "vehicle_id": "VEH-040",
+            "personnel_ids": [
+              "IND-039"
+            ],
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-093"
+            }
+          },
+          {
+            "vehicle_id": "VEH-036",
+            "driver": {
+              "kind": "conscript",
+              "id": "CON-085"
+            }
           }
         ]
       }
     },
-    "daily": {}
+    "daily": {},
+    "removed_services": [
+      "AS-0020"
+    ]
   }
 }
