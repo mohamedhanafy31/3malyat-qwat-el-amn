@@ -55,3 +55,10 @@ data/ocr_samples/
 dist/
 tools/offline_installers/
 OFFLINE_ASSETS.sha256
+
+# بيانات التشغيل اليومية محلية لكل جهاز: بتتخزّن في data/ وماتتسحبش ولا تترفع مع الكود، فأي تعديل
+# في اليوميات ما بيعمل تعارض ولا محتاج commit. (core.json = القوة والبيانات المرجعية لسه متتبّع.)
+data/days/
+data/changes/
+data/.transaction-journal.json
+data/.transaction-journal.json.tmp
