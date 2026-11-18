@@ -53,7 +53,8 @@ def test_dry_run_writes_nothing_and_store_is_idempotent(batch):
     assert report["plan"] == {"write": 1, "skip": 2} and _hashes() == before
     run_store(ledger, state, write=True)
     after = _hashes()
-    assert "days/2025/01/2025-01-05.json" in after and "days/2026/09/2026-09-01.json" not in after
+    assert any(name.startswith("days/2025/01/2025-01-05/") for name in after)      # مجلد اليوم وملفات جوانبه
+    assert not any(name.startswith("days/2026/09/2026-09-01") for name in after)
     again = run_store(ledger, state, write=True)
     assert again["files_to_write"] == 0 and _hashes() == after
 
@@ -85,7 +86,7 @@ def test_in_app_day_needs_flag_and_written_approval(batch):
     approvals.write_text("﻿date,approve,note\n2025-02-01,نعم,راجعت الفرق\n", encoding="utf-8")
     assert "2025-02-01" in run_store(ledger, state)["skipped"]
     run_store(ledger, state, write=True, replace_existing=True)
-    day = json.loads(store.day_path("2025-02-01").read_text(encoding="utf-8"))
+    day = store.read_day_blob("2025-02-01")
     assert day["assignments"][0]["name"] == "ترحيلة الأرشيف" and day["import"]["batch"] == BATCH
 
 

@@ -166,10 +166,131 @@ def board_source_doc_path(day: str) -> Path:
     return DATA_DIR / SOURCE_DOCS_NAME / "board" / f"{day}.docx"
 
 
-def day_path(day):
-    """`data/days/2026/09/2026-09-05.json` — متشعّب بالسنة والشهر عشان
+# شكل تخزين اليوم: «folder» (الافتراضي) = مجلد لكل يوم فيه ملف لكل جانب
+# (data/days/2026/09/2026-09-05/assignments.json …)، و«legacy» = ملف JSON واحد. القراءة بتفهم
+# الاتنين دايمًا؛ الكتابة بتحوّل اليوم للشكل المطلوب أول ما يتعدّل (في نفس معاملة الدفتر).
+DAY_LAYOUT = os.environ.get("PERSONNEL_DAY_LAYOUT", "folder").strip().lower() or "folder"
+
+# ملفات المجلد: كل جانب في ملف، والأقسام اللي بتتغيّر مع بعض في نفس الملف (بالتوزيع ده الحفظ بيكتب
+# الملف/الملفين اللي اتغيّروا بس، وتفاصيل الخدمة ورئاستها في `assignments.json` لوحده).
+DAY_BUNDLES = (
+    ("assignments.json", ("assignments", "assignment_seq")),
+    ("officers.json", ("officer_states",)),
+    ("confirm.json", ("confirm", "status")),
+    ("counts.json", ("counts", "service_runs")),
+    ("afraad.json", ("afraad_basic",)),
+    ("campaign.json", ("campaign",)),
+    ("extras.json", ("weekly_rest_seeded", "target_defaults", "import")),
+)
+_BUNDLE_OF = {section: name for name, sections in DAY_BUNDLES for section in sections}
+_DEFAULT_BUNDLE = "extras.json"
+
+
+def legacy_day_file(day):
+    """`data/days/2026/09/2026-09-05.json` — الشكل القديم (ملف واحد). متشعّب بالسنة والشهر عشان
     مجلد واحد فيه آلاف الملفات تقيل في متصفح الملفات على ويندوز."""
     return days_dir() / day[:4] / day[5:7] / f"{day}.json"
+
+
+def day_folder(day):
+    return days_dir() / day[:4] / day[5:7] / day
+
+
+def day_path(day):
+    """مكان اليوم الحالي على القرص: مجلده لو اتحوّل، وإلا ملفه القديم (حتى لو لسه مش موجود)."""
+    folder = day_folder(day)
+    return folder if folder.is_dir() and _dir_sig(folder) else legacy_day_file(day)
+
+
+def _split_bundles(blob):
+    """محتوى اليوم -> {اسم الملف: {قسم: قيمة}} للملفات اللي فيها حاجة بس."""
+    groups = {}
+    for section, value in blob.items():
+        groups.setdefault(_BUNDLE_OF.get(section, _DEFAULT_BUNDLE), {})[section] = value
+    return groups
+
+
+def _combine(parts):
+    """بصمة اليوم من بصمات ملفاته (ثابتة مهما كان ترتيب القراءة)."""
+    return _fingerprint("\n".join(f"{name}:{parts[name]}" for name in sorted(parts)))
+
+
+def _dir_sig(folder):
+    try:
+        return tuple(sorted((e.name, e.stat().st_mtime_ns, e.stat().st_size)
+                            for e in os.scandir(folder)
+                            if e.name.endswith(".json") and e.is_file()))
+    except FileNotFoundError:
+        return None
+
+
+def day_changed_paths(day, blob):
+    """المسارات النسبية (لمجلد البيانات) اللي `_write` هيكتبها أو يشيلها لو اليوم بقى `blob` — للأدوات
+    (زي الاستيراد) اللي بتاخد نسخة أصل قبل الكتابة. [] لو المحتوى هو هو."""
+    path = day_path(day)
+    entry = _load_entry(path, cache=False)[0] if path.exists() else None
+    if entry is not None and pickle.loads(entry.packed) == blob:
+        return []
+    plan = _plan_day_write(day, blob, entry.parts if entry is not None else None)
+    return sorted({*plan["files"], *plan["delete"]})
+
+
+def read_day_dir(data_dir, day):
+    """محتوى يوم من مجلد بيانات معيّن (مش بالضرورة الشغّال) بأي شكل تخزين؛ None لو مفيش."""
+    base = Path(data_dir) / DAYS_NAME / day[:4] / day[5:7]
+    folder = base / day
+    if folder.is_dir():
+        blob = {}
+        for entry in sorted(os.scandir(folder), key=lambda e: e.name):
+            if entry.name.endswith(".json") and entry.is_file():
+                blob.update(_parse(_read_text(Path(entry.path)), Path(entry.path)))
+        if blob:
+            return blob
+    legacy = base / f"{day}.json"
+    return _parse(_read_text(legacy), legacy) if legacy.exists() else None
+
+
+def day_blobs_at(data_dir):
+    """{يوم: محتواه} لكل أيام مجلد بيانات (الشكلين) — للأدوات."""
+    root = Path(data_dir) / DAYS_NAME
+    days = set()
+    for year in (root.iterdir() if root.exists() else ()):
+        for month in (year.iterdir() if year.is_dir() else ()):
+            for item in (month.iterdir() if month.is_dir() else ()):
+                stem = item.stem if item.is_file() and item.suffix == ".json" else item.name
+                if _DAY_STEM.fullmatch(stem):
+                    days.add(stem)
+    return {day: read_day_dir(data_dir, day) for day in sorted(days)
+            if read_day_dir(data_dir, day) is not None}
+
+
+def day_files(day):
+    """ملفات اليوم على القرص (ملفات المجلد، أو الملف القديم) — للأدوات والاختبارات."""
+    path = day_path(day)
+    if path.is_dir():
+        return sorted(Path(e.path) for e in os.scandir(path) if e.name.endswith(".json") and e.is_file())
+    return [path] if path.exists() else []
+
+
+def day_bytes(day):
+    """محتوى ملفات اليوم كلها متتالي بالترتيب — لمقارنة «ما اتلمسش» في الاختبارات والأدوات."""
+    return b"".join(path.read_bytes() for path in day_files(day))
+
+
+def copy_day_files(day, dest_root):
+    """ينسخ ملفات اليوم (أي شكل) لـ`dest_root` بنفس المسار النسبي لمجلد البيانات — لنسخ الأصل قبل تعديل."""
+    for source in day_files(day):
+        target = Path(dest_root) / source.relative_to(DATA_DIR)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+
+def read_day_blob(day):
+    """محتوى يوم واحد من القرص (أي شكل) — للأدوات والاختبارات؛ {} لو مفيش ملف."""
+    path = day_path(day)
+    if not path.exists():
+        return {}
+    return _load(path, cache=False)[1]
 
 
 def backup_dir():
@@ -243,16 +364,17 @@ def _parse(raw, path):
     من قطع كهربا لازم يوقف الدنيا بصوت عالي، والنسخ في backups/ هي طريق
     الرجوع.
     """
+    label = f"{path.parent.name}/{path.name}" if _DAY_STEM.fullmatch(path.parent.name) else path.name
     try:
         data = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise DataUnreadable(
-            f"الملف «{path.name}» تالف وتعذّرت قراءته (السطر {exc.lineno}، العمود {exc.colno}). "
+            f"الملف «{label}» تالف وتعذّرت قراءته (السطر {exc.lineno}، العمود {exc.colno}). "
             f"لم تُكتب عليه أي بيانات — استعد أحدث نسخة سليمة من {BACKUP_DIR_NAME}/."
         ) from exc
     if not isinstance(data, dict):
         raise DataUnreadable(
-            f"الملف «{path.name}» ليس بالشكل المتوقع (وُجد {type(data).__name__} بدلًا من كائن). "
+            f"الملف «{label}» ليس بالشكل المتوقع (وُجد {type(data).__name__} بدلًا من كائن). "
             f"استعد نسخة من {BACKUP_DIR_NAME}/."
         )
     return data
@@ -339,11 +461,18 @@ def _scan_day_files():
                 entries = list(os.scandir(month.path))
             except OSError:
                 continue
+            folders = []
             for entry in entries:
                 name = entry.name
                 if name.endswith(".json") and not name.startswith(".") and entry.is_file():
                     stat = entry.stat()
                     out[name[:-5]] = (Path(entry.path), (stat.st_mtime_ns, stat.st_size))
+                elif entry.is_dir() and _DAY_STEM.fullmatch(name):
+                    folders.append(entry)
+            for entry in folders:                    # المجلد بيغلب الملف القديم لو الاتنين موجودين
+                sig = _dir_sig(entry.path)
+                if sig:
+                    out[entry.name] = (Path(entry.path), sig)
     return out
 
 
@@ -604,13 +733,16 @@ class DayIndex:
 
 
 _STATE_LOCK = threading.RLock()     # الكاش والفهرس — مستقل عن LOCK بتاع المعاملة
-_index_state = {"dir": None, "entries": None}
+_index_state = {"dir": None, "entries": None, "checked": 0.0}
+# بصمة كل ملف في كل يوم (≈8000 `stat` لمجلدات الأيام) مش لازم تتعمل مع كل طلب: كتابات التطبيق بتحدّث
+# الفهرس بنفسها (`_index_put`)، فالمسح الكامل بس لاكتشاف تعديل من «برّه» (محرر/سكربت) بعد الفترة دي.
+INDEX_RECHECK_SECONDS = 1.0
 INDEX_STATS = {"rebuilds": 0, "repairs": 0}
 
 
 def _forget_index():
     with _STATE_LOCK:
-        _index_state.update(dir=None, entries=None)
+        _index_state.update(dir=None, entries=None, checked=0.0)
 
 
 def _file_sig(path):
@@ -631,13 +763,16 @@ def _ensure_index():
     with _STATE_LOCK:
         root = str(DATA_DIR)
         entries = _index_state["entries"] if _index_state["dir"] == root else None
+        if (entries is not None and INDEX_RECHECK_SECONDS > 0
+                and time.monotonic() - _index_state.get("checked", 0.0) < INDEX_RECHECK_SECONDS):
+            return DayIndex(entries)
         scanned = _scan_day_files()
         files = {day: item[0] for day, item in scanned.items()}
         if entries is None:
             # البناء الكامل مايملاش الكاش — الأيام المستخدمة فعلًا هي اللي تستاهل الذاكرة
             entries = {day: _meta_from_file(path, cache=False)
                        for day, path in sorted(files.items())}
-            _index_state.update(dir=root, entries=entries)
+            _index_state.update(dir=root, entries=entries, checked=time.monotonic())
             INDEX_STATS["rebuilds"] += 1
             return DayIndex(entries)
         fresh = None
@@ -653,6 +788,7 @@ def _ensure_index():
         if fresh is not None:
             _index_state["entries"] = fresh
             INDEX_STATS["repairs"] += 1
+        _index_state["checked"] = time.monotonic()
         return DayIndex(_index_state["entries"])
 
 
@@ -688,6 +824,7 @@ class _Entry(NamedTuple):
     sig: tuple
     fingerprint: str
     packed: bytes
+    parts: dict = None          # {ملف: بصمته} لمجلد يوم؛ None لملف واحد
 
 
 class _FileCache:
@@ -739,9 +876,24 @@ def _load_entry(path, core=False, cache=True):
     بس لما الملف يتغيّر. `cache=False` بيقرا من غير ما يزحم كاش الأيام
     (النسخ الاحتياطي وبناء الفهرس)."""
     with _STATE_LOCK:
+        key = str(path)
+        if path.is_dir():
+            sig = _dir_sig(path)
+            hit = _cache.get(key, core)
+            if hit is not None and hit.sig == sig:
+                return hit, None
+            blob, parts = {}, {}
+            for name in sorted(n for n, *_ in sig or ()):
+                text = _read_text(path / name)
+                parsed = _parse(text, path / name)
+                parts[name] = _fingerprint(text)
+                blob.update(parsed)
+            entry = _Entry(sig, _combine(parts), _pack(blob), parts)
+            if cache or core:
+                _cache.put(key, entry, core)
+            return entry, blob
         stat = path.stat()
         sig = (stat.st_mtime_ns, stat.st_size)
-        key = str(path)
         hit = _cache.get(key, core)
         if hit is not None and hit.sig == sig:
             return hit, None
@@ -862,11 +1014,13 @@ def _read(days=ALL_DAYS):
     scope = _resolve_scope(days, ScopeView(data, index))
     wanted = index.days() if scope is None else sorted(d for d in scope if d in index)
 
-    originals, fingerprints = {}, {"core": core_entry.fingerprint}
+    originals, fingerprints, day_parts = {}, {"core": core_entry.fingerprint}, {}
     for day in wanted:
         entry, blob = _load(day_path(day))
         originals[day] = entry.packed
         fingerprints[day] = entry.fingerprint
+        if entry.parts is not None:
+            day_parts[day] = dict(entry.parts)
         for key, name in DAY_SECTIONS.items():
             if blob.get(name):
                 data[key][day] = blob[name]
@@ -879,7 +1033,7 @@ def _read(days=ALL_DAYS):
     # بصمات اللي اتقرا ونطاقه — `_write` بيقارن بيها ويكتب اللي اتغيّر بس.
     # المفتاح بيبدأ بـ`_` فما بيتخزّنش (شوف `split`).
     data["_fp"] = {"fingerprints": fingerprints, "originals": originals,
-                   "scope": scope, "index": index, "log": log_base}
+                   "scope": scope, "index": index, "log": log_base, "parts": day_parts}
     elapsed = tech_log.ms_since(started)
     tech_log.event(LOG, "store.load",
                    level=logging.WARNING if elapsed > 1000 else logging.DEBUG,
@@ -954,6 +1108,94 @@ def require_person_days(data, person_id):
 
 # ---------- الكتابة ----------
 
+def _rel(path):
+    return str(Path(path).relative_to(DATA_DIR))
+
+
+def _plan_day_write(day, blob, old_parts):
+    """ملفات اليوم اللي هتتكتب/تتشال: {files: {مسار نسبي: نص}, delete, fingerprint, parts, force}."""
+    legacy = legacy_day_file(day)
+    folder = day_folder(day)
+    in_folder = folder.is_dir() and bool(_dir_sig(folder))
+    if DAY_LAYOUT != "folder" and not in_folder:
+        text = _dumps(blob)
+        return {"files": {_rel(legacy): text}, "delete": [], "fingerprint": _fingerprint(text),
+                "parts": None, "force": False, "layout": "legacy"}
+    migrating = legacy.exists()
+    known = {} if migrating or not in_folder else dict(old_parts or {})
+    parts, files = {}, {}
+    for name, group in _split_bundles(blob).items():
+        text = _dumps(group)
+        stamp = _fingerprint(text)
+        parts[name] = stamp
+        if known.get(name) != stamp:
+            files[_rel(folder / name)] = text
+    delete = [_rel(folder / name) for name in known if name not in parts]
+    if migrating:
+        delete.append(_rel(legacy))
+    return {"files": files, "delete": delete, "fingerprint": _combine(parts), "parts": parts,
+            "force": migrating, "layout": "folder"}
+
+
+def _day_files_on_disk(day):
+    """كل ملفات اليوم الموجودة فعلًا (مجلده وملفه القديم) كمسارات نسبية."""
+    out = []
+    folder = day_folder(day)
+    if folder.is_dir():
+        out.extend(_rel(folder / e.name) for e in os.scandir(folder) if e.is_file())
+    if legacy_day_file(day).exists():
+        out.append(_rel(legacy_day_file(day)))
+    return out
+
+
+def _apply_day_plan(day, plan):
+    """ينفّذ الخطة ويرجّع (_Entry, محتوى اليوم المحلّل) للكاش والفهرس."""
+    texts = {}
+    for rel, text in plan["files"].items():
+        _write_atomic(DATA_DIR / rel, text)
+        texts[Path(rel).name] = text
+    for rel in plan["delete"]:
+        (DATA_DIR / rel).unlink(missing_ok=True)
+    with _STATE_LOCK:
+        _cache.drop(str(legacy_day_file(day)))
+        _cache.drop(str(day_folder(day)))
+    if plan["layout"] == "legacy":
+        path = legacy_day_file(day)
+        parsed = _parse(next(iter(plan["files"].values())), path)
+        entry = _Entry(_file_sig(path), plan["fingerprint"], _pack(parsed))
+        with _STATE_LOCK:
+            _cache.put(str(path), entry, False)
+        return entry, parsed
+    folder = day_folder(day)
+    blob = {}
+    for name in plan["parts"]:
+        text = texts.get(name)
+        if text is None:
+            text = _read_text(folder / name)
+        blob.update(_parse(text, folder / name))
+    entry = _Entry(_dir_sig(folder), plan["fingerprint"], _pack(blob), dict(plan["parts"]))
+    with _STATE_LOCK:
+        _cache.put(str(folder), entry, False)
+    return entry, blob
+
+
+def _remove_day(day):
+    """يمسح كل ملفات اليوم (مجلده وملفه القديم) من القرص والكاش."""
+    folder = day_folder(day)
+    if folder.is_dir():
+        for entry in list(os.scandir(folder)):
+            if entry.is_file():
+                os.unlink(entry.path)
+        try:
+            folder.rmdir()
+        except OSError:
+            pass
+    legacy_day_file(day).unlink(missing_ok=True)
+    with _STATE_LOCK:
+        _cache.drop(str(folder))
+        _cache.drop(str(legacy_day_file(day)))
+
+
 def _write(data):
     """بيكتب اللي اتغيّر بس. بيرجّع (الملفات المكتوبة، الملفات المشالة).
 
@@ -993,18 +1235,22 @@ def _write(data):
                     if log_base is not None else None)
 
     new_fp = {"core": core_stamp}
+    old_parts, new_parts = tracking.get("parts") or {}, {}
     pending = {}
     for day, blob in days.items():
         if scope is not None and day not in scope and day_path(day).exists():
             raise OutOfScope(f"محاولة كتابة اليوم {day} من غير ما يكون في نطاق المعاملة.")
         if day in originals and _pack(blob) == originals[day]:
             new_fp[day] = before[day]
+            if day in old_parts:
+                new_parts[day] = old_parts[day]
             continue
-        text = _dumps(blob)
-        stamp = _fingerprint(text)
-        new_fp[day] = stamp
-        if stamp != before.get(day):
-            pending[day] = text
+        plan = _plan_day_write(day, blob, old_parts.get(day))
+        new_fp[day] = plan["fingerprint"]
+        if plan["parts"] is not None:
+            new_parts[day] = plan["parts"]
+        if plan["fingerprint"] != before.get(day) or plan["force"]:
+            pending[day] = plan
 
     # يوم كان له ملف وبقى فاضي — الملف بيتشال عشان القرص يفضل مطابق
     # للذاكرة، وإلا اليوم الممسوح بيرجع لوحده في أول قراءة جاية.
@@ -1023,10 +1269,12 @@ def _write(data):
                                "text": log_plan["text"], "offset": log_plan["offset"]})
         if core_changed:
             operations.append({"action": "replace", "target": CORE_NAME, "text": core_text})
-        operations.extend({"action": "replace", "target": str(day_path(day).relative_to(DATA_DIR)),
-                           "text": text} for day, text in pending.items())
-        operations.extend({"action": "delete", "target": str(day_path(day).relative_to(DATA_DIR))}
-                           for day in gone)
+        for day, plan in pending.items():
+            operations.extend({"action": "replace", "target": rel, "text": text}
+                              for rel, text in plan["files"].items())
+            operations.extend({"action": "delete", "target": rel} for rel in plan["delete"])
+        for day in gone:
+            operations.extend({"action": "delete", "target": rel} for rel in _day_files_on_disk(day))
         _write_journal(operations)
         _snapshot(core_changed=core_changed)
 
@@ -1041,17 +1289,12 @@ def _write(data):
         if core_changed:
             _write_atomic(core_file(), core_text)
             _remember(core_file(), core_text, core=True)
-        for day, text in pending.items():
-            path = day_path(day)
-            _write_atomic(path, text)
-            entry, blob = _remember(path, text)
+        for day, plan in pending.items():
+            entry, blob = _apply_day_plan(day, plan)
             new_originals[day] = entry.packed
             _index_put(day, _day_meta(entry.sig, blob))
         for day in gone:
-            path = day_path(day)
-            path.unlink(missing_ok=True)
-            with _STATE_LOCK:
-                _cache.drop(str(path))
+            _remove_day(day)
             _index_put(day, None)
     except BaseException:
         _forget_index()                  # كتابة وقعت في النص — يتبني من القرص تاني
@@ -1073,7 +1316,7 @@ def _write(data):
             new_log_base = {"legacy": False, "last_id": None, "count": 0, "size": 0}
     data["_change_pending"] = []
     data["_fp"] = {"fingerprints": new_fp, "originals": new_originals,
-                   "scope": scope, "index": index, "log": new_log_base}
+                   "scope": scope, "index": index, "log": new_log_base, "parts": new_parts}
     changed_days = frozenset(
         p[:-5] for p in written if p.endswith(".json") and p != CORE_NAME
     )
@@ -1155,8 +1398,12 @@ def snapshot_now():
             zf.writestr("manifest.json", json.dumps(
                 {"format": 2, "schema": SCHEMA_VERSION, "created": datetime.now().isoformat()}))
             zf.write(core_file(), CORE_NAME)
-            for day, (day_file, _sig) in sorted(_scan_day_files().items()):
-                zf.write(day_file, "days/" + day_file.relative_to(days_dir()).as_posix())
+            for day, (anchor, _sig) in sorted(_scan_day_files().items()):
+                if anchor.is_dir():
+                    for member in sorted(e.path for e in os.scandir(anchor) if e.is_file()):
+                        zf.write(member, "days/" + Path(member).relative_to(days_dir()).as_posix())
+                else:
+                    zf.write(anchor, "days/" + anchor.relative_to(days_dir()).as_posix())
             log_file = change_log_path()
             if log_file.exists():
                 zf.write(log_file, CHANGE_LOG_FILE)      # التاريخ كله، مش آخر 5000 بس
@@ -1317,9 +1564,10 @@ def explode(data, _notify=True):
     _write_atomic(change_log_path(), _log_text(data.get("change_log")))
     for path in all_day_files():
         if path.stem not in days:
-            path.unlink(missing_ok=True)
+            _remove_day(path.stem)
     for day, blob in days.items():
-        _write_atomic(day_path(day), _dumps(blob))
+        _remove_day(day)                       # نبدأ من يوم نضيف: مفيش ملفات قديمة من شكل تاني تفضل
+        _apply_day_plan(day, _plan_day_write(day, blob, None))
     _cache.clear()
     touched_days = frozenset(existing_days | set(days))
     changeset = Changeset(touched_days, touched_days, frozenset(), ALL_CORE_KEYS)
@@ -1375,7 +1623,10 @@ def _read_backup_v2(zf, path):
         days = {}
         for name in zf.namelist():
             if name.startswith("days/") and name.endswith(".json"):
-                days[Path(name).stem] = json.loads(zf.read(name).decode("utf-8"))
+                member = Path(name)
+                # ملف يوم قديم (…/2026-11-16.json) أو ملف جانب من مجلد يوم (…/2026-11-16/assignments.json)
+                day = member.stem if _DAY_STEM.fullmatch(member.stem) else member.parent.name
+                days.setdefault(day, {}).update(json.loads(zf.read(name).decode("utf-8")))
         data = merge(core, days)
         if CHANGE_LOG_FILE in zf.namelist():
             lines = [line for line in zf.read(CHANGE_LOG_FILE).decode("utf-8").splitlines() if line.strip()]

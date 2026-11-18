@@ -67,5 +67,5 @@ def test_counter_lives_in_the_day_file_not_core(client):
     _add(client, "تدخل سريع")
     core = json.loads(store.core_file().read_text(encoding="utf-8"))
     assert "day_assignment_seq" not in core
-    blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
+    blob = store.read_day_blob(DAY)
     assert blob.get("assignment_seq") == 1

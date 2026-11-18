@@ -74,7 +74,7 @@ def test_opening_uses_the_latest_confirmed_targets_only(client, data_file):
     assert marker["targets"]["سوميد"] == ["OFF-002"]
     assert not any(row.get("name") == "خدمة لا تنسخ"
                    for row in saved.get("day_assignments", {}).get(DAY, []))
-    day_blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
+    day_blob = store.read_day_blob(DAY)
     assert "target_defaults" in day_blob
     assert "target_defaults" not in json.loads(
         store.core_file().read_text(encoding="utf-8"))

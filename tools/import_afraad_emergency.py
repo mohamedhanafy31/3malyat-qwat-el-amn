@@ -211,11 +211,7 @@ def main() -> int:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     preimage = store.DATA_DIR / "import" / "preimage" / f"afraad-emergency-{stamp}"
     for day in plan:
-        source = store.day_path(day)
-        if source.exists():
-            target = preimage / "files" / source.relative_to(store.DATA_DIR)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, target)
+        store.copy_day_files(day, preimage / "files")
     snapshot = store.snapshot_now()
     for day, actions in plan.items():
         apply_day(data, day, actions)

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
+from backend import store
 from backend.constants import RANK_ORDER
 
 from .ledger import Ledger, atomic_write_bytes, atomic_write_json, atomic_write_jsonl
@@ -877,11 +878,11 @@ def _reference_report(data_dir: Path, dates: list[str], kind: str, observations:
     people = {person["id"]: person for person in core.get("officers" if kind == "officer" else "personnel", [])}
     result: dict[str, list[dict[str, Any]]] = {}
     for date in dates:
-        path = data_dir / "days" / date[:4] / date[5:7] / f"{date}.json"
-        if not path.exists():
+        reference = store.read_day_dir(data_dir, date)
+        if reference is None:
             result[date] = [{"type": "reference_day_missing", "source_text": ""}]
             continue
-        expected = _expected_ids(json.loads(path.read_text(encoding="utf-8")), kind)
+        expected = _expected_ids(reference, kind)
         resolved: set[str] = set()
         mismatches: list[dict[str, Any]] = []
         for item in observations:

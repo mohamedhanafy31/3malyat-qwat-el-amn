@@ -226,7 +226,7 @@ def test_a_corrupt_day_file_stops_everything_instead_of_reading_empty(client, da
     بيوم فاضي كان هيخلي اللوحة تبان فاضية، وأول حفظ بعدها يكتب الفاضي
     ده فوق البيانات الحقيقية."""
     client.post("/api/assignments/2026-04-10", json={"name": "خدمة", "kind": "خارجية"})
-    store.day_path("2026-04-10").write_text('{"assignments": [', encoding="utf-8")
+    store.day_files("2026-04-10")[0].write_text('{"assignments": [', encoding="utf-8")
     store._cache.clear()
 
     with pytest.raises(store.DataUnreadable, match="2026-04-10"):
@@ -234,7 +234,8 @@ def test_a_corrupt_day_file_stops_everything_instead_of_reading_empty(client, da
 
 
 def test_deployment_validation_reads_real_day_files(data_file):
-    path = store.day_path("2026-04-10")
+    store._remove_day("2026-04-10")
+    path = store.legacy_day_file("2026-04-10")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text('{"assignment_seq": "not-an-integer"}', encoding="utf-8")
     store._cache.clear()

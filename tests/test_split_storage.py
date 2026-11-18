@@ -1,4 +1,4 @@
-"""التخزين المقسّم — ملف لكل يوم، والكتابة للي اتغيّر بس.
+"""التخزين المقسّم — مجلد لكل يوم (ملف لكل جانب)، والكتابة للي اتغيّر بس.
 
 السبب اللي البند ده اتعمل عشانه: تعديل خانة واحدة في اليومية كان بيعيد
 كتابة ملف البيانات كله (أكتر من 2 ميجا) وياخد منه نسخة مضغوطة كاملة.
@@ -27,17 +27,18 @@ def test_each_day_lands_in_its_own_file(client):
     _add(client, DAY)
     _add(client, OTHER)
 
-    assert store.day_path(DAY).exists()
-    assert store.day_path(OTHER).exists()
-    blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
+    assert store.day_path(DAY).is_dir() and store.day_path(OTHER).is_dir()
+    blob = store.read_day_blob(DAY)
     assert [a["name"] for a in blob["assignments"]] == ["خدمة"]
+    # تفاصيل الخدمات (ورئاستها) في ملفها هي، مش مخلوطة مع باقي جوانب اليوم
+    assert [p.name for p in store.day_files(DAY)] == ["assignments.json"]
 
 
 def test_day_files_are_nested_by_year_and_month(client):
     """مجلد واحد فيه آلاف الملفات تقيل في متصفح الملفات على ويندوز."""
     _add(client, DAY)
     path = store.day_path(DAY)
-    assert path.parent.name == "04" and path.parent.parent.name == "2026"
+    assert path.parent.name == "04" and path.parent.parent.name == "2026" and path.name == DAY
 
 
 def test_core_holds_the_force_and_never_the_days(client):
@@ -56,9 +57,11 @@ def test_everything_in_one_day_file_lives_together(client):
     client.post(f"/api/board/{DAY}/confirm", json={})
     client.post(f"/api/day-status/{DAY}/close", json={})
 
-    blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
+    blob = store.read_day_blob(DAY)
     assert set(blob) == {"assignments", "officer_states", "confirm", "status",
                           "assignment_seq"}
+    assert [p.name for p in store.day_files(DAY)] == [
+        "assignments.json", "confirm.json", "officers.json"]       # كل جانب في ملفه
 
 
 # ---------- الكتابة للي اتغيّر بس ----------
@@ -72,8 +75,8 @@ def test_editing_one_day_leaves_every_other_file_untouched(client):
     _add(client, DAY, name="خدمة تانية")
     after = _mtimes()
 
-    changed = [p.name for p in after if after[p] != before.get(p)]
-    assert changed == [f"{DAY}.json"], f"اتكتب كمان: {changed}"
+    changed = sorted(f"{p.parent.name}/{p.name}" for p in after if after[p] != before.get(p))
+    assert changed == [f"{DAY}/assignments.json"], f"اتكتب كمان: {changed}"
 
 
 def test_a_request_that_changes_nothing_writes_nothing(client):
@@ -85,7 +88,7 @@ def test_a_request_that_changes_nothing_writes_nothing(client):
     client.get("/api/bootstrap/officers")
     assert _mtimes() == before
 
-    row = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))["assignments"][0]
+    row = store.read_day_blob(DAY)["assignments"][0]
     client.patch(f"/api/assignments/{DAY}/{row['id']}", json={"name": row["name"]})
     assert _mtimes() == before, "تعديل بنفس القيمة مالوش أثر على القرص"
 
@@ -136,8 +139,8 @@ def test_a_day_with_only_an_officer_state_still_gets_a_file(client):
     (حالة ليوم واحد — «غياب» وأخواتها بقت مدى في core مش حالة يوم.)"""
     client.put(f"/api/duty/{DAY}/OFF-001", json={"status": "مهمة خاصة"})
     assert store.day_path(DAY).exists()
-    blob = json.loads(store.day_path(DAY).read_text(encoding="utf-8"))
-    assert set(blob) == {"officer_states"}
+    blob = store.read_day_blob(DAY)
+    assert set(blob) == {"officer_states"} and [p.name for p in store.day_files(DAY)] == ["officers.json"]
     assert store.load_data()["day_officers"][DAY]["OFF-001"]["status"] == "مهمة خاصة"
 
 
@@ -155,7 +158,7 @@ def test_import_marker_round_trips_in_the_day_file_and_empty_is_absent(data_file
     data["day_import"][OTHER] = {}
     store.save_data(data)
 
-    assert json.loads(store.day_path(DAY).read_text(encoding="utf-8"))["import"] == marker
+    assert store.read_day_blob(DAY)["import"] == marker
     assert not store.day_path(OTHER).exists()
     loaded = store.load_data()
     assert is_imported(loaded, DAY)
@@ -180,6 +183,6 @@ def test_cached_files_are_reparsed_when_they_change_on_disk(client):
     _add(client, DAY)
     assert len(store.load_data()["day_assignments"][DAY]) == 1
 
-    store.day_path(DAY).write_text(
+    store.day_files(DAY)[0].write_text(
         json.dumps({"assignments": []}, ensure_ascii=False), encoding="utf-8")
     assert DAY not in store.load_data()["day_assignments"]

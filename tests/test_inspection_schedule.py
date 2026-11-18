@@ -154,7 +154,7 @@ def test_manually_closed_future_board_never_seeds_inspections(client):
     response = client.get(f"/api/board/{day}")
 
     assert response.status_code == 200
-    blob = json.loads(store.day_path(day).read_text(encoding="utf-8"))
+    blob = store.read_day_blob(day)
     assert "assignments" not in blob
     core = json.loads(store.core_file().read_text(encoding="utf-8"))
     assert day not in core.get("inspection_seeded_days", {})
@@ -171,7 +171,7 @@ def test_imported_open_day_never_seeds_inspections(client, data_file):
     response = client.get(f"/api/board/{day}")
 
     assert response.status_code == 200
-    blob = json.loads(store.day_path(day).read_text(encoding="utf-8"))
+    blob = store.read_day_blob(day)
     assert "assignments" not in blob
     assert day not in json.loads(store.core_file().read_text(encoding="utf-8")).get(
         "inspection_seeded_days", {})

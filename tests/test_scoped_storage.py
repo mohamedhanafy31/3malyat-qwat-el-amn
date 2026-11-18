@@ -34,7 +34,9 @@ def archive(client):
 
 
 def _write_day(day, blob):
-    path = store.day_path(day)
+    """يكتب يوم من «برّه» بالشكل القديم (ملف واحد) — القراءة بتفهم الشكلين."""
+    store._remove_day(day)
+    path = store.legacy_day_file(day)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(blob, ensure_ascii=False), encoding="utf-8")
     return path
@@ -102,26 +104,26 @@ def test_out_of_scope_read_raises_instead_of_looking_empty(archive):
 
 
 def test_out_of_scope_write_raises_and_touches_nothing(archive):
-    before = {d: store.day_path(d).read_bytes() for d in DAYS}
+    before = {d: store.day_bytes(d) for d in DAYS}
     core_before = store.core_file().read_bytes()
     data = store.load_data([DAYS[1]])
     dict.__setitem__(data["day_assignments"], DAYS[0], [{"id": "AS-9", "name": "فوق الملف"}])
     data["day_assignments"][DAYS[1]][0]["name"] = "متعدّل"
     with pytest.raises(store.OutOfScope):
         store.save_data(data)
-    assert {d: store.day_path(d).read_bytes() for d in DAYS} == before
+    assert {d: store.day_bytes(d) for d in DAYS} == before
     assert store.core_file().read_bytes() == core_before
 
 
 def test_scoped_transaction_writes_only_its_day(archive):
-    before = {d: store.day_path(d).read_bytes() for d in DAYS}
+    before = {d: store.day_bytes(d) for d in DAYS}
 
     def mutate(data):
         data["day_assignments"][DAYS[2]][0]["name"] = "متعدّل"
         return "ok"
 
     assert store.with_data(mutate, [DAYS[2]]) == "ok"
-    after = {d: store.day_path(d).read_bytes() for d in DAYS}
+    after = store_after = {d: store.day_bytes(d) for d in DAYS}
     assert [d for d in DAYS if after[d] != before[d]] == [DAYS[2]]
     full = store.load_data()
     assert full["day_assignments"][DAYS[2]][0]["name"] == "متعدّل"
@@ -129,14 +131,14 @@ def test_scoped_transaction_writes_only_its_day(archive):
 
 
 def test_aborted_scoped_transaction_saves_nothing(archive):
-    before = store.day_path(DAYS[0]).read_bytes()
+    before = store.day_bytes(DAYS[0])
 
     def mutate(data):
         data["day_assignments"][DAYS[0]].clear()
         raise store.AbortRequest(("no", 400))
 
     assert store.with_data(mutate, [DAYS[0]]) == ("no", 400)
-    assert store.day_path(DAYS[0]).read_bytes() == before
+    assert store.day_bytes(DAYS[0]) == before
 
 
 def test_routes_declare_scope_in_source():
@@ -253,15 +255,15 @@ def test_index_repairs_stale_entries_after_external_edits(archive):
     assert "2026-05-01" in index.recorded()
     assert store.INDEX_STATS["repairs"] == repairs + 1
 
-    path = store.day_path(DAYS[3])
     _write_day(DAYS[3], {"status": {"closed": True}})
+    path = store.legacy_day_file(DAYS[3])
     stat = path.stat()
     os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 1_000_000))
     index = store.day_index()
     assert DAYS[3] not in index.recorded()
     assert index.has(DAYS[3], "day_status")
 
-    store.day_path(DAYS[0]).unlink()
+    store._remove_day(DAYS[0])
     assert DAYS[0] not in store.day_index()
     assert store.INDEX_STATS["repairs"] == repairs + 3
     assert store.INDEX_STATS["rebuilds"] == rebuilds
@@ -270,7 +272,7 @@ def test_index_repairs_stale_entries_after_external_edits(archive):
 
 
 def test_corrupt_day_fails_loudly_through_scoped_load(archive):
-    store.day_path(DAYS[0]).write_text("{bad", encoding="utf-8")
+    store.day_files(DAYS[0])[0].write_text("{bad", encoding="utf-8")
     store._cache.clear()
     with pytest.raises(store.DataUnreadable):
         store.load_data([DAYS[1]])

@@ -130,11 +130,7 @@ def main() -> int:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     preimage = store.DATA_DIR / "import" / "preimage" / f"campaign-posts-{stamp}"
     for day in per_day:
-        source = store.day_path(day)
-        if source.exists():
-            target = preimage / "files" / source.relative_to(store.DATA_DIR)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, target)
+        store.copy_day_files(day, preimage / "files")
     snapshot = store.snapshot_now()
     data.setdefault("reference_lists", {})["campaign_posts"] = versions
     for day, section in per_day.items():

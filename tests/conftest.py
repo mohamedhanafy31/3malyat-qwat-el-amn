@@ -117,6 +117,13 @@ def _isolate_audit_log(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _always_recheck_the_day_index(monkeypatch):
+    """في الإنتاج فحص تعديل الملفات من «برّه» بيتأجّل ثانية (`INDEX_RECHECK_SECONDS`)؛ الاختبارات
+    بتعدّل ملفات الأيام بإيدها وتتوقع إن الفهرس يشوفها فورًا."""
+    monkeypatch.setattr(store, "INDEX_RECHECK_SECONDS", 0)
+
+
+@pytest.fixture(autouse=True)
 def _isolate_tech_log(tmp_path, _isolate_audit_log):
     """السجلات الفنية (system.log/errors.log) كمان لمجلد مؤقت، وتتشال بعد كل اختبار
     عشان ما يتسربش handler مفتوح ولا يتكتب في `logs/` الحقيقي."""

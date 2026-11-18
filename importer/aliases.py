@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
 
+from backend import store
 from backend.afraad import BASIC_SERVICES
 from backend.constants import (
     SECTION_ADMIN_WORK, SECTION_BASIC, SECTION_GREAT, SECTION_OCCASIONAL, SECTION_PRISON,
@@ -281,9 +282,9 @@ def build_vocabulary(data_dir: Path, records: list[dict[str, Any]] | None = None
         item = items.setdefault(identity, VocabularyItem(name, kind, section, bool(counted), category))
         item.aliases.update(clean_text(alias) for alias in aliases if clean_text(alias))
 
-    for path in sorted((data_dir / "days").glob("2026/[0][6-9]/*.json")) + \
-                sorted((data_dir / "days").glob("2026/10/*.json")):
-        day = json.loads(path.read_text(encoding="utf-8"))
+    selected = [blob for date, blob in store.day_blobs_at(data_dir).items()
+                if date[:5] == "2026-" and date[5:7] in {"06", "07", "08", "09", "10"}]
+    for day in selected:
         for row in day.get("assignments", []):
             section = clean_text(row.get("section")) or SECTION_OCCASIONAL
             category = "target" if section == SECTION_TARGETS else (

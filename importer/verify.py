@@ -26,6 +26,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from backend import store
 from backend.constants import SECTION_GREAT, SECTION_SECURITY, SECTION_SUBCAMP, SECTION_TARGETS
 from backend.dated import afraad_basic_on, targets_on
 from backend.duty import summarise
@@ -73,10 +74,7 @@ def _load_json(path: Path, default: Any) -> Any:
 
 
 def load_target_days(data_dir: Path) -> dict[str, dict[str, Any]]:
-    days = {}
-    for path in sorted((data_dir / "days").glob("*/*/*.json")):
-        days[path.stem] = json.loads(path.read_text(encoding="utf-8"))
-    return days
+    return store.day_blobs_at(data_dir)
 
 
 def transformed_days(ledger: Ledger) -> dict[str, dict[str, Any]]:

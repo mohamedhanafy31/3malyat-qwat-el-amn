@@ -294,9 +294,7 @@ def _changed_files(data_dir: Path, core: dict[str, Any], days: dict[str, dict[st
     if {**core, "schema": store.SCHEMA_VERSION} != on_disk:
         out.append("core.json")
     for date, blob in sorted(days.items()):
-        path = store.day_path(date)
-        if _load(path) != blob:
-            out.append(str(path.relative_to(data_dir)))
+        out.extend(store.day_changed_paths(date, blob))      # ملفات جوانب اليوم اللي هتتكتب/تتشال
     return out
 
 
