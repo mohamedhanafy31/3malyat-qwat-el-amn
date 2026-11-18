@@ -51,6 +51,7 @@ import zipfile
 from collections import OrderedDict
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
+from collections.abc import MutableSequence
 from pathlib import Path
 from typing import NamedTuple
 
@@ -320,11 +321,36 @@ def _check_schema(found):
 
 # ---------- تفكيك وتجميع ----------
 
+def _scan_day_files():
+    """{يوم: (مسار, بصمة)} بمسح os.scandir (≈3ms لـ1100 ملف) بدل pathlib.glob+sorted (≈23ms)."""
+    root = days_dir()
+    out = {}
+    try:
+        years = [e for e in os.scandir(root) if e.is_dir()]
+    except FileNotFoundError:
+        return out
+    for year in years:
+        try:
+            months = [e for e in os.scandir(year.path) if e.is_dir()]
+        except OSError:
+            continue
+        for month in months:
+            try:
+                entries = list(os.scandir(month.path))
+            except OSError:
+                continue
+            for entry in entries:
+                name = entry.name
+                if name.endswith(".json") and not name.startswith(".") and entry.is_file():
+                    stat = entry.stat()
+                    out[name[:-5]] = (Path(entry.path), (stat.st_mtime_ns, stat.st_size))
+    return out
+
+
 def all_day_files():
     """كل ملفات الأيام مرتبة بالتاريخ."""
-    if not days_dir().exists():
-        return []
-    return sorted(days_dir().glob("*/*/*.json"), key=lambda p: p.stem)
+    scanned = _scan_day_files()
+    return [scanned[day][0] for day in sorted(scanned)]
 
 
 def day_names():
@@ -338,8 +364,9 @@ def split(data):
     اليوم اللي كل أقسامه فاضية مابيتكتبش له ملف، و`_write` بيشيل ملفه
     القديم لو كان موجود.
     """
+    # change_log له ملفه (changes/log.jsonl) — append-only، مابيدخلش في core.json أبدًا
     core = {k: v for k, v in data.items()
-            if not k.startswith("_") and k not in DAY_SECTIONS}
+            if not k.startswith("_") and k not in DAY_SECTIONS and k != "change_log"}
     days = {}
     for key, name in DAY_SECTIONS.items():
         for day, value in (data.get(key) or {}).items():
@@ -604,7 +631,8 @@ def _ensure_index():
     with _STATE_LOCK:
         root = str(DATA_DIR)
         entries = _index_state["entries"] if _index_state["dir"] == root else None
-        files = {p.stem: p for p in all_day_files()}
+        scanned = _scan_day_files()
+        files = {day: item[0] for day, item in scanned.items()}
         if entries is None:
             # البناء الكامل مايملاش الكاش — الأيام المستخدمة فعلًا هي اللي تستاهل الذاكرة
             entries = {day: _meta_from_file(path, cache=False)
@@ -618,7 +646,7 @@ def _ensure_index():
             fresh.pop(day, None)
         for day, path in files.items():
             meta = entries.get(day)
-            if meta is not None and meta.sig == _file_sig(path):
+            if meta is not None and meta.sig == scanned[day][1]:
                 continue
             fresh = fresh if fresh is not None else dict(entries)
             fresh[day] = _meta_from_file(path)
@@ -691,11 +719,12 @@ class _FileCache:
         self.days.pop(key, None)
 
     def clear(self):
-        """ينسى كل اللي في الذاكرة — الكاش والفهرس."""
+        """ينسى كل اللي في الذاكرة — الكاش والفهرس وسجل التغييرات."""
         with _STATE_LOCK:
             self.days.clear()
             self.core = None
             _forget_index()
+            _log_state.clear()
 
 
 _cache = _FileCache(DAY_CACHE_SIZE)
@@ -782,6 +811,21 @@ def _resolve_scope(days, view):
     return frozenset(str(day) for day in days if day)
 
 
+def _attach_change_log(data, core):
+    """يحط `data["change_log"]` (نافذة آخر السجلات) من ملفه، أو من core.json لو لسه بالشكل القديم.
+    -> بصمة الأساس اللي `_write` بيحسب منها اللي اتضاف."""
+    state = _log_window()
+    if state is not None:
+        data["change_log"] = ChangeLogView(state["packed"], state["count"])
+        return {"legacy": False, "last_id": state["last_id"], "count": state["count"],
+                "size": state["size"]}
+    if isinstance(core.get("change_log"), list):
+        data["change_log"] = core["change_log"]
+        return {"legacy": True, "last_id": None, "count": 0, "size": 0}
+    data["change_log"] = []
+    return {"legacy": False, "last_id": None, "count": 0, "size": 0}
+
+
 def _read(days=ALL_DAYS):
     """قراءة `core.json` والأيام اللي في النطاق بس — من غير قفل، لاستخدامها
     جوه أي بلوك ماسك الـLOCK بالفعل.
@@ -811,6 +855,7 @@ def _read(days=ALL_DAYS):
     core_entry, core = _load(core_file(), core=True)
     _check_schema(core.get("schema", 1))
     data = merge(core, {})
+    log_base = _attach_change_log(data, core)
     _normalise(data)
 
     index = _ensure_index()
@@ -834,7 +879,7 @@ def _read(days=ALL_DAYS):
     # بصمات اللي اتقرا ونطاقه — `_write` بيقارن بيها ويكتب اللي اتغيّر بس.
     # المفتاح بيبدأ بـ`_` فما بيتخزّنش (شوف `split`).
     data["_fp"] = {"fingerprints": fingerprints, "originals": originals,
-                   "scope": scope, "index": index}
+                   "scope": scope, "index": index, "log": log_base}
     elapsed = tech_log.ms_since(started)
     tech_log.event(LOG, "store.load",
                    level=logging.WARNING if elapsed > 1000 else logging.DEBUG,
@@ -937,7 +982,15 @@ def _write(data):
     core_text = _dumps(core)
     core_stamp = _fingerprint(core_text)
     core_changed = core_stamp != before.get("core")
-    change_log_text = _change_log_text(core.get("change_log"))
+    # سجل التغييرات: اللي اتضاف بس (أو نقله كله لملفه في أول حفظ بعد الترقية)
+    raw_log = data.get("change_log")
+    log_base = tracking.get("log")
+    if isinstance(raw_log, ChangeLogView) and raw_log.untouched:
+        log_list, log_plan = raw_log, None          # ما اتقراش ولا اتعدّل: مفيش حاجة تتكتب ولا تتفك
+    else:
+        log_list = list(raw_log) if isinstance(raw_log, (list, ChangeLogView)) else []
+        log_plan = (_plan_log_write(log_list, log_base, data.get("_change_pending"))
+                    if log_base is not None else None)
 
     new_fp = {"core": core_stamp}
     pending = {}
@@ -957,13 +1010,19 @@ def _write(data):
     # للذاكرة، وإلا اليوم الممسوح بيرجع لوحده في أول قراءة جاية.
     gone = [day for day in before if day != "core" and day not in new_fp]
 
-    written = ([CORE_NAME] if core_changed else []) + [f"{d}.json" for d in pending]
+    written = (([CORE_NAME] if core_changed else []) + [f"{d}.json" for d in pending]
+               + ([CHANGE_LOG_FILE] if log_plan else []))
     removed = [f"{d}.json" for d in gone]
     if written or removed:
         operations = []
+        if log_plan and log_plan["mode"] == "replace":
+            # الأول: لو الانقطاع جه بعدها، core.json القديم لسه فيه السجل فمفيش حاجة بتضيع
+            operations.append({"action": "replace", "target": CHANGE_LOG_FILE, "text": log_plan["text"]})
+        elif log_plan:
+            operations.append({"action": "append", "target": CHANGE_LOG_FILE,
+                               "text": log_plan["text"], "offset": log_plan["offset"]})
         if core_changed:
             operations.append({"action": "replace", "target": CORE_NAME, "text": core_text})
-            operations.append({"action": "replace", "target": CHANGE_LOG_NAME, "text": change_log_text})
         operations.extend({"action": "replace", "target": str(day_path(day).relative_to(DATA_DIR)),
                            "text": text} for day, text in pending.items())
         operations.extend({"action": "delete", "target": str(day_path(day).relative_to(DATA_DIR))}
@@ -974,10 +1033,14 @@ def _write(data):
     new_originals = {day: originals[day] for day in days
                      if day in originals and day not in pending}
     try:
+        if log_plan:
+            if log_plan["mode"] == "replace":
+                _write_atomic(change_log_path(), log_plan["text"])
+            else:
+                _append_log(change_log_path(), log_plan["text"], log_plan["offset"])
         if core_changed:
             _write_atomic(core_file(), core_text)
             _remember(core_file(), core_text, core=True)
-            _write_atomic(DATA_DIR / CHANGE_LOG_NAME, change_log_text)
         for day, text in pending.items():
             path = day_path(day)
             _write_atomic(path, text)
@@ -998,8 +1061,19 @@ def _write(data):
             _clear_journal()
 
     index = _ensure_index() if scope is not None else tracking.get("index")
+    new_log_base = log_base
+    if log_base is not None and (log_plan or log_base.get("legacy")):
+        try:
+            stat = change_log_path().stat()
+            state = _log_remember_state(
+                log_list[-CHANGE_WINDOW:], (stat.st_mtime_ns, stat.st_size), stat.st_size)
+            new_log_base = {"legacy": False, "last_id": state["last_id"],
+                            "count": state["count"], "size": state["size"]}
+        except FileNotFoundError:
+            new_log_base = {"legacy": False, "last_id": None, "count": 0, "size": 0}
+    data["_change_pending"] = []
     data["_fp"] = {"fingerprints": new_fp, "originals": new_originals,
-                   "scope": scope, "index": index}
+                   "scope": scope, "index": index, "log": new_log_base}
     changed_days = frozenset(
         p[:-5] for p in written if p.endswith(".json") and p != CORE_NAME
     )
@@ -1075,8 +1149,17 @@ def snapshot_now():
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
         final = target / f"data-{stamp}.zip"
         part = final.with_suffix(".part")
-        with zipfile.ZipFile(part, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zf:
-            zf.writestr("data.json", _dumps(assemble()))
+        # الصيغة 2: الملفات الخام زي ما هي على القرص (core + كل يوم + سجل التغييرات الكامل) بدل ما
+        # نحمّل كل الأيام ونحوّلها لنص تاني. الصيغة القديمة (data.json واحد) لسه بتتقرا.
+        with zipfile.ZipFile(part, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as zf:
+            zf.writestr("manifest.json", json.dumps(
+                {"format": 2, "schema": SCHEMA_VERSION, "created": datetime.now().isoformat()}))
+            zf.write(core_file(), CORE_NAME)
+            for day, (day_file, _sig) in sorted(_scan_day_files().items()):
+                zf.write(day_file, "days/" + day_file.relative_to(days_dir()).as_posix())
+            log_file = change_log_path()
+            if log_file.exists():
+                zf.write(log_file, CHANGE_LOG_FILE)      # التاريخ كله، مش آخر 5000 بس
             uploads = DATA_DIR / "uploads"
             if uploads.exists():
                 for source in uploads.rglob("*"):
@@ -1097,8 +1180,12 @@ def snapshot_now():
 def assemble():
     """كل البيانات في dict واحد — للنسخ الاحتياطية وأدوات الفحص."""
     # قراءة كاملة من غير ما تطرد أيام الشغل من الكاش
-    return merge(_load(core_file(), core=True)[1],
-                 {p.stem: _load(p, cache=False)[1] for p in all_day_files()})
+    core = _load(core_file(), core=True)[1]
+    data = merge(core, {p.stem: _load(p, cache=False)[1] for p in all_day_files()})
+    _attach_change_log(data, core)
+    if isinstance(data.get("change_log"), ChangeLogView):
+        data["change_log"] = data["change_log"].to_list()      # للتحويل لـJSON (نسخ/أدوات)
+    return data
 
 
 _DAY_STEM = re.compile(r"\d{4}-\d{2}-\d{2}")
@@ -1227,6 +1314,7 @@ def explode(data, _notify=True):
     data.setdefault("schema", SCHEMA_VERSION)
     core, days = split(data)
     _write_atomic(core_file(), _dumps(core))
+    _write_atomic(change_log_path(), _log_text(data.get("change_log")))
     for path in all_day_files():
         if path.stem not in days:
             path.unlink(missing_ok=True)
@@ -1280,6 +1368,27 @@ def _prune_backups():
         tech_log.event(LOG, "backup.pruned", removed=pruned, kept=len(keep))
 
 
+def _read_backup_v2(zf, path):
+    """نسخة بالصيغة 2 (ملفات خام) -> نفس الـdict اللي كان بيرجّعه data.json القديم."""
+    try:
+        core = json.loads(zf.read(CORE_NAME).decode("utf-8"))
+        days = {}
+        for name in zf.namelist():
+            if name.startswith("days/") and name.endswith(".json"):
+                days[Path(name).stem] = json.loads(zf.read(name).decode("utf-8"))
+        data = merge(core, days)
+        if CHANGE_LOG_FILE in zf.namelist():
+            lines = [line for line in zf.read(CHANGE_LOG_FILE).decode("utf-8").splitlines() if line.strip()]
+            data["change_log"] = [json.loads(line) for line in lines[-CHANGE_WINDOW:]]
+        elif "change_log" not in data:
+            data["change_log"] = []
+    except (KeyError, ValueError, UnicodeDecodeError) as exc:
+        raise DataUnreadable(f"النسخة «{path.name}» تالفة أو غير مكتملة ({exc}).") from exc
+    if not isinstance(data, dict):
+        raise DataUnreadable(f"النسخة «{path.name}» ليست بالشكل المتوقع.")
+    return data
+
+
 def read_backup(path):
     """محتوى نسخة احتياطية كـdict — بيفهم المضغوط والعادي.
 
@@ -1290,6 +1399,8 @@ def read_backup(path):
     try:
         if path.suffix == ".zip":
             with zipfile.ZipFile(path) as zf:
+                if "data.json" not in zf.namelist() and CORE_NAME in zf.namelist():
+                    return _read_backup_v2(zf, path)
                 raw = zf.read("data.json").decode("utf-8")
         elif path.suffix == ".gz":
             with gzip.open(path, "rt", encoding="utf-8") as fh:
@@ -1353,7 +1464,8 @@ def restore_backup(name):
         with zipfile.ZipFile(path) as zf:
             uploads_root = (DATA_DIR / "uploads").resolve()
             for member in zf.infolist():
-                if member.filename == "data.json" or member.is_dir():
+                if member.filename in ("data.json", "manifest.json", CORE_NAME, CHANGE_LOG_FILE) \
+                        or member.is_dir() or member.filename.startswith("days/"):
                     continue
                 if not member.filename.startswith("uploads/"):
                     raise DataUnreadable("الأرشيف يحتوي ملفًا خارج data.json أو uploads/.")
@@ -1367,6 +1479,10 @@ def restore_backup(name):
         explode(data, _notify=False)
         if path.suffix == ".zip":
             with zipfile.ZipFile(path) as zf:
+                if CHANGE_LOG_FILE in zf.namelist():      # سجل التغييرات الكامل بدل النافذة
+                    _write_atomic(change_log_path(),
+                                  zf.read(CHANGE_LOG_FILE).decode("utf-8"))
+                    _cache.clear()
                 for member in zip_members:
                     target = (DATA_DIR / member.filename).resolve()
                     target.parent.mkdir(parents=True, exist_ok=True)
@@ -1384,12 +1500,240 @@ def restore_backup(name):
 
 LOCK_FILE_NAME = ".lock"
 JOURNAL_NAME = ".transaction-journal.json"
-CHANGE_LOG_NAME = "logs/change_log.jsonl"
 _PROCESS_LOCK_FD = None
 
 
 def _journal_path():
     return DATA_DIR / JOURNAL_NAME
+
+# ---------- سجل التغييرات: ملف append-only خارج core.json ----------
+#
+# كان `change_log` (5000 سجل ≈ 2MB) جوّه core.json، فكل حفظ كان بيحوّله لنص مرتين
+# (core + نسخة logs/ + دفتر المعاملات) — ~70% من وقت أي حفظ. دلوقتي كل تغيير سطر JSON
+# بيتضاف في آخر `changes/log.jsonl` (التاريخ كله، مابيتقصّش)، والذاكرة بتشيل آخر
+# `CHANGE_WINDOW` سجل بس — نفس سلوك القايمة المسقوفة القديمة، والكود اللي بيقرا
+# `data["change_log"]` ما اتغيّرش. الحفظ بيحسب اللي اتضاف بعد آخر سجل اتقرا (بالـid) ويضيفه
+# بس، والإضافة نفسها بتتسجّل في دفتر المعاملات بإزاحة متوقعة عشان تتكمّل مرة واحدة بس
+# بعد أي انقطاع.
+
+CHANGE_LOG_FILE = "changes/log.jsonl"
+CHANGE_WINDOW = 5000
+_log_state = {}
+
+
+def change_log_path():
+    return DATA_DIR / CHANGE_LOG_FILE
+
+
+def _log_line(entry):
+    return json.dumps(entry, ensure_ascii=False, separators=(",", ":")) + "\n"
+
+
+def _log_text(entries):
+    return "".join(_log_line(entry) for entry in (entries or []))
+
+
+def _read_log_tail(path, limit):
+    """آخر `limit` سجل من الملف (الأقدم أولًا) من غير قراءته كله. -> (سجلات, حجم الملف)."""
+    try:
+        size = path.stat().st_size
+    except FileNotFoundError:
+        return [], 0
+    if size == 0:
+        return [], 0
+    block, buf, pos = 1 << 16, b"", size
+    with open(path, "rb") as fh:
+        while pos > 0 and buf.count(b"\n") <= limit:
+            take = min(block, pos)
+            pos -= take
+            fh.seek(pos)
+            buf = fh.read(take) + buf
+    lines = buf.split(b"\n")
+    if pos > 0:
+        lines = lines[1:]          # أول سطر ممكن يبقى ناقص من بدايته
+    lines = [line for line in lines if line.strip()][-limit:]
+    return [json.loads(line.decode("utf-8")) for line in lines], size
+
+
+def _log_window():
+    """نافذة السجل من الملف (مع كاش بالبصمة) أو None لو الملف مش موجود."""
+    path = change_log_path()
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        return None
+    sig = (stat.st_mtime_ns, stat.st_size)
+    with _STATE_LOCK:
+        state = _log_state.get("window")
+        if state and state["dir"] == str(DATA_DIR) and state["sig"] == sig:
+            return state
+    entries, size = _read_log_tail(path, CHANGE_WINDOW)
+    state = _log_remember_state(entries, sig, size)
+    return state
+
+
+def _log_remember_state(entries, sig, size):
+    window = entries[-CHANGE_WINDOW:]
+    state = {"dir": str(DATA_DIR), "sig": sig, "size": size, "packed": _pack(window),
+             "last_id": window[-1]["id"] if window else None, "count": len(window)}
+    with _STATE_LOCK:
+        _log_state["window"] = state
+    return state
+
+
+class ChangeLogView(MutableSequence):
+    """نافذة سجل التغييرات كقايمة عادية، بس مابتتفكّش من الـpickle إلا لما حد يقراها أو يعدّلها —
+    أغلب الطلبات (القراءة) ما بتلمسهاش، فمفيش 10ms فك pickle لـ5000 سجل في كل طلب."""
+
+    __slots__ = ("_packed", "_count", "_list")
+
+    def __init__(self, packed, count):
+        self._packed, self._count, self._list = packed, count, None
+
+    @classmethod
+    def of(cls, entries):
+        view = cls(None, 0)
+        view._list = list(entries)
+        return view
+
+    @property
+    def untouched(self):
+        return self._list is None
+
+    def _items(self):
+        if self._list is None:
+            self._list = pickle.loads(self._packed)
+            self._packed = None
+        return self._list
+
+    def __len__(self):
+        return self._count if self._list is None else len(self._list)
+
+    def __getitem__(self, index):
+        return self._items()[index]
+
+    def __setitem__(self, index, value):
+        self._items()[index] = value
+
+    def __delitem__(self, index):
+        del self._items()[index]
+
+    def insert(self, index, value):
+        self._items().insert(index, value)
+
+    def __iter__(self):
+        return iter(self._items())
+
+    def __reversed__(self):
+        return reversed(self._items())
+
+    def __bool__(self):
+        return len(self) > 0
+
+    def __eq__(self, other):
+        return list(self._items()) == (list(other._items()) if isinstance(other, ChangeLogView) else other)
+
+    __hash__ = None
+
+    def __repr__(self):
+        return f"ChangeLogView({len(self)} entries)"
+
+    def __deepcopy__(self, memo):
+        import copy
+        return ChangeLogView.of(copy.deepcopy(self._items(), memo))
+
+    def __copy__(self):
+        return ChangeLogView.of(self._items())
+
+    def to_list(self):
+        return list(self._items())
+
+
+def _legacy_history(window):
+    """التاريخ الأقدم من النافذة (من أرشيف التقليم القديم logs/change_log_archive.jsonl) +
+    النافذة نفسها — للهجرة الأولى بس، من غير تكرار."""
+    seen = {entry.get("id") for entry in window}
+    older = []
+    try:
+        with open(_LOG_DIR / "change_log_archive.jsonl", "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if entry.get("id") not in seen:
+                    seen.add(entry.get("id"))
+                    older.append(entry)
+    except OSError:
+        pass
+    return older + list(window)
+
+
+def _plan_log_write(log, baseline, pending=None):
+    """-> None لو مفيش جديد، أو {"mode": "append"|"replace", "text", "offset"}.
+
+    `pending`: السجلات اللي `changes.record` أضافتها في المعاملة دي بالترتيب — بنحتاجها لأن
+    النافذة في الذاكرة بتتقصّ من الأول، فمعاملة بتضيف أكتر من سقف النافذة كانت هتفقد أولها."""
+    if baseline.get("legacy"):
+        # أول حفظ بعد الترقية: السجل كله ينتقل لملفه (مع الأرشيف القديم) في نفس المعاملة
+        return {"mode": "replace", "text": _log_text(_legacy_history(log)), "offset": None}
+    last_id, count = baseline.get("last_id"), baseline.get("count", 0)
+    if last_id is None:
+        new = log
+    else:
+        index = next((i for i in range(len(log) - 1, -1, -1)
+                      if log[i].get("id") == last_id), None)
+        if index is None:
+            # السجل اتعدّل من غير الإضافة (مسح/استبدال): نحتفظ بكل اللي قبل النافذة ونكتب النافذة الجديدة
+            try:
+                kept = change_log_path().read_text(encoding="utf-8").splitlines()
+            except OSError:
+                kept = []
+            head = kept[:max(0, len(kept) - count)]
+            return {"mode": "replace", "offset": None,
+                    "text": "".join(line + "\n" for line in head) + _log_text(log)}
+        new = log[index + 1:]
+    if pending:
+        ids = {entry.get("id") for entry in pending}
+        new = list(pending) + [entry for entry in new if entry.get("id") not in ids]
+    if not new:
+        return None
+    return {"mode": "append", "text": _log_text(new), "offset": baseline.get("size", 0)}
+
+
+def _append_log(path, text, offset):
+    """إضافة للملف بشرط إنه لسه عند الإزاحة المتوقعة (نفس العملية بتتكرر بأمان من دفتر المعاملات)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = text.encode("utf-8")
+    with open(path, "ab+") as fh:
+        fh.seek(0, os.SEEK_END)
+        size = fh.tell()
+        if size == offset:
+            pass
+        elif size >= offset + len(payload):
+            fh.seek(offset)
+            if fh.read(len(payload)) == payload:
+                return                      # اتنفّذت قبل كده (تعافي بعد انقطاع)
+            raise DataUnreadable("سجل التغييرات اتغيّر من خارج المعاملة؛ لا يمكن إضافته بأمان.")
+        elif size > offset:
+            fh.seek(offset)
+            partial = fh.read(size - offset)
+            if payload.startswith(partial):
+                fh.truncate(offset)          # كتابة ناقصة من انقطاع: نكمّلها من أولها
+                size = offset
+            else:
+                raise DataUnreadable("سجل التغييرات فيه كتابة ناقصة غير متوقعة.")
+        else:
+            raise DataUnreadable("ملف سجل التغييرات أقصر من المتوقع.")
+        fh.seek(offset)
+        fh.write(payload)
+        fh.flush()
+        _fsync_file(fh.fileno(), path)
+    _fsync_dir(path.parent)
+
 
 
 def _fsync_parent(path):
@@ -1399,7 +1743,8 @@ def _fsync_parent(path):
 def _write_journal(operations):
     """Persist the complete intended transaction before touching targets."""
     path = _journal_path()
-    payload = _dumps({"version": 1, "operations": operations})
+    payload = json.dumps({"version": 1, "operations": operations},
+                         ensure_ascii=False, separators=(",", ":"))
     tmp = path.with_name(path.name + ".tmp")
     with open(tmp, "wb") as fh:
         fh.write(payload.encode("utf-8"))
@@ -1415,10 +1760,6 @@ def _clear_journal():
     except FileNotFoundError:
         return
     _fsync_dir(DATA_DIR)
-
-
-def _change_log_text(entries):
-    return "".join(json.dumps(entry, ensure_ascii=False) + "\n" for entry in (entries or []))
 
 
 def recover_journal():
@@ -1438,6 +1779,8 @@ def recover_journal():
                 _fsync_dir(target.parent)
             elif op["action"] == "replace":
                 _write_atomic(target, op["text"])
+            elif op["action"] == "append":
+                _append_log(target, op["text"], int(op["offset"]))
             else:
                 raise ValueError("unknown transaction operation")
         _clear_journal()

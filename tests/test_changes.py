@@ -180,9 +180,8 @@ def test_log_is_capped(client, monkeypatch):
     assert [e["entity_id"] for e in changes.log(data)] == ["AS-3", "AS-4", "AS-5"]
 
 
-def test_entries_dropped_from_the_cap_are_archived_not_lost(client, monkeypatch):
-    """السطور اللي بتتشال من data.json لما السقف يوصله مش لازم تروح
-    للأبد — بتتضاف لملف أرشيف قبل الحذف."""
+def test_entries_dropped_from_the_memory_window_stay_in_the_log_file(client, monkeypatch):
+    """نافذة الذاكرة مسقوفة، لكن changes/log.jsonl بيحتفظ بالتاريخ كله (append-only)."""
     import json
     from backend import changes, store
 
@@ -195,6 +194,8 @@ def test_entries_dropped_from_the_cap_are_archived_not_lost(client, monkeypatch)
 
     store.with_data(mutate)
 
-    archived = [json.loads(line) for line in changes._archive_path().read_text(
+    history = [json.loads(line) for line in store.change_log_path().read_text(
         encoding="utf-8").splitlines()]
-    assert [e["entity_id"] for e in archived] == ["AS-0", "AS-1", "AS-2"]
+    assert [e["entity_id"] for e in history][-6:] == [f"AS-{i}" for i in range(6)]
+    window = store.load_data(store.ALL_DAYS)["change_log"]
+    assert [e["entity_id"] for e in window] == ["AS-3", "AS-4", "AS-5"]

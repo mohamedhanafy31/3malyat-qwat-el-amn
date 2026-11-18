@@ -27,6 +27,19 @@ def log(data):
     return data.setdefault("change_log", [])
 
 
+def _next_change_id(data, entries):
+    """رقم التغيير التالي: بعد آخر سجل (بيتزود بس)، ومش أقل من العدّاد القديم في core.
+    ما بنكتبش العدّاد في `id_seq` — كان بيخلي core.json يتكتب من أول مع كل تغيير."""
+    last = 0
+    for entry in reversed(entries):
+        tail = str(entry.get("id", "")).rsplit("-", 1)[-1]
+        if str(entry.get("id", "")).startswith("CHG-") and tail.isdigit():
+            last = int(tail)
+            break
+    seed = int((data.get("id_seq") or {}).get("CHG", 0))
+    return f"CHG-{max(last, seed) + 1:03d}"
+
+
 def _edited_by():
     """اسم صاحب الجلسة، أو النظام للمهام اللي شغالة من غير طلب."""
     from .auth import current_actor
@@ -67,7 +80,7 @@ def record(data, entity, entity_id, action, before=None, after=None, reason="",
     """
     entries = log(data)
     entry = {
-        "id": reserve_id(data, "CHG", entries),
+        "id": _next_change_id(data, entries),
         "ts": ts or datetime.now().isoformat(timespec="seconds"),
         "entity": entity, "entity_id": entity_id, "action": action,
         "day": day, "text": text,
@@ -75,10 +88,10 @@ def record(data, entity, entity_id, action, before=None, after=None, reason="",
         "edited_by": _edited_by() or None,
     }
     entries.append(entry)
+    data.setdefault("_change_pending", []).append(entry)    # للتخزين: اللي اتضاف في المعاملة دي
     if len(entries) > MAX_ENTRIES:
-        overflow = len(entries) - MAX_ENTRIES
-        _archive_trimmed(entries[:overflow])
-        del entries[:overflow]
+        # التاريخ كله محفوظ في data/changes/log.jsonl؛ هنا بنقصّ نافذة الذاكرة بس
+        del entries[:len(entries) - MAX_ENTRIES]
     return entry
 
 

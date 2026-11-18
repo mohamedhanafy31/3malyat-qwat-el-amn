@@ -116,7 +116,9 @@ def test_split_and_merge_are_exact_inverses(client):
 
     data = store.load_data()
     data.pop("_fp", None)
-    assert store.merge(*store.split(data)) == data
+    # change_log له ملفه الخاص (changes/log.jsonl) فمابيدخلش في core.json أبدًا
+    expected = {k: v for k, v in data.items() if k != "change_log"}
+    assert store.merge(*store.split(data)) == expected
 
 
 def test_assemble_matches_what_the_app_reads(client):

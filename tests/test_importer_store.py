@@ -107,7 +107,7 @@ def test_resume_after_a_crash_mid_write(batch, monkeypatch):
 
     def crash(path, text):
         calls["n"] += 1
-        if calls["n"] == 2:
+        if calls["n"] == 1:          # أول كتابة (سجل التغييرات بقى ملف append مش نسخة logs/ تانية)
             raise OSError("انقطاع كهربا")
         real(path, text)
 

@@ -58,8 +58,12 @@ class Repos:
         تخزين، فمكانها هنا مش في المسار.
         """
         skip = set(exclude)
-        return {k: v for k, v in self.data.items()
-                if not k.startswith("_") and k not in skip}
+        out = {k: v for k, v in self.data.items()
+               if not k.startswith("_") and k not in skip}
+        log = out.get("change_log")
+        if log is not None and not isinstance(log, list):
+            out["change_log"] = list(log)          # ChangeLogView -> قايمة قابلة للـJSON
+        return out
 
 
 __all__ = [
