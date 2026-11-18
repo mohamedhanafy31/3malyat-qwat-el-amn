@@ -699,6 +699,9 @@ body.modal-open .toast{bottom:auto;top:var(--s6)}
   padding:var(--s1) 0;min-height:var(--touch-control);display:flex;align-items:center}
 .chart-alt-table[open] summary{margin-bottom:var(--s2)}
 .chart-alt-table .table-scroll{max-height:360px;overflow:auto}
+/* صندوق تمرير بارتفاع ثابت: الرأس اللاصق جواه بيلصق في أول الصندوق (top:0)، مش تحت ترويسة الصفحة —
+   وإلا بيتزحلق 60px فوق أول صفوف الجدول */
+.chart-alt-table .table-scroll:not(.is-wide):not(.reg-scroll) > .table > thead th{top:0}
 .gap-table td.n,.gap-table th:not(:first-child){text-align:center}
 .back-link{text-decoration:none;height:var(--control-h)}
 .ls-card-hint{margin:calc(var(--s3) * -1) 0 var(--s3);color:var(--ink-500);font-size:var(--t-sm)}

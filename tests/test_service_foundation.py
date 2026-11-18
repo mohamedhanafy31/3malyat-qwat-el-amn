@@ -45,6 +45,19 @@ def test_canonical_clock_values_keep_24_hour_meaning_and_legacy_shorthand():
     assert parse_time("12:60") is None
 
 
+def test_clocktime_field_context_preserves_morning_hours():
+    for value, expected in (("1ص", "01:00"), ("3:30ص", "03:30"), ("6ص", "06:00"),
+                            ("1م", "13:00"), ("5م", "17:00")):
+        assert parse_time(value) == expected
+    assert parse_time("1", "am") == "01:00"
+    assert parse_time("3:30", "am") == "03:30"
+    assert parse_time("6", "am") == "06:00"
+    assert parse_time("1", "pm") == "13:00"
+    assert parse_time("5", "pm") == "17:00"
+    assert parse_time("1م", "am") == "13:00"
+    assert parse_time("01:00", "pm") == "01:00"
+
+
 def test_all_observed_archive_shapes_are_literal_regression_inputs():
     assignments = [
         "", "0ص", "1 ظ", "1.30 ظ", "1.30 م", "1.5 م", "10", "10 ص", "10.30 ص",
@@ -95,6 +108,15 @@ def test_catalog_time_fields_default_and_validate():
     entry, error = apply_entry(data, entry, {"report_am": "مش وقت"})
     assert entry is None and error
     assert catalog({"service_catalog": [{"id": "SVC-2", "name": "قديمة"}]})[0]["report_am"] == ""
+
+
+def test_catalog_am_pm_fields_keep_their_context():
+    from backend.service_catalog import apply_entry, blank_entry
+    data = {"service_catalog": [], "service_tags": []}
+    entry, error = apply_entry(data, blank_entry("SVC-TIME", "خدمة الوقت"),
+                               {"report_am": "1", "report_pm": "5"})
+    assert error is None
+    assert (entry["report_am"], entry["report_pm"]) == ("01:00", "17:00")
 
 
 def test_migration_links_only_current_and_future_count_copies():

@@ -21,7 +21,7 @@ def _minutes(hour, minute, suffix):
     return hour * 60 + minute
 
 
-def parse_time(text):
+def parse_time(text, default_period=None):
     """يرجع HH:MM. الرقم المجرد 1-6 مساءً، و7-11 صباحًا، و12 ظهرًا."""
     value = str(text or "").translate(_DIGITS).strip()
     canonical = re.fullmatch(r"(\d{2}):(\d{2})", value)
@@ -31,7 +31,12 @@ def parse_time(text):
     match = _TIME.search(value)
     if not match:
         return None
-    total = _minutes(int(match.group(1)), int(match.group(2) or 0), match.group(3))
+    suffix = match.group(3)
+    if suffix is None and default_period == "am":
+        suffix = "ص"
+    elif suffix is None and default_period == "pm":
+        suffix = "م"
+    total = _minutes(int(match.group(1)), int(match.group(2) or 0), suffix)
     return None if total is None else f"{total // 60:02d}:{total % 60:02d}"
 
 

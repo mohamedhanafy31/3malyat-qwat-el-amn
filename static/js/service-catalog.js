@@ -165,8 +165,8 @@ function openServiceLine(id = null) {
   $("#serviceLineName").value = line?.name || "";
   $("#serviceLineTag").value = line?.tag || "";
   $("#serviceLineLorry").value = line?.lorry_id || "";
-  setTimeInputValue($("#serviceLineAm"), line?.depart_am || "");
-  setTimeInputValue($("#serviceLinePm"), line?.depart_pm || "");
+  setTimeInputValue($("#serviceLineAm"), line?.depart_am || "", "ص");
+  setTimeInputValue($("#serviceLinePm"), line?.depart_pm || "", "م");
   $("#serviceLineMembers").innerHTML = "";
   renderServiceLineMembers();
 }
@@ -428,8 +428,8 @@ function openService(id) {
   syncCommandVisibility();
   $("#svcCount").value = s?.count ?? 0;
   $("#svcWeapon").value = s?.weapon || "";
-  setTimeInputValue($("#svcReportAm"), s?.report_am || "");
-  setTimeInputValue($("#svcReportPm"), s?.report_pm || "");
+  setTimeInputValue($("#svcReportAm"), s?.report_am || "", "ص");
+  setTimeInputValue($("#svcReportPm"), s?.report_pm || "", "م");
   syncReportVisibility();
   $("#svcInstructions").value = s?.instructions || "";
   $("#svcLocationText").value = s?.location_text || "";

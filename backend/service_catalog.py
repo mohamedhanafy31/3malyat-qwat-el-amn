@@ -100,7 +100,7 @@ def apply_entry(data, entry, payload):
         if not raw:
             entry[field] = ""
         else:
-            value = parse_time(raw)
+            value = parse_time(raw, "am" if field == "report_am" else "pm")
             if value is None:
                 return None, "ميعاد الانتظام غير صحيح."
             entry[field] = value

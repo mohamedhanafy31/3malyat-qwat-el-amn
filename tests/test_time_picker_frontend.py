@@ -33,6 +33,8 @@ for (let hour = 1; hour <= 6; hour++) {
   assert.equal(input.dataset.hhmm, pm);
   assert.equal(context._tpCanonical(context._tpDraftFromInput(input)), pm);
   assert.equal(context.parseTimeAr(String(hour)), pm);
+  assert.equal(context.parseTimeAr(String(hour), "ص"), am);
+  assert.equal(context.parseTimeAr(String(hour), "م"), pm);
 }
 for (let hour = 7; hour <= 11; hour++) {
   assert.equal(context.parseTimeAr(`${String(hour).padStart(2, '0')}:00`), `${String(hour).padStart(2, '0')}:00`);
@@ -40,6 +42,18 @@ for (let hour = 7; hour <= 11; hour++) {
 }
 assert.equal(context._tpCanonical({hour: 12, minute: 0, period: 'am'}), '00:00');
 assert.equal(context._tpCanonical({hour: 12, minute: 0, period: 'pm'}), '12:00');
+assert.equal(context.parseTimeAr('1ص'), '01:00');
+assert.equal(context.parseTimeAr('3:30ص'), '03:30');
+assert.equal(context.parseTimeAr('6ص'), '06:00');
+assert.equal(context.parseTimeAr('1م'), '13:00');
+assert.equal(context.parseTimeAr('5م'), '17:00');
+{
+  const catalog = fs.readFileSync(process.argv[1].replace('/static/js/core.js', '/static/js/service-catalog.js'), 'utf8');
+  assert.match(catalog, /setTimeInputValue\(\$\("#serviceLineAm"\), line\?\.depart_am \|\| "", "ص"\)/);
+  assert.match(catalog, /setTimeInputValue\(\$\("#serviceLinePm"\), line\?\.depart_pm \|\| "", "م"\)/);
+  assert.match(catalog, /setTimeInputValue\(\$\("#svcReportAm"\), s\?\.report_am \|\| "", "ص"\)/);
+  assert.match(catalog, /setTimeInputValue\(\$\("#svcReportPm"\), s\?\.report_pm \|\| "", "م"\)/);
+}
 for (const [value, display] of [['00:00', '12 ليل'], ['12:00', '12ظ']]) {
   const input = {dataset: {}, value: ''};
   context.setTimeInputValue(input, value);

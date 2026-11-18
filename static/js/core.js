@@ -1504,7 +1504,7 @@ upgradeDateInputs();
    وقت الأرشيف له قواعده الخاصة: الرقم المجرد 1–6 مساءً، و«12ص» ظهر،
    و«12م» منتصف الليل. الحقل نفسه يفضل نصًا للعرض القديم، لكن القيمة الجديدة
    بتتسجل canonical في data.hhmm عشان الطلبات ما تعتمدش على صياغة العرض. */
-function parseTimeAr(text){
+function parseTimeAr(text, defaultPeriod=""){
   const value=String(text??"").replace(/[٠-٩]/g,d=>String(d.charCodeAt(0)-0x660));
   // HH:MM is the canonical value sent by the picker; do not run it through
   // the archive shorthand rule that treats a bare 1–6 as evening.
@@ -1515,7 +1515,7 @@ function parseTimeAr(text){
   }
   const match=value.match(/(\d{1,2})(?:\s*[:.]\s*(\d{1,2}))?\s*(ص|ظ|م|ليل)?/);
   if(!match) return null;
-  const hour=Number(match[1]), minute=Number(match[2]||0), suffix=match[3]||"";
+  const hour=Number(match[1]), minute=Number(match[2]||0), suffix=match[3]||defaultPeriod;
   if(minute<0||minute>59||hour<0||hour>23) return null;
   let h=hour;
   if(suffix==="ليل") h=h%12;
@@ -1535,9 +1535,9 @@ function formatTimeAr(value){
   const shown=hour<12?hour:hour-12, suffix=hour<12?"ص":"م";
   return `${minute===0?shown:`${shown}:${String(minute).padStart(2,"0")}`}${suffix}`;
 }
-function setTimeInputValue(input, raw){
+function setTimeInputValue(input, raw, defaultPeriod=""){
   const text=String(raw??"");
-  const parsed=parseTimeAr(text);
+  const parsed=parseTimeAr(text, defaultPeriod);
   input.dataset.hhmm=parsed||"";
   input.value=parsed?formatTimeAr(parsed):text;
   input.dataset.legacy=parsed||!text?"":"1";

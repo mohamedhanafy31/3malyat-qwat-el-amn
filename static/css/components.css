@@ -662,7 +662,7 @@ tr.section-row td{background:var(--navy-100);font-weight:600;text-align:center;
 /* الخوارج كتجميعات قابلة للمسح البصري بدل جدول طويل مختلط. العنوان هادئ
    ومكمّل لنفس شكل الدفتر، واللون الجانبي مجرد علامة فئة مش حالة تشغيلية. */
 .outsider-groups{display:grid;gap:0;padding:0 var(--s3) var(--s3)}
-.outsider-group{min-width:0;border:0;border-radius:0;background:transparent;overflow:hidden}
+.outsider-group{min-width:0;border:0;border-radius:0;background:transparent;overflow:clip}
 .outsider-group + .outsider-group{border-block-start:1px solid var(--line)}
 .outsider-group-head{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);
   min-height:38px;padding:var(--s2) var(--s3);background:var(--surface-sunken);

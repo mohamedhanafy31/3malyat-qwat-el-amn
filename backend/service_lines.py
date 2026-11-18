@@ -49,7 +49,7 @@ def _canonical_time(value, field):
     raw = str(value or "").strip()
     if not raw:
         return "", None
-    parsed = parse_time(raw)
+    parsed = parse_time(raw, "am" if field == "الصباحي" else "pm")
     if not parsed:
         return None, f"ميعاد {field} غير صحيح."
     try:

@@ -29,6 +29,13 @@ def test_service_line_crud_returns_expanded_members_and_delete_keeps_catalog(cli
     assert client.get("/api/service-catalog").get_json()["entries"][0]["id"] == service["id"]
 
 
+def test_service_line_am_pm_fields_keep_their_context(client):
+    _add_service(client, "خدمة سياق الوقت", ["وسم الوقت"])
+    created = client.post("/api/service-lines", json=_line_body("وسم الوقت", depart_am="1", depart_pm="5"))
+    assert created.status_code == 201
+    assert (created.get_json()["depart_am"], created.get_json()["depart_pm"]) == ("01:00", "17:00")
+
+
 @pytest.mark.parametrize("body", [
     {"name": ""},
     {"name": "x" * 121},

@@ -272,7 +272,7 @@ def _build_ops(data, day, now=None, _carry=True, ctx=None):
         if schedule:
             from_schedule = parse_shift_pair(schedule)[0 if shift == "am" else 1]
         raw_report = raw_time or default
-        report = from_schedule or parse_time(raw_report)
+        report = from_schedule or parse_time(raw_report, "am" if shift == "am" else "pm")
         report_text = format_time(report) if report else str(raw_report or "")
         key = f"{svc_id}:{shift}" if svc_id else f"{entry_id}:{shift}"
         line = _line_info(data, day, svc_id, assignment_id, ctx)
@@ -592,15 +592,16 @@ def set_time(data, day, key, hhmm, scope, actor):
     على سجل التشغيل لليوم ده بس. «default»: معاد الدليل نفسه بصيغة HH:MM.
     """
     raw = str(hhmm or "").strip()
-    parsed = raw if re.fullmatch(r"\d{2}:\d{2}", raw) else parse_time(raw)
-    if not parsed or parse_time(parsed) != parsed:
-        raise ValueError("الوقت غير صحيح.")
     ok, error = day_status.check_open(data, day)
     if not ok:
         raise ValueError(error)
     run = _time_run(data, day, key)
     if not run:
         raise ValueError("الخدمة غير موجودة.")
+    parsed = raw if re.fullmatch(r"\d{2}:\d{2}", raw) else parse_time(
+        raw, "am" if run["shift"] == "am" else "pm")
+    if not parsed or parse_time(parsed) != parsed:
+        raise ValueError("الوقت غير صحيح.")
     base = run["base"]
     if scope == "default":
         entry = next((e for e in catalog(data) if e.get("id") == run.get("catalog_id")), None)
