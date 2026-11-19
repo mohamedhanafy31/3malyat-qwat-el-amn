@@ -21,7 +21,7 @@ def real_data():
     من غير الدالة دي كانت بتتخطّى في صمت بعد ما البيانات بقت مجلد.
     """
     from backend import store
-    return store.assemble() if store.core_file().exists() else None
+    return store.assemble() if store.core_exists() else None
 
 
 HAS_REAL = real_data() is not None

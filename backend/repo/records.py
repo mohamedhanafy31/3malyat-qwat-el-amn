@@ -140,6 +140,15 @@ class CourseTermRepo(Repo):
                 and t.start <= term.end and term.start <= t.end]
 
 
+class StatusPeriodRepo(Repo):
+    """Read/write boundary for the legacy dict-based officer status periods."""
+
+    KEY = "officer_status_periods"
+
+    def all_rows(self):
+        return [dict(row) for row in self.rows()]
+
+
 class MissionRepo(Repo):
     KEY = "missions"
     MODEL = Mission

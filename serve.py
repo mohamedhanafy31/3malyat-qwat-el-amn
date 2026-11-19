@@ -104,13 +104,23 @@ def _port_conflict_message():
     )
 
 
+def _log_resync(logger, report):
+    if report["error"]:
+        logger.error("Data resync FAILED (%s ms): %s", report["ms"], report["error"])
+    else:
+        logger.info("Data resync done: %s day files, %s ms%s", report["days"], report["ms"],
+                    " (interrupted transaction recovered)" if report["recovered"] else "")
+
+
 def main():
     logger = _configure_logging()
     logger.info("[startup 1/5] Python=%s root=%s", sys.executable, PROJECT_ROOT)
     try:
         logger.info("[startup 2/5] Acquiring exclusive data lock in %s", store.DATA_DIR)
         store.acquire_process_lock()
-        logger.info("[startup 3/5] Data lock acquired; starting daily-files worker")
+        logger.info("[startup 3/5] Data lock acquired; resyncing all data from disk")
+        _log_resync(logger, store.resync_all())
+        store.start_backup_worker()       # النسخ التلقائية بتتضغط برّه قفل الطلبات
         start_worker()
         tech_log.log_startup(source="serve.py")
     except SystemExit as exc:

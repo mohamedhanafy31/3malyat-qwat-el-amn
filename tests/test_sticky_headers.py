@@ -22,3 +22,12 @@ def test_containers_around_sticky_tables_clip_instead_of_becoming_scroll_contain
 
 def test_fixed_height_scroll_boxes_pin_their_header_to_their_own_top():
     assert ".chart-alt-table .table-scroll:not(.is-wide):not(.reg-scroll) > .table > thead th{top:0}" in PAGES
+
+
+def test_officers_duty_service_column_wraps_long_names_instead_of_widening():
+    cell = _rule(COMPONENTS, ".svc-cell")
+    assert "max-width" in cell and "width:" in cell
+    chip = _rule(COMPONENTS, ".svc-cell .chip")
+    assert "white-space:normal" in chip and "overflow-wrap:anywhere" in chip
+    duty_js = (Path(__file__).resolve().parent.parent / "static" / "js" / "duty.js").read_text(encoding="utf-8")
+    assert 'class="svc-cell"' in duty_js

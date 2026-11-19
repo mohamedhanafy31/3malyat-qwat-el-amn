@@ -20,6 +20,7 @@ from ..leaves import history_rows, monthly_roster, weekly_roster
 from ..rest_status import officer_status, taqseera_alerts
 from ..repo import Repos
 from ..store import ALL_DAYS, load_data
+from ..status_periods import duration as status_duration
 from ..weekly_rest import log_window, virtual_rows
 from ..upcoming import build as build_upcoming
 from ..auth import can
@@ -116,6 +117,8 @@ def bootstrap(page):
     elif page == "leaves":
         # أعلام الفتح/القفل والتسجيل التلقائي لأيام النافذة القادمة
         scope = set(log_window(day_status.today_iso()))
+    elif page == "outsiders":
+        scope = ALL_DAYS
     data = load_data(scope)
     meta = _meta(data)
 
@@ -217,6 +220,103 @@ def bootstrap(page):
         return jsonify({"meta": meta, "leaves": leaves, "people": people,
                         "leave_history": history_rows(data),
                         "officer_ids": officer_ids,
+                        "counts": _counts(data)})
+
+    if page == "outsiders":
+        repos = Repos(data)
+        people = {person.id: person.as_dict() for category in ("officers", "personnel")
+                  for person in repos.people.all(category)}
+        officer_ids = {person.id for person in repos.people.all("officers")}
+        status_period_rows = repos.status_periods.all_rows()
+        rows = []
+        for period in status_period_rows:
+            person = people.get(period.get("officer_id"), {})
+            period_duration = status_duration(period, day_status.today_iso())
+            if period_duration is None and period.get("start"):
+                try:
+                    last = period.get("end") or day_status.today_iso()
+                    days = max(0, (date.fromisoformat(last)
+                                   - date.fromisoformat(period["start"])).days + 1)
+                    period_duration = {"text": f"{days} يوم", "days": days,
+                                       "hours": 0, "minutes": 0, "precision": "days"}
+                except ValueError:
+                    period_duration = None
+            rows.append({**period, "person_id": period.get("officer_id"),
+                         "name": person.get("name", ""), "role": person.get("role", ""),
+                         "category": "ضابط", "record_kind": "status",
+                         "open_ended": not bool(period.get("end")),
+                         "duration": period_duration})
+        # Preserve historical statuses written directly into day files. Merge
+        # consecutive day-only records into a single date span; no time is
+        # inferred for these legacy rows.
+        daily = {}
+        for day in repos.days.dates():
+            for person_id, state_model in repos.days.officer_states(day).items():
+                state = state_model.as_dict()
+                status = str(state.get("status") or "")
+                if status not in ("غياب", "مرضي"):
+                    continue
+                if any(period.get("officer_id") == person_id and period.get("status") == status
+                       and period.get("start", "") <= day
+                       and (not period.get("end") or day <= period["end"])
+                       for period in status_period_rows):
+                    continue
+                daily.setdefault((person_id, status), []).append((day, state))
+        for (person_id, status), entries in daily.items():
+            person = people.get(person_id, {})
+            entries.sort(key=lambda item: item[0])
+            groups = []
+            for day, state in entries:
+                if groups and (date.fromisoformat(day) - date.fromisoformat(groups[-1]["end"])).days == 1:
+                    groups[-1]["end"] = day
+                    if state.get("note"):
+                        groups[-1]["note"] = state["note"]
+                else:
+                    groups.append({"start": day, "end": day, "note": state.get("note", "")})
+            for group in groups:
+                days = (date.fromisoformat(group["end"]) - date.fromisoformat(group["start"])).days + 1
+                rows.append({**group, "id": f"day:{person_id}:{status}:{group['start']}",
+                             "person_id": person_id, "name": person.get("name", ""),
+                             "role": person.get("role", ""), "category": "ضابط",
+                             "status": status, "record_kind": "daily_status", "open_ended": False,
+                             "duration": {"text": f"{days} يوم (التوقيت غير مسجل)",
+                                          "days": days, "hours": 0, "minutes": 0,
+                                          "precision": "days"}})
+        for leave in repos.leaves.rows_with_names():
+            try:
+                days = (date.fromisoformat(leave["end"]) - date.fromisoformat(leave["start"])).days + 1
+            except (KeyError, ValueError):
+                days = 0
+            person = people.get(leave.get("person_id"), {})
+            rows.append({**leave, "status": leave.get("type", "راحة"),
+                         "name": leave.get("name") or person.get("name", ""),
+                         "role": person.get("role", ""), "category": "ضابط" if leave.get("person_id") in officer_ids else "فرد",
+                         "record_kind": "leave", "open_ended": False,
+                         "duration": {"text": f"{days} يوم", "days": days, "hours": 0,
+                                      "minutes": 0, "precision": "days"}})
+        course_catalog = {course.id: course.as_dict() for course in repos.courses.all()}
+        for term_model in repos.terms.all():
+            term = term_model.as_dict()
+            course = course_catalog.get(term.get("course_id"), {})
+            person = people.get(term.get("officer_id"), {})
+            start, end = term.get("start", ""), term.get("end", "")
+            try:
+                days = ((date.fromisoformat(end) - date.fromisoformat(start)).days + 1
+                        if start and end else 0)
+            except ValueError:
+                days = 0
+            detail_parts = [course.get("kind"), course.get("place"), term.get("note")]
+            rows.append({**term, "person_id": term.get("officer_id"),
+                         "name": person.get("name", ""), "role": person.get("role", ""),
+                         "category": "ضابط", "status": "فرقة",
+                         "title": course.get("name", ""),
+                         "details": " — ".join(part for part in detail_parts if part),
+                         "record_kind": "course", "open_ended": False,
+                         "duration": {"text": f"{days} يوم" if days else "غير محددة",
+                                      "days": days, "hours": 0, "minutes": 0,
+                                      "precision": "days" if days else "unknown"}})
+        return jsonify({"meta": meta, "outsiders": sorted(rows,
+                        key=lambda row: (row.get("start", ""), row.get("name", "")), reverse=True),
                         "counts": _counts(data)})
 
     if page == "leaves_stats":

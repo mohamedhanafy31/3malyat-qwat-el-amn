@@ -76,8 +76,7 @@ def test_opening_uses_the_latest_confirmed_targets_only(client, data_file):
                    for row in saved.get("day_assignments", {}).get(DAY, []))
     day_blob = store.read_day_blob(DAY)
     assert "target_defaults" in day_blob
-    assert "target_defaults" not in json.loads(
-        store.core_file().read_text(encoding="utf-8"))
+    assert "target_defaults" not in store.read_core_at(store.DATA_DIR)
 
 
 def test_rejected_ids_in_an_old_snapshot_leave_only_that_target_vacant(

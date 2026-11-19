@@ -134,13 +134,39 @@ def _people(data, day, assignment):
     return out
 
 
+# رتب الأفراد من الأعلى للأقل (الضباط بياخدوا ترتيبهم من utils.rank_key) — اللي مالوش رتبة معروفة
+# (مجند مسجل بدون رتبة…) في الآخر. المطابقة بالبداية عشان «أمين شرطة أول/ثان…» و«مساعد ثالث…».
+_PERSONNEL_RANK_ORDER = ("مساعد أول", "مساعد ثان", "مساعد ثالث", "مساعد", "أمين شرطة ممتاز",
+                         "أمين شرطة أول", "أمين شرطة ثان", "أمين شرطة ثالث", "أمين شرطة",
+                         "رقيب أول", "رقيب", "عريف", "جندي أول", "جندي", "مجند")
+
+
+def _personnel_rank(person):
+    role = _text(person.get("role"))
+    for index, rank in enumerate(_PERSONNEL_RANK_ORDER):
+        if role == rank or role.startswith(rank + " "):
+            return index
+    return len(_PERSONNEL_RANK_ORDER)
+
+
+def ordered_people(people):
+    """القائمون على الخدمة بترتيب الرتب: الضباط الأول (رتبة ثم أقدمية)، وبعدهم الأفراد بترتيب رتبهم.
+    كان الترتيب بيطلع الأفراد قبل الضباط لما التوزيع على المركبات يتخزن."""
+    from .utils import rank_key
+    officers = sorted((p for p in people if p.get("category") != "personnel"), key=rank_key)
+    others = sorted((p for p in people if p.get("category") == "personnel"),
+                    key=lambda p: (_personnel_rank(p), _text(p.get("name"))))
+    return officers + others
+
+
 def _labels(people):
+    """اسم وتليفون كل قائم في سطر مستقل (Enter) بنفس الترتيب بدل «+»."""
     labels, phones = [], []
-    for person in people:
+    for person in ordered_people(people):
         labels.append(personnel_label(person) if person.get("category") == "personnel"
                        else officer_label(person))
         phones.append(_text(person.get("phone")))
-    return " + ".join(labels), " + ".join(phones)
+    return "\n".join(labels), "\n".join(phones)
 
 
 def _one_vehicle_label(item):
@@ -168,11 +194,21 @@ def _assignment_row(data, day, assignment, order):
         vehicles[0] = {**vehicles[0], "people": people}
     variants = vehicles or [None]
     people_by_id = {person.get("id"): person for person in people}
+    # توزيع الأفراد على المركبات بيتخزن أول ما تتحفظ المركبة؛ أي ضابط/فرد/رئاسة اتضاف للخدمة
+    # بعد كده مش في أي توزيع فكان بيختفي من الانتظام. الصف الرسمي لازم يضم كل القائمين، فالزيادة
+    # بتنضم لأول مركبة عليها أفراد (أو الأولى).
+    placed = {item.get("id") for vehicle in variants if vehicle
+              for item in (vehicle.get("people") or [])}
+    leftover = [person for person in people if person.get("id") not in placed] if placed else []
+    receiver = next((i for i, vehicle in enumerate(variants)
+                     if vehicle and vehicle.get("people")), 0)
     rows = []
-    for vehicle in variants:
+    for position, vehicle in enumerate(variants):
         vehicle_people = vehicle.get("people") if vehicle else None
         row_people = ([people_by_id.get(item.get("id"), item) for item in vehicle_people]
                       if vehicle_people else people)
+        if leftover and position == receiver:
+            row_people = [*row_people, *leftover]
         labels, phones = _labels(row_people)
         if not row_people:
             warnings.append("لا يوجد قائم للخدمة.")
@@ -191,6 +227,8 @@ def _assignment_row(data, day, assignment, order):
         if not vehicle:
             row_warnings.append("المركبة غير مسجلة.")
         rows.append({"service": _text(assignment.get("name")),
+                     # Stable identity keeps multi-vehicle rows together in exports.
+                     "service_id": _text(assignment.get("id")),
                      "people": labels or PLACEHOLDER,
                      "phone": phones or PLACEHOLDER,
                      "vehicle": (_vehicle_label([vehicle]) if vehicle else PLACEHOLDER),
@@ -221,7 +259,9 @@ def _ambulance_row(data, day, rows):
     if not phones: warnings.append("رقم الهاتف غير مسجل.")
     vehicle = (daily or {}).get("vehicle") or {}
     if not vehicle: warnings.append("المركبة غير مسجلة.")
-    rows.append({"service": _text((daily or {}).get("name") or basic.get("name")), "people": label or PLACEHOLDER,
+    rows.append({"service": _text((daily or {}).get("name") or basic.get("name")),
+                 "service_id": _text((daily or {}).get("id") or basic.get("id")),
+                 "people": label or PLACEHOLDER,
                  "phone": phones or PLACEHOLDER,
                  "vehicle": _text(vehicle.get("plate")) or PLACEHOLDER,
                  "place": _value(basic.get("location_text"), "مكان الانتظام غير مسجل.", warnings),

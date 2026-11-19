@@ -120,6 +120,8 @@ def test_resume_after_a_crash_mid_write(batch, monkeypatch):
     run_store(ledger, state, write=True, resume=True)
     assert store.day_path("2025-01-05").exists()
     manifest = json.loads((ledger.root / "preimage" / BATCH / "manifest.json").read_text(encoding="utf-8"))
-    assert manifest["core.json"]["sha256"] == before["core.json"]  # الأصل الأول ما اتكتبش فوقه
+    day_preimages = [name for name in manifest if name.startswith("days/2025/01/2025-01-05/")]
+    assert day_preimages and all(not info["existed"] for name, info in manifest.items()
+                                 if name in day_preimages)  # النسخة الأولى ما اتكتبش فوقها
     run_rollback(ledger, state, write=True)
     assert _hashes() == before

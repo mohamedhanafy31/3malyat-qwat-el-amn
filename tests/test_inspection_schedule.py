@@ -135,13 +135,13 @@ def test_opening_a_past_board_never_seeds_or_changes_its_file(client, frozen_tod
     day = SATURDAY
     _add(client, weekday_name(day), name="تفتيش فيصل")
     frozen_today("2026-04-12")
-    before = json.loads(store.core_file().read_text(encoding="utf-8"))
+    before = store.read_core_at(store.DATA_DIR)
 
     response = client.get(f"/api/board/{day}")
 
     assert response.status_code == 200
     assert not store.day_path(day).exists()
-    after = json.loads(store.core_file().read_text(encoding="utf-8"))
+    after = store.read_core_at(store.DATA_DIR)
     assert after == before
     assert day not in after.get("inspection_seeded_days", {})
 
@@ -156,7 +156,7 @@ def test_manually_closed_future_board_never_seeds_inspections(client):
     assert response.status_code == 200
     blob = store.read_day_blob(day)
     assert "assignments" not in blob
-    core = json.loads(store.core_file().read_text(encoding="utf-8"))
+    core = store.read_core_at(store.DATA_DIR)
     assert day not in core.get("inspection_seeded_days", {})
 
 
@@ -173,5 +173,5 @@ def test_imported_open_day_never_seeds_inspections(client, data_file):
     assert response.status_code == 200
     blob = store.read_day_blob(day)
     assert "assignments" not in blob
-    assert day not in json.loads(store.core_file().read_text(encoding="utf-8")).get(
+    assert day not in store.read_core_at(store.DATA_DIR).get(
         "inspection_seeded_days", {})

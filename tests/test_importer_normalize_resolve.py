@@ -305,7 +305,8 @@ def test_stage_outputs_bom_csv_decisions_override_and_proposed_map(tmp_path):
     data = tmp_path / "data"
     ledger = Ledger(data, "batch")
     state = ledger.initialise({}, {})
-    (data / "core.json").write_text(json.dumps({
+    (data / "core").mkdir(parents=True)
+    (data / "core" / "force.json").write_text(json.dumps({
         "officers": [{"id": "OFF-001", "name": "ضابط تجريبي كامل", "code": "10/2020"}],
         "personnel": [{"id": "IND-001", "name": "فرد تجريبي كامل", "phone": "01000000000"}],
     }, ensure_ascii=False), encoding="utf-8")

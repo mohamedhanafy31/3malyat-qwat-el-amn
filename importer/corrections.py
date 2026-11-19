@@ -324,6 +324,7 @@ def _plan_day(report: Report, data: dict[str, Any], day: str, original: dict[str
 
 
 def _write_scratch_data(data: dict[str, Any], target: Path) -> None:
+    """Scratch data may stay in legacy core.json; store reads both layouts."""
     core, days = store.split(data)
     target.mkdir(parents=True, exist_ok=True)
     (target / "core.json").write_text(json.dumps(core, ensure_ascii=False), encoding="utf-8")

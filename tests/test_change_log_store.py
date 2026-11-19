@@ -1,6 +1,7 @@
 """سجل التغييرات في ملفه (changes/log.jsonl): ترقية من core.json، إضافة فقط، نافذة الذاكرة،
 تعافي بعد انقطاع، والنسخ الاحتياطي."""
 import json
+import shutil
 
 import pytest
 
@@ -19,13 +20,15 @@ def _lines():
 
 
 def _core():
-    return json.loads(store.core_file().read_text(encoding="utf-8"))
+    return store.read_core_at(store.DATA_DIR)
 
 
 def _legacy(count, archive=0):
     """core.json بالشكل القديم (السجل جواه) + أرشيف تقليم قديم اختياري، من غير ملف السجل الجديد."""
     core = _core()
     core["change_log"] = [_entry(archive + i + 1) for i in range(count)]
+    if store.core_dir().exists():
+        shutil.rmtree(store.core_dir())
     store.core_file().write_text(json.dumps(core, ensure_ascii=False, indent=2), encoding="utf-8")
     store.change_log_path().unlink(missing_ok=True)
     if archive:
@@ -50,7 +53,8 @@ def test_first_write_after_upgrade_moves_the_log_out_of_core_with_the_old_archiv
 
 def test_later_writes_only_append_and_never_touch_core(client):
     store.with_data(lambda d: changes.record(d, "a", "A-1", "create"))
-    core_before = store.core_file().read_bytes()
+    core_before = {path.relative_to(store.DATA_DIR): path.read_bytes()
+                   for path in store.core_dir().glob("*.json")}
     log_before = store.change_log_path().read_bytes()
 
     for i in range(3):
@@ -59,7 +63,8 @@ def test_later_writes_only_append_and_never_touch_core(client):
     log_after = store.change_log_path().read_bytes()
     assert log_after.startswith(log_before)                       # اللي قبل كده ما اتلمسش
     assert len(_lines()) == len(log_before.splitlines()) + 3
-    assert store.core_file().read_bytes() == core_before         # id_seq ما اتحرّكش → core ما اتكتبش
+    assert {path.relative_to(store.DATA_DIR): path.read_bytes()
+            for path in store.core_dir().glob("*.json")} == core_before  # id_seq ما اتحرّكش → core ما اتكتبش
 
 
 def test_change_ids_keep_increasing_without_the_core_counter(client):
@@ -177,6 +182,66 @@ def test_change_log_view_behaves_like_a_list():
     assert view == [_entry(2), _entry(3)] and json.dumps(view.to_list())
 
 
+def _lazy_view(entries):
+    return store.ChangeLogView(store._pack(entries), len(entries))
+
+
+def test_deepcopy_of_an_unread_view_does_not_unpack_it():
+    import copy
+    view = _lazy_view([_entry(1), _entry(2)])
+
+    clone = copy.deepcopy({"change_log": view})["change_log"]
+
+    assert clone is not view and view.untouched and clone.untouched     # مفيش فك pickle ولا نسخ سجلات
+    assert len(clone) == 2 and clone == view
+
+
+@pytest.mark.parametrize("mutate", ["original", "copy"])
+def test_deepcopy_of_an_unread_view_stays_isolated_from_either_side(mutate):
+    import copy
+    view = _lazy_view([_entry(1), _entry(2)])
+    clone = copy.deepcopy(view)
+    changed, other = (view, clone) if mutate == "original" else (clone, view)
+
+    changed[0]["text"] = "اتعدّل"
+    changed.append(_entry(3))
+    del changed[1]
+
+    assert [e["id"] for e in changed] == ["CHG-001", "CHG-003"] and changed[0]["text"] == "اتعدّل"
+    assert other == [_entry(1), _entry(2)] and other[0] is not changed[0]
+
+
+@pytest.mark.parametrize("mutate", ["original", "copy"])
+def test_deepcopy_of_a_read_view_stays_isolated_from_either_side(mutate):
+    import copy
+    view = _lazy_view([_entry(1), _entry(2)])
+    view.append(_entry(3))                                               # اتفكّت واتعدّلت قبل النسخ
+    clone = copy.deepcopy(view)
+    changed, other = (view, clone) if mutate == "original" else (clone, view)
+
+    assert not clone.untouched                                           # التعديل اللي قبل النسخ يفضل يتحفظ
+    changed[0]["text"] = "اتعدّل"
+    del changed[:2]
+
+    assert [e["id"] for e in changed] == ["CHG-003"]
+    assert other == [_entry(1), _entry(2), _entry(3)] and other[0]["text"] == "t1"
+
+
+def test_a_deepcopied_snapshot_saves_its_new_log_entries(client):
+    import copy
+    store.with_data(lambda d: changes.record(d, "a", "A-1", "create", text="قبل"))
+
+    def on_a_copy(data):
+        clone = copy.deepcopy(data)
+        changes.record(clone, "a", "A-2", "create", text="من النسخة")
+        data.clear()
+        data.update(clone)
+
+    store.with_data(on_a_copy)
+
+    assert [e["text"] for e in _lines()][-2:] == ["قبل", "من النسخة"]
+
+
 def test_new_backups_are_raw_files_and_old_single_json_backups_still_restore(client, tmp_path):
     import zipfile
     client.post("/api/assignments/2026-04-10", json={"name": "خدمة نسخة", "kind": "خارجية"})
@@ -184,7 +249,7 @@ def test_new_backups_are_raw_files_and_old_single_json_backups_still_restore(cli
     backup = store.snapshot_now()
     with zipfile.ZipFile(backup) as zf:
         names = zf.namelist()
-    assert "manifest.json" in names and "core.json" in names and "data.json" not in names
+    assert "manifest.json" in names and any(name.startswith("core/") for name in names) and "data.json" not in names
     assert any(n.startswith("days/") for n in names) and "changes/log.jsonl" in names
     assert store.read_backup(backup) == store.assemble()                  # نفس الـdict القديم بالظبط
 

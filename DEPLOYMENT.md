@@ -107,7 +107,14 @@ python tools\prepare_offline_bundle.py --archive
 بوضعها داخل المستودع. الحزمة تتعمّد عدم
 إدراج `data\users.json` و`data\secret_key`، لذلك أول تشغيل يطلب إنشاء مدير
 جديد. وهي لا تحمل أرشيفات المصادر الكبيرة أو ملفات الاستيراد المؤقتة، لكنها
-تحمل `data\core.json` و`data\days\` وملفات الرفع التشغيلية الحالية.
+تحمل `data\core\` (ملفات القوة والبيانات المرجعية، وهي متتبعة في git) و`data\days\` وملفات الرفع
+التشغيلية الحالية. `data\core.json` القديم مقروء مؤقتًا فقط، وأول كتابة تحوّله إلى ملفات المجلد.
+
+عند تحديث جهاز فيه بيانات تشغيل محلية، شغّل `python tools/protect_before_pull.py` قبل `git pull`؛
+الأداة تحفظ `data\core\` و`data\core.json` القديم مع اليوميات. بعد السحب شغّل `--restore` كالمعتاد.
+الـcommit الذي ينقل core من الملف إلى المجلد سيحذف `data\core.json` من checkout ويجلب `data\core\`؛
+استخدم `tools/migrate_storage.py --apply --legacy-core <نسخة الحماية>\core.json` فقط إذا كان
+هناك ملف legacy محفوظ لدمج سجل تغييره.
 
 > **مهم — مكان المجلد على جهاز التشغيل:**
 > حطّه في مكان **المستخدم بيقدر يكتب فيه**، زي:
@@ -208,7 +215,13 @@ archives remain readable. Keep the original archive when testing recovery.
 
 Run the isolated storage benchmark with:
 
-    python tools/benchmark_storage.py --days 1097 --runs 30
+    python tools/benchmark_storage.py --days 1097 --runs 30 --log-entries 5000
+
+It builds N unique consecutive ISO days plus a change log in a temporary
+directory and prints one JSON line per phase and scope: `cold` (memory cleared,
+full index build), `warm` (within the index recheck window), `recheck`
+(external-change rescan on every load), and `deepcopy` (a scoped snapshot copy,
+as board/duty routes do).
 
 The final release gates are cold start <=8s, API/page p95 <=1.5s, save p95
 <=750ms, RSS <=750MiB, and growth <=100MiB over eight hours. Windows forced

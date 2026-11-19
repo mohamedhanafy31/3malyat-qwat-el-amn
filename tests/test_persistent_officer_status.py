@@ -6,6 +6,7 @@ import json
 import pytest
 
 from backend.store import assemble
+from backend.status_periods import duration, stop
 
 
 def _row(client, day, officer_id="OFF-002"):
@@ -16,6 +17,29 @@ def _row(client, day, officer_id="OFF-002"):
 def _periods():
     return [(p["status"], p["start"], p["end"])
             for p in assemble().get("officer_status_periods") or []]
+
+
+def test_absence_duration_uses_explicit_timestamps_and_legacy_is_day_only():
+    exact = duration({"status": "غياب", "start": "2026-10-01", "start_time": "08:15",
+                      "end": "2026-10-01", "end_time": "10:47", "stopped_on": "2026-10-01"})
+    assert exact == {"text": "2 ساعة، 32 دقيقة", "days": 0, "hours": 2,
+                     "minutes": 32, "precision": "minutes"}
+    legacy = duration({"status": "غياب", "start": "2026-10-01", "end": "2026-10-02"},
+                      today="2026-10-03")
+    assert legacy["text"] == "2 يوم (التوقيت غير مسجل)"
+    assert legacy["precision"] == "days"
+    sick = duration({"status": "مرضي", "start": "2026-10-01", "end": "2026-10-03"})
+    assert sick["text"] == "3 يوم" and sick["days"] == 3
+
+
+def test_same_day_absence_stop_keeps_the_timestamped_record():
+    data = {"officer_status_periods": [{"id": "OSP-0001", "officer_id": "OFF-002",
+        "status": "غياب", "start": "2026-10-01", "end": "", "start_time": "08:00"}]}
+    before, after = stop(data, "OFF-002", "2026-10-01", end_time="13:15")
+    assert before["id"] == after["id"] == "OSP-0001"
+    assert after["end"] == after["stopped_on"] == "2026-10-01"
+    assert after["end_time"] == "13:15"
+    assert duration(after)["text"] == "5 ساعة، 15 دقيقة"
 
 
 @pytest.mark.parametrize("status", ["مرضي", "غياب"])
@@ -43,6 +67,17 @@ def test_continuous_status_continues_until_explicit_stop(client, status):
     assert _row(client, "2026-05-03")["status"] == ""
     assert _row(client, "2026-05-20")["status"] == ""
     assert _periods() == [(status, "2026-05-01", "2026-05-02")]
+
+
+def test_absence_can_store_start_time_and_rejects_invalid_clock(client):
+    invalid = client.put("/api/duty/2026-05-01/OFF-002",
+                         json={"status": "غياب", "status_start_time": "25:70"})
+    assert invalid.status_code == 400
+    assert "وقت بداية الغياب" in invalid.get_json()["error"]
+    saved = client.put("/api/duty/2026-05-01/OFF-002",
+                       json={"status": "غياب", "status_start_time": "08:35"})
+    assert saved.status_code == 200, saved.get_json()
+    assert _row(client, "2026-05-01")["persistent_status"]["start_time"] == "08:35"
 
 
 def test_continuous_status_refuses_an_end_date(client):

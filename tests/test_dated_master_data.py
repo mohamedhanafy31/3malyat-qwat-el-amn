@@ -16,6 +16,7 @@ from backend.duty import summarise
 from backend.people import effective, record_change
 from backend.references import cascade_delete
 from backend.repo import Repos
+from backend import store
 from tools.check_integrity import check as integrity_check
 
 
@@ -166,7 +167,7 @@ def test_migration_cli_dry_run_write_and_already_done(tmp_path, script, key):
 
     subprocess.run([*command, "--write"], cwd=Path(__file__).parents[1], env=env,
                    text=True, capture_output=True, check=True)
-    assert key in json.loads(core_path.read_text(encoding="utf-8"))
+    assert key in store.read_core_at(data_dir)
     again = subprocess.run([*command, "--write"], cwd=Path(__file__).parents[1], env=env,
                            text=True, capture_output=True, check=True)
     assert "موجود" in again.stdout

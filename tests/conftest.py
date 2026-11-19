@@ -87,7 +87,7 @@ class _Assembled:
         store.explode(json.loads(text))
 
     def exists(self):
-        return store.core_file().exists()
+        return store.core_exists()
 
     def size(self):
         """مجموع حجم كل ملفات المجلد على القرص."""

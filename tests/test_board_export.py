@@ -171,3 +171,24 @@ def test_conscripts_without_a_class_print_the_full_word():
     assert _compact_manning({**base, "conscripts": [{"class": "", "count": 5}]}) == "5 مجند"
     assert _compact_manning({**base, "conscripts": [{"class": "وحدة", "count": 5}]}) == "5وحدة"
     assert "5 مجند" in _service_desc({**base, "conscripts": [], "conscript_count": 5})
+
+
+def test_rests_group_weekly_then_monthly_then_half_monthly_each_by_rank():
+    from backend.board_export import group_outsiders_by_kind
+
+    def row(name, leave_type, start=None, end=None):
+        return {"name": name, "status_type": "راحة", "type": leave_type, "start": start, "end": end}
+
+    rows = [
+        row("c-نصف", "نصف شهرية", "2026-11-17", "2026-11-19"),
+        row("a-شهرية", "شهرية", "2026-11-17", "2026-11-23"),
+        row("b-أسبوعية", "أسبوعية"),
+        row("d-شهرية-قديمة", "شهرية", "2026-11-12", "2026-11-18"),
+        row("e-أسبوعية", "أسبوعية"),
+        row("f-شهرية", "شهرية", "2026-11-17", "2026-11-23"),
+        row("g-بلا-نوع", "راحة"),
+    ]
+    ordered = [r["name"] for r in group_outsiders_by_kind(rows)]
+    # الأسبوعية (والراحة بلا نوع) مع بعض بترتيبها الأصلي، ثم كل فترة شهرية لوحدها، ثم النصف شهرية
+    assert ordered == ["b-أسبوعية", "e-أسبوعية", "g-بلا-نوع", "d-شهرية-قديمة",
+                       "a-شهرية", "f-شهرية", "c-نصف"]

@@ -113,6 +113,23 @@ def _set_cell(cell, text, size):
                 node.set(qn("w:val"), str(int(round(size * 2))))
 
 
+def _set_lines(t_node, text):
+    """نص بعدة سطور في خانة واحدة: <w:t> لكل سطر بينهم <w:br/> (الـ\\n جوّه w:t كان بيطلع مسافة في Word)."""
+    lines = str(text or "").split("\n")
+    t_node.text = lines[0]
+    t_node.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+    run = t_node.getparent()
+    anchor = t_node
+    for line in lines[1:]:
+        br = OxmlElement("w:br")
+        run.insert(run.index(anchor) + 1, br)
+        extra = OxmlElement("w:t")
+        extra.text = line
+        extra.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+        run.insert(run.index(br) + 1, extra)
+        anchor = extra
+
+
 def _row(table, prototype, values, size, note=False, col_sizes=None):
     tr = deepcopy(prototype)
     cells = table._tbl.__class__  # keep lxml namespace registration loaded
@@ -127,13 +144,14 @@ def _row(table, prototype, values, size, note=False, col_sizes=None):
         # temporary Document cell is unnecessary, so use the XML text nodes.
         texts = tc.findall(".//" + qn("w:t"))
         if texts:
-            texts[0].text = str(text or "")
+            _set_lines(texts[0], text)
             for extra in texts[1:]: extra.text = ""
         else:
             from docx.oxml import OxmlElement
             p = tc.find(qn("w:p"))
-            r = OxmlElement("w:r"); t = OxmlElement("w:t"); t.text = str(text or "")
+            r = OxmlElement("w:r"); t = OxmlElement("w:t")
             r.append(t); p.append(r)
+            _set_lines(t, text)
         for node in tc.iter(qn("w:sz")):
             node.set(qn("w:val"), str(int(round(cell_size * 2))))
         for node in tc.iter(qn("w:szCs")):
@@ -182,6 +200,26 @@ def _fit(payload, table1, table2):
     raise PageFitError("تعذر احتواء يومية انتظام الخدمات في صفحة واحدة؛ قلل عدد الصفوف أو طول النصوص.")
 
 
+def _merge_repeated_service_cells(table, rows):
+    """Vertically merge the service label across adjacent vehicle rows for one assignment."""
+    start = 0
+    while start < len(rows):
+        identity = rows[start].get("service_id")
+        end = start + 1
+        while (identity and end < len(rows)
+               and rows[end].get("service_id") == identity
+               and rows[end].get("service") == rows[start].get("service")):
+            end += 1
+        if end - start > 1:
+            # python-docx concatenates the text of every cell while merging.
+            # Keep the first label only so one multi-vehicle service is not
+            # rendered as repeated services inside the merged cell.
+            for row_index in range(start + 1, end):
+                table.cell(row_index + 1, 1).text = ""
+            table.cell(start + 1, 1).merge(table.cell(end, 1))
+        start = end
+
+
 def build_docx(payload):
     document = Document(TEMPLATE)
     table1, table2 = document.tables[:2]
@@ -203,6 +241,7 @@ def build_docx(payload):
                                    row["vehicle"], row["place"], row["time"], row["count"]], fit_size,
                    col_sizes={VEHICLE_COL: min(fit_size, VEHICLE_SIZE_PT)})
         table1._tbl.append(tr)
+    _merge_repeated_service_cells(table1, payload.get("service_rows") or [])
     for row in payload.get("officer_rows") or []:
         tr = _row(table2, proto2, ["", row["rank"], row["name"], row["service"]], fit_size)
         table2._tbl.append(tr)
@@ -303,10 +342,12 @@ def build_special_docx(payload):
     for tr in list(table1._tbl.tr_lst[1:]):
         table1._tbl.remove(tr)
     table2._tbl.getparent().remove(table2._tbl)
-    for row in payload.get("service_rows") or []:
+    special_rows = payload.get("service_rows") or []
+    for row in special_rows:
         table1._tbl.append(_row(table1, proto, ["", row["service"], row["people"], row["phone"],
                                                 row["vehicle"], row["place"], row["time"], row["count"]],
                                 SPECIAL_SIZE_PT, col_sizes={VEHICLE_COL: VEHICLE_SIZE_PT}))
+    _merge_repeated_service_cells(table1, special_rows)
     # مسافة الفقرات الافتراضية في القالب (بعد الفقرة + 1.15 سطر) كانت بتخلي الصف
     # نص بوصة وتدخّل 7 خدمات بس في الصفحة.
     for paragraph in table1._tbl.iter(qn("w:p")):

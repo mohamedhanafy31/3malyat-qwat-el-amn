@@ -1450,7 +1450,7 @@ def run_transform(ledger: Ledger, state: dict[str, Any], start: dt.date | None =
     if not source.exists():
         raise FileNotFoundError("يجب تشغيل normalize وresolve وaliases للدفعة أولًا")
     ledger.mark_stage(state, "transform", "running")
-    core = json.loads((ledger.data_dir / "core.json").read_text(encoding="utf-8"))
+    core = store.read_core_at(ledger.data_dir)
     ctx = Context(ledger, core)
     start_s = start.isoformat() if start else None
     end_s = end.isoformat() if end else None

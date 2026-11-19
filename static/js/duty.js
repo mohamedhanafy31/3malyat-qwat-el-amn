@@ -116,7 +116,7 @@ function officerRow(r) {
     <td class="name">${announce}${esc(r.name)}${announced}<div class="sub">${esc(r.role)}${search} ${gone}</div></td>
     <td class="phone-col"><span dir="ltr">${esc(fmtPhone(r.phone)) || "—"}</span></td>
     <td class="wrap">${esc(r.post) || "<span class='muted'>—</span>"}</td>
-    <td>${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
+    <td class="svc-cell">${svc}${r.taqseera ? ' <span class="chip taq">تقصيرة</span>' : ""}</td>
     <td>${grp}</td>
     <td class="wrap">${esc(r.text) || "<span class='muted'>—</span>"}${r.admin_work || r.admin_work_text ? ' <span class="chip m" title="يظهر كمان في «عمل بالإدارة» في اليومية التفصيلية">+ عمل بالإدارة</span>' : ""}</td>
     <td><button class="mini" data-action="openAssign" data-id="${esc(r.id)}">الحالة</button></td>
@@ -206,6 +206,7 @@ ACTIONS.openAssign = id => {
   $("#assignStatus").value = row.status || "";
   const period = row.status_source === "period" ? row.persistent_status : null;
   $("#assignStatusEnd").value = period && BOUNDED_STATUSES.includes(period.status) ? (period.end || "") : "";
+  $("#assignStatusStartTime").value = period?.status === "غياب" ? (period.start_time || "") : "";
   $("#assignStatusEnd").min = DUTY.date;
   $("#assignStatusTitle").value = period && DETAILED_STATUSES.includes(period.status) ? (period.title || "") : "";
   $("#assignStatusDetails").value = period && DETAILED_STATUSES.includes(period.status) ? (period.details || "") : "";
@@ -350,6 +351,7 @@ function updatePersistentHint() {
   const hint = $("#assignStatusHint");
   hint.classList.toggle("is-persistent", continuous || bounded);
   const detailed = DETAILED_STATUSES.includes(value);
+  $("#assignAbsenceTimeRow").classList.toggle("hidden", value !== "غياب");
   $("#assignEndRow").classList.toggle("hidden", !bounded);
   $("#assignStatusEnd").required = bounded;
   $("#assignTitleRow").classList.toggle("hidden", !detailed);
@@ -470,6 +472,7 @@ $("#assignForm").onsubmit = async e => {
     if (!details) { showToast(`اكتب تفاصيل ${status}`, true); $("#assignStatusDetails").focus(); return; }
     body.status_title = title; body.status_details = details;
   }
+  if (status === "غياب") body.status_start_time = $("#assignStatusStartTime").value;
   if (!status && row?.status_source === "period") {
     // «بدون» مابيغيّرش الحالة الممتدة — الإنهاء والإلغاء لهم زرارين صريحين فوق
     showToast("لإنهاء الحالة استخدم «إنهاء الحالة من هذا اليوم»، ولإلغاء تسجيلها استخدم «إلغاء تسجيل الحالة بالكامل»", true); return;

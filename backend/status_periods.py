@@ -19,7 +19,7 @@
 **الإنهاء** (``stop``) بيقصّر السجل ويحفظ التاريخ اللي فات؛ **الإلغاء**
 (``cancel``) بيمسح السجل كله (الماضي والمستقبل) لأنه كان تسجيل بالغلط.
 """
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 from .store import reserve_id
 from .utils import canonical_day
@@ -55,7 +55,8 @@ def public(row):
     """شكل السجل للواجهة: الحقول المخزنة + نوعه وهل هو مفتوح."""
     if not row:
         return None
-    out = {key: row.get(key, "") for key in ("id", "status", "start", "end", "stopped_on")}
+    out = {key: row.get(key, "") for key in ("id", "status", "start", "end", "stopped_on",
+                                               "start_time", "end_time")}
     out["title"] = row.get("title", "") or ""
     out["details"] = row.get("details", "") or ""
     out["kind"] = "bounded" if is_bounded(row.get("status")) else "continuous"
@@ -63,7 +64,58 @@ def public(row):
     # «طارئة»/«انتداب» مفتوحة = سجل قديم من قبل إلزام يوم النهاية
     out["legacy_open"] = out["open_ended"] and out["kind"] == "bounded"
     out["label"] = describe(row)
+    out["duration"] = duration(row)
     return out
+
+
+def duration(row, today=None, now=None):
+    """Duration display for absence and sick leave, preserving date-only history."""
+    status = str((row or {}).get("status") or "")
+    if status not in ("غياب", "مرضي"):
+        return None
+    start = str(row.get("start") or "")
+    end = str(row.get("end") or "")
+    if not start:
+        return {"text": "غير محددة", "days": 0, "hours": 0, "minutes": 0,
+                "precision": "unknown"}
+    today = today or date.today().isoformat()
+    if status == "مرضي":
+        last = end or today
+        try:
+            days = max(0, (date.fromisoformat(last) - date.fromisoformat(start)).days + 1)
+        except ValueError:
+            days = 0
+        return {"text": f"{days} يوم", "days": days, "hours": 0, "minutes": 0,
+                "precision": "days"}
+    start_time = str(row.get("start_time") or "").strip()
+    end_time = str(row.get("end_time") or "").strip()
+    if not start_time:
+        try:
+            days = max(0, (date.fromisoformat(end or today) - date.fromisoformat(start)).days + 1)
+        except ValueError:
+            days = 0
+        return {"text": f"{days} يوم (التوقيت غير مسجل)", "days": days,
+                "hours": 0, "minutes": 0, "precision": "days"}
+    try:
+        beginning = datetime.combine(date.fromisoformat(start), datetime.strptime(start_time, "%H:%M").time())
+        if end and end_time:
+            finish_day = str(row.get("stopped_on") or end)
+            finish = datetime.combine(date.fromisoformat(finish_day), datetime.strptime(end_time, "%H:%M").time())
+        elif end:
+            days = max(0, (date.fromisoformat(end) - date.fromisoformat(start)).days + 1)
+            return {"text": f"{days} يوم (التوقيت غير مكتمل)", "days": days,
+                    "hours": 0, "minutes": 0, "precision": "days"}
+        else:
+            finish = now or datetime.now()
+        minutes = max(0, int((finish - beginning).total_seconds() // 60))
+    except ValueError:
+        return {"text": "التوقيت غير صحيح", "days": 0, "hours": 0,
+                "minutes": 0, "precision": "invalid"}
+    days, remainder = divmod(minutes, 1440)
+    hours, mins = divmod(remainder, 60)
+    parts = ([f"{days} يوم"] if days else []) + ([f"{hours} ساعة"] if hours else []) + ([f"{mins} دقيقة"] if mins or not (days or hours) else [])
+    return {"text": "، ".join(parts), "days": days, "hours": hours,
+            "minutes": mins, "precision": "minutes"}
 
 
 def _dmy(iso):
@@ -111,6 +163,15 @@ def clean_details(status, title, details):
     return title, details
 
 
+def clean_clock(value, label):
+    value = str(value or "").strip()
+    if value and (len(value) != 5 or value[2] != ":" or not value[:2].isdigit()
+                  or not value[3:].isdigit() or not (0 <= int(value[:2]) < 24)
+                  or not (0 <= int(value[3:]) < 60)):
+        raise PeriodError(f"{label} غير صحيح؛ استخدم ساعة ودقيقة بصيغة HH:MM.")
+    return value
+
+
 def active_on(data, officer_id, day):
     """السجل الذي يغطي اليوم، أو ``None``."""
     matches = [
@@ -145,7 +206,7 @@ def clean_end(status, raw_end, day):
     return end
 
 
-def start(data, officer_id, status, day, end="", title="", details=""):
+def start(data, officer_id, status, day, end="", title="", details="", start_time=""):
     """ابدأ/بدّل حالة ممتدة من ``day``.
 
     ``end`` مطلوب للحالات محددة المدة (شامل) وممنوع للمستمرة؛ و«مأمورية»
@@ -164,6 +225,7 @@ def start(data, officer_id, status, day, end="", title="", details=""):
         raise PeriodError("الحالة ليست من الحالات الممتدة.")
     end = clean_end(status, end, day)
     title, details = clean_details(status, title, details)
+    start_time = clean_clock(start_time, "وقت بداية الغياب") if status == "غياب" else ""
 
     future = sorted(
         (row for row in periods(data)
@@ -178,15 +240,26 @@ def start(data, officer_id, status, day, end="", title="", details=""):
     current = active_on(data, officer_id, day)
     if current and current.get("status") == status:
         if not end:
-            return current, False, None
+            changed = current.get("start_time", "") != start_time
+            before = dict(current) if changed else None
+            if start_time:
+                current["start_time"] = start_time
+            else:
+                current.pop("start_time", None)
+            return current, changed, before
         if (current.get("end") == end and (current.get("title") or "") == title
-                and (current.get("details") or "") == details):
+                and (current.get("details") or "") == details
+                and current.get("start_time", "") == start_time):
             return current, False, None
         before = dict(current)
         current["end"] = end
         current.pop("stopped_on", None)
         if title:
             current["title"], current["details"] = title, details
+        if start_time:
+            current["start_time"] = start_time
+        else:
+            current.pop("start_time", None)
         return current, True, before
 
     closed_before = None
@@ -208,12 +281,14 @@ def start(data, officer_id, status, day, end="", title="", details=""):
     }
     if title:
         row["title"], row["details"] = title, details
+    if start_time:
+        row["start_time"] = start_time
     periods(data).append(row)
     periods(data).sort(key=lambda item: (item.get("start", ""), item.get("id", "")))
     return row, True, closed_before
 
 
-def stop(data, officer_id, day):
+def stop(data, officer_id, day, end_time=""):
     """أوقف الحالة في ``day`` باعتباره أول يوم عودة.
 
     لو أُوقفت في نفس يوم بدايتها يُلغى السجل بالكامل. يرجع نسختي قبل/بعد؛
@@ -223,11 +298,16 @@ def stop(data, officer_id, day):
     if not current:
         return None, None
     before = dict(current)
-    if current.get("start") == day:
+    if current.get("start") == day and not (current.get("status") == "غياب"
+                                             and current.get("start_time") and end_time):
         periods(data).remove(current)
         return before, None
-    current["end"] = _previous_day(day)
+    current["end"] = day if current.get("start") == day else _previous_day(day)
     current["stopped_on"] = day
+    if current.get("status") == "غياب" and current.get("start_time"):
+        end_time = clean_clock(end_time, "وقت نهاية الغياب")
+        if end_time:
+            current["end_time"] = end_time
     return before, dict(current)
 
 

@@ -51,6 +51,8 @@ PAGES = {
                           "موقفه في كل يوم وحصر خدماته"),
     "leaves": ("leaves.html", "سجل الراحات",
                 "سجل راحات الضباط — الأسبوعية والنصف شهرية والشهرية والاستثنائية"),
+    "outsiders": ("outsiders.html", "قسم الخوارج",
+                  "سجل موحد لمدد الخوارج والراحات المسجلة"),
     "leaves_stats": ("leaves_stats.html", "إحصائيات الراحات",
                      "رسوم بيانية وإحصائيات تفصيلية لراحات وإجازات الضباط"),
     "leaves_monthly": ("leaves_monthly.html", "كشف الراحات",
@@ -174,6 +176,11 @@ def campaign():
 @bp.get("/leaves")
 def leaves():
     return _render("leaves")
+
+
+@bp.get("/outsiders")
+def outsiders():
+    return _render("outsiders")
 
 
 @bp.get("/leaves/stats")

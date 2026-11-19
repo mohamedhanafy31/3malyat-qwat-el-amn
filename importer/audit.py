@@ -44,7 +44,7 @@ def _target_status(day: dict[str, Any] | None) -> str:
 
 def run_audit(ledger: Ledger, start: dt.date, end: dt.date,
               state: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Generate audit reports without writing target data or changing core.json."""
+    """Generate audit reports without writing target data or changing core files."""
     if start > end:
         raise ValueError("بداية النطاق بعد نهايته")
     manifest = _manifest(ledger)

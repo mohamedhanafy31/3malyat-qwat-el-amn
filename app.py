@@ -131,6 +131,11 @@ if __name__ == "__main__":
     tech_log.setup_logging(console=True)
     start_worker()
     acquire_process_lock()
+    from backend import store
+    report = store.resync_all()
+    store.start_backup_worker()           # النسخ التلقائية بتتضغط برّه قفل الطلبات
+    print(f"Data resync: {report['status']}, {report['days']} days, {report['ms']} ms"
+          + (f" — ERROR: {report['error']}" if report["error"] else ""))
     tech_log.log_startup(app, source="app.py")
     port = int(os.environ.get("PORT", "5000"))
     print(f"Personnel System running at http://127.0.0.1:{port}")

@@ -10,7 +10,8 @@ def test_absolute_environment_override_controls_derived_paths(tmp_path):
     code = (
         "from backend import store, clock; from backend import service_catalog; "
         "from backend import changes; "
-        "print(store.DATA_DIR); print(store.core_file()); print(store.days_dir()); "
+        "print(store.DATA_DIR); print(store.core_file()); print(store.core_dir()); "
+        "print(store.core_path()); print(store.days_dir()); "
         "print(service_catalog.images_dir()); print(store.backup_dir()); "
         "print(clock._marker_path()); print(changes._archive_path())"
     )
@@ -19,11 +20,13 @@ def test_absolute_environment_override_controls_derived_paths(tmp_path):
     paths = [Path(line) for line in result.stdout.splitlines()]
     assert paths[0] == target
     assert paths[1] == target / "core.json"
-    assert paths[2] == target / "days"
-    assert paths[3] == target / "uploads" / "service_catalog"
-    assert paths[4] == target.parent / "backups"
-    assert paths[5] == target / ".clock_seen"
-    assert paths[6] == target / "logs" / "change_log_archive.jsonl"
+    assert paths[2] == target / "core"
+    assert paths[3] == target / "core.json"  # core_file() remains the legacy path API
+    assert paths[4] == target / "days"
+    assert paths[5] == target / "uploads" / "service_catalog"
+    assert paths[6] == target.parent / "backups"
+    assert paths[7] == target / ".clock_seen"
+    assert paths[8] == target / "logs" / "change_log_archive.jsonl"
 
 
 def test_relative_environment_override_is_rejected(tmp_path):

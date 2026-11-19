@@ -20,7 +20,9 @@ def _day(name, imported=False):
 def _fixture(tmp_path):
     data = tmp_path / "data"
     (data / "days" / "2025" / "01").mkdir(parents=True)
-    (data / "core.json").write_text(json.dumps({"schema": 6, "officers": [], "personnel": []}), encoding="utf-8")
+    (data / "core").mkdir(parents=True)
+    (data / "core" / "force.json").write_text(
+        json.dumps({"schema": 6, "officers": [], "personnel": []}), encoding="utf-8")
     ledger = Ledger(data, "B1")
     state = ledger.initialise({}, {})
     report = ledger.root / "reports"

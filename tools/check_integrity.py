@@ -98,7 +98,7 @@ def main():
                 else json.loads(path.read_text(encoding="utf-8")))
     else:
         label = f"{store.DATA_DIR.name}/"
-        if not store.core_file().exists():
+        if not store.core_exists():
             raise SystemExit(f"مافيش بيانات في {store.DATA_DIR}")
         data = store.assemble()
 

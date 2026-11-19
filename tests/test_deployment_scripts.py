@@ -141,7 +141,7 @@ def test_supported_release_does_not_include_background_autostart():
 def test_offline_release_excludes_secrets_and_large_archives():
     relative = {path.relative_to(ROOT).as_posix() for path in prepare_offline_bundle.release_files()}
 
-    assert "data/core.json" in relative
+    assert "data/core.json" in relative or any(path.startswith("data/core/") for path in relative)
     assert any(path.startswith("data/days/") for path in relative)
     assert "data/users.json" not in relative
     assert "data/secret_key" not in relative

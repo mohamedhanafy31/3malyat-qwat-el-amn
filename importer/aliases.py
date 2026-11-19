@@ -292,8 +292,7 @@ def build_vocabulary(data_dir: Path, records: list[dict[str, Any]] | None = None
             add(row.get("name", ""), row.get("kind", "خارجية"), section,
                 row.get("counts_in_summary", True), category)
 
-    core_path = data_dir / "core.json"
-    core = json.loads(core_path.read_text(encoding="utf-8")) if core_path.exists() else {}
+    core = store.read_core_at(data_dir)
     # دليل الخدمات في اللقطة مصدر مساند للقوائم المؤرخة.
     for row in core.get("service_catalog") or []:
         add(row.get("name", ""), row.get("kind") or "خارجية", SECTION_BASIC)

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-head">
+    <label>بحث في السجل
+      <input id="outsiderSearch" class="input" type="search" placeholder="الاسم أو الحالة أو التفاصيل">
+    </label>
+    <label>نوع السجل
+      <select id="outsiderType" class="select"><option value="">الكل</option></select>
+    </label>
+    <button type="button" class="btn" id="outsiderRefresh">تحديث</button>
+  </div>
+  <div id="outsiderSummary" class="stats"></div>
+  <div id="outsiderRegister" class="table-scroll" aria-live="polite">{{ skeleton("rows", 8) }}</div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/outsiders.js') }}"></script>
+{% endblock %}

@@ -43,7 +43,7 @@ def test_day_files_are_nested_by_year_and_month(client):
 
 def test_core_holds_the_force_and_never_the_days(client):
     _add(client, DAY)
-    core = json.loads(store.core_file().read_text(encoding="utf-8"))
+    core = store.read_core_at(store.DATA_DIR)
     assert "officers" in core and "leaves" in core
     for key in store.DAY_SECTIONS:
         assert key not in core, f"«{key}» مفروض يتوزّع على ملفات الأيام"
@@ -99,7 +99,7 @@ def test_changing_a_person_writes_core_not_the_days(client):
 
     client.patch("/api/person/OFF-001", json={"post": "منصب جديد"})
     changed = [p.name for p in _mtimes() if _mtimes()[p] != before.get(p)]
-    assert changed == [store.CORE_NAME]
+    assert changed == ["force.json"]
 
 
 def test_emptying_a_day_removes_its_file(client):

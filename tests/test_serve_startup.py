@@ -24,11 +24,14 @@ def test_server_startup_locks_data_before_worker_and_bind(monkeypatch):
     module = load_serve(monkeypatch)
     events = []
     monkeypatch.setattr(module.store, "acquire_process_lock", lambda: events.append("lock"))
+    monkeypatch.setattr(module.store, "resync_all", lambda: events.append("resync") or
+                        {"error": None, "days": 0, "ms": 0, "recovered": False})
+    monkeypatch.setattr(module.store, "start_backup_worker", lambda: events.append("backup"))
     monkeypatch.setattr(module, "start_worker", lambda: events.append("worker"))
     monkeypatch.setattr(module, "serve", lambda *args, **kwargs: events.append("bind"))
 
     assert module.main() == 0
-    assert events == ["lock", "worker", "bind"]
+    assert events == ["lock", "resync", "backup", "worker", "bind"]
 
 
 def test_server_startup_records_lock_refusal_before_binding(monkeypatch):
@@ -39,6 +42,7 @@ def test_server_startup_records_lock_refusal_before_binding(monkeypatch):
         raise SystemExit("already running")
 
     monkeypatch.setattr(module.store, "acquire_process_lock", refuse_lock)
+    monkeypatch.setattr(module.store, "start_backup_worker", lambda: events.append("backup"))
     monkeypatch.setattr(module, "start_worker", lambda: events.append("worker"))
     monkeypatch.setattr(module, "serve", lambda *args, **kwargs: events.append("bind"))
 

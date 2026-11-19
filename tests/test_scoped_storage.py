@@ -105,14 +105,16 @@ def test_out_of_scope_read_raises_instead_of_looking_empty(archive):
 
 def test_out_of_scope_write_raises_and_touches_nothing(archive):
     before = {d: store.day_bytes(d) for d in DAYS}
-    core_before = store.core_file().read_bytes()
+    core_before = {path.relative_to(store.DATA_DIR): path.read_bytes()
+                   for path in store.core_dir().glob("*.json")}
     data = store.load_data([DAYS[1]])
     dict.__setitem__(data["day_assignments"], DAYS[0], [{"id": "AS-9", "name": "فوق الملف"}])
     data["day_assignments"][DAYS[1]][0]["name"] = "متعدّل"
     with pytest.raises(store.OutOfScope):
         store.save_data(data)
     assert {d: store.day_bytes(d) for d in DAYS} == before
-    assert store.core_file().read_bytes() == core_before
+    assert {path.relative_to(store.DATA_DIR): path.read_bytes()
+            for path in store.core_dir().glob("*.json")} == core_before
 
 
 def test_scoped_transaction_writes_only_its_day(archive):
@@ -298,8 +300,8 @@ def test_lru_keeps_128_days_and_core_separately(client):
     assert str(store.day_path(days[0])) not in store._cache.days
     assert str(store.day_path(days[-1])) in store._cache.days
     assert store._cache.core is not None
-    assert store._cache.core[0] == str(store.core_file())
-    assert str(store.core_file()) not in store._cache.days
+    assert store._cache.core[0] == str(store.core_path())
+    assert str(store.core_path()) not in store._cache.days
 
     # القراءة من الكاش بتحرّك اليوم لآخر الطابور
     store.load_data([days[2]])

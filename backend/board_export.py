@@ -444,10 +444,27 @@ def group_outsiders_by_kind(rows):
 
     def rank(row):
         kind = row.get("status_type") or ""
-        if kind in OUTSIDER_KIND_ORDER:
-            return (0, OUTSIDER_KIND_ORDER.index(kind))
-        return (1, first[kind])
+        base = (0, OUTSIDER_KIND_ORDER.index(kind)) if kind in OUTSIDER_KIND_ORDER else (1, first[kind])
+        return (*base, *_leave_group_key(row))
     return sorted(rows, key=rank)
+
+
+# أنواع الراحة بالترتيب المطبوع: الأسبوعية مع بعض، ثم الشهرية، ثم النصف شهرية؛ أي نوع آخر بعدهم.
+LEAVE_KIND_ORDER = ("أسبوعية", "شهرية", "نصف شهرية")
+
+
+def _leave_group_key(row):
+    """مفتاح التصنيف الفرعي لراحة/إجازة: (نوعها، فترتها). الأسبوعية فترتها مش بتفرّق (يوم واحد)؛
+    الشهرية والنصف شهرية لو فترتها مختلفة تبقى تصنيف جديد. جوّه التصنيف بيفضل ترتيب الرتب
+    الأصلي لأن الفرز ثابت."""
+    if row.get("status_type") not in ("راحة", "إجازة"):
+        return ()
+    kind = str(row.get("type") or row.get("leave_type") or "").strip()
+    kind = kind.removeprefix("راحة").strip()
+    index = LEAVE_KIND_ORDER.index(kind) if kind in LEAVE_KIND_ORDER else len(LEAVE_KIND_ORDER)
+    if kind in ("", "أسبوعية"):                 # «راحة» بلا نوع = الأسبوعية الافتراضية
+        return (0, "", "")
+    return (index, kind, row.get("start") or "", row.get("end") or "")
 
 
 def _presentation_sections(sections):

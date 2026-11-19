@@ -874,7 +874,7 @@ def _expected_ids(day: dict[str, Any], kind: str) -> set[str]:
 
 def _reference_report(data_dir: Path, dates: list[str], kind: str, observations: list[Observation],
                       mapping: dict[str, str], details: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
-    core = json.loads((data_dir / "core.json").read_text(encoding="utf-8"))
+    core = store.read_core_at(data_dir)
     people = {person["id"]: person for person in core.get("officers" if kind == "officer" else "personnel", [])}
     result: dict[str, list[dict[str, Any]]] = {}
     for date in dates:
@@ -966,16 +966,15 @@ def run_resolve(ledger: Ledger, state: dict[str, Any], start: dt.date | None = N
     source = ledger.staging_path("normalize")
     if not source.exists():
         raise FileNotFoundError("يجب تشغيل normalize للدفعة أولًا")
-    core_path = ledger.data_dir / "core.json"
-    if not core_path.exists():
-        raise FileNotFoundError("ملف core.json غير موجود في مجلد البيانات")
+    if not store.core_exists():
+        raise FileNotFoundError("ملف/مجلد core غير موجود في مجلد البيانات")
     ledger.mark_stage(state, "resolve", "running")
     records = _load_jsonl(source)
     if start:
         records = [record for record in records if record["date"] >= start.isoformat()]
     if end:
         records = [record for record in records if record["date"] <= end.isoformat()]
-    core = json.loads(core_path.read_text(encoding="utf-8"))
+    core = store.read_core_at(ledger.data_dir)
     officers, personnel = collect_observations(records, _quarantined(ledger.staging_path("validate")))
     officer_result = _resolve_strong(officers, _anchor_observations(core, "officer"), "officer")
     personnel_result = _resolve_strong(personnel, _anchor_observations(core, "personnel"), "personnel")

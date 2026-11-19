@@ -10,7 +10,7 @@ STORE (عرض بس من غير --write):
 - إعادة التشغيل: نفس النتيجة بالظبط (id_map بيثبت المعرّفات) — صفر ملفات مكتوبة.
 
 ROLLBACK: بيرجّع كل نسخة أصل بالبايت (وبيمسح الملفات اللي ماكانتش موجودة) ويتأكد بالبصمة.
-سجل الرجوع بيتكتب في سجل الدفعة مش في change_log، عشان core.json يرجع زي ما كان بالبايت.
+سجل الرجوع بيتكتب في سجل الدفعة مش في change_log، عشان ملفات core ترجع زي ما كانت بالبايت.
 """
 
 from __future__ import annotations
@@ -257,9 +257,6 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
         ledger.mark_stage(state, "store", "complete" if write else "dry-run",
                           {"plan": counts, "files_to_write": len(changed)})
         return report
-    # سطر change_log بيتضاف لـcore.json مع أي كتابة، فهو دايمًا من الملفات الملموسة
-    if "core.json" not in changed:
-        changed.insert(0, "core.json")
     preimage = ledger.root / "preimage" / ledger.batch
     # --resume بعد وقوع: نسخ الأصل الأولى بتفضل (_capture_preimage ما بيكتبش فوقها)
     _capture_preimage(ledger, preimage, changed + ["import/id_map.json"])
@@ -290,9 +287,7 @@ def run_store(ledger: Ledger, state: dict[str, Any], *, write: bool = False, rep
 def _changed_files(data_dir: Path, core: dict[str, Any], days: dict[str, dict[str, Any]]) -> list[str]:
     """أسماء الملفات (نسبية لمجلد البيانات) اللي محتواها هيتغيّر — نفس قرار store._write."""
     out = []
-    on_disk = _load(data_dir / "core.json")
-    if {**core, "schema": store.SCHEMA_VERSION} != on_disk:
-        out.append("core.json")
+    out.extend(store.core_changed_paths(core))
     for date, blob in sorted(days.items()):
         out.extend(store.day_changed_paths(date, blob))      # ملفات جوانب اليوم اللي هتتكتب/تتشال
     return out

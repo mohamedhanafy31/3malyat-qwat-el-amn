@@ -4,6 +4,7 @@ from io import BytesIO
 
 import pytest
 from docx import Document
+from docx.oxml.ns import qn
 
 from backend.regularity import DEFAULT_NOTES, PLACEHOLDER, build
 from backend.regularity_export import PageFitError, build_docx
@@ -119,6 +120,30 @@ def test_multi_vehicle_split_and_single_vehicle_people_fallback():
     data["day_campaign"][DAY] = {"services": {"AS-M": {"vehicle_id": "VEH-1"}}}
     rows = [r for r in build(data, DAY)["service_rows"] if r["service"] == "خدمة مركبتين"]
     assert len(rows) == 1 and "فرد أحمد" in rows[0]["people"] and "فرد محمود" in rows[0]["people"]
+
+
+def test_regular_service_name_is_vertically_merged_across_its_vehicle_rows():
+    data = two_people_data()
+    data["day_assignments"][DAY] = [assignment("إعدام المخدرات", id="AS-M",
+                                                personnel_ids=["IND-1", "IND-2"])]
+    data["day_campaign"][DAY] = {"services": {"AS-M": {"vehicles": [
+        {"vehicle_id": "VEH-1", "personnel_ids": ["IND-1"]},
+        {"vehicle_id": "VEH-2", "personnel_ids": ["IND-2"]},
+    ]}}}
+    payload = build(data, DAY)
+    rows = [row for row in payload["service_rows"] if row["service"] == "إعدام المخدرات"]
+    assert len(rows) == 2
+    assert len({row["service_id"] for row in rows}) == 1
+
+    doc = Document(BytesIO(build_docx({**payload, "day": DAY}).getvalue()))
+    service_rows = [row for row in doc.tables[0].rows if "إعدام المخدرات" in row.cells[1].text]
+    assert len(service_rows) == 2
+    assert service_rows[0].cells[1].text.count("إعدام المخدرات") == 1
+    # Word's vertical merge makes both row proxies resolve to one service cell,
+    # while the vehicle cells stay distinct on the underlying rows.
+    assert service_rows[0].cells[4].text != service_rows[1].cells[4].text
+    merge = service_rows[0]._tr.tc_lst[1].tcPr.find(qn("w:vMerge"))
+    assert merge is not None and merge.get(qn("w:val")) == "restart"
 
 
 def test_lorry_attached_vehicle_and_missing_vehicle_warning():
@@ -271,11 +296,14 @@ EXPECTED_DIFFS = {
 def test_archive_comparison_on_core_and_days_copy_only(tmp_path, monkeypatch, day):
     archive_root = Path("../../2026").resolve()
     real_data = Path("data")
-    if not archive_root.exists() or not (real_data / "core.json").exists():
+    if not archive_root.exists() or not store.core_exists():
         pytest.skip("archive or real data folder is absent")
     temp_data = tmp_path / "data"
     temp_data.mkdir()
-    shutil.copy2(real_data / "core.json", temp_data / "core.json")
+    if (real_data / "core").is_dir():
+        shutil.copytree(real_data / "core", temp_data / "core")
+    else:
+        shutil.copy2(real_data / "core.json", temp_data / "core.json")
     shutil.copytree(real_data / "days", temp_data / "days")
     monkeypatch.setattr(store, "DATA_DIR", temp_data)
     store._cache.clear()
@@ -324,3 +352,56 @@ def test_export_cells_are_compact_with_a_real_vehicle_size():
             if node.getparent().getparent().tag == qn("w:r")] == [str(int(min(size, 8) * 2))]
     assert vehicle.find(".//" + qn("w:spacing")).get(qn("w:line")) == "240"
     assert not cells[3].findall(".//" + qn("w:tab"))
+
+
+# ---- ترتيب القائمين (ضباط بالرتبة ثم أفراد) + سطر لكل واحد + اللي يتضاف بعد حفظ المركبة ----
+
+def _mixed_data():
+    data = two_people_data()
+    data["officers"] += [person("OFF-5", "ضابط ملازم", "ملازم أول", phone="01222222222")]
+    data["personnel"] += [person("IND-3", "فرد امين", "أمين شرطة ثان", phone="01333333333")]
+    return data
+
+
+def test_people_are_ordered_officers_by_rank_then_personnel_one_per_line():
+    data = _mixed_data()
+    data["day_assignments"][DAY] = [assignment(
+        "خدمة مختلطة", id="AS-X", personnel_ids=["IND-3", "IND-1"], officer_ids=["OFF-5", "OFF-4"])]
+    row = next(r for r in build(data, DAY)["service_rows"] if r["service"] == "خدمة مختلطة")
+
+    lines = row["people"].split("\n")
+    assert " + " not in row["people"] and len(lines) == 4
+    assert ["ضابط خدمة" in lines[0], "ضابط ملازم" in lines[1]] == [True, True]     # مقدم قبل ملازم أول
+    assert "فرد أحمد" in lines[2] or "فرد أحمد" in lines[3]                            # الأفراد بعد الضباط
+    assert len(row["phone"].split("\n")) == 4                                          # تليفون لكل سطر
+
+
+def test_people_added_after_the_vehicle_distribution_are_not_dropped():
+    data = _mixed_data()
+    data["day_assignments"][DAY] = [assignment(
+        "خدمة رئاسة", id="AS-C", personnel_ids=["IND-1"], officer_ids=["OFF-4"])]
+    # أول حفظ للمركبة: التوزيع اتخزن بالفرد بس
+    data["day_campaign"][DAY] = {"services": {"AS-C": {"vehicles": [
+        {"vehicle_id": "VEH-1", "personnel_ids": ["IND-1"]}]}}}
+    first = next(r for r in build(data, DAY)["service_rows"] if r["service"] == "خدمة رئاسة")
+    assert "فرد أحمد" in first["people"]
+
+    # بعد كده رئاسة ضابط اتضافت للخدمة — لازم تظهر مع الفرد، والضابط الأول
+    data["day_assignments"][DAY][0]["officer_ids"] = ["OFF-4", "OFF-5"]
+    rows = [r for r in build(data, DAY)["service_rows"] if r["service"] == "خدمة رئاسة"]
+
+    assert len(rows) == 1
+    text = rows[0]["people"]
+    assert "ضابط خدمة" in text and "ضابط ملازم" in text and "فرد أحمد" in text
+    assert text.index("ضابط خدمة") < text.index("ضابط ملازم") < text.index("فرد أحمد")
+
+
+def test_word_cell_uses_real_line_breaks_between_people():
+    data = _mixed_data()
+    data["day_assignments"][DAY] = [assignment(
+        "خدمة سطور", id="AS-L", personnel_ids=["IND-1"], officer_ids=["OFF-4"])]
+    doc = Document(BytesIO(build_docx(build(data, DAY)).getvalue()))
+    cell = next(c for t in doc.tables for r in t.rows for c in r.cells if "ضابط خدمة" in c.text)
+
+    assert cell._tc.findall(".//" + qn("w:br")), "لازم <w:br/> بين الأسماء"
+    assert "+" not in cell.text

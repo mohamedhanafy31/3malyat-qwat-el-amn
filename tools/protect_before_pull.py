@@ -8,7 +8,7 @@
     python tools/protect_before_pull.py --restore <مجلد النسخة>
     python tools/migrate_storage.py --apply --legacy-core <مجلد النسخة>/core.json
 
-(الخطوة الأخيرة بتحوّل الأيام للشكل الجديد وبترجّع سجل التغييرات القديم لو core.json اتبدّل بالسحب.)
+(الخطوة الأخيرة بتحوّل core والأيام للشكل الجديد وبترجّع سجل التغييرات القديم لو core.json اتبدّل بالسحب.)
 """
 import argparse
 import shutil
@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
-KEEP = ("core.json", "days", "users.json", "secret_key", "changes", "uploads", "source_docs", "logs")
+KEEP = ("core", "core.json", "days", "users.json", "secret_key", "changes", "uploads", "source_docs", "logs")
 
 
 def backup():

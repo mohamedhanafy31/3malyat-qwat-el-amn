@@ -90,7 +90,7 @@ def build_dataset(ledger: Ledger, days: dict[str, dict[str, Any]] | None = None,
     (STORE بيبعتها عشان الحفظ يكتب اللي اتغيّر بس) — وإلا بتتقرا من الملفات."""
     existing = load_target_days(ledger.data_dir)
     if data is None:
-        data = merge(_load_json(ledger.data_dir / "core.json", {}), existing)
+        data = merge(store.read_core_at(ledger.data_dir), existing)
     before = copy.deepcopy({key: data.get(key) for key in ("officers", "personnel")})
     delta = _load_json(ledger.root / "staging" / ledger.batch / "transform" / "core_delta.json", {})
     id_map = copy.deepcopy(_load_json(ledger.root / "id_map.json", {}))

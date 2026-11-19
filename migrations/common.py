@@ -51,7 +51,7 @@ def split_mode():
     بتشتغل على `data/` — والفرق ده بيتحدد من اللي موجود فعلًا مش من رقم
     الهجرة، عشان إعادة تشغيل هجرة قديمة على ملف قديم تفضل شغّالة.
     """
-    return _store().core_file().exists()
+    return _store().core_exists()
 
 
 def load():

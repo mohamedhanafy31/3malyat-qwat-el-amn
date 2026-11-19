@@ -10,7 +10,7 @@
 
 ## بعد الهجرة
 
-    data/core.json                       القوة والراحات والفرق والمأموريات
+    data/core/*.json                     القوة والراحات والفرق والمأموريات، ملف لكل موضوع
     data/days/2026/09/2026-09-05.json    تكليفات اليوم + حالات ضباطه + تأكيده + قفله
 
 الشكل في الذاكرة **ما اتغيّرش**: `store._read()` بيرجّع نفس الـdict بالظبط،
@@ -43,7 +43,7 @@ LEGACY_KEPT = DATA_FILE.with_suffix(".json.pre-split")
 
 
 def migrate(data):
-    if store.core_file().exists():
+    if store.core_exists():
         raise AlreadyDone(f"البيانات متفكوكة بالفعل في «{store.DATA_DIR.name}/».")
 
     core, days = store.split(data)
@@ -55,7 +55,7 @@ def migrate(data):
     day_sizes = [len(json.dumps(b, ensure_ascii=False)) for b in days.values()]
 
     report = [
-        f"core.json: {len(core)} مفتاح، {core_size / 1024:.0f} كيلوبايت",
+        f"core/: {len(core)} مفتاح، {core_size / 1024:.0f} كيلوبايت إجمالي",
         f"ملفات الأيام: {len(days)} ملف، "
         f"متوسط {sum(day_sizes) / max(len(day_sizes), 1) / 1024:.1f} كيلوبايت للملف "
         f"(أكبر واحد {max(day_sizes or [0]) / 1024:.1f})",
@@ -103,6 +103,6 @@ if __name__ == "__main__":
 
     # `common.run` بيكتب `data.json` تاني بعد الهجرة (هو متصمّم لملف واحد).
     # بنحوّله لنسخة رجوع بدل ما نمسحه — الرجوع يبقى إعادة تسمية واحدة.
-    if "--write" in sys.argv and store.core_file().exists() and DATA_FILE.exists():
+    if "--write" in sys.argv and store.core_exists() and DATA_FILE.exists():
         DATA_FILE.replace(LEGACY_KEPT)
         print(f"الملف القديم اتساب باسم «{LEGACY_KEPT.name}» — امسحه لما تطمن.")

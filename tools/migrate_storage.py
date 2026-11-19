@@ -1,6 +1,7 @@
 """ترقية تخزين البيانات للشكل الجديد (مرة واحدة، آمنة، بتتحقق قبل وبعد).
 
-- سجل التغييرات: من داخل core.json لـ `data/changes/log.jsonl` (مع أرشيف التقليم القديم).
+- سجل التغييرات: من داخل core القديم لـ `data/changes/log.jsonl` (مع أرشيف التقليم القديم).
+- core: من `data/core.json` القديم إلى `data/core/*.json` عند أول كتابة.
 - كل يوم: من ملف JSON واحد لمجلد فيه ملف لكل جانب (assignments/officers/confirm/…).
 
 الأداة بتوقف لو السيرفر شغّال، بتاخد نسخة احتياطية كاملة الأول، وبتقارن «كل البيانات مجمّعة»
@@ -60,7 +61,7 @@ def main():
                                               "في data/changes/log.jsonl — لجهاز استقبل core.json جديد بدون السجل")
     args = parser.parse_args()
 
-    if not store.core_file().exists():
+    if not store.core_exists():
         sys.exit(f"مفيش بيانات في {store.DATA_DIR}")
     try:
         store.acquire_process_lock()          # بيفشل لو السيرفر شغّال على نفس المجلد
@@ -69,12 +70,14 @@ def main():
 
     store.recover_journal()
     legacy = _legacy_days()
-    core = json.loads(store.core_file().read_text(encoding="utf-8"))
+    core = store.read_core_at(store.DATA_DIR)
+    legacy_core = store.core_file().exists()
     log_pending = "change_log" in core and not store.change_log_path().exists()
     print(f"مجلد البيانات: {store.DATA_DIR}")
+    print(f"core: {'قديم (core.json)' if legacy_core else 'مجلد (core/*.json)'}")
     print(f"أيام بالشكل القديم (ملف واحد): {len(legacy)}")
     print(f"سجل التغييرات لسه داخل core.json: {'نعم' if log_pending else 'لا'}")
-    if not legacy and not log_pending:
+    if not legacy and not log_pending and not legacy_core:
         print("كل حاجة بالشكل الجديد بالفعل — مفيش حاجة تتعمل.")
         return
 
@@ -94,8 +97,8 @@ def main():
     # 0) سجل تغييرات من core.json قديم محفوظ على جنب (بعد سحب core.json جديد)
     if args.legacy_core:
         _merge_legacy_log(Path(args.legacy_core))
-    # 1) سجل التغييرات: أول حفظ بيحوّله لملفه ويشيله من core.json
-    if log_pending:
+    # 1) أول حفظ يحوّل core.json إلى core/*.json، وينقل سجل التغييرات إن وُجد.
+    if log_pending or legacy_core:
         store.with_data(lambda data: None, [])
     # 2) كل يوم لمجلده: معاملة واحدة بدفتر المعاملات لكل يوم (يتكمّل بعد أي انقطاع)
     for day in sorted(legacy):
@@ -110,9 +113,12 @@ def main():
 
     after, _ = _digest()
     left = _legacy_days()
-    print(f"اتحوّل {len(legacy)} يوم في {time.perf_counter() - started:.1f} ثانية؛ متبقي بالشكل القديم: {len(left)}")
-    if after != before or left:
-        print(f"!! البصمة اختلفت ({before[:12]} ≠ {after[:12]}) أو فاضل أيام. استعد النسخة: {target}")
+    core_left = store.core_file().exists()
+    print(f"اتحوّل {len(legacy)} يوم في {time.perf_counter() - started:.1f} ثانية؛ "
+          f"core متبقي قديمًا: {'نعم' if core_left else 'لا'}؛ "
+          f"متبقي أيام بالشكل القديم: {len(left)}")
+    if after != before or left or core_left:
+        print(f"!! البصمة اختلفت ({before[:12]} ≠ {after[:12]}) أو فاضل تخزين قديم. استعد النسخة: {target}")
         sys.exit(2)
     print(f"تمام — البيانات مطابقة بالبصمة ({after[:16]}…). النسخة قبل الترقية: {target}")
 

@@ -401,6 +401,10 @@ tr.dim td{color:var(--ink-500)}
   border-radius:var(--radius-sm);background:var(--warn-100);color:var(--warn-800);
   font-size:var(--t-xs);font-weight:800;line-height:1.45;white-space:nowrap}
 .chip i{font-style:normal;opacity:.75;margin-inline-start:var(--s1);font-size:var(--t-xs)}
+/* عمود الخدمات في يومية الضباط: عرضه محدود، واسم الخدمة الطويل بينزل لسطور جوّا الشارة
+   بدل ما يوسّع العمود ويبوّظ توزيع الجدول مع تغيير حجم الشاشة */
+.svc-cell{width:22%;min-width:150px;max-width:300px;vertical-align:top}
+.svc-cell .chip{white-space:normal;overflow-wrap:anywhere;max-width:100%;line-height:1.5;margin:1px 0}
 .leave-kind-chip{max-width:220px;white-space:normal;overflow-wrap:anywhere;line-height:1.5}
 .chip-day{display:inline-block;margin-inline-start:var(--s1);font-size:var(--t-xs);
   color:var(--ink-700);background:var(--navy-50);border:1px solid var(--line);

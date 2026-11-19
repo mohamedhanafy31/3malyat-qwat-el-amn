@@ -1,0 +1,1265 @@
+{
+  "service_tags": [
+    "كـ109",
+    "الداخلي",
+    "الدخلي",
+    "الخارجي",
+    "المحكمة والمحور",
+    "فيصل"
+  ],
+  "counts_template": {
+    "entries": [
+      {
+        "id": "CNT-001",
+        "service_id": null,
+        "name": "نقطة تفتيش كمين 109 اسفل",
+        "block": "صباحية",
+        "count": 5,
+        "party": "",
+        "order": 0
+      },
+      {
+        "id": "CNT-002",
+        "service_id": null,
+        "name": "ارتكاز الحي الحكومي",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 1
+      },
+      {
+        "id": "CNT-003",
+        "service_id": null,
+        "name": "كنيسة العذراء مريم",
+        "block": "صباحية",
+        "count": 1,
+        "party": "الاربعين",
+        "order": 2
+      },
+      {
+        "id": "CNT-004",
+        "service_id": null,
+        "name": "اعلى 109",
+        "block": "صباحية",
+        "count": 1,
+        "party": "",
+        "order": 3
+      },
+      {
+        "id": "CNT-005",
+        "service_id": null,
+        "name": "ميكروباص الأمن الوطني",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 4,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-006",
+        "service_id": null,
+        "name": "المحور",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 5
+      },
+      {
+        "id": "CNT-007",
+        "service_id": null,
+        "name": "جنيفة",
+        "block": "صباحية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 6
+      },
+      {
+        "id": "CNT-008",
+        "service_id": null,
+        "name": "القنصلية السعودية",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 7
+      },
+      {
+        "id": "CNT-009",
+        "service_id": null,
+        "name": "التدخل السريع",
+        "block": "صباحية",
+        "count": 4,
+        "party": "",
+        "order": 8
+      },
+      {
+        "id": "CNT-010",
+        "service_id": null,
+        "name": "ام القمر",
+        "block": "صباحية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 9
+      },
+      {
+        "id": "CNT-011",
+        "service_id": null,
+        "name": "استراحة القنصل",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 10
+      },
+      {
+        "id": "CNT-012",
+        "service_id": null,
+        "name": "خط الغاز",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 11
+      },
+      {
+        "id": "CNT-013",
+        "service_id": null,
+        "name": "36 لاسلكي",
+        "block": "صباحية",
+        "count": 2,
+        "party": "الطرق",
+        "order": 12
+      },
+      {
+        "id": "CNT-014",
+        "service_id": null,
+        "name": "مايك المديرية",
+        "block": "صباحية",
+        "count": 1,
+        "party": "",
+        "order": 13
+      },
+      {
+        "id": "CNT-015",
+        "service_id": null,
+        "name": "قول مكبر",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 14
+      },
+      {
+        "id": "CNT-016",
+        "service_id": null,
+        "name": "كنيسة ماري جرجس الصباح",
+        "block": "صباحية",
+        "count": 5,
+        "party": "",
+        "order": 15
+      },
+      {
+        "id": "CNT-017",
+        "service_id": null,
+        "name": "مبنى المخابرات الحربية",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 16
+      },
+      {
+        "id": "CNT-018",
+        "service_id": null,
+        "name": "الاسعاف",
+        "block": "صباحية",
+        "count": 3,
+        "party": "",
+        "order": 17
+      },
+      {
+        "id": "CNT-019",
+        "service_id": null,
+        "name": "ارتكاز قسم فيصل",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 18
+      },
+      {
+        "id": "CNT-020",
+        "service_id": null,
+        "name": "كنيسة الراعي الصالح",
+        "block": "صباحية",
+        "count": 1,
+        "party": "السويس",
+        "order": 19
+      },
+      {
+        "id": "CNT-021",
+        "service_id": null,
+        "name": "قول السلام",
+        "block": "صباحية",
+        "count": 2,
+        "party": "",
+        "order": 20
+      },
+      {
+        "id": "CNT-022",
+        "service_id": null,
+        "name": "المركبات",
+        "block": "صباحية",
+        "count": 1,
+        "party": "المركبات",
+        "order": 21
+      },
+      {
+        "id": "CNT-023",
+        "service_id": null,
+        "name": "قول ممشى بورتوفيق",
+        "block": "صباحية",
+        "count": 1,
+        "party": "السويس",
+        "order": 22
+      },
+      {
+        "id": "CNT-024",
+        "service_id": null,
+        "name": "المجمع الطبي",
+        "block": "صباحية",
+        "count": 2,
+        "party": "فيصل",
+        "order": 23
+      },
+      {
+        "id": "CNT-025",
+        "service_id": null,
+        "name": "مستشفى السويس العام",
+        "block": "صباحية",
+        "count": 1,
+        "party": "السويس",
+        "order": 24
+      },
+      {
+        "id": "CNT-026",
+        "service_id": null,
+        "name": "نقطة تفتيش كمين 109 اسفل",
+        "block": "ليلية",
+        "count": 5,
+        "party": "",
+        "order": 25
+      },
+      {
+        "id": "CNT-027",
+        "service_id": null,
+        "name": "ارتكاز الحي الحكومي",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 26
+      },
+      {
+        "id": "CNT-028",
+        "service_id": null,
+        "name": "مبنى الرقابة الإدارية",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 27
+      },
+      {
+        "id": "CNT-029",
+        "service_id": null,
+        "name": "اعلى 109",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 28
+      },
+      {
+        "id": "CNT-030",
+        "service_id": null,
+        "name": "ميكروباص الأمن الوطني",
+        "block": "ليلية",
+        "count": 3,
+        "party": "",
+        "order": 29,
+        "weapon": "آلي"
+      },
+      {
+        "id": "CNT-031",
+        "service_id": null,
+        "name": "قول السلام",
+        "block": "ليلية",
+        "count": 4,
+        "party": "",
+        "order": 30
+      },
+      {
+        "id": "CNT-032",
+        "service_id": null,
+        "name": "جنيفة",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 31
+      },
+      {
+        "id": "CNT-033",
+        "service_id": null,
+        "name": "القنصلية السعودية",
+        "block": "ليلية",
+        "count": 3,
+        "party": "",
+        "order": 32
+      },
+      {
+        "id": "CNT-034",
+        "service_id": null,
+        "name": "التدخل السريع",
+        "block": "ليلية",
+        "count": 4,
+        "party": "",
+        "order": 33
+      },
+      {
+        "id": "CNT-035",
+        "service_id": null,
+        "name": "ام القمر",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الطرق",
+        "order": 34
+      },
+      {
+        "id": "CNT-036",
+        "service_id": null,
+        "name": "استراحة القنصل",
+        "block": "ليلية",
+        "count": 3,
+        "party": "",
+        "order": 35
+      },
+      {
+        "id": "CNT-037",
+        "service_id": null,
+        "name": "خط الغاز",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 36
+      },
+      {
+        "id": "CNT-038",
+        "service_id": null,
+        "name": "36 لاسلكي",
+        "block": "ليلية",
+        "count": 2,
+        "party": "الطرق",
+        "order": 37
+      },
+      {
+        "id": "CNT-039",
+        "service_id": null,
+        "name": "مايك المديرية",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 38
+      },
+      {
+        "id": "CNT-040",
+        "service_id": null,
+        "name": "قول مكبر",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 39
+      },
+      {
+        "id": "CNT-041",
+        "service_id": null,
+        "name": "كنيسة ماري جرجس الصباح",
+        "block": "ليلية",
+        "count": 5,
+        "party": "",
+        "order": 40
+      },
+      {
+        "id": "CNT-042",
+        "service_id": null,
+        "name": "مبنى المخابرات الحربية",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 41
+      },
+      {
+        "id": "CNT-043",
+        "service_id": null,
+        "name": "ارتكاز المحافظة",
+        "block": "ليلية",
+        "count": 1,
+        "party": "",
+        "order": 42
+      },
+      {
+        "id": "CNT-044",
+        "service_id": null,
+        "name": "ارتكاز قسم فيصل",
+        "block": "ليلية",
+        "count": 2,
+        "party": "",
+        "order": 43
+      },
+      {
+        "id": "CNT-045",
+        "service_id": null,
+        "name": "كنيسة الراعي الصالح",
+        "block": "ليلية",
+        "count": 1,
+        "party": "السويس",
+        "order": 44
+      },
+      {
+        "id": "CNT-046",
+        "service_id": null,
+        "name": "كنيسة الإيمان",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الاربعين",
+        "order": 45
+      },
+      {
+        "id": "CNT-047",
+        "service_id": null,
+        "name": "المركبات",
+        "block": "ليلية",
+        "count": 1,
+        "party": "المركبات",
+        "order": 46
+      },
+      {
+        "id": "CNT-048",
+        "service_id": null,
+        "name": "قول ممشى بورتوفيق",
+        "block": "ليلية",
+        "count": 1,
+        "party": "السويس",
+        "order": 47
+      },
+      {
+        "id": "CNT-049",
+        "service_id": null,
+        "name": "الكنيسة الرسولية",
+        "block": "ليلية",
+        "count": 1,
+        "party": "الاربعين",
+        "order": 48
+      },
+      {
+        "id": "CNT-050",
+        "service_id": null,
+        "name": "المجمع الطبي",
+        "block": "ليلية",
+        "count": 2,
+        "party": "فيصل",
+        "order": 49
+      },
+      {
+        "id": "CNT-051",
+        "service_id": null,
+        "name": "مستشفى السويس العام",
+        "block": "ليلية",
+        "count": 1,
+        "party": "السويس",
+        "order": 50
+      },
+      {
+        "id": "CNT-052",
+        "service_id": null,
+        "name": "المحكمة",
+        "block": "طوارئ",
+        "count": 5,
+        "party": "",
+        "order": 51
+      },
+      {
+        "id": "CNT-053",
+        "service_id": null,
+        "name": "كول كورنيش",
+        "block": "طوارئ",
+        "count": 1,
+        "party": "",
+        "order": 52
+      }
+    ]
+  },
+  "service_catalog": [
+    {
+      "id": "SVC-001",
+      "name": "نقطة تفتيش كمين 109 اسفل",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 5,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 0,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "has_command": true,
+      "command_officers": 0,
+      "command_individuals": 2,
+      "tags": [
+        "الخارجي"
+      ],
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-002",
+      "name": "ارتكاز الحي الحكومي",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 1,
+      "location_text": "",
+      "location_images": [
+        "SVC-002-3507bf0e.jpg"
+      ],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-003",
+      "name": "كنيسة العذراء مريم",
+      "period": "صباحية بس",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 2,
+      "has_command": false,
+      "location_text": "",
+      "location_images": [
+        "SVC-003-073c44a8.jpg"
+      ],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-004",
+      "name": "اعلى 109",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 3,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "has_command": true,
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [
+        "الخارجي"
+      ],
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-006",
+      "name": "المحور",
+      "period": "صباحية بس",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 5,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 2,
+      "tags": [
+        "المحكمة والمحور"
+      ],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-007",
+      "name": "جنيفة",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 6,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الخارجي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-008",
+      "name": "القنصلية السعودية",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 3,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 7,
+      "location_text": "",
+      "location_images": [
+        "SVC-008-cd5ca914.jpg"
+      ],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-009",
+      "name": "التدخل السريع",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 4,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 8,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "قول",
+      "command_officers": 1,
+      "command_individuals": 1,
+      "tags": [],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": "20:00"
+    },
+    {
+      "id": "SVC-010",
+      "name": "ام القمر",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 9,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الخارجي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-011",
+      "name": "استراحة القنصل",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 3,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 10,
+      "location_text": "",
+      "location_images": [
+        "SVC-011-073e0fc2.jpg"
+      ],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-012",
+      "name": "خط الغاز",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي / خرطوش",
+      "instructions": "",
+      "order": 11,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "قول",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-013",
+      "name": "36 لاسلكي",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 12,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الخارجي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-014",
+      "name": "مايك المديرية",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 13,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-015",
+      "name": "قول مكبر",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي + فيدرال",
+      "instructions": "",
+      "order": 14,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "قول",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [],
+      "has_command": true,
+      "report_am": "10:00",
+      "report_pm": "22:00"
+    },
+    {
+      "id": "SVC-016",
+      "name": "كنيسة ماري جرجس الصباح",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 5,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 15,
+      "location_text": "",
+      "location_images": [
+        "SVC-016-3ab1ca3b.jpg"
+      ],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [
+        "فيصل"
+      ],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-017",
+      "name": "مبنى المخابرات",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 16,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-018",
+      "name": "الاسعاف",
+      "period": "صباحية بس",
+      "kind": "",
+      "count": 3,
+      "weapon": "آلي / خرطوش / فيدرال",
+      "instructions": "",
+      "order": 17,
+      "location_text": "",
+      "location_images": [
+        "SVC-018-3271666f.jpg"
+      ],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-019",
+      "name": "ارتكاز قسم فيصل",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 18,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 1,
+      "tags": [
+        "فيصل"
+      ],
+      "has_command": true,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-020",
+      "name": "كنيسة الراعي الصالح",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 19,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-021",
+      "name": "قول السلام",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 20,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "قول",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-022",
+      "name": "المركبات",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 21,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "ارتكاز",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "فيصل"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-023",
+      "name": "قول ممشى بورتوفيق",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "آلي",
+      "instructions": "",
+      "order": 22,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "قول",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-024",
+      "name": "المجمع الطبي",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 2,
+      "weapon": "دونك",
+      "instructions": "",
+      "order": 23,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "فيصل"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-025",
+      "name": "مستشفى السويس العام",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "count": 1,
+      "weapon": "دونك",
+      "instructions": "",
+      "order": 24,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-026",
+      "name": "مبنى الرقابة الإدارية",
+      "period": "ليلية بس",
+      "kind": "",
+      "count": 1,
+      "weapon": "دوتك",
+      "instructions": "",
+      "order": 25,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-027",
+      "name": "ارتكاز المحافظة",
+      "period": "ليلية بس",
+      "kind": "",
+      "count": 1,
+      "weapon": "قيد حديدي",
+      "instructions": "",
+      "order": 26,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-028",
+      "name": "كنيسة الإيمان",
+      "period": "ليلية بس",
+      "kind": "",
+      "count": 1,
+      "weapon": "دونك",
+      "instructions": "",
+      "order": 27,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-029",
+      "name": "الكنيسة الرسولية",
+      "period": "ليلية بس",
+      "kind": "",
+      "count": 1,
+      "weapon": "دونك",
+      "instructions": "",
+      "order": 28,
+      "location_text": "",
+      "location_images": [],
+      "post_type": "",
+      "command_officers": 0,
+      "command_individuals": 0,
+      "tags": [
+        "الداخلي"
+      ],
+      "has_command": false,
+      "report_am": "",
+      "report_pm": ""
+    },
+    {
+      "id": "SVC-030",
+      "name": "ميكروباص الامن الوطني",
+      "period": "صباحية وليلية",
+      "kind": "",
+      "post_type": "ارتكاز",
+      "has_command": true,
+      "command_officers": 0,
+      "command_individuals": 1,
+      "count": 3,
+      "weapon": "آلي",
+      "instructions": "",
+      "location_text": "",
+      "location_images": [],
+      "tags": [
+        "الداخلي"
+      ],
+      "order": 28,
+      "report_am": "",
+      "report_pm": ""
+    }
+  ],
+  "service_lines": [
+    {
+      "id": "LN-1",
+      "name": "خط فيصل",
+      "tag": "فيصل",
+      "lorry_id": "LOR-3",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    },
+    {
+      "id": "LN-2",
+      "name": "خط الخارجي (كـ109)",
+      "tag": "الخارجي",
+      "lorry_id": "LOR-4",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    },
+    {
+      "id": "LN-3",
+      "name": "خط المحور والمحكمة",
+      "tag": "المحكمة والمحور",
+      "lorry_id": "LOR-1",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    },
+    {
+      "id": "LN-4",
+      "name": "خط الداخلي (القنصلية)",
+      "tag": "الداخلي",
+      "lorry_id": "LOR-2",
+      "order": [],
+      "depart_am": "08:00",
+      "depart_pm": "20:00"
+    }
+  ],
+  "afraad_basic_ids": {
+    "مدرعه قول السلام": "AFB-51"
+  },
+  "print_collections": [
+    {
+      "id": "pc-ahmed-samir",
+      "label": "احمد بيه سمير",
+      "kinds": [
+        "board"
+      ]
+    },
+    {
+      "id": "pc-mohamed-fouad",
+      "label": "محمد بيه فؤاد",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-mohamed-neama",
+      "label": "محمد بيه نعامة",
+      "kinds": [
+        "regularity",
+        "duty",
+        "afraad",
+        "campaign"
+      ]
+    },
+    {
+      "id": "pc-hamdy-elnaggar",
+      "label": "حمدي بيه النجار",
+      "kinds": [
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-senior-officer",
+      "label": "ضابط عظيم",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-service-order",
+      "label": "امر الخدمة",
+      "kinds": [
+        "service_order",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-hakamdar",
+      "label": "الحكمدار",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-bb612cd369",
+      "label": "يومية فرد العمليات",
+      "kinds": [
+        "regularity",
+        "campaign"
+      ]
+    },
+    {
+      "id": "pc-ff641130a3",
+      "label": "يومية المكتب",
+      "kinds": [
+        "regularity",
+        "afraad",
+        "campaign",
+        "formation_morning"
+      ]
+    },
+    {
+      "id": "pc-58090c6d93",
+      "label": "يومية محمد بيه مصطفي",
+      "kinds": [
+        "board",
+        "regularity",
+        "duty",
+        "campaign"
+      ]
+    },
+    {
+      "id": "pc-76261a7b73",
+      "label": "الحملة",
+      "kinds": [
+        "campaign"
+      ]
+    },
+    {
+      "id": "pc-a1e3834827",
+      "label": "مكتب التعيينات",
+      "kinds": [
+        "duty",
+        "afraad"
+      ]
+    },
+    {
+      "id": "pc-e3ed33caa9",
+      "label": "مكتب الحكمدار",
+      "kinds": [
+        "duty"
+      ]
+    }
+  ]
+}

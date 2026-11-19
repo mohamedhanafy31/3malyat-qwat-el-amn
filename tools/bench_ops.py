@@ -1,6 +1,6 @@
 """قياس قراءة وبناء لوحة التشغيل من غير أي كتابة على البيانات.
 
-لنسخة مؤقتة، انسخ `data/core.json` و`data/days/` فقط؛ لا تنسخ أرشيفات
+لنسخة مؤقتة، انسخ `data/core/` (أو `data/core.json` القديم) و`data/days/` فقط؛ لا تنسخ أرشيفات
 `daily_files` أو `uploads` أو `source_docs` أو عينات OCR أو السجلات.
 """
 import argparse

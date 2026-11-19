@@ -65,7 +65,7 @@ def test_counter_lives_in_the_day_file_not_core(client):
     """لازم يفضل مبدأ «الملف اللي ما اتغيّرش ما بيتلمسش» — عدّاد التكليفات
     جوّه ملف اليوم، مش في core.json."""
     _add(client, "تدخل سريع")
-    core = json.loads(store.core_file().read_text(encoding="utf-8"))
+    core = store.read_core_at(store.DATA_DIR)
     assert "day_assignment_seq" not in core
     blob = store.read_day_blob(DAY)
     assert blob.get("assignment_seq") == 1

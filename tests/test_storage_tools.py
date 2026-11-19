@@ -30,6 +30,8 @@ def test_protect_backup_and_restore_round_trip(tmp_path, monkeypatch):
     root = tmp_path / "project"
     (root / "data" / "days" / "2026" / "11").mkdir(parents=True)
     (root / "data" / "days" / "2026" / "11" / "2026-11-16.json").write_text('{"assignments": []}', encoding="utf-8")
+    (root / "data" / "core").mkdir(parents=True)
+    (root / "data" / "core" / "force.json").write_text('{}', encoding="utf-8")
     (root / "data" / "core.json").write_text("{}", encoding="utf-8")
     (root / "logs").mkdir()
     (root / "logs" / "audit.log").write_text("x", encoding="utf-8")
@@ -37,6 +39,7 @@ def test_protect_backup_and_restore_round_trip(tmp_path, monkeypatch):
     monkeypatch.setattr(protect_before_pull, "DATA", root / "data")
 
     kept = protect_before_pull.backup()
+    assert (kept / "core" / "force.json").exists() and (kept / "core.json").exists()
     import shutil
     shutil.rmtree(root / "data" / "days")                  # اللي بيعمله السحب
     shutil.rmtree(root / "logs")

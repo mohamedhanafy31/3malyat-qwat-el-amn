@@ -112,6 +112,7 @@ def _run_after_commit(changeset):
             logging.getLogger(__name__).exception("after-commit hook failed")
 
 CORE_NAME = "core.json"
+CORE_DIR_NAME = "core"
 DAYS_NAME = "days"
 SOURCE_DOCS_NAME = "source_docs"
 
@@ -122,6 +123,7 @@ SCHEMA_VERSION = 6
 BACKUP_DIR_NAME = "backups"
 BACKUP_KEEP = 20
 BACKUP_MIN_GAP = 120        # ثانية بين نسختين لما التغيير في الأيام بس
+BACKUP_STOP_TIMEOUT = 15    # أقصى انتظار لنسخة جارية وقت قفل السيرفر (بعدها الخيط daemon بيموت)
 
 # مفاتيح مفهرسة باليوم -> اسمها جوّه ملف اليوم. ده التعريف الوحيد
 # للتقسيم: أي مفتاح هنا بيتوزّع على ملفات الأيام، وأي مفتاح غيره بيروح
@@ -154,7 +156,12 @@ DAY_SECTIONS = {
 
 
 def core_file():
+    """`data/core.json` — الشكل القديم (ملف واحد). الشكل الحالي مجلد `data/core/` (شوف `CORE_BUNDLES`)."""
     return DATA_DIR / CORE_NAME
+
+
+def core_dir():
+    return DATA_DIR / CORE_DIR_NAME
 
 
 def days_dir():
@@ -222,6 +229,104 @@ def _dir_sig(folder):
                             if e.name.endswith(".json") and e.is_file()))
     except FileNotFoundError:
         return None
+
+
+# ---------- مجلد القوة (core) ----------
+#
+# `core` بقى مجلد فيه ملف لكل موضوع بدل ملف واحد (760KB): تعديل راحة بيكتب `leaves.json` بس. أي مفتاح
+# مش مذكور هنا بيروح `misc.json`، فمفتاح جديد في الكود مايحتاجش تعديل. الشكل القديم (`core.json`)
+# لسه بيتقرا، وأول حفظ بيحوّله للمجلد في نفس معاملة الدفتر.
+CORE_BUNDLES = (
+    ("force.json", ("officers", "personnel", "conscripts", "officer_status_periods",
+                    "officer_medical_states", "custom_officer_statuses")),
+    ("leaves.json", ("leaves", "leave_history", "rest_suspensions")),
+    ("courses.json", ("courses", "course_terms")),
+    ("services.json", ("service_catalog", "service_lines", "service_tags", "counts_template",
+                       "print_collections", "afraad_basic_ids")),
+    ("command.json", ("command", "command_groups", "command_history")),
+    ("vehicles.json", ("vehicles",)),
+    ("reference.json", ("reference_lists",)),
+    ("regularity.json", ("regularity_inputs", "inspection_schedule", "inspection_seeded_days")),
+)
+_CORE_BUNDLE_OF = {key: name for name, keys in CORE_BUNDLES for key in keys}
+_CORE_DEFAULT = "misc.json"
+
+
+def _split_core(core):
+    """core -> {اسم الملف: {مفتاح: قيمة}} للملفات اللي فيها حاجة بس."""
+    groups = {}
+    for key, value in core.items():
+        groups.setdefault(_CORE_BUNDLE_OF.get(key, _CORE_DEFAULT), {})[key] = value
+    return groups
+
+
+def core_path():
+    """مكان core الحالي: مجلده لو اتحوّل، وإلا ملفه القديم (حتى لو لسه مش موجود)."""
+    folder = core_dir()
+    return folder if folder.is_dir() and _dir_sig(folder) else core_file()
+
+
+def core_exists():
+    return core_path().exists()
+
+
+def read_core_at(data_dir):
+    """core من مجلد بيانات معيّن بأي شكل تخزين (للأدوات)؛ {} لو مفيش."""
+    folder = Path(data_dir) / CORE_DIR_NAME
+    if folder.is_dir():
+        core = {}
+        for entry in sorted(os.scandir(folder), key=lambda e: e.name):
+            if entry.name.endswith(".json") and entry.is_file():
+                core.update(_parse(_read_text(Path(entry.path)), Path(entry.path)))
+        if core:
+            return core
+    legacy = Path(data_dir) / CORE_NAME
+    return _parse(_read_text(legacy), legacy) if legacy.exists() else {}
+
+
+def _plan_core_write(core, old_parts):
+    """ملفات core اللي هتتكتب/تتشال: {files, delete, fingerprint, parts, texts}."""
+    legacy, folder = core_file(), core_dir()
+    in_folder = folder.is_dir() and bool(_dir_sig(folder))
+    migrating = legacy.exists()
+    known = {} if migrating or not in_folder else dict(old_parts or {})
+    parts, files, texts = {}, {}, {}
+    for name, group in _split_core(core).items():
+        text = _dumps(group)
+        texts[name] = text
+        parts[name] = stamp = _fingerprint(text)
+        if known.get(name) != stamp:
+            files[_rel(folder / name)] = text
+    delete = [_rel(folder / name) for name in known if name not in parts]
+    if migrating:
+        delete.append(_rel(legacy))
+    return {"files": files, "delete": delete, "fingerprint": _combine(parts), "parts": parts,
+            "texts": texts}
+
+
+def core_changed_paths(core):
+    """المسارات النسبية اللي هتتكتب أو تتشال عند حفظ `core`، في أي layout."""
+    path = core_path()
+    entry = _load_entry(path, core=True, cache=False)[0] if path.exists() else None
+    plan = _plan_core_write({**core, "schema": core.get("schema", SCHEMA_VERSION)},
+                            entry.parts if entry is not None else None)
+    return sorted({*plan["files"], *plan["delete"]})
+
+
+def _apply_core_plan(plan):
+    """ينفّذ الخطة ويحط core الجديد في الكاش. -> المحتوى المحلّل."""
+    for rel, text in plan["files"].items():
+        _write_atomic(DATA_DIR / rel, text)
+    for rel in plan["delete"]:
+        (DATA_DIR / rel).unlink(missing_ok=True)
+    folder = core_dir()
+    blob = {}
+    for name in sorted(plan["parts"]):
+        blob.update(_parse(plan["texts"][name], folder / name))
+    entry = _Entry(_dir_sig(folder), plan["fingerprint"], _pack(blob), dict(plan["parts"]))
+    with _STATE_LOCK:
+        _cache.put(str(folder), entry, True)
+    return blob
 
 
 def day_changed_paths(day, blob):
@@ -987,7 +1092,7 @@ def _read(days=ALL_DAYS):
     برّاه (`_ScopedSection`).
     """
     started = time.perf_counter()
-    if not core_file().exists():
+    if not core_exists():
         if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
             raise DataUnreadable(
                 f"مجلد البيانات «{DATA_DIR.name}» موجود، لكنه لا يحتوي على {CORE_NAME}. "
@@ -1004,7 +1109,7 @@ def _read(days=ALL_DAYS):
                        data_dir=str(DATA_DIR))
         explode(json.loads(json.dumps(DEFAULT_DATA)))    # نسخة — explode بيعدّل
 
-    core_entry, core = _load(core_file(), core=True)
+    core_entry, core = _load(core_path(), core=True)
     _check_schema(core.get("schema", 1))
     data = merge(core, {})
     log_base = _attach_change_log(data, core)
@@ -1033,7 +1138,8 @@ def _read(days=ALL_DAYS):
     # بصمات اللي اتقرا ونطاقه — `_write` بيقارن بيها ويكتب اللي اتغيّر بس.
     # المفتاح بيبدأ بـ`_` فما بيتخزّنش (شوف `split`).
     data["_fp"] = {"fingerprints": fingerprints, "originals": originals,
-                   "scope": scope, "index": index, "log": log_base, "parts": day_parts}
+                   "scope": scope, "index": index, "log": log_base, "parts": day_parts,
+                   "core_parts": dict(core_entry.parts or {})}
     elapsed = tech_log.ms_since(started)
     tech_log.event(LOG, "store.load",
                    level=logging.WARNING if elapsed > 1000 else logging.DEBUG,
@@ -1218,12 +1324,12 @@ def _write(data):
 
     old_core = None
     with _STATE_LOCK:
-        cached_core = _cache.get(str(core_file()), True)
+        cached_core = _cache.get(str(core_path()), True)
         if cached_core is not None:
             old_core = pickle.loads(cached_core.packed)
-    core_text = _dumps(core)
-    core_stamp = _fingerprint(core_text)
-    core_changed = core_stamp != before.get("core")
+    core_plan = _plan_core_write(core, tracking.get("core_parts"))
+    core_stamp = core_plan["fingerprint"]
+    core_changed = core_stamp != before.get("core") or core_file().exists()
     # سجل التغييرات: اللي اتضاف بس (أو نقله كله لملفه في أول حفظ بعد الترقية)
     raw_log = data.get("change_log")
     log_base = tracking.get("log")
@@ -1256,7 +1362,8 @@ def _write(data):
     # للذاكرة، وإلا اليوم الممسوح بيرجع لوحده في أول قراءة جاية.
     gone = [day for day in before if day != "core" and day not in new_fp]
 
-    written = (([CORE_NAME] if core_changed else []) + [f"{d}.json" for d in pending]
+    core_files = [*core_plan["files"], *core_plan["delete"]] if core_changed else []
+    written = (core_files + [f"{d}.json" for d in pending]
                + ([CHANGE_LOG_FILE] if log_plan else []))
     removed = [f"{d}.json" for d in gone]
     if written or removed:
@@ -1268,7 +1375,9 @@ def _write(data):
             operations.append({"action": "append", "target": CHANGE_LOG_FILE,
                                "text": log_plan["text"], "offset": log_plan["offset"]})
         if core_changed:
-            operations.append({"action": "replace", "target": CORE_NAME, "text": core_text})
+            operations.extend({"action": "replace", "target": rel, "text": text}
+                              for rel, text in core_plan["files"].items())
+            operations.extend({"action": "delete", "target": rel} for rel in core_plan["delete"])
         for day, plan in pending.items():
             operations.extend({"action": "replace", "target": rel, "text": text}
                               for rel, text in plan["files"].items())
@@ -1287,8 +1396,7 @@ def _write(data):
             else:
                 _append_log(change_log_path(), log_plan["text"], log_plan["offset"])
         if core_changed:
-            _write_atomic(core_file(), core_text)
-            _remember(core_file(), core_text, core=True)
+            _apply_core_plan(core_plan)
         for day, plan in pending.items():
             entry, blob = _apply_day_plan(day, plan)
             new_originals[day] = entry.packed
@@ -1316,10 +1424,10 @@ def _write(data):
             new_log_base = {"legacy": False, "last_id": None, "count": 0, "size": 0}
     data["_change_pending"] = []
     data["_fp"] = {"fingerprints": new_fp, "originals": new_originals,
-                   "scope": scope, "index": index, "log": new_log_base, "parts": new_parts}
-    changed_days = frozenset(
-        p[:-5] for p in written if p.endswith(".json") and p != CORE_NAME
-    )
+                   "scope": scope, "index": index, "log": new_log_base, "parts": new_parts,
+                   "core_parts": dict(core_plan["parts"]) if core_changed
+                   else dict(tracking.get("core_parts") or {})}
+    changed_days = frozenset(pending)
     created_days = frozenset(day for day in changed_days if day not in before)
     removed_days = frozenset(p[:-5] for p in removed if p.endswith(".json"))
     if core_changed:
@@ -1350,7 +1458,8 @@ def _write(data):
         tech_log.event(LOG, "store.save", duration_ms=tech_log.ms_since(started),
                        files_written=len(written), files_removed=len(removed),
                        core_changed=core_changed, days=",".join(sorted(changed_days)[:10]) or None,
-                       bytes=len(core_text) * core_changed + sum(len(t) for t in pending.values()))
+                       bytes=sum(len(t) for t in core_plan["files"].values()) * core_changed
+                       + sum(len(t) for plan in pending.values() for t in plan["files"].values()))
     return Changeset(changed_days, created_days, removed_days, core_keys, changed_sections)
 
 
@@ -1371,63 +1480,317 @@ def _snapshot(core_changed):
     الميجات بعد سنتين وبين واحد بيفضل صغير. gzip من مكتبة بايثون
     القياسية — مفيش أي تثبيت ولا إنترنت.
 
-    مابتتاخدش مع كل كتابة (دي كانت نص مشكلة الأداء): تغيير في القوة أو
-    الراحات بياخد نسخة فورًا لأنها بيانات مالهاش مصدر تاني، وتغيير في
-    اليوميات بس بياخد نسخة كل `BACKUP_MIN_GAP` ثانية على الأكثر.
+    مابتتاخدش مع كل كتابة (دي كانت نص مشكلة الأداء): كل النسخ التلقائية
+    (قوة أو يوميات) بتاخد نسخة كل `BACKUP_MIN_GAP` ثانية على الأكثر.
+
+    بتتنادى من `_write` تحت `LOCK` بعد دفتر المعاملة وقبل التنفيذ، يعني
+    القرص لسه على الحالة **قبل** التعديل. لو عامل النسخ شغّال (السيرفر،
+    `start_backup_worker`) بنقرا بايتات الملفات بس هنا (`_capture_backup`) —
+    قراءة من غير ضغط — والضغط والتنضيف بيحصلوا في العامل برّه القفل، فالطلب
+    مابيستناش الأرشيف. من غير عامل (أدوات، هجرات، اختبارات) بتفضل متزامنة زي الأول.
     """
+    worker = _backup_worker
+    if worker is None:
+        age = _last_backup_age()
+        if age is not None and age < BACKUP_MIN_GAP:
+            return
+        snapshot_now()
+        return
+    if not worker.accepting():
+        return          # نسخة منتظرة أو بتتبني دلوقتي — الطلب ده بيتدمج فيها
+    last = worker.last_offer
+    if last is not None and time.time() - last < BACKUP_MIN_GAP:
+        return          # محاولة قريبة (حتى لو فشلت) — ما نعيدش القراءة مع كل كتابة
     age = _last_backup_age()
     if age is not None and age < BACKUP_MIN_GAP:
         return
-    snapshot_now()
+    started = time.perf_counter()
+    try:
+        capture = _capture_backup()
+    except OSError as exc:
+        tech_log.event(LOG, "backup.failed", level=logging.WARNING, mode="capture",
+                       error=type(exc).__name__, detail=str(exc))
+        return          # النسخ الاحتياطي أمان إضافي — فشله ما يمنعش الحفظ
+    if capture is not None and worker.offer(capture):
+        tech_log.event(LOG, "backup.captured", files=len(capture["members"]),
+                       bytes=sum(len(b) for _, b in capture["members"]),
+                       duration_ms=tech_log.ms_since(started))
+
+
+def _backup_members():
+    """[(مسار, اسمه جوّه الأرشيف)] لملفات البيانات: core + كل يوم + سجل التغييرات الكامل."""
+    members = []
+    if core_dir().is_dir() and _dir_sig(core_dir()):
+        for member in sorted(e.path for e in os.scandir(core_dir())
+                             if e.name.endswith(".json") and e.is_file()):
+            members.append((Path(member), f"{CORE_DIR_NAME}/{Path(member).name}"))
+    else:
+        members.append((core_file(), CORE_NAME))
+    for day, (anchor, _sig) in sorted(_scan_day_files().items()):
+        if anchor.is_dir():
+            for member in sorted(e.path for e in os.scandir(anchor) if e.is_file()):
+                members.append((Path(member), "days/" + Path(member).relative_to(days_dir()).as_posix()))
+        else:
+            members.append((anchor, "days/" + anchor.relative_to(days_dir()).as_posix()))
+    log_file = change_log_path()
+    if log_file.exists():
+        members.append((log_file, CHANGE_LOG_FILE))      # التاريخ كله، مش آخر 5000 بس
+    return members
+
+
+def _upload_members():
+    uploads = DATA_DIR / "uploads"
+    if not uploads.exists():
+        return []
+    return [(source, source.relative_to(DATA_DIR).as_posix())
+            for source in sorted(uploads.rglob("*")) if source.is_file()]
+
+
+def _capture_backup():
+    """لقطة متسقة للنسخة التلقائية — لازم تتنادى تحت `LOCK`.
+
+    بتقرا **بايتات** ملفات البيانات للذاكرة (من غير ضغط، فالمدة قراءة بس) عشان
+    الأرشيف اللي هيتبني بعدين برّه القفل يبقى نفس حالة معاملة واحدة بالظبط، مهما
+    اتكتب بعدها. ماينفعش نقرا الملفات نفسها وقت البناء: ملف يوم ممكن يتبدّل وسجل
+    التغييرات بيتضاف له، فالنسخة تبقى خليط من معاملات مختلفة؛ وعلى ويندوز ملف مفتوح
+    للقراءة بيمنع `os.replace` عليه. المرفقات (`uploads/`) كمان بايتاتها بتتقرا هنا:
+    صورة ممكن تتمسح أو تتبدّل وقت البناء، والنسخة لازم تشيل اللي كان موجود لحظة اللقطة.
+    مرفق اتمسح بين المسح والقراءة (الرفع/المسح بيحصلوا برّه `LOCK`) بيتخطّى."""
+    if not core_exists():
+        return None
+    members = [(arcname, path.read_bytes()) for path, arcname in _backup_members()]
+    for source, arcname in _upload_members():
+        try:
+            members.append((arcname, source.read_bytes()))
+        except FileNotFoundError:
+            continue
+    return {"members": members, "target": backup_dir(), "created": datetime.now()}
+
+
+# البناء نفسه (ضغط + استبدال + تنضيف) واحد في المرة، سواء من العامل أو من `snapshot_now`
+# المتزامنة، عشان التنضيف ما يمسحش ملف لسه التاني بيعدّ عليه. مابيتاخدش جوّه العامل مع `LOCK`
+# أبدًا (العامل مابياخدش `LOCK` خالص)، فمفيش ترتيب أقفال يقفل على نفسه.
+_BACKUP_BUILD_LOCK = threading.Lock()
+
+
+def _write_archive(members, uploads, target, created, started, mode):
+    """يبني `data-<وقت>.zip` في `target`. `members`: [(اسم جوّه الأرشيف, مسار أو bytes)]،
+    `uploads`: [(مسار, اسم)] (اللي اتمسح يتخطّى). بيرمي OSError. -> مسار النسخة.
+
+    ملف `.part` بيتعمل بإنشاء حصري (`xb`)، فلو البناء وقع بنمسحه هو بس — عمره ما
+    يكون ملف عملية تانية — بدل ما ملفات ناقصة تتراكم في مجلد النسخ."""
+    with _BACKUP_BUILD_LOCK:
+        target.mkdir(exist_ok=True)
+        final = target / f"data-{created.strftime('%Y%m%d-%H%M%S-%f')}.zip"
+        part = final.with_suffix(".part")
+        owned = False
+        try:
+            # الصيغة 2: الملفات الخام زي ما هي على القرص (core + كل يوم + سجل التغييرات الكامل) بدل ما
+            # نحمّل كل الأيام ونحوّلها لنص تاني. الصيغة القديمة (data.json واحد) لسه بتتقرا.
+            with open(part, "xb") as fh:
+                owned = True
+                with zipfile.ZipFile(fh, "w", compression=zipfile.ZIP_DEFLATED,
+                                     compresslevel=1) as zf:
+                    zf.writestr("manifest.json", json.dumps(
+                        {"format": 2, "schema": SCHEMA_VERSION, "created": created.isoformat()}))
+                    for arcname, source in members:
+                        if isinstance(source, bytes):
+                            zf.writestr(arcname, source)
+                        else:
+                            zf.write(source, arcname)
+                    for source, arcname in uploads:
+                        try:
+                            payload = source.read_bytes()      # الملف ما يفضلش مفتوح وقت الضغط
+                        except FileNotFoundError:
+                            continue
+                        zf.writestr(arcname, payload)
+            _replace(part, final)
+        except BaseException:
+            if owned:
+                try:
+                    part.unlink(missing_ok=True)
+                except OSError:
+                    pass                    # أحسن محاولة — الخطأ الأصلي هو اللي يطلع
+            raise
+        _fsync_dir(target)
+        _prune_backups(target)
+    tech_log.event(LOG, "backup.created", file=final.name, mode=mode,
+                   bytes=final.stat().st_size, duration_ms=tech_log.ms_since(started))
+    return final
 
 
 def snapshot_now():
-    """نسخة كاملة دلوقتي مهما كان وقت آخر واحدة — للاستعادة والهجرات."""
-    if not core_file().exists():
+    """نسخة كاملة دلوقتي مهما كان وقت آخر واحدة — للاستعادة والهجرات.
+
+    متزامنة دايمًا (حتى لو عامل النسخ شغّال): بترجع بعد ما الأرشيف يبقى في مكانه. -> مساره أو None."""
+    if not core_exists():
         return None
     started = time.perf_counter()
     try:
-        target = backup_dir()
-        target.mkdir(exist_ok=True)
-        stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        final = target / f"data-{stamp}.zip"
-        part = final.with_suffix(".part")
-        # الصيغة 2: الملفات الخام زي ما هي على القرص (core + كل يوم + سجل التغييرات الكامل) بدل ما
-        # نحمّل كل الأيام ونحوّلها لنص تاني. الصيغة القديمة (data.json واحد) لسه بتتقرا.
-        with zipfile.ZipFile(part, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=1) as zf:
-            zf.writestr("manifest.json", json.dumps(
-                {"format": 2, "schema": SCHEMA_VERSION, "created": datetime.now().isoformat()}))
-            zf.write(core_file(), CORE_NAME)
-            for day, (anchor, _sig) in sorted(_scan_day_files().items()):
-                if anchor.is_dir():
-                    for member in sorted(e.path for e in os.scandir(anchor) if e.is_file()):
-                        zf.write(member, "days/" + Path(member).relative_to(days_dir()).as_posix())
-                else:
-                    zf.write(anchor, "days/" + anchor.relative_to(days_dir()).as_posix())
-            log_file = change_log_path()
-            if log_file.exists():
-                zf.write(log_file, CHANGE_LOG_FILE)      # التاريخ كله، مش آخر 5000 بس
-            uploads = DATA_DIR / "uploads"
-            if uploads.exists():
-                for source in uploads.rglob("*"):
-                    if source.is_file():
-                        zf.write(source, source.relative_to(DATA_DIR).as_posix())
-        _replace(part, final)
-        _fsync_dir(target)
-        _prune_backups()
-        tech_log.event(LOG, "backup.created", file=final.name,
-                       bytes=final.stat().st_size, duration_ms=tech_log.ms_since(started))
-        return final
+        return _write_archive([(arcname, path) for path, arcname in _backup_members()],
+                              _upload_members(), backup_dir(), datetime.now(), started, "sync")
     except OSError as exc:
-        tech_log.event(LOG, "backup.failed", level=logging.WARNING,
+        tech_log.event(LOG, "backup.failed", level=logging.WARNING, mode="sync",
                        error=type(exc).__name__, detail=str(exc))
         return None    # النسخ الاحتياطي أمان إضافي — فشله ما يمنعش الحفظ
+
+
+class BackupWorker:
+    """عامل واحد بيبني النسخ التلقائية برّه `LOCK` — نفس شكل `daily_files.DailyFilesWorker`.
+
+    خانة انتظار واحدة بس: لقطة جديدة بتتقبل لما العامل فاضي تمامًا، وأي طلب تاني
+    وقت الانتظار أو البناء بيتدمج (بيترفض من غير قراءة)، فمفيش طابور بيكبر ولا
+    بناءين في نفس الوقت. فشل البناء بيتسجّل والعامل بيكمّل للطلب الجاي."""
+
+    def __init__(self):
+        self.last_offer = None          # time.time() لآخر لقطة اتقبلت — للتهدئة حتى لو فشلت
+        self.built = 0
+        self.failed = 0
+        self._pending = None
+        self._busy = False
+        self._stop = False
+        self._condition = threading.Condition()
+        self._thread = threading.Thread(target=self._run, name="store-backup", daemon=True)
+        self._thread.start()
+
+    def accepting(self):
+        with self._condition:
+            return not (self._stop or self._busy or self._pending is not None)
+
+    def offer(self, capture):
+        """-> True لو اتقبلت. False لو فيه شغل منتظر/جاري أو العامل اتقفل."""
+        with self._condition:
+            if self._stop or self._busy or self._pending is not None:
+                return False
+            self._pending = capture
+            self.last_offer = time.time()
+            self._condition.notify_all()
+            return True
+
+    def flush(self, timeout=30):
+        """ينتظر اللقطة المنتظرة والبناء الجاري. -> False لو المهلة خلصت."""
+        end = time.monotonic() + timeout
+        with self._condition:
+            while self._pending is not None or self._busy:
+                remaining = end - time.monotonic()
+                if remaining <= 0:
+                    return False
+                self._condition.wait(remaining)
+        return True
+
+    def is_alive(self):
+        return self._thread.is_alive()
+
+    def stopping(self):
+        with self._condition:
+            return self._stop
+
+    def stop(self, timeout=None):
+        """بيخلّص اللقطة المنتظرة/الجارية وبيقف. -> True لو الخيط وقف جوّه المهلة."""
+        with self._condition:
+            self._stop = True
+            self._condition.notify_all()
+        if self._thread is not threading.current_thread():
+            self._thread.join(BACKUP_STOP_TIMEOUT if timeout is None else timeout)
+        return not self._thread.is_alive()
+
+    def _run(self):
+        try:
+            self._loop()
+        finally:
+            _forget_backup_worker(self)     # بعد ما الخيط يخلص بس يبقى فيه مكان لعامل جديد
+
+    def _loop(self):
+        while True:
+            with self._condition:
+                while self._pending is None and not self._stop:
+                    self._condition.wait()
+                if self._pending is None:
+                    return
+                capture, self._pending = self._pending, None
+                self._busy = True
+            ok = False
+            try:
+                _write_archive(capture["members"], (), capture["target"],
+                               capture["created"], time.perf_counter(), "async")
+                ok = True
+            except Exception as exc:
+                tech_log.event(LOG, "backup.failed", level=logging.WARNING, exc_info=exc,
+                               mode="async", error=type(exc).__name__, detail=str(exc))
+            finally:
+                capture = None              # البايتات ما تفضلش في الذاكرة لحد اللقطة الجاية
+                with self._condition:
+                    self._busy = False
+                    if ok:
+                        self.built += 1
+                    else:
+                        self.failed += 1
+                    self._condition.notify_all()
+
+
+_backup_worker = None
+_BACKUP_WORKER_LOCK = threading.Lock()
+_backup_atexit_registered = False
+
+
+def start_backup_worker():
+    """يشغّل عامل النسخ التلقائية (مرة واحدة؛ النداء التاني بيرجّع نفس العامل).
+
+    لازم بعد `acquire_process_lock()` في `serve.py`/`app.py` — مش وقت `import`، عشان
+    الأدوات والاختبارات تفضل نسخها متزامنة. بيسجّل `stop_backup_worker` في atexit.
+
+    عامل بيقف ولسه خيطه شغّال (إيقاف خلصت مهلته والضغط لسه جاري) ما بيتبدّلش: النداء
+    بيرجّعه هو نفسه (`stopping()` = True) عشان مايبقاش فيه بنّاءين. بعد ما خيطه يخلص
+    بيشيل نفسه، والنداء الجاي بيشغّل عامل جديد."""
+    global _backup_worker, _backup_atexit_registered
+    with _BACKUP_WORKER_LOCK:
+        if _backup_worker is not None and not _backup_worker.is_alive():
+            _backup_worker = None
+        if _backup_worker is None:
+            _backup_worker = BackupWorker()
+            if not _backup_atexit_registered:
+                import atexit
+                atexit.register(stop_backup_worker)
+                _backup_atexit_registered = True
+            tech_log.event(LOG, "backup.worker_started")
+        elif _backup_worker.stopping():
+            tech_log.event(LOG, "backup.worker_restart_deferred", level=logging.WARNING)
+        return _backup_worker
+
+
+def _forget_backup_worker(worker):
+    global _backup_worker
+    with _BACKUP_WORKER_LOCK:
+        if _backup_worker is worker:
+            _backup_worker = None
+
+
+def stop_backup_worker(timeout=None):
+    """يوقف العامل بعد ما يخلّص اللي في إيده (بمهلة محدودة). آمنة لو اتنادت أكتر من مرة.
+
+    المرجع بيفضل محفوظ لحد ما الخيط يخلص فعلًا: لو المهلة خلصت والضغط لسه جاري بترجع
+    False، والعامل يفضل هو العامل الوحيد (مابيقبلش لقطات جديدة، والنسخ التلقائية
+    بتتخطّى لحد ما يخلص)، ونداء تاني بيستناه تاني. -> True لو مفيش عامل أو وقف.
+    بعد ما يقف النسخ التلقائية بترجع متزامنة."""
+    with _BACKUP_WORKER_LOCK:
+        worker = _backup_worker
+    if worker is None:
+        return True
+    if not worker.stop(timeout):
+        return False
+    _forget_backup_worker(worker)
+    return True
+
+
+def backup_worker():
+    """العامل الحالي (أو None) — للاختبارات ونقاط الحالة."""
+    return _backup_worker
 
 
 def assemble():
     """كل البيانات في dict واحد — للنسخ الاحتياطية وأدوات الفحص."""
     # قراءة كاملة من غير ما تطرد أيام الشغل من الكاش
-    core = _load(core_file(), core=True)[1]
+    core = _load(core_path(), core=True)[1]
     data = merge(core, {p.stem: _load(p, cache=False)[1] for p in all_day_files()})
     _attach_change_log(data, core)
     if isinstance(data.get("change_log"), ChangeLogView):
@@ -1480,6 +1843,30 @@ def _validate_core_shape(core, path):
     return schema
 
 
+def resync_all():
+    """مزامنة كاملة مع القرص وقت تشغيل النظام: بيكمّل أي معاملة اتقطعت، وينسى كل كاش وفهرس في الذاكرة،
+    ويقرا كل الملفات (القوة وكل الأيام وسجل التغييرات) من الأول ويفحصها. بكده أي ملف اتبدّل برّه النظام
+    (نسخ من جهاز تاني، استعادة، تعديل يدوي) يتحسب من أول طلب. مابيكتبش حاجة.
+
+    -> dict: status ("ok"|"fresh"|"error")، days، ms، error."""
+    started = time.perf_counter()
+    try:
+        with LOCK:
+            recovered = recover_journal()
+            _cache.clear()
+        result = validate_data(full=True, recover=False)     # بياخد القفل بنفسه
+        with LOCK:
+            _ensure_index()
+        report = {"status": result.get("status", "ok"), "days": result.get("days", 0),
+                  "recovered": bool(recovered), "error": None}
+    except (DataUnreadable, SchemaMismatch) as exc:
+        report = {"status": "error", "days": 0, "recovered": False, "error": str(exc)}
+    report["ms"] = tech_log.ms_since(started)
+    tech_log.event(LOG, "store.resync", level=logging.ERROR if report["error"] else logging.INFO,
+                   **{k: v for k, v in report.items() if v is not None})
+    return report
+
+
 def validate_data(full=True, recover=True):
     """يتحقق من البيانات المضبوطة فعليًا **من غير ما يكتب أي حاجة**.
 
@@ -1501,8 +1888,8 @@ def validate_data(full=True, recover=True):
     with LOCK:
         if recover:
             recover_journal()
-        core_path = core_file()
-        if not core_path.exists():
+        core_at = core_path()
+        if not core_at.exists():
             if DATA_DIR.exists() and any(DATA_DIR.iterdir()):
                 raise DataUnreadable(
                     f"مجلد البيانات «{DATA_DIR.name}» موجود، لكنه لا يحتوي على {CORE_NAME}. "
@@ -1517,13 +1904,13 @@ def validate_data(full=True, recover=True):
                 )
             return {"status": "fresh", "schema": SCHEMA_VERSION, "days": 0}
 
-        _, core = _load(core_path, core=True, cache=False)
-        schema = _validate_core_shape(core, core_path)
+        _, core = _load(core_at, core=True, cache=False)
+        schema = _validate_core_shape(core, core_at)
         try:
             data = merge(core, {})
             _normalise(data)
         except (TypeError, AttributeError, KeyError, ValueError) as exc:
-            raise _invalid(core_path, f"تعذّر تجميع البيانات ({type(exc).__name__})") from exc
+            raise _invalid(core_at, f"تعذّر تجميع البيانات ({type(exc).__name__})") from exc
 
         files = all_day_files()
         if full:
@@ -1560,7 +1947,12 @@ def explode(data, _notify=True):
     data = dict(data)
     data.setdefault("schema", SCHEMA_VERSION)
     core, days = split(data)
-    _write_atomic(core_file(), _dumps(core))
+    plan = _plan_core_write(core, None)
+    _apply_core_plan(plan)
+    if core_dir().is_dir():                     # ملفات قديمة من تقسيم تاني ما تفضلش
+        for entry in os.scandir(core_dir()):
+            if entry.name.endswith(".json") and entry.name not in plan["parts"]:
+                os.unlink(entry.path)
     _write_atomic(change_log_path(), _log_text(data.get("change_log")))
     for path in all_day_files():
         if path.stem not in days:
@@ -1578,14 +1970,14 @@ def explode(data, _notify=True):
 
 # ---------- النسخ الاحتياطية ----------
 
-def _backup_files():
+def _backup_files(target=None):
     """كل النسخ الاحتياطية مرتبة من الأقدم للأحدث.
 
     بترجّع الشكلين: `.json.gz` (المضغوط) و`.json` (النسخ القديمة، ونسخ
     ما-قبل-الهجرة اللي migrations/ لسه بتكتبها بدون ضغط). ترتيب الاسم =
     ترتيب زمني لأن الطابع الزمني بعرض ثابت وفي أول الاسم.
     """
-    target = backup_dir()
+    target = backup_dir() if target is None else target
     if not target.exists():
         return []
     return sorted(
@@ -1593,8 +1985,8 @@ def _backup_files():
         key=lambda p: p.name)
 
 
-def _prune_backups():
-    files = _backup_files()
+def _prune_backups(target=None):
+    files = _backup_files(target)
     keep = set(files[-min(10, BACKUP_KEEP):])
     now = datetime.now().timestamp()
     for path in reversed(files[:-min(10, BACKUP_KEEP)]):
@@ -1619,7 +2011,13 @@ def _prune_backups():
 def _read_backup_v2(zf, path):
     """نسخة بالصيغة 2 (ملفات خام) -> نفس الـdict اللي كان بيرجّعه data.json القديم."""
     try:
-        core = json.loads(zf.read(CORE_NAME).decode("utf-8"))
+        if CORE_NAME in zf.namelist():
+            core = json.loads(zf.read(CORE_NAME).decode("utf-8"))
+        else:
+            core = {}
+            for name in sorted(zf.namelist()):
+                if name.startswith(CORE_DIR_NAME + "/") and name.endswith(".json"):
+                    core.update(json.loads(zf.read(name).decode("utf-8")))
         days = {}
         for name in zf.namelist():
             if name.startswith("days/") and name.endswith(".json"):
@@ -1650,7 +2048,9 @@ def read_backup(path):
     try:
         if path.suffix == ".zip":
             with zipfile.ZipFile(path) as zf:
-                if "data.json" not in zf.namelist() and CORE_NAME in zf.namelist():
+                names = zf.namelist()
+                if "data.json" not in names and (
+                        CORE_NAME in names or any(n.startswith(CORE_DIR_NAME + "/") for n in names)):
                     return _read_backup_v2(zf, path)
                 raw = zf.read("data.json").decode("utf-8")
         elif path.suffix == ".gz":
@@ -1716,7 +2116,7 @@ def restore_backup(name):
             uploads_root = (DATA_DIR / "uploads").resolve()
             for member in zf.infolist():
                 if member.filename in ("data.json", "manifest.json", CORE_NAME, CHANGE_LOG_FILE) \
-                        or member.is_dir() or member.filename.startswith("days/"):
+                        or member.is_dir() or member.filename.startswith(("days/", CORE_DIR_NAME + "/")):
                     continue
                 if not member.filename.startswith("uploads/"):
                     raise DataUnreadable("الأرشيف يحتوي ملفًا خارج data.json أو uploads/.")
@@ -1890,8 +2290,12 @@ class ChangeLogView(MutableSequence):
         return f"ChangeLogView({len(self)} entries)"
 
     def __deepcopy__(self, memo):
+        if self._list is None:
+            # لسه متفكّتش: الـpickle bytes ثابتة، فكل نسخة بتفكّ قايمتها لوحدها لما تتلمس —
+            # من غير فك ونسخ 5000 سجل مع كل deepcopy للقطة (اللوحة/الخدمة بتعمله في كل طلب)
+            return ChangeLogView(self._packed, self._count)
         import copy
-        return ChangeLogView.of(copy.deepcopy(self._items(), memo))
+        return ChangeLogView.of(copy.deepcopy(self._list, memo))
 
     def __copy__(self):
         return ChangeLogView.of(self._items())

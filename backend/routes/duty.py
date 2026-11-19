@@ -148,6 +148,7 @@ def set_state(day, person_id):
         return jsonify({"error": "يوم النهاية (حتى يوم) خاص بحالات «طارئة» و«مأمورية» و«انتداب»."}), 400
     status_title = str(payload.get("status_title", "") or "").strip()
     status_details = str(payload.get("status_details", "") or "").strip()
+    status_start_time = str(payload.get("status_start_time", "") or "").strip()
     # قفل الطول قبل التطبيع عشان نص طويل بمسافات مايعدّيش
     if len(status_title) > 4 * 120 or len(status_details) > 4 * 300:
         return jsonify({"error": "اسم أو تفاصيل الحالة أطول من الحد المسموح."}), 400
@@ -242,7 +243,8 @@ def set_state(day, person_id):
             try:
                 period, period_changed, closed = start_persistent_status(
                     data, person_id, status, day, end=status_end,
-                    title=status_title, details=status_details)
+                    title=status_title, details=status_details,
+                    start_time=status_start_time)
             except PeriodError as error:
                 raise AbortRequest((jsonify({"error": str(error)}), error.status))
             period_after = dict(period)
@@ -320,7 +322,9 @@ def stop_continuous_status(day, person_id):
         officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
         if not officer:
             raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
-        before, after = stop_persistent_status(data, person_id, day)
+        from datetime import date, datetime
+        end_time = datetime.now().strftime("%H:%M") if day == date.today().isoformat() else ""
+        before, after = stop_persistent_status(data, person_id, day, end_time=end_time)
         if not before:
             raise AbortRequest((jsonify({"error": "لا توجد حالة ممتدة (مرضي/غياب/انتداب/طارئة/مأمورية) فعالة في هذا اليوم."}), 404))
         state = dict(officer_state(data, day, person_id))

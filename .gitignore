@@ -20,7 +20,7 @@ import_archive/catalog_seed.json
 import_archive/import_diff.md
 
 # مدخلات/مخرجات الاستيراد المحلية الضخمة — البيانات المهيكلة النهائية فقط
-# هي التي تُحفظ في data/core.json وdata/days/.
+# هي التي تُحفظ في data/core/ وdata/days/.
 data/daily_files/
 data/source_docs/board/*.docx
 reports/
@@ -57,7 +57,7 @@ tools/offline_installers/
 OFFLINE_ASSETS.sha256
 
 # بيانات التشغيل اليومية محلية لكل جهاز: بتتخزّن في data/ وماتتسحبش ولا تترفع مع الكود، فأي تعديل
-# في اليوميات ما بيعمل تعارض ولا محتاج commit. (core.json = القوة والبيانات المرجعية لسه متتبّع.)
+# في اليوميات ما بيعمل تعارض ولا محتاج commit. (core/ = القوة والبيانات المرجعية لسه متتبّعة.)
 data/days/
 data/changes/
 data/.transaction-journal.json

@@ -52,6 +52,10 @@ class TextMeter:
     _fonts = {}
     _all_paths = None
     _widths = {}
+    # اختيار الخط لكل (اسم، عريض) محفوظ لقائمة المرشحين الحالية فقط؛
+    # أي قائمة جديدة (أو تغيّر طولها) تمسح الكاش فلا يرجع مسار قديم
+    _selected = {}
+    _selected_for = None
 
     def __init__(self):
         self._paths = None
@@ -74,6 +78,17 @@ class TextMeter:
 
     def _font_path(self, name, bold=False):
         key = (name or "Arial").lower()
+        candidates = self._font_paths()
+        stamp = TextMeter._selected_for
+        if stamp is None or stamp[0] is not candidates or stamp[1] != len(candidates):
+            TextMeter._selected = {}
+            TextMeter._selected_for = (candidates, len(candidates))
+        cache_key = (key, bool(bold))
+        if cache_key not in TextMeter._selected:
+            TextMeter._selected[cache_key] = self._select_font_path(key, bold, candidates)
+        return TextMeter._selected[cache_key]
+
+    def _select_font_path(self, key, bold, candidates):
         wanted = [key]
         if "sultan" in key or "bahnschrift" in key or "simplified" in key:
             wanted += ["arial", "times new roman", "noto sans arabic", "dejavu sans"]
@@ -81,7 +96,6 @@ class TextMeter:
             wanted += ["times new roman", "arial", "noto sans arabic"]
         else:
             wanted += ["arial", "noto sans arabic", "dejavu sans"]
-        candidates = self._font_paths()
         for wanted_name in wanted:
             matches = [p for p in candidates if wanted_name in Path(p).stem.lower()]
             if bold:

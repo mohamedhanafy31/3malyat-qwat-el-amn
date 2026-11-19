@@ -24,7 +24,7 @@ from .config import ChangeRepo, ConfigRepo
 from .days import DayRepo
 from .people import IndividualRepo, OfficerRepo, PeopleRepo
 from .records import (ConscriptRepo, CourseRepo, CourseTermRepo, LeaveRepo,
-                      MissionRepo, VehicleRepo)
+                      MissionRepo, StatusPeriodRepo, VehicleRepo)
 
 
 class Repos:
@@ -34,6 +34,7 @@ class Repos:
         "people": PeopleRepo, "officers": OfficerRepo, "individuals": IndividualRepo,
         "leaves": LeaveRepo,
         "courses": CourseRepo, "terms": CourseTermRepo,
+        "status_periods": StatusPeriodRepo,
         "days": DayRepo, "missions": MissionRepo,
         "vehicles": VehicleRepo, "conscripts": ConscriptRepo,
         "changes": ChangeRepo, "config": ConfigRepo,
@@ -69,6 +70,6 @@ class Repos:
 __all__ = [
     "Repo", "DictRepo", "Repos",
     "PeopleRepo", "OfficerRepo", "IndividualRepo",
-    "LeaveRepo", "CourseRepo", "CourseTermRepo", "MissionRepo",
+    "LeaveRepo", "CourseRepo", "CourseTermRepo", "StatusPeriodRepo", "MissionRepo",
     "DayRepo", "ConfigRepo", "ChangeRepo", "VehicleRepo", "ConscriptRepo",
 ]

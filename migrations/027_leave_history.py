@@ -2,7 +2,7 @@
 """إضافة سجل دائم للراحات المحذوفة/الملغية مع backfill من change_log.
 
 `change_log` مسقوف وينقل القديم إلى JSONL، لذلك لا يصلح وحده كقاعدة
-لاسترجاع الراحة. هذه الهجرة تضيف `leave_history` إلى core.json وتنسخ إليه
+لاسترجاع الراحة. هذه الهجرة تضيف `leave_history` إلى core/ وتنسخ إليه
 كل delete/cancel/stop ما زال موجودًا بلقطته الكاملة.
 
     python3 migrations/027_leave_history.py
@@ -26,7 +26,7 @@ def migrate(data):
     if existed and not added:
         raise AlreadyDone("leave_history موجود بالفعل ومفيش جديد — مفيش حاجة تتغيّر.")
     return [
-        "إضافة المفتاح leave_history إلى core.json",
+        "إضافة المفتاح leave_history إلى core/",
         f"استرجاع {added} بند من change_log الحالي",
         f"إجمالي بنود السجل الدائم: {len(rows)} (كان {before})",
     ]
