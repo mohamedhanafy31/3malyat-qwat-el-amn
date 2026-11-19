@@ -184,14 +184,14 @@
       "section": "تفتيشات",
       "name": "تفتيش السويس",
       "kind": "خارجية",
-      "shift": "",
+      "shift": "صباحية",
       "officer_ids": [],
       "personnel_ids": [],
       "conscripts": [],
       "conscript_count": 5,
       "weapon": "دونك",
-      "time": "",
-      "party": "",
+      "time": "10ص",
+      "party": "السويس",
       "counts_in_summary": true,
       "mission_transport": false,
       "officer_command_required": false,
@@ -331,33 +331,6 @@
       "pos": 0
     },
     {
-      "id": "AS-0016",
-      "section": "الخدمات الطارئة",
-      "name": "تمكين الجناين",
-      "kind": "خارجية",
-      "shift": "صباحية",
-      "officer_ids": [],
-      "personnel_ids": [
-        "IND-137"
-      ],
-      "conscripts": [
-        {
-          "class": "وحدة",
-          "count": 1
-        }
-      ],
-      "conscript_count": 10,
-      "weapon": "فض",
-      "time": "9ص",
-      "party": "الجناين",
-      "counts_in_summary": true,
-      "mission_transport": false,
-      "officer_command_required": false,
-      "personnel_command_required": true,
-      "note": "",
-      "pos": 1
-    },
-    {
       "id": "AS-0017",
       "section": "الخدمات الطارئة",
       "name": "اعدام مخدرات من الاقسام الخمس ومديرية الزراعة",
@@ -391,10 +364,10 @@
       ],
       "conscript_count": 24,
       "weapon": "آلي/طلبة",
-      "time": "4م",
+      "time": "4ص",
       "party": "مخازن الزراعة",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": true,
       "personnel_command_required": false,
       "note": "",
@@ -403,7 +376,7 @@
     {
       "id": "AS-0018",
       "section": "الخدمات الطارئة",
-      "name": "مباراة (سماد السويس*جاسكو)",
+      "name": "مباراة (سماد السويس X جاسكو)",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
@@ -423,7 +396,7 @@
     {
       "id": "AS-0019",
       "section": "الخدمات الطارئة",
-      "name": "مباراة (السويس للرياضات * ش المثلث)",
+      "name": "مباراة (السويس للرياضات X ش المثلث)",
       "kind": "خارجية",
       "shift": "صباحية",
       "officer_ids": [],
@@ -456,7 +429,7 @@
       "time": "8ص",
       "party": "قوات الأمن",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
@@ -466,7 +439,7 @@
       "id": "AS-0021",
       "section": "الخدمات الطارئة",
       "name": "مأمورية عيادة",
-      "kind": "خارجية",
+      "kind": "داخلية",
       "shift": "صباحية",
       "officer_ids": [],
       "personnel_ids": [
@@ -483,7 +456,7 @@
       "time": "8ص",
       "party": "قوات الأمن",
       "counts_in_summary": true,
-      "mission_transport": false,
+      "mission_transport": true,
       "officer_command_required": false,
       "personnel_command_required": true,
       "note": "",
@@ -741,7 +714,7 @@
       ],
       "conscript_count": 2,
       "weapon": "آلي",
-      "time": "9ص",
+      "time": "10ص",
       "party": "الاربعين",
       "counts_in_summary": true,
       "mission_transport": true,
@@ -800,10 +773,16 @@
       "note": "",
       "extra": "متابعة اعمال العمليات وشئون الضباط  + متابعة اعمال التدريب",
       "admin_work": true
+    },
+    "OFF-019": {
+      "taqseera": false,
+      "status": "",
+      "note": "",
+      "research_service": "نقطة تفتيش جنيفة فترة صباحية"
     }
   },
   "confirm": {
-    "at": "2026-11-17T00:05:39",
+    "at": "2026-11-17T05:45:36",
     "by": "3malyat_admin",
     "rows": [
       {
@@ -990,14 +969,14 @@
         "section": "تفتيشات",
         "name": "تفتيش السويس",
         "kind": "خارجية",
-        "shift": "",
+        "shift": "صباحية",
         "officer_ids": [],
         "personnel_ids": [],
         "conscripts": [],
         "conscript_count": 5,
         "weapon": "دونك",
-        "time": "",
-        "party": "",
+        "time": "10ص",
+        "party": "السويس",
         "counts_in_summary": true,
         "mission_transport": false,
         "officer_command_required": false,
@@ -1137,33 +1116,6 @@
         "pos": 0
       },
       {
-        "id": "AS-0016",
-        "section": "الخدمات الطارئة",
-        "name": "تمكين الجناين",
-        "kind": "خارجية",
-        "shift": "صباحية",
-        "officer_ids": [],
-        "personnel_ids": [
-          "IND-137"
-        ],
-        "conscripts": [
-          {
-            "class": "وحدة",
-            "count": 1
-          }
-        ],
-        "conscript_count": 10,
-        "weapon": "فض",
-        "time": "9ص",
-        "party": "الجناين",
-        "counts_in_summary": true,
-        "mission_transport": false,
-        "officer_command_required": false,
-        "personnel_command_required": true,
-        "note": "",
-        "pos": 1
-      },
-      {
         "id": "AS-0017",
         "section": "الخدمات الطارئة",
         "name": "اعدام مخدرات من الاقسام الخمس ومديرية الزراعة",
@@ -1197,10 +1149,10 @@
         ],
         "conscript_count": 24,
         "weapon": "آلي/طلبة",
-        "time": "4م",
+        "time": "4ص",
         "party": "مخازن الزراعة",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": true,
         "personnel_command_required": false,
         "note": "",
@@ -1209,7 +1161,7 @@
       {
         "id": "AS-0018",
         "section": "الخدمات الطارئة",
-        "name": "مباراة (سماد السويس*جاسكو)",
+        "name": "مباراة (سماد السويس X جاسكو)",
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
@@ -1229,7 +1181,7 @@
       {
         "id": "AS-0019",
         "section": "الخدمات الطارئة",
-        "name": "مباراة (السويس للرياضات * ش المثلث)",
+        "name": "مباراة (السويس للرياضات X ش المثلث)",
         "kind": "خارجية",
         "shift": "صباحية",
         "officer_ids": [],
@@ -1262,7 +1214,7 @@
         "time": "8ص",
         "party": "قوات الأمن",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
@@ -1272,7 +1224,7 @@
         "id": "AS-0021",
         "section": "الخدمات الطارئة",
         "name": "مأمورية عيادة",
-        "kind": "خارجية",
+        "kind": "داخلية",
         "shift": "صباحية",
         "officer_ids": [],
         "personnel_ids": [
@@ -1289,7 +1241,7 @@
         "time": "8ص",
         "party": "قوات الأمن",
         "counts_in_summary": true,
-        "mission_transport": false,
+        "mission_transport": true,
         "officer_command_required": false,
         "personnel_command_required": true,
         "note": "",
@@ -1547,7 +1499,7 @@
         ],
         "conscript_count": 2,
         "weapon": "آلي",
-        "time": "9ص",
+        "time": "10ص",
         "party": "الاربعين",
         "counts_in_summary": true,
         "mission_transport": true,
@@ -2044,5 +1996,45 @@
     "removed_services": [
       "AS-0020"
     ]
+  },
+  "service_runs": {
+    "AS-0017:am": {
+      "out_at": "2026-11-17T03:35:43+00:00",
+      "out_by": "3malyat_admin",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-17T03:35:43+00:00",
+          "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-17T23:21:57+00:00",
+          "by": "3malyat_admin"
+        }
+      ],
+      "back_at": "2026-11-17T23:21:57+00:00",
+      "back_by": "3malyat_admin"
+    },
+    "AS-0032:am": {
+      "out_at": "2026-11-17T03:35:43+00:00",
+      "out_by": "3malyat_admin",
+      "state": "back",
+      "history": [
+        {
+          "action": "depart",
+          "at": "2026-11-17T03:35:43+00:00",
+          "by": "3malyat_admin"
+        },
+        {
+          "action": "return",
+          "at": "2026-11-17T23:22:08+00:00",
+          "by": "3malyat_admin"
+        }
+      ],
+      "back_at": "2026-11-17T23:22:08+00:00",
+      "back_by": "3malyat_admin"
+    }
   }
 }
