@@ -13174,8 +13174,8 @@
       "officer_id": "OFF-041",
       "status": "غياب",
       "start": "2026-11-16",
-      "end": "",
-      "stopped_on": ""
+      "end": "2026-11-16",
+      "stopped_on": "2026-11-17"
     }
   ],
   "officer_medical_states": [
@@ -13209,6 +13209,16 @@
       "officer_id": "OFF-099",
       "from": "2026-11-09",
       "state": "راحة"
+    },
+    {
+      "officer_id": "OFF-033",
+      "from": "2026-11-18",
+      "state": "راحة"
+    },
+    {
+      "officer_id": "OFF-099",
+      "from": "2026-11-18",
+      "state": "عمل"
     }
   ],
   "custom_officer_statuses": [
