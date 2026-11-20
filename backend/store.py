@@ -152,6 +152,9 @@ DAY_SECTIONS = {
     "day_service_runs": "service_runs",
     # علامة مصدر اليوم المستورد؛ غيابها يعني أن اليوم أُنشئ داخل النظام.
     "day_import": "import",
+    # أرقام ذيل يومية التعيينات واختيار توقيع قسم العمليات — قيم تخص اليوم
+    # وتُحفظ في extras.json افتراضيًا حتى لا نضيف ملف bundle جديدًا.
+    "day_roster": "roster",
 }
 
 
@@ -1816,6 +1819,7 @@ _DAY_TYPES = {
     "campaign": dict,
     "service_runs": dict,
     "import": dict,
+    "roster": dict,
 }
 
 

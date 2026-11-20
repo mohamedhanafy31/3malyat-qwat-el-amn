@@ -17,6 +17,8 @@ PAGES = {
     "target_commanders": ("target_commanders.html", "قادة الأهداف",
                           "تعيين القائد الثابت لكل هدف بتاريخ سريان"),
     "duty": ("duty.html", "يومية الضباط", "تشغيل الضباط اليومي وجدول الإجمالي"),
+    "assignments_roster": ("assignments_roster.html", "يومية التعيينات",
+                            "كشف أسماء الضباط وحالتهم التشغيلية ليوم الغد"),
     "duty_stats": ("duty_stats.html", "إحصائيات التشغيل",
                     "توازن وانتظام التشغيل الفعلي — عدالة التوزيع، تغطية الأهداف، والتقصيرات"),
     "board": ("board.html", "اليومية التفصيلية", "خدمات اليوم بأقسامها — الضباط والأفراد والمجندين"),
@@ -91,6 +93,11 @@ def target_commanders():
 @bp.get("/duty")
 def duty():
     return _render("duty")
+
+
+@bp.get("/assignments-roster")
+def assignments_roster():
+    return _render("assignments_roster")
 
 
 @bp.get("/duty/stats")

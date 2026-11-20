@@ -13,7 +13,7 @@ from .export_fit import center_docx_table_cells
 from docx.shared import Cm, Pt, Twips
 
 from .board_export import WEEKDAY_BY_INDEX, _set_rtl_doc, set_run_font, style_tables_bold_rtl
-from .campaign import order_campaign_rows
+from .campaign import order_campaign_rows, order_campaign_vehicle_rows
 from .labels import personnel_rank_abbr
 
 GRID_WIDTHS = [693, 514, 1416, 1268, 148, 1217, 342, 420, 1139,
@@ -267,7 +267,7 @@ def build_docx(campaign):
     _merge_row(table.add_row(), [15], [title], size=TITLE_PT)
     _merge_row(table.add_row(), CHECKPOINT_SPANS,
                ["م", "مركبات الإرتكازات", "السائق", "رقم المركبة", "نوع المركبة"], size=HEADING_PT)
-    for post in campaign.get("posts") or []:
+    for post in order_campaign_vehicle_rows(campaign.get("posts") or []):
         values = [post.get("number", ""), post.get("name", ""),
                   post.get("driver_text") or "ـــــ", _post_plate(post), _post_type(post)]
         _merge_row(table.add_row(), CHECKPOINT_SPANS, values, size=POST_PT)
@@ -283,11 +283,13 @@ def build_docx(campaign):
             continue
         # الخدمة تظل عنصرًا واحدًا في الترتيب والترقيم. مركباتها تتحول لاحقًا
         # إلى سطور فرعية مع دمج خليتي الرقم واسم الخدمة رأسيًا.
-        delivery.append({**service, "_vehicle_lines": [
+        vehicle_lines = order_campaign_vehicle_rows([
             {**service, "vehicle": item.get("vehicle"), "type_text": item.get("type_text", ""),
              "driver": item.get("driver") or service.get("driver")}
             for item in vehicles
-        ]})
+        ])
+        delivery.append({**service, "service_vehicles": vehicle_lines,
+                         "_vehicle_lines": vehicle_lines})
     delivery += [{**item, "_lorry": True} for item in campaign.get("appointments") or [] if _has_content(item)]
     daily = [{**item, "_daily": True} for item in campaign.get("daily") or []]
     ordered = order_campaign_rows(delivery, daily)

@@ -15,6 +15,7 @@ PRINT_KINDS = {
     "board": "التفصيلية",
     "regularity": "الانتظامات",
     "duty": "الضباط",
+    "roster": "التعيينات",
     "afraad": "الأفراد",
     "campaign": "الحملة",
     "formation_morning": "خط تشكيل صبح",

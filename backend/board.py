@@ -283,12 +283,12 @@ def _row(assignment, people, day, taqseera_ids=()):
     1,034 صف خدمات طارئة في الأرشيف قوامها أفراد ومجندين من غير ضابط."""
     officers = [_person(people, oid, day, taqseera_ids)
                 for oid in assignment.get("officer_ids") or []]
-    # هدف متغطي بضابطين بالتقسيم الزمني: كل ضابط بيشيل فترته («حتى 4م» /
-    # «من 4م») بترتيب الفترات، والباقي بيفضل زي ما هو
+    # هدف متغطي بضابطين بتقسيم زمني أو نصي: كل ضابط بيشيل وصف فترته
+    # بترتيب الفترات، والباقي بيفضل زي ما هو.
     periods = valid_periods(assignment)
     if periods:
         by_id = {o["id"]: o for o in officers}
-        officers = [{**by_id[p["officer_id"]], **{k: p[k] for k in ("until", "from") if k in p},
+        officers = [{**by_id[p["officer_id"]], **{k: p[k] for k in ("until", "from", "label") if k in p},
                      "period_label": period_label(p)} for p in periods]
     personnel = [_person(people, pid, day, taqseera_ids)
                  for pid in assignment.get("personnel_ids") or []]

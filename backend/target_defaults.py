@@ -43,9 +43,14 @@ def _target_map(rows, targets):
         bucket = out.get(name)
         if bucket is None:
             bucket = unknown.setdefault(name, [])
-        # التقسيم الزمني ليوم واحد: اللي بيغطي آخر اليوم هو اللي بيكمّل لبكرة
+        # التقسيم الزمني ليوم واحد: اللي بيغطي آخر اليوم هو اللي بيكمّل لبكرة.
+        # التقسيم النصي لا يحدد لحظة انتقال؛ لذلك يظل الضابطان تغطية صالحة
+        # لليوم كله عند نسخ التعيين لليوم التالي.
         periods = valid_periods(row)
-        officer_ids = [periods[-1]["officer_id"]] if periods else row.get("officer_ids") or []
+        text_split = periods and all("label" in period for period in periods)
+        officer_ids = (list(row.get("officer_ids") or []) if text_split
+                       else [periods[-1]["officer_id"]] if periods
+                       else row.get("officer_ids") or [])
         for officer_id in officer_ids:
             officer_id = str(officer_id).strip()
             if officer_id and officer_id not in bucket:

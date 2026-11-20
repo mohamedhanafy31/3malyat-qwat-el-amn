@@ -38,7 +38,7 @@ import copy
 import json
 from datetime import datetime
 
-from .assignments import command_required, label, peek_day
+from .assignments import command_required, label, peek_day, period_label
 from .people import effective, find_person
 
 MAX_SNAPSHOT_DAYS = 60
@@ -137,6 +137,17 @@ def _show(value):
     if isinstance(value, bool):
         return "نعم" if value else "لا"
     if isinstance(value, list):
+        if value and all(isinstance(item, dict) and "officer_id" in item for item in value):
+            labels = []
+            for item in value:
+                try:
+                    shown = period_label(item)
+                except (KeyError, TypeError, ValueError):
+                    shown = ""
+                if shown:
+                    labels.append(shown)
+            if labels:
+                return "، ".join(labels)
         parts = []
         for item in value:
             if isinstance(item, dict):

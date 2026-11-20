@@ -248,10 +248,16 @@ def service_vehicles(data, day, assignment_id, *, include_empty_lorries=False):
         vehicle = _vehicle(data, item.get("vehicle_id"))
         fallback_driver = raw.get("driver") if len(direct_entries) == 1 else None
         driver = _driver(data, item.get("driver") or fallback_driver)
+        type_text = str(item.get("type_text") or "").strip()
+        group_key, group_label, group_rank = _vehicle_group(
+            (vehicle or {}).get("type") or type_text)
         result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"] if vehicle else "",
                        "plate": vehicle["plate"] if vehicle else "",
                        "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])) if vehicle else "",
-                       "type_text": str(item.get("type_text") or "").strip(),
+                       "type_text": type_text,
+                       "vehicle_group": group_key,
+                       "vehicle_group_label": group_label,
+                       "vehicle_group_rank": group_rank,
                        "people": _vehicle_people(data, item, assignment_people),
                        "source": "direct", "driver": driver})
     for lorry_id, lorry in ((sheet.get("lorries") or {}).items()):
@@ -262,9 +268,14 @@ def service_vehicles(data, day, assignment_id, *, include_empty_lorries=False):
         vehicle = _vehicle(data, effective.get("vehicle_id"))
         if not vehicle and not include_empty_lorries:
             continue
+        group_key, group_label, group_rank = _vehicle_group("لوري" if not vehicle else vehicle.get("type"))
         result.append({"vehicle": vehicle, "vehicle_id": vehicle["id"] if vehicle else "",
                        "plate": vehicle["plate"] if vehicle else "",
                        "label": fleet.vehicle_label(VehicleRepo(data).find(vehicle["id"])) if vehicle else "",
+                       "type_text": "" if vehicle else "لوري",
+                       "vehicle_group": group_key,
+                       "vehicle_group_label": group_label,
+                       "vehicle_group_rank": group_rank,
                        "people": [_person_view(data, ident, category)
                                   for category, key in (("personnel", "personnel_ids"),
                                                         ("officers", "officer_ids"))
@@ -1010,9 +1021,15 @@ def _row_view(data, ident, kind, name, raw, inherited, attached=None, assignment
     direct_view = []
     for item in direct:
         vehicle = _vehicle(data, item.get("vehicle_id"))
+        type_text = str(item.get("type_text") or "").strip()
+        group_key, group_label, group_rank = _vehicle_group(
+            (vehicle or {}).get("type") or type_text)
         direct_view.append({"vehicle": vehicle,
                             "vehicle_id": vehicle["id"] if vehicle else "",
-                            "type_text": str(item.get("type_text") or "").strip(),
+                            "type_text": type_text,
+                            "vehicle_group": group_key,
+                            "vehicle_group_label": group_label,
+                            "vehicle_group_rank": group_rank,
                             "personnel_ids": list(item.get("personnel_ids") or []),
                             "officer_ids": list(item.get("officer_ids") or []),
                             "driver": _driver(data, item.get("driver") or
@@ -1173,6 +1190,99 @@ CAMPAIGN_BAND_LABELS = {
 }
 
 
+def _vehicle_type_text(row):
+    """نوع المركبة الفعلي أو المطلوب للصف، بما فيه سطر خدمة بلا لوحة بعد."""
+    candidates = []
+    if isinstance(row, dict):
+        candidates.append(row)
+        for key in ("service_vehicles", "_vehicle_lines", "vehicles"):
+            candidates.extend(row.get(key) or [])
+    for item in candidates:
+        if not isinstance(item, dict):
+            continue
+        vehicle = item.get("vehicle") or {}
+        value = vehicle.get("type") or item.get("type_text")
+        if str(value or "").strip():
+            return str(value).strip()
+    # صف اللوري نفسه يحمل نوعه الدلالي حتى قبل اختيار لوحة؛ أما الخدمة/القول
+    # العام بلا نوع فيظل «غير محدد» ويذهب لآخر المجموعة.
+    if isinstance(row, dict) and (row.get("kind") == "lorry" or row.get("_lorry")):
+        return "لوري"
+    return ""
+
+
+def _vehicle_group(value):
+    """مفتاح/عنوان تجميع ثابتين؛ اختلافات الكتابة لا تصنع مجموعتين."""
+    value = str(value or "").strip()
+    if not value:
+        return "missing", "غير محدد", 99
+    key = norm(value)
+    category = fleet.vehicle_category(value)
+    return f"type:{key}", value, fleet.CATEGORY_RANK.get(category, 4)
+
+
+def _vehicle_group_subkey(row, type_text):
+    """ترتيب فرعي يحافظ على تجاور كل لوري مع خدماته المحمولة القديمة."""
+    if fleet.vehicle_category(type_text) != "lorry":
+        return ""
+    candidates = [row]
+    if isinstance(row, dict):
+        for key in ("service_vehicles", "_vehicle_lines", "vehicles"):
+            candidates.extend(row.get(key) or [])
+    for item in candidates:
+        if isinstance(item, dict):
+            vehicle = item.get("vehicle") or {}
+            if vehicle.get("id"):
+                return f"vehicle:{vehicle['id']}"
+    return f"row:{(row or {}).get('id') or (row or {}).get('name') or ''}"
+
+
+def order_campaign_vehicle_rows(rows):
+    """يرتب أي قائمة مركبات حسب النوع مع الحفاظ على ترتيب الظهور داخل النوع.
+
+    ``type_text`` مقصود هنا: الصف ذو النوع المطلوب فقط يسبق الصفوف غير المحددة
+    حتى قبل اختيار اللوحة أو السائق. الصفوف بلا نوع تذهب دائمًا إلى النهاية.
+    """
+    rows = list(rows or [])
+    entries = []
+    first_seen = {}
+    subgroup_seen = {}
+    counts = {}
+    for index, row in enumerate(rows):
+        type_text = _vehicle_type_text(row)
+        key, label, rank = _vehicle_group(type_text)
+        subgroup = _vehicle_group_subkey(row, type_text)
+        first_seen.setdefault(key, index)
+        subgroup_seen.setdefault((key, subgroup), index)
+        counts[key] = counts.get(key, 0) + 1
+        entries.append((row, key, label, rank, subgroup, index))
+    entries.sort(key=lambda item: (item[3], first_seen[item[1]],
+                                   subgroup_seen[(item[1], item[4])], item[5]))
+    result = []
+    for row, key, label, _rank, _subgroup, _index in entries:
+        result.append({**row, "vehicle_group": key, "vehicle_group_label": label,
+                       "vehicle_group_count": counts[key],
+                       "vehicle_group_subkey": _subgroup,
+                       "vehicle_group_rank": _rank,
+                       "vehicle_group_category": ("missing" if key == "missing"
+                                                   else fleet.vehicle_category(_vehicle_type_text(row))),
+                       "band": key, "band_label": f"{label} ({counts[key]})"})
+    for index, row in enumerate(result):
+        previous = result[index - 1] if index else None
+        row["break_before"] = bool(previous and (
+            row["vehicle_group_category"] != previous["vehicle_group_category"]
+            or (row["vehicle_group_category"] == previous["vehicle_group_category"] == "lorry"
+                and row["vehicle_group_subkey"]
+                and row["vehicle_group_subkey"] != previous["vehicle_group_subkey"])))
+        next_row = result[index + 1] if index + 1 < len(result) else None
+        row["break_after"] = bool(index + 1 < len(result)
+                                   and (row["vehicle_group_category"] != next_row["vehicle_group_category"]
+                                        or (row["vehicle_group_category"] == next_row["vehicle_group_category"] == "lorry"
+                                            and row["vehicle_group_subkey"]
+                                            and row["vehicle_group_subkey"] != next_row["vehicle_group_subkey"])))
+    return result
+
+
 def is_driver_only_daily(row):
     """الصف اليومي الذي يحتاج سائقًا فقط؛ مستخدمة في الحالة والترتيب والتصدير."""
     return norm((row or {}).get("name")).startswith(norm("سائق"))
@@ -1184,32 +1294,13 @@ def order_campaign_rows(delivery_rows, daily_rows):
     كل عنصر راجع يحمل ``band`` و``band_label``، و``break_before`` للفاصل السميك
     بين فئات المركبات، وبين كل لوري، وقبل الأقوال والإسعاف وسائق بورتوفيق.
     """
-    def vehicle_of(row):
-        return (row.get("_order_vehicle") or
-                (_service_vehicle(row) if row.get("kind") == "service" else row.get("vehicle")))
-
-    fleet_rows = fleet.order_by_category(
-        delivery_rows,
-        lambda row: (vehicle_of(row) or {}).get("type"),
-        lambda row: (vehicle_of(row) or {}).get("id") or row.get("id") or row.get("name"),
-        lorry_if_missing=lambda row: bool(row.get("_lorry")),
-    )
-    # order_by_category يضع الصفوف بلا مركبة ضمن "other"؛ نفصلها في آخر خطوط
-    # السير من غير تغيير ترتيب بقية الفئات أو ترتيب الصفوف داخل كل فئة.
-    fleet_rows = [entry for entry in fleet_rows if vehicle_of(entry[0]) or entry[0].get("_lorry")] + [
-        entry for entry in fleet_rows if not vehicle_of(entry[0]) and not entry[0].get("_lorry")]
-
-    result = []
-    previous_category = previous_key = previous_band = None
-    for row, category, key, _break_after in fleet_rows:
-        vehicle = vehicle_of(row)
-        band = category if vehicle or row.get("_lorry") else "missing"
-        break_before = bool(result) and (
-            band != previous_band or category != previous_category
-            or (category == "lorry" and key != previous_key))
-        result.append({**row, "band": band, "band_label": CAMPAIGN_BAND_LABELS[band],
-                       "break_before": break_before})
-        previous_category, previous_key, previous_band = category, key, band
+    result = order_campaign_vehicle_rows(delivery_rows)
+    # ``band`` يظل متوافقًا مع مستهلكي API الأقدم (فئة المركبة)، بينما
+    # ``vehicle_group`` هو المفتاح الأدق الذي تستخدمه الصفحة للفصل بين نوعين
+    # مختلفين داخل الفئة نفسها.
+    for row in result:
+        row["band"] = ("missing" if row["vehicle_group"] == "missing"
+                       else fleet.vehicle_category(_vehicle_type_text(row)))
 
     daily_bands = (
         ("security", lambda row: not is_driver_only_daily(row)
@@ -1220,8 +1311,15 @@ def order_campaign_rows(delivery_rows, daily_rows):
     )
     for band, predicate in daily_bands:
         rows = [row for row in daily_rows if predicate(row)]
+        daily_counts = {}
+        for row in rows:
+            key = row.get("vehicle_group", "missing")
+            daily_counts[key] = daily_counts.get(key, 0) + 1
         for index, row in enumerate(rows):
-            result.append({**row, "band": band, "band_label": CAMPAIGN_BAND_LABELS[band],
+            result.append({**row, "band": band,
+                           "vehicle_group_count": daily_counts.get(row.get("vehicle_group", "missing"), 1),
+                           "band_label": f"{row.get('vehicle_group_label', 'غير محدد')} "
+                                         f"({daily_counts.get(row.get('vehicle_group', 'missing'), 1)})",
                            "break_before": index == 0 and bool(result)})
     for index, row in enumerate(result):
         row["break_after"] = bool(index + 1 < len(result) and result[index + 1]["break_before"])
@@ -1229,15 +1327,12 @@ def order_campaign_rows(delivery_rows, daily_rows):
 
 
 def order_services(rows):
-    """يرتّب صفوف الخدمات بفئة المركبة (لوري، أتوبيس، ميكروباص، بيك اب/دوبل كبينة، الباقي)
-    ويوسم كل صف بـ ``vehicle_category`` و``category_break`` (حد فاصل بعده) للصفحة."""
-    ordered = fleet.order_by_category(
-        rows, lambda row: (_service_vehicle(row) or {}).get("type"),
-        lambda row: (_service_vehicle(row) or {}).get("id") or row["id"])
-    for row, category, _key, brk in ordered:
-        row["vehicle_category"] = category
-        row["category_break"] = brk
-    return [row for row, *_rest in ordered]
+    """يرتب خدمات التوصيل حسب نوع المركبة الفعلي أو المطلوب."""
+    ordered = order_campaign_vehicle_rows(rows)
+    for row in ordered:
+        row["vehicle_category"] = fleet.vehicle_category(_vehicle_type_text(row)) if _vehicle_type_text(row) else "other"
+        row["category_break"] = row["break_after"]
+    return ordered
 
 
 def build_campaign(data, day):
@@ -1318,7 +1413,8 @@ def build_campaign(data, day):
             assignment.get("name") or assignment.get("label") or "", raw, False,
             assignment=assignment, day=day,
         )
-        row["service_vehicles"] = service_vehicles(data, day, row["id"], include_empty_lorries=True)
+        row["service_vehicles"] = order_campaign_vehicle_rows(
+            service_vehicles(data, day, row["id"], include_empty_lorries=True))
         carrier = next((item for item in row["service_vehicles"] if item.get("source") == "lorry"), None)
         if carrier:
             carrier_sources = _inherited_from(
@@ -1340,8 +1436,9 @@ def build_campaign(data, day):
         row["members"] = [{"id": m["id"], "name": m.get("name") or m.get("label") or ""} for m in members]
         row["people"] = []
         vehicle = row["vehicle"]
-        row["service_vehicles"] = ([{"vehicle": vehicle, "vehicle_id": vehicle["id"],
-                                     "driver": row["driver"], "source": "group"}] if vehicle else [])
+        row["service_vehicles"] = order_campaign_vehicle_rows(
+            ([{"vehicle": vehicle, "vehicle_id": vehicle["id"],
+               "driver": row["driver"], "source": "group"}] if vehicle else []))
         rows_s.append(row)
         service_rows.append(row)
     service_rows = order_services(service_rows)
@@ -1379,6 +1476,7 @@ def build_campaign(data, day):
         linked = basic_by_id.get(effective_id) or linked
         row["basic_entry_id"] = linked.get("id") if linked else ""
         row["basic_service"] = linked
+    rows_d = order_campaign_vehicle_rows(rows_d)
 
     post_items = campaign_posts_on(data, day)
     current_posts = current.get("posts") or {}
@@ -1403,6 +1501,7 @@ def build_campaign(data, day):
                                                 current_posts.get(item["id"])),
             "warnings": [],
         })
+    rows_p = order_campaign_vehicle_rows(rows_p)
 
     current_plates = current.get("plates")
     previous_plates, previous_plates_day = _prior_plates_with_source(data, chain)

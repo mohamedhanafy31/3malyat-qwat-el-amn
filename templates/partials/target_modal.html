@@ -12,17 +12,28 @@
       <div id="tgSplitWrap" class="hidden">
         <label class="checkline">
           <input type="checkbox" id="tgSplit">
-          <span>تقسيم التغطية بالوقت <small class="block-hint">ضابطان على نفس الهدف أو الفترة: الأول حتى وقت والثاني من نفس الوقت (مثال: حتى 4م / من 4م)</small></span>
+          <span>تقسيم التغطية <small class="block-hint">ضابطان على نفس الهدف أو الفترة</small></span>
         </label>
+        <div class="seg-toggle hidden" id="tgSplitMode" role="radiogroup" aria-label="طريقة تقسيم التغطية">
+          <strong>التقسيم بـ:</strong>
+          <label><input type="radio" name="tgSplitMode" value="time" id="tgSplitByTime" checked><span>وقت</span></label>
+          <label><input type="radio" name="tgSplitMode" value="text" id="tgSplitByText"><span>نص</span></label>
+        </div>
         <div class="grid hidden" id="tgSplitFields">
-          <label>الضابط الأول (حتى)
+          <label>الضابط الأول
             <select id="tgFirst" aria-label="الضابط الأول حتى وقت التقسيم"></select>
           </label>
-          <label>وقت التقسيم <small>اختَر الوقت من لوحة الساعة</small>
+          <label id="tgSplitTimeField">وقت التقسيم <small>اختَر الوقت من لوحة الساعة</small>
             <input id="tgSplitAt" data-time aria-label="وقت تقسيم التغطية">
           </label>
-          <label>الضابط الثاني (من)
+          <label id="tgSplitTextFirstField" class="hidden">وصف الضابط الأول
+            <input id="tgFirstLabel" maxlength="80" placeholder="لحين …" aria-label="وصف تغطية الضابط الأول">
+          </label>
+          <label>الضابط الثاني
             <select id="tgSecond" aria-label="الضابط الثاني من وقت التقسيم"></select>
+          </label>
+          <label id="tgSplitTextSecondField" class="hidden">وصف الضابط الثاني
+            <input id="tgSecondLabel" maxlength="80" placeholder="عقب …" aria-label="وصف تغطية الضابط الثاني">
           </label>
         </div>
       </div>

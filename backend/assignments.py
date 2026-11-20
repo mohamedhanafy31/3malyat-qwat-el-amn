@@ -264,32 +264,45 @@ def valid_periods(row):
     """فترتا تغطية الهدف المخزّنتان لو لسه متسقتين مع `officer_ids`، وإلا [].
 
     `officer_ids` هي الحقيقة اللي كل القراء (يومية الضباط، الإحصاء، الانتظام)
-    بيعتمدوا عليها؛ `periods` بس بتقول مين قبل الوقت ومين بعده. لو حد غيّر
+    بيعتمدوا عليها؛ `periods` بتضيف وصفًا للتغطية الزمنية أو النصية. لو حد غيّر
     `officer_ids` من مكان تاني (شيل ضابط مثلًا) والفترات اتفضلت قديمة،
     بنتجاهلها بدل ما نعرض تقسيم لضابط مش على الخدمة."""
     periods = row.get("periods")
     if not isinstance(periods, list) or len(periods) != MAX_PERIODS:
         return []
+    if any(not isinstance(period, dict) for period in periods):
+        return []
     ids = [p.get("officer_id") if isinstance(p, dict) else None for p in periods]
     if (len(set(ids)) != MAX_PERIODS
-            or set(ids) != set(row.get("officer_ids") or [])
-            or parse_time((periods[0] or {}).get("until")) is None
-            or parse_time((periods[1] or {}).get("from")) is None):
+            or set(ids) != set(row.get("officer_ids") or [])):
+        return []
+    text_mode = all(isinstance(p, dict) and "label" in p for p in periods)
+    if text_mode:
+        if any(any(key in p for key in ("until", "from"))
+               or not isinstance(p.get("label"), str)
+               or not p["label"].strip() for p in periods):
+            return []
+    elif (any("label" in p for p in periods)
+          or parse_time((periods[0] or {}).get("until")) is None
+          or parse_time((periods[1] or {}).get("from")) is None):
         return []
     return [dict(p) for p in periods]
 
 
 def period_label(period):
-    """«حتى 4م» / «من 4م» — صيغة الورقة الرسمية."""
+    """وصف الفترة كما يظهر بعد اسم الضابط في كل العروض."""
+    if period.get("label"):
+        return str(period["label"]).strip()
     if period.get("until"):
         return f"حتى {format_time(period['until'])}"
     return f"من {format_time(period['from'])}"
 
 
 def clean_periods(data, day, raw):
-    """تقسيم تغطية هدف بالوقت: ضابطين بالظبط، الأول «حتى» وقت والتاني «من»
-    نفس الوقت. بترجع (القايمة, officer_ids, error, status). فاضية/None =
-    مفيش تقسيم."""
+    """تنظيف تقسيم تغطية هدف بالوقت أو بنص حر.
+
+    وضع الوقت يظل بنفس عقده القديم؛ وضع النص يخزّن `{officer_id, label}`
+    لكل ضابط، لأن النص ليس حدًا زمنيًا يمكن مقارنته بالساعة."""
     if raw is None or raw == []:
         return [], None, None, None
     if not isinstance(raw, list) or any(not isinstance(p, dict) for p in raw):
@@ -299,6 +312,32 @@ def clean_periods(data, day, raw):
     if len(raw) != MAX_PERIODS:
         return None, None, "تقسيم الهدف بالوقت يحتاج ضابطين: الأول حتى وقت والثاني من نفس الوقت.", 400
     first, second = raw
+    has_text = any("label" in period for period in raw)
+    has_clock = any(key in period for period in raw for key in ("until", "from"))
+    if has_text:
+        if has_clock or any("label" not in period for period in raw):
+            return None, None, "تقسيم النص يحتاج وصفًا نصيًا لكل ضابط من غير أوقات.", 400
+        labels = []
+        for period in raw:
+            label = period.get("label")
+            if not isinstance(label, str):
+                return None, None, "وصف فترة التغطية يجب أن يكون نصًا.", 400
+            label = label.strip()
+            if not label:
+                return None, None, "اكتب وصف فترة التغطية للضابطين.", 400
+            if len(label) > 80:
+                return None, None, "وصف فترة التغطية أطول من الحد المسموح (80 حرفًا).", 400
+            if any(char in label for char in "\r\n"):
+                return None, None, "وصف فترة التغطية يجب أن يكون في سطر واحد.", 400
+            labels.append(label)
+        ids = [str(first.get("officer_id") or "").strip(), str(second.get("officer_id") or "").strip()]
+        if not all(ids) or ids[0] == ids[1]:
+            return None, None, "اختر ضابطين مختلفين لفترتي الهدف.", 400
+        clean, err, status = clean_people(data, day, ids, "officers")
+        if err:
+            return None, None, err, status
+        return [{"officer_id": ids[0], "label": labels[0]},
+                {"officer_id": ids[1], "label": labels[1]}], clean, None, None
     if first.get("from") or second.get("until") or not first.get("until") or not second.get("from"):
         return None, None, "الفترة الأولى «حتى» وقت والثانية «من» نفس الوقت.", 400
     until, start = parse_time(first["until"]), parse_time(second["from"])

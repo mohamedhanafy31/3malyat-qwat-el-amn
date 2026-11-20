@@ -27,6 +27,7 @@ const orderedCampaignRows = (payload = CAMPAIGN) => payload?.delivery_rows || [
 const rowSets = (payload = CAMPAIGN) => [...orderedCampaignRows(payload), ...(payload?.posts || [])];
 const rowBy = id => rowSets().find(row => row.id === id);
 const rowKey = row => `${row.kind}:${row.id}`;
+const rowBand = row => row?.vehicle_group || row?.band || "";
 const rowByKey = (key, payload = CAMPAIGN) => rowSets(payload).find(row => rowKey(row) === key);
 const controlKey = (row, field) => `${rowKey(row)}:${field}`;
 
@@ -209,6 +210,23 @@ function lineMissing(row, field, lineIndex) {
 // خدمة بأكتر من مركبة: كل سطر له تسمية مختلفة لقارئ الشاشة («… — مركبة 2») بدل تسميتين متطابقتين
 const lineSuffix = row => row?.lineCount > 1 && row.lineIndex !== undefined ? ` — مركبة ${row.lineIndex + 1}` : "";
 
+function orderedCampaignVehicleLines(lines) {
+  const firstSeen = new Map();
+  const values = (lines || []).map((item, index) => ({...item, _sourceIndex: index}));
+  values.forEach(item => {
+    const key = item.vehicle_group || (item.vehicle?.type || item.type_text || "missing");
+    if (!firstSeen.has(key)) firstSeen.set(key, firstSeen.size);
+  });
+  return values.sort((a, b) => {
+    const rankA = Number.isFinite(a.vehicle_group_rank) ? a.vehicle_group_rank : 99;
+    const rankB = Number.isFinite(b.vehicle_group_rank) ? b.vehicle_group_rank : 99;
+    if (rankA !== rankB) return rankA - rankB;
+    const keyA = a.vehicle_group || (a.vehicle?.type || a.type_text || "missing");
+    const keyB = b.vehicle_group || (b.vehicle?.type || b.type_text || "missing");
+    return firstSeen.get(keyA) - firstSeen.get(keyB) || a._sourceIndex - b._sourceIndex;
+  });
+}
+
 // مين بيستخدم كل مركبة دلوقتي (من غير الصف نفسه) عشان تظهر في قايمة الاختيار قبل ما التحذير يطلع بعد الحفظ
 function vehicleUsage(exceptId) {
   const usage = new Map();
@@ -311,7 +329,7 @@ function serviceCell(row, allowAttach) {
 function campaignRow(row, allowAttach, section) {
   if (row.kind === "group") return groupCampaignRow(row);
   if (row.kind === "service") return serviceCampaignRow(row);
-  return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="${esc(section)}" data-row-band="${esc(row.band || "")}" data-row-state="${esc(row.status)}">
+  return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="${esc(section)}" data-row-band="${esc(rowBand(row))}" data-row-state="${esc(row.status)}">
     <td class="name">${serviceCell(row, allowAttach)}</td>
     <td class="campaign-driver-cell">${driverOptions(row)}</td>
     <td dir="ltr">${vehicleOptions(row)}</td>
@@ -321,15 +339,16 @@ function campaignRow(row, allowAttach, section) {
 }
 
 function serviceCampaignRow(row) {
-  const vehicles = row.service_vehicles || [];
+  const vehicles = orderedCampaignVehicleLines(row.service_vehicles || []);
   const directVehicles = vehicles.filter(item => item.source === "direct");
+  const directWarnings = new Map(directVehicles.map(item => [item.vehicle_id || item.vehicle?.id || "", item.warnings || []]));
   const carrier = vehicles.find(item => item.source === "lorry");
   const carriedOnly = !directVehicles.length && !!carrier;
-  const stored = row.vehicles || [];
+  const stored = orderedCampaignVehicleLines(row.vehicles || []);
   const lines = vehicles.map(item => {
     const vehicle = item.vehicle || {};
     const plate = vehicle.plate || item.plate || "بدون مركبة";
-    const type = vehicle.type || "نوع غير محدد";
+    const type = vehicle.type || item.type_text || "نوع غير محدد";
     const driver = item.driver?.name || "بدون سائق";
     return item.source === "lorry"
       ? `<span><b>لوري ${esc(item.lorry_name || item.lorry_id || "")}</b> — <span dir="ltr">${esc(plate)}</span> — ${esc(driver)}</span>`
@@ -340,14 +359,14 @@ function serviceCampaignRow(row) {
   const action = `<button type="button" class="mini btn-xs campaign-service-secondary" data-action="openCampaignServiceVehicles" data-id="${esc(row.id)}">${icon("edit")} مركبات وأفراد</button>`;
   const removeService = `<button type="button" class="mini btn-xs campaign-service-secondary" data-action="removeCampaignService" data-id="${esc(row.id)}">إزالة من اليومية</button>`;
   const lineItems = stored.length ? stored : [{vehicle: row.vehicle, vehicle_id: row.vehicle?.id || "", driver: row.driver}];
-  const editable = !carriedOnly ? lineItems.map((item, index) => ({...item, id: row.id, name: row.name,
-    missing: row.missing || [], lineIndex: index, lineCount: lineItems.length,
+  const editable = !carriedOnly ? lineItems.map((item, displayIndex) => ({...item, id: row.id, name: row.name,
+    missing: row.missing || [], lineIndex: item._sourceIndex ?? displayIndex, displayIndex, lineCount: lineItems.length,
     vehicle: item.vehicle || null, driver: item.driver || null})) : [];
   const addVehicle = carriedOnly ? "" : `<button type="button" class="mini btn-xs campaign-service-add-vehicle" data-action="addServiceVehicle" data-id="${esc(row.id)}">+ مركبة</button>`;
   const driverLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${driverOptions(line, {lineIndex: line.lineIndex})}</div>`).join("");
-  const plateLines = editable.map(line => `<div class="campaign-inline-vehicle-line" dir="ltr">${vehicleOptions(line)}${(directVehicles[line.lineIndex]?.warnings || []).map(warning => `<span class="campaign-line-warning" dir="rtl">${esc(warning)}</span>`).join("")}</div>`).join("");
+  const plateLines = editable.map(line => `<div class="campaign-inline-vehicle-line" dir="ltr">${vehicleOptions(line)}${(directWarnings.get(line.vehicle_id || line.vehicle?.id || "") || []).map(warning => `<span class="campaign-line-warning" dir="rtl">${esc(warning)}</span>`).join("")}</div>`).join("");
   const typeLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${vehicleTypeOptions(line)}</div>`).join("");
-  const removeLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${editable.length > 1 ? `<button type="button" class="mini danger btn-xs" data-action="removeServiceVehicle" data-id="${esc(row.id)}" data-index="${line.lineIndex}" aria-label="إزالة المركبة ${line.lineIndex + 1} من ${esc(row.name)}">×</button>` : ""}</div>`).join("");
+  const removeLines = editable.map(line => `<div class="campaign-inline-vehicle-line">${editable.length > 1 ? `<button type="button" class="mini danger btn-xs" data-action="removeServiceVehicle" data-id="${esc(row.id)}" data-index="${line.lineIndex}" aria-label="إزالة المركبة ${(line.displayIndex ?? line.lineIndex) + 1} من ${esc(row.name)}">×</button>` : ""}</div>`).join("");
   let cells;
   if (carriedOnly) {
     const lorryDriver = driverDisplay(carrier.driver) || "اللوري بدون سائق";
@@ -355,7 +374,7 @@ function serviceCampaignRow(row) {
   } else {
     cells = `<td class="campaign-driver-cell"><div class="campaign-service-lines">${driverLines}</div></td><td dir="ltr"><div class="campaign-service-lines">${plateLines}</div></td><td><div class="campaign-service-lines campaign-vehicle-type">${typeLines}</div></td><td class="col-actions"><div class="campaign-service-lines">${removeLines}</div>${removeService}${action}</td>`;
   }
-  return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="routes" data-row-band="${esc(row.band || "")}" data-row-state="${esc(row.status)}">
+  return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="routes" data-row-band="${esc(rowBand(row))}" data-row-state="${esc(row.status)}">
     <td class="name"><div class="campaign-service-name">${groupPick}<strong>${esc(row.base_name || row.name)}</strong>${(row.attached || []).map(item => `<span class="chip campaign-attach-chip">${esc(item.name)}</span>`).join("")}${warningChips(row)}${!carriedOnly ? addVehicle : ""}</div></td>
     ${cells}
   </tr>`;
@@ -363,7 +382,7 @@ function serviceCampaignRow(row) {
 
 function groupCampaignRow(row) {
   const members = (row.members || []).map(item => esc(item.name)).join(" • ");
-  return `<tr class="campaign-row campaign-group-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="routes" data-row-band="${esc(row.band || "")}" data-row-state="${esc(row.status)}">
+  return `<tr class="campaign-row campaign-group-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="routes" data-row-band="${esc(rowBand(row))}" data-row-state="${esc(row.status)}">
     <td class="name"><div class="campaign-service-name"><strong>${esc(row.name)}</strong><span class="chip muted-chip">مجموعة ${(row.members || []).length}</span>${warningChips(row)}</div><div class="sub campaign-group-members">${members}</div></td>
     <td class="campaign-driver-cell">${driverOptions(row)}</td>
     <td dir="ltr">${vehicleOptions(row)}</td>
@@ -380,7 +399,7 @@ function postDriver(row) {
 function postRow(row) {
   const plate = row.vehicle?.label || row.vehicle?.plate || row.plate_text || "—";
   const type = row.vehicle?.type || row.type_text || "—";
-  return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="posts" data-row-state="${esc(row.status)}">
+  return `<tr class="campaign-row${rowStateClass(row)}${row.warnings?.length ? " has-warning" : ""}" data-row-key="${esc(rowKey(row))}" data-section="posts" data-row-band="${esc(rowBand(row))}" data-row-state="${esc(row.status)}">
     <td>${esc(row.number || "")}</td><td class="name"><strong>${esc(row.name)}</strong>${warningChips(row)}</td>
     <td class="campaign-driver-cell">${postDriver(row)}</td><td dir="ltr"><div class="campaign-vehicle-cell">${vehicleOptions(row)}${!row.vehicle && row.plate_text ? `<span class="muted-text" dir="ltr">${esc(plate)}</span>` : ""}</div></td>
     <td><div class="campaign-vehicle-type">${vehicleTypeOptions(row)}${!row.vehicle && row.type_text ? `<span class="muted-text">${esc(type)}</span>` : ""}</div></td>
@@ -391,7 +410,7 @@ function postRow(row) {
 function postCard() {
   const rows = CAMPAIGN.posts || [];
   const action = `<button type="button" class="mini on-dark" data-action="openCampaignPost">${icon("plus")} إضافة</button>`;
-  const body = rows.length ? `<div class="mtable-wrap">${mtable(["الرقم", "الارتكاز", "السائق", "رقم المركبة", "نوع المركبة", "الإجراء"], rows.map(postRow))}</div>` : emptyState({compact: true, title: "لا توجد ارتكازات اليوم"});
+  const body = rows.length ? `<div class="mtable-wrap">${mtable(["الرقم", "الارتكاز", "السائق", "رقم المركبة", "نوع المركبة", "الإجراء"], bandedRows(rows, "posts", {colspan: 6}))}</div>` : emptyState({compact: true, title: "لا توجد ارتكازات اليوم"});
   return `<div class="mcard campaign-table-card campaign-posts-card" data-campaign-section="posts"><h3>مركبات الارتكازات<span class="mcount">${rows.length}</span>${summaryChip("posts")}${action}</h3><div data-section-body>${body}</div></div>`;
 }
 
@@ -433,11 +452,11 @@ function bandedRows(rows, section, options = {}) {
   const markup = [];
   let previousBand = null;
   rows.forEach(row => {
-    if (row.band !== previousBand && !(options.skipFirstBand && !markup.length)) {
-      markup.push(`<tr class="campaign-band-row" data-campaign-band="${esc(row.band || "")}"><th colspan="5">${esc(row.band_label || "")}</th></tr>`);
+    if (rowBand(row) !== previousBand && !(options.skipFirstBand && !markup.length)) {
+      markup.push(`<tr class="campaign-band-row" data-campaign-band="${esc(rowBand(row))}"><th colspan="${options.colspan || 5}">${esc(row.band_label || "")}</th></tr>`);
     }
     markup.push(campaignRow(row, row.kind === "lorry", section));
-    previousBand = row.band;
+    previousBand = rowBand(row);
   });
   return markup;
 }
@@ -454,7 +473,7 @@ function routesCard() {
 function dailyCard() {
   const rows = orderedCampaignRows().filter(row => ["security", "ambulance", "driver_only"].includes(row.band));
   const action = `<button type="button" class="mini on-dark" data-action="openCampaignDaily">${icon("plus")} إضافة</button>`;
-  const body = rows.length ? `<div class="mtable-wrap">${mtable(["الخدمة", "السائق", "رقم المركبة", "نوع المركبة", "الإجراء"], bandedRows(rows, "daily", {skipFirstBand: rows[0]?.band === "security"}))}</div>` : emptyState({compact: true, title: "لا توجد أقوال أمنية اليوم"});
+  const body = rows.length ? `<div class="mtable-wrap">${mtable(["الخدمة", "السائق", "رقم المركبة", "نوع المركبة", "الإجراء"], bandedRows(rows, "daily"))}</div>` : emptyState({compact: true, title: "لا توجد أقوال أمنية اليوم"});
   return `<div class="mcard campaign-table-card campaign-daily-card" data-campaign-section="daily"><h3>الأقوال الأمنية<span class="mcount">${rows.length}</span>${summaryChip("daily")}${action}</h3><div data-section-body>${body}</div></div>`;
 }
 

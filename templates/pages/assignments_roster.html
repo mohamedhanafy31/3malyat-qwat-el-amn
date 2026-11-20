@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block export %}docx{% endblock %}
+{% block daily_files %}roster{% endblock %}
+
+{% block page_actions %}
+<button class="btn" id="rosterSelect" type="button">اختيار الضباط <span id="rosterSelectionCount">0 من 0</span></button>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="toolbar" id="rosterBar">
+    <div class="tb-group" role="group" aria-label="التنقل بين الأيام">
+      <button class="mini" id="rosterPrev">{{ icon('chevron-prev') }} السابق</button>
+      <input type="date" id="rosterDate" class="select" aria-label="يوم كشف التعيينات">
+      <button class="mini" id="rosterNext">التالي {{ icon('chevron-next') }}</button>
+      <button class="mini day-jump" id="rosterTomorrow">غدًا</button>
+    </div>
+    <div class="tb-group tb-end">
+      <span id="rosterLock" class="muted" role="status"></span>
+      <button class="mini" id="rosterSave" type="button">حفظ إعدادات الكشف</button>
+    </div>
+  </div>
+
+  <div class="form-grid" aria-label="إعدادات يومية التعيينات">
+    <div class="field field-wide"><span>تصنيفات الذيل</span>
+      <div id="rosterFooterCategories" class="stacked-fields"></div>
+      <div class="toolbar compact-toolbar">
+        <button class="mini" id="rosterAddFooter" type="button">إضافة تصنيف</button>
+        <small id="rosterFooterTotal" class="field-hint">إجمالي تصنيفات الذيل: 5</small>
+      </div>
+      <small class="field-hint">يمكن حذف التصنيفين الافتراضيين أو إضافة تصنيفات أخرى، بحد أقصى 8.</small>
+    </div>
+    <label class="field"><span>توقيع قسم العمليات</span>
+      <select id="rosterOpsSigner" class="select"><option value="">بدون توقيع</option></select>
+      <small class="field-hint">القائمة من أفراد قسم العمليات، والاختيار الافتراضي أول اسم.</small>
+    </label>
+  </div>
+  <p id="rosterMessage" class="field-hint" role="status" aria-live="polite"></p>
+</div>
+
+<div class="panel">
+  <div class="section-head">
+    <div><h3 id="rosterTitle">كشف التعيينات</h3><p class="muted">المعاينة مطابقة لبيانات ملف Word.</p></div>
+    <button class="primary" id="rosterDownload" type="button">{{ icon('download') }} تحميل Word</button>
+  </div>
+  <div class="table-scroll" id="rosterPreview" aria-live="polite">{{ skeleton("rows", 10) }}</div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal hidden" id="rosterSelectionModal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rosterSelectionTitle">
+    <button type="button" class="close" id="rosterSelectionClose" aria-label="إغلاق">×</button>
+    <h2 id="rosterSelectionTitle">اختيار الضباط</h2>
+    <p class="form-note">اختر ضباط «عمل» الذين يظهرون في الكشف. الحالات الأخرى والأهداف والعيادة الطبية تظهر تلقائيًا.</p>
+    <div class="field-section">
+      <div class="toolbar compact-toolbar">
+        <strong id="rosterSelectionModalCount">0 من 0</strong>
+        <div class="tb-group tb-end">
+          <button class="mini" id="rosterSelectAll" type="button">تحديد الكل</button>
+          <button class="mini" id="rosterSelectNone" type="button">إلغاء الكل</button>
+        </div>
+      </div>
+      <div class="ops-checks" id="rosterSelectionList" aria-live="polite"></div>
+    </div>
+    <div class="actions modal-foot">
+      <button class="primary" id="rosterApplySelection" type="button">تطبيق الاختيار</button>
+      <button class="btn" id="rosterSelectionCancel" type="button">إلغاء</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/assignments-roster.js') }}"></script>
+{% endblock %}

@@ -255,6 +255,7 @@ function outsiderDetail(row) {
     return note ? `${course.text} — ${note}` : course.text;
   }
   const period = row.status_period;
+  if (period?.custom && period.details) return period.details;
   // مأمورية/انتداب: الاسم والتفاصيل والمدى تظهر كل يوم بيغطيه السجل
   if (period?.title && period.label) return note ? `${period.label} — ${note}` : period.label;
   if (period) {
@@ -859,6 +860,11 @@ function _openAssignModal(endpoint, title, extra, showCommanderNote, allowSplit 
   pick($("#tgFirst"), first?.officer_id);
   pick($("#tgSecond"), second?.officer_id);
   setTimeInputValue($("#tgSplitAt"), first?.until || "");
+  $("#tgFirstLabel").value = first?.label || "";
+  $("#tgSecondLabel").value = second?.label || "";
+  const textMode = !!(first?.label || second?.label);
+  $("#tgSplitByTime").checked = !textMode;
+  $("#tgSplitByText").checked = textMode;
   $("#tgSplit").checked = !!(first && second);
   syncSplitFields();
   openModal("targetModal");
@@ -866,10 +872,27 @@ function _openAssignModal(endpoint, title, extra, showCommanderNote, allowSplit 
 
 function syncSplitFields() {
   const on = $("#tgSplit").checked;
+  const textMode = $("#tgSplitByText").checked;
+  $("#tgSplitMode").classList.toggle("hidden", !on);
   $("#tgSplitFields").classList.toggle("hidden", !on);
+  $("#tgSplitTimeField").classList.toggle("hidden", textMode);
+  $("#tgSplitTextFirstField").classList.toggle("hidden", !textMode);
+  $("#tgSplitTextSecondField").classList.toggle("hidden", !textMode);
   $("#tgOfficers").closest("label").classList.toggle("hidden", on);
 }
 $("#tgSplit").addEventListener("change", syncSplitFields);
+$("#tgSplitMode").querySelectorAll("input").forEach(input => input.addEventListener("change", syncSplitFields));
+
+// لو كُتب الحدث في أول خانة، اقترح الصيغة الرسمية للخانتين مرة واحدة؛
+// بعد ذلك يظل كل نص قابلًا للتعديل باستقلال عن الآخر.
+$("#tgFirstLabel").addEventListener("change", () => {
+  const first = $("#tgFirstLabel").value.trim();
+  const second = $("#tgSecondLabel").value.trim();
+  const event = first.replace(/^لحين\s+/, "").trim();
+  if (!event || second) return;
+  $("#tgFirstLabel").value = `لحين ${event}`;
+  $("#tgSecondLabel").value = `عقب ${event}`;
+});
 
 function openTargetAssign(name, extra) {
   _openAssignModal(`/api/board/${DAY}/target/${encodeURIComponent(name)}`,
@@ -890,10 +913,18 @@ $("#targetForm").onsubmit = async e => {
   if (!$("#tgSplitWrap").classList.contains("hidden")) {
     if ($("#tgSplit").checked) {
       const first = $("#tgFirst").value, second = $("#tgSecond").value;
-      const at = $("#tgSplitAt").dataset.hhmm;
       if (!first || !second || first === second) { showToast("اختر ضابطين مختلفين للتقسيم", true); return; }
-      if (!at) { showToast("اختر وقت التقسيم من لوحة الساعة", true); return; }
-      body.periods = [{officer_id: first, until: at}, {officer_id: second, from: at}];
+      if ($("#tgSplitByText").checked) {
+        const firstLabel = $("#tgFirstLabel").value.trim();
+        const secondLabel = $("#tgSecondLabel").value.trim();
+        if (!firstLabel || !secondLabel) { showToast("اكتب وصف التغطية للضابطين", true); return; }
+        body.periods = [{officer_id: first, label: firstLabel},
+                        {officer_id: second, label: secondLabel}];
+      } else {
+        const at = $("#tgSplitAt").dataset.hhmm;
+        if (!at) { showToast("اختر وقت التقسيم من لوحة الساعة", true); return; }
+        body.periods = [{officer_id: first, until: at}, {officer_id: second, from: at}];
+      }
       body.officer_ids = [first, second];
     } else {
       body.periods = [];   // إلغاء أي تقسيم قديم صراحةً

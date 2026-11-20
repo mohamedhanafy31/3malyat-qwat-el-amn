@@ -42,8 +42,22 @@ def signatories(data, day):
         result[key] = ({"rank": person.get("role") or BOXES[key][1], "name": _short(person)}
                        if person else {"rank": BOXES[key][1], "name": BOXES[key][2]})
     chief_post = norm("رئيس قسم العمليات")
-    chief = next(({**person, **effective(person, day)} for person in officers_on(data, day)
-                  if chief_post in norm(effective(person, day).get("post"))), None)
+    candidates = [({**person, **effective(person, day)}) for person in officers_on(data, day)
+                  if chief_post in norm(effective(person, day).get("post"))]
+    # «رئيس قسم العمليات» ظهر تاريخيًا داخل أكثر من وصف وظيفي (منهم نائب
+    # سابق بالإنابة). نفضّل الوصف الذي يبدأ بالمنصب الصريح، ثم صيغة «شئون
+    # ضباط»، ثم الاسم الذي يحمل لقب بحر كحلّ معروف في بيانات الإدارة؛ لو لم
+    # ينطبق أي منها يظل ترتيب القوة هو الحكم القديم.
+    def chief_key(person):
+        post = norm(person.get("post"))
+        name = norm(person.get("name"))
+        return (
+            0 if post.startswith(chief_post) else 1,
+            0 if "شئونضباط" in post else 1,
+            0 if "بحر" in name else 1,
+        )
+
+    chief = min(candidates, key=chief_key, default=None)
     result["operations"] = ({"rank": chief.get("role") or "رائد", "name": _short(chief)}
                             if chief else {"rank": "رائد", "name": "محمد بحر"})
     return result

@@ -76,6 +76,12 @@
                     data-maxlength="60" aria-label="تصنيف حالة الضابط"></select>
             <small class="status-behavior-hint" id="assignStatusHint">مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد.</small>
           </label>
+          <label class="checkline hidden" id="assignPeriodRow">
+            <input type="checkbox" id="assignCustomPeriod">
+            <span>حالة لفترة محددة
+              <small>النص الثابت يستمر في كل الأيام حتى يوم النهاية</small>
+            </span>
+          </label>
           <label class="hidden" id="assignEndRow">حتى يوم <small>آخر يوم في الحالة (شامل) — تنتهي تلقائيًا بعده</small>
             <input type="date" id="assignStatusEnd">
           </label>

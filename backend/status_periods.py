@@ -31,6 +31,7 @@ BOUNDED_STATUSES = ("طارئة", "مأمورية", "انتداب")
 DETAILED_STATUSES = ("مأمورية", "انتداب")
 MAX_TITLE_LEN = 120
 MAX_DETAILS_LEN = 300
+MAX_CUSTOM_DETAILS_LEN = 500
 # أي حالة من دول مصدرها سجل المدى مش ملف اليوم
 PERIOD_STATUSES = CONTINUOUS_STATUSES + BOUNDED_STATUSES
 
@@ -47,8 +48,8 @@ def periods(data):
     return data.setdefault("officer_status_periods", [])
 
 
-def is_bounded(status):
-    return status in BOUNDED_STATUSES
+def is_bounded(status, custom=False):
+    return status in BOUNDED_STATUSES or bool(custom)
 
 
 def public(row):
@@ -59,7 +60,10 @@ def public(row):
                                                "start_time", "end_time")}
     out["title"] = row.get("title", "") or ""
     out["details"] = row.get("details", "") or ""
-    out["kind"] = "bounded" if is_bounded(row.get("status")) else "continuous"
+    custom = bool(row.get("custom"))
+    if custom:
+        out["custom"] = True
+    out["kind"] = "bounded" if is_bounded(row.get("status"), custom) else "continuous"
     out["open_ended"] = not row.get("end")
     # «طارئة»/«انتداب» مفتوحة = سجل قديم من قبل إلزام يوم النهاية
     out["legacy_open"] = out["open_ended"] and out["kind"] == "bounded"
@@ -135,6 +139,12 @@ def describe(row):
     status = row.get("status", "") or ""
     parts = [part for part in (str(row.get("title") or "").strip(),
                                str(row.get("details") or "").strip()) if part]
+    if row.get("custom") and parts:
+        if row.get("start") and row.get("end"):
+            parts.append(f"من {_dmy(row['start'])} حتى {_dmy(row['end'])}")
+        elif row.get("start"):
+            parts.append(f"من {_dmy(row['start'])}")
+        return f"{status}: " + " — ".join(parts)
     if status not in DETAILED_STATUSES or not parts:
         return status
     if row.get("start") and row.get("end"):
@@ -144,10 +154,15 @@ def describe(row):
     return f"{status}: " + " — ".join(parts)
 
 
-def clean_details(status, title, details):
+def clean_details(status, title, details, custom=False):
     """الاسم والتفاصيل لحالة «مأمورية»/«انتداب» — بترمي ``PeriodError`` لو ناقصة.
 
     باقي الحالات مابتخزّنش اسم ولا تفاصيل."""
+    if custom:
+        details = " ".join(str(details or "").split())
+        if len(details) > MAX_CUSTOM_DETAILS_LEN:
+            raise PeriodError(f"نص الحالة أطول من الحد المسموح ({MAX_CUSTOM_DETAILS_LEN} حرف).")
+        return "", details
     if status not in DETAILED_STATUSES:
         return "", ""
     title = " ".join(str(title or "").split())
@@ -188,10 +203,10 @@ def _previous_day(day):
     return (date.fromisoformat(day) - timedelta(days=1)).isoformat()
 
 
-def clean_end(status, raw_end, day):
+def clean_end(status, raw_end, day, custom=False):
     """تحقق من يوم النهاية حسب نوع الحالة. يرجع النهاية القانونية أو يرفع ``PeriodError``."""
     raw_end = str(raw_end or "").strip()
-    if status in CONTINUOUS_STATUSES:
+    if status in CONTINUOUS_STATUSES and not custom:
         if raw_end:
             raise PeriodError(f"حالة «{status}» مستمرة حتى الإنهاء ولا تقبل يوم نهاية.")
         return ""
@@ -206,7 +221,8 @@ def clean_end(status, raw_end, day):
     return end
 
 
-def start(data, officer_id, status, day, end="", title="", details="", start_time=""):
+def start(data, officer_id, status, day, end="", title="", details="", start_time="",
+          custom=False):
     """ابدأ/بدّل حالة ممتدة من ``day``.
 
     ``end`` مطلوب للحالات محددة المدة (شامل) وممنوع للمستمرة؛ و«مأمورية»
@@ -221,10 +237,10 @@ def start(data, officer_id, status, day, end="", title="", details="", start_tim
     - سجل لاحق مجدول لنفس الضابط بيتحافظ عليه: الحالة المستمرة بتقف قبله،
       و«طارئة» اللي نهايتها بتعدّي عليه بتترفض بدل ما تبلعه.
     """
-    if status not in PERIOD_STATUSES:
+    if status not in PERIOD_STATUSES and not custom:
         raise PeriodError("الحالة ليست من الحالات الممتدة.")
-    end = clean_end(status, end, day)
-    title, details = clean_details(status, title, details)
+    end = clean_end(status, end, day, custom=custom)
+    title, details = clean_details(status, title, details, custom=custom)
     start_time = clean_clock(start_time, "وقت بداية الغياب") if status == "غياب" else ""
 
     future = sorted(
@@ -238,7 +254,7 @@ def start(data, officer_id, status, day, end="", title="", details="", start_tim
             "اختر يوم نهاية قبلها.", 409)
 
     current = active_on(data, officer_id, day)
-    if current and current.get("status") == status:
+    if current and current.get("status") == status and bool(current.get("custom")) == bool(custom):
         if not end:
             changed = current.get("start_time", "") != start_time
             before = dict(current) if changed else None
@@ -254,7 +270,12 @@ def start(data, officer_id, status, day, end="", title="", details="", start_tim
         before = dict(current)
         current["end"] = end
         current.pop("stopped_on", None)
-        if title:
+        if custom:
+            current["custom"] = True
+        if custom:
+            current["details"] = details
+            current.pop("title", None)
+        elif title:
             current["title"], current["details"] = title, details
         if start_time:
             current["start_time"] = start_time
@@ -279,6 +300,9 @@ def start(data, officer_id, status, day, end="", title="", details="", start_tim
         "end": end or (_previous_day(future[0]["start"]) if future else ""),
         "stopped_on": "" if end else (future[0]["start"] if future else ""),
     }
+    if custom:
+        row["custom"] = True
+        row["details"] = details
     if title:
         row["title"], row["details"] = title, details
     if start_time:

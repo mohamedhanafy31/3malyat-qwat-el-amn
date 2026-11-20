@@ -82,7 +82,7 @@ def _period_text(name, day, period, before, closed):
     suffix = f" ({detail})" if detail else ""
     if before and before.get("id") == period.get("id"):
         text = f"تعديل {status} لـ{name}: من {period.get('start')} حتى {period.get('end')}{suffix}"
-    elif is_bounded(status):
+    elif is_bounded(status, period.get("custom")):
         text = f"بدء {status} لـ{name} من {day} حتى {period.get('end')}{suffix}"
     elif period.get("end"):
         # حالة مستمرة اتقفلت تلقائيًا قبل حالة لاحقة مجدولة
@@ -144,7 +144,9 @@ def set_state(day, person_id):
     if len(admin_work_text) > MAX_LEN["note"]:
         return jsonify({"error": f"نص عمل بالإدارة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
     status_end = str(payload.get("status_end", "") or "").strip()
-    if status_end and status not in PERIOD_STATUSES:
+    custom_period = bool(payload.get("status_period")) and status not in PERIOD_STATUSES \
+        and not is_legacy_status(status)
+    if status_end and status not in PERIOD_STATUSES and not custom_period:
         return jsonify({"error": "يوم النهاية (حتى يوم) خاص بحالات «طارئة» و«مأمورية» و«انتداب»."}), 400
     status_title = str(payload.get("status_title", "") or "").strip()
     status_details = str(payload.get("status_details", "") or "").strip()
@@ -239,12 +241,12 @@ def set_state(day, person_id):
             and not status_details)
         if "status" in payload and status in PERIOD_STATUSES and keeps_open_legacy:
             stored_status = ""
-        elif "status" in payload and status in PERIOD_STATUSES:
+        elif "status" in payload and (status in PERIOD_STATUSES or custom_period):
             try:
                 period, period_changed, closed = start_persistent_status(
                     data, person_id, status, day, end=status_end,
-                    title=status_title, details=status_details,
-                    start_time=status_start_time)
+                    title=status_title, details=note if custom_period else status_details,
+                    start_time=status_start_time, custom=custom_period)
             except PeriodError as error:
                 raise AbortRequest((jsonify({"error": str(error)}), error.status))
             period_after = dict(period)

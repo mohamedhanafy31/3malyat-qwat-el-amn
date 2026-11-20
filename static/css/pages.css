@@ -77,12 +77,23 @@
 .roster-action-btn{min-width:88px}
 .leave-row-actions{align-items:center}
 .row-actions{display:flex;gap:var(--s1);align-items:center}
+.roster-footer-edit{display:grid;grid-template-columns:minmax(160px,1fr) 110px auto;gap:var(--s2);
+  align-items:center;margin-top:var(--s2)}
+.roster-footer-edit .input{min-width:0}
+.stacked-fields{display:flex;flex-direction:column;gap:var(--s2)}
+.field-wide{grid-column:1 / -1}
+.roster-table{table-layout:fixed;width:100%;direction:rtl}
+.roster-table th,.roster-table td{padding:3px 4px;text-align:center;vertical-align:middle;white-space:nowrap}
+.roster-table .roster-target{font-size:1.25em;font-weight:800;vertical-align:middle}
+.roster-table .roster-total{font-weight:800;text-align:center}
+.roster-table .roster-footer,.roster-table .roster-clinic{font-weight:700;text-align:center}
 @media(max-width:700px){
   .duration-cell{min-width:150px}
   .duration-stepper{height:40px}
   .duration-adjust{width:40px;height:38px}
   .duration-readout .roster-days{height:38px;font-size:16px}
   .roster-action .mini{min-height:40px}
+  .roster-footer-edit{grid-template-columns:minmax(0,1fr) 90px auto}
 }
 /* الفرق */
 .unclassified-banner{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:var(--s4) var(--s5) 0;

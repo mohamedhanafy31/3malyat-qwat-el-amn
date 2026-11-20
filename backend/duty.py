@@ -332,6 +332,12 @@ def officer_row(data, day, o, catalog=None):
         elif research:
             text = research_text(state.get("research_service", ""),
                                  state.get("research_time", ""))
+    manual = manual_text(state.get("note", ""), state.get("extra", ""))
+    if persistent and persistent.get("custom"):
+        # الحالة الحرة الممتدة مصدرها سجل المدى، لا ملاحظة يوم البداية؛
+        # لذلك يظل النص الثابت ظاهرًا في كل يوم من أيامها.
+        text = persistent.get("details") or persistent.get("status", "")
+        manual = persistent.get("details") or manual
     return {
         "id": o["id"], "name": o.get("name", ""), "short_name": o.get("short_name", ""),
         "phone": o.get("phone", ""),
@@ -361,12 +367,13 @@ def officer_row(data, day, o, catalog=None):
         "announced": state.get("announced") or "",
         # النص التشغيلي الكامل (خدمته + اليدوي) والنص اليدوي بس
         "text": text,
-        "manual": manual_text(state.get("note", ""), state.get("extra", "")),
+        "manual": manual,
         "leave": ({"id": leave.get("id"), "type": leave_label(leave),
                    "raw_type": leave["type"], "start": leave["start"],
                    "end": leave["end"],
                    "return_date": leave["return_date"]} if leave else None),
-        "note": state.get("note", ""),
+        "note": (persistent.get("details", "") if persistent and persistent.get("custom")
+                 else state.get("note", "")),
         "course": course_detail(term, catalog.get(term["course_id"]) if term else None),
         # كان بالقوة يومها لكنه خرج بعد كده — للتوضيح في اليوميات القديمة
         "later_left": o.get("leave_date", "") or None,

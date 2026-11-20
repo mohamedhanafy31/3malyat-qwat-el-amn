@@ -17,6 +17,7 @@ from .formation import build as build_formation
 from .formation_export import build_docx as build_formation_docx
 from .store import load_data
 from .utils import around, command_priority_map
+from .assignments_roster_export import build_docx as build_assignments_roster_docx
 
 
 def _bytes(value):
@@ -43,6 +44,18 @@ def build_duty_bytes(day):
     if needs_prepare(data, day):
         prepare(preview, day)
     return _bytes(build_duty_docx(summarise(preview, day)))
+
+
+def build_roster_bytes(day):
+    """يومية التعيينات من نفس تجهيز يوم الغد/اليوم المعروض."""
+    from .assignments_roster import prepare_view
+
+    _data, _preview, payload = prepare_view(day)
+    return _bytes(build_assignments_roster_docx(payload))
+
+
+# اسم وصفي إضافي للمستهلكين الذين لا يمررون من خلال daily_files.KINDS.
+build_assignments_roster_bytes = build_roster_bytes
 
 
 def _afraad_scope(day):
