@@ -680,11 +680,11 @@ def _fill_signatures(document, payload):
     for box in list(root.iter(qn("w:txbxContent"))):
         name = shape_name(box)
         if name == "Text Box 4":
-            _signature_box(box, "قسم العمليات", ops)
-            move_shape(box, "left")
-        elif name == "Text Box 5":
-            _signature_box(box, "رئيس قسم العمليات", chief)
+            _signature_box(box, "بلوكامين قسم العمليات", ops)       # الفرد: على اليمين
             move_shape(box, "right")
+        elif name == "Text Box 5":
+            _signature_box(box, "رئيس قسم العمليات", chief)         # الضابط: على الشمال
+            move_shape(box, "left")
     for body_pr in root.iter(WPS_BODY_PR):
         body_pr.set("wrap", "square")
 

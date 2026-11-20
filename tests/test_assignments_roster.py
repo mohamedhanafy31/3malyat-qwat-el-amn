@@ -319,8 +319,8 @@ def test_every_table_cell_and_merged_cell_is_centered_and_signature_shapes_are_t
     offsets = {anchor.find("wp:docPr", ns).get("name"):
                int(anchor.find("wp:positionH/wp:posOffset", ns).text)
                for anchor in root.findall(".//wp:anchor", ns)}
-    assert offsets["Text Box 4"] == 0                       # قسم العمليات: أقصى الشمال
-    assert offsets["Text Box 5"] == (10064 - 4000) * 635    # رئيس العمليات: أقصى اليمين (عرض العمود 10064)
+    assert offsets["Text Box 5"] == 0                       # رئيس قسم العمليات (الضابط): أقصى الشمال
+    assert offsets["Text Box 4"] == (10064 - 4000) * 635    # بلوكامين قسم العمليات (الفرد): أقصى اليمين (عرض العمود 10064)
     assert all(anchor.find("wp:positionH", ns).get("relativeFrom") == "column"
                for anchor in root.findall(".//wp:anchor", ns))
     assert {anchor.find("wp:extent", ns).get("cx")
