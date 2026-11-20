@@ -419,8 +419,10 @@ def leave_text(leave_type, start, end, return_date):
 def status_period_text(period):
     """تفاصيل الحالة الممتدة: المفتوحة من يوم البداية، والمحددة من/حتى."""
     period = period or {}
-    if period.get("custom") and period.get("details"):
-        return period["details"]
+    if period.get("custom"):
+        if period.get("details"):
+            return period["details"]
+        return f"من {_fmt_date(period.get('start'))}" if period.get("start") else ""
     if period.get("title") and period.get("label"):
         return period["label"]      # «مأمورية: <الاسم> — <التفاصيل> — من … حتى …»
     start = _fmt_date(period.get("start"))

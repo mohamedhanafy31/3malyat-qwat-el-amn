@@ -28,6 +28,10 @@ function isCustomStatus(value) {
     && !LEGACY_STATUSES.includes(value);
 }
 
+function customMode() {
+  return document.querySelector('input[name="assignCustomMode"]:checked')?.value || "day";
+}
+
 /* الفرقة: الجملة الرسمية (الاسم + المدة + المكان) ثم النوع والملاحظات لو موجودة */
 function courseLine(c) {
   return [c.text, c.kind && `(${c.kind})`, c.term_note, c.course_note].filter(Boolean).join(" — ");
@@ -212,8 +216,12 @@ ACTIONS.openAssign = id => {
   // ملاحظة بس) يثبّت «فرقة» كحالة يدوية تفضل بعد ما الفرقة نفسها تتمسح.
   $("#assignStatus").value = row.status || "";
   const period = row.status_source === "period" ? row.persistent_status : null;
-  $("#assignCustomPeriod").checked = !!period?.custom;
-  $("#assignStatusEnd").value = period && (BOUNDED_STATUSES.includes(period.status) || period.custom) ? (period.end || "") : "";
+  const customModeValue = period?.custom
+    ? (period.kind === "continuous" ? "continuous" : "bounded") : "day";
+  const customModeRadio = document.querySelector(`input[name="assignCustomMode"][value="${customModeValue}"]`);
+  if (customModeRadio) customModeRadio.checked = true;
+  $("#assignStatusEnd").value = period && (BOUNDED_STATUSES.includes(period.status) || period.custom)
+    && customModeValue === "bounded" ? (period.end || "") : "";
   $("#assignStatusStartTime").value = period?.status === "غياب" ? (period.start_time || "") : "";
   $("#assignStatusEnd").min = DUTY.date;
   $("#assignStatusTitle").value = period && DETAILED_STATUSES.includes(period.status) ? (period.title || "") : "";
@@ -273,9 +281,11 @@ ACTIONS.openAssign = id => {
   if (persistent?.id) {
     const bounded = persistent.kind === "bounded";
     $("#assignPersistentTitle").textContent = bounded ? "حالة لمدة محددة" : "حالة مستمرة";
-    $("#assignPersistentText").textContent = (persistent.title ? persistent.label : `${persistent.status} ${periodSpan(persistent)}`)
+    $("#assignPersistentText").textContent = (persistent.custom && persistent.details
+      ? `${persistent.status}: ${persistent.details} — ${periodSpan(persistent)}`
+      : persistent.title ? persistent.label : `${persistent.status} ${periodSpan(persistent)}`)
       + (persistent.legacy_open ? " — سجل قديم بلا يوم نهاية؛ أنهِه أو احفظه بيوم نهاية" : "");
-    // الحالة بنهاية بتخلص لوحدها — تعديل «حتى يوم» من النموذج بدل الإنهاء
+    // الحالة المستمرة (بما فيها المخصصة) لها زر الإنهاء؛ المحددة تنتهي تلقائيًا.
     $("#assignStopPersistent").classList.toggle("hidden", bounded && !persistent.open_ended);
     $("#assignStopPersistent").onclick = async () => {
       const yes = await confirmDialog({
@@ -356,10 +366,12 @@ function updateAssignSummary() {
   if (assignPath() === "status") {
     const value = $("#assignStatus").value;
     const end = $("#assignStatusEnd").value;
-    const customPeriod = isCustomStatus(value) && $("#assignCustomPeriod").checked;
+    const mode = customMode();
+    const customBounded = isCustomStatus(value) && mode === "bounded";
+    const customContinuous = isCustomStatus(value) && mode === "continuous";
     out.textContent = !value ? "اختار الحالة الخاصة من القايمة."
-      : `سيُسجَّل: حالة «${value}»${BOUNDED_STATUSES.includes(value) || customPeriod ? (end ? ` حتى ${fmt(end)}` : " — حدد «حتى يوم»")
-        : CONTINUOUS_STATUSES.includes(value) ? " مستمرة لحد إنهائها" : " لليوم ده بس"}.`;
+      : `سيُسجَّل: حالة «${value}»${BOUNDED_STATUSES.includes(value) || customBounded ? (end ? ` حتى ${fmt(end)}` : " — حدد «حتى يوم»")
+        : CONTINUOUS_STATUSES.includes(value) || customContinuous ? " مستمرة لحد إنهائها" : " لليوم ده بس"}.`;
     return;
   }
   const parts = ["تشغيل اليوم"];
@@ -376,14 +388,16 @@ function updatePersistentHint() {
   const continuous = CONTINUOUS_STATUSES.includes(value);
   const bounded = BOUNDED_STATUSES.includes(value);
   const custom = isCustomStatus(value);
-  const customPeriod = custom && $("#assignCustomPeriod").checked;
+  const mode = custom ? customMode() : "day";
+  const customBounded = custom && mode === "bounded";
+  const customContinuous = custom && mode === "continuous";
   const hint = $("#assignStatusHint");
-  hint.classList.toggle("is-persistent", continuous || bounded || customPeriod);
+  hint.classList.toggle("is-persistent", continuous || bounded || customBounded || customContinuous);
   const detailed = DETAILED_STATUSES.includes(value);
   $("#assignAbsenceTimeRow").classList.toggle("hidden", value !== "غياب");
   $("#assignPeriodRow").classList.toggle("hidden", !custom);
-  $("#assignEndRow").classList.toggle("hidden", !(bounded || customPeriod));
-  $("#assignStatusEnd").required = bounded || customPeriod;
+  $("#assignEndRow").classList.toggle("hidden", !(bounded || customBounded));
+  $("#assignStatusEnd").required = bounded || customBounded;
   $("#assignTitleRow").classList.toggle("hidden", !detailed);
   $("#assignDetailsRow").classList.toggle("hidden", !detailed);
   $("#assignStatusTitle").required = detailed;
@@ -392,12 +406,13 @@ function updatePersistentHint() {
   hint.textContent = continuous
     ? `حالة «${value}» تبدأ من هذا اليوم وتستمر تلقائيًا حتى إنهائها.`
     : bounded ? `حالة «${value}» من هذا اليوم حتى اليوم المحدد، وتنتهي تلقائيًا بعده.`
-    : customPeriod ? `حالة «${value}» من هذا اليوم حتى اليوم المحدد، والنص الثابت يظهر في كل أيام الفترة.`
+    : customBounded ? `حالة «${value}» من هذا اليوم حتى اليوم المحدد، والنص الثابت يظهر في كل أيام الفترة.`
+    : customContinuous ? `حالة «${value}» مستمرة لحد إنهائها، والنص الثابت يظهر كل يوم.`
     : value ? `حالة «${value}» لهذا اليوم فقط.`
-    : "مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد؛ باقي الحالات ليوم واحد.";
+    : "مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد؛ الحالة المخصصة: ليوم واحد أو فترة أو مستمرة.";
 }
 $("#assignStatus").addEventListener("change", updatePersistentHint);
-$("#assignCustomPeriod").addEventListener("change", updatePersistentHint);
+$$('input[name="assignCustomMode"]').forEach(input => input.addEventListener("change", updatePersistentHint));
 
 /* حالة خوارج من غير اسم/تفاصيل خاصة بيها (أي تصنيف غير المأمورية والانتداب):
    «نص الحالة» هو اللي بيظهر للضابط في اليومية التفصيلية (الخوارج) ويومية
@@ -492,14 +507,19 @@ $("#assignForm").onsubmit = async e => {
     body.medical_state = document.querySelector('input[name="assignMedicalState"]:checked')?.value || "عمل";
     body.medical_deputation_text = body.medical_state === "انتداب" ? $("#assignMedicalText").value : "";
   }
-  const customPeriod = isCustomStatus(status) && $("#assignCustomPeriod").checked;
-  if (BOUNDED_STATUSES.includes(status) || customPeriod) {
+  const mode = isCustomStatus(status) ? customMode() : "day";
+  const customBounded = isCustomStatus(status) && mode === "bounded";
+  const customContinuous = isCustomStatus(status) && mode === "continuous";
+  if (BOUNDED_STATUSES.includes(status) || customBounded) {
     const end = $("#assignStatusEnd").value;
     if (!end) { showToast(`حدد «حتى يوم» لحالة ${status}`, true); $("#assignStatusEnd").focus(); return; }
     if (end < DUTY.date) { showToast("«حتى يوم» قبل يوم البداية", true); $("#assignStatusEnd").focus(); return; }
     body.status_end = end;
   }
-  if (isCustomStatus(status)) body.status_period = customPeriod;
+  if (isCustomStatus(status)) {
+    body.status_period = customBounded || customContinuous;
+    if (body.status_period) body.status_mode = mode;
+  }
   if (DETAILED_STATUSES.includes(status)) {
     const title = $("#assignStatusTitle").value.trim(), details = $("#assignStatusDetails").value.trim();
     if (!title) { showToast(`اكتب اسم ${status}`, true); $("#assignStatusTitle").focus(); return; }

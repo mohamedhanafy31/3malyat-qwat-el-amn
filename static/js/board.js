@@ -255,7 +255,9 @@ function outsiderDetail(row) {
     return note ? `${course.text} — ${note}` : course.text;
   }
   const period = row.status_period;
-  if (period?.custom && period.details) return period.details;
+  if (period?.custom) {
+    return period.details || `من ${fmtShort(period.start)}`;
+  }
   // مأمورية/انتداب: الاسم والتفاصيل والمدى تظهر كل يوم بيغطيه السجل
   if (period?.title && period.label) return note ? `${period.label} — ${note}` : period.label;
   if (period) {

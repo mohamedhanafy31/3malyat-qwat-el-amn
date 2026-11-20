@@ -81,12 +81,17 @@
                     data-maxlength="60" aria-label="تصنيف حالة الضابط"></select>
             <small class="status-behavior-hint" id="assignStatusHint">مرضي وغياب تستمر حتى إنهائها؛ طارئة ومأمورية وانتداب حتى يوم محدد.</small>
           </label>
-          <label class="checkline hidden" id="assignPeriodRow">
-            <input type="checkbox" id="assignCustomPeriod">
-            <span>حالة لفترة محددة
-              <small>النص الثابت يستمر في كل الأيام حتى يوم النهاية</small>
-            </span>
-          </label>
+          <fieldset class="assign-special hidden" id="assignPeriodRow">
+            <legend>مدة الحالة المخصصة</legend>
+            <div class="seg-toggle" role="radiogroup" aria-label="مدة الحالة المخصصة">
+              <label><input type="radio" name="assignCustomMode" value="day" checked>
+                <span>ليوم واحد</span></label>
+              <label><input type="radio" name="assignCustomMode" value="bounded">
+                <span>لفترة محددة <small>النص الثابت حتى يوم النهاية</small></span></label>
+              <label><input type="radio" name="assignCustomMode" value="continuous">
+                <span>مستمرة لحد ما تتلغى <small>النص الثابت كل يوم حتى إنهائها</small></span></label>
+            </div>
+          </fieldset>
           <label class="hidden" id="assignEndRow">حتى يوم <small>آخر يوم في الحالة (شامل) — تنتهي تلقائيًا بعده</small>
             <input type="date" id="assignStatusEnd">
           </label>

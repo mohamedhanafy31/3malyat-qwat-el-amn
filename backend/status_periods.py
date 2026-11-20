@@ -48,8 +48,21 @@ def periods(data):
     return data.setdefault("officer_status_periods", [])
 
 
-def is_bounded(status, custom=False):
-    return status in BOUNDED_STATUSES or bool(custom)
+def is_bounded(status, custom=False, continuous=False):
+    return status in BOUNDED_STATUSES or (bool(custom) and not continuous)
+
+
+def is_continuous(row):
+    """هل سجل المدى مستمر حتى الإنهاء؟
+
+    السجلات المخصصة المفتوحة القديمة تُعامل كمستمرة عند القراءة، بينما
+    ``mode`` يحفظ المعنى بعد إيقاف السجل حتى تظل حالته واضحة في التاريخ.
+    """
+    row = row or {}
+    if row.get("status") in CONTINUOUS_STATUSES:
+        return True
+    return bool(row.get("custom")) and (
+        row.get("mode") == "continuous" or not row.get("end"))
 
 
 def public(row):
@@ -63,10 +76,14 @@ def public(row):
     custom = bool(row.get("custom"))
     if custom:
         out["custom"] = True
-    out["kind"] = "bounded" if is_bounded(row.get("status"), custom) else "continuous"
+    if custom and row.get("mode"):
+        out["mode"] = row["mode"]
+    out["kind"] = "continuous" if is_continuous(row) else "bounded"
     out["open_ended"] = not row.get("end")
-    # «طارئة»/«انتداب» مفتوحة = سجل قديم من قبل إلزام يوم النهاية
-    out["legacy_open"] = out["open_ended"] and out["kind"] == "bounded"
+    # «طارئة»/«انتداب» مفتوحة = سجل قديم من قبل إلزام يوم النهاية؛
+    # السجل المخصص المفتوح مقصود به الاستمرار، وليس سجلًا قديمًا ناقصًا.
+    out["legacy_open"] = (out["open_ended"] and out["kind"] == "bounded"
+                          and not custom)
     out["label"] = describe(row)
     out["duration"] = duration(row)
     return out
@@ -75,7 +92,8 @@ def public(row):
 def duration(row, today=None, now=None):
     """Duration display for absence and sick leave, preserving date-only history."""
     status = str((row or {}).get("status") or "")
-    if status not in ("غياب", "مرضي"):
+    custom = bool((row or {}).get("custom"))
+    if status not in ("غياب", "مرضي") and not custom:
         return None
     start = str(row.get("start") or "")
     end = str(row.get("end") or "")
@@ -203,10 +221,10 @@ def _previous_day(day):
     return (date.fromisoformat(day) - timedelta(days=1)).isoformat()
 
 
-def clean_end(status, raw_end, day, custom=False):
+def clean_end(status, raw_end, day, custom=False, continuous=False):
     """تحقق من يوم النهاية حسب نوع الحالة. يرجع النهاية القانونية أو يرفع ``PeriodError``."""
     raw_end = str(raw_end or "").strip()
-    if status in CONTINUOUS_STATUSES and not custom:
+    if continuous:
         if raw_end:
             raise PeriodError(f"حالة «{status}» مستمرة حتى الإنهاء ولا تقبل يوم نهاية.")
         return ""
@@ -222,7 +240,7 @@ def clean_end(status, raw_end, day, custom=False):
 
 
 def start(data, officer_id, status, day, end="", title="", details="", start_time="",
-          custom=False):
+          custom=False, continuous=False):
     """ابدأ/بدّل حالة ممتدة من ``day``.
 
     ``end`` مطلوب للحالات محددة المدة (شامل) وممنوع للمستمرة؛ و«مأمورية»
@@ -239,7 +257,8 @@ def start(data, officer_id, status, day, end="", title="", details="", start_tim
     """
     if status not in PERIOD_STATUSES and not custom:
         raise PeriodError("الحالة ليست من الحالات الممتدة.")
-    end = clean_end(status, end, day, custom=custom)
+    continuous = (status in CONTINUOUS_STATUSES and not custom) or (custom and continuous)
+    end = clean_end(status, end, day, custom=custom, continuous=continuous)
     title, details = clean_details(status, title, details, custom=custom)
     start_time = clean_clock(start_time, "وقت بداية الغياب") if status == "غياب" else ""
 
@@ -255,6 +274,29 @@ def start(data, officer_id, status, day, end="", title="", details="", start_tim
 
     current = active_on(data, officer_id, day)
     if current and current.get("status") == status and bool(current.get("custom")) == bool(custom):
+        effective_end = end or (_previous_day(future[0]["start"]) if continuous and future else "")
+        if custom:
+            before = dict(current)
+            desired_mode = "continuous" if continuous else ""
+            desired_stopped_on = future[0]["start"] if continuous and future else ""
+            changed = (
+                current.get("end", "") != effective_end
+                or current.get("stopped_on", "") != desired_stopped_on
+                or (current.get("details") or "") != details
+                or current.get("mode", "") != desired_mode
+            )
+            if not changed:
+                return current, False, None
+            current["end"] = effective_end
+            current["stopped_on"] = desired_stopped_on
+            current["custom"] = True
+            current["details"] = details
+            current.pop("title", None)
+            if desired_mode:
+                current["mode"] = desired_mode
+            else:
+                current.pop("mode", None)
+            return current, True, before
         if not end:
             changed = current.get("start_time", "") != start_time
             before = dict(current) if changed else None
@@ -297,12 +339,14 @@ def start(data, officer_id, status, day, end="", title="", details="", start_tim
         "officer_id": officer_id,
         "status": status,
         "start": day,
-        "end": end or (_previous_day(future[0]["start"]) if future else ""),
+        "end": end or (_previous_day(future[0]["start"]) if continuous and future else ""),
         "stopped_on": "" if end else (future[0]["start"] if future else ""),
     }
     if custom:
         row["custom"] = True
         row["details"] = details
+        if continuous:
+            row["mode"] = "continuous"
     if title:
         row["title"], row["details"] = title, details
     if start_time:

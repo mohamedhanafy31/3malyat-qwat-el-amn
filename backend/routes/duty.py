@@ -32,7 +32,7 @@ from ..day_open import needs_prepare, prepare
 from ..people import officers_on
 from ..store import AbortRequest, load_data, revision, stale_revision, with_data
 from .. import retro
-from ..status_periods import PERIOD_STATUSES, PeriodError, describe, is_bounded
+from ..status_periods import PERIOD_STATUSES, PeriodError, describe, is_bounded, is_continuous
 from ..status_periods import active_on as persistent_status_on
 from ..status_periods import cancel as cancel_persistent_status
 from ..status_periods import start as start_persistent_status
@@ -82,7 +82,7 @@ def _period_text(name, day, period, before, closed):
     suffix = f" ({detail})" if detail else ""
     if before and before.get("id") == period.get("id"):
         text = f"تعديل {status} لـ{name}: من {period.get('start')} حتى {period.get('end')}{suffix}"
-    elif is_bounded(status, period.get("custom")):
+    elif is_bounded(status, period.get("custom"), continuous=is_continuous(period)):
         text = f"بدء {status} لـ{name} من {day} حتى {period.get('end')}{suffix}"
     elif period.get("end"):
         # حالة مستمرة اتقفلت تلقائيًا قبل حالة لاحقة مجدولة
@@ -144,8 +144,17 @@ def set_state(day, person_id):
     if len(admin_work_text) > MAX_LEN["note"]:
         return jsonify({"error": f"نص عمل بالإدارة أطول من الحد المسموح ({MAX_LEN['note']} حرف)."}), 400
     status_end = str(payload.get("status_end", "") or "").strip()
-    custom_period = bool(payload.get("status_period")) and status not in PERIOD_STATUSES \
-        and not is_legacy_status(status)
+    status_mode = str(payload.get("status_mode", "") or "").strip()
+    custom_status = status not in PERIOD_STATUSES and not is_legacy_status(status)
+    custom_period = bool(payload.get("status_period")) and custom_status
+    custom_continuous = False
+    if status_mode and (not custom_period or status_mode not in ("bounded", "continuous")):
+        return jsonify({"error": "طريقة مدة الحالة المخصصة يجب أن تكون «لفترة محددة» أو «مستمرة حتى الإلغاء»."}), 400
+    if custom_period:
+        # من غير mode، وجود status_end هو صيغة العميل القديمة = bounded.
+        custom_continuous = status_mode == "continuous"
+        if custom_continuous and status_end:
+            return jsonify({"error": "الحالة المخصصة المستمرة لا تقبل «حتى يوم»؛ أنهِها من زر «إنهاء الحالة من هذا اليوم»."}), 400
     if status_end and status not in PERIOD_STATUSES and not custom_period:
         return jsonify({"error": "يوم النهاية (حتى يوم) خاص بحالات «طارئة» و«مأمورية» و«انتداب»."}), 400
     status_title = str(payload.get("status_title", "") or "").strip()
@@ -246,7 +255,8 @@ def set_state(day, person_id):
                 period, period_changed, closed = start_persistent_status(
                     data, person_id, status, day, end=status_end,
                     title=status_title, details=note if custom_period else status_details,
-                    start_time=status_start_time, custom=custom_period)
+                    start_time=status_start_time, custom=custom_period,
+                    continuous=custom_continuous)
             except PeriodError as error:
                 raise AbortRequest((jsonify({"error": str(error)}), error.status))
             period_after = dict(period)
