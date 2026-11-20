@@ -769,7 +769,9 @@ def build_board(data, day):
         is_taqseera = r["group"] == "خوارج" and r["bucket"] == "تقصيرة"
         is_outside = r["group"] == "خوارج" and not is_taqseera
         if is_outside:
-            if r["bucket"] == "راحة":
+            # حالة خاصة اسمها «راحة» (مش راحة من سجل الراحات) بتتصنّف خوارج/راحة بالاسم بس؛ لازم تفضل صف
+            # حالة بنصها وفترتها مش صف راحة فاضي («راحة») زي ما كان بيحصل لأحمد فوزي.
+            if r["bucket"] == "راحة" and not (r.get("status") or r.get("status_source")):
                 lv = r["leave"] or {}
                 rests.append({**who, "type": (r["leave"] or {}).get("type", "راحة"),
                               "start": lv.get("start"), "end": lv.get("end"),

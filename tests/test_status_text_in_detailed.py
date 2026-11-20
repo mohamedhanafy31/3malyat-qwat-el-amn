@@ -209,3 +209,25 @@ def test_custom_period_cancel_is_available_and_removes_the_text_from_all_views(c
     assert note not in _all_docx_text(Document(io.BytesIO(
         client.get(f"/api/board/{day}/export.docx").data)))
     assert note not in _all_docx_text(Document(io.BytesIO(build_board_bytes(day))))
+
+
+def test_custom_status_named_rest_keeps_its_text_and_is_not_turned_into_an_empty_rest_row(client):
+    """حالة خاصة اسمها «راحة» (فترة محددة بنص) كانت بتتحسب صف راحة بنص «راحة» بس في التفصيلية."""
+    from io import BytesIO
+    from docx import Document
+
+    day, officer = "2026-05-01", "OFF-002"
+    text = "راحة من يوم 1/5 والعودة يوم 4/5"
+    saved = client.put(f"/api/duty/{day}/{officer}", json={
+        "status": "راحة", "note": text, "status_period": True, "status_end": "2026-05-03"})
+    assert saved.status_code == 200, saved.get_json()
+    for current in ("2026-05-01", "2026-05-02", "2026-05-03"):
+        board = client.get(f"/api/board/{current}").get_json()
+        rests = next(s for s in board["sections"] if s["name"] == "الراحات")
+        assert officer not in [r["id"] for r in rests["rows"]]
+        outsiders = next(s for s in board["sections"] if s["name"] == "الخوارج")
+        row = next(r for r in outsiders["rows"] if r["id"] == officer)
+        assert row["reason"] == "راحة" and row["status_period"]["details"] == text
+        document = Document(BytesIO(client.get(f"/api/board/{current}/export.docx").data))
+        cells = "\n".join(c.text for t in document.tables for r in t.rows for c in r.cells)
+        assert text in cells

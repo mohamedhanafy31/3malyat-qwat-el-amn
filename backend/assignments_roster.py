@@ -8,7 +8,7 @@ from copy import deepcopy
 from datetime import date
 
 from .board import target_rows_for_day
-from .constants import REST_DURATIONS, ROLE_SEARCH
+from .constants import REST_DURATIONS, ROLE_SEARCH, SHIFTS
 from .dated import groups_on
 from .day_open import needs_prepare, prepare
 from .duty import summarise
@@ -113,6 +113,47 @@ def _fast_intervention(row):
                and "سريع" in name for service in row.get("services") or [])
 
 
+def _external_service_name(service):
+    """اسم الخدمة الخارجية كما يظهر في ملاحظة اليومية.
+
+    الفترة حقل مستقل في التكليف، لكن بعض السجلات القديمة حفظت كلمة الفترة
+    في نهاية الاسم نفسه. ننظف هذه اللاحقة فقط؛ لا نضيف فترة التكليف ولا
+    نستخدم اسمًا من كتالوج مختلف عن الاسم المحفوظ في اليوم.
+    """
+    name = " ".join(str((service or {}).get("name") or "").split())
+    for shift in SHIFTS:
+        suffix = f" {shift}"
+        if name.endswith(suffix):
+            name = name[:-len(suffix)].rstrip()
+            break
+    return name
+
+
+def external_service_names(row):
+    """أسماء الخدمات الخارجية الفعلية، بترتيب تكليفات اليوم ومن غير تكرار."""
+    names = []
+    seen = set()
+    for service in row.get("services") or []:
+        if service.get("kind") != "خارجية" or not service.get("counted", True):
+            continue
+        name = _external_service_name(service)
+        key = norm(name)
+        if name and key and key not in seen:
+            seen.add(key)
+            names.append(name)
+    return names
+
+
+def _work_status_text(row):
+    names = external_service_names(row)
+    return f"عمل ({'، '.join(names)})" if names else "عمل"
+
+
+def is_work_status(value):
+    value = str(value or "").strip()
+    return value == "عمل" or value.startswith("عمل (")
+
+
 def status_text(row, day):
     """الحالة القصيرة المطلوبة في عمود «ملاحظات».
 
@@ -121,7 +162,7 @@ def status_text(row, day):
     """
     status = str(row.get("status") or "").strip()
     if status:
-        return status
+        return _work_status_text(row) if status == "عمل" else status
     if row.get("leave"):
         return _rest_text(row["leave"], day)
     if row.get("course") or (row.get("group"), row.get("bucket")) == ("خوارج", "فرقة"):
@@ -133,7 +174,7 @@ def status_text(row, day):
     if _fast_intervention(row):
         return "تدخل"
     # التقصيرة علامة على تشغيل الضابط، لا حالة خروج في الكشف.
-    return "عمل"
+    return _work_status_text(row)
 
 
 def _current_officer_ids(data, day):
@@ -297,7 +338,8 @@ def selectable_officer_ids(data, day):
     return [row["id"] for row in summarise(data, day).get("rows") or []
             if row.get("id") in current_ids and row.get("id") not in search_ids
             and not row.get("medical")
-            and row.get("id") not in target_ids and status_text(row, day) == "عمل"]
+            and row.get("id") not in target_ids
+            and is_work_status(status_text(row, day))]
 
 
 def build(data, day):
@@ -328,7 +370,7 @@ def build(data, day):
         elif item["medical"]:
             # العيادة تعرض العاملين فقط. الطبيب الخارج لا يتحول إلى صف
             # عادي، ولا يُحتسب في الإجمالي.
-            if item["status"] == "عمل":
+            if is_work_status(item["status"]):
                 doctors.append(item)
         else:
             # الخوارج لا يظهرون في كشف التعيينات. الاستثناء الوحيد هو
@@ -337,8 +379,10 @@ def build(data, day):
             is_taqseera = (row.get("group"), row.get("bucket")) == ("خوارج", "تقصيرة")
             if (not is_target
                     and not is_taqseera
-                    and (row.get("group") == "خوارج"
-                         or item["status"] not in ("عمل", "تدخل"))):
+                    and ((row.get("group") == "خوارج"
+                          and not is_work_status(item["status"]))
+                         or (not is_work_status(item["status"])
+                             and item["status"] != "تدخل"))):
                 continue
             if not is_target:
                 normal.append(item)
@@ -363,9 +407,9 @@ def build(data, day):
     # عادية تحت خلية العنوان، ويُترك المفتاح القديم فارغًا للتوافق.
     target_lines = []
     all_rows = [item for item in normal] + target_items + doctors
-    selectable = [item for item in normal if item["status"] == "عمل"]
+    selectable = [item for item in normal if is_work_status(item["status"])]
     normal = [item for item in normal
-              if item["status"] != "عمل" or item["id"] not in excluded_ids]
+              if not is_work_status(item["status"]) or item["id"] not in excluded_ids]
 
     # قالب الأرشيف ليس نصفين متساويين: النصف المرئي الأيمن يحمل أول 23
     # صفًا، والنصف الأيسر يواصل من 24 إلى 31 قبل الذيل والعيادة.

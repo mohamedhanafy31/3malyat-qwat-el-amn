@@ -11,6 +11,7 @@ from backend.assignments import set_officer_state
 from backend.board import set_target_officers, target_row_names
 from backend import store
 from backend.assignments_roster_export import TEMPLATE, build_docx
+from backend.export_fit import TextMeter
 
 
 DAY = "2026-11-21"
@@ -32,6 +33,40 @@ def test_status_text_uses_archive_vocabulary_and_out_state_wins():
     assert roster.status_text({"services": [{"name": "تدخل سريع ليلية"}]}, DAY) == "تدخل"
     assert roster.status_text({**fast, "group": "خوارج", "bucket": "تقصيرة"}, DAY) == "تدخل"
     assert roster.status_text({**fast, "status": "غياب"}, DAY) == "غياب"
+
+
+def _service(name, kind="خارجية", shift="صباحية", counted=True):
+    return {"name": name, "kind": kind, "shift": shift, "counted": counted}
+
+
+def test_work_status_includes_one_external_service_without_shift_word():
+    row = {"services": [_service("ارتكاز بتروجيت", shift="ليلية")]}
+    assert roster.status_text(row, DAY) == "عمل (ارتكاز بتروجيت)"
+
+
+def test_work_status_joins_external_services_in_day_order_without_duplicates():
+    row = {"services": [
+        _service("ارتكاز بتروجيت صباحية"),
+        _service("المنطقة الحرة", shift="ليلية"),
+        _service("ارتكاز بتروجيت", shift="ليلية"),
+    ]}
+    assert roster.status_text(row, DAY) == "عمل (ارتكاز بتروجيت، المنطقة الحرة)"
+
+
+def test_work_status_stays_plain_for_internal_guard_and_missing_services():
+    assert roster.status_text({"services": [_service("داخلية", "داخلية")]}, DAY) == "عمل"
+    assert roster.status_text({"services": [_service("مشرف هدف", "حراسات")]}, DAY) == "عمل"
+    assert roster.status_text({}, DAY) == "عمل"
+
+
+def test_intervention_status_stays_plain_even_when_service_is_external():
+    row = {"services": [_service("التدخل السريع", shift="ليلية")]}
+    assert roster.status_text(row, DAY) == "تدخل"
+
+
+def test_explicit_work_status_uses_the_same_external_service_text():
+    row = {"status": "عمل", "services": [_service("ارتكاز بتروجيت") ]}
+    assert roster.status_text(row, DAY) == "عمل (ارتكاز بتروجيت)"
 
 
 def _roster_data(data_file):
@@ -553,3 +588,77 @@ def test_real_assignment_api_service_name_is_used_by_roster_preview(client):
     assert roster_response.status_code == 200
     row = next(item for item in roster_response.get_json()["rows"] if item["id"] == "OFF-001")
     assert row["status"] == "تدخل"
+
+
+def test_external_service_status_is_shared_by_preview_targets_and_docx(data_file):
+    data = _roster_data(data_file)
+    data["day_assignments"] = {DAY: [{
+        "id": "AS-001", "name": "ارتكاز بتروجيت", "kind": "خارجية",
+        "section": "الخدمات أساسية", "shift": "ليلية", "officer_ids": ["OFF-001"],
+        "personnel_ids": [], "counts_in_summary": True,
+    }]}
+    set_target_officers(data, DAY, "مشرف الأهداف", ["OFF-001"])
+
+    payload = roster.build(data, DAY)
+    target = next(item for item in payload["target_items"] if item["id"] == "OFF-001")
+    assert target["status"] == "عمل (ارتكاز بتروجيت)"
+    raw_docx = build_docx(payload).getvalue()
+    document = Document(BytesIO(raw_docx))
+    assert any("عمل (ارتكاز بتروجيت)" in cell.text.replace("\n", "")
+               for row in document.tables[0].rows for cell in row.cells)
+
+
+def test_external_assignment_api_preview_carries_joined_service_names(client):
+    for name in ("ارتكاز بتروجيت", "المنطقة الحرة"):
+        response = client.post(f"/api/assignments/{SELECTION_DAY}", json={
+            "name": name, "kind": "خارجية", "section": "الخدمات أساسية",
+            "shift": "صباحية", "officer_ids": ["OFF-001"],
+            "personnel_ids": [], "allow_duplicate": True,
+        })
+        assert response.status_code == 201, response.get_json()
+    body = client.get(f"/api/assignments-roster/{SELECTION_DAY}").get_json()
+    row = next(item for item in body["rows"] if item["id"] == "OFF-001")
+    assert row["status"] == "عمل (ارتكاز بتروجيت، المنطقة الحرة)"
+
+
+def test_external_notes_use_text_meter_without_overflow_and_keep_grid_width():
+    raw_catalog = store.load_data().get("service_catalog") or []
+    names = [str(item.get("name") or "").strip() for item in raw_catalog
+             if str(item.get("name") or "").strip()]
+    names = sorted(dict.fromkeys(names), key=len, reverse=True)[:2]
+    assert names, "the real service catalog should contain service names"
+    note = f"عمل ({'، '.join(names)})"
+    raw_docx = build_docx({
+        "title": "كشف بأسماء السادة الضباط عن يوم السبت الموافق 21/11/2026م",
+        "right": [{"number": 1, "role": "رائد", "name": "أحمد علي", "status": note}],
+        "left": [], "target_items": [], "doctors": [], "footer_categories": [],
+        "total": 1, "ops_signer": {}, "chief": {},
+    }).getvalue()
+    document = Document(BytesIO(raw_docx))
+    table = document.tables[0]
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    root = etree.fromstring(ZipFile(BytesIO(raw_docx)).read("word/document.xml"))
+    widths = [int(value) for value in root.xpath(
+        ".//w:tbl/w:tblGrid/w:gridCol/@w:w", namespaces=ns)]
+    template_root = etree.fromstring(ZipFile(TEMPLATE).read("word/document.xml"))
+    template_widths = [int(value) for value in template_root.xpath(
+        ".//w:tbl/w:tblGrid/w:gridCol/@w:w", namespaces=ns)]
+    assert sum(widths) == sum(template_widths)
+    assert widths[3] > template_widths[3]
+
+    note_cell = next(cell for row in table.rows for cell in row.cells
+                     if names[0] in cell.text)
+    lines = note_cell.text.splitlines()
+    note_root = etree.fromstring(note_cell._tc.xml.encode("utf-8"))
+    sizes = [int(value) / 2 for value in note_root.xpath(
+        ".//w:rPr/w:sz/@w:val", namespaces=ns)]
+    assert len(lines) in (1, 2)
+    assert sizes and min(sizes) >= 7.5
+    size = min(sizes)
+    meter = TextMeter()
+    assert all(meter.text_width(line.strip(), size, True, "Times New Roman") <= widths[3] / 20
+               for line in lines)
+    row = next(row for row in table.rows if names[0] in row.cells[3].text)
+    row_root = etree.fromstring(row._tr.xml.encode("utf-8"))
+    height = int(row_root.xpath("./w:trPr/w:trHeight/@w:val", namespaces=ns)[0]) / 20
+    assert len(lines) * size * 1.25 <= height

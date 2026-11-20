@@ -6,17 +6,18 @@ let ROSTER_SELECTION_BEFORE = new Set();
 
 const rosterDate = () => $("#rosterDate").value;
 const rosterUrl = day => `/api/assignments-roster/${encodeURIComponent(day)}`;
+const rosterIsWork = status => status === "عمل" || String(status || "").startsWith("عمل (");
 
 function rosterDisplayData(data) {
   const excluded = new Set(ROSTER_SELECTION);
   const targetIds = new Set(data.target_officer_ids || []);
   const allRows = data.all_rows || data.rows || [];
   const rows = allRows.filter(item => targetIds.has(item.id)
-    || (item.medical ? item.status === "عمل" :
-      (item.status !== "عمل" || !excluded.has(item.id))));
+    || (item.medical ? rosterIsWork(item.status) :
+      (!rosterIsWork(item.status) || !excluded.has(item.id))));
   const targetItems = rows.filter(item => targetIds.has(item.id));
   const doctors = rows.filter(item => item.medical && !targetIds.has(item.id)
-    && item.status === "عمل");
+    && rosterIsWork(item.status));
   const normal = rows.filter(item => !item.medical && !targetIds.has(item.id));
   const right = normal.slice(0, 23).map((item, index) => ({...item, number: index + 1}));
   const left = [...targetItems, ...normal.slice(23)].map((item, index) => ({...item, number: index + 24}));

@@ -1,6 +1,7 @@
 """تصدير كشف «يومية التعيينات» إلى Word من قالب الأرشيف المنظّف."""
 from copy import deepcopy
 from io import BytesIO
+import math
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 import re
@@ -9,11 +10,22 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
+from .export_fit import TextMeter
+
 TEMPLATE = Path(__file__).with_name("docx_templates") / "assignments_roster.docx"
 FONT_NAME = "Arial"
+NOTE_FONT_NAME = "Times New Roman"
+NOTE_FONT_BOLD = True
+NOTE_NORMAL_PT = 12.0
+NOTE_MIN_ONE_LINE_PT = 8.0
+NOTE_MIN_TWO_LINE_PT = 7.5
+NOTE_LINE_HEIGHT = 1.25
+NOTE_CELL_MARGIN_PT = 0.0  # the archive template has no explicit w:tcMar
+NAME_MIN_GUTTER_PT = 0.0
 ARCHIVE_ROW_HEIGHT = 440  # الأرشيف 397، لكن الصف exact عندنا فنزوّده شوية عشان خط عربي طويل ما يتقصش
 MIN_ROW_HEIGHT = 225  # 9pt × 1.25 × 20 twips
 TABLE_SAFETY = 0.97
+_W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 TITLE_SIGNATURE_BUDGET = 2200
 V_SHAPE = "{urn:schemas-microsoft-com:vml}shape"
 WPS_BODY_PR = "{http://schemas.microsoft.com/office/word/2010/wordprocessingShape}bodyPr"
@@ -29,6 +41,51 @@ def _column_width_twips(node):
     sect = root.find(".//" + qn("w:sectPr"))
     size, margin = sect.find(qn("w:pgSz")), sect.find(qn("w:pgMar"))
     return (int(size.get(qn("w:w"))) - int(margin.get(qn("w:left"))) - int(margin.get(qn("w:right"))))
+
+
+# ترتيب أبناء العناصر في OOXML (ECMA-376): Word بيرفض الملف («Unspecified error» في word/document.xml)
+# لو الترتيب اتغيّر، بينما LibreOffice بيتسامح. أي خاصية بنضيفها بـ`append` لازم تتعدّل لترتيبها الصح.
+_OOXML_ORDER = {
+    "pPr": "pStyle keepNext keepLines pageBreakBefore framePr widowControl numPr suppressLineNumbers "
+           "pBdr shd tabs suppressAutoHyphens kinsoku wordWrap overflowPunct topLinePunct autoSpaceDE "
+           "autoSpaceDN bidi adjustRightInd snapToGrid spacing ind contextualSpacing mirrorIndents "
+           "suppressOverlap jc textDirection textAlignment textboxTightWrap outlineLvl divId cnfStyle "
+           "rPr sectPr pPrChange".split(),
+    "rPr": "rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint "
+           "noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u "
+           "effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath".split(),
+    "tcPr": "cnfStyle tcW gridSpan hMerge vMerge tcBorders shd noWrap tcMar textDirection tcFitText "
+            "vAlign hideMark".split(),
+    "tblPr": "tblStyle tblpPr tblOverlap bidiVisual tblStyleRowBandSize tblStyleColBandSize tblW jc "
+             "tblCellSpacing tblInd tblBorders shd tblLayout tblCellMar tblLook".split(),
+}
+
+
+def normalize_ooxml_order(root):
+    """يرتّب أبناء pPr/rPr/tcPr/tblPr حسب المخطط ويشيل التكرار (الأخير يكسب). -> عدد العناصر اللي اتعدّلت."""
+    changed = 0
+    for name, sequence in _OOXML_ORDER.items():
+        position = {tag: index for index, tag in enumerate(sequence)}
+        for element in root.iter(qn(f"w:{name}")):
+            children = list(element)
+            keyed = []
+            for order, child in enumerate(children):
+                local = child.tag.rsplit("}", 1)[-1] if isinstance(child.tag, str) else ""
+                known = child.tag.startswith("{" + _W_NS + "}") and local in position
+                keyed.append((position[local] if known else len(sequence), order, local, child))
+            latest = {}
+            for key in keyed:
+                if key[0] < len(sequence):
+                    latest[key[2]] = key[3]            # التكرار: آخر عنصر بنفس الاسم يكسب
+            kept = [k for k in keyed if k[0] >= len(sequence) or latest[k[2]] is k[3]]
+            ordered = sorted(kept, key=lambda k: (k[0], k[1]))
+            if [k[3] for k in ordered] != children:
+                changed += 1
+                for child in children:
+                    element.remove(child)
+                for k in ordered:
+                    element.append(k[3])
+    return changed
 
 
 def _tcs(tr):
@@ -116,8 +173,8 @@ def _set_row_height(tr, height):
     height_node.set(qn("w:hRule"), "exact")
 
 
-def _set_cell_font_size(tc, points):
-    value = str(max(18, int(round(float(points) * 2))))
+def _set_cell_font_size(tc, points, minimum=7.5):
+    value = str(max(int(round(float(minimum) * 2)), int(round(float(points) * 2))))
     for run_pr in tc.iter(qn("w:rPr")):
         for tag in ("w:sz", "w:szCs"):
             node = run_pr.find(qn(tag))
@@ -125,6 +182,48 @@ def _set_cell_font_size(tc, points):
                 node = OxmlElement(tag)
                 run_pr.append(node)
             node.set(qn("w:val"), value)
+
+
+def _set_cell_font(tc, name=NOTE_FONT_NAME, bold=NOTE_FONT_BOLD):
+    """يجعل القياس والخط الفعلي للخلية نفس الوجه العريض."""
+    for run_pr in tc.iter(qn("w:rPr")):
+        fonts = run_pr.find(qn("w:rFonts"))
+        if fonts is None:
+            fonts = OxmlElement("w:rFonts")
+            run_pr.insert(0, fonts)
+        for attribute in ("ascii", "hAnsi", "eastAsia", "cs"):
+            fonts.set(qn(f"w:{attribute}"), name)
+        if bold:
+            for tag in ("w:b", "w:bCs"):
+                node = run_pr.find(qn(tag))
+                if node is None:
+                    node = OxmlElement(tag)
+                    run_pr.append(node)
+
+
+def _set_cell_line_height(tc, points):
+    line = str(max(1, int(round(float(points) * NOTE_LINE_HEIGHT * 20))))
+    for paragraph in tc.findall(qn("w:p")):
+        ppr = paragraph.find(qn("w:pPr"))
+        if ppr is None:
+            ppr = OxmlElement("w:pPr")
+            paragraph.insert(0, ppr)
+        spacing = ppr.find(qn("w:spacing"))
+        if spacing is None:
+            spacing = OxmlElement("w:spacing")
+            ppr.append(spacing)
+        spacing.set(qn("w:line"), line)
+        spacing.set(qn("w:lineRule"), "exact")
+
+
+def _set_cell_wrap(tc, wrapped):
+    pr = _tc_pr(tc)
+    nowrap = pr.find(qn("w:noWrap"))
+    if wrapped:
+        if nowrap is not None:
+            pr.remove(nowrap)
+    elif nowrap is None:
+        pr.append(OxmlElement("w:noWrap"))
 
 
 def _vmerge_span(rows, row_index, cell_index):
@@ -180,6 +279,165 @@ def row_height_for(document, row_count):
                    _available_table_height(document) // row_count))
 
 
+def _cell_text(tc):
+    return "".join(node.text or "" for node in tc.iter(qn("w:t")))
+
+
+def _row_grid_cells(tr):
+    """يرجع (بداية الخلية على الشبكة، الامتداد، الخلية)."""
+    position = 0
+    result = []
+    for cell in _tcs(tr):
+        span = cell.find("./" + qn("w:tcPr") + "/" + qn("w:gridSpan"))
+        span = int(span.get(qn("w:val"), "1")) if span is not None else 1
+        result.append((position, span, cell))
+        position += span
+    return result
+
+
+def _best_two_line_split(text, width_pt, size, meter):
+    words = str(text or "").split()
+    if len(words) < 2:
+        return None
+    choices = []
+    for index in range(1, len(words)):
+        lines = [" ".join(words[:index]), " ".join(words[index:])]
+        widths = [meter.text_width(line, size, NOTE_FONT_BOLD, NOTE_FONT_NAME)
+                  for line in lines]
+        if max(widths) <= width_pt:
+            choices.append((max(widths), abs(widths[0] - widths[1]), lines))
+    if not choices:
+        return None
+    return min(choices, key=lambda item: (item[0], item[1]))[2]
+
+
+def _two_line_need(text, size, meter):
+    words = str(text or "").split()
+    if len(words) < 2:
+        return None
+    choices = []
+    for index in range(1, len(words)):
+        lines = [" ".join(words[:index]), " ".join(words[index:])]
+        widths = [meter.text_width(line, size, NOTE_FONT_BOLD, NOTE_FONT_NAME)
+                  for line in lines]
+        choices.append((max(widths), abs(widths[0] - widths[1])))
+    return min(choices)[0] + NOTE_CELL_MARGIN_PT if choices else None
+
+
+def _note_fit(text, width_twips, height_twips, meter):
+    """يختار حجمًا/عدد أسطر من غير قص النص."""
+    inner = max(1.0, width_twips / 20.0 - NOTE_CELL_MARGIN_PT)
+    for size in (12.0, 11.0, 10.0, 9.0, 8.0):
+        if meter.text_width(text, size, NOTE_FONT_BOLD, NOTE_FONT_NAME) <= inner:
+            return {"size": size, "lines": [str(text)]}
+
+    available_height = height_twips / 20.0 - NOTE_CELL_MARGIN_PT
+    for size in (8.0, 7.5):
+        if 2 * size * NOTE_LINE_HEIGHT > available_height:
+            continue
+        lines = _best_two_line_split(text, inner, size, meter)
+        if lines is not None:
+            return {"size": size, "lines": lines}
+    return None
+
+
+def _required_note_width(text, height_twips, meter):
+    """أصغر عرض يمكنه استيعاب النص ضمن قيود السطر/الصف."""
+    one_line = meter.text_width(text, NOTE_MIN_ONE_LINE_PT,
+                                NOTE_FONT_BOLD, NOTE_FONT_NAME) + NOTE_CELL_MARGIN_PT
+    needs = [one_line]
+    available_height = height_twips / 20.0 - NOTE_CELL_MARGIN_PT
+    if 2 * NOTE_MIN_ONE_LINE_PT * NOTE_LINE_HEIGHT <= available_height:
+        need = _two_line_need(text, NOTE_MIN_ONE_LINE_PT, meter)
+        if need is not None:
+            needs.append(need)
+    if 2 * NOTE_MIN_TWO_LINE_PT * NOTE_LINE_HEIGHT <= available_height:
+        need = _two_line_need(text, NOTE_MIN_TWO_LINE_PT, meter)
+        if need is not None:
+            needs.append(need)
+    return min(needs)
+
+
+def _set_table_grid_widths(table, widths, rows=None):
+    for grid_col, width in zip(table._tbl.tblGrid.findall(qn("w:gridCol")), widths):
+        grid_col.set(qn("w:w"), str(int(width)))
+    for tr in rows if rows is not None else table._tbl.tr_lst:
+        for position, span, cell in _row_grid_cells(tr):
+            if span != 1 or position >= len(widths):
+                continue
+            if position not in (2, 3, 6, 7):
+                continue
+            tcw = _tc_pr(cell).find(qn("w:tcW"))
+            if tcw is None:
+                tcw = OxmlElement("w:tcW")
+                _tc_pr(cell).insert(0, tcw)
+            tcw.set(qn("w:w"), str(int(widths[position])))
+            tcw.set(qn("w:type"), "dxa")
+
+
+def _fit_note_cells(table, rows, height):
+    """يلائم خلايا الملاحظات، ويأخذ الزيادة من الاسم داخل النصف نفسه."""
+    meter = TextMeter()
+    grid = [int(node.get(qn("w:w"), "0"))
+            for node in table._tbl.tblGrid.findall(qn("w:gridCol"))]
+    entries_by_half = {0: [], 1: []}
+    names_by_half = {0: [], 1: []}
+    for row_index, tr in enumerate(rows):
+        if row_index == 0:
+            continue
+        cells = {position: cell for position, span, cell in _row_grid_cells(tr)
+                 if span == 1}
+        for half, name_index, note_index in ((0, 2, 3), (1, 6, 7)):
+            note = cells.get(note_index)
+            name = cells.get(name_index)
+            if name is not None:
+                names_by_half[half].append(_cell_text(name).strip())
+            if note is None or name is None:
+                continue
+            text = _cell_text(note).strip()
+            if not text:
+                continue
+            entries_by_half[half].append({"note": note, "name": name,
+                                          "text": text, "height": height})
+
+    for half, entries in entries_by_half.items():
+        if not entries:
+            continue
+        name_index, note_index = (2, 3) if half == 0 else (6, 7)
+        pair_width = grid[name_index] + grid[note_index]
+        name_min_pt = max(
+            meter.text_width(name, NOTE_NORMAL_PT,
+                             NOTE_FONT_BOLD, NOTE_FONT_NAME) + NAME_MIN_GUTTER_PT
+            for name in names_by_half[half]
+        )
+        note_width_pt = grid[note_index] / 20.0
+        for entry in entries:
+            if _note_fit(entry["text"], grid[note_index], height, meter) is None:
+                note_width_pt = max(
+                    note_width_pt,
+                    _required_note_width(entry["text"], height, meter),
+                )
+        max_note_width_pt = pair_width / 20.0 - name_min_pt
+        target_note_width_pt = min(max_note_width_pt, note_width_pt)
+        target_note_width = max(grid[note_index], int(math.ceil(target_note_width_pt * 20)))
+        target_note_width = min(target_note_width, pair_width - int(math.ceil(name_min_pt * 20)))
+        grid[note_index] = target_note_width
+        grid[name_index] = pair_width - target_note_width
+
+    _set_table_grid_widths(table, grid, rows)
+    for half, entries in entries_by_half.items():
+        position = 3 if half == 0 else 7
+        for entry in entries:
+            fit = _note_fit(entry["text"], grid[position], height, meter)
+            if fit is None:
+                raise ValueError(f"ملاحظة يومية التعيينات لا تتسع: {entry['text']}")
+            _set_cell_text(entry["note"], "\n".join(fit["lines"]))
+            _set_cell_font_size(entry["note"], fit["size"], minimum=7.5)
+            _set_cell_font(entry["note"])
+            _set_cell_line_height(entry["note"], fit["size"])
+            _set_cell_wrap(entry["note"], len(fit["lines"]) > 1)
+
+
 def _full_width_row(source_row, width):
     """ينشئ صفًا واحدًا بخانة واحدة ممتدة على شبكة الأعمدة الثمانية."""
     tr = deepcopy(source_row)
@@ -211,10 +469,14 @@ def _append_text_run(paragraph, text, prototype):
     run = OxmlElement("w:r")
     if prototype is not None:
         run.append(deepcopy(prototype))
-    text_node = OxmlElement("w:t")
-    text_node.text = str(text or "")
-    text_node.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
-    run.append(text_node)
+    parts = str(text or "").split("\n")
+    for index, part in enumerate(parts):
+        text_node = OxmlElement("w:t")
+        text_node.text = part + (" " if index < len(parts) - 1 else "")
+        text_node.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
+        run.append(text_node)
+        if index < len(parts) - 1:
+            run.append(OxmlElement("w:br"))
     paragraph.append(run)
 
 
@@ -599,11 +861,14 @@ def build_docx(payload):
         for cell in _tcs(tr):
             _center_cell(cell)
 
+    _fit_note_cells(table, rows, height)
+
     for tr in list(table._tbl.tr_lst):
         table._tbl.remove(tr)
     for tr in rows:
         table._tbl.append(tr)
 
+    normalize_ooxml_order(document.element)
     output = BytesIO()
     document.save(output)
     output.seek(0)
