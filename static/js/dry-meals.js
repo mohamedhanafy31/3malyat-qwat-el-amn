@@ -47,6 +47,17 @@ function dryRowHtml(row, index, emergency = false) {
   </div>`;
 }
 
+// الترقيم لكل جدول لوحده (الثابت من 1، والطوارئ من 1) وبعد أي حذف.
+function dryRenumber(selector) {
+  document.querySelectorAll(`${selector} [data-dry-row]`).forEach((row, i) => {
+    row.dataset.dryIndex = i;
+    row.querySelector(".dry-row-number").textContent = i + 1;
+    [["[data-dry-name]", "اسم الخدمة"], ["[data-dry-officers]", "ضباط"], ["[data-dry-personnel]", "أفراد"],
+     ["[data-dry-conscripts]", "مجندين"], ["[data-dry-notes]", "ملاحظات"], ["[data-dry-remove]", "حذف الخدمة"]]
+      .forEach(([sel, label]) => row.querySelector(sel)?.setAttribute("aria-label", `${label} ${i + 1}`));
+  });
+}
+
 function renderDryEditors() {
   const fixed = DRY?.config?.fixed_rows || DRY?.fixed_rows || [];
   const emergency = DRY?.config?.emergency_rows || DRY?.emergency_rows || [];
@@ -178,7 +189,7 @@ document.addEventListener("click", event => {
   const remove = event.target.closest("[data-dry-remove]");
   if (remove) {
     remove.closest("[data-dry-row]")?.remove();
-    [...document.querySelectorAll("#dryFixedEditor [data-dry-row],#dryEmergencyRows [data-dry-row]")].forEach((row, i) => { if (row.querySelector("[data-dry-name]")) row.querySelector(".dry-row-number").textContent = i + 1; });
+    dryRenumber("#dryFixedEditor"); dryRenumber("#dryEmergencyRows");
     drySetDirty(true);
     return;
   }

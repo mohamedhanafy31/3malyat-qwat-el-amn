@@ -91,16 +91,6 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm1 4h8V6H8v1Zm0 4h8v-1H8v1Zm0 4h5v-1H8v1Z"/></svg>
         <span>يومية الضباط</span>
       </a>
-      <a class="navbtn {{ 'active' if page == 'assignments_roster' }}" href="{{ url_for('pages.assignments_roster') }}"
-         {{ 'aria-current=page' if page == 'assignments_roster' }}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
-        <span>يومية التعيينات</span>
-      </a>
-      <a class="navbtn {{ 'active' if page == 'dry_meals' }}" href="{{ url_for('pages.dry_meals') }}"
-         {{ 'aria-current=page' if page == 'dry_meals' }}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
-        <span>أمر صرف وجبات جافة</span>
-      </a>
       <a class="navbtn {{ 'active' if page == 'afraad' }}" data-key="4" href="{{ url_for('pages.afraad') }}"
          {{ 'aria-current=page' if page == 'afraad' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v2H4V5Zm0 4.5h16v2H4v-2ZM4 14h10v2H4v-2Zm0 4.5h10v2H4v-2Z"/></svg>
@@ -120,6 +110,20 @@
          {{ 'aria-current=page' if page == 'daily_print' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v4H7V3ZM5 8h14a2 2 0 0 1 2 2v6h-4v5H7v-5H3v-6a2 2 0 0 1 2-2Zm4 8v3h6v-3H9Z"/></svg>
         <span>طباعة اليوميات</span>
+      </a>
+    </div>
+
+    <div class="side-group">
+      <button type="button" class="side-title" data-side-group="assignments" aria-expanded="true">التعيينات {{ icon('chevron-down') }}</button>
+      <a class="navbtn {{ 'active' if page == 'assignments_roster' }}" href="{{ url_for('pages.assignments_roster') }}"
+         {{ 'aria-current=page' if page == 'assignments_roster' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
+        <span>يومية التعيينات</span>
+      </a>
+      <a class="navbtn {{ 'active' if page == 'dry_meals' }}" href="{{ url_for('pages.dry_meals') }}"
+         {{ 'aria-current=page' if page == 'dry_meals' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
+        <span>أمر صرف وجبات جافة</span>
       </a>
     </div>
 
