@@ -9,6 +9,7 @@ from lxml import etree
 from backend import assignments_roster as roster
 from backend.assignments import set_officer_state
 from backend.board import set_target_officers, target_row_names
+from backend import duty
 from backend import store
 from backend.assignments_roster_export import TEMPLATE, build_docx
 from backend.export_fit import TextMeter
@@ -228,6 +229,108 @@ def test_split_targets_move_only_the_two_split_officers_into_the_block(data_file
     assert "سوميد" not in target_cell.text
     assert any("حسن محمود" in cell.text
                for row in document.tables[0].rows for cell in row.cells)
+
+
+def test_target_notes_reuse_officers_daily_text_for_single_and_supervisor(data_file):
+    data = _roster_data(data_file)
+    set_target_officers(data, DAY, "مصر للبترول", ["OFF-001"])
+    set_target_officers(data, DAY, "مشرف الأهداف", ["OFF-002"])
+    set_officer_state(data, DAY, "OFF-002", extra="متابعة إضافية")
+
+    payload = roster.build(data, DAY)
+    daily_rows = {row["id"]: row for row in duty.summarise(data, DAY)["rows"]}
+    targets = {item["id"]: item for item in payload["target_items"]}
+
+    assert targets["OFF-001"]["status"] == "عمل بهدف مصر للبترول"
+    assert targets["OFF-002"]["status"] == daily_rows["OFF-002"]["text"]
+    assert targets["OFF-002"]["status"] == "متابعة اعمال الاهداف + متابعة إضافية"
+    assert targets["OFF-001"]["status"] == daily_rows["OFF-001"]["text"]
+    assert next(item for item in payload["rows"] if item["id"] == "OFF-003")["status"] == "عمل"
+
+    raw_docx = build_docx(payload).getvalue()
+    document = Document(BytesIO(raw_docx))
+    cells = [" ".join(cell.text.split())
+             for row in document.tables[0].rows for cell in row.cells]
+    assert "عمل بهدف مصر للبترول" in cells
+    assert "متابعة اعمال الاهداف + متابعة إضافية" in cells
+
+
+def test_target_notes_reuse_time_and_text_split_labels(data_file):
+    data = _roster_data(data_file)
+    set_target_officers(
+        data, DAY, "سوميد", ["OFF-001", "OFF-002"],
+        periods=[
+            {"officer_id": "OFF-001", "until": "16:00"},
+            {"officer_id": "OFF-002", "from": "16:00"},
+        ],
+    )
+    set_target_officers(
+        data, DAY, "كهرباء السخنة", ["OFF-003"],
+        periods=[],
+    )
+    # Replace the one-person assignment with the supported text-split pair.
+    set_target_officers(
+        data, DAY, "كهرباء السخنة", ["OFF-003", "OFF-004"],
+        periods=[
+            {"officer_id": "OFF-003", "label": "لحين انتهاء المباراة"},
+            {"officer_id": "OFF-004", "label": "عقب الانتهاء من المباراة"},
+        ],
+    )
+
+    payload = roster.build(data, DAY)
+    daily_rows = {row["id"]: row for row in duty.summarise(data, DAY)["rows"]}
+    targets = {item["id"]: item for item in payload["target_items"]}
+
+    assert targets["OFF-001"]["status"] == "عمل بهدف سوميد حتى 4م"
+    assert targets["OFF-003"]["status"] == "عمل بهدف كهرباء السخنة لحين انتهاء المباراة"
+    assert targets["OFF-004"]["status"] == "عمل بهدف كهرباء السخنة عقب الانتهاء من المباراة"
+    for officer_id in ("OFF-001", "OFF-002", "OFF-003", "OFF-004"):
+        assert targets[officer_id]["status"] == daily_rows[officer_id]["text"]
+
+
+def test_target_note_worst_case_catalog_name_and_80_char_split_label_fits(data_file):
+    target_names = target_row_names(store.load_data(), DAY)
+    longest_target = max(target_names, key=len)
+    split_label = ("لحين انتهاء المباراة واستمرار المهمة " * 3).strip()[:80]
+    assert len(split_label) == 80
+    note = f"عمل بهدف {longest_target} {split_label}"
+    payload = {
+        "title": "كشف بأسماء السادة الضباط عن يوم السبت الموافق 21/11/2026م",
+        "right": [],
+        "left": [],
+        "target_items": [{"number": 24, "role": "رائد", "name": "أحمد علي", "status": note}],
+        "doctors": [], "footer_categories": [], "total": 1,
+        "ops_signer": {}, "chief": {},
+    }
+    raw_docx = build_docx(payload).getvalue()
+    document = Document(BytesIO(raw_docx))
+    table = document.tables[0]
+    note_cell = next(cell for row in table.rows for cell in row.cells
+                     if longest_target in cell.text)
+    lines = note_cell.text.splitlines()
+    assert " ".join(note_cell.text.split()) == note
+    assert 1 <= len(lines) <= 2
+
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    root = etree.fromstring(ZipFile(BytesIO(raw_docx)).read("word/document.xml"))
+    widths = [int(value) for value in root.xpath(
+        ".//w:tbl/w:tblGrid/w:gridCol/@w:w", namespaces=ns)]
+    template_root = etree.fromstring(ZipFile(TEMPLATE).read("word/document.xml"))
+    template_widths = [int(value) for value in template_root.xpath(
+        ".//w:tbl/w:tblGrid/w:gridCol/@w:w", namespaces=ns)]
+    assert sum(widths) == sum(template_widths)
+    assert widths[5] + widths[6] + widths[7] == sum(template_widths[5:8])
+    assert widths[7] > template_widths[7]
+    assert widths[0:5] == template_widths[0:5]
+
+    meter = TextMeter()
+    size_values = [int(value) / 2 for value in etree.fromstring(
+        note_cell._tc.xml.encode("utf-8")).xpath(".//w:rPr/w:sz/@w:val", namespaces=ns)]
+    assert size_values and min(size_values) >= 7.5
+    size = min(size_values)
+    assert all(meter.text_width(line.strip(), size, True, "Times New Roman")
+               <= widths[7] / 20 for line in lines)
+    assert all(len(cell.text) < 1000 for row in table.rows for cell in row.cells)
 
 
 def test_search_officers_are_absent_from_main_list_targets_and_selection(data_file):
@@ -680,10 +783,12 @@ def test_external_service_status_is_shared_by_preview_targets_and_docx(data_file
 
     payload = roster.build(data, DAY)
     target = next(item for item in payload["target_items"] if item["id"] == "OFF-001")
-    assert target["status"] == "عمل (ارتكاز بتروجيت)"
+    daily = next(row for row in duty.summarise(data, DAY)["rows"] if row["id"] == "OFF-001")
+    assert target["status"] == daily["text"]
     raw_docx = build_docx(payload).getvalue()
     document = Document(BytesIO(raw_docx))
-    assert any("عمل (ارتكاز بتروجيت)" in cell.text.replace("\n", "")
+    expected = " ".join(daily["text"].split())
+    assert any(expected in " ".join(cell.text.split())
                for row in document.tables[0].rows for cell in row.cells)
 
 
@@ -741,3 +846,25 @@ def test_external_notes_use_text_meter_without_overflow_and_keep_grid_width():
     row_root = etree.fromstring(row._tr.xml.encode("utf-8"))
     height = int(row_root.xpath("./w:trPr/w:trHeight/@w:val", namespaces=ns)[0]) / 20
     assert len(lines) * size * 1.25 <= height
+
+
+def test_day_navigation_has_today_next_to_tomorrow():
+    from pathlib import Path
+    root = Path(__file__).resolve().parent.parent
+    template = (root / "templates/pages/assignments_roster.html").read_text(encoding="utf-8")
+    script = (root / "static/js/assignments-roster.js").read_text(encoding="utf-8")
+    assert template.index('id="rosterToday"') < template.index('id="rosterTomorrow"')
+    assert '>اليوم</button>' in template
+    assert '$("#rosterToday").onclick' in script and "_localToday()" in script
+    assert '"#rosterToday"' in script          # بيتعطّل وقت الحفظ زي باقي أزرار التنقل
+
+
+def test_roster_follows_the_shared_work_day_and_does_not_overwrite_it_on_automatic_open():
+    from pathlib import Path
+    script = (Path(__file__).resolve().parent.parent / "static/js/assignments-roster.js").read_text(encoding="utf-8")
+    init = script[script.index("(async function initRoster()"):]
+    assert "workDay()" in init                         # بيتبع يوم العمل المشترك بين اليوميات
+    assert "addDays(today, 1)" in init                 # من غير اختيار صريح: بكرة
+    assert "loadRoster(day, shared !== today)" in init  # الفتح التلقائي مايحفظش بكرة كيوم عمل
+    assert "async function loadRoster(day, remember = true)" in script
+    assert "setPageDay(day, remember)" in script

@@ -348,6 +348,22 @@ def _two_line_need(text, size, meter):
     return min(choices)[0] + NOTE_CELL_MARGIN_PT if choices else None
 
 
+NOTE_WIDTH_SAFETY = 1.18   # Word/LibreOffice بيرسموا الخط بعرض أكبر من قياس Times New Roman
+
+
+class _SafeMeter:
+    """TextMeter بعرض مضروب في هامش أمان: التقدير بالخط المتاح عندنا مش نفس خط جهاز التشغيل."""
+
+    def __init__(self):
+        self._meter = TextMeter()
+
+    def text_width(self, *args, **kwargs):
+        return self._meter.text_width(*args, **kwargs) * NOTE_WIDTH_SAFETY
+
+    def __getattr__(self, name):
+        return getattr(self._meter, name)
+
+
 def _note_fit(text, width_twips, height_twips, meter):
     """يختار حجمًا/عدد أسطر من غير قص النص."""
     inner = max(1.0, width_twips / 20.0 - NOTE_CELL_MARGIN_PT)
@@ -375,10 +391,6 @@ def _required_note_width(text, height_twips, meter):
         need = _two_line_need(text, NOTE_MIN_ONE_LINE_PT, meter)
         if need is not None:
             needs.append(need)
-    if 2 * NOTE_MIN_TWO_LINE_PT * NOTE_LINE_HEIGHT <= available_height:
-        need = _two_line_need(text, NOTE_MIN_TWO_LINE_PT, meter)
-        if need is not None:
-            needs.append(need)
     return min(needs)
 
 
@@ -389,7 +401,7 @@ def _set_table_grid_widths(table, widths, rows=None):
         for position, span, cell in _row_grid_cells(tr):
             if span != 1 or position >= len(widths):
                 continue
-            if position not in (2, 3, 6, 7):
+            if position not in (1, 2, 3, 5, 6, 7):
                 continue
             tcw = _tc_pr(cell).find(qn("w:tcW"))
             if tcw is None:
@@ -400,22 +412,31 @@ def _set_table_grid_widths(table, widths, rows=None):
 
 
 def _fit_note_cells(table, rows, height):
-    """يلائم خلايا الملاحظات، ويأخذ الزيادة من الاسم داخل النصف نفسه."""
-    meter = TextMeter()
+    """يلائم الملاحظات مع إعادة توزيع مقاسة داخل كل نصف من الجدول.
+
+    يبدأ التوسيع من الاسم، ثم يأخذ من الرتبة عند الحاجة. إجمالي شبكة النصف
+    يظل ثابتًا، والاسم والرتبة لا ينزلان عن العرض المقاس المطلوب لعرض كل
+    قيمهما الحالية.
+    """
+    meter = _SafeMeter()
     grid = [int(node.get(qn("w:w"), "0"))
             for node in table._tbl.tblGrid.findall(qn("w:gridCol"))]
     entries_by_half = {0: [], 1: []}
     names_by_half = {0: [], 1: []}
+    ranks_by_half = {0: [], 1: []}
     for row_index, tr in enumerate(rows):
         if row_index == 0:
             continue
         cells = {position: cell for position, span, cell in _row_grid_cells(tr)
                  if span == 1}
-        for half, name_index, note_index in ((0, 2, 3), (1, 6, 7)):
+        for half, rank_index, name_index, note_index in ((0, 1, 2, 3), (1, 5, 6, 7)):
             note = cells.get(note_index)
             name = cells.get(name_index)
+            rank = cells.get(rank_index)
             if name is not None:
                 names_by_half[half].append(_cell_text(name).strip())
+            if rank is not None:
+                ranks_by_half[half].append(_cell_text(rank).strip())
             if note is None or name is None:
                 continue
             text = _cell_text(note).strip()
@@ -427,13 +448,21 @@ def _fit_note_cells(table, rows, height):
     for half, entries in entries_by_half.items():
         if not entries:
             continue
-        name_index, note_index = (2, 3) if half == 0 else (6, 7)
+        rank_index, name_index, note_index = ((1, 2, 3) if half == 0
+                                              else (5, 6, 7))
         pair_width = grid[name_index] + grid[note_index]
-        name_min_pt = max(
+        name_min_pt = max((
             meter.text_width(name, NOTE_NORMAL_PT,
                              NOTE_FONT_BOLD, NOTE_FONT_NAME) + NAME_MIN_GUTTER_PT
             for name in names_by_half[half]
-        )
+            if name
+        ), default=0.0)
+        rank_min_pt = max((
+            meter.text_width(rank, NOTE_NORMAL_PT,
+                             NOTE_FONT_BOLD, NOTE_FONT_NAME)
+            for rank in ranks_by_half[half]
+            if rank
+        ), default=0.0)
         note_width_pt = grid[note_index] / 20.0
         for entry in entries:
             if _note_fit(entry["text"], grid[note_index], height, meter) is None:
@@ -441,12 +470,20 @@ def _fit_note_cells(table, rows, height):
                     note_width_pt,
                     _required_note_width(entry["text"], height, meter),
                 )
-        max_note_width_pt = pair_width / 20.0 - name_min_pt
-        target_note_width_pt = min(max_note_width_pt, note_width_pt)
-        target_note_width = max(grid[note_index], int(math.ceil(target_note_width_pt * 20)))
-        target_note_width = min(target_note_width, pair_width - int(math.ceil(name_min_pt * 20)))
-        grid[note_index] = target_note_width
-        grid[name_index] = pair_width - target_note_width
+        target_note_width = max(grid[note_index], int(math.ceil(note_width_pt * 20)))
+        name_min = int(math.ceil(name_min_pt * 20))
+        rank_min = int(math.ceil(rank_min_pt * 20)) if rank_min_pt else grid[rank_index]
+        total_half_width = grid[rank_index] + pair_width
+        note_max = total_half_width - name_min - rank_min
+        target_note_width = min(target_note_width, note_max)      # عند الحد الأقصى _note_fit بيصغّر الخط
+        if target_note_width > pair_width - name_min:
+            # الاسم وصل إلى عرضه المقاس؛ الزيادة الباقية تأتي من الرتبة.
+            grid[rank_index] = total_half_width - name_min - target_note_width
+            grid[name_index] = name_min
+            grid[note_index] = target_note_width
+        else:
+            grid[note_index] = target_note_width
+            grid[name_index] = pair_width - target_note_width
 
     _set_table_grid_widths(table, grid, rows)
     for half, entries in entries_by_half.items():

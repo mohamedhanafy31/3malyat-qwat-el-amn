@@ -279,7 +279,7 @@ function updateRosterControls() {
   $("#rosterSave").disabled = disabled || !ROSTER_DIRTY;
   $("#rosterSelect").disabled = closed || ROSTER_SAVING;
   $("#rosterDownload").disabled = ROSTER_SAVING;
-  ["#rosterPrev", "#rosterNext", "#rosterTomorrow", "#rosterDate"].forEach(selector => {
+  ["#rosterPrev", "#rosterNext", "#rosterToday", "#rosterTomorrow", "#rosterDate"].forEach(selector => {
     $(selector).disabled = ROSTER_SAVING;
   });
   $("#rosterAddFooter").disabled = disabled;
@@ -360,7 +360,7 @@ $("#rosterFooterCategories").addEventListener("keydown", event => {
 
 $("#rosterOpsSigner").onchange = () => setRosterDirty(true);
 
-async function loadRoster(day) {
+async function loadRoster(day, remember = true) {
   ROSTER_DAY = day;
   setRosterMessage("");
   $("#rosterPreview").innerHTML = skeleton("rows", 10);
@@ -376,7 +376,7 @@ async function loadRoster(day) {
   ROSTER_FILTER = "";
   $("#rosterSelectionSearch").value = "";
   setRosterDirty(false);
-  setPageDay(day);
+  setPageDay(day, remember);          // الفتح التلقائي مايغيّرش يوم العمل المشترك؛ اختيار المستخدم بس
   setRosterInputs(data);
   syncRosterSettingsDisclosure(data);
   renderSelectionCount();
@@ -392,6 +392,11 @@ function shiftRoster(offset) {
 
 $("#rosterPrev").onclick = () => shiftRoster(-1);
 $("#rosterNext").onclick = () => shiftRoster(1);
+$("#rosterToday").onclick = () => {
+  const day = _localToday();
+  $("#rosterDate").value = day;
+  loadRoster(day);
+};
 $("#rosterTomorrow").onclick = () => {
   const day = addDays(_localToday(), 1);
   $("#rosterDate").value = day;
@@ -463,7 +468,11 @@ $("#rosterSave").onclick = async () => {
 };
 
 (async function initRoster() {
-  const day = addDays(_localToday(), 1);
+  // يوم العمل مشترك بين اليوميات كلها (core.js workDay): لو المستخدم اختار يوم في أي صفحة أو في الرابط
+  // (?day=) الكشف بيفتح عليه؛ ولو ماحدش اختار (النهاردة) الكشف بيفتح على بكرة (الكشف بيتعمل لليوم اللي بعده).
+  const today = (typeof META !== "undefined" && META.today) || _localToday();
+  const shared = workDay();
+  const day = shared !== today ? shared : addDays(today, 1);
   $("#rosterDate").value = day;
-  await loadRoster(day);
+  await loadRoster(day, shared !== today);
 })();
