@@ -306,6 +306,24 @@ ACTIONS.openAssign = id => {
       DUTY = out; closeModal("assignModal", true); showToast("تم إلغاء تسجيل الحالة بالكامل"); render();
     };
   }
+  const hasDayStatus = row.status_source === "day" && !!row.status;
+  $("#assignDayStatus").classList.toggle("hidden", !hasDayStatus);
+  if (hasDayStatus) {
+    $("#assignDayStatusText").textContent = `«${row.status}» — محفوظة لهذا اليوم فقط`;
+    $("#assignCancelDayStatus").onclick = async () => {
+      const yes = await confirmDialog({
+        title: `إلغاء حالة ${row.status}`,
+        body: `سيُلغى تسجيل حالة «${row.status}» من هذا اليوم فقط ويرجع الضابط لحالته العادية (تشغيل/خدمته).`,
+        confirmLabel: "إلغاء الحالة",
+        danger: true,
+      });
+      if (!yes) return;
+      const out = await api(`/api/duty/${DUTY.date}/${encodeURIComponent(row.id)}/cancel-day-status`,
+        jsonReq("POST", {revision: DUTY.revision}));
+      if (!out) return;
+      DUTY = out; closeModal("assignModal", true); showToast("تم إلغاء الحالة"); render();
+    };
+  }
   openModal("assignModal");
 };
 

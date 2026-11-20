@@ -776,7 +776,7 @@ def build_board(data, day):
                               "return_date": lv.get("return_date"), "note": manual})
             else:
                 lv = r["leave"] or {}
-                outsiders.append({**who, "reason": lv.get("type") or r["bucket"], "note": manual,
+                outsiders.append({**who, "reason": r["bucket"], "note": manual,
                                   "leave_type": lv.get("type"), "start": lv.get("start"),
                                   "end": lv.get("end"), "return_date": lv.get("return_date"),
                                   # تفاصيل الفرقة من الالتحاق المسجّل، والحالة

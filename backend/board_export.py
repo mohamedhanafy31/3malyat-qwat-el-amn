@@ -488,11 +488,11 @@ def _presentation_sections(sections):
                 if row.get("start"):
                     detail = leave_text(row.get("leave_type"), row.get("start"), row.get("end"),
                                         row.get("return_date"))
-                    if row.get("note") and row["note"] not in detail:
+                    if row.get("note") and row["note"] != detail:
                         detail = f"{detail} — {row['note']}"
                 elif row.get("status_period"):
                     detail = status_period_text(row["status_period"])
-                    if row.get("note") and row["note"] not in detail:
+                    if row.get("note") and row["note"] != detail:
                         detail = f"{detail} — {row['note']}"
                 elif row.get("course"):
                     from .duty import course_with_note

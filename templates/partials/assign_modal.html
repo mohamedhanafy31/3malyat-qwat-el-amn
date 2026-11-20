@@ -15,6 +15,11 @@
       <button type="button" class="mini bad" id="assignStopPersistent">إنهاء الحالة من هذا اليوم</button>
       <button type="button" class="mini bad" id="assignCancelPersistent">إلغاء تسجيل الحالة بالكامل</button>
     </div>
+    <div class="assign-state-card persistent-status hidden" id="assignDayStatus">
+      <span class="assign-state-icon" aria-hidden="true">{{ icon('alert') }}</span>
+      <span class="assign-state-copy"><strong>حالة اليوم</strong><span id="assignDayStatusText"></span></span>
+      <button type="button" class="mini bad" id="assignCancelDayStatus">إلغاء الحالة</button>
+    </div>
     <form id="assignForm" novalidate>
       <input type="hidden" id="assignPerson">
       <fieldset class="assign-path-field">

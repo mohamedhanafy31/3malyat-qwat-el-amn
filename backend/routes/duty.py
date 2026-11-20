@@ -350,6 +350,43 @@ def stop_continuous_status(day, person_id):
     return with_data(mutate, around(day, -1, 0))
 
 
+@bp.post("/api/duty/<day>/<person_id>/cancel-day-status")
+def cancel_day_status(day, person_id):
+    """إلغاء الحالة المكتوبة في ملف اليوم فقط، مع إبقاء باقي حالة الضابط."""
+    day = canonical_day(day)
+    if not day:
+        return jsonify({"error": "تاريخ غير صحيح."}), 400
+    payload = json_payload()
+
+    def mutate(data):
+        stale = stale_revision(data, payload.get("revision"), [day])
+        if stale:
+            raise AbortRequest((jsonify({"code": "stale_revision", "revision": stale,
+                                         "error": "البيانات تغيّرت؛ أعد تحميل اليوم."}), 409))
+        prepare(data, day)
+        ok, lock_err = day_status.check_open(data, day)
+        if not ok:
+            raise AbortRequest((jsonify({"error": lock_err}), 409))
+        officer = next((o for o in officers_on(data, day) if o.get("id") == person_id), None)
+        if not officer:
+            raise AbortRequest((jsonify({"error": "الضابط لم يكن على القوة في هذا اليوم."}), 404))
+        before = dict(officer_state(data, day, person_id))
+        status = str(before.get("status") or "").strip()
+        if not status:
+            raise AbortRequest((jsonify({"error": "لا توجد حالة مسجلة لهذا الضابط في هذا اليوم."}), 404))
+        after = set_officer_state(data, day, person_id, status="", note="")
+        changes.record(data, "officer_state", person_id, "update" if after else "delete",
+                       before=before, after=dict(after) if after else None,
+                       reason=f"يوم {day}", text=f"إلغاء حالة {status} ليوم {day}")
+        result = summarise(data, day)
+        result["officer_statuses"] = officer_statuses(data)
+        result["daily"] = build_daily_view(data, day)
+        result["revision"] = result["daily"]["revision"]
+        return jsonify(result)
+
+    return with_data(mutate, around(day, -1, 0))
+
+
 @bp.post("/api/duty/<day>/<person_id>/cancel-status")
 def cancel_status(day, person_id):
     """إلغاء تسجيل الحالة بالكامل: بيمسح سجل الحالة اللي بيغطي ``day`` من

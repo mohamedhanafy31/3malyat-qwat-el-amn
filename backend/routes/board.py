@@ -115,8 +115,11 @@ def export_board_docx(day):
     if not day:
         return jsonify({"error": "تاريخ غير صحيح."}), 400
     data = load_data(around(day, -1, 0))
-    board = build_board(data, day)
-    buf = build_docx(board, clinic_search_ids(data, day), command_priority_map(data, day))
+    preview = deepcopy(data)
+    if needs_prepare(data, day, include_inspections=True):
+        prepare(preview, day, include_inspections=True)
+    board = build_board(preview, day)
+    buf = build_docx(board, clinic_search_ids(preview, day), command_priority_map(preview, day))
     return send_file(buf, as_attachment=True, download_name=f"اليومية التفصيلية {day}.docx",
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
