@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import logging
 from pathlib import Path
+import os
 import subprocess
 from typing import Iterable
 
@@ -69,12 +70,27 @@ class TextMeter:
                 paths.extend(line.split(":", 1)[0] for line in out.splitlines())
             except (OSError, subprocess.SubprocessError):
                 pass
-            for root in (Path("/usr/share/fonts"), Path.home() / ".fonts"):
+            for root in self._font_roots():
                 if root.exists():
                     paths.extend(str(p) for p in root.rglob("*.ttf"))
             TextMeter._all_paths = list(dict.fromkeys(paths))
         self._paths = TextMeter._all_paths
         return TextMeter._all_paths
+
+    @staticmethod
+    def _font_roots():
+        """مجلدات الخطوط: لينكس + ويندوز (جهاز التشغيل الفعلي) + ماك. من غيرها القياس بيرجع لتقدير
+        تقريبي متشائم فيفشل احتواء اليومية في صفحة واحدة على ويندوز."""
+        roots = [Path("/usr/share/fonts"), Path.home() / ".fonts",
+                 Path.home() / "Library" / "Fonts", Path("/Library/Fonts"),
+                 Path("/System/Library/Fonts")]
+        windir = os.environ.get("SystemRoot") or os.environ.get("WINDIR")
+        if windir:
+            roots.append(Path(windir) / "Fonts")
+        local = os.environ.get("LOCALAPPDATA")
+        if local:
+            roots.append(Path(local) / "Microsoft" / "Windows" / "Fonts")
+        return roots
 
     def _font_path(self, name, bold=False):
         key = (name or "Arial").lower()
@@ -96,10 +112,25 @@ class TextMeter:
             wanted += ["times new roman", "arial", "noto sans arabic"]
         else:
             wanted += ["arial", "noto sans arabic", "dejavu sans"]
+        # أسماء ملفات ويندوز المختصرة (times.ttf / timesbd.ttf / arial.ttf / arialbd.ttf …)
+        aliases = {"times new roman": ("times",), "arial": ("arial",),
+                   "dejavu sans": ("dejavusans",), "noto sans arabic": ("notosansarabic",)}
+
+        def squash(text):
+            return text.lower().replace(" ", "").replace("_", "").replace("-", "")
+
         for wanted_name in wanted:
-            matches = [p for p in candidates if wanted_name in Path(p).stem.lower()]
-            if bold:
-                matches.sort(key=lambda p: ("bold" not in p.lower(), p))
+            stems = [squash(wanted_name), *aliases.get(wanted_name, ())]
+            matches = [p for p in candidates
+                       if any(stem in squash(Path(p).stem) for stem in stems)]
+
+            def rank(path):
+                stem = squash(Path(path).stem)
+                is_bold = "bold" in stem or stem.endswith("bd")
+                exact = stem in {s + suffix for s in stems for suffix in ("", "bold", "bd")}
+                return ((not is_bold) if bold else is_bold, not exact, path)
+
+            matches.sort(key=rank)
             if matches:
                 return matches[0]
         return candidates[0] if candidates else None

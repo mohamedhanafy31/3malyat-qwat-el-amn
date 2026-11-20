@@ -85,10 +85,10 @@ def test_font_path_keeps_priority_and_bold_ordering(fake_fonts):
          "/f/z/ArialBold.ttf", "/f/z/ARIAL.ttf", "/f/a/Arial-Bold.ttf",
          "/f/Times New Roman.ttf", "/f/NotoSansArabic-Regular.ttf"])
     meter = TextMeter()
-    assert meter._font_path("Arial") == "/f/z/ArialBold.ttf"          # ترتيب المرشحين
+    assert meter._font_path("Arial") == "/f/z/ARIAL.ttf"              # العادي للعادي (مش ArialBold)
     assert meter._font_path("Arial", True) == "/f/a/Arial-Bold.ttf"   # عريض ثم أبجدي
     assert meter._font_path("Times New Roman") == "/f/Times New Roman.ttf"
-    assert meter._font_path("Sultan bold") == "/f/z/ArialBold.ttf"    # بديل arial أولًا
+    assert meter._font_path("Sultan bold") == "/f/z/ARIAL.ttf"        # بديل arial أولًا
     assert meter._font_path("dejavu") == "/f/arial/DejaVuSans.ttf"
     for name in ("Arial", "Times New Roman", "Sultan bold", "Missing", "noto sans arabic"):
         for bold in (False, True):
