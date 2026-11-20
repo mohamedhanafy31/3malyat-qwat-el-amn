@@ -18,6 +18,7 @@ from .formation_export import build_docx as build_formation_docx
 from .store import load_data
 from .utils import around, command_priority_map
 from .assignments_roster_export import build_docx as build_assignments_roster_docx
+from .dry_meals_export import build_docx as build_dry_meals_docx
 
 
 def _bytes(value):
@@ -56,6 +57,14 @@ def build_roster_bytes(day):
 
 # اسم وصفي إضافي للمستهلكين الذين لا يمررون من خلال daily_files.KINDS.
 build_assignments_roster_bytes = build_roster_bytes
+
+
+def build_dry_meals_bytes(day):
+    """أمر صرف الوجبات الجافة من نفس لقطة اليوم المستخدمة في الصفحة."""
+    from .dry_meals import prepare_view
+
+    _data, _preview, payload = prepare_view(day)
+    return _bytes(build_dry_meals_docx(payload))
 
 
 def _afraad_scope(day):

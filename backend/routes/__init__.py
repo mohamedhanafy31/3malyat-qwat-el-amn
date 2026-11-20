@@ -30,6 +30,7 @@ from .target_commanders import bp as target_commanders_bp
 from .system_settings import bp as system_settings_bp
 from .tech_logs import bp as tech_logs_bp
 from .assignments_roster import bp as assignments_roster_bp
+from .dry_meals import bp as dry_meals_bp
 
 ALL_BLUEPRINTS = [pages_bp, meta_bp, people_bp, leaves_bp, duty_bp, duty_stats_bp,
                   board_bp, register_bp, courses_bp, counts_bp, changes_bp,
@@ -37,7 +38,7 @@ ALL_BLUEPRINTS = [pages_bp, meta_bp, people_bp, leaves_bp, duty_bp, duty_stats_b
                   afraad_bp, inspection_schedule_bp, rest_suspension_bp,
                   auth_bp, users_bp, audit_bp, campaign_bp, day_files_bp, daily_print_bp, ops_bp,
                   roster_import_bp, health_bp, target_commanders_bp, system_settings_bp,
-                  tech_logs_bp, assignments_roster_bp]
+                  tech_logs_bp, assignments_roster_bp, dry_meals_bp]
 
 
 def register_routes(app):

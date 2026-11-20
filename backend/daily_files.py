@@ -1,4 +1,4 @@
-"""إدارة مجلد الأرشيف اليومي والملفات الستة
+"""إدارة مجلد الأرشيف اليومي والملفات اليومية
 التي يولدها النظام.
 
 المجلد يحاكي أرشيف المشغّلين، بينما الملفات اليومية تُبنى
@@ -22,13 +22,14 @@ from .settings import get_setting
 from .store import ALL_CORE_KEYS
 
 LOG = logging.getLogger(__name__)
-KINDS = ("board", "duty", "roster", "afraad", "campaign", "counts", "regularity",
+KINDS = ("board", "duty", "roster", "dry_meals", "afraad", "campaign", "counts", "regularity",
          "formation_morning", "formation_night")
 _PATTERNS = {
     "board": re.compile(r"^\d+\.(?:docx|pdf)$"),
     "regularity": re.compile(r"^\d+\.\.docx$"),
     "duty": re.compile(r"^\d+-\d+-\d{4}\.(?:docx|pdf)$"),
     "roster": re.compile(r"^يومية تعيينات الضباط\.docx$"),
+    "dry_meals": re.compile(r"^أمر صرف وجبات جافة\.docx$"),
     "afraad": re.compile(r"^\d+-\d+-\d{4} افراد\.(?:docx|pdf)$"),
     "campaign": re.compile(r"^يومية الحملة"),
     "counts": re.compile(r"^اعداد الخدمات"),
@@ -43,7 +44,7 @@ ARCHIVE_LOCK = threading.RLock()
 # أقسام اليوم اللي بتدل إن حد اشتغل على اليوم ده فعلًا. التهيئة التلقائية
 # (راحات الأسبوع، الأهداف الافتراضية) بتعمل ملف يوم من غير ما يبقى فيه شغل،
 # فوجود الملف لوحده مش دليل.
-DATA_SECTIONS = ("day_assignments", "day_officers", "day_roster", "day_afraad", "day_campaign",
+DATA_SECTIONS = ("day_assignments", "day_officers", "day_roster", "day_dry_meals", "day_afraad", "day_campaign",
                  "service_counts", "day_confirm")
 
 
@@ -118,6 +119,7 @@ def file_names(day):
         "regularity": f"{number}..docx",
         "duty": f"{number}-{month}-{year}.docx",
         "roster": "يومية تعيينات الضباط.docx",
+        "dry_meals": "أمر صرف وجبات جافة.docx",
         "afraad": f"{number}-{month}-{year} افراد.docx",
         "campaign": f"يومية الحملة عن يوم {number}-{month}-{year}.docx",
         "counts": f"اعداد الخدمات يوم {number}-{month}-{year}.xlsx",

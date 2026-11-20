@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block daily_files %}dry_meals{% endblock %}
+
+{% block content %}
+<div class="panel dry-panel">
+  <div class="toolbar dry-toolbar" role="group" aria-label="التنقل بين الأيام">
+    <div class="tb-group dry-date-group">
+      <span class="dry-control-label">يوم الأمر</span>
+      <button class="mini" id="dryPrev" type="button" aria-label="اليوم السابق">{{ icon('chevron-prev') }}<span>السابق</span></button>
+      <input type="date" id="dryDate" class="select" aria-label="يوم أمر الوجبات الجافة">
+      <button class="mini" id="dryNext" type="button" aria-label="اليوم التالي"><span>التالي</span>{{ icon('chevron-next') }}</button>
+      <button class="mini" id="dryToday" type="button">اليوم</button>
+      <button class="mini" id="dryTomorrow" type="button">غدًا</button>
+    </div>
+    <div id="drySummary" class="dry-summary" role="status" aria-live="polite"></div>
+    <div class="tb-group dry-actions">
+      <button class="primary" id="dryDownload" type="button">{{ icon('download') }} تحميل Word</button>
+    </div>
+  </div>
+  <div class="dry-statusbar" role="status" aria-live="polite">
+    <span id="dryDayLabel" class="dry-day-label"></span><span id="dryLock" class="muted"></span>
+  </div>
+  <div class="dry-config-head">
+    <div><h2>الخدمات الثابتة</h2><p class="muted">أدخل الخدمات وأعداد الوجبات يدويًا. يُرحّل النظام آخر إعداد سابق كاقتراح فقط.</p></div>
+    <div class="dry-save-actions"><label class="dry-signer"><span>توقيع بلوكامين قسم العمليات</span><select id="dryOpsSigner" class="select" aria-label="توقيع بلوكامين قسم العمليات"></select></label><span id="dryDirty" class="dry-dirty" hidden>توجد تغييرات غير محفوظة</span><button class="btn" id="drySave" type="button">حفظ</button></div>
+  </div>
+  <div id="dryFixedEditor" class="dry-editor" aria-label="الخدمات الثابتة"></div>
+  <button class="mini dry-add" id="dryAddFixed" type="button">إضافة خدمة ثابتة</button>
+  <div class="dry-emergency-toggle">
+    <label class="checkline"><input type="checkbox" id="dryEmergencyEnabled"><span><b>إضافة خدمات طوارئ</b><small>يضيف النصف الطارئ إلى ملف Word ويتركه مخفيًا عند الإيقاف.</small></span></label>
+  </div>
+  <section id="dryEmergencyEditor" class="dry-emergency hidden" aria-labelledby="dryEmergencyTitle">
+    <div class="dry-section-head"><div><h2 id="dryEmergencyTitle">الخدمات الطارئة</h2><p class="muted">اختر الخدمة مرة واحدة، ثم عدّل أعدادها وملاحظاتها.</p></div><button class="mini" id="dryPickEmergency" type="button">اختيار خدمة</button></div>
+    <div id="dryEmergencyRows" class="dry-editor"></div>
+  </section>
+  <p id="dryMessage" class="field-hint dry-message" role="status" aria-live="polite"></p>
+</div>
+
+<div class="panel">
+  <div class="section-head"><div><h3 id="dryTitle">معاينة أمر صرف وجبات جافة</h3><p class="muted">المعاينة تعرض نفس الجداول التي سيولدها ملف Word.</p></div></div>
+  <div id="dryPreview" class="dry-preview" tabindex="0" aria-label="معاينة أمر صرف الوجبات الجافة">{{ skeleton("rows", 8) }}</div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal hidden" id="dryPickerModal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="dryPickerTitle">
+    <button type="button" class="close" id="dryPickerClose" aria-label="إغلاق">×</button>
+    <h2 id="dryPickerTitle">اختيار خدمة طوارئ</h2>
+    <p class="form-note">الخدمات مأخوذة من دليل الخدمات وبيانات اليوم. لا يمكن اختيار الخدمة نفسها مرتين.</p>
+    <div id="dryPickerGroups" class="dry-picker-groups"></div>
+    <div class="actions modal-foot"><button class="btn" id="dryPickerCancel" type="button">إلغاء</button></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dry-meals.js') }}"></script>
+{% endblock %}

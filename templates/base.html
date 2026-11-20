@@ -96,6 +96,11 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
         <span>يومية التعيينات</span>
       </a>
+      <a class="navbtn {{ 'active' if page == 'dry_meals' }}" href="{{ url_for('pages.dry_meals') }}"
+         {{ 'aria-current=page' if page == 'dry_meals' }}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 4v2h10V7H7Zm0 4v2h10v-2H7Zm0 4v2h6v-2H7Z"/></svg>
+        <span>أمر صرف وجبات جافة</span>
+      </a>
       <a class="navbtn {{ 'active' if page == 'afraad' }}" data-key="4" href="{{ url_for('pages.afraad') }}"
          {{ 'aria-current=page' if page == 'afraad' }}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v2H4V5Zm0 4.5h16v2H4v-2ZM4 14h10v2H4v-2Zm0 4.5h10v2H4v-2Z"/></svg>

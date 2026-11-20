@@ -19,6 +19,8 @@ PAGES = {
     "duty": ("duty.html", "يومية الضباط", "تشغيل الضباط اليومي وجدول الإجمالي"),
     "assignments_roster": ("assignments_roster.html", "يومية التعيينات",
                             "كشف أسماء الضباط وحالتهم التشغيلية ليوم الغد"),
+    "dry_meals": ("dry_meals.html", "أمر صرف وجبات جافة",
+                  "إعداد أمر صرف الوجبات الجافة للخدمات الثابتة والطوارئ"),
     "duty_stats": ("duty_stats.html", "إحصائيات التشغيل",
                     "توازن وانتظام التشغيل الفعلي — عدالة التوزيع، تغطية الأهداف، والتقصيرات"),
     "board": ("board.html", "اليومية التفصيلية", "خدمات اليوم بأقسامها — الضباط والأفراد والمجندين"),
@@ -98,6 +100,11 @@ def duty():
 @bp.get("/assignments-roster")
 def assignments_roster():
     return _render("assignments_roster")
+
+
+@bp.get("/dry-meals")
+def dry_meals():
+    return _render("dry_meals")
 
 
 @bp.get("/duty/stats")
