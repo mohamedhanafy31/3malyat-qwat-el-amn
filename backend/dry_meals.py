@@ -73,6 +73,17 @@ def _emergency_value(item):
     return result
 
 
+# الخدمات الثابتة الافتراضية (من أمر الوجبات الجافة الورقي). تُستخدم فقط
+# لما ما يبقاش فيه يوم سابق محفوظ؛ بعد كده كل يوم يرث آخر يوم محفوظ كما هو.
+DEFAULT_FIXED_ROWS = [
+    {"name": "تمشيط حنيفة", "officers": 0, "personnel": 0, "conscripts": 1, "notes": ""},
+    {"name": "تمشيط أم القمر", "officers": 0, "personnel": 0, "conscripts": 2, "notes": ""},
+    {"name": "محور 30 يوليو", "officers": 0, "personnel": 2, "conscripts": 2, "notes": ""},
+    {"name": "قول 36 لاسلكي", "officers": 0, "personnel": 0, "conscripts": 3, "notes": ""},
+    {"name": "مكتب امن وطن بالسخنة", "officers": 0, "personnel": 1, "conscripts": 0, "notes": ""},
+]
+
+
 def _empty_config():
     return {
         "fixed_rows": [{"name": "", "officers": 0, "personnel": 0,
@@ -206,6 +217,8 @@ def _normal_config(data, day):
         carried = _carry_forward(data, day)
         if carried:
             stored["fixed_rows"] = carried
+        else:
+            stored["fixed_rows"] = [dict(row) for row in DEFAULT_FIXED_ROWS]
     members, signer_id, signer = _signer(data, day, stored)
     stored["ops_signer_id"] = signer_id
     chief = signatories(data, day).get("operations") or {"rank": "رائد", "name": "محمد بحر"}

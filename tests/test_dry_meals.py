@@ -42,10 +42,12 @@ def test_get_payload_shape_totals_and_page(client):
     payload = response.get_json()
     assert {"fixed_rows", "emergency_rows", "config", "pickable_services",
             "revision", "day_status", "weekday"} <= set(payload)
-    assert payload["config"]["fixed_rows"] == [{"name": "", "officers": 0,
-                                                  "personnel": 0, "conscripts": 0,
-                                                  "notes": ""}]
-    assert payload["total"] == 0
+    # بدون يوم سابق محفوظ: الخدمات الثابتة الافتراضية من الأمر الورقي (11 وجبة)
+    assert [row["name"] for row in payload["config"]["fixed_rows"]] == [
+        "تمشيط حنيفة", "تمشيط أم القمر", "محور 30 يوليو",
+        "قول 36 لاسلكي", "مكتب امن وطن بالسخنة"]
+    assert payload["fixed_total"] == 11
+    assert payload["total"] == 11
     assert client.get("/dry-meals").status_code == 200
     assert "أمر صرف وجبات جافة" in client.get("/dry-meals").get_data(as_text=True)
 

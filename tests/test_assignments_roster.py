@@ -242,8 +242,9 @@ def test_target_notes_reuse_officers_daily_text_for_single_and_supervisor(data_f
     targets = {item["id"]: item for item in payload["target_items"]}
 
     assert targets["OFF-001"]["status"] == "عمل بهدف مصر للبترول"
-    assert targets["OFF-002"]["status"] == daily_rows["OFF-002"]["text"]
-    assert targets["OFF-002"]["status"] == "متابعة اعمال الاهداف + متابعة إضافية"
+    # الإضافة اليدوية بعد تشغيل الهدف لا تظهر في كشف التعيينات
+    assert daily_rows["OFF-002"]["text"].endswith("متابعة إضافية")
+    assert targets["OFF-002"]["status"] == "متابعة اعمال الاهداف"
     assert targets["OFF-001"]["status"] == daily_rows["OFF-001"]["text"]
     assert next(item for item in payload["rows"] if item["id"] == "OFF-003")["status"] == "عمل"
 
@@ -252,7 +253,8 @@ def test_target_notes_reuse_officers_daily_text_for_single_and_supervisor(data_f
     cells = [" ".join(cell.text.split())
              for row in document.tables[0].rows for cell in row.cells]
     assert "عمل بهدف مصر للبترول" in cells
-    assert "متابعة اعمال الاهداف + متابعة إضافية" in cells
+    assert "متابعة اعمال الاهداف" in cells
+    assert not any("متابعة إضافية" in cell for cell in cells)
 
 
 def test_target_notes_reuse_time_and_text_split_labels(data_file):

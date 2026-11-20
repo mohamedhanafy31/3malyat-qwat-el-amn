@@ -348,12 +348,12 @@ def _table_layout(payload):
 def _table_widths():
     return [
         CONTENT_WIDTH_MM * 0.05,
-        CONTENT_WIDTH_MM * 0.33,
+        CONTENT_WIDTH_MM * 0.38,
         CONTENT_WIDTH_MM * 0.09,
         CONTENT_WIDTH_MM * 0.09,
         CONTENT_WIDTH_MM * 0.11,
         CONTENT_WIDTH_MM * 0.12,
-        CONTENT_WIDTH_MM * 0.21,
+        CONTENT_WIDTH_MM * 0.16,
     ]
 
 
@@ -457,8 +457,8 @@ def _make_table(document, rows, total_label, *, emergency, layout):
                 align = WD_ALIGN_PARAGRAPH.CENTER
             _cell_text(cell, display, size=layout["data_font"],
                        bold=not emergency, align=align,
-                       right_padding=80 if index == 0 else (55 if index == 1 else 0),
-                       left_padding=80 if index == 0 else 0)
+                       right_padding=80 if index == 0 else (140 if index == 1 else 0),
+                       left_padding=80 if index == 0 else (140 if index == 1 else 0))
             _cell_borders(cell)
         _row_height(row, layout["data_row"], exact=False)
 

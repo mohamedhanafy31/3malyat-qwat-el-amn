@@ -328,6 +328,23 @@ def store_config(data, day, value):
     }
 
 
+def _target_operation_text(text):
+    """تشغيل الهدف فقط من نص يومية الضباط، بدون الإضافات اليدوية بعده.
+
+    «عمل بهدف سوميد حتى 4م + متابعة أعمال الشؤون الإدارية» ← يبقى
+    «عمل بهدف سوميد حتى 4م». أي خدمة قبل الهدف (مثل خدمة خارجية) تبقى،
+    وكل ما بعد آخر جزء هدف يُحذف.
+    """
+    parts = [part.strip() for part in str(text or "").split(" + ") if part.strip()]
+    last = -1
+    for index, part in enumerate(parts):
+        if part.startswith("عمل بهدف") or part.startswith("متابعة اعمال الاهداف"):
+            last = index
+    if last < 0:
+        return " + ".join(parts)
+    return " + ".join(parts[:last + 1])
+
+
 def _target_context(data, day, current_ids):
     lines = []
     target_ids = set()
@@ -418,7 +435,7 @@ def build(data, day):
             # الحالات الخارجة المكتوبة (مثل «غياب») تظل صاحبة الأولوية؛
             # المطلوب هنا استبدال «عمل» المختصرة فقط بنص التشغيل الكامل.
             if is_work_status(item["status"]):
-                item["status"] = str(row.get("text") or item["status"]).strip()
+                item["status"] = _target_operation_text(row.get("text")) or item["status"]
             # كل ضابط مكلّف بهدف يذهب إلى صف عادي تحت عنوان الأهداف؛ القادة
             # المحسوبون للهدف لا يدخلون هنا لأنهم لا يظهرون في officers.
             continue

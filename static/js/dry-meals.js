@@ -157,7 +157,7 @@ async function saveDry(showToastOnSuccess = true) {
   }});
   DRY_SAVING = false; dryUpdateControls();
   if (!out) return false;
-  DRY = out; DRY_DIRTY = false; dryMessage(""); renderDryEditors(); renderDryPreview();
+  DRY = out; DRY_DIRTY = false; $("#dryDirty").hidden = true; dryMessage(""); renderDryEditors(); renderDryPreview(); dryUpdateControls();
   if (showToastOnSuccess) showToast("تم حفظ أمر صرف الوجبات الجافة.");
   return true;
 }
@@ -208,7 +208,7 @@ async function loadDry(day, remember = true) {
   DRY_DAY = day; dryMessage(""); $("#dryPreview").innerHTML = skeleton("rows", 8);
   const data = await api(dryUrl(day), {noLoader: true});
   if (!data) { dryMessage("تعذر تحميل أمر هذا اليوم؛ جرّب إعادة المحاولة.", true); return; }
-  DRY = data; DRY_DIRTY = false; setPageDay(day, remember); renderDryEditors();
+  DRY = data; DRY_DIRTY = false; $("#dryDirty").hidden = true; setPageDay(day, remember); renderDryEditors(); dryUpdateControls();
   $("#dryLock").textContent = data.day_status?.closed ? "اليوم مقفول — العرض فقط، افتح اليوم من اليومية التفصيلية للتعديل" : "اليوم مفتوح للتعديل";
   $("#dryLock").classList.toggle("is-locked", Boolean(data.day_status?.closed));
   renderDryPreview(); window.exportDocxUrl = () => `/api/dry-meals/${encodeURIComponent(DRY_DAY)}/export.docx`;
