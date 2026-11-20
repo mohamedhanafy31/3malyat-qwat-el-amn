@@ -88,6 +88,30 @@ def normalize_ooxml_order(root):
     return changed
 
 
+_MC_NS = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+
+
+def drop_empty_drawings(root):
+    """يشيل أي `<w:drawing/>` فاضي (صندوق توقيع اتفضّى بدل ما يتشال): Word بيرفض الملف كله
+    («Unspecified error») لأن الرسم لازم يكون فيه wp:anchor أو wp:inline. -> عدد المحذوف."""
+    removed = 0
+    for drawing in list(root.iter(qn("w:drawing"))):
+        if len(drawing):
+            continue
+        node = drawing
+        # نطلع لأقرب mc:AlternateContent ثم لـ w:r اللي حاوياه ونشيله كله
+        while node is not None and node.tag != "{%s}AlternateContent" % _MC_NS:
+            node = node.getparent()
+        target = node if node is not None else drawing
+        run = target.getparent()
+        if run is not None and run.tag == qn("w:r") and len(run) == 1:
+            run.getparent().remove(run)
+        elif run is not None:
+            run.remove(target)
+        removed += 1
+    return removed
+
+
 def _tcs(tr):
     return list(tr.findall(qn("w:tc")))
 
@@ -868,6 +892,7 @@ def build_docx(payload):
     for tr in rows:
         table._tbl.append(tr)
 
+    drop_empty_drawings(document.element)
     normalize_ooxml_order(document.element)
     output = BytesIO()
     document.save(output)

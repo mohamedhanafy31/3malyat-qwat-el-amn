@@ -39,3 +39,22 @@ def test_normalizer_fixes_misordered_and_duplicate_properties():
     assert [etree.QName(c).localname for c in root.find(f".//{{{W}}}pPr")] == ["spacing", "jc", "rPr"]
     assert root.find(f".//{{{W}}}jc").get(f"{{{W}}}val") == "right"
     assert [etree.QName(c).localname for c in root.find(f".//{{{W}}}tcPr")] == ["tcW", "noWrap", "vAlign"]
+
+
+def test_generated_roster_has_no_empty_drawing_elements(client):
+    """`<w:drawing/>` فاضي (صندوق توقيع اتفضّى بدل ما يتشال) كان سبب «Unspecified error» في Word."""
+    response = client.get("/api/assignments-roster/2026-05-02/export.docx")
+    root = etree.fromstring(ZipFile(BytesIO(response.data)).read("word/document.xml"))
+    drawings = root.findall(".//{%s}drawing" % W)
+    assert drawings and all(len(d) for d in drawings)
+    # صندوقا التوقيع بس (قسم العمليات + رئيس قسم العمليات)
+    assert len(drawings) == 2
+
+
+def test_drop_empty_drawings_removes_the_whole_alternate_content_run():
+    mc = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+    root = etree.fromstring(
+        f'<w:body xmlns:w="{W}" xmlns:mc="{mc}"><w:p><w:r><mc:AlternateContent><mc:Choice Requires="wps">'
+        f'<w:drawing/></mc:Choice><mc:Fallback><w:pict/></mc:Fallback></mc:AlternateContent></w:r></w:p></w:body>')
+    assert export.drop_empty_drawings(root) == 1
+    assert not root.findall(".//{%s}drawing" % W) and not root.findall(".//{%s}r" % W)
