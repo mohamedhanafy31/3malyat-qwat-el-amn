@@ -30,7 +30,7 @@ def test_status_text_uses_archive_vocabulary_and_out_state_wins():
     assert roster.status_text({"taqseera": True, "status": "غياب"}, DAY) == "غياب"
     fast = {"services": [{"name": "التدخل السريع — قطاع 1"}]}
     assert roster.status_text(fast, DAY) == "تدخل"
-    assert roster.status_text({"services": [{"name": "تدخل سريع ليلية"}]}, DAY) == "تدخل"
+    assert roster.status_text({"services": [{"name": "تدخل سريع ليلية"}]}, DAY) == "تدخل ليل"
     assert roster.status_text({**fast, "group": "خوارج", "bucket": "تقصيرة"}, DAY) == "تدخل"
     assert roster.status_text({**fast, "status": "غياب"}, DAY) == "غياب"
 
@@ -59,9 +59,38 @@ def test_work_status_stays_plain_for_internal_guard_and_missing_services():
     assert roster.status_text({}, DAY) == "عمل"
 
 
-def test_intervention_status_stays_plain_even_when_service_is_external():
+def test_intervention_status_names_the_shift_and_keeps_unknown_plain():
     row = {"services": [_service("التدخل السريع", shift="ليلية")]}
-    assert roster.status_text(row, DAY) == "تدخل"
+    assert roster.status_text(row, DAY) == "تدخل ليل"
+    assert roster.status_text({"services": [_service("التدخل السريع", shift="صباحية")]}, DAY) == "تدخل صبح"
+    assert roster.status_text({"services": [
+        _service("التدخل السريع", shift="صباحية"),
+        _service("التدخل السريع", shift="ليلية"),
+    ]}, DAY) == "تدخل صبح + ليل"
+    assert roster.status_text({"status": "تدخل", "services": [
+        _service("التدخل السريع", shift="صباحية")
+    ]}, DAY) == "تدخل صبح"
+    assert roster.status_text({"services": [{"name": "تدخل سريع", "shift": "غير معروفة"}]}, DAY) == "تدخل"
+
+
+def test_intervention_status_is_recognized_by_roster_selection_vocabulary():
+    assert all(roster.is_intervention_status(value) for value in (
+        "تدخل", "تدخل صبح", "تدخل ليل", "تدخل صبح + ليل"))
+    assert not roster.is_intervention_status("عمل (ارتكاز بتروجيت)")
+
+
+def test_build_exposes_work_and_intervention_counts(data_file):
+    data = _roster_data(data_file)
+    data["day_assignments"] = {DAY: [
+        {"id": "AS-AM", "name": "التدخل السريع", "kind": "خارجية",
+         "shift": "صباحية", "officer_ids": ["OFF-001"], "personnel_ids": []},
+        {"id": "AS-PM", "name": "التدخل السريع", "kind": "خارجية",
+         "shift": "ليلية", "officer_ids": ["OFF-002"], "personnel_ids": []},
+    ]}
+    payload = roster.build(data, DAY)
+    assert payload["counts"]["intervention"] == 2
+    assert payload["counts"]["work"] == 2
+    assert payload["counts"]["total"] == payload["total"]
 
 
 def test_explicit_work_status_uses_the_same_external_service_text():
@@ -280,7 +309,6 @@ def test_docx_contains_title_rows_status_and_footer():
     assert "()" not in xml
     assert "الإجمالي: 2" in text
     assert len(document.tables[0].rows) >= 3
-
     table_xml = etree.fromstring(ZipFile(BytesIO(raw_docx)).read("word/document.xml"))
     ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
     rows = table_xml.findall(".//w:tbl/w:tr", ns)
@@ -290,6 +318,55 @@ def test_docx_contains_title_rows_status_and_footer():
         "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val") == "8"
     assert "الإجمالي: 2" in "".join(total_row.xpath(".//w:t/text()", namespaces=ns))
 
+
+def test_signature_boxes_use_two_word_names_while_operations_data_keeps_full_name(data_file):
+    data = _roster_data(data_file)
+    data["personnel"][0]["name"] = "أحمد عمليات حسن عبد الله"
+    payload = roster.build(data, DAY)
+    assert payload["operations_members"][0]["name"] == "أحمد عمليات حسن عبد الله"
+    raw_docx = build_docx({
+        "title": "كشف بأسماء السادة الضباط عن يوم السبت الموافق 21/11/2026م",
+        "right": [], "left": [], "target_items": [], "doctors": [],
+        "footer_categories": [], "total": 0,
+        "ops_signer": {"rank": "معاون ثالث", "name": "أحمد عمليات حسن عبد الله"},
+        "chief": {"rank": "رائد", "name": "محمد بحر شحاتة عبد الله", "short_name": "محمد بحر"},
+    }).getvalue()
+    text = ZipFile(BytesIO(raw_docx)).read("word/document.xml").decode("utf-8")
+    assert "(أحمد عمليات)" in text and "(محمد بحر)" in text
+    assert "أحمد عمليات حسن عبد الله" not in text
+    assert "محمد بحر شحاتة عبد الله" not in text
+
+
+def test_roster_page_has_responsive_and_recovery_hooks():
+    root = Path(__file__).resolve().parent.parent
+    html = (root / "templates/pages/assignments_roster.html").read_text(encoding="utf-8")
+    js = (root / "static/js/assignments-roster.js").read_text(encoding="utf-8")
+    css = (root / "static/css/pages.css").read_text(encoding="utf-8")
+    assert 'class="table-scroll is-wide roster-preview-scroll"' in html
+    assert 'id="rosterSelectionSearch"' in html
+    assert 'id="rosterPrev"' in html and 'id="rosterNext"' in html
+    assert '{% block export %}' not in html
+    assert html.count('id="rosterDownload"') == 1
+    assert '<details id="rosterSettings"' in html
+    assert 'id="rosterSave"' in html and 'id="rosterDirty"' in html
+    assert 'aria-label="اليوم السابق"' in html and 'aria-label="اليوم التالي"' in html
+    assert 'data-roster-footer-error' in js
+    assert 'data-roster-footer-remove aria-label="حذف التصنيف' in js
+    assert 'rosterSettingsNeedOpen' in js and 'panel.open = rosterSettingsNeedOpen(data)' in js
+    assert 'window.dailyFileDay = () => ROSTER_DAY' in js
+    assert 'if (!value) return "";' in js
+    assert "confirmDialog" in js and "stale_revision" in js
+    assert "rosterIsIntervention" in js and "roster-status-chip" in js
+    assert "roster-stat-chip" in js and "roster-page-stats" in js
+    assert "shiftRoster(-1)" in js and "shiftRoster(1)" in js
+    assert "setRosterDirty(true)" in js
+    assert "person.name || person.full_name" in js
+    assert ".roster-preview-scroll" in css and ".roster-selection-list" in css
+    assert "position:sticky" in css and ".roster-footer-remove" in css
+    assert "minmax(0,28rem)" in css and ".roster-nav-text" in css
+    assert "rosterOpsSigner" in css and "background-image:var(--caret)" in css
+    assert "٠" not in html + js
+    assert "@media(prefers-reduced-motion:reduce)" in (root / "static/css/base.css").read_text(encoding="utf-8")
 
 def test_every_table_cell_and_merged_cell_is_centered_and_signature_shapes_are_two_edges():
     raw_docx = build_docx({
@@ -508,6 +585,8 @@ def test_routes_save_defaults_and_reject_stale_revision(client):
     assert response.status_code == 200
     body = response.get_json()
     assert body["central"] == 4 and body["ports"] == 1
+    assert body["weekday"] == "السبت"
+    assert set(body["counts"]) == {"total", "work", "intervention"}
     assert client.get(f"/api/assignments-roster/{DAY}/export.docx").status_code == 200
 
     saved = client.put(f"/api/assignments-roster/{DAY}", json={
@@ -587,7 +666,7 @@ def test_real_assignment_api_service_name_is_used_by_roster_preview(client):
     roster_response = client.get(f"/api/assignments-roster/{SELECTION_DAY}")
     assert roster_response.status_code == 200
     row = next(item for item in roster_response.get_json()["rows"] if item["id"] == "OFF-001")
-    assert row["status"] == "تدخل"
+    assert row["status"] == "تدخل صبح"
 
 
 def test_external_service_status_is_shared_by_preview_targets_and_docx(data_file):

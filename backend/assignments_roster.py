@@ -100,7 +100,17 @@ def _rest_text(leave, day):
     return f"اجازة {label}"
 
 
-def _fast_intervention(row):
+def _shift_kind(value):
+    """يرجع مفتاح الفترة من قيمة الفترة أو من اسم خدمة أرشيفية قديمة."""
+    value = norm(str(value or "")).replace(" ", "")
+    if value in {"صباحيه", "صباح", "صبح"}:
+        return "morning"
+    if value in {"ليليه", "ليل", "ليله"}:
+        return "night"
+    return ""
+
+
+def _fast_intervention_shifts(row):
     def compact(value):
         # `norm` يوحّد الهمزات/الياء/التاء المربوطة ويزيل التطويل والتشكيل؛
         # إزالة أل التعريف والمسافات هنا تجعل «التدخل السريع» و«تدخل سريع»
@@ -109,8 +119,37 @@ def _fast_intervention(row):
         value = norm(str(value or "")).replace(" ", "")
         return value[2:] if value.startswith("ال") else value
 
-    return any("تدخل" in (name := compact(service.get("name")))
+    shifts = set()
+    for service in row.get("services") or []:
+        name = compact(service.get("name"))
+        if "تدخل" not in name or "سريع" not in name:
+            continue
+        shift = _shift_kind(service.get("shift"))
+        if not shift:
+            if "صبح" in name or "صباح" in name:
+                shift = "morning"
+            elif "ليل" in name:
+                shift = "night"
+        if shift:
+            shifts.add(shift)
+    return shifts
+
+
+def _fast_intervention(row):
+    """هل في صف الضابط تكليف تدخل سريع، بغض النظر عن الفترة؟"""
+    return any("تدخل" in (name := norm(str(service.get("name") or "")).replace(" ", ""))
                and "سريع" in name for service in row.get("services") or [])
+
+
+def _intervention_status(row):
+    shifts = _fast_intervention_shifts(row)
+    if shifts == {"morning"}:
+        return "تدخل صبح"
+    if shifts == {"night"}:
+        return "تدخل ليل"
+    if shifts == {"morning", "night"}:
+        return "تدخل صبح + ليل"
+    return "تدخل"
 
 
 def _external_service_name(service):
@@ -154,6 +193,12 @@ def is_work_status(value):
     return value == "عمل" or value.startswith("عمل (")
 
 
+def is_intervention_status(value):
+    return str(value or "").strip() in {
+        "تدخل", "تدخل صبح", "تدخل ليل", "تدخل صبح + ليل",
+    }
+
+
 def status_text(row, day):
     """الحالة القصيرة المطلوبة في عمود «ملاحظات».
 
@@ -162,6 +207,8 @@ def status_text(row, day):
     """
     status = str(row.get("status") or "").strip()
     if status:
+        if is_intervention_status(status) and _fast_intervention(row):
+            return _intervention_status(row)
         return _work_status_text(row) if status == "عمل" else status
     if row.get("leave"):
         return _rest_text(row["leave"], day)
@@ -172,7 +219,7 @@ def status_text(row, day):
     if row.get("medical_state") == "انتداب":
         return "انتداب"
     if _fast_intervention(row):
-        return "تدخل"
+        return _intervention_status(row)
     # التقصيرة علامة على تشغيل الضابط، لا حالة خروج في الكشف.
     return _work_status_text(row)
 
@@ -382,7 +429,7 @@ def build(data, day):
                     and ((row.get("group") == "خوارج"
                           and not is_work_status(item["status"]))
                          or (not is_work_status(item["status"])
-                             and item["status"] != "تدخل"))):
+                             and not is_intervention_status(item["status"])))):
                 continue
             if not is_target:
                 normal.append(item)
@@ -410,6 +457,11 @@ def build(data, day):
     selectable = [item for item in normal if is_work_status(item["status"])]
     normal = [item for item in normal
               if not is_work_status(item["status"]) or item["id"] not in excluded_ids]
+
+    visible_items = normal + target_items + doctors
+    work_count = sum(is_work_status(item["status"]) for item in visible_items)
+    intervention_count = sum(is_intervention_status(item["status"])
+                             for item in visible_items)
 
     # قالب الأرشيف ليس نصفين متساويين: النصف المرئي الأيمن يحمل أول 23
     # صفًا، والنصف الأيسر يواصل من 24 إلى 31 قبل الذيل والعيادة.
@@ -451,6 +503,13 @@ def build(data, day):
         "ports": stored["ports"],
         "footer_categories": stored["footer_categories"],
         "footer_total": sum(item["count"] for item in stored["footer_categories"]),
+        "weekday": WEEKDAYS[_day_date(day).weekday()] if _day_date(day) else "",
+        "counts": {
+            "total": (len(normal) + len(doctors) + len(target_items)
+                      + sum(item["count"] for item in stored["footer_categories"])),
+            "work": work_count,
+            "intervention": intervention_count,
+        },
         "config": {**stored, "ops_signer_id": signer_id},
         "excluded_officer_ids": stored["excluded_officer_ids"],
         "selection": {

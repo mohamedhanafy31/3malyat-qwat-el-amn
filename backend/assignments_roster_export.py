@@ -548,7 +548,14 @@ def _fill_half(tr, start, item):
         _set_cell_text(cells[start + offset], value)
 
 
-def _signature_box(box, title, signer):
+def _signature_name(signer, prefer_short=False):
+    signer = signer or {}
+    value = signer.get("short_name") if prefer_short else signer.get("name")
+    value = str(value or signer.get("name") or "").replace("ـ", " ")
+    return " ".join(value.split()[:2])
+
+
+def _signature_box(box, title, signer, prefer_short=False):
     paragraphs = box.findall(qn("w:p"))
     if not paragraphs:
         return
@@ -561,7 +568,7 @@ def _signature_box(box, title, signer):
         values = [title, "", ""]
     else:
         values = [title, f"{(signer or {}).get('rank') or ''}/",
-                  f"({(signer or {}).get('name') or ''})"]
+                  f"({_signature_name(signer, prefer_short)})"]
     for paragraph in paragraphs:
         box.remove(paragraph)
     for value in values:
@@ -683,7 +690,7 @@ def _fill_signatures(document, payload):
             _signature_box(box, "بلوكامين قسم العمليات", ops)       # الفرد: على اليمين
             move_shape(box, "right")
         elif name == "Text Box 5":
-            _signature_box(box, "رئيس قسم العمليات", chief)         # الضابط: على الشمال
+            _signature_box(box, "رئيس قسم العمليات", chief, prefer_short=True)  # الضابط: على الشمال
             move_shape(box, "left")
     for body_pr in root.iter(WPS_BODY_PR):
         body_pr.set("wrap", "square")

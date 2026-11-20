@@ -31,3 +31,11 @@ def test_officers_duty_service_column_wraps_long_names_instead_of_widening():
     assert "white-space:normal" in chip and "overflow-wrap:anywhere" in chip
     duty_js = (Path(__file__).resolve().parent.parent / "static" / "js" / "duty.js").read_text(encoding="utf-8")
     assert 'class="svc-cell"' in duty_js
+
+
+def test_roster_preview_header_sticks_to_its_own_scroll_box_not_the_topbar():
+    """المعاينة جوّه حاوية scroll خاصة بيها؛ القاعدة العامة بتحط top:var(--topbar-h) فالرأس كان بينزل 60px فوق الصف الأول."""
+    selector = ".roster-preview-scroll.table-scroll:not(.is-wide):not(.reg-scroll) > .roster-table > thead th"
+    assert selector in PAGES
+    block = PAGES[PAGES.index(selector):].split("{", 1)[1].split("}", 1)[0]
+    assert "top:0" in block and "sticky" in block

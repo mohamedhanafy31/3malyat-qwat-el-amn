@@ -87,13 +87,113 @@
 .roster-table .roster-target{font-size:1.25em;font-weight:800;vertical-align:middle}
 .roster-table .roster-total{font-weight:800;text-align:center}
 .roster-table .roster-footer,.roster-table .roster-clinic{font-weight:700;text-align:center}
+.roster-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;padding-block:var(--s3)}
+.roster-toolbar .tb-group{min-height:var(--control-h);align-items:center}
+.roster-date-group{grid-column:1;min-width:0}
+.roster-action-group{grid-column:3;flex:0 1 auto}
+.roster-control-label{font-size:var(--t-sm);font-weight:700;color:var(--ink-600);white-space:nowrap}
+.roster-summary{grid-column:2;display:flex;align-items:center;justify-content:center;gap:var(--s1);flex-wrap:wrap;min-width:0;padding-inline:var(--s3)}
+.roster-stat-chip{display:inline-flex;align-items:center;gap:var(--s1);padding:2px var(--s2);border:1px solid var(--line-strong);
+  border-radius:var(--radius-pill);background:var(--surface);color:var(--ink-600);font-size:var(--t-xs);white-space:nowrap}
+.roster-stat-chip b{color:var(--navy-900);font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.roster-stat-total{border-color:var(--gold-300)}
+.roster-stat-work{border-color:var(--info-300)}
+.roster-stat-intervention{border-color:var(--plum-300)}
+.roster-page-summary{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap}
+.roster-page-day{white-space:nowrap}
+.roster-page-stats{display:inline-flex;gap:var(--s1);flex-wrap:wrap}
+.roster-statusbar{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;padding:var(--s3) var(--s5);
+  border-bottom:1px solid var(--line);background:var(--surface);font-size:var(--t-sm)}
+.roster-day-label{font-weight:800;color:var(--navy-950);font-family:var(--font-head)}
+.roster-lock{color:var(--ink-500)}
+#rosterLock.is-locked{color:var(--warn-800);font-weight:700}
+.roster-settings-head{display:flex;align-items:flex-start;gap:var(--s3);padding:var(--s3) var(--s5);border-bottom:1px solid var(--line)}
+.roster-settings{flex:1;min-width:0}
+.roster-settings summary{display:flex;align-items:center;gap:var(--s3);min-height:var(--control-h);padding:var(--s1) 0;cursor:pointer;list-style:none;color:var(--ink-700)}
+.roster-settings summary::-webkit-details-marker{display:none}
+.roster-settings summary::before{content:"›";display:inline-block;width:1em;color:var(--ink-500);transition:transform .15s}
+.roster-settings[open] summary{border-bottom:1px solid var(--line)}
+.roster-settings[open] summary::before{transform:rotate(-90deg)}
+.roster-settings-title{font-weight:700;color:var(--ink-900)}
+.roster-settings summary small{color:var(--ink-500);font-size:var(--t-sm)}
+.roster-settings-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--s2);min-height:var(--control-h)}
+.roster-settings-actions .roster-dirty{white-space:nowrap}
+.roster-config-grid{padding:var(--s4) 0 var(--s2);display:grid;grid-template-columns:minmax(0,1.35fr) minmax(240px,.65fr);gap:var(--s5)}
+.roster-config-grid .field{display:flex;flex-direction:column;gap:var(--s2);min-width:0;font-weight:700;color:var(--navy-900)}
+.roster-config-grid .field-hint{font-weight:400;line-height:1.6}
+#rosterOpsSigner{appearance:none;-webkit-appearance:none;background-image:var(--caret);background-repeat:no-repeat;
+  background-size:12px 12px;background-position:left var(--s3) center;padding-left:var(--s7);direction:rtl;
+  text-indent:0;font-variant-numeric:normal}
+.roster-footer-editor{max-width:42rem}
+.roster-footer-editor-head,.roster-footer-edit{display:grid;grid-template-columns:minmax(0,28rem) minmax(5rem,6rem) var(--touch-target);
+  gap:var(--s2);align-items:end}
+.roster-footer-editor-head{margin-bottom:var(--s1);color:var(--ink-500);font-size:var(--t-xs);font-weight:700}
+.roster-footer-editor-head span:nth-child(2){text-align:center}
+.roster-footer-edit{margin-top:0}
+.roster-footer-edit label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:var(--t-xs);font-weight:700;color:var(--ink-600)}
+.roster-footer-edit label>span{display:none}
+.roster-footer-edit .input{width:100%;height:var(--control-h);border:1px solid var(--border-control);border-radius:var(--radius-control);
+  padding:0 var(--s3);font:inherit;background:var(--surface);color:var(--ink-900)}
+.roster-footer-remove{width:var(--touch-target);min-width:var(--touch-target);height:var(--touch-target);padding:0;color:var(--bad-700);border-color:var(--bad-300);background:transparent}
+.roster-footer-remove:hover{color:var(--bad-800);border-color:var(--bad-700);background:var(--bad-100)}
+.roster-footer-remove .ico{width:17px;height:17px}
+.roster-inline-error{grid-column:1/-1;margin:calc(-1 * var(--s1)) 0 0;color:var(--bad-700);font-size:var(--t-xs);font-weight:700;min-height:0}
+.roster-inline-error:empty{display:none}
+.roster-message{padding:0 var(--s5) var(--s4);line-height:1.6}
+.roster-message.is-error{color:var(--bad-700);font-weight:700}
+.roster-message .btn{margin-inline-start:var(--s2);vertical-align:middle}
+.roster-preview-scroll{max-width:100%;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.roster-table{min-width:1040px;table-layout:fixed}
+.roster-table th,.roster-table td{min-width:0}
+.roster-preview-scroll.table-scroll:not(.is-wide):not(.reg-scroll) > .roster-table > thead th,
+.roster-preview-scroll .roster-table thead th{position:sticky;top:0;z-index:2;background:var(--surface-sunken);box-shadow:0 1px 0 var(--line-strong)}
+.roster-table th:nth-child(1),.roster-table th:nth-child(5),.roster-table td:nth-child(1),.roster-table td:nth-child(5){width:5%}
+.roster-table th:nth-child(2),.roster-table th:nth-child(6),.roster-table td:nth-child(2),.roster-table td:nth-child(6){width:13%}
+.roster-table th:nth-child(3),.roster-table th:nth-child(7),.roster-table td:nth-child(3),.roster-table td:nth-child(7){width:22%}
+.roster-table th:nth-child(4),.roster-table th:nth-child(8),.roster-table td:nth-child(4),.roster-table td:nth-child(8){width:17%}
+.roster-table td{height:38px}
+.roster-table .roster-status{white-space:normal}
+.roster-status-chip{display:inline-block;max-width:100%;white-space:normal;line-height:1.35}
+.roster-state{padding:var(--s6);text-align:center;color:var(--ink-600)}
+.roster-state-error{color:var(--bad-700);font-weight:700}
+.roster-selection-search{display:flex;flex-direction:column;gap:var(--s2);margin-bottom:var(--s3);font-weight:700}
+.roster-selection-search .search{width:100%;min-width:0}
+.roster-selection-list{max-height:min(48vh,420px);min-height:120px;padding:var(--s1);margin:0;border:1px solid var(--line);border-radius:var(--radius-control);background:var(--surface)}
+.roster-selection-row{min-height:44px;padding:var(--s2) var(--s3)}
+.roster-selection-row > span{display:flex;flex-direction:column;min-width:0;line-height:1.35}
+.roster-selection-row .sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roster-selection-empty{padding:var(--s4);text-align:center}
 @media(max-width:700px){
   .duration-cell{min-width:150px}
   .duration-stepper{height:40px}
   .duration-adjust{width:40px;height:38px}
   .duration-readout .roster-days{height:38px;font-size:16px}
   .roster-action .mini{min-height:40px}
-  .roster-footer-edit{grid-template-columns:minmax(0,1fr) 90px auto}
+  .roster-toolbar{display:flex;align-items:stretch;flex-direction:column}
+  .roster-toolbar .tb-group{width:100%}
+  .roster-date-group{flex-wrap:nowrap}
+  .roster-control-label{display:none}
+  .roster-date-group > .mini{flex:0 0 44px;min-width:44px;width:44px;height:44px;min-height:44px;padding-inline:0}
+  .roster-date-group .select{flex:1 1 auto;min-width:0;width:auto}
+  .roster-nav-text{display:none}
+  .roster-summary{justify-content:flex-start;min-height:28px;padding-inline:0}
+  .roster-action-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s2);align-items:stretch}
+  .roster-action-group > *{width:100%;min-height:44px}
+  .roster-statusbar{padding-inline:var(--s4);align-items:flex-start;flex-direction:column;gap:var(--s1)}
+  .roster-settings-head{padding-inline:var(--s4);align-items:stretch;flex-direction:column;gap:var(--s2)}
+  .roster-settings summary{align-items:flex-start;flex-wrap:wrap}
+  .roster-settings summary small{flex-basis:100%;margin-inline-start:calc(1em + var(--s3))}
+  .roster-settings-actions{justify-content:space-between}
+  .roster-settings-actions .roster-dirty{font-size:var(--t-xs)}
+  .roster-config-grid{grid-template-columns:1fr;padding:var(--s4) 0 var(--s2);gap:var(--s4)}
+  .roster-footer-editor{max-width:none}
+  .roster-footer-editor-head{display:none}
+  .roster-footer-edit{grid-template-columns:minmax(0,1fr) 6rem var(--touch-target)}
+  .roster-footer-edit label>span{display:block}
+  .roster-footer-edit label{font-size:var(--t-xs)}
+  .roster-message{padding-inline:var(--s4)}
+  .roster-page-summary{align-items:flex-start;gap:var(--s1);line-height:1.6}
+  .roster-page-stats{flex-basis:100%}
 }
 /* الفرق */
 .unclassified-banner{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin:var(--s4) var(--s5) 0;

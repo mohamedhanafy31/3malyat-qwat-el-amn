@@ -51,6 +51,21 @@ def test_generated_roster_has_no_empty_drawing_elements(client):
     assert len(drawings) == 2
 
 
+def test_signature_boxes_keep_short_names_and_schema_order():
+    raw = export.build_docx({
+        "title": "كشف بأسماء السادة الضباط عن يوم السبت الموافق 21/11/2026م",
+        "right": [], "left": [], "target_items": [], "doctors": [],
+        "footer_categories": [], "total": 0,
+        "ops_signer": {"rank": "معاون ثالث", "name": "أحمد عمليات حسن عبد الله"},
+        "chief": {"rank": "رائد", "name": "محمد بحر شحاتة", "short_name": "محمد بحر"},
+    }).getvalue()
+    xml = ZipFile(BytesIO(raw)).read("word/document.xml").decode("utf-8")
+    assert "(أحمد عمليات)" in xml and "(محمد بحر)" in xml
+    assert "أحمد عمليات حسن عبد الله" not in xml
+    assert "محمد بحر شحاتة" not in xml
+    assert _violations(raw) == []
+
+
 def test_drop_empty_drawings_removes_the_whole_alternate_content_run():
     mc = "http://schemas.openxmlformats.org/markup-compatibility/2006"
     root = etree.fromstring(
