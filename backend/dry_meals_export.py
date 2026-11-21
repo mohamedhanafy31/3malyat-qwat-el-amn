@@ -514,7 +514,11 @@ def _signature_table(container, payload, *, font_size=SIGNATURE_FONT_PT):
         table = container.add_table(rows=1, cols=3, width=Mm(CONTENT_WIDTH_MM))
     table.autofit = False
     _table_direction(table)
-    widths = [SIGNATURE_BOX_CM * 10, CONTENT_WIDTH_MM - 2 * SIGNATURE_BOX_CM * 10, SIGNATURE_BOX_CM * 10]
+    # مراكز الصندوقين كيومية التعيينات: اليمين عند ~77% من عرض المحتوى (من الشمال)
+    # والشمال عند ~22%، والنص متوسّط داخل كل صندوق.
+    widths = [CONTENT_WIDTH_MM * 0.452, CONTENT_WIDTH_MM * 0.116, CONTENT_WIDTH_MM * 0.432]
+    for grid, width in zip(table._tbl.tblGrid.findall(qn("w:gridCol")), widths):
+        grid.set(qn("w:w"), str(Mm(width).twips))
     for cell, width in zip(table.rows[0].cells, widths):
         _cell_borders(cell, none=True)
         _cell_width(cell, width)
@@ -637,7 +641,9 @@ def build_docx(payload):
                     "اجمالي الوجبـــــات الجافـــة المنصرفة", emergency=True,
                     layout=layout)
     footer = section.footer
-    section.footer_distance = Mm(5)
+    # مكان التوقيع كيومية التعيينات: أعلى من حافة الصفحة بنحو 21مم (حوالي 87% من
+    # ارتفاعها). لو النصف الطارئ مفعّل الصفحة ممتلئة فيفضل التوقيع تحت خالص.
+    section.footer_distance = Mm(5 if payload.get("emergency_enabled") else 26)
     _signature_table(footer, payload, font_size=layout["signature_font"])
     normalize_ooxml_order(document.element)
     normalize_ooxml_order(footer._element)
