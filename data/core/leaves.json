@@ -594,18 +594,6 @@
       "source": ""
     },
     {
-      "id": "LV-6925",
-      "person_id": "OFF-018",
-      "type": "أسبوعية",
-      "start": "2026-11-21",
-      "end": "2026-11-21",
-      "return_date": "2026-11-22",
-      "note": "",
-      "special_name": "",
-      "source": "",
-      "origin": "auto_weekly"
-    },
-    {
       "id": "LV-6919",
       "person_id": "OFF-024",
       "type": "أسبوعية",
@@ -628,6 +616,42 @@
       "special_name": "",
       "source": "",
       "origin": "weekly_extra"
+    },
+    {
+      "id": "LV-6928",
+      "person_id": "OFF-041",
+      "type": "أسبوعية",
+      "start": "2026-11-22",
+      "end": "2026-11-22",
+      "return_date": "2026-11-23",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6927",
+      "person_id": "OFF-043",
+      "type": "أسبوعية",
+      "start": "2026-11-22",
+      "end": "2026-11-22",
+      "return_date": "2026-11-23",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
+      "id": "LV-6926",
+      "person_id": "OFF-027",
+      "type": "أسبوعية",
+      "start": "2026-11-22",
+      "end": "2026-11-22",
+      "return_date": "2026-11-23",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
     },
     {
       "id": "LV-6877",
@@ -1768,6 +1792,35 @@
       "occurred_at": "2026-11-20T14:46:29",
       "performed_by": "Amr El-sayed Radwan",
       "person_name": "محمد عبد الحميد فتحى نعامة",
+      "person_category": "officers",
+      "restored_at": "",
+      "restored_by": "",
+      "restored_leave_id": "",
+      "restore_change_id": ""
+    },
+    {
+      "id": "LVH-039",
+      "change_id": "CHG-9834",
+      "leave_id": "LV-6925",
+      "action": "delete",
+      "before": {
+        "id": "LV-6925",
+        "person_id": "OFF-018",
+        "type": "أسبوعية",
+        "start": "2026-11-21",
+        "end": "2026-11-21",
+        "return_date": "2026-11-22",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "auto_weekly"
+      },
+      "after": null,
+      "reason": "",
+      "suspension_id": "",
+      "occurred_at": "2026-11-21T06:09:35",
+      "performed_by": "Mohamed Hanafy",
+      "person_name": "علي محمد فاروق محمد",
       "person_category": "officers",
       "restored_at": "",
       "restored_by": "",
