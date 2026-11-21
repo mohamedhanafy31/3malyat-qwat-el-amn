@@ -286,3 +286,8 @@ def test_word_session_prints_read_only_and_always_quits(monkeypatch, tmp_path):
     assert calls[0][1] == str(path) and calls[0][2]["ReadOnly"] is True
     assert calls[1] == ("print", {"Background": False, "Copies": 1})
     assert calls[2:] == [("close", 0), ("quit",), ("uninit",)]
+
+
+def test_dry_meals_order_is_a_printable_kind():
+    assert lib.PRINT_KINDS["dry_meals"] == "أمر الصرف الجاف"
+    assert list(lib.PRINT_KINDS).index("dry_meals") == list(lib.PRINT_KINDS).index("roster") + 1

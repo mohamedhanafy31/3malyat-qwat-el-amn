@@ -16,6 +16,7 @@ PRINT_KINDS = {
     "regularity": "الانتظامات",
     "duty": "الضباط",
     "roster": "التعيينات",
+    "dry_meals": "أمر الصرف الجاف",
     "afraad": "الأفراد",
     "campaign": "الحملة",
     "formation_morning": "خط تشكيل صبح",
