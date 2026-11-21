@@ -594,6 +594,18 @@
       "source": ""
     },
     {
+      "id": "LV-6925",
+      "person_id": "OFF-018",
+      "type": "أسبوعية",
+      "start": "2026-11-21",
+      "end": "2026-11-21",
+      "return_date": "2026-11-22",
+      "note": "",
+      "special_name": "",
+      "source": "",
+      "origin": "auto_weekly"
+    },
+    {
       "id": "LV-6919",
       "person_id": "OFF-024",
       "type": "أسبوعية",
