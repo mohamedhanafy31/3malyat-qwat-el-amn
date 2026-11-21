@@ -2506,6 +2506,22 @@ function _openCommands(){
   _commandInput.value='';_commandIndex=0;_paintCommands();
   _commandPalette.showModal();requestAnimationFrame(()=>_commandInput.focus());
 }
+/* Ctrl+F / Cmd+F: بحث الموقع بدل بحث المتصفح (force).
+   event.code عشان الكيبورد العربي (Ctrl+F بيبعت key="ب"). ترتيب الأولوية:
+   بحث الصفحة (اليوميات) ← أول حقل بحث ظاهر في الصفحة ← قايمة الأوامر (Ctrl+K).
+   جوه مودال: حقل بحث المودال لو موجود، وإلا بحث المتصفح يشتغل عادي. */
+document.addEventListener('keydown',event=>{
+  if(!(event.ctrlKey||event.metaKey)||event.altKey||event.shiftKey||event.code!=='KeyF') return;
+  const visible=el=>el&&!el.disabled&&el.offsetParent!==null;
+  const modal=document.querySelector('.modal:not(.hidden)');
+  const scope=modal||document;
+  const field=[...scope.querySelectorAll('.page-search-input,input[type="search"],input.search')]
+    .find(el=>visible(el)&&!el.closest('#commandPalette'));
+  if(modal&&!field) return;
+  event.preventDefault();event.stopPropagation();
+  if(field){field.focus({preventScroll:false});field.select?.();return}
+  if(!_commandPalette?.open) _openCommands();
+},true);
 document.addEventListener('keydown',event=>{
   if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){
     event.preventDefault();_commandPalette?.open?_commandPalette.close():_openCommands();return;

@@ -42,9 +42,13 @@ def test_highlight_styles_use_theme_tokens_and_vanish_in_print():
     assert "@media print" in block and "display:none" in block
 
 
-def test_ctrl_f_opens_the_page_search_instead_of_the_browser_find():
-    source = (ROOT / "static" / "js" / "page-search.js").read_text(encoding="utf-8")
+def test_ctrl_f_opens_the_site_search_instead_of_the_browser_find():
+    core = (ROOT / "static" / "js" / "core.js").read_text(encoding="utf-8")
+    start = core.index("Ctrl+F / Cmd+F: بحث الموقع")
+    block = core[start:core.index("document.addEventListener('keydown',event=>{\n  if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'", start)]
 
-    assert 'event.key.toLowerCase() !== "f"' in source and "event.ctrlKey || event.metaKey" in source
-    assert 'document.querySelector(".modal:not(.hidden)")' in source        # جوه المودال بحث المتصفح يفضل
-    assert "Ctrl+F" in source
+    assert "event.code!=='KeyF'" in block                  # الكيبورد العربي: key="ب" لكن code ثابت
+    assert "event.preventDefault()" in block and "},true);" in block   # phase الالتقاط = force
+    assert ".page-search-input" in block and "_openCommands()" in block  # بحث الصفحة ← حقل بحث ← قايمة الأوامر
+    assert "document.querySelector('.modal:not(.hidden)')" in block      # جوه مودال بلا حقل بحث: المتصفح
+    assert "Ctrl+F" in (ROOT / "static" / "js" / "page-search.js").read_text(encoding="utf-8")

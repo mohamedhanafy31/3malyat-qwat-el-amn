@@ -237,13 +237,8 @@
     prev.addEventListener("click", () => step(-1));
     next.addEventListener("click", () => step(1));
     filter.addEventListener("change", () => { filtering = filter.checked; paint(); });
-    // Ctrl+F (أو Cmd+F) بيفتح بحث اليومية بدل بحث المتصفح، من أي مكان في الصفحة حتى جوه حقل
-    document.addEventListener("keydown", event => {
-      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== "f") return;
-      if (document.querySelector(".modal:not(.hidden)")) return;      // المودال له حقوله — بحث المتصفح يفضل شغال
-      event.preventDefault();
-      input.focus({preventScroll: true}); input.select();
-    });
+    // Ctrl+F / Cmd+F بيفتح بحث الصفحة بدل بحث المتصفح — معالج عام في core.js
+    // (event.code عشان الكيبورد العربي، وphase الالتقاط عشان ما حدش يسبقه).
     document.addEventListener("keydown", event => {
       if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.target.closest && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
