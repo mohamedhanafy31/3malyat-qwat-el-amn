@@ -473,6 +473,10 @@ def build(data, day):
         pair = summary_items.get(person_id)
         if pair is not None:
             target_items.append(pair[1])
+    # ضباط الأهداف بترتيب الأقدمية (نفس ترتيب القوة في اليومية) مش بترتيب
+    # خانات الأهداف، عشان الترقيم يمشي بالرتبة: رائد ما ييجيش بعد م.أول.
+    force_order = {row.get("id"): index for index, row in enumerate(summary.get("rows") or [])}
+    target_items.sort(key=lambda item: force_order.get(item["id"], len(force_order)))
 
     stored = _stored_config(data, day)
     excluded_ids = set(stored["excluded_officer_ids"])
@@ -495,7 +499,7 @@ def build(data, day):
     left = normal[23:31]
     for index, row in enumerate(right, 1):
         row["number"] = index
-    for index, row in enumerate(left, 24):
+    for index, row in enumerate(left, len(right) + 1):
         row["number"] = index
 
     members = _operations_members(data, day)

@@ -837,7 +837,7 @@ def build_docx(payload):
     # الأهداف والضباط الذين يواصلون بعد النصف الأيمن يسكنون النصف الأيسر
     # بترتيب واحد، مع أرقام تبدأ بعد آخر رقم في النصف الأيمن.
     left_items = []
-    next_number = 24
+    next_number = len(right) + 1   # الترقيم متصل: بعد آخر رقم فعلي في النصف الأيمن (مش 24 ثابتة)
     for item in target_items + left:
         item = dict(item)
         item["number"] = next_number

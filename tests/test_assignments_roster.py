@@ -894,3 +894,31 @@ def test_export_never_fails_on_a_long_note_the_row_grows_and_the_font_stays():
     assert sizes == {24}                                   # 12pt لا يصغر
     heights = sorted({int(v) for v in root.xpath(".//w:tbl/w:tr/w:trPr/w:trHeight/@w:val", namespaces=ns)})
     assert len(heights) >= 2 and heights[-1] > 440         # صف طال
+
+
+def test_target_block_numbering_continues_from_the_real_right_half_count():
+    """الترقيم كان بيقفز لـ24 حتى لو النصف الأيمن 16 ضابط بس."""
+    right = [{"number": i, "role": "رائد", "name": f"ضابط {i}", "status": "عمل"} for i in range(1, 4)]
+    targets = [{"role": "مقدم", "name": "هدف أول", "status": "عمل بهدف مصر للبترول"},
+               {"role": "رائد", "name": "هدف ثان", "status": "عمل بهدف سوميد"}]
+    raw = build_docx({
+        "title": "كشف بأسماء السادة الضباط عن يوم الأحد الموافق 22/11/2026م",
+        "right": right, "left": [], "target_items": targets, "doctors": [],
+        "footer_categories": [], "total": 5, "ops_signer": {}, "chief": {},
+    }).getvalue()
+    table = Document(BytesIO(raw)).tables[0]
+    numbered = {}
+    for row in table.rows:
+        cells = [" ".join(cell.text.split()) for cell in row.cells]
+        for index, text in enumerate(cells):
+            if text in {"هدف أول", "هدف ثان"}:
+                numbered[text] = cells[index - 2]
+    assert numbered == {"هدف أول": "4", "هدف ثان": "5"}
+
+
+def test_roster_numbers_the_overflow_half_after_the_actual_right_half(data_file):
+    data = _roster_data(data_file)
+    payload = roster.build(data, DAY)
+    right, left = payload["right"], payload["left"]
+    assert [row["number"] for row in right] == list(range(1, len(right) + 1))
+    assert [row["number"] for row in left] == list(range(len(right) + 1, len(right) + len(left) + 1))

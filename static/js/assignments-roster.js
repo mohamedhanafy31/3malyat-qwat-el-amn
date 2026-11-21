@@ -39,7 +39,7 @@ function rosterDisplayData(data) {
     && rosterIsWork(item.status));
   const normal = rows.filter(item => !item.medical && !targetIds.has(item.id));
   const right = normal.slice(0, 23).map((item, index) => ({...item, number: index + 1}));
-  const left = [...targetItems, ...normal.slice(23)].map((item, index) => ({...item, number: index + 24}));
+  const left = [...targetItems, ...normal.slice(23)].map((item, index) => ({...item, number: right.length + index + 1}));
   const footerCategories = Array.isArray(data.footer_categories) ? data.footer_categories : [
     {label: "ضابط امن مركزي", count: data.central ?? 4},
     {label: "ضابط امن مواني", count: data.ports ?? 1},
