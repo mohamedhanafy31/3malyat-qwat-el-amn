@@ -561,35 +561,73 @@ function renderSectionHistory(history, expanded) {
   const rows = history.rows || [];
   if (!history.source_day || !rows.length) { hideSectionHistory(); return }
   SECTION_HISTORY = history;
-  panel.innerHTML = `<div class="section-history-head">
-      <div class="section-history-summary">آخر خدمات «${esc(history.section)}» يوم
-        ${fmt(history.source_day)} <span>— ${countLabel(rows.length, "خدمة")}</span></div>
-      <button type="button" class="mini section-history-toggle"
-        aria-expanded="${expanded}">${expanded ? "إخفاء" : "عرض"}</button>
-    </div>
-    <div class="section-history-details${expanded ? "" : " hidden"}">
-      <div class="section-history-list">${rows.map(row => {
-        return `<label class="section-history-service">
+  const searchable = rows.length > 6;
+  panel.innerHTML = `<button type="button" class="section-history-head section-history-toggle"
+        aria-expanded="${expanded}" aria-controls="sectionHistoryDetails">
+      <span class="section-history-icon" aria-hidden="true">↺</span>
+      <span class="section-history-summary">
+        <b>إضافة من خدمات سابقة</b>
+        <small>آخر خدمات «${esc(history.section)}» يوم ${fmt(history.source_day)} — ${countLabel(rows.length, "خدمة")}</small>
+      </span>
+      <span class="section-history-cta">${expanded ? "إخفاء" : "عرض"}</span>
+      <span class="section-history-chevron" aria-hidden="true">▾</span>
+    </button>
+    <div class="section-history-details${expanded ? "" : " hidden"}" id="sectionHistoryDetails">
+      <div class="section-history-toolbar">
+        <label class="section-history-all"><input type="checkbox" id="sectionHistoryAll" checked> <span>تحديد الكل</span></label>
+        <button type="button" class="mini" id="sectionHistoryNone">إلغاء الكل</button>
+        <strong class="section-history-count" id="sectionHistoryCount" role="status" aria-live="polite"></strong>
+        ${searchable ? `<input type="search" class="section-history-filter" id="sectionHistoryFilter"
+          placeholder="ابحث في الخدمات…" aria-label="ابحث في الخدمات السابقة" autocomplete="off">` : ""}
+      </div>
+      <div class="section-history-list">${rows.map(row => `<label class="section-history-service" data-name="${esc(row.name)}">
           <input type="checkbox" class="section-history-choice" value="${esc(row.id)}" checked>
           <span class="section-history-body"><b>${esc(row.name)}</b>
             <span class="section-history-meta">
-              <span>الفترة: ${esc(row.shift || "—")}</span>
-              <span>التصنيف: ${esc(row.kind || "—")}</span>
-              <span>المجندون: ${historyConscriptCount(row)}</span>
-              <span>التسليح: ${esc(row.weapon || "—")}</span>
+              <span>${esc(row.shift || "بدون فترة")}</span>
+              <span>${esc(row.kind || "بدون تصنيف")}</span>
+              <span>مجندون: ${historyConscriptCount(row)}</span>
+              ${row.weapon ? `<span>${esc(row.weapon)}</span>` : ""}
             </span>
           </span>
-        </label>`;
-      }).join("")}</div>
+        </label>`).join("")}
+        <p class="section-history-empty hidden">لا توجد خدمة بهذا الاسم.</p>
+      </div>
       <div class="section-history-actions">
-        <button type="button" class="mini" id="copySectionHistory"></button>
+        <button type="button" class="primary" id="copySectionHistory"></button>
       </div>
     </div>`;
   panel.classList.remove("hidden");
   panel.querySelectorAll(".section-history-choice").forEach(input =>
     input.addEventListener("change", syncSectionCopyCount));
   panel.querySelector(".section-history-toggle").onclick = toggleSectionHistory;
+  $("#sectionHistoryAll").onchange = event => setSectionHistoryChecked(event.target.checked);
+  $("#sectionHistoryNone").onclick = () => setSectionHistoryChecked(false);
+  $("#sectionHistoryFilter")?.addEventListener("input", filterSectionHistory);
   $("#copySectionHistory").onclick = copySelectedSectionHistory;
+  syncSectionCopyCount();
+}
+
+function sectionHistoryRows() {
+  return $$("#enSectionHistory .section-history-service");
+}
+
+// «تحديد الكل» و«إلغاء الكل» بيشتغلوا على الخدمات الظاهرة (بعد الفلتر) بس.
+function setSectionHistoryChecked(value) {
+  sectionHistoryRows().filter(row => !row.hidden)
+    .forEach(row => { row.querySelector("input").checked = value; });
+  syncSectionCopyCount();
+}
+
+function filterSectionHistory() {
+  const term = ($("#sectionHistoryFilter")?.value || "").trim().toLowerCase();
+  let shown = 0;
+  sectionHistoryRows().forEach(row => {
+    const match = !term || (row.dataset.name || "").toLowerCase().includes(term);
+    row.hidden = !match;
+    if (match) shown += 1;
+  });
+  $("#enSectionHistory .section-history-empty").classList.toggle("hidden", shown > 0);
   syncSectionCopyCount();
 }
 
@@ -598,16 +636,23 @@ function toggleSectionHistory() {
   const button = $("#enSectionHistory .section-history-toggle");
   const expanded = details.classList.contains("hidden");
   details.classList.toggle("hidden", !expanded);
-  button.textContent = expanded ? "إخفاء" : "عرض";
+  button.querySelector(".section-history-cta").textContent = expanded ? "إخفاء" : "عرض";
   button.setAttribute("aria-expanded", String(expanded));
 }
 
 function syncSectionCopyCount() {
   const button = $("#copySectionHistory");
   if (!button) return;
-  const count = $$("#enSectionHistory .section-history-choice:checked").length;
-  button.textContent = `إضافة الخدمات المختارة (${count})`;
+  const all = $$("#enSectionHistory .section-history-choice");
+  const count = all.filter(input => input.checked).length;
+  const visible = sectionHistoryRows().filter(row => !row.hidden).map(row => row.querySelector("input"));
+  const visibleChecked = visible.filter(input => input.checked).length;
+  button.textContent = count ? `إضافة الخدمات المختارة (${count})` : "اختر خدمة للإضافة";
   button.disabled = count === 0;
+  $("#sectionHistoryCount").textContent = `${count} من ${all.length} مختارة`;
+  const master = $("#sectionHistoryAll");
+  master.checked = visible.length > 0 && visibleChecked === visible.length;
+  master.indeterminate = visibleChecked > 0 && visibleChecked < visible.length;
 }
 
 function queueSectionHistory(expanded) {
