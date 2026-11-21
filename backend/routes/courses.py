@@ -23,6 +23,25 @@ def list_courses():
     return jsonify({"courses": summary(data), "officers": by_officer(data)})
 
 
+def _term_line(term):
+    start, end = _short_date(term.get("start")), _short_date(term.get("end"))
+    who = f"{term['officer_role']} / {term['officer_name']}"
+    if start and end:
+        return f"{who} ({start} – {end})"
+    if start or end:
+        return f"{who} ({start or end})"
+    return who
+
+
+def _short_date(value):
+    """2026-09-05 → 5/9/26 عشان سطر الالتحاق ما يلفش."""
+    try:
+        year, month, day = str(value or "").split("-")
+        return f"{int(day)}/{int(month)}/{year[2:]}"
+    except ValueError:
+        return str(value or "")
+
+
 @bp.get("/api/courses/export.docx")
 def export_courses():
     data = load_data(())
@@ -35,11 +54,11 @@ def export_courses():
             records = [o for o in records if q in o["name"] or
                        any(q in c["course_name"] for c in o["courses"])]
         rows = [[o["name"], o["role"], o["post"] or "—", str(o["count"]),
-                 str(o["days"]), "\n".join(c["course_name"] for c in o["courses"]) or "—"]
+                 str(o["days"]), "، ".join(c["course_name"] for c in o["courses"]) or "—"]
                 for o in records]
         title = "كشف الفرق والدورات حسب الضابط"
-        columns = [("الضابط", 1.5), ("الرتبة", 1), ("العمل المسند إليه", 1.6),
-                   ("عدد الفرق", .8), ("إجمالي الأيام", 1), ("الفرق التي التحق بها", 2)]
+        columns = [("الضابط", 1.7), ("الرتبة", .8), ("العمل المسند إليه", 1.6),
+                   ("عدد الفرق", .55), ("إجمالي الأيام", .6), ("الفرق التي التحق بها", 3.6)]
     else:
         records = summary(data)
         if q:
@@ -51,13 +70,14 @@ def export_courses():
             records = [c for c in records if c.get("kind") == kind_filter]
         rows = [[c["name"], c.get("kind") or "بدون تصنيف", c.get("place") or "—",
                  c.get("note") or "—", "\n".join(
-                     f"{t['officer_role']} / {t['officer_name']} — {t.get('start','')} – {t.get('end','')}"
+                     _term_line(t)
                      for t in c["terms"]) or "لا توجد التحاقات مسجّلة بعد"] for c in records]
         title = "كشف الفِرق والدورات حسب الفرقة"
-        columns = [("اسم الفرقة", 1.5), ("النوع", 1), ("المكان", 1.2),
-                   ("ملاحظات", 1.5), ("الضباط والالتحاقات", 3)]
+        columns = [("اسم الفرقة", 2.0), ("النوع", .8), ("المكان", 1.4),
+                   ("ملاحظات", .8), ("الضباط والالتحاقات", 4.4)]
     content = build_register_docx(title, columns, rows,
-                                  subtitle="تاريخ التصدير: " + __import__("datetime").date.today().isoformat())
+                                  subtitle="تاريخ التصدير: " + __import__("datetime").date.today().isoformat(),
+                                  font_pt=8, compact=True)
     return send_file(BytesIO(content), as_attachment=True,
                      download_name=register_file_name("سجل الفرق والدورات"),
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")

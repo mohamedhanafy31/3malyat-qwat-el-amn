@@ -27,12 +27,12 @@ def _add(parent, tag, **attrs):
     return node
 
 
-def _set_cell(cell, text, *, ltr=False, header=False):
+def _set_cell(cell, text, *, ltr=False, header=False, size=9):
     cell.text = ""
     for index, line in enumerate(str(text or "").split("\n")):
         paragraph = cell.paragraphs[0] if index == 0 else cell.add_paragraph()
         people._paragraph(paragraph, align=WD_ALIGN_PARAGRAPH.CENTER)
-        people._run_font(paragraph.add_run(line), 9, bold=header,
+        people._run_font(paragraph.add_run(line), size, bold=header,
                          font=people.HEADING_FONT if header else people.BODY_FONT,
                          ltr=ltr)
     cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
@@ -46,7 +46,7 @@ def _landscape(weights):
 
 
 def build_register_docx(title, columns, rows, *, subtitle="", footer_note="",
-                         orientation="auto", ltr_columns=()):
+                         orientation="auto", ltr_columns=(), font_pt=9, compact=False):
     columns = list(columns)
     rows = [list(row) for row in rows]
     if not columns:
@@ -87,11 +87,13 @@ def build_register_docx(title, columns, rows, *, subtitle="", footer_note="",
     for col, width in zip(table.columns, widths):
         for cell in col.cells:
             cell.width = Cm(width)
+    if compact:
+        people._tighten_vertical_margins(table, 12)
     header = table.rows[0]
     _add(header._tr.get_or_add_trPr(), "w:tblHeader")
     people._row_height(header, .7, "atLeast")
     for cell, (label, _weight) in zip(header.cells, all_columns):
-        _set_cell(cell, label, header=True)
+        _set_cell(cell, label, header=True, size=font_pt)
         people._cell_borders(cell, size=12, value="double", sides=("bottom",))
         tcpr = cell._tc.get_or_add_tcPr()
         _add(tcpr, "w:shd", fill="D9E2F3", val="clear")
@@ -99,10 +101,10 @@ def build_register_docx(title, columns, rows, *, subtitle="", footer_note="",
         rows = [["لا توجد بيانات"] + [""] * (len(columns) - 1)]
     for serial, values in enumerate(rows, 1):
         row = table.add_row()
-        people._row_height(row, .6)
+        people._row_height(row, .42 if compact else .6)
         vals = [str(serial), *[str(value or "") for value in values]]
         for index, (cell, value) in enumerate(zip(row.cells, vals)):
-            _set_cell(cell, value, ltr=(index - 1) in ltr_columns and index > 0)
+            _set_cell(cell, value, ltr=(index - 1) in ltr_columns and index > 0, size=font_pt)
     footer = section.footer.paragraphs[0]
     people._paragraph(footer)
     note = footer_note or "تاريخ التصدير: " + date.today().strftime("%d-%m-%Y")

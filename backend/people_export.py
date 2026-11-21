@@ -37,10 +37,10 @@ COLUMNS = {
     "officers": [
         (None, "م", None, 0.75),
         ("rank", "الرتبة", lambda p: p.get("role"), 1.6),
-        ("name", "الاسم", lambda p: p.get("name"), 4.0),
-        ("code", "الأقدمية", lambda p: p.get("code"), 2.1),
-        ("post", "العمل المسند", lambda p: p.get("post"), 2.8),
-        ("address", "العنوان", lambda p: p.get("address"), 3.0),
+        ("name", "الاسم", lambda p: p.get("name"), 4.2),
+        ("code", "الأقدمية", lambda p: p.get("code"), 1.9),
+        ("post", "العمل المسند", lambda p: p.get("post"), 4.2),
+        ("address", "العنوان", lambda p: p.get("address"), 2.35),
         ("rest", "نظام الراحة", lambda p: _rest(p), 2.0),
         ("phone", "الهاتف", lambda p: p.get("phone"), 2.4),
     ],
@@ -444,13 +444,22 @@ def _main_table(document, data, people, category, columns, day):
 LETTERHEAD_PT = 175
 
 
+def _tighten_vertical_margins(table, twips=10):
+    """هوامش الخلية الرأسية صغيرة في كشف الضباط عشان 35+ صف يدخلوا صفحة واحدة."""
+    cell_mar = table._tbl.tblPr.find(qn("w:tblCellMar"))
+    for side in ("top", "bottom"):
+        node = cell_mar.find(qn(f"w:{side}")) if cell_mar is not None else None
+        if node is not None:
+            node.set(qn("w:w"), str(twips))
+
+
 def _fit_one_page(table, section, columns):
     """كشف الضباط لازم صفحة واحدة: الخط بحجمه الطبيعي والصفوف بتتمد تملا
     الصفحة؛ ولو مش هيكفي بس، نصغّر الخط بأداة الملاءمة."""
     rows, _widths = docx_table_spec(table, default_size=9)
     widths = [Cm(column[3]).pt for column in columns]
     rows = [[{**cell, "hmargins": 8} for cell in row] for row in rows]
-    usable = (usable_height_pt(section) - LETTERHEAD_PT) * .82
+    usable = (usable_height_pt(section) - LETTERHEAD_PT) * .76
     total, heights = estimate_table_height(rows, widths)
     if total > usable:
         fit = fit_table({"rows": rows, "grid_widths_pt": widths}, usable, target=1)
@@ -496,6 +505,7 @@ def build_docx(data, category, day, selected=None):
     _letterhead(document, people, category, value)
     table = _main_table(document, data, people, category, columns, day)
     if category == "officers":
+        _tighten_vertical_margins(table)
         _fit_one_page(table, section, columns)
     _footer(section, value)
     order_xml_children(document)
