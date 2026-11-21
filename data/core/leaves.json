@@ -583,6 +583,17 @@
       "source": ""
     },
     {
+      "id": "LV-6923",
+      "person_id": "OFF-015",
+      "type": "نصف شهرية",
+      "start": "2026-11-21",
+      "end": "2026-11-23",
+      "return_date": "2026-11-24",
+      "note": "",
+      "special_name": "",
+      "source": ""
+    },
+    {
       "id": "LV-6919",
       "person_id": "OFF-024",
       "type": "أسبوعية",
@@ -1716,6 +1727,35 @@
       "occurred_at": "2026-11-20T11:33:22",
       "performed_by": "Mohamed Hanafy",
       "person_name": "علي محمد فاروق محمد",
+      "person_category": "officers",
+      "restored_at": "",
+      "restored_by": "",
+      "restored_leave_id": "",
+      "restore_change_id": ""
+    },
+    {
+      "id": "LVH-038",
+      "change_id": "CHG-9797",
+      "leave_id": "LV-6924",
+      "action": "cancel",
+      "before": {
+        "id": "LV-6924",
+        "person_id": "OFF-025",
+        "type": "أسبوعية",
+        "start": "2026-11-21",
+        "end": "2026-11-21",
+        "return_date": "2026-11-22",
+        "note": "",
+        "special_name": "",
+        "source": "",
+        "origin": "weekly_extra"
+      },
+      "after": null,
+      "reason": "تاجيل",
+      "suspension_id": "",
+      "occurred_at": "2026-11-20T14:46:29",
+      "performed_by": "Amr El-sayed Radwan",
+      "person_name": "محمد عبد الحميد فتحى نعامة",
       "person_category": "officers",
       "restored_at": "",
       "restored_by": "",
