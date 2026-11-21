@@ -220,7 +220,7 @@ def test_large_layout_compresses_only_after_common_case_budget():
     assert common_layout["data_font"] == 16
     assert common_layout["header_font"] == 15
     assert common_layout["paragraph_font"] == 17
-    assert common_layout["signature_font"] == 15
+    assert common_layout["signature_font"] == dry_meals_export.SIGNATURE_FONT_PT
 
     two_emergency = {
         "fixed_rows": [_fixed(str(i)) for i in range(5)],
@@ -245,7 +245,7 @@ def test_large_layout_compresses_only_after_common_case_budget():
     assert large_layout["data_font"] == 13
     assert large_layout["header_font"] == 14
     assert large_layout["paragraph_font"] == 14
-    assert large_layout["signature_font"] == 13
+    assert large_layout["signature_font"] == dry_meals_export.SIGNATURE_FONT_PT
     assert large_layout["header_gap"] == 17
     assert large_layout["separator_space"] == 3
     assert build_docx(large).getvalue()

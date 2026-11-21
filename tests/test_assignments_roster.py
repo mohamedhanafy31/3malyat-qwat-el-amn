@@ -311,7 +311,7 @@ def test_target_note_worst_case_catalog_name_and_80_char_split_label_fits(data_f
                      if longest_target in cell.text)
     lines = note_cell.text.splitlines()
     assert " ".join(note_cell.text.split()) == note
-    assert 1 <= len(lines) <= 2
+    assert len(lines) >= 1                       # الخط ثابت: النص بيلف على أسطر والصف يطول
 
     ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
     root = etree.fromstring(ZipFile(BytesIO(raw_docx)).read("word/document.xml"))
@@ -328,10 +328,12 @@ def test_target_note_worst_case_catalog_name_and_80_char_split_label_fits(data_f
     meter = TextMeter()
     size_values = [int(value) / 2 for value in etree.fromstring(
         note_cell._tc.xml.encode("utf-8")).xpath(".//w:rPr/w:sz/@w:val", namespaces=ns)]
-    assert size_values and min(size_values) >= 7.5
-    size = min(size_values)
-    assert all(meter.text_width(line.strip(), size, True, "Times New Roman")
-               <= widths[7] / 20 for line in lines)
+    assert size_values and set(size_values) == {12.0}   # الخط ما بيصغرش أبدًا
+    size = 12.0
+    row = next(row for row in table.rows if longest_target in row.cells[3].text or longest_target in row.cells[7].text)
+    row_root = etree.fromstring(row._tr.xml.encode("utf-8"))
+    height = int(row_root.xpath("./w:trPr/w:trHeight/@w:val", namespaces=ns)[0]) / 20
+    assert len(lines) * size * 1.25 <= height            # الصف طال ليكفي كل الأسطر
     assert all(len(cell.text) < 1000 for row in table.rows for cell in row.cells)
 
 
@@ -833,18 +835,14 @@ def test_external_notes_use_text_meter_without_overflow_and_keep_grid_width():
     assert widths[3] > template_widths[3]
 
     note_cell = next(cell for row in table.rows for cell in row.cells
-                     if names[0] in cell.text)
+                     if " ".join(cell.text.split()) == note)
     lines = note_cell.text.splitlines()
     note_root = etree.fromstring(note_cell._tc.xml.encode("utf-8"))
     sizes = [int(value) / 2 for value in note_root.xpath(
         ".//w:rPr/w:sz/@w:val", namespaces=ns)]
-    assert len(lines) in (1, 2)
-    assert sizes and min(sizes) >= 7.5
-    size = min(sizes)
-    meter = TextMeter()
-    assert all(meter.text_width(line.strip(), size, True, "Times New Roman") <= widths[3] / 20
-               for line in lines)
-    row = next(row for row in table.rows if names[0] in row.cells[3].text)
+    assert sizes and set(sizes) == {12.0}            # الخط ثابت
+    size = 12.0
+    row = next(row for row in table.rows if " ".join(row.cells[3].text.split()) == note)
     row_root = etree.fromstring(row._tr.xml.encode("utf-8"))
     height = int(row_root.xpath("./w:trPr/w:trHeight/@w:val", namespaces=ns)[0]) / 20
     assert len(lines) * size * 1.25 <= height
@@ -872,8 +870,8 @@ def test_roster_follows_the_shared_work_day_and_does_not_overwrite_it_on_automat
     assert "setPageDay(day, remember)" in script
 
 
-def test_export_never_fails_on_a_long_note_it_shrinks_the_font_instead():
-    """«ملاحظة يومية التعيينات لا تتسع» كانت بتمنع التحميل وتحديث الملف: دلوقتي بتتصغّر."""
+def test_export_never_fails_on_a_long_note_the_row_grows_and_the_font_stays():
+    """«ملاحظة يومية التعيينات لا تتسع» كانت بتمنع التحميل؛ والتصغير مرفوض: الصف هو اللي يطول."""
     long_note = "عمل (ارتكاز الحي الحكومي) + نقطة تفتيش كمين 109 اسفل + مأمورية نيابة عسكرية بالقاهرة"
     base = {
         "title": "كشف بأسماء السادة الضباط عن يوم الأحد الموافق 22/11/2026م",
@@ -887,5 +885,12 @@ def test_export_never_fails_on_a_long_note_it_shrinks_the_font_instead():
         ],
     }
     raw = build_docx(base).getvalue()
-    text = ZipFile(BytesIO(raw)).read("word/document.xml").decode("utf-8")
-    assert "ارتكاز الحي الحكومي" in text and "مأمورية نيابة عسكرية" in text
+    root = etree.fromstring(ZipFile(BytesIO(raw)).read("word/document.xml"))
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+    document = Document(BytesIO(raw))
+    texts = [" ".join(cell.text.split()) for row in document.tables[0].rows for cell in row.cells]
+    assert long_note in texts
+    sizes = {int(v) for v in root.xpath(".//w:tbl//w:tc[.//w:t[contains(., 'مأمورية')]]//w:sz/@w:val", namespaces=ns)}
+    assert sizes == {24}                                   # 12pt لا يصغر
+    heights = sorted({int(v) for v in root.xpath(".//w:tbl/w:tr/w:trPr/w:trHeight/@w:val", namespaces=ns)})
+    assert len(heights) >= 2 and heights[-1] > 440         # صف طال

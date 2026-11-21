@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Mm, Pt
 
-from .assignments_roster_export import normalize_ooxml_order
+from .assignments_roster_export import _signature_name, normalize_ooxml_order
 from .export_fit import PageFitError, TextMeter
 
 
@@ -29,7 +29,9 @@ MIN_PARAGRAPH_FONT_PT = 15
 HEADER_ROW_PT = 22.7  # approximately 0.8 cm
 DATA_ROW_PT = 28.35  # approximately 1.0 cm
 MIN_ROW_PT = 21.3  # approximately 0.75 cm
-SIGNATURE_FONT_PT = 15
+SIGNATURE_FONT_PT = 11   # مطابق لصناديق التوقيع في يومية التعيينات (Times New Roman عريض، 11)
+SIGNATURE_FONT_NAME = "Times New Roman"
+SIGNATURE_BOX_CM = 7.05   # 4000 twips كما في يومية التعيينات
 SIGNATURE_PT = 60
 GREY_BORDER = "7F7F7F"
 
@@ -84,11 +86,12 @@ def _set_toggle(rpr, tag, enabled):
         rpr.remove(node)
 
 
-def _run(paragraph, text, *, size=12, bold=False, underline=False):
+def _run(paragraph, text, *, size=12, bold=False, underline=False, font_name=None):
     # All emitted document text passes through this one helper, including
     # numerals, so the application payload remains unchanged.
     run = paragraph.add_run(ar_digits(text))
-    run.font.name = FONT_NAME
+    font_name = font_name or FONT_NAME
+    run.font.name = font_name
     run.font.size = Pt(size)
     run.bold = bold
     run.underline = underline
@@ -98,7 +101,7 @@ def _run(paragraph, text, *, size=12, bold=False, underline=False):
         fonts = OxmlElement("w:rFonts")
         rpr.insert(0, fonts)
     for key in ("ascii", "hAnsi", "cs", "eastAsia"):
-        _set_attr(fonts, key, FONT_NAME)
+        _set_attr(fonts, key, font_name)
     # python-docx does not always emit the complex-script companions.  Add
     # them explicitly because Arabic Word rendering uses szCs/bCs.
     size_node = rpr.find(qn("w:sz"))
@@ -330,7 +333,7 @@ def _table_layout(payload):
         layout["data_font"] = 13
         layout["header_font"] = 14
         layout["paragraph_font"] = 14
-        layout["signature_font"] = 13
+        layout["signature_font"] = SIGNATURE_FONT_PT
         estimate = _layout_estimate(layout, fixed_count, emergency_count, emergency_enabled)
     if emergency_enabled and estimate > target:
         # Stage 3: tighten only emergency vertical gaps; off remains untouched.
@@ -506,33 +509,35 @@ def _separator(document, *, spacing=8):
 
 def _signature_table(container, payload, *, font_size=SIGNATURE_FONT_PT):
     try:
-        table = container.add_table(rows=1, cols=2)
+        table = container.add_table(rows=1, cols=3)
     except TypeError:
-        table = container.add_table(rows=1, cols=2, width=Mm(CONTENT_WIDTH_MM))
+        table = container.add_table(rows=1, cols=3, width=Mm(CONTENT_WIDTH_MM))
     table.autofit = False
     _table_direction(table)
-    widths = [CONTENT_WIDTH_MM * 0.42, CONTENT_WIDTH_MM * 0.42]
+    widths = [SIGNATURE_BOX_CM * 10, CONTENT_WIDTH_MM - 2 * SIGNATURE_BOX_CM * 10, SIGNATURE_BOX_CM * 10]
     for cell, width in zip(table.rows[0].cells, widths):
         _cell_borders(cell, none=True)
         _cell_width(cell, width)
         cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
     right = payload.get("ops_signer") or {}
     left = payload.get("chief") or {}
-    for cell, title, person in (
-        (table.cell(0, 0), "بلوكامين قسم العمليات", right),
-        (table.cell(0, 1), "رئيس قسم العمليات", left),
+    # نفس نص يومية التعيينات بالظبط: العنوان، «الرتبة/»، «(اسم من كلمتين)»
+    for cell, title, person, short in (
+        (table.cell(0, 0), "بلوكامين قسم العمليات", right, False),
+        (table.cell(0, 2), "رئيس قسم العمليات", left, True),
     ):
         cell.text = ""
-        for index, text in enumerate((
-            title,
-            f"{person.get('rank') or ''} /",
-            f"({person.get('name') or ''})",
-        )):
+        if not person:
+            lines = (title, "", "")
+        else:
+            lines = (title, f"{person.get('rank') or ''}/",
+                     f"({_signature_name(person, short)})")
+        for index, text in enumerate(lines):
             paragraph = cell.paragraphs[0] if index == 0 else cell.add_paragraph()
             paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            _set_spacing(paragraph, 0, 0, line=18)
+            _set_spacing(paragraph, 0, 0, line=font_size * 1.2)
             _bidi(paragraph)
-            _run(paragraph, text, size=font_size, bold=True)
+            _run(paragraph, text, size=font_size, bold=True, font_name=SIGNATURE_FONT_NAME)
     return table
 
 

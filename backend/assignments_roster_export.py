@@ -366,58 +366,30 @@ class _SafeMeter:
 
 
 def _note_fit(text, width_twips, height_twips, meter, *, allow_fallback=False):
-    """يختار حجمًا/عدد أسطر من غير قص النص."""
-    inner = max(1.0, width_twips / 20.0 - NOTE_CELL_MARGIN_PT)
-    for size in (12.0, 11.0, 10.0, 9.0, 8.0):
-        if meter.text_width(text, size, NOTE_FONT_BOLD, NOTE_FONT_NAME) <= inner:
-            return {"size": size, "lines": [str(text)]}
+    """الخط ثابت (NOTE_NORMAL_PT) ولا يصغر أبدًا.
 
-    available_height = height_twips / 20.0 - NOTE_CELL_MARGIN_PT
-    for size in (8.0, 7.5):
-        if 2 * size * NOTE_LINE_HEIGHT > available_height:
-            continue
-        lines = _best_two_line_split(text, inner, size, meter)
-        if lines is not None:
-            return {"size": size, "lines": lines}
+    بدون allow_fallback: بيرجع None لو النص مش بيتساع في سطر واحد بالعرض ده
+    (عشان نوسّع العمود). مع allow_fallback: النص بيلف على أكتر من سطر
+    بنفس الخط، والصف هو اللي يطول (شوف _fit_note_cells).
+    """
+    inner = max(1.0, width_twips / 20.0 - NOTE_CELL_MARGIN_PT)
+    size = NOTE_NORMAL_PT
+    if meter.text_width(text, size, NOTE_FONT_BOLD, NOTE_FONT_NAME) <= inner:
+        return {"size": size, "lines": [str(text)]}
     if not allow_fallback:
         return None
-    # آخر حل: خط أصغر (7 → 6 نقاط) بسطر أو سطرين؛ التصدير ما بيفشلش أبدًا
-    # بسبب طول ملاحظة — الأفضل نص صغير مقروء من رسالة خطأ بتمنع التحديث.
-    for size in NOTE_EMERGENCY_SIZES:
-        if meter.text_width(text, size, NOTE_FONT_BOLD, NOTE_FONT_NAME) <= inner:
-            return {"size": size, "lines": [str(text)]}
-        if 2 * size * NOTE_LINE_HEIGHT <= available_height:
-            lines = _best_two_line_split(text, inner, size, meter)
-            if lines is not None:
-                return {"size": size, "lines": lines}
-    return _forced_fit(text, meter)
+    lines = meter.wrap_lines(text, inner, size, NOTE_FONT_BOLD, NOTE_FONT_NAME)
+    return {"size": size, "lines": [line for line in lines if line] or [str(text)]}
 
 
-def _forced_fit(text, meter):
-    """أصغر خط (6pt) وأفضل تقسيم لسطرين مهما كان العرض (أو سطر واحد لو كلمة واحدة)."""
-    size = NOTE_EMERGENCY_SIZES[-1]
-    words = str(text or "").split()
-    if len(words) < 2:
-        return {"size": size, "lines": [str(text)]}
-    best = min(
-        ([" ".join(words[:index]), " ".join(words[index:])] for index in range(1, len(words))),
-        key=lambda lines: max(meter.text_width(line, size, NOTE_FONT_BOLD, NOTE_FONT_NAME)
-                              for line in lines),
-    )
-    return {"size": size, "lines": best}
+def _note_row_height(fit):
+    """ارتفاع الصف (twips) اللازم لعرض كل أسطر الملاحظة بنفس الخط."""
+    return int(math.ceil(len(fit["lines"]) * fit["size"] * NOTE_LINE_HEIGHT * 20)) + 20
 
 
 def _required_note_width(text, height_twips, meter):
-    """أصغر عرض يمكنه استيعاب النص ضمن قيود السطر/الصف."""
-    one_line = meter.text_width(text, NOTE_MIN_ONE_LINE_PT,
-                                NOTE_FONT_BOLD, NOTE_FONT_NAME) + NOTE_CELL_MARGIN_PT
-    needs = [one_line]
-    available_height = height_twips / 20.0 - NOTE_CELL_MARGIN_PT
-    if 2 * NOTE_MIN_ONE_LINE_PT * NOTE_LINE_HEIGHT <= available_height:
-        need = _two_line_need(text, NOTE_MIN_ONE_LINE_PT, meter)
-        if need is not None:
-            needs.append(need)
-    return min(needs)
+    """عرض يستوعب الملاحظة في سطر واحد بالخط العادي (التوسيع بيتحدّد بعدها بـnote_max)."""
+    return meter.text_width(text, NOTE_NORMAL_PT, NOTE_FONT_BOLD, NOTE_FONT_NAME) + NOTE_CELL_MARGIN_PT
 
 
 def _set_table_grid_widths(table, widths, rows=None):
@@ -437,7 +409,7 @@ def _set_table_grid_widths(table, widths, rows=None):
             tcw.set(qn("w:type"), "dxa")
 
 
-def _fit_note_cells(table, rows, height):
+def _fit_note_cells(table, rows, height, budget=None):
     """يلائم الملاحظات مع إعادة توزيع مقاسة داخل كل نصف من الجدول.
 
     يبدأ التوسيع من الاسم، ثم يأخذ من الرتبة عند الحاجة. إجمالي شبكة النصف
@@ -498,7 +470,9 @@ def _fit_note_cells(table, rows, height):
                 )
         target_note_width = max(grid[note_index], int(math.ceil(note_width_pt * 20)))
         name_min = int(math.ceil(name_min_pt * 20))
-        rank_min = int(math.ceil(rank_min_pt * 20)) if rank_min_pt else grid[rank_index]
+        # عمود الرتبة ما بيتقلّصش أبدًا (الخط ثابت والرتبة لازم تفضل في سطر)؛
+        # الملاحظة الطويلة بتلف على أسطر والصف يطول بدل ما نخنق الرتبة.
+        rank_min = grid[rank_index]
         total_half_width = grid[rank_index] + pair_width
         note_max = total_half_width - name_min - rank_min
         target_note_width = min(target_note_width, note_max)      # عند الحد الأقصى _note_fit بيصغّر الخط
@@ -512,6 +486,7 @@ def _fit_note_cells(table, rows, height):
             grid[name_index] = pair_width - target_note_width
 
     _set_table_grid_widths(table, grid, rows)
+    needs = {}
     for half, entries in entries_by_half.items():
         position = 3 if half == 0 else 7
         for entry in entries:
@@ -521,6 +496,22 @@ def _fit_note_cells(table, rows, height):
             _set_cell_font(entry["note"])
             _set_cell_line_height(entry["note"], fit["size"])
             _set_cell_wrap(entry["note"], len(fit["lines"]) > 1)
+            need = _note_row_height(fit)
+            if need > height:
+                tr = entry["note"].getparent()
+                needs[tr] = max(needs.get(tr, 0), need)
+    if needs:
+        # الخط ثابت والصف اللي ملاحظته أطول هو اللي بيطول؛ باقي الصفوف بتنقص
+        # لحد ما يفضل سطر واحد بنفس الخط (12pt)، والباقي من ميزانية الصفحة.
+        budget = budget or height * len(rows)
+        others = max(1, len(rows) - len(needs))
+        one_line = _note_row_height({"lines": [""], "size": NOTE_NORMAL_PT})
+        base = max(one_line, min(height, (budget - sum(needs.values())) // others))
+        for tr in rows:
+            _set_row_height(tr, needs.get(tr, base))
+        _fit_table_fonts(rows, base)
+        return base
+    return height
 
 
 def _full_width_row(source_row, width):
@@ -953,7 +944,7 @@ def build_docx(payload):
         for cell in _tcs(tr):
             _center_cell(cell)
 
-    _fit_note_cells(table, rows, height)
+    _fit_note_cells(table, rows, height, budget=_available_table_height(document))
 
     for tr in list(table._tbl.tr_lst):
         table._tbl.remove(tr)
