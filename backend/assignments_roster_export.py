@@ -348,6 +348,7 @@ def _two_line_need(text, size, meter):
     return min(choices)[0] + NOTE_CELL_MARGIN_PT if choices else None
 
 
+NOTE_EMERGENCY_SIZES = (7.0, 6.5, 6.0)
 NOTE_WIDTH_SAFETY = 1.18   # Word/LibreOffice بيرسموا الخط بعرض أكبر من قياس Times New Roman
 
 
@@ -364,7 +365,7 @@ class _SafeMeter:
         return getattr(self._meter, name)
 
 
-def _note_fit(text, width_twips, height_twips, meter):
+def _note_fit(text, width_twips, height_twips, meter, *, allow_fallback=False):
     """يختار حجمًا/عدد أسطر من غير قص النص."""
     inner = max(1.0, width_twips / 20.0 - NOTE_CELL_MARGIN_PT)
     for size in (12.0, 11.0, 10.0, 9.0, 8.0):
@@ -378,7 +379,32 @@ def _note_fit(text, width_twips, height_twips, meter):
         lines = _best_two_line_split(text, inner, size, meter)
         if lines is not None:
             return {"size": size, "lines": lines}
-    return None
+    if not allow_fallback:
+        return None
+    # آخر حل: خط أصغر (7 → 6 نقاط) بسطر أو سطرين؛ التصدير ما بيفشلش أبدًا
+    # بسبب طول ملاحظة — الأفضل نص صغير مقروء من رسالة خطأ بتمنع التحديث.
+    for size in NOTE_EMERGENCY_SIZES:
+        if meter.text_width(text, size, NOTE_FONT_BOLD, NOTE_FONT_NAME) <= inner:
+            return {"size": size, "lines": [str(text)]}
+        if 2 * size * NOTE_LINE_HEIGHT <= available_height:
+            lines = _best_two_line_split(text, inner, size, meter)
+            if lines is not None:
+                return {"size": size, "lines": lines}
+    return _forced_fit(text, meter)
+
+
+def _forced_fit(text, meter):
+    """أصغر خط (6pt) وأفضل تقسيم لسطرين مهما كان العرض (أو سطر واحد لو كلمة واحدة)."""
+    size = NOTE_EMERGENCY_SIZES[-1]
+    words = str(text or "").split()
+    if len(words) < 2:
+        return {"size": size, "lines": [str(text)]}
+    best = min(
+        ([" ".join(words[:index]), " ".join(words[index:])] for index in range(1, len(words))),
+        key=lambda lines: max(meter.text_width(line, size, NOTE_FONT_BOLD, NOTE_FONT_NAME)
+                              for line in lines),
+    )
+    return {"size": size, "lines": best}
 
 
 def _required_note_width(text, height_twips, meter):
@@ -489,11 +515,9 @@ def _fit_note_cells(table, rows, height):
     for half, entries in entries_by_half.items():
         position = 3 if half == 0 else 7
         for entry in entries:
-            fit = _note_fit(entry["text"], grid[position], height, meter)
-            if fit is None:
-                raise ValueError(f"ملاحظة يومية التعيينات لا تتسع: {entry['text']}")
+            fit = _note_fit(entry["text"], grid[position], height, meter, allow_fallback=True)
             _set_cell_text(entry["note"], "\n".join(fit["lines"]))
-            _set_cell_font_size(entry["note"], fit["size"], minimum=7.5)
+            _set_cell_font_size(entry["note"], fit["size"], minimum=min(7.5, fit["size"]))
             _set_cell_font(entry["note"])
             _set_cell_line_height(entry["note"], fit["size"])
             _set_cell_wrap(entry["note"], len(fit["lines"]) > 1)

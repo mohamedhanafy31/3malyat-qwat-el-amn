@@ -870,3 +870,22 @@ def test_roster_follows_the_shared_work_day_and_does_not_overwrite_it_on_automat
     assert "loadRoster(day, shared !== today)" in init  # الفتح التلقائي مايحفظش بكرة كيوم عمل
     assert "async function loadRoster(day, remember = true)" in script
     assert "setPageDay(day, remember)" in script
+
+
+def test_export_never_fails_on_a_long_note_it_shrinks_the_font_instead():
+    """«ملاحظة يومية التعيينات لا تتسع» كانت بتمنع التحميل وتحديث الملف: دلوقتي بتتصغّر."""
+    long_note = "عمل (ارتكاز الحي الحكومي) + نقطة تفتيش كمين 109 اسفل + مأمورية نيابة عسكرية بالقاهرة"
+    base = {
+        "title": "كشف بأسماء السادة الضباط عن يوم الأحد الموافق 22/11/2026م",
+        "left": [], "target_items": [], "doctors": [], "footer_categories": [], "total": 3,
+        "ops_signer": {"rank": "م.ش", "name": "أحمد علي"},
+        "chief": {"rank": "رائد", "name": "محمد بحر"},
+        "right": [
+            {"number": 1, "role": "عقيد", "name": "أحمد سمير محمد حمدي", "status": "عمل (ارتكاز الحي الحكومي)"},
+            {"number": 2, "role": "مقدم", "name": "محمد", "status": long_note},
+            {"number": 3, "role": "رائد", "name": "علي", "status": "عمل بهدف " + "كلمة_واحدة_طويلة_جدا" * 6},
+        ],
+    }
+    raw = build_docx(base).getvalue()
+    text = ZipFile(BytesIO(raw)).read("word/document.xml").decode("utf-8")
+    assert "ارتكاز الحي الحكومي" in text and "مأمورية نيابة عسكرية" in text
