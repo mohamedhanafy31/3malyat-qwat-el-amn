@@ -31,6 +31,7 @@ DATA_ROW_PT = 28.35  # approximately 1.0 cm
 MIN_ROW_PT = 21.3  # approximately 0.75 cm
 SIGNATURE_FONT_PT = 11   # مطابق لصناديق التوقيع في يومية التعيينات (Times New Roman عريض، 11)
 SIGNATURE_FONT_NAME = "Times New Roman"
+SIGNATURE_GAP_PT = 36      # مسافة بين آخر جدول والتوقيع
 SIGNATURE_BOX_CM = 7.05   # 4000 twips كما في يومية التعيينات
 SIGNATURE_PT = 60
 GREY_BORDER = "7F7F7F"
@@ -640,13 +641,13 @@ def build_docx(payload):
         _make_table(document, emergency,
                     "اجمالي الوجبـــــات الجافـــة المنصرفة", emergency=True,
                     layout=layout)
-    footer = section.footer
-    # مكان التوقيع كيومية التعيينات: أعلى من حافة الصفحة بنحو 21مم (حوالي 87% من
-    # ارتفاعها). لو النصف الطارئ مفعّل الصفحة ممتلئة فيفضل التوقيع تحت خالص.
-    section.footer_distance = Mm(5 if payload.get("emergency_enabled") else 26)
-    _signature_table(footer, payload, font_size=layout["signature_font"])
+    # التوقيع في جسم المستند (مش footer) بعد آخر جدول مباشرة، بمسافة ثابتة.
+    gap = document.add_paragraph()
+    gap.paragraph_format.space_before = Pt(0)
+    gap.paragraph_format.space_after = Pt(0)
+    gap.paragraph_format.line_spacing = Pt(SIGNATURE_GAP_PT)
+    _signature_table(document, payload, font_size=layout["signature_font"])
     normalize_ooxml_order(document.element)
-    normalize_ooxml_order(footer._element)
     output = BytesIO()
     document.save(output)
     output.seek(0)

@@ -102,8 +102,8 @@ def test_emergency_off_export_has_no_second_half_and_is_one_page(client, tmp_pat
     assert "أمر عمليات ثابت" in text
     assert "٢١/١١/٢٠٢٦" in text
     assert "ـــولتعذر" in text
-    assert len(document.tables) == 2  # letterhead, fixed table; signatures are pinned in footer
-    assert len(document.sections[0].footer.tables) == 1
+    assert len(document.tables) == 3  # letterhead, fixed table, signatures (جسم المستند مش footer)
+    assert len(document.sections[0].footer.tables) == 0
     out = tmp_path / "dry.docx"
     out.write_bytes(response.data)
     assert out.stat().st_size > 1000

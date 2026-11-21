@@ -393,19 +393,18 @@ def _required_note_width(text, height_twips, meter):
 
 
 def _set_table_grid_widths(table, widths, rows=None):
+    """يكتب الشبكة وtcW لكل خلية (ومنها الخلايا المدمجة) من مجموع أعمدتها."""
     for grid_col, width in zip(table._tbl.tblGrid.findall(qn("w:gridCol")), widths):
         grid_col.set(qn("w:w"), str(int(width)))
     for tr in rows if rows is not None else table._tbl.tr_lst:
         for position, span, cell in _row_grid_cells(tr):
-            if span != 1 or position >= len(widths):
-                continue
-            if position not in (1, 2, 3, 5, 6, 7):
+            if position >= len(widths):
                 continue
             tcw = _tc_pr(cell).find(qn("w:tcW"))
             if tcw is None:
                 tcw = OxmlElement("w:tcW")
                 _tc_pr(cell).insert(0, tcw)
-            tcw.set(qn("w:w"), str(int(widths[position])))
+            tcw.set(qn("w:w"), str(int(sum(widths[position:position + span]))))
             tcw.set(qn("w:type"), "dxa")
 
 
@@ -443,47 +442,51 @@ def _fit_note_cells(table, rows, height, budget=None):
             entries_by_half[half].append({"note": note, "name": name,
                                           "text": text, "height": height})
 
-    for half, entries in entries_by_half.items():
-        if not entries:
-            continue
-        rank_index, name_index, note_index = ((1, 2, 3) if half == 0
-                                              else (5, 6, 7))
-        pair_width = grid[name_index] + grid[note_index]
-        name_min_pt = max((
-            meter.text_width(name, NOTE_NORMAL_PT,
-                             NOTE_FONT_BOLD, NOTE_FONT_NAME) + NAME_MIN_GUTTER_PT
-            for name in names_by_half[half]
-            if name
-        ), default=0.0)
-        rank_min_pt = max((
-            meter.text_width(rank, NOTE_NORMAL_PT,
-                             NOTE_FONT_BOLD, NOTE_FONT_NAME)
-            for rank in ranks_by_half[half]
-            if rank
-        ), default=0.0)
-        note_width_pt = grid[note_index] / 20.0
-        for entry in entries:
-            if _note_fit(entry["text"], grid[note_index], height, meter) is None:
-                note_width_pt = max(
-                    note_width_pt,
-                    _required_note_width(entry["text"], height, meter),
-                )
-        target_note_width = max(grid[note_index], int(math.ceil(note_width_pt * 20)))
-        name_min = int(math.ceil(name_min_pt * 20))
-        # عمود الرتبة ما بيتقلّصش أبدًا (الخط ثابت والرتبة لازم تفضل في سطر)؛
-        # الملاحظة الطويلة بتلف على أسطر والصف يطول بدل ما نخنق الرتبة.
-        rank_min = grid[rank_index]
-        total_half_width = grid[rank_index] + pair_width
-        note_max = total_half_width - name_min - rank_min
-        target_note_width = min(target_note_width, note_max)      # عند الحد الأقصى _note_fit بيصغّر الخط
-        if target_note_width > pair_width - name_min:
-            # الاسم وصل إلى عرضه المقاس؛ الزيادة الباقية تأتي من الرتبة.
-            grid[rank_index] = total_half_width - name_min - target_note_width
-            grid[name_index] = name_min
-            grid[note_index] = target_note_width
-        else:
-            grid[note_index] = target_note_width
-            grid[name_index] = pair_width - target_note_width
+    # توزيع واحد على النصفين: الرقم والرتبة ثابتين، وعرض (الاسم + الملاحظة) في
+    # النصفين مع بعض يتوزّع حسب المحتوى — عمود الملاحظات يتوسّع على قد أطول
+    # ملاحظة (بنفس الخط 12pt)، والاسم ياخد حده الأدنى، والفاضل يتقسّم.
+    layout_cols = {half: pair for half, pair in {0: (2, 3), 1: (6, 7)}.items()
+                   if entries_by_half[half]}     # نصف بلا ملاحظات يفضل زي ما هو
+    NOTE_GUTTER = 120
+    NOTE_MIN = 500
+    if layout_cols:
+        name_min, note_need = {}, {}
+        for half, (name_index, note_index) in layout_cols.items():
+            name_pt = max((meter.text_width(name, NOTE_NORMAL_PT, NOTE_FONT_BOLD, NOTE_FONT_NAME)
+                           for name in names_by_half[half] if name), default=0.0)
+            name_min[half] = int(math.ceil(name_pt * 20)) + NOTE_GUTTER if name_pt else grid[name_index]
+            note_pt = max(_required_note_width(e["text"], height, meter)
+                          for e in entries_by_half[half])
+            note_need[half] = max(NOTE_MIN, int(math.ceil(note_pt * 20)) + NOTE_GUTTER)
+        # يتوسّع عمود الملاحظات عند الحاجة بس (ما بيضيّقش أبدًا): الزيادة بتتاخد من
+        # عمود الاسم في نفس النصف لحد حدّه الأدنى (الاسم بخطه 12pt)، وبعدها من
+        # فاضل عمود الاسم في النصف التاني. إجمالي الشبكة ثابت.
+        halves = list(layout_cols)
+        rank_index_of = {0: 1, 1: 5}
+        names = {h: grid[layout_cols[h][0]] for h in halves}
+        notes = {h: grid[layout_cols[h][1]] for h in halves}
+        ranks = {h: grid[rank_index_of[h]] for h in halves}
+        rank_min = {}
+        for h in halves:
+            rank_pt = max((meter.text_width(r, NOTE_NORMAL_PT, NOTE_FONT_BOLD, NOTE_FONT_NAME)
+                           for r in ranks_by_half[h] if r), default=0.0)
+            rank_min[h] = min(ranks[h], int(math.ceil(rank_pt * 20)) + NOTE_GUTTER) if rank_pt else ranks[h]
+        for half in halves:
+            extra = max(0, note_need[half] - notes[half])
+            order = [half] + [o for o in halves if o != half]
+            # ناخد الأول من عمود الاسم (نفس النصف ثم التاني) ثم من عمود الرتبة
+            # لحد حدها المقاس — الخط ثابت فالرتبة والاسم لازم يفضلوا في سطر.
+            for donors, floor in ((names, name_min),):   # الرتبة ما بتتقلّصش: ممكن تتقص في Word
+                for donor in order:
+                    if extra <= 0:
+                        break
+                    give = min(extra, max(0, donors[donor] - floor[donor]))
+                    donors[donor] -= give
+                    notes[half] += give
+                    extra -= give
+        for half, (name_index, note_index) in layout_cols.items():
+            grid[name_index], grid[note_index] = names[half], notes[half]
+            grid[rank_index_of[half]] = ranks[half]
 
     _set_table_grid_widths(table, grid, rows)
     needs = {}

@@ -922,3 +922,22 @@ def test_roster_numbers_the_overflow_half_after_the_actual_right_half(data_file)
     right, left = payload["right"], payload["left"]
     assert [row["number"] for row in right] == list(range(1, len(right) + 1))
     assert [row["number"] for row in left] == list(range(len(right) + 1, len(right) + len(left) + 1))
+
+
+def test_note_column_widens_with_content_by_taking_width_from_the_name_column_only():
+    ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+
+    def grid(status):
+        raw = build_docx({
+            "title": "x", "left": [], "target_items": [], "doctors": [], "footer_categories": [],
+            "total": 1, "ops_signer": {}, "chief": {},
+            "right": [{"number": 1, "role": "رائد", "name": "أحمد", "status": status}],
+        }).getvalue()
+        root = etree.fromstring(ZipFile(BytesIO(raw)).read("word/document.xml"))
+        return [int(v) for v in root.xpath(".//w:tbl/w:tblGrid/w:gridCol/@w:w", namespaces=ns)]
+
+    short, long = grid("عمل"), grid("عمل (ارتكاز الحي الحكومي) + نقطة تفتيش")
+    assert long[3] > short[3]                      # الملاحظات اتوسّعت
+    assert long[2] < short[2]                      # من عمود الاسم
+    assert long[1] == short[1] and long[0] == short[0]   # الرتبة والرقم ثابتين
+    assert sum(long) == sum(short)                 # إجمالي الشبكة ثابت
