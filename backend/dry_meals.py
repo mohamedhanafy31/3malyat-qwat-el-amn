@@ -7,6 +7,7 @@
 from copy import deepcopy
 from datetime import date, timedelta
 
+from .labels import personnel_rank_abbr
 from . import service_catalog
 from .afraad import occasional_rows
 from .assignments import peek_day
@@ -132,7 +133,7 @@ def _operations_members(data, day):
         if "عمليات" not in norm((raw.get("post") or "")):
             continue
         members.append({"id": raw.get("id", ""),
-                        "rank": raw.get("role") or "",
+                        "rank": personnel_rank_abbr(raw.get("role") or ""),
                         "role": raw.get("role") or "",
                         "name": raw.get("name") or "",
                         "short_name": raw.get("short_name") or

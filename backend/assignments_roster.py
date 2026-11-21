@@ -12,7 +12,7 @@ from .constants import REST_DURATIONS, ROLE_SEARCH, SHIFTS
 from .dated import groups_on
 from .day_open import needs_prepare, prepare
 from .duty import summarise
-from .labels import RANK_SHORT
+from .labels import RANK_SHORT, personnel_rank_abbr
 from .people import effective, officers_on
 from .repo import PeopleRepo
 from .signatures import signatories
@@ -246,7 +246,8 @@ def _operations_members(data, day):
             continue
         members.append({
             "id": raw.get("id", ""),
-            "rank": dated.get("role") or raw.get("role") or "",
+            # التوقيع بالاختصار (م.ش / ا.ش)؛ role الكامل للقائمة المنسدلة
+            "rank": personnel_rank_abbr(dated.get("role") or raw.get("role") or ""),
             "role": dated.get("role") or raw.get("role") or "",
             "name": raw.get("name") or "",
             "short_name": _short_name(raw),

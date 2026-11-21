@@ -267,3 +267,9 @@ def test_dry_meals_round_trips_in_extras_bundle(data_file):
     }), [DAY])
     assert store.load_data([DAY])["day_dry_meals"][DAY]["fixed_rows"][0]["name"] == "خدمة"
     assert (store.day_folder(DAY) / "extras.json").exists()
+
+
+def test_signer_rank_is_abbreviated_for_individuals():
+    from backend.labels import personnel_rank_abbr
+    assert personnel_rank_abbr("معاون ثالث") == "م.ش"
+    assert personnel_rank_abbr("أمين شرطة ثان") == "ا.ش"
