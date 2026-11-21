@@ -2,8 +2,8 @@
 
 `test_real_data_round_trips` هو الاختبار اللي بيحمي المرحلة ١ كلها: كل
 سجل في البيانات الحقيقية في `data/` بيتحوّل لنموذج ويرجع dict، ولازم يطلع **مطابق
-بالحرف** للي دخل. لو النموذج ضاف حقل ناقص أو شال حقل مش عارفه، الاختبار
-ده بيقع — وده بالظبط اللي بيمنع النماذج إنها تغيّر ملف البيانات في صمت.
+بالحرف** للي دخل، إلا لحقول الهجرة المعلنة. حقل `kind` القديم في الفرق
+مستثنى هنا لأنه يجب تجاهله وإسقاطه عند أول كتابة.
 """
 import json
 
@@ -91,7 +91,10 @@ def test_real_data_round_trips():
 
     def check(model, raw, where):
         nonlocal checked
-        assert _round_trip(model, raw) == raw, f"الشكل اتغيّر في {where}"
+        expected = dict(raw)
+        if model is Course:
+            expected.pop("kind", None)
+        assert _round_trip(model, raw) == expected, f"الشكل اتغيّر في {where}"
         checked += 1
 
     # القوة قايمة واحدة من هجرة 008 — و`status` بيفرّق القوة عن الأرشيف

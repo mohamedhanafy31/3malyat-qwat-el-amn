@@ -1050,6 +1050,7 @@ def _normalise(data):
                 data["leave_history"] = []
     data.setdefault("service_tags", [])
     data.setdefault("courses", [])
+    _drop_legacy_course_kinds(data)
     data.setdefault("course_terms", [])
     data.setdefault("vehicles", [])
     data.setdefault("service_lines", [])
@@ -1061,6 +1062,13 @@ def _normalise(data):
     for role in DEFAULT_DATA["command_groups"]:
         groups.setdefault(role, [])
     data.setdefault("id_seq", {})      # عدّادات الأرقام — شوف reserve_id()
+
+
+def _drop_legacy_course_kinds(data):
+    """النوع كان حقلًا قديمًا في الفرق؛ تجاهله في الذاكرة واحذفه عند الحفظ."""
+    for course in data.get("courses") or []:
+        if isinstance(course, dict):
+            course.pop("kind", None)
 
 
 def _resolve_scope(days, view):
@@ -1320,6 +1328,7 @@ def _write(data):
     القرص مايتكتبش فوقه أبدًا (`OutOfScope`) قبل ما أي ملف يتلمس.
     """
     started = time.perf_counter()
+    _drop_legacy_course_kinds(data)
     data["schema"] = SCHEMA_VERSION
     tracking = data.get("_fp") or {}
     # قراءة بصمات الشكل القديم تبقى ممكنة لكائن حمّله اختبار أو أداة.

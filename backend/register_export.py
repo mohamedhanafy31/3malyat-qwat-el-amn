@@ -27,7 +27,103 @@ def _add(parent, tag, **attrs):
     return node
 
 
-def _set_cell(cell, text, *, ltr=False, header=False, size=9):
+def _set_cell_width(cell, width_cm):
+    tcpr = cell._tc.get_or_add_tcPr()
+    tcw = tcpr.find(qn("w:tcW"))
+    if tcw is None:
+        tcw = OxmlElement("w:tcW")
+        tcpr.insert(0, tcw)
+    tcw.set(qn("w:w"), str(Cm(width_cm).twips))
+    tcw.set(qn("w:type"), "dxa")
+
+
+def _borderless(table):
+    tblpr = table._tbl.tblPr
+    borders = tblpr.find(qn("w:tblBorders"))
+    if borders is None:
+        borders = OxmlElement("w:tblBorders")
+        tblpr.append(borders)
+    for side in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        node = borders.find(qn(f"w:{side}"))
+        if node is None:
+            node = OxmlElement(f"w:{side}")
+            borders.append(node)
+        node.set(qn("w:val"), "nil")
+        node.set(qn("w:sz"), "0")
+
+
+# في فقرة bidi الاتجاه معكوس: jc=left = بداية السطر = اليمين بصريًا (RTL)
+_RTL_START = WD_ALIGN_PARAGRAPH.LEFT
+
+
+def _entry_parts(entry):
+    if isinstance(entry, dict):
+        return str(entry.get("label") or ""), str(entry.get("period") or "")
+    return str(entry or ""), ""
+
+
+def _set_entry(cell, entry, *, size=9):
+    cell.text = ""
+    label, period = _entry_parts(entry)
+    paragraph = cell.paragraphs[0]
+    people._paragraph(paragraph, align=_RTL_START)
+    people._run_font(paragraph.add_run(label), size, font=people.BODY_FONT)
+    if period:
+        period_paragraph = cell.add_paragraph()
+        people._paragraph(period_paragraph, align=_RTL_START)
+        people._run_font(period_paragraph.add_run(period), max(6, size - 1),
+                         font=people.BODY_FONT)
+    cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+
+def _set_group_cell(cell, entries, *, size=9, width_cm=0):
+    entries = list(entries or [])
+    if not entries:
+        _set_cell(cell, "", size=size)
+        return
+    if len(entries) == 1 or width_cm < 8:
+        cell.text = ""
+        for index, entry in enumerate(entries):
+            target = cell.paragraphs[0] if index == 0 else cell.add_paragraph()
+            label, period = _entry_parts(entry)
+            people._paragraph(target, align=_RTL_START)
+            people._run_font(target.add_run(label), size, font=people.BODY_FONT)
+            if period:
+                period_paragraph = cell.add_paragraph()
+                people._paragraph(period_paragraph, align=_RTL_START)
+                people._run_font(period_paragraph.add_run(period), max(6, size - 1),
+                                 font=people.BODY_FONT)
+        cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+        return
+
+    # A cell containing a nested table must end with a paragraph in OOXML.
+    first_paragraph = cell.paragraphs[0]._p
+    cell._tc.remove(first_paragraph)
+    half = max(0.1, width_cm / 2)
+    nested = cell.add_table(rows=(len(entries) + 1) // 2, cols=2)
+    people._table_setup(nested, [half, half], margins=20)
+    people._tighten_vertical_margins(nested, 0)
+    _borderless(nested)
+    for row_index, row in enumerate(nested.rows):
+        for column_index, nested_cell in enumerate(row.cells):
+            _set_cell_width(nested_cell, half)
+            entry_index = row_index * 2 + column_index
+            entry = entries[entry_index] if entry_index < len(entries) else ""
+            _set_entry(nested_cell, entry, size=size)
+
+    trailing = cell.paragraphs[-1]
+    people._paragraph(trailing, align=_RTL_START)
+    people._run_font(trailing.add_run(""), 1, font=people.BODY_FONT)
+    trailing.paragraph_format.space_before = Pt(0)
+    trailing.paragraph_format.space_after = Pt(0)
+    trailing.paragraph_format.line_spacing = Pt(1)
+    cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+
+
+def _set_cell(cell, text, *, ltr=False, header=False, size=9, width_cm=0):
+    if isinstance(text, dict) and "grid" in text:
+        _set_group_cell(cell, text["grid"], size=size, width_cm=width_cm)
+        return
     cell.text = ""
     for index, line in enumerate(str(text or "").split("\n")):
         paragraph = cell.paragraphs[0] if index == 0 else cell.add_paragraph()
@@ -46,7 +142,7 @@ def _landscape(weights):
 
 
 def build_register_docx(title, columns, rows, *, subtitle="", footer_note="",
-                         orientation="auto", ltr_columns=(), font_pt=9, compact=False):
+                         orientation="auto", ltr_columns=(), font_pt=9, compact=False, serial_weight=.6):
     columns = list(columns)
     rows = [list(row) for row in rows]
     if not columns:
@@ -61,7 +157,7 @@ def build_register_docx(title, columns, rows, *, subtitle="", footer_note="",
     section.page_width, section.page_height = ((Cm(29.7), Cm(21)) if landscape
                                                 else (Cm(21), Cm(29.7)))
     section.left_margin = section.right_margin = Cm(.8)
-    section.top_margin, section.bottom_margin = Cm(1.1), Cm(1.2)
+    section.top_margin, section.bottom_margin = (Cm(.6), Cm(.75)) if compact else (Cm(1.1), Cm(1.2))
     sectpr = section._sectPr
     if sectpr.find(qn("w:bidi")) is None:
         people._insert_before(sectpr, OxmlElement("w:bidi"),
@@ -74,7 +170,7 @@ def build_register_docx(title, columns, rows, *, subtitle="", footer_note="",
         people._paragraph(p)
         people._run_font(p.add_run(subtitle), 10, bold=True, font=people.HEADING_FONT)
 
-    all_columns = [("م", .6), *columns]
+    all_columns = [("م", serial_weight), *columns]
     usable_cm = section.page_width.cm - section.left_margin.cm - section.right_margin.cm
     total = sum(weight for _name, weight in all_columns)
     usable_pt = usable_cm * 28.3464567
@@ -101,10 +197,11 @@ def build_register_docx(title, columns, rows, *, subtitle="", footer_note="",
         rows = [["لا توجد بيانات"] + [""] * (len(columns) - 1)]
     for serial, values in enumerate(rows, 1):
         row = table.add_row()
-        people._row_height(row, .42 if compact else .6)
-        vals = [str(serial), *[str(value or "") for value in values]]
-        for index, (cell, value) in enumerate(zip(row.cells, vals)):
-            _set_cell(cell, value, ltr=(index - 1) in ltr_columns and index > 0, size=font_pt)
+        people._row_height(row, .36 if compact else .6)
+        vals = [str(serial), *[value or "" for value in values]]
+        for index, (cell, value, width) in enumerate(zip(row.cells, vals, widths)):
+            _set_cell(cell, value, ltr=(index - 1) in ltr_columns and index > 0,
+                      size=font_pt, width_cm=width)
     footer = section.footer.paragraphs[0]
     people._paragraph(footer)
     note = footer_note or "تاريخ التصدير: " + date.today().strftime("%d-%m-%Y")

@@ -4,16 +4,11 @@
    والضغط على أي التحاق في العرضين بيفتح نفس نافذة التفاصيل. */
 let COURSES = [], BY_OFFICER = [], OFFICERS = [], VIEW = "course";
 
-const KINDS_C = () => ["", "تأهيلية", "تخصصية", "قادة", "تدريبية", "أخرى"];
 const termChip = t =>
   `<button class="chip-btn" data-action="openDetail" data-id="${esc(t.id)}">
     ${esc(t.course_name)}<i>${fmt(t.start)}</i></button>`;
 
 /* ---------- حسب الفرقة ---------- */
-/* ألوان تصنيفية مستقلة، و«أخرى» تبقى محايدة لأنها غير مصنفة. */
-const KIND_CHIP_CLS = {"تأهيلية": "cat1", "تخصصية": "cat2", "قادة": "cat3", "تدريبية": "cat4", "أخرى": "done"};
-const kindChipCls = k => KIND_CHIP_CLS[k] || "done";
-
 /* يوم/شهر مختصر بالأرقام بدل "١٤ أغسطس ٢٠٢٦" — الاسم الكامل للشهر كان
    بياخد مساحة الكرت الضيق كله لما يتكرر مرتين (من/إلى) جنب بعض. */
 const shortDate = iso => {
@@ -82,12 +77,11 @@ function courseCard(c) {
   const body = c.terms.length
     ? `<div class="course-roster">${c.terms.map(termRosterRow).join("")}</div>`
     : emptyState({compact: true, title: "لا توجد التحاقات مسجّلة بعد"});
-  return `<div class="course-card" data-kind="${esc(c.kind || "")}">
+  return `<div class="course-card">
     <div class="course-head">
       <div class="course-head-main">
         <h3 class="course-name">${esc(c.name)}</h3>
         <div class="course-meta">
-          ${c.kind ? `<span class="chip ${kindChipCls(c.kind)}">${esc(c.kind)}</span>` : ""}
           ${c.place ? `<span class="course-place">${esc(c.place)}</span>` : ""}
         </div>
       </div>
@@ -110,12 +104,9 @@ function courseCard(c) {
 /* ---------- الفلترة والإحصائيات — مشتركة بين العرض والكروت الإحصائية ---------- */
 function filteredCourses() {
   const q = $("#crsSearch").value.trim();
-  const kindF = $("#crsKindFilter")?.value || "";
   let list = COURSES;
   if (q) list = list.filter(c => arIncludes(c.name, q) || arIncludes(c.place, q)
       || c.terms.some(t => arIncludes(t.officer_name, q)));
-  if (kindF === "__none") list = list.filter(c => !c.kind);
-  else if (kindF) list = list.filter(c => c.kind === kindF);
   // الأكتر ضباطًا أولًا — فرقة فيها 6 ضباط أهم تشغيليًا من فرقة فيها واحد،
   // ومفيش ترتيب أصلي ذو معنى أصلًا (البيانات جاية بترتيب الاستيراد من الأرشيف).
   return [...list].sort((a, b) => (b.officers - a.officers) || a.name.localeCompare(b.name, "ar"));
@@ -134,12 +125,10 @@ function renderCrsStats() {
     const termsCount = list.reduce((n, c) => n + c.terms.length, 0);
     const officerIds = new Set();
     list.forEach(c => c.terms.forEach(t => officerIds.add(t.officer_id)));
-    const noKind = list.filter(c => !c.kind).length;
     box.innerHTML = `
       <div class="stat"><span>الفرق</span><strong>${list.length}</strong></div>
       <div class="stat"><span>الالتحاقات</span><strong>${termsCount}</strong></div>
-      <div class="stat"><span>ضباط شاركوا</span><strong>${officerIds.size}</strong></div>
-      <div class="stat ${noKind ? "stat-accent-orange" : ""}"><span>فرق بلا تصنيف</span><strong>${noKind}</strong></div>`;
+      <div class="stat"><span>ضباط شاركوا</span><strong>${officerIds.size}</strong></div>`;
     return;
   }
   const list = filteredOfficers();
@@ -156,21 +145,13 @@ function render() {
   if (VIEW === "course") {
     const list = filteredCourses();
     const emptyMsg = COURSES.length
-      ? {icon: "search", title: "لا توجد فرق مطابقة للبحث أو التصفية", hint: "حاول تعديل البحث أو نوع الفرقة."}
+      ? {icon: "search", title: "لا توجد فرق مطابقة للبحث", hint: "حاول تعديل البحث."}
       : {title: "لا توجد فرق مسجّلة", hint: "أضف فرقة جديدة للبدء.", action: {label: "فرقة جديدة", id: "addCrsBtn"}};
     // 51 فرقة كروت ورا بعض كانت صفحة طولها 6700 بكسل — الكرت أطول بكتير من
     // صف الجدول، فبتتعرض 20 20
     const { shown, footer } = pageSlice("coursesWrap", list, render, "", 20);
-    // شارة «بدون تصنيف» كانت على 50 من 51 كرت — بقت تنبيه واحد فوق الكروت
-    const unclassified = COURSES.filter(c => !c.kind).length;
-    const banner = unclassified && $("#crsKindFilter").value !== "__none"
-      ? `<div class="unclassified-banner"><span class="status-dot warn" aria-hidden="true"></span>
-          <span><b>${countLabel(unclassified, "فرقة")} بدون تصنيف</b>
-          — يلوّن التصنيف الكرت ويسهّل التصفية.</span>
-          <button type="button" class="btn" data-filter-unclassified>عرض غير المصنّفة</button></div>`
-      : "";
     $("#coursesWrap").innerHTML = list.length
-      ? `${banner}<div class="courses-grid">${shown.map(courseCard).join("")}</div>${footer}`
+      ? `<div class="courses-grid">${shown.map(courseCard).join("")}</div>${footer}`
       : emptyState(emptyMsg);
     return;
   }
@@ -193,7 +174,6 @@ $$("#viewTabs .vtab").forEach(btn => btn.onclick = () => {
     b.tabIndex=selected?0:-1;
   });
   $("#coursesWrap").setAttribute("aria-labelledby",btn.id);
-  $("#crsKindFilter")?.classList.toggle("hidden", VIEW !== "course");
   render();
 });
 
@@ -211,7 +191,6 @@ ACTIONS.openDetail = id => {
     ? `<tr><td class="name">${label}</td><td class="wrap">${esc(value)}</td></tr>` : "";
   $("#tdBody").innerHTML = mtable(["البيان", "القيمة"], [
     line("المكان", t.course_place),
-    line("النوع", t.course_kind),
     // شرط الوجود هنا مش بس دفاعي — كتير من التحاقات الأرشيف مالهاش تاريخ
     // بداية/نهاية مسجّل أصلًا، فسطر "من يوم: - -" كان هيبان في كل مرة
     // من غير أي معلومة حقيقية فيه.
@@ -236,9 +215,7 @@ function openCourse(id) {
   const c = id ? COURSES.find(x => x.id === id) : null;
   $("#crsId").value = id || "";
   $("#courseTitle").textContent = c ? "تعديل فرقة" : "فرقة جديدة";
-  fillSelect($("#crsKind"), KINDS_C().map(x => [x, x || "— بدون —"]));
   $("#crsName").value = c?.name || "";
-  $("#crsKind").value = c?.kind || "";
   $("#crsPlace").value = c?.place || "";
   $("#crsNote").value = c?.note || "";
   openModal("courseModal");
@@ -259,7 +236,7 @@ $("#addCrsBtn").onclick = () => openCourse(null);
 $("#courseForm").onsubmit = async e => {
   e.preventDefault();
   const id = $("#crsId").value;
-  const body = {name: $("#crsName").value, kind: $("#crsKind").value,
+  const body = {name: $("#crsName").value,
                 place: $("#crsPlace").value, note: $("#crsNote").value};
   const out = id
     ? await api(`/api/courses/${encodeURIComponent(id)}`, jsonReq("PATCH", body))
@@ -311,11 +288,9 @@ $("#termForm").onsubmit = async e => {
   closeModal("termModal", true); showToast("تم الحفظ"); load();
 };
 $("#crsSearch").oninput = debounce(render);
-$("#crsKindFilter").onchange = render;
 $("#exportCourses").onclick = () => {
   const params = new URLSearchParams({view: VIEW});
   if ($("#crsSearch").value.trim()) params.set("q", $("#crsSearch").value.trim());
-  if (VIEW === "course" && $("#crsKindFilter").value) params.set("kind", $("#crsKindFilter").value);
   previewExport(`/api/courses/export.docx?${params}`, "الفِرق والدورات");
 };
 
@@ -331,10 +306,3 @@ async function load() {
   render();
 }
 load();
-
-document.addEventListener("click", e => {
-  if (!e.target.closest("[data-filter-unclassified]")) return;
-  const sel = $("#crsKindFilter");
-  sel.value = "__none";
-  sel.dispatchEvent(new Event("change", {bubbles: true}));
-});

@@ -9,7 +9,7 @@
 """
 from .base import Model
 from .change import MAX_ENTRIES, ChangeEntry
-from .course import COURSE_KINDS, Course, CourseTerm
+from .course import Course, CourseTerm
 from .day import (
     Assignment, ConscriptSlot, CountEntry, Day, DayStatus, OfficerDayState,
 )
@@ -26,7 +26,7 @@ __all__ = [
     "Officer", "Individual", "Person", "OfficerHistory", "of_category",
     "ACTIVE", "ARCHIVED",
     "Leave",
-    "Course", "CourseTerm", "COURSE_KINDS",
+    "Course", "CourseTerm",
     "Day", "Assignment", "ConscriptSlot", "OfficerDayState", "DayStatus", "CountEntry",
     "Mission", "STATUSES", "OPEN_STATUSES",
     "Vehicle", "Conscript",

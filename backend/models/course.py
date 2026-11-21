@@ -7,9 +7,7 @@
 """
 from dataclasses import dataclass
 
-from .base import Model, date_order, max_length, one_of, require, valid_date
-
-COURSE_KINDS = ["تأهيلية", "تخصصية", "قادة", "تدريبية", "أخرى"]
+from .base import Model, date_order, max_length, require, valid_date
 
 
 @dataclass
@@ -17,15 +15,20 @@ class Course(Model):
     id: str = ""
     name: str = ""
     place: str = ""
-    kind: str = ""
     note: str = ""
 
     ID_PREFIX = "CRS"
 
+    @classmethod
+    def from_dict(cls, raw):
+        # Legacy course records may still carry this removed field. It is
+        # intentionally ignored and therefore cannot be written back.
+        return super().from_dict({key: value for key, value in (raw or {}).items()
+                                  if key != "kind"})
+
     def _check(self, errors):
         require(errors, self.name, "اسم الفرقة مطلوب.")
         max_length(errors, self.name, "name")
-        one_of(errors, self.kind, COURSE_KINDS, "نوع الفرقة غير صحيح.")
         max_length(errors, self.note, "note")
 
 

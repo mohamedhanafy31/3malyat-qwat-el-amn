@@ -26,7 +26,7 @@ def test_drivers_register_export(client, anon_client):
 def test_courses_register_export_tracks_view(client, anon_client):
     doc = _doc(client.get("/api/courses/export.docx?view=course"))
     assert "حسب الفرقة" in "\n".join(p.text for p in doc.paragraphs)
-    assert [c.text for c in doc.tables[0].rows[0].cells] == ["م", "اسم الفرقة", "النوع", "المكان", "ملاحظات", "الضباط والالتحاقات"]
+    assert [c.text for c in doc.tables[0].rows[0].cells] == ["م", "اسم الفرقة", "المكان", "الضباط والالتحاقات"]
     officer = _doc(client.get("/api/courses/export.docx?view=officer"))
     assert "حسب الضابط" in "\n".join(p.text for p in officer.paragraphs)
     assert anon_client.get("/api/courses/export.docx").status_code == 401

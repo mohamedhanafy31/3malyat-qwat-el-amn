@@ -2,7 +2,7 @@
 
 الفرقة حاجتين مربوطين ببعض:
 
-  **الفرقة نفسها** (`courses`) — اسمها ومكانها ونوعها. دي بتتكرر: نفس
+  **الفرقة نفسها** (`courses`) — اسمها ومكانها. دي بتتكرر: نفس
   «فرقة الحراسات المشددة» بتتاخد كذا مرة على مدار السنة بضباط مختلفين.
 
   **التحاق الضابط بيها** (`course_terms`) — ضابط + فرقة + من تاريخ لتاريخ.
@@ -19,10 +19,6 @@ from .people import effective
 from .store import reserve_id
 from .utils import command_priority_map, parse_date, rank_key
 from .repo import PeopleRepo
-
-# نوع الفرقة زي ما بتتكتب في التشغيل
-COURSE_KINDS = ["تأهيلية", "تخصصية", "قادة", "تدريبية", "أخرى"]
-
 
 def courses(data):
     return data.setdefault("courses", [])
@@ -68,14 +64,10 @@ def build_course(payload, course_id):
     name = str(payload.get("name", "")).strip()
     if not name:
         return None, "اسم الفرقة مطلوب."
-    kind = str(payload.get("kind", "")).strip()
-    if kind and kind not in COURSE_KINDS:
-        return None, "نوع الفرقة غير صحيح."
     return {
         "id": course_id,
         "name": name,
         "place": str(payload.get("place", "")).strip(),
-        "kind": kind,
         "note": str(payload.get("note", "")).strip(),
     }, None
 
@@ -151,7 +143,6 @@ def _detail(term, course, person, day=None):
         "days": _span_days(term),
         "course_name": (course or {}).get("name", ""),
         "course_place": (course or {}).get("place", ""),
-        "course_kind": (course or {}).get("kind", ""),
         "course_note": (course or {}).get("note", ""),
         "officer_name": (person or {}).get("name", ""),
         "officer_role": eff["role"],
@@ -179,7 +170,8 @@ def by_officer(data):
 
     out = []
     for person in shown:
-        rows = sorted(grouped.get(person["id"], []), key=lambda t: t.get("start", ""))
+        rows = sorted(grouped.get(person["id"], []),
+                      key=lambda t: (not t.get("start"), t.get("start", ""), t.get("id", "")))
         details = [_detail(t, catalog.get(t["course_id"]), person) for t in rows]
         out.append({
             "id": person["id"],
@@ -205,8 +197,9 @@ def summary(data, officer_ids=None):
     for course in courses(data):
         rows = sorted(grouped.get(course["id"], []), key=lambda t: t.get("start", ""))
         details = [_detail(t, course, people.get(t["officer_id"])) for t in rows]
+        public_course = {key: value for key, value in course.items() if key != "kind"}
         out.append({
-            **course,
+            **public_course,
             "terms": details,
             "officers": len({t["officer_id"] for t in rows}),
             "days": sum(d["days"] for d in details),

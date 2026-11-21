@@ -58,7 +58,7 @@ def test_leave_far_in_the_future_is_excluded(client):
 
 
 def test_course_starting_soon_is_included(client):
-    course = client.post("/api/courses", json={"name": "فرقة اختبار", "kind": "تدريبية"}).get_json()
+    course = client.post("/api/courses", json={"name": "فرقة اختبار"}).get_json()
     client.post("/api/course-terms", json={
         "officer_id": "OFF-002", "course_id": course["id"],
         "start": "2026-05-05", "end": "2026-05-10"})

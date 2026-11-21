@@ -7,9 +7,10 @@ from ..courses import (
     build_course, build_term, by_id, by_officer, courses, new_course_id,
     new_term_id, overlapping, summary, terms,
 )
-from ..repo import Repos
+from ..repo import PeopleRepo, Repos
 from ..store import AbortRequest, load_data, with_data
-from ..utils import json_payload
+from ..labels import RANK_SHORT
+from ..utils import command_priority_map, json_payload, rank_key
 from ..register_export import build_register_docx, register_file_name
 
 bp = Blueprint("courses", __name__)
@@ -24,13 +25,28 @@ def list_courses():
 
 
 def _term_line(term):
+    who = f"{_export_rank(term.get('officer_role'))}/ {term['officer_name']}"
+    period = _term_period(term)
+    return f"{who} ({period})" if period else who
+
+
+def _export_rank(role):
+    role = str(role or "").strip()
+    if role == "ملازم أول":
+        return "م.أول"
+    return RANK_SHORT.get(role, role)
+
+
+def _term_period(term):
     start, end = _short_date(term.get("start")), _short_date(term.get("end"))
-    who = f"{term['officer_role']} / {term['officer_name']}"
     if start and end:
-        return f"{who} ({start} – {end})"
-    if start or end:
-        return f"{who} ({start or end})"
-    return who
+        return f"{start} – {end}"
+    return start or end
+
+
+def _numbered_entries(terms, label):
+    return [{"label": f"{index}- {label(term)}", "period": _term_period(term)}
+            for index, term in enumerate(terms, 1)]
 
 
 def _short_date(value):
@@ -47,37 +63,43 @@ def export_courses():
     data = load_data(())
     view = request.args.get("view", "course")
     q = request.args.get("q", "").strip()
-    kind_filter = request.args.get("kind", "")
     if view == "officer":
         records = by_officer(data)
         if q:
             records = [o for o in records if q in o["name"] or
                        any(q in c["course_name"] for c in o["courses"])]
-        rows = [[o["name"], o["role"], o["post"] or "—", str(o["count"]),
-                 str(o["days"]), "، ".join(c["course_name"] for c in o["courses"]) or "—"]
+        rows = [[o["name"], _export_rank(o["role"]), o["post"] or "—", str(o["count"]),
+                 str(o["days"]), {"grid": _numbered_entries(
+                     o["courses"], lambda term: term["course_name"])} if o["courses"] else "—"]
                 for o in records]
         title = "كشف الفرق والدورات حسب الضابط"
-        columns = [("الضابط", 1.7), ("الرتبة", .8), ("العمل المسند إليه", 1.6),
-                   ("عدد الفرق", .55), ("إجمالي الأيام", .6), ("الفرق التي التحق بها", 3.6)]
+        columns = [("الضابط", 2.2), ("الرتبة", .7), ("العمل المسند إليه", 2.4),
+                   ("عدد الفرق", .8), ("إجمالي الأيام", .9), ("الفرق التي التحق بها", 6.2)]
     else:
         records = summary(data)
         if q:
             records = [c for c in records if q in c["name"] or q in c.get("place", "")
                        or any(q in t["officer_name"] for t in c["terms"])]
-        if kind_filter == "__none":
-            records = [c for c in records if not c.get("kind")]
-        elif kind_filter:
-            records = [c for c in records if c.get("kind") == kind_filter]
-        rows = [[c["name"], c.get("kind") or "بدون تصنيف", c.get("place") or "—",
-                 c.get("note") or "—", "\n".join(
-                     _term_line(t)
-                     for t in c["terms"]) or "لا توجد التحاقات مسجّلة بعد"] for c in records]
+        people = {person["id"]: person for person in PeopleRepo(data).raw_all("officers")}
+        priority = command_priority_map(data)
+        rows = []
+        for course in records:
+            def seniority(term):
+                person = people.get(term.get("officer_id"), {})
+                ranked = {**person, "role": term.get("officer_role", person.get("role", ""))}
+                return rank_key(ranked, priority)
+
+            ordered = sorted(course["terms"], key=seniority)
+            rows.append([course["name"], course.get("place") or "—",
+                         {"grid": _numbered_entries(
+                             ordered, lambda term: f"{_export_rank(term.get('officer_role'))}/ "
+                                                    f"{term.get('officer_name', '')}")}
+                         if ordered else "لا توجد التحاقات مسجّلة بعد"])
         title = "كشف الفِرق والدورات حسب الفرقة"
-        columns = [("اسم الفرقة", 2.0), ("النوع", .8), ("المكان", 1.4),
-                   ("ملاحظات", .8), ("الضباط والالتحاقات", 4.4)]
+        columns = [("اسم الفرقة", 3.5), ("المكان", 2.5), ("الضباط والالتحاقات", 12.8)]
     content = build_register_docx(title, columns, rows,
                                   subtitle="تاريخ التصدير: " + __import__("datetime").date.today().isoformat(),
-                                  font_pt=8, compact=True)
+                                  font_pt=7 if view == "officer" else 8, compact=True, serial_weight=1.0)
     return send_file(BytesIO(content), as_attachment=True,
                      download_name=register_file_name("سجل الفرق والدورات"),
                      mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
@@ -114,6 +136,7 @@ def edit_course(course_id):
                     for c in courses(data))
         if clash:
             raise AbortRequest((jsonify({"error": "توجد فرقة أخرى بالاسم نفسه."}), 409))
+        current.pop("kind", None)
         current.update(merged)
         return jsonify(current)
 

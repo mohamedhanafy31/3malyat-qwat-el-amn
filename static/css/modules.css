@@ -3,7 +3,7 @@
    فيها التحاق واحد بس — وأغلب فرق الأرشيف من غير تاريخ بداية/نهاية
    فعلي فعمود «من» و«إلى» كانوا شرطتين فاضيتين في أغلب الصفوف. على
    ٥٠ فرقة كان ده كتير جداول فاضية. الكرت بقى: ترويسة نضيفة (الاسم +
-   شارة النوع الملوّنة + عدد الضباط)، شريط أفعال رفيع، وقايمة صفوف
+   عدد الضباط، شريط أفعال رفيع، وقايمة صفوف
    مضغوطة بدل الجدول. */
 .courses-grid{columns:400px;column-gap:var(--s4);padding:var(--s4) var(--s5) var(--s6)}
 .courses-grid > *{break-inside:avoid;margin-bottom:var(--s4);width:100%}
@@ -11,13 +11,6 @@
 .course-card{background:var(--surface);border:1px solid var(--line);
   border-top:3px solid var(--ink-300);border-radius:var(--radius-md);
   overflow:hidden;box-shadow:var(--shadow-sm)}
-/* لكل فئة لون تصنيفي مستقل، وتبقى «أخرى» محايدة. */
-.course-card[data-kind="تأهيلية"]{border-top-color:var(--cat-1)}
-.course-card[data-kind="تخصصية"]{border-top-color:var(--cat-2)}
-.course-card[data-kind="قادة"]{border-top-color:var(--cat-3)}
-.course-card[data-kind="تدريبية"]{border-top-color:var(--cat-4)}
-.course-card[data-kind="أخرى"]{border-top-color:var(--ink-500)}
-
 .course-head{display:flex;justify-content:space-between;align-items:flex-start;
   gap:var(--s3);padding:var(--s4) var(--s4) var(--s3)}
 .course-head-main{min-width:0}

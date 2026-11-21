@@ -32,9 +32,9 @@ function customMode() {
   return document.querySelector('input[name="assignCustomMode"]:checked')?.value || "day";
 }
 
-/* الفرقة: الجملة الرسمية (الاسم + المدة + المكان) ثم النوع والملاحظات لو موجودة */
+/* الفرقة: الجملة الرسمية (الاسم + المدة + المكان) ثم الملاحظات لو موجودة */
 function courseLine(c) {
-  return [c.text, c.kind && `(${c.kind})`, c.term_note, c.course_note].filter(Boolean).join(" — ");
+  return [c.text, c.term_note, c.course_note].filter(Boolean).join(" — ");
 }
 
 window.dailyFileDay = () => DUTY ? DUTY.date : null;

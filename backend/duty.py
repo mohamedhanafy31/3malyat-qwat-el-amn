@@ -255,7 +255,6 @@ def course_detail(term, course):
     course = course or {}
     detail = {"id": term["id"], "course_id": term["course_id"],
               "name": course.get("name", ""), "place": course.get("place", ""),
-              "kind": course.get("kind", ""),
               "start": term.get("start", ""), "end": term.get("end", ""),
               "term_note": term.get("note", ""), "course_note": course.get("note", "")}
     detail["text"] = course_text(detail)

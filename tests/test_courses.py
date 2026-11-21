@@ -8,8 +8,7 @@ DAY = "2026-04-10"
 
 
 def _course(client, **over):
-    body = {"name": "فرقة الحراسات المشددة", "place": "مدرسة الدفاع الشعبي",
-            "kind": "تخصصية"}
+    body = {"name": "فرقة الحراسات المشددة", "place": "مدرسة الدفاع الشعبي"}
     body.update(over)
     return client.post("/api/courses", json=body)
 
@@ -25,11 +24,11 @@ def _row(client, officer_id, day):
     return next(r for r in d["rows"] if r["id"] == officer_id)
 
 
-def test_course_carries_name_place_and_kind(client):
+def test_course_carries_name_and_place_without_kind(client):
     course = _course(client).get_json()
     assert course["name"] == "فرقة الحراسات المشددة"
     assert course["place"] == "مدرسة الدفاع الشعبي"
-    assert course["kind"] == "تخصصية"
+    assert "kind" not in course
 
 
 def test_a_term_puts_the_officer_in_the_khawarej_cell_all_through_it(client):
@@ -50,10 +49,10 @@ def test_duty_row_carries_the_full_course_detail(client):
     _term(client, course_id=course["id"], note="بأمر الإدارة")
 
     detail = _row(client, "OFF-002", DAY)["course"]
-    assert {k: detail[k] for k in ("name", "place", "kind", "start", "end",
+    assert {k: detail[k] for k in ("name", "place", "start", "end",
                                    "term_note", "course_note")} == {
         "name": "فرقة الحراسات المشددة", "place": "مدرسة الدفاع الشعبي",
-        "kind": "تخصصية", "start": "2026-04-05", "end": "2026-04-15",
+        "start": "2026-04-05", "end": "2026-04-15",
         "term_note": "بأمر الإدارة", "course_note": "تدريب مشترك"}
     assert detail["text"] == ("فرقة الحراسات المشددة خلال الفترة من 5/4/2026 "
                               "حتى 15/4/2026 بمدرسة الدفاع الشعبي")
@@ -81,7 +80,7 @@ def test_duty_docx_daily_text_uses_the_full_course_detail(client):
 
 
 def test_course_text_skips_missing_parts(client):
-    course = _course(client, place="", kind="").get_json()
+    course = _course(client, place="").get_json()
     _term(client, course_id=course["id"])
     assert _row(client, "OFF-002", DAY)["course"]["text"] == (
         "فرقة الحراسات المشددة خلال الفترة من 5/4/2026 حتى 15/4/2026")
@@ -250,7 +249,7 @@ def test_officer_view_carries_the_full_detail_of_each_course(client):
     detail = row["courses"][0]
     assert detail["course_name"] == "فرقة الحراسات المشددة"
     assert detail["course_place"] == "مدرسة الدفاع الشعبي"
-    assert detail["course_kind"] == "تخصصية"
+    assert "course_kind" not in detail
     assert (detail["start"], detail["end"], detail["days"]) == (
         "2026-04-05", "2026-04-15", 11)
     assert detail["note"] == "بترشيح من الإدارة"
@@ -280,3 +279,18 @@ def test_both_views_agree_on_the_same_terms(client):
     by_course = {t["id"] for c in out["courses"] for t in c["terms"]}
     by_officer = {t["id"] for o in out["officers"] for t in o["courses"]}
     assert by_course == by_officer
+
+
+def test_legacy_course_kind_is_ignored_and_dropped_on_next_write(client):
+    from backend import store
+
+    def add_legacy(data):
+        data["courses"].append({"id": "CRS-LEGACY", "name": "فرقة قديمة",
+                                 "place": "مكان قديم", "kind": "تخصصية", "note": ""})
+
+    store.with_data(add_legacy)
+    course = next(c for c in client.get("/api/courses").get_json()["courses"]
+                  if c["id"] == "CRS-LEGACY")
+    assert "kind" not in course
+    stored = next(c for c in store.assemble()["courses"] if c["id"] == "CRS-LEGACY")
+    assert "kind" not in stored

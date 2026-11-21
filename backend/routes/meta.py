@@ -305,7 +305,7 @@ def bootstrap(page):
                         if start and end else 0)
             except ValueError:
                 days = 0
-            detail_parts = [course.get("kind"), course.get("place"), term.get("note")]
+            detail_parts = [course.get("place"), term.get("note")]
             rows.append({**term, "person_id": term.get("officer_id"),
                          "name": person.get("name", ""), "role": person.get("role", ""),
                          "category": "ضابط", "status": "فرقة",
